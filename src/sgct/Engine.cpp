@@ -302,7 +302,17 @@ bool Engine::initNetwork() {
         );
 
     }
-    catch(const char* err) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Initiating network connections failed! Error: '%s'\n", e.what()
+        );
+        return false;
+    }
+    catch (const char* err) {
+        // @TODO (abock, 2019-08-25) NetworkManager threw a lot of C arrays around, but I
+        // changed them to std::runtime_error.  I might have missed one or two, though?
+        // Anyway, this catch clause should be get rid of
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Initiating network connections failed! Error: '%s'\n", err

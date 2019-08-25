@@ -17,14 +17,11 @@ namespace sgct_core {
 
 class Statistics;
 
-/*!
-    The network manager manages all network connections for SGCT.
-*/
+/**
+ * The network manager manages all network connections for SGCT.
+ */
 class NetworkManager {
 public:
-    /*!
-        Different sync stages. Server sync data to clients and clients syncs acknowlagement
-    */
     enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
     enum NetworkMode { Remote = 0, LocalServer, LocalClient };
 
@@ -33,16 +30,23 @@ public:
     NetworkManager(NetworkMode nm);
     ~NetworkManager();
     bool init();
+
+    ///  \param if this application is server/master in cluster then set to true
     void sync(SyncMode sm, Statistics* statsPtr);
+
+    /**
+     * Compare if the last frame and current frames are different -> data update
+     * And if send frame == recieved frame
+     */
     bool isSyncComplete();
     void close();
 
-    /*!
-        \returns the static pointer to the NetworkManager instance
-    */
+    /// \returns the static pointer to the NetworkManager instance
     static NetworkManager* instance();
 
     bool matchAddress(const std::string& address);
+
+    /// Retrieve the node id if this node is part of the cluster configuration
     void retrieveNodeId();
     bool isComputerServer();
     bool isRunning();
@@ -51,6 +55,14 @@ public:
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, size_t nodeIndex);
     void transferData(const void* data, int length, int packageId, SGCTNetwork* connection);
+
+    /**
+     * Compression levels 1-9.
+     *   -1 = Default compression
+     *    0 = No compression
+     *    1 = Best speed
+     *    9 = Best compression
+     */
     void setDataTransferCompression(bool state, int level = 1);
 
     unsigned int getActiveConnectionsCount();
@@ -74,26 +86,26 @@ private:
         int packageId);
 
     static NetworkManager* mInstance;
-    std::vector<SGCTNetwork*> mNetworkConnections;
+    std::vector<std::unique_ptr<SGCTNetwork>> mNetworkConnections;
     std::vector<SGCTNetwork*> mSyncConnections;
     std::vector<SGCTNetwork*> mDataTransferConnections;
     SGCTNetwork* mExternalControlConnection = nullptr;
 
-    std::string mHostName; //stores this computers hostname
+    std::string mHostName; // stores this computers hostname
     std::vector<std::string> mDNSNames;
-    std::vector<std::string> mLocalAddresses; //stors this computers ip addresses
+    std::vector<std::string> mLocalAddresses; // stores this computers ip addresses
 
     bool mIsServer = true;
     bool mIsRunning = true;
     bool mAllNodesConnected = false;
-    std::atomic<bool> mCompress = false;
-    std::atomic<int> mCompressionLevel;
+    std::atomic_bool mCompress = false;
+    std::atomic_int mCompressionLevel;
     int mMode;
     unsigned int mNumberOfActiveConnections = 0;
     unsigned int mNumberOfActiveSyncConnections = 0;
     unsigned int mNumberOfActiveDataTransferConnections = 0;
 };
 
-} // namespace _sgct_core
+} // namespace sgct_core
 
 #endif // __SGCT__NETWORK_MANAGER__H__

@@ -18,6 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 
 namespace {
+
 void setupViewport() {
     sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
@@ -44,46 +45,46 @@ void setupViewport() {
             sgct_core::Frustum::StereoLeftEye)
         {
             switch (sm) {
-            case sgct::SGCTWindow::StereoMode::SideBySide:
-                x = x >> 1; //x offset
-                xSize = xSize >> 1; //x size
-                break;
-            case sgct::SGCTWindow::StereoMode::SideBySideInverted:
-                x = (x >> 1) + (xSize >> 1); //x offset
-                xSize = xSize >> 1; //x size
-                break;
-            case sgct::SGCTWindow::StereoMode::TopBottom:
-                y = (y >> 1) + (ySize >> 1); //y offset
-                ySize = ySize >> 1; //y size
-                break;
-            case sgct::SGCTWindow::StereoMode::TopBottomInverted:
-                y = y >> 1; //y offset
-                ySize = ySize >> 1; //y size
-                break;
-            default:
-                break;
+                case sgct::SGCTWindow::StereoMode::SideBySide:
+                    x /= 2;
+                    xSize /= 2;
+                    break;
+                case sgct::SGCTWindow::StereoMode::SideBySideInverted:
+                    x = (x >> 1) + (xSize >> 1); //x offset
+                    xSize = xSize >> 1; //x size
+                    break;
+                case sgct::SGCTWindow::StereoMode::TopBottom:
+                    y = (y >> 1) + (ySize >> 1); //y offset
+                    ySize = ySize >> 1; //y size
+                    break;
+                case sgct::SGCTWindow::StereoMode::TopBottomInverted:
+                    y = y >> 1; //y offset
+                    ySize = ySize >> 1; //y size
+                    break;
+                default:
+                    break;
             }
         }
         else {
             switch (sm) {
-            case sgct::SGCTWindow::StereoMode::SideBySide:
-                x = (x >> 1) + (xSize >> 1); //x offset
-                xSize = xSize >> 1; //x size
-                break;
-            case sgct::SGCTWindow::StereoMode::SideBySideInverted:
-                x = x >> 1; //x offset
-                xSize = xSize >> 1; //x size
-                break;
-            case sgct::SGCTWindow::StereoMode::TopBottom:
-                y = y >> 1; //y offset
-                ySize = ySize >> 1; //y size
-                break;
-            case sgct::SGCTWindow::StereoMode::TopBottomInverted:
-                y = (y >> 1) + (ySize >> 1); //y offset
-                ySize = ySize >> 1; //y size
-                break;
-            default:
-                break;
+                case sgct::SGCTWindow::StereoMode::SideBySide:
+                    x = (x >> 1) + (xSize >> 1); //x offset
+                    xSize = xSize >> 1; //x size
+                    break;
+                case sgct::SGCTWindow::StereoMode::SideBySideInverted:
+                    x = x >> 1; //x offset
+                    xSize = xSize >> 1; //x size
+                    break;
+                case sgct::SGCTWindow::StereoMode::TopBottom:
+                    y = y >> 1; //y offset
+                    ySize = ySize >> 1; //y size
+                    break;
+                case sgct::SGCTWindow::StereoMode::TopBottomInverted:
+                    y = (y >> 1) + (ySize >> 1); //y offset
+                    ySize = ySize >> 1; //y size
+                    break;
+                default:
+                    break;
             }
         }
     }

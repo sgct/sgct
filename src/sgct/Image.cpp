@@ -31,106 +31,88 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace {
     constexpr const int PngBytesToCheck = 8;
     constexpr const int TgaBytesToCheck = 18;
+
+    struct PNG_IO_DATA {
+        size_t memOffset;
+        unsigned char* data;
+    };
+
+    //---------------- JPEG helpers -----------------
+    struct my_error_mgr {
+        struct jpeg_error_mgr pub; // "public" fields
+        jmp_buf setjmp_buffer; // for return to caller
+    };
+
+    // Here's the routine that will replace the standard error_exit method:
+    METHODDEF(void) my_error_exit(j_common_ptr cinfo) {
+        // cinfo->err really points to a my_error_mgr struct, so coerce pointer
+        my_error_mgr* myerr = reinterpret_cast<my_error_mgr*>(cinfo->err);
+
+        // Always display the message.
+        // We could postpone this until after returning, if we chose.
+        (*cinfo->err->output_message)(cinfo);
+
+        // Return control to the setjmp point
+        longjmp(myerr->setjmp_buffer, 1);
+    }
+
+    void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length) {
+        if (length <= 0) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Image: PNG reading error! Invalid lenght."
+            );
+            return;
+        }
+
+        // The file 'handle', a pointer, is stored in png_ptr->io_ptr
+        if (png_ptr->io_ptr == nullptr) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Image: PNG reading error! Invalid source pointer."
+            );
+            return;
+        }
+
+        if (outData == nullptr) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Image: PNG reading error! Invalid destination pointer."
+            );
+            return;
+        }
+
+        // copy buffer
+        PNG_IO_DATA* ioPtr = reinterpret_cast<PNG_IO_DATA*>(png_ptr->io_ptr);
+        memcpy(outData, ioPtr->data + ioPtr->memOffset, length);
+        ioPtr->memOffset += length;
+    }
+
+
+    sgct_core::Image::FormatType getFormatType(std::string filename) {
+        std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+
+        if (filename.find(".png") != std::string::npos) {
+            return sgct_core::Image::FormatType::PNG;
+        }
+        if (filename.find(".jpg") != std::string::npos) {
+            return sgct_core::Image::FormatType::JPEG;
+        }
+        if (filename.find(".jpeg") != std::string::npos) {
+            return sgct_core::Image::FormatType::JPEG;
+        }
+        if (filename.find(".tga") != std::string::npos) {
+            return sgct_core::Image::FormatType::TGA;
+        }
+        return sgct_core::Image::FormatType::Unknown;
+    }
+
 } // namespace
-
-struct PNG_IO_DATA {
-    size_t memOffset;
-    unsigned char* data;
-};
-
-//---------------- JPEG helpers -----------------
-struct my_error_mgr {
-    struct jpeg_error_mgr pub;    /* "public" fields */
-
-    jmp_buf setjmp_buffer;    /* for return to caller */
-};
-
-using my_error_ptr = my_error_mgr*;
-
-/*
-* Here's the routine that will replace the standard error_exit method:
-*/
-
-METHODDEF(void) my_error_exit(j_common_ptr cinfo) {
-    /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
-    my_error_ptr myerr = (my_error_ptr)cinfo->err;
-
-    /* Always display the message. */
-    /* We could postpone this until after returning, if we chose. */
-    (*cinfo->err->output_message) (cinfo);
-
-    /* Return control to the setjmp point */
-    longjmp(myerr->setjmp_buffer, 1);
-}
-
-void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length) {
-    if (length <= 0) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Image: PNG reading error! Invalid lenght."
-        );
-        return;
-    }
-        
-    // The file 'handle', a pointer, is stored in png_ptr->io_ptr
-    if (png_ptr->io_ptr == nullptr) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Image: PNG reading error! Invalid source pointer."
-        );
-        return;
-    }
-    
-    if (outData == nullptr) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Image: PNG reading error! Invalid destination pointer."
-        );
-        return;
-    }
-            
-    //copy buffer
-    PNG_IO_DATA* ioPtr = reinterpret_cast<PNG_IO_DATA*>(png_ptr->io_ptr);
-    memcpy(outData, ioPtr->data + ioPtr->memOffset, length);
-    ioPtr->memOffset += length;
-
-    //fprintf(stderr, "Lenght: %d\n", length);
-}
 
 namespace sgct_core {
 
 Image::~Image() {
     cleanup();
-}
-
-Image::FormatType Image::getFormatType(const std::string& filename) {
-    std::string filenameLC;
-    filenameLC.resize(filename.size());
-
-    std::transform(filename.begin(), filename.end(), filenameLC.begin(), ::tolower);
-
-    // if png file
-    if (filenameLC.find(".png") != std::string::npos) {
-        return FormatType::PNG;
-    }
-
-    // if jpg
-    if (filenameLC.find(".jpg") != std::string::npos) {
-        return FormatType::JPEG;
-    }
-
-    // if jpeg
-    if (filenameLC.find(".jpeg") != std::string::npos) {
-        return FormatType::JPEG;
-    }
-
-    // if tga
-    if (filenameLC.find(".tga") != std::string::npos) {
-        return FormatType::TGA;
-    }
-
-    // no match found
-    return FormatType::Unknown;
 }
 
 bool Image::load(std::string filename) {
@@ -143,7 +125,7 @@ bool Image::load(std::string filename) {
     }
 
     bool res = false;
-    double t0 = sgct::Engine::getTime();
+    const double t0 = sgct::Engine::getTime();
 
     switch (getFormatType(filename)) {
         case FormatType::PNG:
@@ -180,7 +162,6 @@ bool Image::load(std::string filename) {
             break;
 
         default:
-            //not found
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Image error: Unknown file '%s'\n", filename.c_str()
@@ -193,7 +174,7 @@ bool Image::load(std::string filename) {
 
 bool Image::loadJPEG(std::string filename) {
     if (filename.empty()) {
-        //one char + dot and suffix and is 5 char
+        // one char + dot and suffix and is 5 char
         return false;
     }
 
@@ -248,10 +229,11 @@ bool Image::loadJPEG(std::string filename) {
     jpeg_start_decompress(&cinfo);
     row_stride = cinfo.output_width * cinfo.output_components;
 
-    //SGCT uses BGR so convert to that
+    // SGCT uses BGR so convert to that
     cinfo.out_color_space = mPreferBGRForImport ? JCS_EXT_BGR : JCS_EXT_RGB;
 
-    //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
+    // only support 8-bit per color depth for jpeg even if the format supports up to
+    // 12-bit
     mBytesPerChannel = 1; 
     mChannels = cinfo.output_components;
     mSize_x = cinfo.output_width;
@@ -287,11 +269,8 @@ bool Image::loadJPEG(std::string filename) {
     return true;
 }
 
-/*!
- Load a jpeg compressed image from memory.
- */
 bool Image::loadJPEG(unsigned char* data, size_t len) {
-    if(data == nullptr || len <= 0) {
+    if (data == nullptr || len <= 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image: failed to load JPEG from memory. Invalid input data."
@@ -300,13 +279,12 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     }
     
     tjhandle turbo_jpeg_handle = tjInitDecompress();
+
+    //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
+    mBytesPerChannel = 1; 
     
     int jpegsubsamp;
-    int pixelformat;
     int colorspace;
-
-    mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
-    
     int decompress = tjDecompressHeader3(
         turbo_jpeg_handle,
         data,
@@ -325,6 +303,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
         return false;
     }
     
+    int pixelformat;
     switch(jpegsubsamp) {
         case TJSAMP_444:
         case TJSAMP_422:
@@ -345,7 +324,8 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     if (mChannels < 1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load JPEG from memory. Unsupported chrominance subsampling!\n"
+            "Image: failed to load JPEG from memory. Unsupported chrominance"
+            "subsampling!\n"
         );
         tjDestroy(turbo_jpeg_handle);
         return false;
@@ -439,7 +419,7 @@ bool Image::loadPNG(std::string filename) {
         fclose(fp);
         return false;
     }
-
+    ///
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png_ptr == nullptr) {
         sgct::MessageHandler::instance()->print(
@@ -453,11 +433,7 @@ bool Image::loadPNG(std::string filename) {
     info_ptr = png_create_info_struct(png_ptr);
     if (info_ptr == nullptr) {
         fclose(fp);
-        png_destroy_read_struct(
-            &png_ptr,
-            nullptr,
-            nullptr
-        );
+        png_destroy_read_struct(&png_ptr, nullptr, nullptr);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image error: Can't allocate memory to read PNG file: %s\n", mFilename.c_str()

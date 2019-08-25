@@ -37,7 +37,7 @@ public:
     void setSpoutRigOrientation(glm::vec3 orientation);
 
     /// Update projection when aspect ratio changes for the viewport.
-    virtual void update(float width, float height) override;
+    virtual void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
     virtual void render() override;

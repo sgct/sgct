@@ -1921,7 +1921,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     );
     if (fishPrj) {
         fishPrj->setIgnoreAspectRatio(true);
-        fishPrj->update(1.f, 1.f);
+        fishPrj->update(glm::ivec2(1.f, 1.f));
     }
 
     sgct::MessageHandler::instance()->print(

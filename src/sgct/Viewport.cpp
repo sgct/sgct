@@ -396,9 +396,10 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     }
 
     if (element->Attribute("quality")) {
-        fishProj->setCubemapResolution(
-            cubeMapResolutionForQuality(element->Attribute("quality"))
-        );
+        const int res = cubeMapResolutionForQuality(element->Attribute("quality"));
+        if (res > 0) {
+            fishProj->setCubemapResolution(res);
+        }
     }
 
     if (element->Attribute("method")) {
@@ -491,9 +492,10 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
     spoutProj->setUser(mUser);
 
     if (element->Attribute("quality")) {
-        spoutProj->setCubemapResolution(
-            cubeMapResolutionForQuality(element->Attribute("quality"))
-        );
+        const int res = cubeMapResolutionForQuality(element->Attribute("quality"));
+        if (res > 0) {
+            spoutProj->setCubemapResolution(res);
+        }
     }
     if (element->Attribute("mapping")) {
         const std::string val = element->Attribute("mapping");
@@ -565,9 +567,10 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     sphericalMirrorProj->setUser(mUser);
 
     if (element->Attribute("quality")) {
-        sphericalMirrorProj->setCubemapResolution(
-            cubeMapResolutionForQuality(element->Attribute("quality"))
-        );
+        const int res = cubeMapResolutionForQuality(element->Attribute("quality"));
+        if (res > 0) {
+            sphericalMirrorProj->setCubemapResolution(res);
+        }
     }
 
     float tilt;

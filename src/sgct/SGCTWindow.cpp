@@ -266,7 +266,7 @@ void SGCTWindow::initOGL() {
 
         const float viewPortWidth = mFramebufferRes.x * vp->getXSize();
         const float viewPortHeight = mFramebufferRes.y * vp->getYSize();
-        vp->getNonLinearProjectionPtr()->update(viewPortWidth, viewPortHeight);
+        vp->getNonLinearProjectionPtr()->update({ viewPortWidth, viewPortHeight });
     }
 }
 
@@ -550,7 +550,7 @@ bool SGCTWindow::update() {
         if (vp->hasSubViewports()) {
             const float w = static_cast<float>(mFramebufferRes.x) * vp->getXSize();
             const float h = static_cast<float>(mFramebufferRes.y) * vp->getYSize();
-            vp->getNonLinearProjectionPtr()->update(w, h);
+            vp->getNonLinearProjectionPtr()->update({ w, h });
         }
     }
 

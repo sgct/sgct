@@ -109,9 +109,7 @@ void NonLinearProjection::updateFrustums(const Frustum::FrustumMode& frustumMode
 }
 
 void NonLinearProjection::setCubemapResolution(int resolution) {
-    if (resolution > 0) {
-        mCubemapResolution = resolution;
-    }
+    mCubemapResolution = resolution;
 }
 
 void NonLinearProjection::setInterpolationMode(InterpolationMode im) {

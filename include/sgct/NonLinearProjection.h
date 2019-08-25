@@ -51,7 +51,7 @@ public:
 
     virtual void render() = 0;
     virtual void renderCubemap(size_t* subViewPortIndex) = 0;
-    virtual void update(float width, float height) = 0;
+    virtual void update(glm::vec2 size) = 0;
 
     void updateFrustums(const Frustum::FrustumMode& frustumMode, float nearClipPlane,
         float farClipPlane);
@@ -138,6 +138,8 @@ protected:
         unsigned int cubeFaceBack = 0;
     } mTextures;
 
+    // @TODO (abock, 2019-08-25) This should be replaced with an anonymous struct
+    // containing the 6 named viewports in the same order as mTextures
     BaseViewport mSubViewports[6];
 
     std::vector<float> mVerts;

@@ -23,7 +23,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-void SphericalMirrorProjection::update(float width, float height) {}
+void SphericalMirrorProjection::update(glm::vec2 size) {}
 
 void SphericalMirrorProjection::render() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
@@ -68,7 +68,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
         if (!bv.isEnabled()) {
             return;
         }
-        generateMap(texture, mTextureInternalFormat, mTextureFormat, mTextureType);
+        generateMap(texture, mTexInternalFormat, mTexFormat, mTexType);
         if (sgct::Engine::checkForOGLErrors()) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
@@ -495,10 +495,15 @@ void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) 
 
 void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex)
 {
-    auto renderInternal = [this](BaseViewport& bv, unsigned int& texture, int idx) {
+    auto renderInternal = [this, subViewPortIndex](BaseViewport& bv,
+                                                   unsigned int& texture, int idx)
+    {
         if (!bv.isEnabled()) {
             return;
         }
+
+        *subViewPortIndex = idx;
+
 
         mCubeMapFbo->bind();
         if (!mCubeMapFbo->isMultiSampled()) {

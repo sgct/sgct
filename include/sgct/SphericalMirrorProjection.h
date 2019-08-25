@@ -23,7 +23,7 @@ public:
     SphericalMirrorProjection() = default;
     virtual ~SphericalMirrorProjection() = default;
 
-    virtual void update(float width, float height) override;
+    virtual void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
     virtual void render() override;

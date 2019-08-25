@@ -21,9 +21,9 @@ public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
     enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
-    void update(float width, float height);
-    void render();
-    void renderCubemap(size_t* subViewPortIndex);
+    void update(glm::vec2 size) override;
+    void render() override;
+    void renderCubemap(size_t* subViewPortIndex) override;
 
     void setDomeDiameter(float size);
     void setTilt(float angle);
@@ -38,9 +38,8 @@ public:
     glm::vec3 getOffset() const;
 
 private:
-    void initViewports();
-    void initShaders();
-    void updateGeometry(float width, float height);
+    void initViewports() override;
+    void initShaders() override;
 
     void drawCubeFace(size_t face);
     void blitCubeFace(int face);

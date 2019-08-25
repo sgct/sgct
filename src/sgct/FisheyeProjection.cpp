@@ -30,8 +30,71 @@ namespace sgct_core {
 /*!
 Update projection when aspect ratio changes for the viewport.
 */
-void FisheyeProjection::update(float width, float height) {
-    updateGeometry(width, height);
+void FisheyeProjection::update(glm::vec2 size) {
+    //create proxy geometry
+    float leftcrop = mCropFactors[CropLeft];
+    float rightcrop = mCropFactors[CropRight];
+    float bottomcrop = mCropFactors[CropBottom];
+    float topcrop = mCropFactors[CropTop];
+
+    float cropAspect = ((1.f - 2.f * bottomcrop) + (1.f - 2.f * topcrop)) /
+        ((1.f - 2.f * leftcrop) + (1.f - 2.f * rightcrop));
+
+    float x = 1.f;
+    float y = 1.f;
+
+    float frameBufferAspect = mIgnoreAspectRatio ? 1.f : size.x / size.y;
+
+    if (sgct::SGCTSettings::instance()->getTryMaintainAspectRatio()) {
+        float aspect = frameBufferAspect * cropAspect;
+        if (aspect >= 1.0f) {
+            x = 1.0f / aspect;
+        }
+        else {
+            y = aspect;
+        }
+    }
+
+    mVerts[0] = leftcrop;
+    mVerts[1] = bottomcrop;
+    mVerts[2] = -x;
+    mVerts[3] = -y;
+    mVerts[4] = -1.f;
+
+    mVerts[5] = leftcrop;
+    mVerts[6] = 1.f - topcrop;
+    mVerts[7] = -x;
+    mVerts[8] = y;
+    mVerts[9] = -1.f;
+
+    mVerts[10] = 1.f - rightcrop;
+    mVerts[11] = bottomcrop;
+    mVerts[12] = x;
+    mVerts[13] = -y;
+    mVerts[14] = -1.f;
+
+    mVerts[15] = 1.f - rightcrop;
+    mVerts[16] = 1.f - topcrop;
+    mVerts[17] = x;
+    mVerts[18] = y;
+    mVerts[19] = -1.f;
+
+    //update VBO
+    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+        glBindVertexArray(mVAO);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+    GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+
+    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+        glBindVertexArray(0);
+    }
+    else {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 /*!
@@ -923,73 +986,6 @@ void FisheyeProjection::initShaders() {
         mShaderLoc.swapFarLoc = mDepthCorrectionShader.getUniformLocation("far");
 
         sgct::ShaderProgram::unbind();
-    }
-}
-
-void FisheyeProjection::updateGeometry(float width, float height) {
-    //create proxy geometry
-    float leftcrop = mCropFactors[CropLeft];
-    float rightcrop = mCropFactors[CropRight];
-    float bottomcrop = mCropFactors[CropBottom];
-    float topcrop = mCropFactors[CropTop];
-
-    float cropAspect = ((1.f - 2.f * bottomcrop) + (1.f - 2.f * topcrop)) /
-                       ((1.f - 2.f * leftcrop) + (1.f - 2.f * rightcrop));
-
-    float x = 1.f;
-    float y = 1.f;
-
-    float frameBufferAspect = mIgnoreAspectRatio ? 1.f : width / height;
-
-    if (sgct::SGCTSettings::instance()->getTryMaintainAspectRatio()) {
-        float aspect = frameBufferAspect * cropAspect;
-        if (aspect >= 1.0f) {
-            x = 1.0f / aspect;
-        }
-        else {
-            y = aspect;
-        }
-    }
-
-    mVerts[0] = leftcrop;
-    mVerts[1] = bottomcrop;
-    mVerts[2] = -x;
-    mVerts[3] = -y;
-    mVerts[4] = -1.f;
-
-    mVerts[5] = leftcrop;
-    mVerts[6] = 1.f - topcrop;
-    mVerts[7] = -x;
-    mVerts[8] = y;
-    mVerts[9] = -1.f;
-
-    mVerts[10] = 1.f - rightcrop;
-    mVerts[11] = bottomcrop;
-    mVerts[12] = x;
-    mVerts[13] = -y;
-    mVerts[14] = -1.f;
-
-    mVerts[15] = 1.f - rightcrop;
-    mVerts[16] = 1.f - topcrop;
-    mVerts[17] = x;
-    mVerts[18] = y;
-    mVerts[19] = -1.f;
-
-    //update VBO
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(mVAO);
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-
-    GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
-    else {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 

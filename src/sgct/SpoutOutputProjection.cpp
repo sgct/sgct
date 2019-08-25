@@ -55,7 +55,7 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     }
 }
 
-void SpoutOutputProjection::update(float width, float height) {
+void SpoutOutputProjection::update(glm::vec2 size) {
     mVerts[0] = 0.f;
     mVerts[1] = 0.f;
     mVerts[2] = -1.f;
@@ -181,12 +181,12 @@ void SpoutOutputProjection::initTextures() {
                 glTexImage2D(
                     GL_TEXTURE_2D,
                     0,
-                    mTextureInternalFormat,
+                    mTexInternalFormat,
                     mappingWidth,
                     mappingHeight,
                     0,
-                    mTextureFormat,
-                    mTextureType,
+                    mTexFormat,
+                    mTexType,
                     nullptr
                 );
             }
@@ -217,12 +217,12 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                mTextureInternalFormat,
+                mTexInternalFormat,
                 mappingWidth,
                 mappingHeight,
                 0,
-                mTextureFormat,
-                mTextureType,
+                mTexFormat,
+                mTexType,
                 nullptr
             );
             break;
@@ -252,12 +252,12 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                mTextureInternalFormat,
+                mTexInternalFormat,
                 mappingWidth,
                 mappingHeight,
                 0,
-                mTextureFormat,
-                mTextureType,
+                mTexFormat,
+                mTexType,
                 nullptr
             );
             break;
@@ -691,7 +691,7 @@ void SpoutOutputProjection::initFBO() {
     NonLinearProjection::initFBO();
 
     mSpoutFBO = std::make_unique<sgct_core::OffScreenBuffer>();
-    mSpoutFBO->setInternalColorFormat(mTextureInternalFormat);
+    mSpoutFBO->setInternalColorFormat(mTexInternalFormat);
     mSpoutFBO->createFBO(mappingWidth, mappingHeight, 1);
 
     if (mSpoutFBO->checkForErrors()) {

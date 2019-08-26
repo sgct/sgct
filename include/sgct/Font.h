@@ -16,17 +16,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <freetype/ftstroke.h>
 #endif
 
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace sgct_text {
 
-/*!
-Will handle font textures and rendering. Implementation is based on
-<a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehe's font tutorial for freetype</a>.
-*/
+/**
+ * Will handle font textures and rendering. Implementation is based on
+ * <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehe's font
+ * tutorial for freetype</a>.
+ */
 class Font {
 public:
     struct FontFaceData {
@@ -38,35 +39,50 @@ public:
         bool mInterpolated = false;
     };
 
-    Font(std::string fontName = std::string(), float height = 0.f);
+    /**
+     * Initializes all variables needed for the font. Needs to be called before creating
+     * any textures for the font.
+     *
+     * \param face The truetype face pointer
+     * \param name FontName of the font that's being created
+     * \param height Font height in pixels
+     */
+    Font(FT_Library lib, FT_Face face, std::string fontName, unsigned int h);
 
-    void init(FT_Library lib, FT_Face face, std::string fontName, unsigned int h);
-    size_t getNumberOfLoadedChars();
+    /// Counts the number of textures used by this font.
+    size_t getNumberOfLoadedChars() const;
+    
+    /// Cleans up memory used by the Font
     void clean();
 
-    /*! Get the font face data */
+    /// Get the font face data
     const Font::FontFaceData& getFontFaceData(wchar_t c);
 
-    /*! Get the vertex array id */
+    /// Get the vertex array id
     unsigned int getVAO() const;
 
-    /*! Get the vertex buffer objects id */
+    /// Get the vertex buffer objects id
     unsigned int getVBO() const;
 
-    /*! Get the display list id */
+    /// Get the display list id
     unsigned int getDisplayList() const;
 
-    /*! Get height of the font */
+    /// Get height of the font
     float getHeight() const;
 
-    signed long getStrokeSize() const;
-    void setStrokeSize(signed long size);
+    /**
+     * Get the stroke (border) size.
+     *
+     * \return size The stroke size in pixels
+     */
+    long getStrokeSize() const;
 
-    /*! Less then Font comparison operator */
-    bool operator<(const Font& rhs) const;
-
-    /*! Equal to Font comparison operator */
-    bool operator==(const Font& rhs) const;
+    /**
+     * Set the stroke (border) size.
+     *
+     * \param size The stroke size in pixels
+     */
+    void setStrokeSize(long size);
 
 private:
     struct GlyphData {
@@ -81,19 +97,20 @@ private:
 
     void createCharacter(wchar_t c);
     bool createGlyph(wchar_t c, FontFaceData& FFDPtr);
-    unsigned int generateTexture(int width, int height, unsigned char* data);
+    unsigned int generateTexture(int width, int height,
+        const std::vector<unsigned char>& buffer);
 
-    bool getPixelData(FT_Face face, int& width, int& height, unsigned char** pixels,
-        GlyphData& gd);
+    bool getPixelData(FT_Face face, int& width, int& height,
+        std::vector<unsigned char>& pixels, GlyphData& gd);
     
-    std::string mName; // Holds the font name
-    float mHeight; // Holds the height of the font.
+    std::string mName;
+    float mHeight;
     unsigned int mListId = 0;
     unsigned int mVBO = 0;
     unsigned int mVAO = 0;
     FT_Face	mFace;
     FT_Library mFTLibrary;
-    FT_Fixed mStrokeSize;
+    FT_Fixed mStrokeSize = 1;
     std::unordered_map<wchar_t, FontFaceData> mFontFaceDataMap;
 };
 

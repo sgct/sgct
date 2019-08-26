@@ -496,8 +496,8 @@ private:
 
     static sgct_core::Touch mCurrentTouchPoints; //< stores all touch points (oldest to newest) from last callback
 
-    bool mShowInfo = false;
-    bool mShowGraph = false;
+    bool mShowInfo = true;
+    bool mShowGraph = true;
     bool mShowWireframe = false;
     bool mTakeScreenshot = false;
     bool mTerminate = false;

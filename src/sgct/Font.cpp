@@ -7,57 +7,28 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Font.h>
 
-#include <sgct/ogl_headers.h>
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
 #include <array>
 
 namespace sgct_text {
 
-bool Font::operator<(const Font & rhs) const {
-    return mName.compare(rhs.mName) < 0 || (mName == rhs.mName && mHeight < rhs.mHeight);
-}
-
-/*! Equal to Font comparison operator */
-bool Font::operator==(const Font & rhs) const {
-    return mName == rhs.mName && mHeight == rhs.mHeight;
-}
-
-/*!
-Default constructor does not allocate any resources for the font.
-The init function needs to be called before the font can actually be used
-@param    fontName    Name of the font
-@param    height        Height of the font
-*/
-Font::Font(std::string fontName, float height)
-    : mName(std::move(fontName))
-    , mHeight(height)
-{}
-
-/*!
-Initializes all variables needed for the font. Needs to be called
-before creating any textures for the font
-@param    face    The truetype face pointer
-@param    name    FontName of the font that's being created
-@aram    height    Font height in pixels
-*/
-void Font::init(FT_Library lib, FT_Face face, std::string name, unsigned int height) {
-    mFTLibrary = lib;
-    mStrokeSize = 1;
-    mFace = face;
-    mName = std::move(name);
-    mHeight = static_cast<float>(height);
-
-    //setup geomerty
+Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
+    : mFTLibrary(lib)
+    , mFace(face)
+    , mName(std::move(name))
+    , mHeight(static_cast<float>(height))
+{
+    // setup geometry
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         mListId = glGenLists(1);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Font: Generating display list: %u\n",
-            mListId
+            "Font: Generating display list: %u\n", mListId
         );
 
-        //So now we can create the display list
+        // So now we can create the display list
         glNewList(mListId, GL_COMPILE);
 
         glBegin(GL_QUADS);
@@ -81,16 +52,14 @@ void Font::init(FT_Library lib, FT_Face face, std::string name, unsigned int hei
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Font: Generating VAO: %u\n",
-            mVAO
+            "Font: Generating VAO: %u\n", mVAO
         );
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Font: Generating VBO: %u\n",
-            mVBO
+            "Font: Generating VBO: %u\n", mVBO
         );
 
-        std::array<float, 16> coords = {
+        std::array<float, 16> c = {
             0.f, 1.f, 0.f, 0.f,
             1.f, 1.f, 1.f, 0.f,
             0.f, 0.f, 0.f, 1.f,
@@ -99,83 +68,44 @@ void Font::init(FT_Library lib, FT_Face face, std::string name, unsigned int hei
 
         glBindVertexArray(mVAO);
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            coords.size() * sizeof(float),
-            coords.data(),
-            GL_STATIC_DRAW
-        );
+        glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        glVertexAttribPointer(
-            0,                  // attribute 0. No particular reason for 0, 
-                                // but must match the layout in the shader.
-            2,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            4 * sizeof(float),    // stride
-            reinterpret_cast<void*>(0) // array buffer offset
-            );
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 
         glVertexAttribPointer(
-            1,                  // attribute 1
-            2,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            4 * sizeof(float),    // stride
-            reinterpret_cast<void*>(8) // array buffer offset
-            );
+            1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            4 * sizeof(float),
+            reinterpret_cast<void*>(8)
+        );
 
-        //unbind
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 
-/*!
-Counts the number of textures used by this font.
-*/
-size_t Font::getNumberOfLoadedChars() {
+size_t Font::getNumberOfLoadedChars() const {
     return mFontFaceDataMap.size();
 }
 
-/*!
-Get the stroke (border) size
-@return    size    The stroke size in pixels
-*/
-signed long Font::getStrokeSize() const {
+long Font::getStrokeSize() const {
     return mStrokeSize;
 }
 
-/*!
-Set the stroke (border) size
-@param    size    The stroke size in pixels
-*/
-void Font::setStrokeSize(signed long size) {
+void Font::setStrokeSize(long size) {
     mStrokeSize = size;
 };
 
-/*!
-Cleans up memory used by the Font
-*/
 void Font::clean() {
     if (!mFontFaceDataMap.empty()) {
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-            if (mListId != GL_FALSE) {
-                glDeleteLists(mListId, 1);
-            }
-        }
-        else {
-            if (mVAO != GL_FALSE) {
-                glDeleteVertexArrays(1, &mVAO);
-            }
-            if (mVBO != GL_FALSE) {
-                glDeleteBuffers(1, &mVBO);
-            }
-        }
-
+        glDeleteLists(mListId, 1);
+        glDeleteVertexArrays(1, &mVAO);
+        glDeleteBuffers(1, &mVBO);
 
         // clear data
         for (const std::pair<const wchar_t, FontFaceData>& n : mFontFaceDataMap) {
@@ -190,52 +120,44 @@ void Font::clean() {
 
 const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
     if (mFontFaceDataMap.count(c) == 0) {
-        //check if c does not exist in map
+        // check if c does not exist in map
         createCharacter(c);
     }
     
     return mFontFaceDataMap[c];
 }
 
-/*! Get the vertex array id */
 unsigned int Font::getVAO() const {
     return mVAO;
 }
 
-/*! Get the vertex buffer objects id */
 unsigned int Font::getVBO() const {
     return mVBO;
 }
 
-/*! Get the display list id */
 unsigned int Font::getDisplayList() const {
     return mListId;
 }
 
-/*! Get height of the font */
 float Font::getHeight() const {
     return mHeight;
 }
 
 void Font::createCharacter(wchar_t c) {
     FontFaceData ffd;
-    
-    // create glyph
-    if (createGlyph(c, ffd)) {
-        mFontFaceDataMap[c] = ffd;
+    const bool success = createGlyph(c, ffd);
+    if (success) {
+        mFontFaceDataMap[c] = std::move(ffd);
     }
 }
 
 bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
-    //Load the Glyph for our character.
-    /*
-    Hints:
-    http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
-    */
+    // Load the Glyph for our character.
+    // Hints:
+    // www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
 
-    FT_UInt char_index = FT_Get_Char_Index(mFace, static_cast<FT_ULong>(c));
-    if (char_index == 0) {
-        std::string mName;                // Holds the font name
+    FT_UInt charIndex = FT_Get_Char_Index(mFace, static_cast<FT_ULong>(c));
+    if (charIndex == 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "Font %s: Missing face for char %u!\n",
@@ -243,7 +165,8 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
         );
     }
 
-    if (FT_Load_Glyph(mFace, char_index, FT_LOAD_FORCE_AUTOHINT)) {
+    FT_Error loadError = FT_Load_Glyph(mFace, charIndex, FT_LOAD_FORCE_AUTOHINT);
+    if (loadError) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Font %s: FT_Load_Glyph failed for char %u!\n",
@@ -252,13 +175,13 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
         return false;
     }
 
+    // load pixel data
     int width;
     int height;
-    unsigned char* pixels = nullptr;
-
-    //load pixel data
+    std::vector<unsigned char> pixels;
     GlyphData gd;
-    if (!getPixelData(mFace, width, height, &pixels, gd)) {
+    const bool success = getPixelData(mFace, width, height, pixels, gd);
+    if (!success) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Font %s: FT_Get_Glyph failed for char %u.\n",
@@ -267,25 +190,24 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
         return false;
     }
 
-    //create texture
-    if (char_index > 0) {
-        //skip null
+    // create texture
+    if (charIndex > 0) {
         ffd.mTexId = generateTexture(width, height, pixels);
     }
     else {
-        ffd.mTexId = GL_FALSE;
+        ffd.mTexId = 0;
     }
 
-    //With the texture created, we don't need to expanded data anymore
-    delete[] pixels;
+    // With the texture created, we don't need to expanded data anymore
+    pixels.clear();
 
-    //setup geometry data
+    // setup geometry data
     ffd.mPos.x = static_cast<float>(gd.mBitmapGlyph->left);
     ffd.mPos.y = static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows);
     ffd.mSize.x = static_cast<float>(width);
     ffd.mSize.y = static_cast<float>(height);
 
-    //delete the stroke glyph
+    // delete the stroke glyph
     FT_Stroker_Done(gd.mStroker);
     FT_Done_Glyph(gd.mStrokeGlyph);
     
@@ -296,14 +218,13 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     return true;
 }
 
-unsigned int Font::generateTexture(int width, int height, unsigned char* data) {
+unsigned int Font::generateTexture(int width, int height,
+                                   const std::vector<unsigned char>& buffer)
+{
     unsigned int tex;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
 
-    /*
-    SGCT2 change: Use non-power-of-two textures for better quality
-    */
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -317,7 +238,7 @@ unsigned int Font::generateTexture(int width, int height, unsigned char* data) {
             0,
             GL_LUMINANCE_ALPHA,
             GL_UNSIGNED_BYTE,
-            data
+            buffer.data()
         );
     }
     else {
@@ -330,7 +251,7 @@ unsigned int Font::generateTexture(int width, int height, unsigned char* data) {
             0,
             GL_RG,
             GL_UNSIGNED_BYTE,
-            data
+            buffer.data()
         );
     }
 
@@ -345,13 +266,13 @@ unsigned int Font::generateTexture(int width, int height, unsigned char* data) {
     return tex;
 }
 
-bool Font::getPixelData(FT_Face face, int& width, int& height, unsigned char** pixels,
-                        GlyphData& gd)
+bool Font::getPixelData(FT_Face face, int& width, int& height,
+                        std::vector<unsigned char>& pixels, GlyphData& gd)
 {
-    //Move the face's glyph into a Glyph object.
-    if (FT_Get_Glyph(face->glyph, &(gd.mGlyph)) ||
-        FT_Get_Glyph(face->glyph, &(gd.mStrokeGlyph)))
-    {
+    // Move the face's glyph into a Glyph object
+    FT_Error glyphErr = FT_Get_Glyph(face->glyph, &(gd.mGlyph));
+    FT_Error strokeErr = FT_Get_Glyph(face->glyph, &(gd.mStrokeGlyph));
+    if (glyphErr || strokeErr) {
         return false;
     }
 
@@ -369,41 +290,38 @@ bool Font::getPixelData(FT_Face face, int& width, int& height, unsigned char** p
         error = FT_Glyph_Stroke(&(gd.mStrokeGlyph), gd.mStroker, 1);
     }
 
-    //Convert the glyph to a bitmap.
+    // Convert the glyph to a bitmap
     FT_Glyph_To_Bitmap(&(gd.mGlyph), ft_render_mode_normal, 0, 1);
-    gd.mBitmapGlyph = (FT_BitmapGlyph)(gd.mGlyph);
+    gd.mBitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.mGlyph);
 
     FT_Glyph_To_Bitmap(&(gd.mStrokeGlyph), ft_render_mode_normal, 0, 1);
-    gd.mBitmapStrokeGlyph = (FT_BitmapGlyph)(gd.mStrokeGlyph);
+    gd.mBitmapStrokeGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.mStrokeGlyph);
 
-    //This pointer will make accessing the bitmap easier
+    // This pointer will make accessing the bitmap easier
     gd.mBitmapPtr = &(gd.mBitmapGlyph->bitmap);
     gd.mStrokeBitmapPtr = &(gd.mBitmapStrokeGlyph->bitmap);
 
-    //Use our helper function to get the widths of
-    //the bitmap data that we will need in order to create
-    //our texture.
-    width = gd.mStrokeBitmapPtr->width; //stroke is always larger
+    // Use our helper function to get the widths of the bitmap data that we will need in
+    // order to create our texture
+    width = gd.mStrokeBitmapPtr->width;
     height = gd.mStrokeBitmapPtr->rows;
 
-    //Allocate memory for the texture data.
-    (*pixels) = new unsigned char[2 * width * height];
+    // Allocate memory for the texture data
+    pixels.resize(2 * width * height, 0);
 
-    //read alpha to one channel and stroke - alpha in the second channel
-    //We use the ?: operator so that value which we use
-    //will be 0 if we are in the padding zone, and whatever
-    //is the the Freetype bitmap otherwise.
-    int k, l;
-    int diff_offset[2];
-    diff_offset[0] = (gd.mStrokeBitmapPtr->width - gd.mBitmapPtr->width) >> 1;
-    diff_offset[1] = (gd.mStrokeBitmapPtr->rows - gd.mBitmapPtr->rows) >> 1;
+    // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
+    // operator so that value which we use will be 0 if we are in the padding zone, and
+    // whatever is the the Freetype bitmap otherwise
+    const int offsetWidth = (gd.mStrokeBitmapPtr->width - gd.mBitmapPtr->width) / 2;
+    const int offsetRows = (gd.mStrokeBitmapPtr->rows - gd.mBitmapPtr->rows) / 2;
     for (int j = 0; j < height; ++j) {
         for (int i = 0; i < width; ++i) {
-            k = i - diff_offset[0];
-            l = j - diff_offset[1];
-            (*pixels)[2 * (i + j * width)] =
-                (k >= gd.mBitmapPtr->width || l >= gd.mBitmapPtr->rows || k < 0 || l < 0) ?
-                0 :
+            const int k = i - offsetWidth;
+            const int l = j - offsetRows;
+            if (k < gd.mBitmapPtr->width && l < gd.mBitmapPtr->rows && k >= 0 && l >= 0) {
+
+            }
+            pixels[2 * (i + j * width)] =
                 gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
 
             unsigned char strokeVal =
@@ -411,9 +329,9 @@ bool Font::getPixelData(FT_Face face, int& width, int& height, unsigned char** p
                 0 :
                 gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
 
-            //simple union
-            (*pixels)[2 * (i + j*width) + 1] = strokeVal < (*pixels)[2 * (i + j*width)] ?
-                (*pixels)[2 * (i + j*width)] :
+            // simple union
+            pixels[2 * (i + j * width) + 1] = strokeVal < pixels[2 * (i + j * width)] ?
+                pixels[2 * (i + j*width)] :
                 strokeVal;
         }
     }

@@ -185,15 +185,15 @@ Font* FontManager::getDefaultFont(unsigned int height) {
     return getFont("SGCTFont", height);
 }
 
-std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
+std::unique_ptr<Font> FontManager::createFont(const std::string& name,
                                               unsigned int height)
 {
-    std::map<std::string, std::string>::const_iterator it = mFontPaths.find(fontName);
+    std::map<std::string, std::string>::const_iterator it = mFontPaths.find(name);
 
     if (it == mFontPaths.end()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "FontManager: No font file specified for font [%s].\n", fontName.c_str()
+            "FontManager: No font file specified for font [%s].\n", name.c_str()
         );
         return nullptr;
     }
@@ -202,7 +202,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: Freetype library is not initialized, can't create font [%s].\n",
-            fontName.c_str()
+            name.c_str()
         );
         return nullptr;
     }
@@ -214,7 +214,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: Unsopperted file format [%s] for font [%s].\n",
-            it->second.c_str(), fontName.c_str()
+            it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
@@ -229,14 +229,13 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
     if (FT_Set_Char_Size(face, height << 6, height << 6, 96, 96) != 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str()
+            "FontManager: Could not set pixel size for font[%s].\n", name.c_str()
         );
         return nullptr;
     }
 
     // Create the font when all error tests are done
-    std::unique_ptr<Font> newFont = std::make_unique<Font>();
-    newFont->init(mFTLibrary, face, fontName, height);
+    std::unique_ptr<Font> font = std::make_unique<Font>(mFTLibrary, face, name, height);
 
     static bool shaderCreated = false;
 
@@ -302,7 +301,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         shaderCreated = true;
     }
 
-    return std::move(newFont);
+    return std::move(font);
 }
 
 } // namespace sgct_text

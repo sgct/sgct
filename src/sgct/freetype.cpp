@@ -210,9 +210,9 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         FontManager::instance()->getShader().bind();
-        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        glUniform4fv(FontManager::instance()->getColorLocation(), 1, glm::value_ptr(color));
         const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
+        glUniform4fv(FontManager::instance()->getStrokeLocation(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); ++i) {
             glm::vec3 offset(x, y - h * i, 0.f);
@@ -236,7 +236,7 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
                 glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glUniform1i(FontManager::instance()->getTexLoc(), 0);
+                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
 
                 glCallList(font.getDisplayList());
                 glPopMatrix();
@@ -263,9 +263,9 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
         glBindVertexArray(font.getVAO());
         glActiveTexture(GL_TEXTURE0);
 
-        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        glUniform4fv(FontManager::instance()->getColorLocation(), 1, glm::value_ptr(color));
         const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
+        glUniform4fv(FontManager::instance()->getStrokeLocation(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(x, y - h * i, 0.f);
@@ -293,10 +293,10 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
                 glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glUniform1i(FontManager::instance()->getTexLoc(), 0);
+                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
 
                 glUniformMatrix4fv(
-                    FontManager::instance()->getMVPLoc(),
+                    FontManager::instance()->getMVPLocation(),
                     1,
                     GL_FALSE,
                     glm::value_ptr(scale)
@@ -342,9 +342,9 @@ void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
         glPushMatrix();
 
         FontManager::instance()->getShader().bind();
-        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        glUniform4fv(FontManager::instance()->getColorLocation(), 1, glm::value_ptr(color));
         const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
+        glUniform4fv(FontManager::instance()->getStrokeLocation(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(0.f, -h * i, 0.f);
@@ -375,7 +375,7 @@ void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-                glUniform1i(FontManager::instance()->getTexLoc(), 0);
+                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
                 glCallList(font.getDisplayList());
 
                 offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
@@ -397,9 +397,9 @@ void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
         glBindVertexArray(font.getVAO());
         glActiveTexture(GL_TEXTURE0);
 
-        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        glUniform4fv(FontManager::instance()->getColorLocation(), 1, glm::value_ptr(color));
         const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
+        glUniform4fv(FontManager::instance()->getStrokeLocation(), 1, glm::value_ptr(stroke));
 
         const float textScale = 1.f / font.getHeight();
         const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
@@ -431,9 +431,9 @@ void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-                glUniform1i(FontManager::instance()->getTexLoc(), 0);
+                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
                 glUniformMatrix4fv(
-                    FontManager::instance()->getMVPLoc(),
+                    FontManager::instance()->getMVPLocation(),
                     1,
                     GL_FALSE,
                     glm::value_ptr(scale)

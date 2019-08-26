@@ -93,6 +93,9 @@ public:
     /// Convenience enum from where to load font files
     enum class FontPath { Local, Default };
 
+    static FontManager* instance();
+    static void destroy();
+
     /// Destructor cleans up all font objects, textures and shaders
     ~FontManager();
 
@@ -114,7 +117,7 @@ public:
      *
      * \return Pointer to the font face, NULL if not found
      */
-    Font* getFont(const std::string& name, unsigned int height = mDefaultHeight);
+    Font* getFont(const std::string& name, unsigned int height = 10);
 
     /**
      * Get the SGCT default font face that is loaded into memory.
@@ -123,7 +126,7 @@ public:
      *
      * \return Pointer to the font face, nullptr if not found
      */
-    Font* getDefaultFont(unsigned int height = mDefaultHeight);
+    Font* getDefaultFont(unsigned int height = 10);
     
     /**
      * Set the default font path. This will be the directory where font files will be
@@ -137,21 +140,13 @@ public:
     /// Set the stroke (border) color
     void setStrokeColor(glm::vec4 color);
 
-    /// Set if screen space coordinates should be used or buffer coordinates
-    void setDrawInScreenSpace(bool state);
-
-    size_t getTotalNumberOfLoadedChars() const;
     glm::vec4 getStrokeColor() const;
-    bool getDrawInScreenSpace() const;
 
     const sgct::ShaderProgram& getShader() const;
-    unsigned int getMVPLoc() const;
-    unsigned int getColLoc() const;
-    unsigned int getStkLoc() const;
-    unsigned int getTexLoc() const;
-
-    static FontManager* instance();
-    static void destroy();
+    unsigned int getMVPLocation() const;
+    unsigned int getColorLocation() const;
+    unsigned int getStrokeLocation() const;
+    unsigned int getTextureLoc() const;
 
 private:
     /// Constructor initiates the freetyp library
@@ -171,30 +166,24 @@ private:
     const FontManager& operator=(const FontManager& rhs) = delete;
 
     static FontManager* mInstance;
-    static const signed short mDefaultHeight = 10; // Default height of font faces in pixels
 
     // The default font path from where to look for font files
     std::string mDefaultFontPath;
 
-    FT_Library mFTLibrary; // Freetype library
-    FT_Face mFace = nullptr;
+    FT_Library mFTLibrary;
     glm::vec4 mStrokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
-
-    bool mDrawInScreenSpace = true;
 
     // Holds all predefined font paths for generating font glyphs
     std::map<std::string, std::string> mFontPaths; 
+
     // All generated fonts
-    std::unordered_map<
-        std::string,
-        std::unordered_map<unsigned int, std::unique_ptr<Font>>
-    > mFontMap;
+    std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> mFontMap;
 
     sgct::ShaderProgram mShader;
-    int mMVPLoc = -1;
-    int mColLoc = -1;
-    int mStkLoc = -1;
-    int mTexLoc = -1;
+    int mMVPLocation = -1;
+    int mColorLocation = -1;
+    int mStrokeLocation = -1;
+    int mTextureLocation = -1;
 };
 
 } // sgct

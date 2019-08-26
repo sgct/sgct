@@ -127,48 +127,28 @@ void FontManager::setStrokeColor(glm::vec4 color) {
     mStrokeColor = std::move(color);
 }
 
-void FontManager::setDrawInScreenSpace(bool state) {
-    mDrawInScreenSpace = state;
-}
-
-size_t FontManager::getTotalNumberOfLoadedChars() const {
-    size_t counter = 0;
-    using K = std::string;
-    using V = std::unordered_map<unsigned int, std::unique_ptr<Font>>;
-    for (const std::pair<const K, V>& a : mFontMap) {
-        for (const std::pair<const unsigned int, std::unique_ptr<Font>>& b : a.second) {
-            counter += b.second->getNumberOfLoadedChars();
-        }
-    }
-    return counter;
-}
-
 glm::vec4 FontManager::getStrokeColor() const {
     return mStrokeColor;
-}
-
-bool FontManager::getDrawInScreenSpace() const {
-    return mDrawInScreenSpace;
 }
 
 const sgct::ShaderProgram& FontManager::getShader() const {
     return mShader;
 }
 
-unsigned int FontManager::getMVPLoc() const {
-    return mMVPLoc;
+unsigned int FontManager::getMVPLocation() const {
+    return mMVPLocation;
 }
 
-unsigned int FontManager::getColLoc() const {
-    return mColLoc;
+unsigned int FontManager::getColorLocation() const {
+    return mColorLocation;
 }
 
-unsigned int FontManager::getStkLoc() const {
-    return mStkLoc;
+unsigned int FontManager::getStrokeLocation() const {
+    return mStrokeLocation;
 }
 
-unsigned int FontManager::getTexLoc() const {
-    return mTexLoc;
+unsigned int FontManager::getTextureLoc() const {
+    return mTextureLocation;
 }
 
 bool FontManager::addFont(std::string fontName, std::string path, FontPath fontPath) {
@@ -190,15 +170,15 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
 }
 
 Font* FontManager::getFont(const std::string& fontName, unsigned int height) {
-    if (mFontMap[fontName].count(height) == 0) {
+    if (mFontMap.count({ fontName, height }) == 0) {
         std::unique_ptr<Font> f = createFont(fontName, height);
         if (f == nullptr) {
             return nullptr;
         }
-        mFontMap[fontName][height] = std::move(f);
+        mFontMap[{ fontName, height }] = std::move(f);
     }
 
-    return mFontMap[fontName][height].get();
+    return mFontMap[{ fontName, height }].get();
 }
 
 Font* FontManager::getDefaultFont(unsigned int height) {
@@ -227,7 +207,8 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         return nullptr;
     }
 
-    FT_Error error = FT_New_Face(mFTLibrary, it->second.c_str(), 0, &mFace);
+    FT_Face face;
+    FT_Error error = FT_New_Face(mFTLibrary, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
         sgct::MessageHandler::instance()->print(
@@ -237,7 +218,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         );
         return nullptr;
     }
-    else if (error != 0 || mFace == nullptr) {
+    else if (error != 0 || face == nullptr) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: Font '%s' not found!\n", it->second.c_str()
@@ -245,7 +226,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         return nullptr;
     }
 
-    if (FT_Set_Char_Size(mFace, height << 6, height << 6, 96, 96) != 0) {
+    if (FT_Set_Char_Size(face, height << 6, height << 6, 96, 96) != 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str()
@@ -255,7 +236,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
 
     // Create the font when all error tests are done
     std::unique_ptr<Font> newFont = std::make_unique<Font>();
-    newFont->init(mFTLibrary, mFace, fontName, height);
+    newFont->init(mFTLibrary, face, fontName, height);
 
     static bool shaderCreated = false;
 
@@ -311,11 +292,11 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
         mShader.bind();
 
         if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-            mMVPLoc = mShader.getUniformLocation("MVP");
+            mMVPLocation = mShader.getUniformLocation("MVP");
         }
-        mColLoc = mShader.getUniformLocation("Col");
-        mStkLoc = mShader.getUniformLocation("StrokeCol");
-        mTexLoc = mShader.getUniformLocation("Tex");
+        mColorLocation = mShader.getUniformLocation("Col");
+        mStrokeLocation = mShader.getUniformLocation("StrokeCol");
+        mTextureLocation = mShader.getUniformLocation("Tex");
         mShader.unbind();
 
         shaderCreated = true;

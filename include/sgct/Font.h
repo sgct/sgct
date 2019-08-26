@@ -45,7 +45,7 @@ public:
     void clean();
 
     /*! Get the font face data */
-    FontFaceData* getFontFaceData(wchar_t c);
+    const Font::FontFaceData& getFontFaceData(wchar_t c);
 
     /*! Get the vertex array id */
     unsigned int getVAO() const;

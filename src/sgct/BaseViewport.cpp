@@ -47,20 +47,12 @@ const std::string& BaseViewport::getName() const {
     return mName;
 }
 
-float BaseViewport::getX() const {
-    return mX;
+glm::vec2 BaseViewport::getPosition() const {
+    return { mX, mY };
 }
 
-float BaseViewport::getY() const {
-    return mY;
-}
-
-float BaseViewport::getXSize() const {
-    return mXSize;
-}
-
-float BaseViewport::getYSize() const {
-    return mYSize;
+glm::vec2 BaseViewport::getSize() const {
+    return { mXSize, mYSize };
 }
 
 void BaseViewport::setUser(SGCTUser* user) {

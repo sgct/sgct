@@ -36,10 +36,8 @@ public:
     void setEye(Frustum::FrustumMode eye);
     
     const std::string& getName() const;
-    float getX() const;
-    float getY() const;
-    float getXSize() const;
-    float getYSize() const;
+    glm::vec2 getPosition() const;
+    glm::vec2 getSize() const;
     float getHorizontalFieldOfViewDegrees() const;
     
     SGCTUser* getUser() const;

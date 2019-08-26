@@ -451,10 +451,10 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
     float cmRes = static_cast<float>(mCubemapResolution);
 
     mVpCoords = glm::ivec4(
-        static_cast<int>(floor(vp.getX() * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getY() * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getXSize() * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getYSize() * cmRes + 0.5f))
+        static_cast<int>(floor(vp.getPosition().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getPosition().y * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getSize().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getSize().y * cmRes + 0.5f))
     );
 
     glViewport(mVpCoords.x, mVpCoords.y, mVpCoords.z, mVpCoords.w);

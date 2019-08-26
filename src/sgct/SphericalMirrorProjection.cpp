@@ -352,7 +352,7 @@ void SphericalMirrorProjection::renderInternal() {
     sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
-    float aspect = winPtr.getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
+    float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
 
     glm::mat4 MVP = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
@@ -409,7 +409,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
     
-    float aspect = winPtr.getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
+    float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
     
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

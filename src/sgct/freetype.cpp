@@ -22,21 +22,13 @@ namespace {
 void setupViewport() {
     sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
-    int x = static_cast<int>(
-        cWin.getCurrentViewport()->getX() *
-        static_cast<float>(cWin.getFramebufferResolution().x)
+    glm::ivec2 position = glm::ivec2(
+        cWin.getCurrentViewport()->getPosition() *
+        glm::vec2(cWin.getFramebufferResolution())
     );
-    int y = static_cast<int>(
-        cWin.getCurrentViewport()->getY() *
-        static_cast<float>(cWin.getFramebufferResolution().y)
-    );
-    int xSize = static_cast<int>(
-        cWin.getCurrentViewport()->getXSize() *
-        static_cast<float>(cWin.getFramebufferResolution().x)
-    );
-    int ySize = static_cast<int>(
-        cWin.getCurrentViewport()->getYSize() *
-        static_cast<float>(cWin.getFramebufferResolution().y)
+    glm::ivec2 size = glm::ivec2(
+        cWin.getCurrentViewport()->getSize() *
+        glm::vec2(cWin.getFramebufferResolution())
     );
 
     sgct::SGCTWindow::StereoMode sm = cWin.getStereoMode();
@@ -46,20 +38,20 @@ void setupViewport() {
         {
             switch (sm) {
                 case sgct::SGCTWindow::StereoMode::SideBySide:
-                    x /= 2;
-                    xSize /= 2;
+                    position.x /= 2;
+                    size.x /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::SideBySideInverted:
-                    x = (x >> 1) + (xSize >> 1); //x offset
-                    xSize = xSize >> 1; //x size
+                    position.x = (position.x / 2) + (size.x / 2);
+                    size.x /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::TopBottom:
-                    y = (y >> 1) + (ySize >> 1); //y offset
-                    ySize = ySize >> 1; //y size
+                    position.y = (position.y / 2) + (size.y / 2);
+                    size.y /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::TopBottomInverted:
-                    y = y >> 1; //y offset
-                    ySize = ySize >> 1; //y size
+                    position.y /= 2;
+                    size.y /= 2;
                     break;
                 default:
                     break;
@@ -68,20 +60,20 @@ void setupViewport() {
         else {
             switch (sm) {
                 case sgct::SGCTWindow::StereoMode::SideBySide:
-                    x = (x >> 1) + (xSize >> 1); //x offset
-                    xSize = xSize >> 1; //x size
+                    position.x = (position.x / 2) + (size.x / 2);
+                    size.x /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::SideBySideInverted:
-                    x = x >> 1; //x offset
-                    xSize = xSize >> 1; //x size
+                    position.x /= 2;
+                    size.x /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::TopBottom:
-                    y = y >> 1; //y offset
-                    ySize = ySize >> 1; //y size
+                    position.y /= 2;
+                    size.y /= 2;
                     break;
                 case sgct::SGCTWindow::StereoMode::TopBottomInverted:
-                    y = (y >> 1) + (ySize >> 1); //y offset
-                    ySize = ySize >> 1; //y size
+                    position.y = (position.y / 2) + (size.y / 2);
+                    size.y /= 2;
                     break;
                 default:
                     break;
@@ -89,7 +81,7 @@ void setupViewport() {
         }
     }
 
-    glViewport(x, y, xSize, ySize);
+    glViewport(position.x, position.y, size.x, size.y);
 }
 
 glm::mat4 setupOrthoMat() {
@@ -97,9 +89,7 @@ glm::mat4 setupOrthoMat() {
     sgct::SGCTWindow& win = sgct::Engine::instance()->getCurrentWindowPtr();
 
     glm::ivec2 res = win.getResolution();
-    glm::vec2 size;
-    size.x = win.getCurrentViewport()->getXSize();
-    size.y = win.getCurrentViewport()->getYSize();
+    glm::vec2 size = win.getCurrentViewport()->getSize();
     glm::vec2 scale = win.getScale();
     orthoMat = glm::ortho(
         0.f,
@@ -126,41 +116,31 @@ void pop_projection_matrix() {
     glPopMatrix();
 }
 
-char* parseArgList(va_list args, const char* format) {
+std::vector<char> parseArgList(va_list args, const char* format) {
     int size = 1 + vscprintf(format, args);
-    char* buffer = new (std::nothrow) char[size];
-    if (buffer == nullptr) {
-        return nullptr;
-    }
-
-    memset(buffer, 0, size);
+    std::vector<char> buffer(size, 0);
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
+    vsprintf_s(buffer.data(), size, format, args);
 #else
-    vsprintf(buffer, format, args);
+    vsprintf(buffer.data(), format, args);
 #endif
 
     return buffer;
 }
 
-wchar_t* parseArgList(va_list args, const wchar_t* format) {
+std::vector<wchar_t> parseArgList(va_list args, const wchar_t* format) {
     int size = 1 + vscwprintf(format, args);
-    wchar_t* buffer = new (std::nothrow) wchar_t[size];
-    if (buffer == nullptr) {
-        return nullptr;
-    }
-
-    memset(buffer, 0, size * sizeof(wchar_t));
+    std::vector<wchar_t> buffer(size, 0);
 
 #if defined(_WIN32)
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vswprintf_s(buffer, size, format, args);
+    vswprintf_s(buffer.data(), size, format, args);
 #else
-    vswprintf(buffer, size, format, args);
+    vswprintf(buffer.data(), size, format, args);
 #endif
 #else
-    vswprintf(buffer, 1024, format, args);
+    vswprintf(buffer.data(), 1024, format, args);
 #endif
 
     return buffer;
@@ -193,40 +173,31 @@ std::vector<std::wstring> split(std::string str, wchar_t delimiter) {
     return tmpVec;
 }
 
-std::wstring makeWideString(const std::string& str) {
-    std::wstring ws;
-    ws.assign(str.begin(), str.end());
-    return ws;
-}
 
-} // namespace
-
-namespace sgct_text {
-
-float getLineWidth(Font* ft_font, const std::wstring& line) {
-    Font::FontFaceData* ffdPtr;
-    
-    //figure out width
+float getLineWidth(sgct_text::Font& font, const std::wstring& line) {
+    // figure out width
     float lineWidth = 0.f;
     for (size_t j = 0; j < line.length() - 1; ++j) {
         wchar_t c = line.c_str()[j];
-        ffdPtr = ft_font->getFontFaceData(c);
-        lineWidth += ffdPtr->mDistToNextChar;
+        const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+        lineWidth += ffd.mDistToNextChar;
     }
-    //add last char width
+    // add last char width
     wchar_t c = line.c_str()[line.length() - 1];
-    ffdPtr = ft_font->getFontFaceData(c);
-    lineWidth += ffdPtr->mSize.x;
+    const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+    lineWidth += ffd.mSize.x;
 
     return lineWidth;
 }
 
-void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
-              const TextAlignMode& mode, float x, float y, const glm::vec4& color)
+void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
+              const sgct_text::TextAlignMode& mode, float x, float y,
+              const glm::vec4& color)
 {
-    Font::FontFaceData* ffdPtr;
-    float h = ft_font->getHeight() * 1.59f;
-    
+    using namespace sgct_text;
+
+    const float h = font.getHeight() * 1.59f;
+
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
         pushScreenCoordinateMatrix();
@@ -239,59 +210,38 @@ void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         FontManager::instance()->getShader().bind();
-        glUniform4f(
-            FontManager::instance()->getColLoc(),
-            color.r,
-            color.g,
-            color.b,
-            color.a
-        );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(
-            FontManager::instance()->getStkLoc(),
-            strokeColor.r,
-            strokeColor.g,
-            strokeColor.b,
-            strokeColor.a
-        );
+        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); ++i) {
-            glm::vec3 offset(x, y - h * static_cast<float>(i), 0.f);
-            
+            glm::vec3 offset(x, y - h * i, 0.f);
+
             if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
+                offset.x -= getLineWidth(font, lines[i]) / 2.f;
             }
             else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(ft_font, lines[i]);
+                offset.x -= getLineWidth(font, lines[i]);
             }
 
             for (size_t j = 0; j < lines[i].length(); ++j) {
-                wchar_t c = lines[i].c_str()[j];
-                ffdPtr = ft_font->getFontFaceData(c);
+                const wchar_t c = lines[i].c_str()[j];
+                const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glPushMatrix();
                 glLoadIdentity();
-                glTranslatef(
-                    offset.x + ffdPtr->mPos.x,
-                    offset.y + ffdPtr->mPos.y,
-                    offset.z
-                );
-                glScalef(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.f);
+                glTranslatef(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z);
+                glScalef(ffd.mSize.x, ffd.mSize.y, 1.f);
 
-                glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
-                // disable interpolation for 2D rendering
-                if (ffdPtr->mInterpolated) {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    ffdPtr->mInterpolated = false;
-                }
+                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                glCallList(ft_font->getDisplayList());
+                glCallList(font.getDisplayList());
                 glPopMatrix();
 
-                //iterate
-                offset += glm::vec3(ffdPtr->mDistToNextChar, 0.f, 0.f);
+                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
             }
         }
 
@@ -302,7 +252,7 @@ void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
     }
     else {
         setupViewport();
-        glm::mat4 projectionMat(setupOrthoMat());
+        const glm::mat4 projectionMat(setupOrthoMat());
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -310,87 +260,67 @@ void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
 
         FontManager::instance()->getShader().bind();
 
-        glBindVertexArray(ft_font->getVAO());
-
+        glBindVertexArray(font.getVAO());
         glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f(
-            FontManager::instance()->getColLoc(),
-            color.r,
-            color.g,
-            color.b,
-            color.a
-        );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(
-            FontManager::instance()->getStkLoc(),
-            strokeColor.r,
-            strokeColor.g,
-            strokeColor.b,
-            strokeColor.a
-        );
+        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(x, y - h * static_cast<float>(i), 0.f);
+            glm::vec3 offset(x, y - h * i, 0.f);
 
             if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
+                offset.x -= getLineWidth(font, lines[i]) / 2.f;
             }
             else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(ft_font, lines[i]);
+                offset.x -= getLineWidth(font, lines[i]);
             }
 
             for (size_t j = 0; j < lines[i].length(); j++) {
-                auto c = lines[i].c_str()[j];
-                ffdPtr = ft_font->getFontFaceData(c);
+                const wchar_t c = lines[i].c_str()[j];
+                const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
                     projectionMat,
-                    glm::vec3(
-                        offset.x + ffdPtr->mPos.x,
-                        offset.y + ffdPtr->mPos.y,
-                        offset.z)
+                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
                 );
                 glm::mat4 scale = glm::scale(
                     trans,
-                    glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.f)
+                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
                 );
 
-                glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
-                //disable interpolation for 2D rendering
-                if (ffdPtr->mInterpolated) {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    ffdPtr->mInterpolated = false;
-                }
+                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
                 glUniformMatrix4fv(
                     FontManager::instance()->getMVPLoc(),
                     1,
                     GL_FALSE,
-                    &scale[0][0]
+                    glm::value_ptr(scale)
                 );
 
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-                //iterate
-                offset += glm::vec3(ffdPtr->mDistToNextChar, 0.f, 0.f);
-            } //end for chars
-        } //end for lines
+                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
+            }
+        }
 
-         //unbind
         glBindVertexArray(0);
         sgct::ShaderProgram::unbind();
     }
 }
 
-void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
-              const TextAlignMode& mode, const glm::mat4& mvp, const glm::vec4& color)
+void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
+              const sgct_text::TextAlignMode& mode, const glm::mat4& mvp,
+              const glm::vec4& color)
 {
-    Font::FontFaceData* ffdPtr;
-    float h = ft_font->getHeight() * 1.59f;
-    
+    using namespace sgct_text;
+
+    const float h = font.getHeight() * 1.59f;
+
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 
@@ -400,8 +330,8 @@ void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
 
-        float textScale = 1.f / ft_font->getHeight();
-        glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
+        const float textScale = 1.f / font.getHeight();
+        const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
 
         //clear sgct projection
         glMatrixMode(GL_PROJECTION);
@@ -412,63 +342,43 @@ void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
         glPushMatrix();
 
         FontManager::instance()->getShader().bind();
-        glUniform4f(
-            FontManager::instance()->getColLoc(),
-            color.r,
-            color.g,
-            color.b,
-            color.a
-        );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(
-            FontManager::instance()->getStkLoc(),
-            strokeColor.r,
-            strokeColor.g,
-            strokeColor.b,
-            strokeColor.a
-        );
+        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
 
         for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(0.f, -h * static_cast<float>(i), 0.f);
+            glm::vec3 offset(0.f, -h * i, 0.f);
 
             if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
+                offset.x -= getLineWidth(font, lines[i]) / 2.f;
             }
             else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(ft_font, lines[i]);
+                offset.x -= getLineWidth(font, lines[i]);
             }
-            
+
             for (size_t j = 0; j < lines[i].length(); j++) {
-                auto c = lines[i].c_str()[j];
-                ffdPtr = ft_font->getFontFaceData(c);
+                const wchar_t c = lines[i].c_str()[j];
+                const Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
                     textScaleMat,
-                    glm::vec3(
-                        offset.x + ffdPtr->mPos.x,
-                        offset.y + ffdPtr->mPos.y,
-                        offset.z)
+                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
                 );
                 glm::mat4 scale = glm::scale(
                     trans,
-                    glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.f)
+                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
                 );
 
                 glLoadMatrixf(glm::value_ptr(scale));
 
-                glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
-                //use linear interpolation in 3D
-                if (!ffdPtr->mInterpolated) {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    ffdPtr->mInterpolated = true;
-                }
+                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
                 glUniform1i(FontManager::instance()->getTexLoc(), 0);
-                glCallList(ft_font->getDisplayList());
+                glCallList(font.getDisplayList());
 
-                //iterate
-                offset += glm::vec3(ffdPtr->mDistToNextChar, 0.f, 0.f);
+                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
             }
         }
 
@@ -484,244 +394,186 @@ void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
 
         FontManager::instance()->getShader().bind();
 
-        glBindVertexArray(ft_font->getVAO());
+        glBindVertexArray(font.getVAO());
         glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f(
-            FontManager::instance()->getColLoc(),
-            color.r,
-            color.g,
-            color.b,
-            color.a
-        );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(
-            FontManager::instance()->getStkLoc(),
-            strokeColor.r,
-            strokeColor.g,
-            strokeColor.b,
-            strokeColor.a
-        );
+        glUniform4fv(FontManager::instance()->getColLoc(), 1, glm::value_ptr(color));
+        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+        glUniform4fv(FontManager::instance()->getStkLoc(), 1, glm::value_ptr(stroke));
 
-        float textScale = 1.f / ft_font->getHeight();
-        glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
+        const float textScale = 1.f / font.getHeight();
+        const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
 
         for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(0.f, -h * static_cast<float>(i), 0.f);
+            glm::vec3 offset(0.f, -h * i, 0.f);
 
             if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
+                offset.x -= getLineWidth(font, lines[i]) / 2.f;
             }
             else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(ft_font, lines[i]);
+                offset.x -= getLineWidth(font, lines[i]);
             }
 
             for (size_t j = 0; j < lines[i].length(); j++) {
-                auto c = lines[i].c_str()[j];
-                ffdPtr = ft_font->getFontFaceData(c);
+                const wchar_t c = lines[i].c_str()[j];
+                const Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
                     textScaleMat,
-                    glm::vec3(
-                        offset.x + ffdPtr->mPos.x,
-                        offset.y + ffdPtr->mPos.y,
-                        offset.z
-                    )
+                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
                 );
                 glm::mat4 scale = glm::scale(
                     trans,
-                    glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.0f)
+                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
                 );
 
-                glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
-                //use linear interpolation in 3D
-                if (!ffdPtr->mInterpolated) {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    ffdPtr->mInterpolated = true;
-                }
+                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
+                glUniform1i(FontManager::instance()->getTexLoc(), 0);
                 glUniformMatrix4fv(
                     FontManager::instance()->getMVPLoc(),
                     1,
                     GL_FALSE,
-                    &scale[0][0]
+                    glm::value_ptr(scale)
                 );
-                
+
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-                //iterate
-                offset += glm::vec3(ffdPtr->mDistToNextChar, 0.0f, 0.0f);
-            } //end for chars
-        } //end for lines
+                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
+            }
+        }
 
-        //unbind
         glBindVertexArray(0);
         sgct::ShaderProgram::unbind();
     }
 }
 
-void print(Font* ft_font, TextAlignMode mode, float x, float y, const char* format, ...) {
-    if (ft_font == nullptr || format == nullptr) {
+} // namespace
+
+namespace sgct_text {
+
+void print(Font* font, TextAlignMode mode, float x, float y, const char* format, ...) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render2d(lines, ft_font, mode, x, y, glm::vec4(1.f));
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    render2d(lines, *font, mode, x, y, glm::vec4(1.f));
 }
 
-void print(Font* ft_font, TextAlignMode mode, float x, float y,
+void print(Font* font, TextAlignMode mode, float x, float y,
            const wchar_t* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    wchar_t* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render2d(lines, ft_font, mode, x, y, glm::vec4(1.f));
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    render2d(lines, *font, mode, x, y, glm::vec4(1.f));
 }
 
-void print(Font* ft_font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Font* font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render2d(lines, ft_font, mode, x, y, color);
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    render2d(lines, *font, mode, x, y, color);
 }
 
-void print(Font* ft_font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Font* font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const wchar_t* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    wchar_t* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render2d(lines, ft_font, mode, x, y, color);
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    render2d(lines, *font, mode, x, y, color);
 }
 
-void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...) {
-    if (ft_font == nullptr || format == nullptr)
+void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...) {
+    if (font == nullptr || format == nullptr)
         return;
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render3d(lines, ft_font, mode, mvp, glm::vec4(1.f));
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    render3d(lines, *font, mode, mvp, glm::vec4(1.f));
 }
 
-void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* format, ...)
+void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    wchar_t* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render3d(lines, ft_font, mode, mvp, glm::vec4(1.f));
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    render3d(lines, *font, mode, mvp, glm::vec4(1.f));
 }
 
-void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
+void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const char* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render3d(lines, ft_font, mode, mvp, color);
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    render3d(lines, *font, mode, mvp, color);
 }
 
-void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
+void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const wchar_t* format, ...)
 {
-    if (ft_font == nullptr || format == nullptr) {
+    if (font == nullptr || format == nullptr) {
         return;
     }
 
-    va_list	args;	 // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    wchar_t* buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+    va_list	args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
 
-    std::vector<std::wstring> lines = split(buffer, L'\n');
-
-    render3d(lines, ft_font, mode, mvp, color);
-
-    if (buffer) {
-        delete[] buffer;
-    }
+    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    render3d(lines, *font, mode, mvp, color);
 }
 
 } // namespace sgct_text

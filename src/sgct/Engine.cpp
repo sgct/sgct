@@ -4081,10 +4081,10 @@ void Engine::enterCurrentViewport() {
     glm::vec2 res = glm::vec2(getCurrentWindowPtr().getFramebufferResolution());
         
     mCurrentViewportCoords = glm::ivec4(
-        static_cast<int>(vp->getX() * res.x),
-        static_cast<int>(vp->getY() * res.y),
-        static_cast<int>(vp->getXSize() * res.x),
-        static_cast<int>(vp->getYSize() * res.y)
+        static_cast<int>(vp->getPosition().x * res.x),
+        static_cast<int>(vp->getPosition().y * res.y),
+        static_cast<int>(vp->getSize().x * res.x),
+        static_cast<int>(vp->getSize().y * res.y)
     );
 
     SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();

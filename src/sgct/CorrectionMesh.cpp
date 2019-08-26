@@ -353,12 +353,13 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
                 //clamp(v, 1.0f, 0.0f);
 
                 //convert to [-1, 1]
-                vertex.x = 2.f * (x * parent.getXSize() + parent.getX()) - 1.f;
-                vertex.y = 2.f * ((1.f - y) * parent.getYSize() + parent.getY()) - 1.f;
+                vertex.x = 2.f * (x * parent.getSize().x + parent.getPosition().x) - 1.f;
+                vertex.y = 2.f *
+                          ((1.f - y) * parent.getSize().y + parent.getPosition().y) - 1.f;
 
                 //scale to viewport coordinates
-                vertex.s = u * parent.getXSize() + parent.getX();
-                vertex.t = (1.f - v) * parent.getYSize() + parent.getY();
+                vertex.s = u * parent.getSize().x + parent.getPosition().x;
+                vertex.t = (1.f - v) * parent.getSize().y + parent.getPosition().y;
 
                 vertices.push_back(vertex);
             }
@@ -481,7 +482,7 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
     double orthoCoords[4] = { -1.0, 1.0, -1.0, 1.0 };
     unsigned int resolution[2] = { 0, 0 };
 
-    CorrectionMeshVertex* vertexPtr;
+    CorrectionMeshVertex* vertex;
 
     char lineBuffer[MaxLineLength];
     while (!feof(meshFile)) {
@@ -493,17 +494,17 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
 #endif
             {
                 if (mTempVertices && resolution[0] != 0 && resolution[1] != 0) {
-                    vertexPtr = &mTempVertices[numOfVerticesRead];
-                    vertexPtr->x = (x / static_cast<float>(resolution[0])) *
-                                    parent.getXSize() + parent.getX();
-                    vertexPtr->y = (y / static_cast<float>(resolution[1])) *
-                                    parent.getYSize() + parent.getY();
-                    vertexPtr->r = static_cast<float>(intensity) / 255.f;
-                    vertexPtr->g = static_cast<float>(intensity) / 255.f;
-                    vertexPtr->b = static_cast<float>(intensity) / 255.f;
-                    vertexPtr->a = 1.f;
-                    vertexPtr->s = (1.f - t) * parent.getXSize() + parent.getX();
-                    vertexPtr->t = (1.f - s) * parent.getYSize() + parent.getY();
+                    vertex = &mTempVertices[numOfVerticesRead];
+                    vertex->x = (x / static_cast<float>(resolution[0])) *
+                                    parent.getSize().x + parent.getPosition().x;
+                    vertex->y = (y / static_cast<float>(resolution[1])) *
+                                    parent.getSize().y + parent.getPosition().y;
+                    vertex->r = static_cast<float>(intensity) / 255.f;
+                    vertex->g = static_cast<float>(intensity) / 255.f;
+                    vertex->b = static_cast<float>(intensity) / 255.f;
+                    vertex->a = 1.f;
+                    vertex->s = (1.f - t) * parent.getSize().x + parent.getPosition().x;
+                    vertex->t = (1.f - s) * parent.getSize().y + parent.getPosition().y;
 
                     numOfVerticesRead++;
                 }
@@ -934,11 +935,11 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
         glm::clamp(scissVertexPtr->ty, 0.f, 1.f);
 
         //convert to [-1, 1]
-        vertexPtr->x = 2.f * (scissVertexPtr->x * parent.getXSize() + parent.getX()) - 1.f;
-        vertexPtr->y = 2.f * ((1.f - scissVertexPtr->y) * parent.getYSize() + parent.getY()) - 1.f;
+        vertexPtr->x = 2.f * (scissVertexPtr->x * parent.getSize().x + parent.getPosition().x) - 1.f;
+        vertexPtr->y = 2.f * ((1.f - scissVertexPtr->y) * parent.getSize().y + parent.getPosition().y) - 1.f;
 
-        vertexPtr->s = scissVertexPtr->tx * parent.getXSize() + parent.getX();
-        vertexPtr->t = scissVertexPtr->ty * parent.getYSize() + parent.getY();
+        vertexPtr->s = scissVertexPtr->tx * parent.getSize().x + parent.getPosition().x;
+        vertexPtr->t = scissVertexPtr->ty * parent.getSize().y + parent.getPosition().y;
 
         /*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
             scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
@@ -1305,12 +1306,12 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
             y = v - ycorrections[i];
 
             //convert to [-1, 1]
-            vertex.x = 2.f * (x * parent.getXSize() + parent.getX()) - 1.f;
-            vertex.y = 2.f * (y * parent.getYSize() + parent.getY()) - 1.f;
+            vertex.x = 2.f * (x * parent.getSize().x + parent.getPosition().x) - 1.f;
+            vertex.y = 2.f * (y * parent.getSize().y + parent.getPosition().y) - 1.f;
 
             //scale to viewport coordinates
-            vertex.s = u * parent.getXSize() + parent.getX();
-            vertex.t = v * parent.getYSize() + parent.getY();
+            vertex.s = u * parent.getSize().x + parent.getPosition().x;
+            vertex.t = v * parent.getSize().y + parent.getPosition().y;
 
             vertices.push_back(vertex);
 
@@ -1726,17 +1727,17 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
 
         //convert to [-1, 1]
         mTempVertices[i].x = 2.f * (mTempVertices[i].x *
-                             parent.getXSize() + parent.getX()) - 1.f;
+                             parent.getSize().x + parent.getPosition().x) - 1.f;
         //mTempVertices[i].x = 2.0f*((1.0f - mTempVertices[i].x) * parent->getXSize() + parent->getX()) - 1.0f;
         //mTempVertices[i].y = 2.0f*(mTempVertices[i].y * parent->getYSize() + parent->getY()) - 1.0f;
         mTempVertices[i].y = 2.f * ((1.f - mTempVertices[i].y) *
-                             parent.getYSize() + parent.getY()) - 1.f;
+                             parent.getSize().y + parent.getPosition().y) - 1.f;
         //test code
         //mTempVertices[i].x /= 1.5f;
         //mTempVertices[i].y /= 1.5f;
 
-        mTempVertices[i].s = mTempVertices[i].s * parent.getXSize() + parent.getX();
-        mTempVertices[i].t = mTempVertices[i].t * parent.getYSize() + parent.getY();
+        mTempVertices[i].s = mTempVertices[i].s * parent.getSize().x + parent.getPosition().x;
+        mTempVertices[i].t = mTempVertices[i].t * parent.getSize().y + parent.getPosition().y;
     }
 
     //allocate and copy indices
@@ -1884,7 +1885,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     }
 
     float aspect = sgct::Engine::instance()->getCurrentWindowPtr().getAspectRatio() *
-                   (parent.getXSize() / parent.getYSize());
+                   (parent.getSize().x / parent.getSize().y);
     
     for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++) {
         //convert to [0, 1] (normalize)
@@ -1894,13 +1895,13 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
         
         //scale, re-position and convert to [-1, 1]
         mTempVertices[i].x =
-            (mTempVertices[i].x * parent.getXSize() + parent.getX()) * 2.f - 1.f;
+            (mTempVertices[i].x * parent.getSize().x + parent.getPosition().x) * 2.f - 1.f;
         mTempVertices[i].y =
-            (mTempVertices[i].y * parent.getYSize() + parent.getY()) * 2.f - 1.f;
+            (mTempVertices[i].y * parent.getSize().y + parent.getPosition().y) * 2.f - 1.f;
 
         //convert to viewport coordinates
-        mTempVertices[i].s = mTempVertices[i].s * parent.getXSize() + parent.getX();
-        mTempVertices[i].t = mTempVertices[i].t * parent.getYSize() + parent.getY();
+        mTempVertices[i].s = mTempVertices[i].s * parent.getSize().x + parent.getPosition().x;
+        mTempVertices[i].t = mTempVertices[i].t * parent.getSize().y + parent.getPosition().y;
     }
 
     //allocate and copy indices
@@ -2371,37 +2372,37 @@ void CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry& geomPtr, Viewport& 
     mTempVertices[0].g = 1.f;
     mTempVertices[0].b = 1.f;
     mTempVertices[0].a = 1.f;
-    mTempVertices[0].s = 0.f * parent.getXSize() + parent.getX();
-    mTempVertices[0].t = 0.f * parent.getYSize() + parent.getY();
-    mTempVertices[0].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[0].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[0].s = 0.f * parent.getSize().x + parent.getPosition().x;
+    mTempVertices[0].t = 0.f * parent.getSize().y + parent.getPosition().y;
+    mTempVertices[0].x = 2.f * (0.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[0].y = 2.f * (0.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[1].r = 1.f;
     mTempVertices[1].g = 1.f;
     mTempVertices[1].b = 1.f;
     mTempVertices[1].a = 1.f;
-    mTempVertices[1].s = 1.f * parent.getXSize() + parent.getX();
-    mTempVertices[1].t = 0.f * parent.getYSize() + parent.getY();
-    mTempVertices[1].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[1].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[1].s = 1.f * parent.getSize().x + parent.getPosition().x;
+    mTempVertices[1].t = 0.f * parent.getSize().y + parent.getPosition().y;
+    mTempVertices[1].x = 2.f * (1.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[1].y = 2.f * (0.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[2].r = 1.f;
     mTempVertices[2].g = 1.f;
     mTempVertices[2].b = 1.f;
     mTempVertices[2].a = 1.f;
-    mTempVertices[2].s = 1.f * parent.getXSize() + parent.getX();
-    mTempVertices[2].t = 1.f * parent.getYSize() + parent.getY();
-    mTempVertices[2].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[2].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[2].s = 1.f * parent.getSize().x + parent.getPosition().x;
+    mTempVertices[2].t = 1.f * parent.getSize().y + parent.getPosition().y;
+    mTempVertices[2].x = 2.f * (1.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[2].y = 2.f * (1.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[3].r = 1.f;
     mTempVertices[3].g = 1.f;
     mTempVertices[3].b = 1.f;
     mTempVertices[3].a = 1.f;
-    mTempVertices[3].s = 0.f * parent.getXSize() + parent.getX();
-    mTempVertices[3].t = 1.f * parent.getYSize() + parent.getY();
-    mTempVertices[3].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[3].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[3].s = 0.f * parent.getSize().x + parent.getPosition().x;
+    mTempVertices[3].t = 1.f * parent.getSize().y + parent.getPosition().y;
+    mTempVertices[3].x = 2.f * (0.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[3].y = 2.f * (1.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 }
 
 void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
@@ -2429,8 +2430,8 @@ void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
     mTempVertices[0].a = 1.f;
     mTempVertices[0].s = flip_x ? 1.f : 0.f;
     mTempVertices[0].t = flip_y ? 1.f : 0.f;
-    mTempVertices[0].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[0].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[0].x = 2.f * (0.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[0].y = 2.f * (0.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[1].r = 1.f;
     mTempVertices[1].g = 1.f;
@@ -2438,8 +2439,8 @@ void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
     mTempVertices[1].a = 1.f;
     mTempVertices[1].s = flip_x ? 0.f : 1.f;
     mTempVertices[1].t = flip_y ? 1.F : 0.f;
-    mTempVertices[1].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[1].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[1].x = 2.f * (1.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[1].y = 2.f * (0.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[2].r = 1.f;
     mTempVertices[2].g = 1.f;
@@ -2447,8 +2448,8 @@ void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
     mTempVertices[2].a = 1.f;
     mTempVertices[2].s = flip_x ? 0.f : 1.f;
     mTempVertices[2].t = flip_y ? 0.f : 1.f;
-    mTempVertices[2].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[2].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[2].x = 2.f * (1.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[2].y = 2.f * (1.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 
     mTempVertices[3].r = 1.f;
     mTempVertices[3].g = 1.f;
@@ -2456,8 +2457,8 @@ void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
     mTempVertices[3].a = 1.f;
     mTempVertices[3].s = flip_x ? 1.f : 0.f;
     mTempVertices[3].t = flip_y ? 0.f : 1.f;
-    mTempVertices[3].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
-    mTempVertices[3].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
+    mTempVertices[3].x = 2.f * (0.f * parent.getSize().x + parent.getPosition().x) - 1.f;
+    mTempVertices[3].y = 2.f * (1.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 }
 
 void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {

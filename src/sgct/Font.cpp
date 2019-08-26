@@ -188,13 +188,13 @@ void Font::clean() {
     FT_Done_Face(mFace);
 }
 
-Font::FontFaceData* Font::getFontFaceData(wchar_t c) {
+const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
     if (mFontFaceDataMap.count(c) == 0) {
         //check if c does not exist in map
         createCharacter(c);
     }
     
-    return &mFontFaceDataMap[c];
+    return mFontFaceDataMap[c];
 }
 
 /*! Get the vertex array id */

@@ -264,9 +264,8 @@ void SGCTWindow::initOGL() {
             mNumberOfAASamples
         );
 
-        const float viewPortWidth = mFramebufferRes.x * vp->getXSize();
-        const float viewPortHeight = mFramebufferRes.y * vp->getYSize();
-        vp->getNonLinearProjectionPtr()->update({ viewPortWidth, viewPortHeight });
+        glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
+        vp->getNonLinearProjectionPtr()->update(std::move(viewport));
     }
 }
 
@@ -548,9 +547,8 @@ bool SGCTWindow::update() {
     // resize non linear projection buffers
     for (const std::unique_ptr<sgct_core::Viewport>& vp : mViewports) {
         if (vp->hasSubViewports()) {
-            const float w = static_cast<float>(mFramebufferRes.x) * vp->getXSize();
-            const float h = static_cast<float>(mFramebufferRes.y) * vp->getYSize();
-            vp->getNonLinearProjectionPtr()->update({ w, h });
+            glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
+            vp->getNonLinearProjectionPtr()->update(std::move(viewport));
         }
     }
 
@@ -1467,10 +1465,10 @@ sgct_core::Viewport& SGCTWindow::getViewport(size_t index) {
 
 glm::ivec4 SGCTWindow::getCurrentViewportPixelCoords() const {
     return glm::ivec4(
-        static_cast<int>(getCurrentViewport()->getX() * mFramebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getY() * mFramebufferRes.y),
-        static_cast<int>(getCurrentViewport()->getXSize() * mFramebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getYSize() * mFramebufferRes.y)
+        static_cast<int>(getCurrentViewport()->getPosition().x * mFramebufferRes.x),
+        static_cast<int>(getCurrentViewport()->getPosition().y * mFramebufferRes.y),
+        static_cast<int>(getCurrentViewport()->getSize().x * mFramebufferRes.x),
+        static_cast<int>(getCurrentViewport()->getSize().y * mFramebufferRes.y)
     );
 }
 

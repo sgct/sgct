@@ -16,7 +16,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 
 namespace {
-    constexpr const char* FontVertShader = R"(**glsl_version**
+    constexpr const char* FontVertShader = R"(
+**glsl_version**
 layout (location = 0) in vec2 TexCoord;
 layout (location = 1) in vec2 Position;
 
@@ -28,7 +29,8 @@ void main() {
     UV = TexCoord;
 })";
 
-    constexpr const char* FontFragShader = R"(**glsl_version**
+    constexpr const char* FontFragShader = R"(
+**glsl_version**
 uniform vec4 Col;
 uniform vec4 StrokeCol;
 uniform sampler2D Tex;
@@ -42,14 +44,16 @@ void main() {
     Color = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.g);
 })";
 
-    constexpr const char* FontVertShaderLegacy = R"(**glsl_version**
+    constexpr const char* FontVertShaderLegacy = R"(
+**glsl_version**
 
 void main() {
     gl_TexCoord[0] = gl_MultiTexCoord0;
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 })";
 
-    constexpr const char* FontFragShaderLegacy = R"(**glsl_version**
+    constexpr const char* FontFragShaderLegacy = R"(
+**glsl_version**
 
 uniform vec4 Col;
 uniform vec4 StrokeCol;
@@ -60,7 +64,6 @@ void main() {
     vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);
     gl_FragColor = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.a);
 })";
-
 
 } // namespace
 
@@ -77,105 +80,74 @@ FontManager* FontManager::instance() {
 }
 
 void FontManager::destroy() {
-    if (mInstance != nullptr) {
-        delete mInstance;
-        mInstance = nullptr;
-    }
+    delete mInstance;
+    mInstance = nullptr;
 }
 
-/*!
-Constructor initiates the freetyp library
-*/
 FontManager::FontManager() {
     FT_Error error = FT_Init_FreeType(&mFTLibrary);
 
     if (error != 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Could not initiate Freetype library.\n"
+            "Could not initiate Freetype library\n"
         );
-        return; // No need to continue
+        return;
     }
 
-    //
     // Set default font path
-    //
 #if __WIN32__
-    char fontDir[128];
-    if (GetWindowsDirectory(fontDir, 128) > 0) {
-        mDefaultFontPath.assign(fontDir);
+    char FontDir[128];
+    const UINT success = GetWindowsDirectory(FontDir, 128);
+    if (success > 0) {
+        mDefaultFontPath = FontDir;
         mDefaultFontPath += "\\Fonts\\";
     }
 #elif __APPLE__
     //System Fonts
-    mDefaultFontPath.assign("/Library/Fonts/");
+    mDefaultFontPath = "/Library/Fonts/";
 #else
-    mDefaultFontPath.assign("/usr/share/fonts/truetype/freefont/");
+    mDefaultFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif
 }
 
-/*!
-Destructor cleans up all font objects, textures and shaders
-*/
 FontManager::~FontManager() {
-    using K = std::string;
-    using V = std::unordered_map<unsigned int, Font*>;
-    for (std::pair<const K, V>& a : mFontMap) {
-        for (std::pair<const unsigned int, Font*>& b : a.second) {
-            b.second->clean();
-            delete b.second;
-        }
-        a.second.clear();
-    }
-    mFontMap.clear();
-
-    if (mFTLibrary != nullptr) {
+    if (mFTLibrary) {
         FT_Done_FreeType(mFTLibrary);
     }
 
     mShader.deleteProgram();
 }
 
-/*!
-Set the default font path. This will be the directory where font files will be searched
-for by default. If not explicitly set the default font path will be the windows font folder.
-@param    path    The directory where the default font files are located
-*/
 void FontManager::setDefaultFontPath(std::string path) {
     mDefaultFontPath = std::move(path);
 }
 
-/*!
-Set the stroke (border) color
-*/
 void FontManager::setStrokeColor(glm::vec4 color) {
     mStrokeColor = std::move(color);
 }
 
-/*!
-Set if screen space coordinates should be used or buffer coordinates
-*/
 void FontManager::setDrawInScreenSpace(bool state) {
     mDrawInScreenSpace = state;
 }
 
-size_t FontManager::getTotalNumberOfLoadedChars() {
+size_t FontManager::getTotalNumberOfLoadedChars() const {
     size_t counter = 0;
     using K = std::string;
-    using V = std::unordered_map<unsigned int, Font*>;
+    using V = std::unordered_map<unsigned int, std::unique_ptr<Font>>;
     for (const std::pair<const K, V>& a : mFontMap) {
-        for (const std::pair<const unsigned int, Font*>& b : a.second) {
+        for (const std::pair<const unsigned int, std::unique_ptr<Font>>& b : a.second) {
             counter += b.second->getNumberOfLoadedChars();
         }
     }
     return counter;
 }
 
-glm::vec4 FontManager::getStrokeColor() {
+glm::vec4 FontManager::getStrokeColor() const {
     return mStrokeColor;
 }
 
-bool FontManager::getDrawInScreenSpace() {
+bool FontManager::getDrawInScreenSpace() const {
     return mDrawInScreenSpace;
 }
 
@@ -183,28 +155,22 @@ const sgct::ShaderProgram& FontManager::getShader() const {
     return mShader;
 }
 
-unsigned int FontManager::getMVPLoc() {
+unsigned int FontManager::getMVPLoc() const {
     return mMVPLoc;
 }
 
-unsigned int FontManager::getColLoc() {
+unsigned int FontManager::getColLoc() const {
     return mColLoc;
 }
 
-unsigned int FontManager::getStkLoc() {
+unsigned int FontManager::getStkLoc() const {
     return mStkLoc;
 }
 
-unsigned int FontManager::getTexLoc() {
+unsigned int FontManager::getTexLoc() const {
     return mTexLoc;
 }
 
-/*!
-Adds a font file to the manager.
-@param    fontName    Specify a name for the font
-@param    path        Path to the font file
-@param    fontPath    If it is a local font path directory or using the default path
-*/
 bool FontManager::addFont(std::string fontName, std::string path, FontPath fontPath) {
     // Perform file exists check
     if (fontPath == FontPath::Default) {
@@ -218,51 +184,38 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
             sgct::MessageHandler::Level::Warning,
             "Font with name '%s' already specified.\n", fontName.c_str()
         );
-        return false;
     }
 
-    return true;
+    return inserted;
 }
 
-/*!
-Get a font face that is loaded into memory.
-@param    name    Name of the font
-@param    height    Height in  pixels for the font
-@return    Pointer to the font face, NULL if not found
-*/
 Font* FontManager::getFont(const std::string& fontName, unsigned int height) {
     if (mFontMap[fontName].count(height) == 0) {
-        mFontMap[fontName][height] = createFont(fontName, height);
+        std::unique_ptr<Font> f = createFont(fontName, height);
+        if (f == nullptr) {
+            return nullptr;
+        }
+        mFontMap[fontName][height] = std::move(f);
     }
 
-    return mFontMap[fontName][height];
+    return mFontMap[fontName][height].get();
 }
 
-/*!
-Get the SGCT default font face that is loaded into memory.
-@param    height    Height in  pixels for the font
-@return    Pointer to the font face, NULL if not found
-*/
-Font * FontManager::getDefaultFont(unsigned int height)
-{
+Font* FontManager::getDefaultFont(unsigned int height) {
     return getFont("SGCTFont", height);
 }
 
-/*!
-Creates font textures with a specific height if a path to the font exists
-@param    fontName    Name of the font
-@param    height        Height of the font in pixels
-@return    Iterator to the newly created font, end of the Fonts container if something went wrong
-*/
-Font* FontManager::createFont(const std::string& fontName, unsigned int height) {
-    std::map<std::string, std::string>::iterator it = mFontPaths.find(fontName);
+std::unique_ptr<Font> FontManager::createFont(const std::string& fontName,
+                                              unsigned int height)
+{
+    std::map<std::string, std::string>::const_iterator it = mFontPaths.find(fontName);
 
     if (it == mFontPaths.end()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: No font file specified for font [%s].\n", fontName.c_str()
         );
-        return mFontMap.end()->second.end()->second;
+        return nullptr;
     }
 
     if (mFTLibrary == nullptr) {
@@ -271,7 +224,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
             "FontManager: Freetype library is not initialized, can't create font [%s].\n",
             fontName.c_str()
         );
-        return mFontMap.end()->second.end()->second;
+        return nullptr;
     }
 
     FT_Error error = FT_New_Face(mFTLibrary, it->second.c_str(), 0, &mFace);
@@ -282,14 +235,14 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
             "FontManager: Unsopperted file format [%s] for font [%s].\n",
             it->second.c_str(), fontName.c_str()
         );
-        return mFontMap.end()->second.end()->second;
+        return nullptr;
     }
     else if (error != 0 || mFace == nullptr) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "FontManager: Font '%s' not found!\n", it->second.c_str()
         );
-        return mFontMap.end()->second.end()->second;
+        return nullptr;
     }
 
     if (FT_Set_Char_Size(mFace, height << 6, height << 6, 96, 96) != 0) {
@@ -297,58 +250,58 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
             sgct::MessageHandler::Level::Error,
             "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str()
         );
-        return mFontMap.end()->second.end()->second;
+        return nullptr;
     }
 
     // Create the font when all error tests are done
-    Font* newFont = new Font();
+    std::unique_ptr<Font> newFont = std::make_unique<Font>();
     newFont->init(mFTLibrary, mFace, fontName, height);
 
     static bool shaderCreated = false;
 
     if (!shaderCreated) {
-        std::string vert_shader;
-        std::string frag_shader;
+        std::string vertShader;
+        std::string fragShader;
 
         mShader.setName("FontShader");
         if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-            vert_shader = FontVertShaderLegacy;
-            frag_shader = FontFragShaderLegacy;
+            vertShader = FontVertShaderLegacy;
+            fragShader = FontFragShaderLegacy;
         }
         else {
-            vert_shader = FontVertShader;
-            frag_shader = FontFragShader;
+            vertShader = FontVertShader;
+            fragShader = FontFragShader;
         }
 
-        //replace glsl version
+        // replace glsl version
         sgct_helpers::findAndReplace(
-            vert_shader,
+            vertShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
         sgct_helpers::findAndReplace(
-            frag_shader,
+            fragShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
 
-        bool vertShader = mShader.addShaderSrc(
-            vert_shader,
+        bool vert = mShader.addShaderSrc(
+            vertShader,
             GL_VERTEX_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
-        if (!vertShader) {
+        if (!vert) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Failed to load font vertex shader\n"
             );
         }
-        bool fragShader = mShader.addShaderSrc(
-            frag_shader,
+        bool frag = mShader.addShaderSrc(
+            fragShader,
             GL_FRAGMENT_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
-        if (!fragShader) {
+        if (!frag) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Failed to load font fragment shader\n"
@@ -368,10 +321,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
         shaderCreated = true;
     }
 
-    //sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of textures loaded: %u\n", newFont.getNumberOfTextures());
-
-    mFontMap[fontName][height] = newFont;
-    return newFont;
+    return std::move(newFont);
 }
 
 } // namespace sgct_text

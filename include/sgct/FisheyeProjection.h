@@ -19,29 +19,82 @@ This class manages and renders non linear fisheye projections
 class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
-    enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
+    //enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
+    /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;
+
+    /// Render the non linear projection to currently bounded FBO
     void render() override;
+
+    /// Render the enabled faces of the cubemap
     void renderCubemap(size_t* subViewPortIndex) override;
 
+    /**
+     * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
+     * calculations)
+     *
+     * \param diameter diameter of the dome diameter in meters
+     */
     void setDomeDiameter(float size);
+
+    /**
+     * Set the fisheye/dome tilt angle used in the fisheye renderer. The tilt angle is
+     * from the horizontal.
+     *
+     * \param angle the tilt angle in degrees
+     */
     void setTilt(float angle);
+
+    /**
+     * Set the fisheye/dome field-of-view angle used in the fisheye renderer.
+     *
+     * \param angle the FOV angle in degrees
+     */
     void setFOV(float angle);
+
+    /**
+     * Set the method used for rendering the fisheye projection.
+     *
+     * \param method the selected method
+     */
     void setRenderingMethod(FisheyeMethod method);
+
+    /**
+     * Set the fisheye crop values. Theese values are used when rendering content for a
+     * single projector dome. The elumenati geodome has usually a 4:3 SXGA+ (1400x1050)
+     * projector and the fisheye is cropped 25% (350 pixels) at the top.
+     */
     void setCropFactors(float left, float right, float bottom, float top);
+
+    /**
+     * Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
+     * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
+     * rendering.
+     */
     void setOffset(glm::vec3 offset);
-    void setOffset(float x, float y, float z = 0.f);
+
+    /**
+     * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
+     * Base of fisheye is the XY-plane. The base offset will be added to the offset
+     * specified by setFisheyeOffset. These values are set from the XML config.
+     */
     void setBaseOffset(glm::vec3 offset);
+
+    /**
+     * Ignore the framebuffer aspect ratio to allow non-circular fisheye. This is useful
+     * for spherical mirror projections.
+     */
     void setIgnoreAspectRatio(bool state);
 
+    /// Get the lens offset for off-axis projection.
     glm::vec3 getOffset() const;
 
 private:
     void initViewports() override;
     void initShaders() override;
 
-    void drawCubeFace(size_t face);
+    void drawCubeFace(BaseViewport& face);
     void blitCubeFace(int face);
     void attachTextures(int face);
     void renderInternal();
@@ -52,7 +105,12 @@ private:
     float mFOV = 180.f;
     float mTilt = 0.f;
     float mDiameter = 14.8f;
-    float mCropFactors[4] = { 0.f, 0.f, 0.f, 0.f };
+    struct {
+        float left = 0.f;
+        float right = 0.f;
+        float bottom = 0.f;
+        float top = 0.f;
+    } mCropFactor;
 
     bool mOffAxis = false;
     bool mIgnoreAspectRatio = false;

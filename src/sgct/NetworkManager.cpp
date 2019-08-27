@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 #include <windows.h>
 #endif
 

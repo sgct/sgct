@@ -12,9 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 
 #ifdef __WIN32__
-    #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
-    #endif
+    #define VC_EXTRALEAN
     #include <windows.h>
     #include <winsock2.h>
     #include <ws2tcpip.h>

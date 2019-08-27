@@ -45,6 +45,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #ifdef __WIN32__
         #ifndef SGCT_WINDOWS_INCLUDE
             #define SGCT_WINDOWS_INCLUDE
+            #define VC_EXTRALEAN
             #include <windows.h> //must be declared before glfw
         #endif
         #include <GL/wglew.h>

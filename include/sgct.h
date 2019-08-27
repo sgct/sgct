@@ -428,6 +428,7 @@ License type: BSD\n
 
     #ifndef SGCT_WINDOWS_INCLUDE
         #define SGCT_WINDOWS_INCLUDE
+        #define VC_EXTRALEAN
         #include <windows.h> //must be declared before glfw
     #endif
 

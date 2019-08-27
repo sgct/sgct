@@ -180,10 +180,8 @@ glm::vec3 FisheyeProjection::getOffset() const {
 }
 
 void FisheyeProjection::initViewports() {
-    enum cubeFaces { Pos_X = 0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
-
     // radius is needed to calculate the distance to all view planes
-    float radius = mDiameter / 2.f;
+    const float radius = mDiameter / 2.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
@@ -191,24 +189,24 @@ void FisheyeProjection::initViewports() {
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
-    // 250.5287794 degree FOV covers exactly five sides of a cube, larger FOV needs six sides
+    // 250.5287794 degree FOV covers exactly five sides of a cube, larger FOV needs six
     const float fiveFaceLimit = 2.f * glm::degrees(acosf(-1.f / sqrtf(3.f)));
     // 109.4712206 degree FOV is needed to cover the entire top face
     const float topFaceLimit = 2.f * glm::degrees(acosf(1.f / sqrtf(3.f)));
 
-    float cropLevel = 0.5f; //how much of the side faces that are used
-    float projectionOffset = 0.f; //the projection offset
-    float normalizedProjectionOffset = 0.f;
 
-    //four faces doesn't cover more than 180 degrees
+    // four faces doesn't cover more than 180 degrees
     if (mFOV > 180.f && mFOV <= fiveFaceLimit) {
         mMethod = FisheyeMethod::FiveFaceCube;
     }
 
+    float cropLevel = 0.5f; // how much of the side faces that are used
+    float projectionOffset = 0.f;
     if (mMethod == FisheyeMethod::FiveFaceCube &&
         mFOV >= topFaceLimit && mFOV <= fiveFaceLimit)
     {
         float cosAngle = cosf(glm::radians(mFOV / 2.f));
+        float normalizedProjectionOffset = 0.f;
         if (mFOV < 180.f) {
             normalizedProjectionOffset = 1.f - mFOV / 180.f; // [-1, 0]
         }
@@ -219,9 +217,6 @@ void FisheyeProjection::initViewports() {
 
         projectionOffset = normalizedProjectionOffset * radius;
         cropLevel = (1.f - normalizedProjectionOffset) / 2.f;
-
-        //cropLevel = 0.0f;
-        //projectionOffset = radius;
     }
     else if (mFOV > fiveFaceLimit) {
         mMethod = FisheyeMethod::SixFaceCube;
@@ -229,35 +224,34 @@ void FisheyeProjection::initViewports() {
         projectionOffset = radius;
     }
 
+    const glm::mat4 tiltMat = glm::rotate(
+        glm::mat4(1.f),
+        glm::radians(90.f - mTilt),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
+
+    const glm::mat4 rollRot = glm::rotate(
+        tiltMat,
+        glm::radians(45.f),
+        glm::vec3(0.f, 0.f, 1.f)
+    );
+
     if (mMethod == FisheyeMethod::FiveFaceCube || mMethod == FisheyeMethod::SixFaceCube) {
-        glm::mat4 tiltMat = glm::rotate(
-            glm::mat4(1.f),
-            glm::radians(90.f - mTilt),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
-
-        glm::mat4 rollRot = glm::rotate(
-            tiltMat,
-            glm::radians(45.f),
-            glm::vec3(0.f, 0.f, 1.f)
-        );
-
-        for (unsigned int i = 0; i < 6; i++) {
-            mSubViewports[i].setName("Fisheye " + std::to_string(i));
-        }
-
         // +X face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
+            mSubViewports[0].setName("Fisheye +X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(-90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
+
+            glm::vec4 lowerLeft = lowerLeftBase;
+            glm::vec4 upperLeft = upperLeftBase;
+            glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
+
             mSubViewports[0].setSize(1.f - cropLevel, 1.f);
 
             mSubViewports[0].getProjectionPlane().setCoordinateLowerLeft(
@@ -273,17 +267,20 @@ void FisheyeProjection::initViewports() {
 
         // -X face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
+            mSubViewports[1].setName("Fisheye -X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
+
+            glm::vec4 lowerLeft = lowerLeftBase;
             lowerLeft.x = -projectionOffset;
+            glm::vec4 upperLeft = upperLeftBase;
             upperLeft.x = -projectionOffset;
+            glm::vec4 upperRight = upperRightBase;
+
             mSubViewports[1].setPos(cropLevel, 0.f);
             mSubViewports[1].setSize(1.f - cropLevel, 1.f);
 
@@ -300,16 +297,19 @@ void FisheyeProjection::initViewports() {
 
         // +Y face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[2].setName("Fisheye +Y");
+            
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(-90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
+
+            glm::vec4 lowerLeft = lowerLeftBase;
             lowerLeft.y = -projectionOffset;
+            glm::vec4 upperLeft = upperLeftBase;
+            glm::vec4 upperRight = upperRightBase;
+
             mSubViewports[2].setPos(0.f, cropLevel);
             mSubViewports[2].setSize(1.f, 1.f - cropLevel);
 
@@ -326,17 +326,20 @@ void FisheyeProjection::initViewports() {
 
         // -Y face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[3].setName("Fisheye -Y");
+            
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
+
+            glm::vec4 lowerLeft = lowerLeftBase;
+            glm::vec4 upperLeft = upperLeftBase;
             upperLeft.y = projectionOffset;
+            glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
+
             mSubViewports[3].setSize(1.f, 1.f - cropLevel);
 
             mSubViewports[3].getProjectionPlane().setCoordinateLowerLeft(
@@ -352,32 +355,26 @@ void FisheyeProjection::initViewports() {
 
         // +Z face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
-            const glm::mat4 rotMat = rollRot;
-
+            mSubViewports[4].setName("Fisheye +Z");
+            
             mSubViewports[4].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rollRot * lowerLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rollRot * upperLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rollRot * upperRightBase)
             );
         }
 
         // -Z face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[5].setName("Fisheye -Z");
             if (mMethod == FisheyeMethod::FiveFaceCube) {
                 mSubViewports[5].setEnabled(false);
             }
+
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(180.f),
@@ -385,155 +382,129 @@ void FisheyeProjection::initViewports() {
             );
 
             mSubViewports[5].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rotMat * lowerLeftBase)
             );
             mSubViewports[5].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rotMat * upperLeftBase)
             );
             mSubViewports[5].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rotMat * upperRightBase)
             );
         }
     }
     else {
-        glm::mat4 tiltMat = glm::rotate(
-            glm::mat4(1.f),
-            glm::radians(90.f - mTilt),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
-
-        glm::mat4 panRot = glm::rotate(
-            tiltMat,
-            glm::radians(45.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
-
-        for (unsigned int i = 0; i < 6; i++) {
-            mSubViewports[i].setName("Fisheye " + std::to_string(i));
-        }
-
         // +X face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[0].setName("Fisheye +X");
+            
             const glm::mat4 rotMat = glm::rotate(
-                panRot,
+                rollRot,
                 glm::radians(-90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
             mSubViewports[0].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rotMat * lowerLeftBase)
             );
             mSubViewports[0].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rotMat * upperLeftBase)
             );
             mSubViewports[0].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -X face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[1].setName("Fisheye -X");
             mSubViewports[1].setEnabled(false);
+
             const glm::mat4 rotMat = glm::rotate(
-                panRot,
+                rollRot,
                 glm::radians(90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
             mSubViewports[1].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rotMat * lowerLeftBase)
             );
             mSubViewports[1].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rotMat * upperLeftBase)
             );
             mSubViewports[1].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Y face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
+            mSubViewports[2].setName("Fisheye +Y");
 
             const glm::mat4 rotMat = glm::rotate(
-                panRot,
+                rollRot,
                 glm::radians(-90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
             mSubViewports[2].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rotMat * lowerLeftBase)
             );
             mSubViewports[2].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rotMat * upperLeftBase)
             );
             mSubViewports[2].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -Y face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
+            mSubViewports[3].setName("Fisheye -Y");
+            
             const glm::mat4 rotMat = glm::rotate(
-                panRot,
+                rollRot,
                 glm::radians(90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
             mSubViewports[3].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rotMat * lowerLeftBase)
             );
             mSubViewports[3].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rotMat * upperLeftBase)
             );
             mSubViewports[3].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Z face
         {
-            glm::vec4 lowerLeft = lowerLeftBase;
-            glm::vec4 upperLeft = upperLeftBase;
-            glm::vec4 upperRight = upperRightBase;
-
-            const glm::mat4 rotMat = panRot;
-
+            mSubViewports[4].setName("Fisheye +Z");
+            
             mSubViewports[4].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rotMat * lowerLeft)
+                glm::vec3(rollRot * lowerLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rotMat * upperLeft)
+                glm::vec3(rollRot * upperLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rotMat * upperRight)
+                glm::vec3(rollRot * upperRightBase)
             );
 
         }
 
         // -Z face
         {
+            mSubViewports[5].setName("Fisheye -Z");
+            
             mSubViewports[5].setEnabled(false);
             glm::vec4 lowerLeft = lowerLeftBase;
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
 
             const glm::mat4 rotMat = glm::rotate(
-                panRot,
+                rollRot,
                 glm::radians(180.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
@@ -1256,189 +1227,201 @@ void FisheyeProjection::renderInternalFixedPipeline() {
 }
 
 void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
-    BaseViewport* vp;
-    for (size_t i = 0; i < 6; i++) {
-        vp = &mSubViewports[i];
-        *subViewPortIndex = i;
+    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
+        *subViewPortIndex = idx;
 
-        if (vp->isEnabled()) {
-            mCubeMapFbo->bind();
-            if (!mCubeMapFbo->isMultiSampled()) {
-                attachTextures(i);
-            }
-
-            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
-            drawCubeFace(*vp);
-
-            // blit MSAA fbo to texture
-            if (mCubeMapFbo->isMultiSampled()) {
-                blitCubeFace(i);
-            }
-
-            // re-calculate depth values from a cube to spherical model
-            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
-                GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-                mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
-
-                mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, i);
-                mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, i);
-
-                glViewport(0, 0, mCubemapResolution, mCubemapResolution);
-                glScissor(0, 0, mCubemapResolution, mCubemapResolution);
-                glEnable(GL_SCISSOR_TEST);
-
-                sgct::Engine::mInstance->mClearBufferFnPtr();
-
-                glDisable(GL_CULL_FACE);
-                bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
-                if (alpha) {
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                }
-                else {
-                    glDisable(GL_BLEND);
-                }
-
-                glEnable(GL_DEPTH_TEST);
-                glDepthFunc(GL_ALWAYS);
-
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
-
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
-
-                //bind shader
-                mDepthCorrectionShader.bind();
-                glUniform1i(mShaderLoc.swapColorLoc, 0);
-                glUniform1i(mShaderLoc.swapDepthLoc, 1);
-                glUniform1f(
-                    mShaderLoc.swapNearLoc,
-                    sgct::Engine::mInstance->mNearClippingPlaneDist
-                );
-                glUniform1f(
-                    mShaderLoc.swapFarLoc,
-                    sgct::Engine::mInstance->mFarClippingPlaneDist
-                );
-
-                sgct::Engine::mInstance->getCurrentWindowPtr().bindVAO();
-                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-                sgct::Engine::mInstance->getCurrentWindowPtr().unbindVAO();
-
-                sgct::ShaderProgram::unbind();
-
-                glDisable(GL_DEPTH_TEST);
-
-                if (alpha) {
-                    glDisable(GL_BLEND);
-                }
-
-                glDepthFunc(GL_LESS);
-                glDisable(GL_SCISSOR_TEST);
-            }
+        if (!vp.isEnabled()) {
+            return;
         }
-    }
+
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
+            attachTextures(idx);
+        }
+
+        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+        drawCubeFace(vp);
+
+        // blit MSAA fbo to texture
+        if (mCubeMapFbo->isMultiSampled()) {
+            blitCubeFace(idx);
+        }
+
+        // re-calculate depth values from a cube to spherical model
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+
+            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
+            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+
+            glViewport(0, 0, mCubemapResolution, mCubemapResolution);
+            glScissor(0, 0, mCubemapResolution, mCubemapResolution);
+            glEnable(GL_SCISSOR_TEST);
+
+            sgct::Engine::mInstance->mClearBufferFnPtr();
+
+            glDisable(GL_CULL_FACE);
+            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            if (alpha) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                glDisable(GL_BLEND);
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_ALWAYS);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+
+            mDepthCorrectionShader.bind();
+            glUniform1i(mShaderLoc.swapColorLoc, 0);
+            glUniform1i(mShaderLoc.swapDepthLoc, 1);
+            glUniform1f(
+                mShaderLoc.swapNearLoc,
+                sgct::Engine::mInstance->mNearClippingPlaneDist
+            );
+            glUniform1f(
+                mShaderLoc.swapFarLoc,
+                sgct::Engine::mInstance->mFarClippingPlaneDist
+            );
+
+            sgct::Engine::mInstance->getCurrentWindowPtr().bindVAO();
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            sgct::Engine::mInstance->getCurrentWindowPtr().unbindVAO();
+
+            sgct::ShaderProgram::unbind();
+
+            glDisable(GL_DEPTH_TEST);
+
+            if (alpha) {
+                glDisable(GL_BLEND);
+            }
+
+            glDepthFunc(GL_LESS);
+            glDisable(GL_SCISSOR_TEST);
+        }
+    };
+
+    internalRender(mSubViewports[0], 0);
+    internalRender(mSubViewports[1], 1);
+    internalRender(mSubViewports[2], 2);
+    internalRender(mSubViewports[3], 3);
+    internalRender(mSubViewports[4], 4);
+    internalRender(mSubViewports[5], 5);
 }
 
 void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
-    BaseViewport* vp;
-    for (size_t i = 0; i < 6; i++) {
-        vp = &mSubViewports[i];
-        *subViewPortIndex = i;
+    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
+        *subViewPortIndex = idx;
 
-        if (vp->isEnabled()) {
-            mCubeMapFbo->bind();
-            if (!mCubeMapFbo->isMultiSampled()) {
-                attachTextures(i);
-            }
-
-            sgct::Engine::instance()->getCurrentWindowPtr().setCurrentViewport(vp);
-            drawCubeFace(*vp);
-
-            // blit MSAA fbo to texture
-            if (mCubeMapFbo->isMultiSampled()) {
-                blitCubeFace(i);
-            }
-
-            // re-calculate depth values from a cube to spherical model
-            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
-                GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-                mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
-
-                mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, i);
-                mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, i);
-
-                glViewport(0, 0, mCubemapResolution, mCubemapResolution);
-                glScissor(0, 0, mCubemapResolution, mCubemapResolution);
-
-                glPushAttrib(GL_ALL_ATTRIB_BITS);
-                glEnable(GL_SCISSOR_TEST);
-                
-                sgct::Engine::instance()->mClearBufferFnPtr();
-
-                glActiveTexture(GL_TEXTURE0);
-                glMatrixMode(GL_TEXTURE);
-                glLoadIdentity();
-
-                glMatrixMode(GL_MODELVIEW);
-
-                mDepthCorrectionShader.bind();
-                glUniform1i(mShaderLoc.swapColorLoc, 0);
-                glUniform1i(mShaderLoc.swapDepthLoc, 1);
-                glUniform1f(mShaderLoc.swapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);
-                glUniform1f(
-                    mShaderLoc.swapFarLoc,
-                    sgct::Engine::mInstance->mFarClippingPlaneDist
-                );
-
-                glDisable(GL_CULL_FACE);
-                bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
-                if (alpha) {
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                }
-                else {
-                    glDisable(GL_BLEND);
-                }
-
-                glEnable(GL_DEPTH_TEST);
-                glDepthFunc(GL_ALWAYS);
-                
-                glEnable(GL_TEXTURE_2D);
-                glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
-
-                glActiveTexture(GL_TEXTURE1);
-                glEnable(GL_TEXTURE_2D);
-                glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
-
-                glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-                sgct::Engine::mInstance->getCurrentWindowPtr().bindVBO();
-                glClientActiveTexture(GL_TEXTURE0);
-
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                glTexCoordPointer(
-                    2,
-                    GL_FLOAT,
-                    5 * sizeof(float),
-                    reinterpret_cast<void*>(0)
-                );
-
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer(
-                    3,
-                    GL_FLOAT,
-                    5 * sizeof(float),
-                    reinterpret_cast<void*>(8)
-                );
-                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-                sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
-                glPopClientAttrib();
-
-                sgct::ShaderProgram::unbind();
-                glPopAttrib();
-            }
+        if (!vp.isEnabled()) {
+            return;
         }
-    }
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
+            attachTextures(idx);
+        }
+
+        sgct::Engine::instance()->getCurrentWindowPtr().setCurrentViewport(&vp);
+        drawCubeFace(vp);
+
+        // blit MSAA fbo to texture
+        if (mCubeMapFbo->isMultiSampled()) {
+            blitCubeFace(idx);
+        }
+
+        // re-calculate depth values from a cube to spherical model
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+            mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
+
+            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
+            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+
+            glViewport(0, 0, mCubemapResolution, mCubemapResolution);
+            glScissor(0, 0, mCubemapResolution, mCubemapResolution);
+
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glEnable(GL_SCISSOR_TEST);
+
+            sgct::Engine::instance()->mClearBufferFnPtr();
+
+            glActiveTexture(GL_TEXTURE0);
+            glMatrixMode(GL_TEXTURE);
+            glLoadIdentity();
+
+            glMatrixMode(GL_MODELVIEW);
+
+            mDepthCorrectionShader.bind();
+            glUniform1i(mShaderLoc.swapColorLoc, 0);
+            glUniform1i(mShaderLoc.swapDepthLoc, 1);
+            glUniform1f(mShaderLoc.swapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);
+            glUniform1f(
+                mShaderLoc.swapFarLoc,
+                sgct::Engine::mInstance->mFarClippingPlaneDist
+            );
+
+            glDisable(GL_CULL_FACE);
+            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            if (alpha) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                glDisable(GL_BLEND);
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_ALWAYS);
+
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+
+            glActiveTexture(GL_TEXTURE1);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+
+            glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+            sgct::Engine::mInstance->getCurrentWindowPtr().bindVBO();
+            glClientActiveTexture(GL_TEXTURE0);
+
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(
+                2,
+                GL_FLOAT,
+                5 * sizeof(float),
+                reinterpret_cast<void*>(0)
+            );
+
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(
+                3,
+                GL_FLOAT,
+                5 * sizeof(float),
+                reinterpret_cast<void*>(8)
+            );
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
+            glPopClientAttrib();
+
+            sgct::ShaderProgram::unbind();
+            glPopAttrib();
+        }
+    };
+
+    internalRender(mSubViewports[0], 0);
+    internalRender(mSubViewports[1], 1);
+    internalRender(mSubViewports[2], 2);
+    internalRender(mSubViewports[3], 3);
+    internalRender(mSubViewports[4], 4);
+    internalRender(mSubViewports[5], 5);
 }
 
 } // namespace sgct_core

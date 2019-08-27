@@ -100,10 +100,6 @@ Engine::Engine(int& argc, char**& argv) {
     //init pointers
     mInstance = this;
 
-    for (unsigned int i = 0; i < MAX_UNIFORM_LOCATIONS; i++) {
-        mShaderLocs[i] = -1;
-    }
-
     setClearBufferFunction(clearBuffer);
 
     //parse needs to be before read config since the path to the XML is parsed here
@@ -139,10 +135,6 @@ Engine::Engine(int& argc, char**& argv) {
 Engine::Engine(std::vector<std::string>& arg) {
     //init pointers
     mInstance = this;
-
-    for (unsigned int i = 0; i < MAX_UNIFORM_LOCATIONS; i++) {
-        mShaderLocs[i] = -1;
-    }
 
     setClearBufferFunction(clearBuffer);
 
@@ -1857,7 +1849,7 @@ void Engine::drawOverlays() {
 
             mShaders[OverlayShader].bind();
 
-            glUniform1i(mShaderLocs[OverlayTex], 0);
+            glUniform1i(mShaderLoc.overlayTex, 0);
 
             getCurrentWindowPtr().bindVAO();
 
@@ -2035,7 +2027,7 @@ void Engine::renderFBOTexture() {
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
 
         mShaders[FBOQuadShader].bind(); //bind
-        glUniform1i( mShaderLocs[MonoTex], 0);
+        glUniform1i(mShaderLoc.monoTex, 0);
         maskShaderSet = true;
 
         for (size_t i = 0; i < numberOfIterations; i++) {
@@ -2061,7 +2053,7 @@ void Engine::renderFBOTexture() {
     if (win.hasAnyMasks()) {
         if (!maskShaderSet) {
             mShaders[FBOQuadShader].bind(); //bind
-            glUniform1i(mShaderLocs[MonoTex], 0);
+            glUniform1i(mShaderLoc.monoTex, 0);
         }
         
         glDrawBuffer(win.isDoubleBuffered() ? GL_BACK : GL_FRONT);
@@ -2473,15 +2465,15 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
         }
 
         mShaders[FXAAShader].bind();
-        glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
-        glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
-        glUniform1i(mShaderLocs[FXAA_Texture], 0);
+        glUniform1f(mShaderLoc.sizeX, static_cast<float>(framebufferSize.x));
+        glUniform1f(mShaderLoc.sizeY, static_cast<float>(framebufferSize.y));
+        glUniform1i(mShaderLoc.fxaaTexture, 0);
         glUniform1f(
-            mShaderLocs[FXAA_SUBPIX_TRIM],
+            mShaderLoc.fxaaSubPixTrim,
             SGCTSettings::instance()->getFXAASubPixTrim()
         );
         glUniform1f(
-            mShaderLocs[FXAA_SUBPIX_OFFSET],
+            mShaderLoc.fxaaSubPixOffset,
             SGCTSettings::instance()->getFXAASubPixOffset()
         );
 
@@ -2582,15 +2574,15 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glDisable(GL_DEPTH_TEST);
 
         mShaders[FXAAShader].bind();
-        glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
-        glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
-        glUniform1i(mShaderLocs[FXAA_Texture], 0 );
+        glUniform1f(mShaderLoc.sizeX, static_cast<float>(framebufferSize.x));
+        glUniform1f(mShaderLoc.sizeY, static_cast<float>(framebufferSize.y));
+        glUniform1i(mShaderLoc.fxaaTexture, 0);
         glUniform1f(
-            mShaderLocs[FXAA_SUBPIX_TRIM],
+            mShaderLoc.fxaaSubPixTrim,
             SGCTSettings::instance()->getFXAASubPixTrim()
         );
         glUniform1f(
-            mShaderLocs[FXAA_SUBPIX_OFFSET],
+            mShaderLoc.fxaaSubPixOffset,
             SGCTSettings::instance()->getFXAASubPixOffset()
         );
 
@@ -2719,27 +2711,24 @@ void Engine::loadShaders() {
     mShaders[FXAAShader].createAndLinkProgram();
     mShaders[FXAAShader].bind();
 
-    mShaderLocs[SizeX] = mShaders[FXAAShader].getUniformLocation("rt_w");
+    mShaderLoc.sizeX = mShaders[FXAAShader].getUniformLocation("rt_w");
     glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
-    glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
+    glUniform1f(mShaderLoc.sizeX, static_cast<float>(framebufferSize.x));
 
-    mShaderLocs[SizeY] = mShaders[FXAAShader].getUniformLocation("rt_h");
-    glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
+    mShaderLoc.sizeY = mShaders[FXAAShader].getUniformLocation("rt_h");
+    glUniform1f(mShaderLoc.sizeY, static_cast<float>(framebufferSize.y));
 
-    mShaderLocs[FXAA_SUBPIX_TRIM] = mShaders[FXAAShader].getUniformLocation("FXAA_SUBPIX_TRIM");
+    mShaderLoc.fxaaSubPixTrim = mShaders[FXAAShader].getUniformLocation("FXAA_SUBPIX_TRIM");
+    glUniform1f(mShaderLoc.fxaaSubPixTrim, SGCTSettings::instance()->getFXAASubPixTrim());
+
+    mShaderLoc.fxaaSubPixOffset = mShaders[FXAAShader].getUniformLocation("FXAA_SUBPIX_OFFSET");
     glUniform1f(
-        mShaderLocs[FXAA_SUBPIX_TRIM],
-        SGCTSettings::instance()->getFXAASubPixTrim()
-    );
-
-    mShaderLocs[FXAA_SUBPIX_OFFSET] = mShaders[FXAAShader].getUniformLocation("FXAA_SUBPIX_OFFSET");
-    glUniform1f(
-        mShaderLocs[FXAA_SUBPIX_OFFSET],
+        mShaderLoc.fxaaSubPixOffset,
         SGCTSettings::instance()->getFXAASubPixOffset()
     );
 
-    mShaderLocs[FXAA_Texture] = mShaders[FXAAShader].getUniformLocation("tex");
-    glUniform1i(mShaderLocs[FXAA_Texture], 0);
+    mShaderLoc.fxaaTexture = mShaders[FXAAShader].getUniformLocation("tex");
+    glUniform1i(mShaderLoc.fxaaTexture, 0);
 
     ShaderProgram::unbind();
 
@@ -2789,8 +2778,8 @@ void Engine::loadShaders() {
         }
         mShaders[FBOQuadShader].createAndLinkProgram();
         mShaders[FBOQuadShader].bind();
-        mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
-        glUniform1i(mShaderLocs[MonoTex], 0);
+        mShaderLoc.monoTex = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
+        glUniform1i(mShaderLoc.monoTex, 0);
         ShaderProgram::unbind();
         
         std::string Overlay_vert_shader;
@@ -2835,8 +2824,8 @@ void Engine::loadShaders() {
         }
         mShaders[OverlayShader].createAndLinkProgram();
         mShaders[OverlayShader].bind();
-        mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation("Tex");
-        glUniform1i(mShaderLocs[OverlayTex], 0);
+        mShaderLoc.overlayTex = mShaders[OverlayShader].getUniformLocation("Tex");
+        glUniform1i(mShaderLoc.overlayTex, 0);
         ShaderProgram::unbind();
     }
 }
@@ -3203,7 +3192,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
 
     mShaders[OverlayShader].bind();
 
-    glUniform1i(mShaderLocs[OverlayTex], 0);
+    glUniform1i(mShaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(frustumMode));

@@ -14,7 +14,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
 
-#define MAX_UNIFORM_LOCATIONS 16
 #define NUMBER_OF_SHADERS 8
 
 namespace sgct_core {
@@ -508,11 +507,17 @@ private:
     bool mPrintSyncMessage = true;
     float mSyncTimeout = 60.f;
 
-    //objects
     ShaderProgram mShaders[NUMBER_OF_SHADERS];
 
-    //glsl
-    int mShaderLocs[MAX_UNIFORM_LOCATIONS];
+    struct {
+        int monoTex = -1;
+        int overlayTex = -1;
+        int sizeX = -1;
+        int sizeY = -1;
+        int fxaaSubPixTrim = -1;
+        int fxaaSubPixOffset = -1;
+        int fxaaTexture = -1;
+    } mShaderLoc;
 
     //pointers
     sgct_core::NetworkManager* mNetworkConnections = nullptr;

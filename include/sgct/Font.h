@@ -36,7 +36,6 @@ public:
         glm::vec2 mPos;
         glm::vec2 mSize;
         FT_Glyph mGlyph;
-        bool mInterpolated = false;
     };
 
     /**
@@ -49,11 +48,8 @@ public:
      */
     Font(FT_Library lib, FT_Face face, std::string fontName, unsigned int h);
 
-    /// Counts the number of textures used by this font.
-    size_t getNumberOfLoadedChars() const;
-    
-    /// Cleans up memory used by the Font
-    void clean();
+    /// Cleans up memory used by the Font and destroys the OpenGL objects
+    ~Font();
 
     /// Get the font face data
     const Font::FontFaceData& getFontFaceData(wchar_t c);

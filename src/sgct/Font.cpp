@@ -89,8 +89,20 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
     }
 }
 
-size_t Font::getNumberOfLoadedChars() const {
-    return mFontFaceDataMap.size();
+Font::~Font() {
+    if (!mFontFaceDataMap.empty()) {
+        glDeleteLists(mListId, 1);
+        glDeleteVertexArrays(1, &mVAO);
+        glDeleteBuffers(1, &mVBO);
+
+        for (const std::pair<const wchar_t, FontFaceData>& n : mFontFaceDataMap) {
+            glDeleteTextures(1, &(n.second.mTexId));
+            FT_Done_Glyph(n.second.mGlyph);
+        }
+    }
+
+    mFontFaceDataMap.clear();
+    FT_Done_Face(mFace);
 }
 
 long Font::getStrokeSize() const {
@@ -100,23 +112,6 @@ long Font::getStrokeSize() const {
 void Font::setStrokeSize(long size) {
     mStrokeSize = size;
 };
-
-void Font::clean() {
-    if (!mFontFaceDataMap.empty()) {
-        glDeleteLists(mListId, 1);
-        glDeleteVertexArrays(1, &mVAO);
-        glDeleteBuffers(1, &mVBO);
-
-        // clear data
-        for (const std::pair<const wchar_t, FontFaceData>& n : mFontFaceDataMap) {
-            glDeleteTextures(1, &(n.second.mTexId));
-            FT_Done_Glyph(n.second.mGlyph);
-        }
-    }
-    
-    mFontFaceDataMap.clear();
-    FT_Done_Face(mFace);
-}
 
 const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
     if (mFontFaceDataMap.count(c) == 0) {
@@ -213,7 +208,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     
     // Can't delete them while they are used, delete when font is cleaned
     ffd.mGlyph = gd.mGlyph;
-    ffd.mDistToNextChar = static_cast<float>(mFace->glyph->advance.x >> 6);
+    ffd.mDistToNextChar = static_cast<float>(mFace->glyph->advance.x / 64);
 
     return true;
 }

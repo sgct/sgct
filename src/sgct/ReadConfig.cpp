@@ -10,6 +10,7 @@
 #include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTMpcdi.h>
+#include <sgct/SGCTNode.h>
 #include <sgct/SGCTSettings.h>
 #include <sgct/SGCTTracker.h>
 #include <sgct/SGCTTrackingDevice.h>
@@ -274,7 +275,7 @@ namespace {
 
             if (childVal == "Orientation") {
                 sgct_core::ClusterManager::instance()->setSceneRotation(
-                    glm::mat4_cast(sgct_core::parseOrientationNode(child))
+                    glm::mat4_cast(sgct_core::readconfig::parseOrientationNode(child))
                 );
             }
 
@@ -585,7 +586,9 @@ namespace {
                 }
             }
             else if (childVal == "Orientation") {
-                usrPtr->setOrientation(parseOrientationNode(child));
+                usrPtr->setOrientation(
+                    sgct_core::readconfig::parseOrientationNode(child)
+                );
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -753,7 +756,9 @@ namespace {
                 sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                 sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                 sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
-                device.setOrientation(parseOrientationNode(child));
+                device.setOrientation(
+                    sgct_core::readconfig::parseOrientationNode(child)
+                );
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -834,7 +839,9 @@ namespace {
                 sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                 sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                 sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
-                device.setOrientation(parseOrientationNode(child));
+                device.setOrientation(
+                    sgct_core::readconfig::parseOrientationNode(child)
+                );
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -894,9 +901,174 @@ namespace {
         }
     }
 
+    void readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename) {
+        using namespace tinyxml2;
+
+        XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
+        if (XMLroot == nullptr) {
+            throw std::runtime_error("Cannot find XML root");
+        }
+
+        const char* masterAddress = XMLroot->Attribute("masterAddress");
+        if (!masterAddress) {
+            throw std::runtime_error("Cannot find master address or DNS name in XML");
+        }
+        sgct_core::ClusterManager::instance()->setMasterAddress(masterAddress);
+
+        const char* debugMode = XMLroot->Attribute("debug");
+        if (debugMode) {
+            using namespace sgct;
+            const bool m = strcmp(debugMode, "true") == 0;
+            MessageHandler::instance()->setNotifyLevel(
+                m ? MessageHandler::Level::Debug : MessageHandler::Level::Warning
+            );
+        }
+
+        const char* port = XMLroot->Attribute("externalControlPort");
+        if (port) {
+            sgct_core::ClusterManager::instance()->setExternalControlPort(port);
+        }
+
+        const char* firmSync = XMLroot->Attribute("firmSync");
+        if (firmSync) {
+            sgct_core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
+                strcmp(firmSync, "true") == 0
+            );
+        }
+
+        XMLElement* element = XMLroot->FirstChildElement();
+        while (element) {
+            std::string_view val = element->Value();
+
+            if (val == "Scene") {
+                parseScene(element);
+            }
+            else if (val == "Node") {
+                parseNode(element, filename);
+            }
+            else if (val == "User") {
+                parseUser(element);
+            }
+            else if (val == "Settings") {
+                sgct::SGCTSettings::instance()->configure(element);
+            }
+            else if (val == "Capture") {
+                parseCapture(element);
+            }
+            else if (val == "Tracker" && element->Attribute("name")) {
+                parseTracker(element);
+            }
+            element = element->NextSiblingElement();
+        }
+    }
+
+    void readAndParseXMLFile(const std::string& filename) {
+        if (filename.empty()) {
+            throw std::runtime_error("No XML file set");
+        }
+
+        tinyxml2::XMLDocument xmlDoc;
+        bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
+        if (!s) {
+            throw std::runtime_error(
+                "Error loading XML file '" + filename + "'. " +
+                xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
+            );
+        }
+        readAndParseXML(xmlDoc, filename);
+    }
+
+    void readAndParseXMLString() {
+        tinyxml2::XMLDocument xmlDoc;
+        bool s = xmlDoc.Parse(
+            DefaultConfig,
+            strlen(DefaultConfig)
+        ) == tinyxml2::XML_NO_ERROR;
+        assert(s);
+        readAndParseXML(xmlDoc, "");
+    }
+
+    std::string replaceEnvVars(const std::string& filename) {
+        size_t foundPercentage = filename.find('%');
+        if (foundPercentage != std::string::npos) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "ReadConfig: SGCT doesn't support the usage of '%%' in the path\n"
+            );
+            return "";
+        }
+
+        std::vector<size_t> beginEnvVar;
+        std::vector<size_t> endEnvVar;
+
+        std::string res;
+
+        size_t foundIndex = 0;
+        while (foundIndex != std::string::npos) {
+            foundIndex = filename.find("$(", foundIndex);
+            if (foundIndex != std::string::npos) {
+                beginEnvVar.push_back(foundIndex);
+                foundIndex = filename.find(')', foundIndex);
+                if (foundIndex != std::string::npos) {
+                    endEnvVar.push_back(foundIndex);
+                }
+            }
+        }
+
+        if (beginEnvVar.size() != endEnvVar.size()) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "ReadConfig: Error: Bad configuration path string\n"
+            );
+            return false;
+        }
+        else {
+            size_t appendPos = 0;
+            for (unsigned int i = 0; i < beginEnvVar.size(); i++) {
+                res.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
+                std::string envVar = filename.substr(
+                    beginEnvVar[i] + 2,
+                    endEnvVar[i] - (beginEnvVar[i] + 2)
+                );
+
+#if (_MSC_VER >= 1400) // visual studio 2005 or later
+                size_t len;
+                char* fetchedEnvVar;
+                errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
+                if (err) {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
+                        envVar.c_str()
+                    );
+                    return false;
+                }
+#else
+                char* fetchedEnvVar = getenv(envVar.c_str());
+                if (fetchedEnvVar == nullptr) {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
+                        envVar.c_str()
+                    );
+                    return std::string();
+                }
+#endif
+
+                res.append(fetchedEnvVar);
+                appendPos = endEnvVar[i] + 1;
+            }
+
+            res.append(filename.substr(appendPos));
+            std::replace(res.begin(), res.end(), char(92), '/');
+        }
+
+        return res;
+    }
+
 } // namespace
 
-namespace sgct_core {
+namespace sgct_core::readconfig {
 
 glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll) {
     const float x = pitch;
@@ -991,8 +1163,9 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
     return quat;
 }
 
-ReadConfig::ReadConfig(std::string filename) {
-    if (filename.empty()) {
+void readConfig(const std::string& filename) {
+    std::string f = filename;
+    if (f.empty()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
             "ReadConfig: No file specified! Using default configuration...\n"
@@ -1002,20 +1175,20 @@ ReadConfig::ReadConfig(std::string filename) {
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "ReadConfig: Parsing XML config '%s'...\n", filename.c_str()
+            "ReadConfig: Parsing XML config '%s'...\n", f.c_str()
         );
-    
-        filename = replaceEnvVars(filename);
-        if (filename.empty()) {
+
+        f = replaceEnvVars(f);
+        if (f.empty()) {
             throw std::runtime_error("Could not resolve file path");
         }
-    
-        readAndParseXMLFile(filename);
 
- 
+        readAndParseXMLFile(f);
+
+
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "ReadConfig: Config file '%s' read successfully\n", filename.c_str()
+            "ReadConfig: Config file '%s' read successfully\n", f.c_str()
         );
     }
     sgct::MessageHandler::instance()->print(
@@ -1023,7 +1196,7 @@ ReadConfig::ReadConfig(std::string filename) {
         "ReadConfig: Number of nodes in cluster: %d\n",
         ClusterManager::instance()->getNumberOfNodes()
     );
-    
+
     for (unsigned int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
@@ -1034,167 +1207,4 @@ ReadConfig::ReadConfig(std::string filename) {
     }
 }
 
-std::string ReadConfig::replaceEnvVars(const std::string& filename) {
-    size_t foundPercentage = filename.find('%');
-    if (foundPercentage != std::string::npos) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "ReadConfig: SGCT doesn't support the usage of '%%' characters in the path\n"
-        );
-        return "";
-    }
-    
-    std::vector<size_t> beginEnvVar;
-    std::vector<size_t> endEnvVar;
-    
-    std::string res;
-
-    size_t foundIndex = 0;
-    while (foundIndex != std::string::npos) {
-        foundIndex = filename.find("$(", foundIndex);
-        if (foundIndex != std::string::npos) {
-            beginEnvVar.push_back(foundIndex);
-            foundIndex = filename.find(')', foundIndex);
-            if (foundIndex != std::string::npos) {
-                endEnvVar.push_back(foundIndex);
-            }
-        }
-    }
-    
-    if (beginEnvVar.size() != endEnvVar.size()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "ReadConfig: Error: Bad configuration path string\n"
-        );
-        return false;
-    }
-    else {
-        size_t appendPos = 0;
-        for (unsigned int i = 0; i < beginEnvVar.size(); i++) {
-            res.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
-            std::string envVar = filename.substr(
-                beginEnvVar[i] + 2,
-                endEnvVar[i] - (beginEnvVar[i] + 2)
-            );
-            
-#if (_MSC_VER >= 1400) // visual studio 2005 or later
-            size_t len;
-            char* fetchedEnvVar;
-            errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
-            if (err) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
-                    envVar.c_str()
-                );
-                return false;
-            }
-#else
-            char* fetchedEnvVar = getenv(envVar.c_str());
-            if (fetchedEnvVar == nullptr) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
-                    envVar.c_str()
-                );
-                return std::string();
-            }
-#endif
-            
-            res.append(fetchedEnvVar);
-            appendPos = endEnvVar[i] + 1;
-        }
-        
-        res.append(filename.substr(appendPos));
-        std::replace(res.begin(), res.end(), char(92), '/');
-    }
-    
-    return res;
-}
-
-void ReadConfig::readAndParseXMLFile(const std::string& filename) {
-    if (filename.empty()) {
-        throw std::runtime_error("No XML file set");
-    }
-    
-    tinyxml2::XMLDocument xmlDoc;
-    bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
-    if (!s) {
-        throw std::runtime_error(
-            "Error loading XML file '" + filename + "'. " +
-            xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
-        );
-    }
-    readAndParseXML(xmlDoc, filename);
-}
-
-void ReadConfig::readAndParseXMLString() {
-    tinyxml2::XMLDocument xmlDoc;
-    bool s = xmlDoc.Parse(DefaultConfig, strlen(DefaultConfig)) == tinyxml2::XML_NO_ERROR;
-    assert(s);
-    readAndParseXML(xmlDoc, "");
-}
-
-void ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc, 
-                                 const std::string& filename)
-{
-    using namespace tinyxml2;
-
-    XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
-    if (XMLroot == nullptr) {
-        throw std::runtime_error("Cannot find XML root");
-    }
-    
-    const char* masterAddress = XMLroot->Attribute("masterAddress");
-    if (!masterAddress) {
-        throw std::runtime_error("Cannot find master address or DNS name in XML");
-    }
-    ClusterManager::instance()->setMasterAddress(masterAddress);
-    
-    const char* debugMode = XMLroot->Attribute("debug");
-    if (debugMode) {
-        const bool m = strcmp(debugMode, "true") == 0;
-        sgct::MessageHandler::instance()->setNotifyLevel(
-             m ? sgct::MessageHandler::Level::Debug : sgct::MessageHandler::Level::Warning
-        );
-    }
-    
-    const char* externalControlPort = XMLroot->Attribute("externalControlPort");
-    if (externalControlPort) {
-        ClusterManager::instance()->setExternalControlPort(externalControlPort);
-    }
-    
-    const char* firmSync = XMLroot->Attribute("firmSync");
-    if (firmSync) {
-        ClusterManager::instance()->setFirmFrameLockSyncStatus(
-            strcmp(firmSync, "true") == 0
-        );
-    }
-    
-    XMLElement* element = XMLroot->FirstChildElement();
-    while (element) {
-        std::string_view val = element->Value();
-        
-        if (val == "Scene") {
-            parseScene(element);
-        }
-        else if (val == "Node") {
-            parseNode(element, filename);
-        }
-        else if (val == "User") {
-            parseUser(element);
-        }
-        else if (val == "Settings") {
-            sgct::SGCTSettings::instance()->configure(element);
-        }
-        else if (val == "Capture") {
-            parseCapture(element);
-        }
-        else if (val == "Tracker" && element->Attribute("name")) {
-            parseTracker(element);
-        }
-        element = element->NextSiblingElement();
-    }
-}
-
-} // namespace sgct_config
+} // namespace sgct_config::readconfig

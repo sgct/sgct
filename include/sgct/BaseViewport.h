@@ -43,6 +43,7 @@ public:
     SGCTUser* getUser() const;
     Frustum::FrustumMode getEye() const;
     SGCTProjection& getProjection(Frustum::FrustumMode frustumMode);
+    const SGCTProjection& getProjection(Frustum::FrustumMode frustumMode) const;
     SGCTProjection& getProjection();
     SGCTProjectionPlane& getProjectionPlane();
     glm::quat getRotation() const;

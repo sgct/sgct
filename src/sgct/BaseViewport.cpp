@@ -71,6 +71,12 @@ SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
     return mProjections[frustumMode];
 }
 
+const SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) const
+{
+    return mProjections[frustumMode];
+}
+
+
 SGCTProjection& BaseViewport::getProjection() {
     return mProjections[mEye];
 }

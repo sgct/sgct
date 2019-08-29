@@ -14,8 +14,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
 
-#define NUMBER_OF_SHADERS 8
-
 namespace sgct_core {
 class Image;
 class NetworkManager;
@@ -25,68 +23,70 @@ class Statistics;
 class Touch;
 } // namespace sgct_core
 
-/*! \namespace sgct
-\brief SGCT namespace contains the most basic functionality of the toolkit
-*/
+/**
+ * \namespace sgct
+ * \brief SGCT namespace contains the most basic functionality of the toolkit
+ */
 namespace sgct {
 
 class PostFX;
 class SGCTTrackingManager;
 class SGCTWindow;
 
-/*!
-The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
-
-The figure below illustrates when different callbacks (gray and blue boxes) are called in the renderloop. The blue boxes illustrates internal processess.
-
-\image html render_diagram.jpg
-\image latex render_diagram.eps "Render diagram" width=7cm
-*/
+/**
+ * The Engine class is the central part of sgct and handles most of the callbacks,
+ * rendering, network handling, input devices etc.
+ * 
+ * The figure below illustrates when different callbacks (gray and blue boxes) are called
+ * in the renderloop. The blue boxes illustrates internal processess.
+ *
+ * \image html render_diagram.jpg
+ * \image latex render_diagram.eps "Render diagram" width=7cm
+ */
 class Engine {
     friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
     friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
     friend class sgct_core::SpoutOutputProjection; //needs to access draw callbacks
 
-//all enums
 public:
-    //! The different run modes used by the init function
+    /// The different run modes used by the init function
     enum RunMode { 
         /// The default mode using fixed OpenGL pipeline (compability mode)
         Default_Mode = 0,
-        /// This option is using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
+        /// Using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
         OpenGL_Compatibility_Profile,
-        /// This option is using a programmable OpenGL 3.3 pipeline using a core profile
+        /// Using a programmable OpenGL 3.3 pipeline using a core profile
         OpenGL_3_3_Core_Profile,
-        /// This option is using a programmable OpenGL 4.0 pipeline using a core profile
+        /// Using a programmable OpenGL 4.0 pipeline using a core profile
         OpenGL_4_0_Core_Profile,
-        /// This option is using a programmable OpenGL 4.1 pipeline using a core profile
+        /// Using a programmable OpenGL 4.1 pipeline using a core profile
         OpenGL_4_1_Core_Profile,
-        /// This option is using a programmable OpenGL 4.2 pipeline using a core profile
+        /// Using a programmable OpenGL 4.2 pipeline using a core profile
         OpenGL_4_2_Core_Profile,
-        /// This option is using a programmable OpenGL 4.3 pipeline using a core profile
+        /// Using a programmable OpenGL 4.3 pipeline using a core profile
         OpenGL_4_3_Core_Profile,
-        /// This option is using a programmable OpenGL 4.4 pipeline using a core profile
+        /// Using a programmable OpenGL 4.4 pipeline using a core profile
         OpenGL_4_4_Core_Profile,
-        /// This option is using a programmable OpenGL 4.5 pipeline using a core profile
+        /// Using a programmable OpenGL 4.5 pipeline using a core profile
         OpenGL_4_5_Core_Profile,
-        /// This option is using a programmable OpenGL 4.6 pipeline using a core profile
+        /// Using a programmable OpenGL 4.6 pipeline using a core profile
         OpenGL_4_6_Core_Profile,
 
-        /// This option is using a programmable OpenGL 4.1 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.1 pipeline using a core debug profile
         OpenGL_4_1_Debug_Core_Profile,
-        /// This option is using a programmable OpenGL 4.2 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.2 pipeline using a core debug profile
         OpenGL_4_2_Debug_Core_Profile,
-        /// This option is using a programmable OpenGL 4.3 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.3 pipeline using a core debug profile
         OpenGL_4_3_Debug_Core_Profile,
-        /// This option is using a programmable OpenGL 4.4 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.4 pipeline using a core debug profile
         OpenGL_4_4_Debug_Core_Profile,
-        /// This option is using a programmable OpenGL 4.5 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.5 pipeline using a core debug profile
         OpenGL_4_5_Debug_Core_Profile,
-        /// This option is using a programmable OpenGL 4.6 pipeline using a core profile and debug feedback
+        /// Using a programmable OpenGL 4.6 pipeline using a core debug profile
         OpenGL_4_6_Debug_Core_Profile
 
     };
-    //! The different texture indexes in window buffers
+    /// The different texture indexes in window buffers
     enum TextureIndexes {
         LeftEye = 0,
         RightEye,
@@ -101,237 +101,844 @@ public:
     enum ViewportTypes { MainViewport, SubViewport };
 
 public:
+    /// \returns the static pointer to the engine instance
     static Engine* instance();
 
-    Engine(int& argc, char**& argv);
+    /**
+     * This is the only valid constructor that also initiates
+     * [GLFW](http://www.glfw.org/). Command line parameters are used to load a
+     * configuration file and settings. Note that parameter with one '\-' are followed by
+     * arguments but parameters with '\-\-' are just options without arguments.
+     *
+     * Parameter     | Description
+     * ------------- | -------------
+     * -config <filename> | set xml confiuration file
+     * -logPath <filepath> | set log file path
+     * --help | display help message and exit
+     * -local <integer> | set which node in configuration that is the localhost (index
+     *                    starts at 0)
+     * --client | run the application as client (only available when running as local)
+     * --slave | run the application as client (only available when running as local)
+     * --debug | set the notify level of messagehandler to debug
+     * --Firm-Sync | enable firm frame sync
+     * --Loose-Sync | disable firm frame sync
+     * --Ignore-Sync | disable frame sync
+     * -notify <integer> | set the notify level used in the MessageHandler
+     *                     (0 = highest priority)
+     * --No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering,
+     *            FXAA and fisheye rendering will be disabled)
+     * --Capture-PNG | use png images for screen capture (default)
+     * --Capture-TGA | use tga images for screen capture
+     * -MSAA <integer> | Enable MSAA as default (argument must be a power of two)
+     * --FXAA | Enable FXAA as default
+     * --gDebugger | Force textures to be generated using glTexImage2D instead of
+     *               glTexStorage2D
+     * -numberOfCaptureThreads <integer> | set the maximum amount of threads that should
+     *                                     be used during framecapture (default 8)
+     */
     Engine(std::vector<std::string>& arg);
+
+    /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
 
+    /**
+     * Engine initiation that:
+     * 1. Parse the configuration file
+     * 2. Set up the network communication
+     * 3. Create window(s)
+     * 4. Set up OpenGL
+     *   4.1 Create textures
+     *   4.2 Init FBOs
+     *   4.3 Init VBOs
+     *   4.4 Init PBOs
+     *
+     * \param rm The optional run mode.
+     */
     bool init(RunMode rm = Default_Mode);
+
+    /// Terminates SGCT.
     void terminate();
+
+    /// This is SGCT's renderloop where rendering & synchronization takes place.
     void render();
+
+    /// Set the configuration file path. Must be done before Engine::init().
     void setConfigurationFile(std::string configFilePath);
+
+    /// \returns the frame time (delta time) in seconds
+    double getDt() const;
+
+    /// \returns the average frames per second
+    double getAvgFPS() const;
+
+    /// \returns the average frame time (delta time) in seconds
+    double getAvgDt() const;
+
+    /// \returns the minimum frame time (delta time) in the averaging window (seconds)
+    double getMinDt() const;
     
-    /*!
-        \returns the static pointer to the engine instance
-    */
+    /// \returns the maximum frame time (delta time) in the averaging window (seconds)
+    double getMaxDt() const;
 
-    double getDt();
-    double getAvgFPS();
-    double getAvgDt();
-    double getMinDt();
-    double getMaxDt();
-    double getDtStandardDeviation();
-    double getDrawTime();
-    double getSyncTime();
+    /// \returns the standard devitation of the delta time in seconds
+    double getDtStandardDeviation() const;
 
-    /*!
-        \returns the clear color as 4 floats (RGBA)
-    */
+    /// \returns the draw time in seconds
+    double getDrawTime() const;
+
+    /// \returns the sync time (time waiting for other nodes and network) in seconds
+    double getSyncTime() const;
+
+    /// \returns the clear color as 4 floats (RGBA)
     glm::vec4 getClearColor() const;
     
-    /*!
-        \returns the near clipping plane distance in meters
-    */
+    /// \returns the near clipping plane distance in meters
     float getNearClippingPlane() const;
-    /*!
-        \returns the far clipping plane distance in meters
-    */
+
+    /// \returns the far clipping plane distance in meters
     float getFarClippingPlane() const;
 
+    /**
+     * Set the near and far clipping planes. This operation recalculates all frustums for
+     * all viewports.
+     *
+     * \param nearClippingPlane near clipping plane in meters
+     * \param farClippingPlane far clipping plane in meters
+     */
     void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
+
+    /**
+     * Set the eye separation (interocular distance) for all users. This operation
+     * recalculates all frustums for all viewports.
+     *
+     * \param eyeSeparation eye separation in meters
+     */
     void setEyeSeparation(float eyeSeparation);
+
+    /**
+     * Set the clear color (background color).
+     *
+     * \param red the red color component
+     * \param green the green color component
+     * \param blue the blue color component
+     * \param alpha the alpha color component
+     */
     void setClearColor(float red, float green, float blue, float alpha);
+
+    /**
+     * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
+     * is: SGCT_KEY_ESC. To diable shutdown or escaping SGCT then use: SGCT_KEY_UNKNOWN
+     *
+     * \param key can be either an uppercase printable ISO 8859-1 (Latin 1) character
+     * (e.g. 'A', '3' or '.'), or a special key identifier described in
+     * setKeyboardCallbackFunction description.
+     */
     void setExitKey(int key);
     void setExitWaitTime(double time);
     void updateFrustums();
+
+    /// Add a post effect to all windows.
     void addPostFX(PostFX& fx);
+
+    /**
+     * \return the active draw texture if frame buffer objects are used,
+     * otherwise GL_FALSE
+     */
     unsigned int getCurrentDrawTexture() const;
+
+    /**
+     * \return the active depth texture if depth texture rendering is enabled through
+     * SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     */
     unsigned int getCurrentDepthTexture() const;
+
+    /**
+     * \return the active normal texture if normal texture rendering is enabled through
+     * SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     */
     unsigned int getCurrentNormalTexture() const;
+
+    /**
+     * \return the active position texture if position texture rendering is enabled
+     * through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     */
     unsigned int getCurrentPositionTexture() const;
+
+    /// \return the resolution in pixels for the active window's framebuffer
     glm::ivec2 getCurrentResolution() const;
+
+    /// \return the index of the focus window. If no window has focus, 0 is returned.
     size_t getFocusedWindowIndex() const;
 
-    /*!
-        \param state of the wireframe rendering
-    */
+    /// \param state of the wireframe rendering
     void setWireframe(bool state);
-    /*!
-        Set if the info text should be visible or not
 
-        \param state of the info text rendering
-    */
+    /**
+     * Set if the info text should be visible or not
+     *
+     * \param state of the info text rendering
+     */
     void setDisplayInfoVisibility(bool state);
 
-    /*!
-        Set if the statistics graph should be visible or not
-
-        \param state of the statistics graph rendering
-    */
+    /**
+     * Set if the statistics graph should be visible or not
+     *
+     * \param state of the statistics graph rendering
+     */
     void setStatsGraphVisibility(bool state);
 
-    /*!
-        Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled then two screenshots will be saved per frame, one for the left eye and one for the right eye.
-        To record frames for a movie simply call this function every frame you wish to record. The read to disk is multi-threaded and maximum number of threads can be set using:
-        -numberOfCaptureThreads command line argument.
-    */
+    /**
+     * Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled
+     * then two screenshots will be saved per frame, one for the left eye and one for the
+     * right eye.
+     *
+     * To record frames for a movie simply call this function every frame you wish to
+     * record. The read to disk is multi-threaded and maximum number of threads can be set
+     * using:
+     *   - numberOfCaptureThreads command line argument.
+     */
     void takeScreenshot();
+
+    ///  Set the screenshot number (file index)
     void setScreenShotNumber(unsigned int number);
+
+    ///  \return the current screenshot number (file index)
     unsigned int getScreenShotNumber() const;
-    void invokeScreenShotCallback(sgct_core::Image* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
-    void setScreenShotCallback(void(*fnPtr)(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
 
+    /// Don't use this. This function is called internally in SGCT.
+    void invokeScreenShotCallback(sgct_core::Image* imPtr, size_t winIndex,
+        sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+
+    /**
+     * Create a timer that counts down and call the given callback when finished. The
+     * timer runs only on the master and is not precies since it is triggered in end of
+     * the renderloop.
+     *
+     * \param millisec is the countdown time
+     * \param fnPtr is the function pointer to a timer callback (the argument will be the
+     * timer handle/id).
+     *
+     * \return Handle/id to the created timer
+     */
     size_t createTimer(double millisec, void(*fnPtr)(size_t));
-    void stopTimer(std::size_t id);
 
-    //set callback functions
-    void setInitOGLFunction(void(*fnPtr)(void));
-    void setPreWindowFunction(void(*fnPtr)(void));
-    void setPreSyncFunction(void(*fnPtr)(void));
-    void setPostSyncPreDrawFunction(void(*fnPtr)(void));
-    void setClearBufferFunction(void(*fnPtr)(void));
-    void setDrawFunction(void(*fnPtr)(void));
-    void setDraw2DFunction(void(*fnPtr)(void));
-    void setPostDrawFunction(void(*fnPtr)(void));
+    /**
+     * Stops the specified timer.
+     *
+     * \param id/handle to a timer
+     */
+    void stopTimer(size_t id);
+
     void setCleanUpFunction(void(*fnPtr)(void));
     
-    void setKeyboardCallbackFunction(void(*fnPtr)(int, int)); //arguments: int key, int action
-    void setKeyboardCallbackFunction(void(*fnPtr)(int, int, int, int)); //arguments: int key, int scancode, int action, int mods
-    void setCharCallbackFunction(void(*fnPtr)(unsigned int)); //arguments: unsigned int unicode character
-    void setCharCallbackFunction(void(*fnPtr)(unsigned int, int)); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction(void(*fnPtr)(int, int, int)); //arguments: int button, int action, int mods
-    void setMousePosCallbackFunction(void(*fnPtr)(double, double)); //arguments: double x, double y
-    void setMouseScrollCallbackFunction(void(*fnPtr)(double, double)); //arguments: double xoffset, double yoffset
-    void setDropCallbackFunction(void(*fnPtr)(int, const char**)); //arguments: int count, const char ** list of path strings
-    void setTouchCallbackFunction(void(*fnPtr)(const sgct_core::Touch*)); //arguments: current touch points
+    // arguments: bool connected
+    void setExternalControlStatusCallback(void(*fnPtr)(bool));
 
-    void setExternalControlCallback(void(*fnPtr)(const char*, int)); //arguments: const char * buffer, int buffer length
-    void setExternalControlStatusCallback(void(*fnPtr)(bool)); //arguments: const bool & connected
-    void setContextCreationCallback(void(*fnPtr)(GLFWwindow*)); //arguments: glfw window share
-
-    void setDataTransferCallback(void(*fnPtr)(void*, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
-    void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
-    void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
-
+    /**
+     * This function sets the initOGL callback. The Engine will then use the callback only
+     * once before the starting the render loop. Textures, Models, Buffers, etc. can be
+     * loaded/allocated here.
+     *
+     * \param fn is the std function of an OpenGL initiation callback
+     */
     void setInitOGLFunction(std::function<void(void)> fn);
+
+    /**
+     * This callback is called before the window is created (before OpenGL context is
+     * created). At this stage the config file has been read and network initialized.
+     * Therefore it's suitable for loading master or slave specific data.
+     *
+     * \param fn is the std function of a pre window creation callback
+     */
     void setPreWindowFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the pre-sync callback. The Engine will then use the callback
+     * before the sync stage. In the callback set the variables that will be shared.
+     *
+     * \param fn is the function pointer to a pre-sync callback
+     */
     void setPreSyncFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the post-sync-pre-draw callback. The Engine will then use the
+     * callback after the sync stage but before the draw stage. Compared to the draw
+     * callback the post-sync-pre-draw callback is called only once per frame. In this
+     * callback synchronized variables can be applied or simulations depending on
+     * synchronized input can run.
+     *
+     * \param fn is the std function of a post-sync-pre-draw callback
+     */
     void setPostSyncPreDrawFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the clear buffer callback which will override the default clear
+     * buffer function.
+     *
+     * \param fnPtr is the function pointer to a clear buffer function callback
+     *
+     *
+\code
+void sgct::Engine::clearBuffer() {
+    const float * colorPtr = sgct::Engine::instance()->getClearColor();
+    glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+\endcode
+     */
     void setClearBufferFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the draw callback. It's possible to have several draw functions
+     * and change the callback on the fly preferably in a stage before the draw like the
+     * post-sync-pre-draw stage or the pre-sync stage. The draw callback can be called
+     * several times per frame since it's called once for every viewport and once for
+     * every eye if stereoscopy is used.
+     *
+     * \param fn is the std function to a draw callback
+     */
     void setDrawFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the draw 2D callback. This callback will be called after
+     * overlays and post effects has been drawn. This makes it possible to render text and
+     * HUDs that will not be filtered and antialiased.
+     *
+     * \param fn is the function pointer to a draw 2D callback
+     */
     void setDraw2DFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the post-draw callback. The Engine will then use the callback
+     * after the draw stage but before the OpenGL buffer swap. Compared to the draw
+     * callback the post-draw callback is called only once per frame. In this callback
+     * data/buffer swaps can be made.
+     *
+     * \param fn is the std function of a post-draw callback
+     */
     void setPostDrawFunction(std::function<void(void)> fn);
+
+    /**
+     * This function sets the clean up callback which will be called in the Engine
+     * destructor before all sgct components (like window, OpenGL context, network, etc.)
+     * will be destroyed.
+     *
+     * \param fn is the std function pointer of a clean up function callback
+     */
     void setCleanUpFunction(std::function<void(void)> fn);
     
-    void setKeyboardCallbackFunction(std::function<void(int, int)> fn); //arguments: int key, int action
-    void setKeyboardCallbackFunction(std::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
-    void setCharCallbackFunction(std::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
-    void setCharCallbackFunction(std::function<void(unsigned int, int)> fn); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction(std::function<void(int, int, int)> fn); //arguments: int button, int action, int mods
-    void setMousePosCallbackFunction(std::function<void(double, double)> fn); //arguments: double x, double y
-    void setMouseScrollCallbackFunction(std::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
-    void setDropCallbackFunction(std::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings
-    void setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn); //arguments: current touch points
+    /**
+     * This function sets the keyboard callback (GLFW wrapper) where the two parameters
+     * are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a
+     * special character defined in the table below. Action can either be SGCT_PRESS or
+     * SGCT_RELEASE. All windows are connected to this callback.
+     *
+     * \param fnPtr is the function pointer to a keyboard callback function
+     *
+     * Name          | Description
+     * ------------- | -------------
+     * SGCT_KEY_UNKNOWN  | Unknown
+     * SGCT_KEY_SPACE  | Space
+     * SGCT_KEY_APOSTROPHE | Apostrophe
+     * SGCT_KEY_COMMA | Comma
+     * SGCT_KEY_MINUS | Minus
+     * SGCT_KEY_PERIOD | Period
+     * SGCT_KEY_SLASH | Slash
+     * SGCT_KEY_0 | 0
+     * SGCT_KEY_1 | 1
+     * SGCT_KEY_2 | 2
+     * SGCT_KEY_3 | 3
+     * SGCT_KEY_4 | 4
+     * SGCT_KEY_5 | 5
+     * SGCT_KEY_6 | 6
+     * SGCT_KEY_7 | 7
+     * SGCT_KEY_8 | 8
+     * SGCT_KEY_9 | 9
+     * SGCT_KEY_SEMICOLON | Semicolon
+     * SGCT_KEY_EQUAL | Equal
+     * SGCT_KEY_A | A
+     * SGCT_KEY_B | B
+     * SGCT_KEY_C | C
+     * SGCT_KEY_D | D
+     * SGCT_KEY_E | E
+     * SGCT_KEY_F | F
+     * SGCT_KEY_G | G
+     * SGCT_KEY_H | H
+     * SGCT_KEY_I | I
+     * SGCT_KEY_J | J
+     * SGCT_KEY_K | K
+     * SGCT_KEY_L | L
+     * SGCT_KEY_M | M
+     * SGCT_KEY_N | N
+     * SGCT_KEY_O | O
+     * SGCT_KEY_P | P
+     * SGCT_KEY_Q | Q
+     * SGCT_KEY_R | R
+     * SGCT_KEY_S | S
+     * SGCT_KEY_T | T
+     * SGCT_KEY_U | U
+     * SGCT_KEY_V | V
+     * SGCT_KEY_W | W
+     * SGCT_KEY_X | X
+     * SGCT_KEY_Y | Y
+     * SGCT_KEY_Z | Z
+     * SGCT_KEY_LEFT_BRACKET | Left bracket
+     * SGCT_KEY_BACKSLASH | backslash
+     * SGCT_KEY_RIGHT_BRACKET | Right bracket
+     * SGCT_KEY_GRAVE_ACCENT | Grave accent
+     * SGCT_KEY_WORLD_1 | World 1
+     * SGCT_KEY_WORLD_2 | World 2
+     * SGCT_KEY_ESC | Escape
+     * SGCT_KEY_ESCAPE | Escape
+     * SGCT_KEY_ENTER | Enter
+     * SGCT_KEY_TAB | Tab
+     * SGCT_KEY_BACKSPACE | Backspace
+     * SGCT_KEY_INSERT | Insert
+     * SGCT_KEY_DEL | Delete
+     * SGCT_KEY_DELETE | Delete
+     * SGCT_KEY_RIGHT | Right
+     * SGCT_KEY_LEFT | Left
+     * SGCT_KEY_DOWN | Down
+     * SGCT_KEY_UP | Up
+     * SGCT_KEY_PAGEUP | Page up
+     * SGCT_KEY_PAGEDOWN | Page down
+     * SGCT_KEY_PAGE_UP | Page up
+     * SGCT_KEY_PAGE_DOWN | Page down
+     * SGCT_KEY_HOME | Home
+     * SGCT_KEY_END | End
+     * SGCT_KEY_CAPS_LOCK | Caps lock
+     * SGCT_KEY_SCROLL_LOCK | Scroll lock
+     * SGCT_KEY_NUM_LOCK | Num lock
+     * SGCT_KEY_PRINT_SCREEN | Print screen
+     * SGCT_KEY_PAUSE | Pause
+     * SGCT_KEY_F1 | F1
+     * SGCT_KEY_F2 | F2
+     * SGCT_KEY_F3 | F3
+     * SGCT_KEY_F4 | F4
+     * SGCT_KEY_F5 | F5
+     * SGCT_KEY_F6 | F6
+     * SGCT_KEY_F7 | F7
+     * SGCT_KEY_F8 | F8
+     * SGCT_KEY_F9 | F9
+     * SGCT_KEY_F10 | F10
+     * SGCT_KEY_F11 | F11
+     * SGCT_KEY_F12 | F12
+     * SGCT_KEY_F13 | F13
+     * SGCT_KEY_F14 | F14
+     * SGCT_KEY_F15 | F15
+     * SGCT_KEY_F16 | F16
+     * SGCT_KEY_F17 | F17
+     * SGCT_KEY_F18 | F18
+     * SGCT_KEY_F19 | F19
+     * SGCT_KEY_F20 | F20
+     * SGCT_KEY_F21 | F21
+     * SGCT_KEY_F22 | F22
+     * SGCT_KEY_F23 | F23
+     * SGCT_KEY_F24 | F24
+     * SGCT_KEY_F25 | F25
+     * SGCT_KEY_KP_0 | Keypad 0
+     * SGCT_KEY_KP_1 | Keypad 1
+     * SGCT_KEY_KP_2 | Keypad 2
+     * SGCT_KEY_KP_3 | Keypad 3
+     * SGCT_KEY_KP_4 | Keypad 4
+     * SGCT_KEY_KP_5 | Keypad 5
+     * SGCT_KEY_KP_6 | Keypad 6
+     * SGCT_KEY_KP_7 | Keypad 7
+     * SGCT_KEY_KP_8 | Keypad 8
+     * SGCT_KEY_KP_9 | Keypad 9
+     * SGCT_KEY_KP_DECIMAL| Keypad decimal
+     * SGCT_KEY_KP_DIVIDE | Keypad divide
+     * SGCT_KEY_KP_MULTIPLY | Keypad multiply
+     * SGCT_KEY_KP_SUBTRACT | Keypad subtract
+     * SGCT_KEY_KP_ADD | Keypad add
+     * SGCT_KEY_KP_ENTER | Keypad enter
+     * SGCT_KEY_KP_EQUAL | Keypad equal
+     * SGCT_KEY_LSHIFT | Left shift
+     * SGCT_KEY_LEFT_SHIFT | Left shift
+     * SGCT_KEY_LCTRL | Left control
+     * SGCT_KEY_LEFT_CONTROL | Left control
+     * SGCT_KEY_LALT | Left alt
+     * SGCT_KEY_LEFT_ALT | Left alt
+     * SGCT_KEY_LEFT_SUPER | Left super
+     * SGCT_KEY_RSHIFT | Right shift
+     * SGCT_KEY_RIGHT_SHIFT | Right shift
+     * SGCT_KEY_RCTRL | Right control
+     * SGCT_KEY_RIGHT_CONTROL | Right control
+     * SGCT_KEY_RALT | Right alt
+     * SGCT_KEY_RIGHT_ALT | Right alt
+     * SGCT_KEY_RIGHT_SUPER | Right super
+     * SGCT_KEY_MENU | Menu
+     * SGCT_KEY_LAST | Last key index
+     */
+    void setKeyboardCallbackFunction(std::function<void(int key, int action)> fn);
 
-    void setExternalControlCallback(std::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
-    void setExternalControlStatusCallback(std::function<void(bool)> fn); //arguments: const bool & connected
-    void setContextCreationCallback(std::function<void(GLFWwindow*)> fn); //arguments: glfw window share
+    /**
+     * This function sets the keyboard callback (GLFW wrapper) where the four parameters
+     * are: int key, int scancode, int action, int mods. Modifier keys can be a
+     * combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All
+     * windows are connected to this callback.
+     *
+     * \param fn is the std function of a keyboard callback function
+     *
+     * \see sgct::Engine::setKeyboardCallbackFunction
+     */
+    void setKeyboardCallbackFunction(
+        std::function<void(int key, int scanCode, int action, int modifiers)> fn);
 
-    void setDataTransferCallback(std::function<void(void *, int, int, int)> fn); //arguments: const char * buffer, int buffer length, int package id, int client
-    void setDataTransferStatusCallback(std::function<void(bool, int)> fn); //arguments: const bool & connected, int client
-    void setDataAcknowledgeCallback(std::function<void(int, int)> fn); //arguments: int package id, int client
+    /// All windows are connected to this callback.
+    void setCharCallbackFunction(std::function<void(unsigned int unicodeChar)> fn);
 
-    //external control network functions
+    /// All windows are connected to this callback.
+    void setCharCallbackFunction(
+        std::function<void(unsigned int unicode, int modifiers)> fn);
+
+    /**
+     * This function sets the mouse button callback (GLFW wrapper) where the two
+     * parameters are: int button, int action. Button id's are listed in the table below.
+     * Action can either be SGCT_PRESS or SGCT_RELEASE. All windows are connected to this
+     * callback.
+     *
+     * \param fn is the function pointer to a mouse button callback function
+     *
+     * Name          | Description
+     * ------------- | -------------
+     * SGCT_MOUSE_BUTTON_LEFT | Left button
+     * SGCT_MOUSE_BUTTON_RIGHT | Right button
+     * SGCT_MOUSE_BUTTON_MIDDLE | Middle button
+     * SGCT_MOUSE_BUTTON_1 | Button 1
+     * SGCT_MOUSE_BUTTON_2 | Button 2
+     * SGCT_MOUSE_BUTTON_3 | Button 3
+     * SGCT_MOUSE_BUTTON_4 | Button 4
+     * SGCT_MOUSE_BUTTON_5 | Button 5
+     * SGCT_MOUSE_BUTTON_6 | Button 6
+     * SGCT_MOUSE_BUTTON_7 | Button 7
+     * SGCT_MOUSE_BUTTON_8 | Button 8
+     * SGCT_MOUSE_BUTTON_LAST | Last mouse button index
+     */
+    void setMouseButtonCallbackFunction(
+        std::function<void(int button, int action, int modifiers)> fn);
+
+    /// All windows are connected to this callback.
+    void setMousePosCallbackFunction(std::function<void(double x, double y)> fn);
+
+    /// All windows are connected to this callback.
+    void setMouseScrollCallbackFunction(std::function<void(double x, double y)> fn);
+
+    /// Drop files to any window. All windows are connected to this callback.
+    void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
+
+    void setTouchCallbackFunction(
+        std::function<void(const sgct_core::Touch* touches)> fn);
+
+    /**
+     *  This callback must be set before Engine::init is called. Parameters to the
+     * callback are: Image pointer for image data, window index, eye index, download type
+     *
+     * \param fn is the function pointer to a screenshot callback for custom frame
+     *        capture & export
+     */
+    void setScreenShotCallback(std::function<void(sgct_core::Image*, size_t,
+        sgct_core::ScreenCapture::EyeIndex, unsigned int type)> fn);
+
+
+    /**
+     * This function sets the external control message callback which will be called when
+     * a TCP message is received. The TCP listner is enabled in the XML configuration file
+     * in the Cluster tag by externalControlPort, where the portnumber is an integer
+     * preferably above 20000.
+     *
+     * \param fn is the function pointer to an external control message callback.
+     *        arguments: const char * buffer, int buffer length
+     *
+     * All TCP messages must be separated by carriage return (CR) followed by a newline
+     * (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
+     */
+    void setExternalControlCallback(
+        std::function<void(const char* buffer, int length)> fn);
+
+    /**
+     * This function sets the external control status callback which will be called when
+     * the connection status changes (connect or disconnect).
+     *
+     * \param fn is the std function of an external control status callback
+     */
+    void setExternalControlStatusCallback(std::function<void(bool connected)> fn);
+
+    /**
+     * This function sets the OpenGL context creation callback which will be called
+     * directly after all SGCT windows are created. This enables the user to create
+     * additional OpenGL context for multithreaded OpenGL.
+     *
+     * \param fn is the std funtion of an OpenGL context (GLFW window) creation callback
+     */
+    void setContextCreationCallback(std::function<void(GLFWwindow* window)> fn);
+
+    /**
+     * This function sets the data transfer message callback which will be called when a
+     * TCP message is received. The TCP listner is enabled in the XML configuration file
+     * in the Node tag by dataTransferPort, where the portnumber is an integer preferably
+     * above 20000.
+     *
+     * \param fn is the std function of a data transfer callback
+     */
+    void setDataTransferCallback(
+        std::function<void(void* buffer, int length, int packageId, int clientId)> fn);
+    
+    /**
+     * This function sets the data transfer status callback which will be called when the
+     * connection status changes (connect or disconnect).
+     *
+     * \param fn is the std function of a data transfer status callback
+     */
+    void setDataTransferStatusCallback(
+        std::function<void(bool connected, int clientId)> fn);
+
+    /**
+     * This function sets the data transfer acknowledge callback which will be called when
+     * the data is successfully sent.
+     *
+     * \param fn is the std function of a data transfer acknowledge callback
+     */
+    void setDataAcknowledgeCallback(std::function<void(int packageId, int clientId)> fn);
+
+    // external control network functions
+
+    /**
+     * This function sends a message to the external control interface.
+     *
+     * \param data a pointer to the data buffer
+     * \param length is the number of bytes of data that will be sent
+     */
     void sendMessageToExternalControl(const void* data, int length);
+
+    /**
+     * This function sends a message to the external control interface.
+     *
+     * \param msg the message string that will be sent
+     */
     void sendMessageToExternalControl(const std::string& msg);
+
+    /// Check if the external control is connected.
     bool isExternalControlConnected() const;
+
+    /**
+     * Set the buffer size for the external control communication buffer. This size must
+     * be equal or larger than the receive buffer size.
+     */
     void setExternalControlBufferSize(unsigned int newSize);
-    void invokeDecodeCallbackForExternalControl(const char* receivedData, int receivedlength, int clientId);
+
+    /**
+     * Don't use this. This function is called from SGCTNetwork and will invoke the
+     * external network callback when messages are received.
+     */
+    void invokeDecodeCallbackForExternalControl(const char* receivedData,
+        int receivedLength, int clientId);
+
+    /**
+     *  Don't use this. This function is called from SGCTNetwork and will invoke the
+     * external network update callback when connection is connected/disconnected.
+     */
     void invokeUpdateCallbackForExternalControl(bool connected);
 
-    //data transfer functions
+    // data transfer functions
+    /**
+     * Compression levels 1-9.
+     *   -1 = Default compression
+     *   0 = No compression
+     * 1 = Best speed
+     * 9 = Best compression
+     */
     void setDataTransferCompression(bool state, int level = 1);
+
+    /**
+     * This function sends data between nodes.
+     *
+     * \param data a pointer to the data buffer
+     * \param length is the number of bytes of data that will be sent
+     * \param packageId is the identification id of this specific package
+     */
     void transferDataBetweenNodes(const void* data, int length, int packageId);
-    void transferDataToNode(const void* data, int length, int packageId, std::size_t nodeIndex);
-    void invokeDecodeCallbackForDataTransfer(void* receivedData, int receivedlength, int packageId, int clientd);
+
+    /**
+     * This function sends data to a specific node.
+     *
+     * \param data a pointer to the data buffer
+     * \param length is the number of bytes of data that will be sent
+     * \param packageId is the identification id of this specific package
+     * \param nodeIndex is the index of a specific node
+     */
+    void transferDataToNode(const void* data, int length, int packageId,
+        size_t nodeIndex);
+
+    /**
+     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * transfer callback when messages are received.
+     */
+    void invokeDecodeCallbackForDataTransfer(void* receivedData, int receivedLength,
+        int packageId, int clientId);
+
+    /**
+     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * transfer callback when connection is connected/disconnected.
+     */
     void invokeUpdateCallbackForDataTransfer(bool connected, int clientId);
+
+    /**
+     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * transfer callback when data is successfully sent.
+     */
     void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId);
 
-    //GLFW wrapped functions
+    /// Get the time from program start in seconds
     static double getTime();
+
+    /**
+     * Checks the keyboard if the specified key has been pressed.
+     *
+     * \param winIndex specifies which window to poll
+     * \param key specifies which key to check
+     *
+     * \return SGCT_PRESS or SGCT_RELEASE
+     */
     static int getKey(size_t winIndex, int key);
+
+    /**
+     * Checks if specified mouse button has been pressed.
+     *
+     * \param winIndex specifies which window to poll
+     * \param button specifies which button to check
+     *
+     * \return SGCT_PRESS or SGCT_RELEASE
+     */
     static int getMouseButton(size_t winIndex, int button);
+    
+    /**
+     * Get the mouse position.
+     *
+     * \param winIndex specifies which window to poll
+     * \param xPos x screen coordinate
+     * \param yPos y screen coordinate
+     */
     static void getMousePos(size_t winIndex, double* xPos, double* yPos);
+
+    /**
+     * Set the mouse position.
+     *
+     * \param winIndex specifies which window's input to set
+     * \param xPos x screen coordinate
+     * \param yPos y screen coordinate
+     */
     static void setMousePos(size_t winIndex, double xPos, double yPos);
+    
+    /**
+     * Set the mouse cursor/pointer visibility.
+     *
+     * \param winIndex specifies which window's input to set
+     * \param state set to true if mouse cursor should be visible
+     */
     static void setMouseCursorVisibility(size_t winIndex, bool state);
+
+    /**
+     * \param joystick is the joystick id. Availible id's:
+     *   - SGCT_JOYSTICK_1
+     *   - SGCT_JOYSTICK_2
+     *   - SGCT_JOYSTICK_3
+     *   - SGCT_JOYSTICK_4
+     *   - SGCT_JOYSTICK_5
+     *   - SGCT_JOYSTICK_6
+     *   - SGCT_JOYSTICK_7
+     *   - SGCT_JOYSTICK_8
+     *   - SGCT_JOYSTICK_9
+     *   - SGCT_JOYSTICK_10
+     *   - SGCT_JOYSTICK_11
+     *   - SGCT_JOYSTICK_12
+     *   - SGCT_JOYSTICK_13
+     *   - SGCT_JOYSTICK_14
+     *   - SGCT_JOYSTICK_15
+     *   - SGCT_JOYSTICK_16
+     *   - SGCT_JOYSTICK_LAST
+     */
     static const char* getJoystickName(int joystick);
+
+    /**
+     * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
+     *
+     * \param numOfValues is the number of analog axes
+     *
+     * \return the analog float values (array)
+     */
     static const float* getJoystickAxes(int joystick, int* numOfValues);
-    static const unsigned char* getJoystickButtons(int joystick, int * numOfValues);
+
+    /**
+     * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
+     *
+     * \param numOfValues is the number of buttons
+     *
+     * \return the button values (array)
+     */
+    static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
+
+    /**
+     * This function puts the current thread to sleep during a specified time.
+     *
+     * \param secs is the time to sleep the thread
+     */
     static void sleep(double secs);
 
-    /*!//
-        Returns a pointer to this node (running on this computer).
-    */
+    /// Returns a pointer to this node (running on this computer).
     const sgct_core::SGCTNode* getThisNodePtr(size_t index) const;
 
-    /*!
-        Returns a pointer to a specified window by index on this node.
-    */
+    /// Returns a pointer to a specified window by index on this node.
     SGCTWindow& getWindowPtr(size_t index) const;
 
-    /*!
-        Returns the number of windows for this node.
-    */
+    /// Returns the number of windows for this node.
     size_t getNumberOfWindows() const;
 
-    /*!
-        Returns a pointer to the current window that is beeing rendered
-    */
+    /// Returns a pointer to the current window that is beeing rendered
     SGCTWindow& getCurrentWindowPtr() const;
 
-    /*!
-        Returns an index to the current window that is beeing rendered
-    */
+    /// Returns an index to the current window that is beeing rendered
     size_t getCurrentWindowIndex() const;
 
-    /*!
-        Returns a pinter to the user (VR observer position) object
-    */
+    /// Returns a pointer to the user (VR observer position) object
     static sgct_core::SGCTUser* getDefaultUserPtr();
 
-    /*!
-        Returns a pointer to the tracking manager pointer
-    */
+    /// Returns a pointer to the tracking manager pointer
     static SGCTTrackingManager& getTrackingManager();
+
+    /**
+     * This functions checks for OpenGL errors and prints them using the MessageHandler
+     * (to commandline). Avoid this function in the render loop for release code since it
+     * can reduce performance.
+     *
+     * \returns true if no errors occured
+     */
     static bool checkForOGLErrors();
 
-    /*!
-        Returns true if this node is the master
-    */
+    /// Returns true if this node is the master
     bool isMaster() const;
 
-    /*!
-        Returns true if on-screen info is rendered.
-    */
+    /// Returns true if on-screen info is rendered.
     bool isDisplayInfoRendered() const;
 
-    /*!
-        Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
-    */
+    /**
+     * Returns true if render target is off-screen (FBO) or false if render target is the
+     * frame buffer.
+     */
     bool isRenderingOffScreen() const;
 
-    /*!
-        Returns the active frustum mode which can be one of the following:
-        - Mono
-        - Stereo Left
-        - Stereo Right
-    */
-    const sgct_core::Frustum::FrustumMode& getCurrentFrustumMode() const;
+    /**
+     * Returns the active frustum mode which can be one of the following:
+     *   - Mono
+     *   - Stereo Left
+     *   - Stereo Right
+     */
+    sgct_core::Frustum::FrustumMode getCurrentFrustumMode() const;
 
-    /*!
-        Returns the active projection matrix (only valid inside in the draw callback function)
-    */
+    /**
+     * Returns the active projection matrix (only valid inside in the draw callback
+     * function)
+     */
     const glm::mat4& getCurrentProjectionMatrix() const;
 
     /*!
@@ -339,120 +946,258 @@ public:
     */
     const glm::mat4& getCurrentViewMatrix() const;
 
-    /*!
-        Returns the scene transform specified in the XML configuration, default is a identity matrix
-    */
+    /**
+     * Returns the scene transform specified in the XML configuration, default is a
+     * identity matrix
+     */
     const glm::mat4& getModelMatrix() const;
 
-    /*!
-        Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
-    */
+    /**
+     * Returns the active VP = Projection * View matrix (only valid inside in the draw
+     * callback function)
+     */
     const glm::mat4& getCurrentViewProjectionMatrix() const;
 
-    /*!
-        Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
-    */
+    /**
+     * Returns the active MVP = Projection * View * Model matrix (only valid inside in the
+     * draw callback function)
+     */
     glm::mat4 getCurrentModelViewProjectionMatrix() const;
     
-    /*!
-        Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
-    */
+    /**
+     * Returns the active MV = View * Model matrix (only valid inside in the draw callback
+     * function)
+     */
     glm::mat4 getCurrentModelViewMatrix() const;
 
-    /*!
-        Returns the current frame number
-    */
+    /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
 
-    /*!
-        Return true if OpenGL pipeline is fixed (openGL 1-2) or false if OpenGL pipeline is programmable (openGL 3-4)
-    */
+    /**
+     * Return true if OpenGL pipeline is fixed (OpenGL 1-2) or false if OpenGL pipeline is
+     * programmable (OpenGL 3-4)
+     */
     bool isOGLPipelineFixed() const;
 
-    /*!
-        Get the run mode setting (context version and compability modes)
-    */
+    /// Get the run mode setting (context version and compability modes)
     RunMode getRunMode() const;
 
-    /*!
-    Get the GLSL version string that matches the run mode setting
-    */
+    /// Get the GLSL version string that matches the run mode setting
     std::string getGLSLVersion() const;
 
+    /// Get the current viewportindex for given type: MainViewport or SubViewport
     size_t getCurrentViewportIndex(ViewportTypes vp) const;
+
+    /**
+     * Get the active viewport size in pixels.
+     *
+     * \param x the horizontal size
+     * \param y the vertical size
+     */
     void getCurrentViewportSize(int& x, int& y) const;
+
+    /**
+     * Get the active FBO buffer size. Each window has its own buffer plus any additional
+     * non-linear projection targets.
+     *
+     * \param x the horizontal size
+     * \param y the vertical size
+     */
     void getCurrentDrawBufferSize(int& x, int& y) const;
+
+    /**
+     * Get the selected FBO buffer size. Each window has its own buffer plus any
+     * additional non-linear projection targets.
+     *
+     * \param index index of selected drawbuffer
+     * \param x the horizontal size
+     * \param y the vertical size
+     */
     void getDrawBufferSize(const size_t& index, int& x, int& y) const;
     size_t getNumberOfDrawBuffers() const;
+
+    /// \return the active FBO buffer index.
     size_t getCurrentDrawBufferIndex() const;
-    const RenderTarget& getCurrentRenderTarget() const;
+
+    /// \return the active render target.
+    RenderTarget getCurrentRenderTarget() const;
+
+    /// \return the active off screen buffer. If no buffer is active nullptr is returned. 
     sgct_core::OffScreenBuffer* getCurrentFBO() const;
+
+    /**
+     * Returns the active viewport in pixels (only valid inside in the draw callback
+     * function)
+     */
     glm::ivec4 getCurrentViewportPixelCoords() const;
 
+    /**
+     * Get if wireframe rendering is enabled.
+     *
+     * \return true if wireframe is enabled otherwise false
+     */
     bool getWireframe() const;
 
-    /// Specifies the sync parameters to be used in the rendering loop
-    /// @param printMessage If <code>true</code> a message is print waiting for a frame
-    ///                     every second
-    /// @param timeout      The timeout that a master and slaves will wait for each other
-    ///                     in seconds
+    /**
+     * Specifies the sync parameters to be used in the rendering loop.
+     *
+     * \param printMessage If <code>true</code> a message is print waiting for a frame
+     *                     every second
+     * \param timeout The timeout that a master and slaves will wait for each other
+     *                in seconds
+     */
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
 private:
     enum class SyncStage { PreStage = 0, PostStage };
     enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-    enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
     enum ShaderLocIndexes {
         MonoTex = 0,
         OverlayTex,
         SizeX, SizeY, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture
     };
 
+    /// Initiates network communication.
     bool initNetwork();
+
+    /// Create and initiate a window.
     bool initWindows();
+
+    /// Initiates OpenGL.
     void initOGL();
+
+    /// Clean up all resources and release memory.
     void clean();
+
+    /// Un-binds all callbacks.
     void clearAllCallbacks();
 
+    /**
+     * Locks the rendering thread for synchronization. The two stages are:
+     *
+     * 1. PreStage, locks the slaves until data is successfully received
+     * 2. PostStage, locks master until slaves are ready to swap buffers
+     *
+     * Sync time from statistics is the time each computer waits for sync.
+     */
     bool frameLock(SyncStage stage);
     void calculateFPS(double timestamp);
+
+    /**
+     * \param arg is the list of arguments
+     *
+     * This function parses all SGCT arguments and removes them from the argument list.
+     */
     void parseArguments(std::vector<std::string>& arg);
+    
+    /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
+
+    /**
+     * Print the node info to terminal.
+     *
+     * \param nodeId Which node to print
+     */
     void printNodeInfo(unsigned int nodeId);
+    
+    /// Set up the current viewport.
     void enterCurrentViewport();
-    void updateAAInfo(std::size_t winIndex);
+
+    /**
+     * This function updates the Anti-Aliasing (AA) settings. This function is called once
+     * per second.
+     */
+    void updateAAInfo(size_t winIndex);
     void updateDrawBufferResolutions();
 
+    /**
+     * This function enters the correct viewport, frustum, stereo mode and calls the draw
+     * callback.
+     */
     void draw();
+
+    /// Draw viewport overlays if there are any.
     void drawOverlays();
+
+    /**
+     * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
+     * be a simple quad or a geometry correction and blending mesh.
+     */
     void renderFBOTexture();
-    void renderPostFX(TextureIndexes ti );
+    
+    /// This function combines a texture and a shader into a new texture.
+    void renderPostFX(TextureIndexes ti);
+
+    /// Works for fixed and programable pipeline.
     void renderViewports(TextureIndexes ti);
+
+    /// This function renders stats, OSD and overlays.
     void render2D();
 
+    /**
+     * This function enters the correct viewport, frustum, stereo mode and calls the draw
+     * callback.
+     */
     void drawFixedPipeline();
-    void drawOverlaysFixedPipeline();
-    void renderFBOTextureFixedPipeline();
-    void renderPostFXFixedPipeline(TextureIndexes finalTargetIndex );
 
+    /// Draw viewport overlays if there are any.
+    void drawOverlaysFixedPipeline();
+
+    /**
+     * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
+     * be a simple quad or a geometry correction and blending mesh.
+     */
+    void renderFBOTextureFixedPipeline();
+
+    /// This function combines a texture and a shader into a new texture.
+    void renderPostFXFixedPipeline(TextureIndexes finalTargetIndex);
+
+    /// This function attaches targets to FBO if FBO is in use
     void prepareBuffer(TextureIndexes ti);
+
+    /// This function updates the renderingtargets.
     void updateRenderingTargets(TextureIndexes ti);
+
+    /// This function updates the timers.
     void updateTimers(double timeStamp);
+
+    /**
+     * This function loads shaders that handles different 3D modes. The shaders are only
+     * loaded once in the initOGL function.
+     */
     void loadShaders();
+
+    /**
+     *
+     * \param mode is the one of the following:
+     *   - Backbuffer (transparent)
+     *   - Backbuffer (black)
+     *   - RenderToTexture
+     *
+     * This function clears and sets the appropriate buffer from:
+     *   - Back buffer
+     *   - Left back buffer
+     *   - Right back buffer
+     */
     void setAndClearBuffer(BufferMode mode);
+
+    /**
+     * This function waits for all windows to be created on the whole cluster in order to
+     * set the barrier (hardware swap-lock). Under some Nvidia drivers the stability is
+     * improved by first join a swapgroup and then set the barrier then all windows in a
+     * swapgroup are created.
+     */
     void waitForAllWindowsInSwapGroupToOpen();
-    void copyPreviousWindowViewportToCurrentWindowViewport(sgct_core::Frustum::FrustumMode frustumMode);
+
+    /**
+     * This function copies/render the result from the previous window same viewport (if
+     * it exists) into this window
+     */
+    void copyPreviousWindowViewportToCurrentWindowViewport(
+        sgct_core::Frustum::FrustumMode frustumMode);
 
     static void clearBuffer();
-    static void internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void internal_key_char_callback(GLFWwindow* window, unsigned int ch);
-    static void internal_key_char_mods_callback(GLFWwindow* window, unsigned int ch, int mods);
-    static void internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-    static void internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos);
-    static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
-    static void internal_glfw_error_callback(int error, const char* description);
-    static void internal_drop_callback(GLFWwindow* window, int count, const char** paths);
-    static void internal_touch_callback(GLFWwindow* window, GLFWtouch* touchPoints, int count);
+
     static void outputHelpMessage();
 
 private:
@@ -473,7 +1218,9 @@ private:
     std::function<void(void*, int, int, int)> mDataTransferDecodeCallbackFnPtr;
     std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
     std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
-    std::function<void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr;
+    std::function<
+        void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int)
+    > mScreenShotFnPtr;
     std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
     std::function<void()> mInternalDrawFn;
@@ -493,8 +1240,6 @@ private:
     RenderTarget mCurrentRenderTarget = WindowBuffer;
     sgct_core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
 
-    static sgct_core::Touch mCurrentTouchPoints; //< stores all touch points (oldest to newest) from last callback
-
     bool mShowInfo = true;
     bool mShowGraph = true;
     bool mShowWireframe = false;
@@ -507,7 +1252,11 @@ private:
     bool mPrintSyncMessage = true;
     float mSyncTimeout = 60.f;
 
-    ShaderProgram mShaders[NUMBER_OF_SHADERS];
+    struct {
+        ShaderProgram fboQuad;
+        ShaderProgram fxaa;
+        ShaderProgram overlay;
+    } mShader;
 
     struct {
         int monoTex = -1;
@@ -519,10 +1268,8 @@ private:
         int fxaaTexture = -1;
     } mShaderLoc;
 
-    //pointers
-    sgct_core::NetworkManager* mNetworkConnections = nullptr;
-    sgct_core::ReadConfig* mConfig = nullptr;
-    sgct_core::Statistics* mStatistics = nullptr;
+    std::unique_ptr<sgct_core::NetworkManager> mNetworkConnections;
+    std::unique_ptr<sgct_core::Statistics> mStatistics;
     sgct_core::SGCTNode* mThisNode = nullptr;
 
     std::thread* mThreadPtr = nullptr;
@@ -536,15 +1283,17 @@ private:
     unsigned int mFrameCounter = 0;
     unsigned int mShotCounter = 0;
 
-    typedef struct  {
+    struct TimerInformation {
         size_t mId;
         double mLastFired;
         double mInterval;
         std::function<void(size_t)> mCallback;
-    } TimerInformation;
+    };
 
-    std::vector<TimerInformation> mTimers; //< stores all active timers
-    size_t mTimerID = 0; //< the timer created next will use this ID
+    /// stores all active timers
+    std::vector<TimerInformation> mTimers;
+    /// the timer created next will use this ID
+    size_t mTimerID = 0;
 
     RunMode mRunMode = Default_Mode;
     std::string mGLSLVersion;

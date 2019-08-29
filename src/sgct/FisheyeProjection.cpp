@@ -18,301 +18,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/shaders/SGCTInternalFisheyeShaders_modern.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_cubic.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h>
+#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <algorithm>
 #include <sstream>
-#include <map>
 
-
-namespace {
-
-// 1: isCubic ; 2: fixedPipeline ; 3: offAxis ; 4: useDepth ; 5: drawBuffer
-using Key = std::tuple<bool, bool, bool, bool, sgct::SGCTSettings::DrawBufferType>;
-using DrawBufferType = sgct::SGCTSettings::DrawBufferType;
-
-std::map<Key, const char*> FisheyeShaders = {
-    // Fixed = true, OffAxis = true, Depth = true
-    {
-        { true, true, true, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisDepth }
-    },
-    {
-        { false, true, true, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisDepth }
-    },
-    {
-        { true, true, true, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal }
-    },
-    {
-        { false, true, true, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisDepthNormal }
-    },
-    {
-        { true, true, true, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition }
-    },
-    {
-        { false, true, true, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisDepthPosition }
-    },
-    {
-        { true, true, true, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition }
-    },
-    {
-        { false, true, true, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition }
-    },
-
-
-    // Fixed = true, OffAxis = true, Depth = false
-    {
-        { true, true, true, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxis }
-    },
-    {
-        { false, true, true, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxis }
-    },
-    {
-        { true, true, true, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisNormal }
-    },
-    {
-        { false, true, true, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisNormal }
-    },
-    {
-        { true, true, true, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisPosition }
-    },
-    {
-        { false, true, true, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisPosition }
-    },
-    {
-        { true, true, true, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition }
-    },
-    {
-        { false, true, true, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye::FisheyeFragOffAxisNormalPosition }
-    },
-
-
-    // Fixed = true, OffAxis = false, Depth = true
-    {
-        { true, true, false, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragDepth }
-    },
-    {
-        { false, true, false, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye::FisheyeFragDepth }
-    },
-    {
-        { true, true, false, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragDepthNormal }
-    },
-    {
-        { false, true, false, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye::FisheyeFragDepthNormal }
-    },
-    {
-        { true, true, false, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragDepthPosition }
-    },
-    {
-        { false, true, false, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye::FisheyeFragDepthPosition }
-    },
-    {
-        { true, true, false, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragDepthNormalPosition }
-    },
-    {
-        { false, true, false, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye::FisheyeFragDepthNormalPosition }
-    },
-
-
-    // Fixed = true, OffAxis = false, Depth = false
-    {
-        { true, true, false, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFrag }
-    },
-    {
-        { false, true, false, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_fisheye::FisheyeFrag }
-    },
-    {
-        { true, true, false, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragNormal }
-    },
-    {
-        { false, true, false, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_fisheye::FisheyeFragNormal }
-    },
-    {
-        { true, true, false, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragPosition }
-    },
-    {
-        { false, true, false, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_fisheye::FisheyeFragPosition }
-    },
-    {
-        { true, true, false, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye_cubic::FisheyeFragNormalPosition }
-    },
-    {
-        { false, true, false, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_fisheye::FisheyeFragNormalPosition }
-    },
-
-
-    // Fixed = false, OffAxis = true, Depth = true
-    {
-        { true, false, true, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepth }
-    },
-    {
-        { false, false, true, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisDepth }
-    },
-    {
-        { true, false, true, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormal }
-    },
-    {
-        { false, false, true, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisDepthNormal }
-    },
-    {
-        { true, false, true, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthPosition }
-    },
-    {
-        { false, false, true, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisDepthPosition }
-    },
-    {
-        { true, false, true, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition }
-    },
-    {
-        { false, false, true, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisDepthNormalPosition }
-    },
-
-
-    // Fixed = false, OffAxis = true, Depth = false
-    {
-        { true, false, true, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxis }
-    },
-    {
-        { false, false, true, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxis }
-    },
-    {
-        { true, false, true, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormal }
-    },
-    {
-        { false, false, true, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisNormal }
-    },
-    {
-        { true, false, true, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisPosition }
-    },
-    {
-        { false, false, true, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisPosition }
-    },
-    {
-        { true, false, true, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormalPosition }
-    },
-    {
-        { false, false, true, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragOffAxisNormalPosition }
-    },
-
-
-    // Fixed = false, OffAxis = false, Depth = true
-    {
-        { true, false, false, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragDepth }
-    },
-    {
-        { false, false, false, true, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragDepth }
-    },
-    {
-        { true, false, false, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragDepthNormal }
-    },
-    {
-        { false, false, false, true, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragDepthNormal }
-    },
-    {
-        { true, false, false, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragDepthPosition }
-    },
-    {
-        { false, false, false, true, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragDepthPosition }
-    },
-    {
-        { true, false, false, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragDepthNormalPosition }
-    },
-    {
-        { false, false, false, true, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragDepthNormalPosition }
-    },
-
-
-    // Fixed = false, OffAxis = false, Depth = false
-    {
-        { true, false, false, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFrag }
-    },
-    {
-        { false, false, false, false, DrawBufferType::Diffuse },
-        { sgct_core::shaders_modern_fisheye::FisheyeFrag }
-    },
-    {
-        { true, false, false, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragNormal }
-    },
-    {
-        { false, false, false, false, DrawBufferType::DiffuseNormal },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragNormal }
-    },
-    {
-        { true, false, false, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragPosition }
-    },
-    {
-        { false, false, false, false, DrawBufferType::DiffusePosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragPosition }
-    },
-    {
-        { true, false, false, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye_cubic::FisheyeFragNormalPosition }
-    },
-    {
-        { false, false, false, false, DrawBufferType::DiffuseNormalPosition },
-        { sgct_core::shaders_modern_fisheye::FisheyeFragNormalPosition }
-    }
-};
-
-} // namespace
+//#define DebugCubemap
 
 namespace sgct_core {
 
@@ -822,23 +533,123 @@ void FisheyeProjection::initShaders() {
         mShader.deleteProgram();
     }
 
-    const bool isCubic = (mInterpolationMode == InterpolationMode::Cubic);
+    std::string fisheyeFragmentShader;
     std::string fisheyeVertexShader;
 
-    Key k = {
-        isCubic,
-        sgct::Engine::instance()->isOGLPipelineFixed(),
-        mOffAxis,
-        sgct::SGCTSettings::instance()->useDepthTexture(),
-        sgct::SGCTSettings::instance()->getCurrentDrawBufferType()
-    };
-    std::string fisheyeFragmentShader = FisheyeShaders[k];
-
+    const bool isCubic = (mInterpolationMode == InterpolationMode::Cubic);
 
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         fisheyeVertexShader = isCubic ?
             shaders_fisheye_cubic::FisheyeVert : 
             shaders_fisheye::FisheyeVert;
+
+        if (mOffAxis) {
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisDepth :
+                            shaders_fisheye::FisheyeFragOffAxisDepth;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal :
+                            shaders_fisheye::FisheyeFragOffAxisDepthNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition :
+                            shaders_fisheye::FisheyeFragOffAxisDepthPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition :
+                            shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
+                        break;
+                }
+            }
+            else  {
+                // no depth
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxis :
+                            shaders_fisheye::FisheyeFragOffAxis;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisNormal :
+                            shaders_fisheye::FisheyeFragOffAxisNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisPosition :
+                            shaders_fisheye::FisheyeFragOffAxisPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition :
+                            shaders_fisheye::FisheyeFragOffAxisNormalPosition;
+                        break;
+                }
+            }
+        }
+        else {
+            // not off-axis
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragDepth :
+                            shaders_fisheye::FisheyeFragDepth;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragDepthNormal :
+                            shaders_fisheye::FisheyeFragDepthNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragDepthPosition :
+                            shaders_fisheye::FisheyeFragDepthPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragDepthNormalPosition :
+                            shaders_fisheye::FisheyeFragDepthNormalPosition;
+                        break;
+                }
+            }
+            else {
+                // no depth
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFrag :
+                            shaders_fisheye::FisheyeFrag;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragNormal :
+                            shaders_fisheye::FisheyeFragNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragPosition :
+                            shaders_fisheye::FisheyeFragPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_fisheye_cubic::FisheyeFragNormalPosition :
+                            shaders_fisheye::FisheyeFragNormalPosition;
+                        break;
+                }
+            }
+        }
 
         // depth correction shader only
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
@@ -879,6 +690,114 @@ void FisheyeProjection::initShaders() {
         fisheyeVertexShader = isCubic ?
             shaders_modern_fisheye_cubic::FisheyeVert :
             shaders_modern_fisheye::FisheyeVert;
+
+        if (mOffAxis) {
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepth :
+                            shaders_modern_fisheye::FisheyeFragOffAxisDepth;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormal :
+                            shaders_modern_fisheye::FisheyeFragOffAxisDepthNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthPosition :
+                            shaders_modern_fisheye::FisheyeFragOffAxisDepthPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition :
+                            shaders_modern_fisheye::FisheyeFragOffAxisDepthNormalPosition;
+                        break;
+                }
+            }
+            else {
+                // no depth
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxis :
+                            shaders_modern_fisheye::FisheyeFragOffAxis;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormal :
+                            shaders_modern_fisheye::FisheyeFragOffAxisNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisPosition :
+                            shaders_modern_fisheye::FisheyeFragOffAxisPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormalPosition :
+                            shaders_modern_fisheye::FisheyeFragOffAxisNormalPosition;
+                        break;
+                }
+            }
+        }
+        else {
+            // not off axis
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragDepth :
+                            shaders_modern_fisheye::FisheyeFragDepth;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragDepthNormal :
+                            shaders_modern_fisheye::FisheyeFragDepthNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragDepthPosition :
+                            shaders_modern_fisheye::FisheyeFragDepthPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragDepthNormalPosition :
+                            shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
+                        break;
+                }
+            }
+            else {
+                // no depth
+                switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                    case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                    default:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFrag :
+                            shaders_modern_fisheye::FisheyeFrag;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragNormal :
+                            shaders_modern_fisheye::FisheyeFragNormal;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragPosition :
+                            shaders_modern_fisheye::FisheyeFragPosition;
+                        break;
+                    case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                        fisheyeFragmentShader = isCubic ?
+                            shaders_modern_fisheye_cubic::FisheyeFragNormalPosition :
+                            shaders_modern_fisheye::FisheyeFragNormalPosition;
+                        break;
+                }
+            }
+        }
 
         // depth correction shader only
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
@@ -975,8 +894,8 @@ void FisheyeProjection::initShaders() {
         sgct_helpers::findAndReplace(
             fisheyeFragmentShader,
             "**rotVec**",
-            "vec3 rotVec = vec3(angle45Factor * x + angle45Factor * z, y, "
-            "-angle45Factor * x + angle45Factor * z)"
+            "vec3 rotVec = vec3(angle45Factor*x + angle45Factor*z, y, "
+            "-angle45Factor*x + angle45Factor*z)"
         );
     }
     else {
@@ -984,14 +903,22 @@ void FisheyeProjection::initShaders() {
         sgct_helpers::findAndReplace(
             fisheyeFragmentShader,
             "**rotVec**",
-            "vec3 rotVec = vec3(angle45Factor * x - angle45Factor * y, "
-            "angle45Factor * x + angle45Factor * y, z)"
+            "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, "
+            "angle45Factor*x + angle45Factor*y, z)"
         );
     }
 
-    const std::string glsl = sgct::Engine::instance()->getGLSLVersion();
-    sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", glsl);
-    sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", glsl);
+    // replace glsl version
+    sgct_helpers::findAndReplace(
+        fisheyeVertexShader,
+        "**glsl_version**",
+        sgct::Engine::instance()->getGLSLVersion()
+    );
+    sgct_helpers::findAndReplace(
+        fisheyeFragmentShader,
+        "**glsl_version**",
+        sgct::Engine::instance()->getGLSLVersion()
+    );
 
     // replace color
     std::stringstream ssColor;
@@ -1321,7 +1248,7 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (!sgct::SGCTSettings::instance()->useDepthTexture()) {
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
@@ -1335,7 +1262,7 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
             sgct::Engine::mInstance->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1435,17 +1362,14 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             mDepthCorrectionShader.bind();
             glUniform1i(mShaderLoc.swapColorLoc, 0);
             glUniform1i(mShaderLoc.swapDepthLoc, 1);
-            glUniform1f(
-                mShaderLoc.swapNearLoc,
-                sgct::Engine::instance()->mNearClippingPlaneDist
-            );
+            glUniform1f(mShaderLoc.swapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);
             glUniform1f(
                 mShaderLoc.swapFarLoc,
-                sgct::Engine::instance()->mFarClippingPlaneDist
+                sgct::Engine::mInstance->mFarClippingPlaneDist
             );
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = sgct::Engine::instance()->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1469,10 +1393,20 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
+            glTexCoordPointer(
+                2,
+                GL_FLOAT,
+                5 * sizeof(float),
+                reinterpret_cast<void*>(0)
+            );
 
             glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
+            glVertexPointer(
+                3,
+                GL_FLOAT,
+                5 * sizeof(float),
+                reinterpret_cast<void*>(8)
+            );
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
             glPopClientAttrib();

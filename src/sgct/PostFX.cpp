@@ -113,7 +113,7 @@ void PostFX::internalRender() {
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
     // bind target FBO
-    win.getFBOPtr()->attachColorTexture(mOutputTexture);
+    win.getFBO()->attachColorTexture(mOutputTexture);
 
     mSize = win.getFramebufferResolution();
 
@@ -142,7 +142,7 @@ void PostFX::internalRenderFixedPipeline() {
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
     // bind target FBO
-    win.getFBOPtr()->attachColorTexture(mOutputTexture);
+    win.getFBO()->attachColorTexture(mOutputTexture);
     
     mSize = win.getFramebufferResolution();
 

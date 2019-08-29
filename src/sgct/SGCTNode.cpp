@@ -17,6 +17,9 @@ void SGCTNode::addWindow(sgct::SGCTWindow window) {
     mWindows.emplace_back(std::move(window));
 }
 
+// @TODO (abock, 2019-08-29): I think this state of 'current window index' can probably go
+// away. It seems like an extra state machine that is not worth carrying around for the
+// few use cases that it has
 void SGCTNode::setCurrentWindowIndex(int index) {
     mCurrentWindowIndex = index;
 }

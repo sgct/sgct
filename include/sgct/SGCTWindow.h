@@ -364,7 +364,7 @@ public:
     glm::ivec2 getFinalFBODimensions() const;
 
     /// Returns pointer to FBO container
-    sgct_core::OffScreenBuffer* getFBOPtr() const;
+    sgct_core::OffScreenBuffer* getFBO() const;
 
     /// \returns pointer to GLFW monitor
     GLFWmonitor* getMonitor() const;

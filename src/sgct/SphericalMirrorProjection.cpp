@@ -57,8 +57,7 @@ void SphericalMirrorProjection::setMeshPaths(std::string bottom, std::string lef
 }
 
 void sgct_core::SphericalMirrorProjection::initTextures() {
-    bool compatProfile = sgct::Engine::instance()->getRunMode() <=
-                         sgct::Engine::OpenGL_Compatibility_Profile;
+    const bool compatProfile = sgct::Engine::instance()->isOpenGLCompatibilityMode();
     if (compatProfile) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);

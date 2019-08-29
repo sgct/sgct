@@ -50,7 +50,7 @@ class Engine {
 
 public:
     /// The different run modes used by the init function
-    enum RunMode { 
+    enum class RunMode { 
         /// The default mode using fixed OpenGL pipeline (compability mode)
         Default_Mode = 0,
         /// Using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
@@ -86,6 +86,9 @@ public:
         OpenGL_4_6_Debug_Core_Profile
 
     };
+
+    enum class RenderTarget { WindowBuffer, NonLinearBuffer };
+
     /// The different texture indexes in window buffers
     enum TextureIndexes {
         LeftEye = 0,
@@ -97,9 +100,7 @@ public:
         Normals,
         Positions
     };
-    enum class RenderTarget { WindowBuffer, NonLinearBuffer };
 
-public:
     /// \returns the static pointer to the engine instance
     static Engine* instance();
 
@@ -153,7 +154,7 @@ public:
      *
      * \param rm The optional run mode.
      */
-    bool init(RunMode rm = Default_Mode);
+    bool init(RunMode rm = RunMode::Default_Mode);
 
     /// Terminates SGCT.
     void terminate();
@@ -978,8 +979,8 @@ void sgct::Engine::clearBuffer() {
      */
     bool isOGLPipelineFixed() const;
 
-    /// Get the run mode setting (context version and compability modes)
-    RunMode getRunMode() const;
+    bool isOpenGLCompatibilityMode() const;
+    //RunMode getRunMode() const;
 
     /// Get the GLSL version string that matches the run mode setting
     std::string getGLSLVersion() const;
@@ -1039,12 +1040,7 @@ void sgct::Engine::clearBuffer() {
 
 private:
     enum class SyncStage { PreStage = 0, PostStage };
-    enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-    enum ShaderLocIndexes {
-        MonoTex = 0,
-        OverlayTex,
-        SizeX, SizeY, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture
-    };
+    enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 
     /// Initiates network communication.
     bool initNetwork();
@@ -1096,7 +1092,7 @@ private:
      * This function updates the Anti-Aliasing (AA) settings. This function is called once
      * per second.
      */
-    void updateAAInfo(size_t winIndex);
+    void updateAAInfo(const SGCTWindow& window);
     void updateDrawBufferResolutions();
 
     /**
@@ -1286,7 +1282,7 @@ private:
     /// the timer created next will use this ID
     size_t mTimerID = 0;
 
-    RunMode mRunMode = Default_Mode;
+    RunMode mRunMode = RunMode::Default_Mode;
     std::string mGLSLVersion;
     int mExitKey = GLFW_KEY_ESCAPE;
 };

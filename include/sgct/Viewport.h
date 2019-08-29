@@ -65,7 +65,7 @@ public:
     unsigned int getBlendMaskTextureIndex() const;
     unsigned int getBlackLevelMaskTextureIndex() const;
     CorrectionMesh& getCorrectionMeshPtr();
-    NonLinearProjection* getNonLinearProjectionPtr() const;
+    NonLinearProjection* getNonLinearProjection() const;
     const std::vector<unsigned char>& mpcdiWarpMesh() const;
 
 private:

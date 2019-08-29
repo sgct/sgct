@@ -752,7 +752,7 @@ CorrectionMesh& Viewport::getCorrectionMeshPtr() {
     return mCM;
 }
 
-NonLinearProjection* Viewport::getNonLinearProjectionPtr() const {
+NonLinearProjection* Viewport::getNonLinearProjection() const {
     return mNonLinearProjection.get();
 }
 

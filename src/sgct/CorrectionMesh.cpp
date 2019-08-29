@@ -1918,7 +1918,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
 
     //force regeneration of dome render quad
     FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
-        parent.getNonLinearProjectionPtr()
+        parent.getNonLinearProjection()
     );
     if (fishPrj) {
         fishPrj->setIgnoreAspectRatio(true);

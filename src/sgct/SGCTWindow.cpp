@@ -255,9 +255,9 @@ void SGCTWindow::initOGL() {
         }
 
         setCurrentViewport(vp.get());
-        vp->getNonLinearProjectionPtr()->setStereo(mStereoMode != StereoMode::NoStereo);
-        vp->getNonLinearProjectionPtr()->setPreferedMonoFrustumMode(vp->getEye());
-        vp->getNonLinearProjectionPtr()->init(
+        vp->getNonLinearProjection()->setStereo(mStereoMode != StereoMode::NoStereo);
+        vp->getNonLinearProjection()->setPreferedMonoFrustumMode(vp->getEye());
+        vp->getNonLinearProjection()->init(
             mInternalColorFormat,
             mColorFormat,
             mColorDataType,
@@ -265,7 +265,7 @@ void SGCTWindow::initOGL() {
         );
 
         glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
-        vp->getNonLinearProjectionPtr()->update(std::move(viewport));
+        vp->getNonLinearProjection()->update(std::move(viewport));
     }
 }
 
@@ -548,7 +548,7 @@ bool SGCTWindow::update() {
     for (const std::unique_ptr<sgct_core::Viewport>& vp : mViewports) {
         if (vp->hasSubViewports()) {
             glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
-            vp->getNonLinearProjectionPtr()->update(std::move(viewport));
+            vp->getNonLinearProjection()->update(std::move(viewport));
         }
     }
 
@@ -1049,7 +1049,7 @@ void SGCTWindow::createTextures() {
         return;
     }
 
-    if (Engine::instance()->getRunMode() <= Engine::OpenGL_Compatibility_Profile) {
+    if (Engine::instance()->isOpenGLCompatibilityMode()) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
     }
@@ -1090,7 +1090,7 @@ void SGCTWindow::createTextures() {
         generateTexture(mFrameBufferTextures.positions, TextureType::Position);
     }
 
-    if (Engine::instance()->getRunMode() <= Engine::OpenGL_Compatibility_Profile) {
+    if (Engine::instance()->isOpenGLCompatibilityMode()) {
         glPopAttrib();
     }
 
@@ -1367,7 +1367,7 @@ void SGCTWindow::unbindVAO() const {
     glBindVertexArray(0);
 }
 
-sgct_core::OffScreenBuffer* SGCTWindow::getFBOPtr() const {
+sgct_core::OffScreenBuffer* SGCTWindow::getFBO() const {
     return mFinalFBO.get();
 }
 

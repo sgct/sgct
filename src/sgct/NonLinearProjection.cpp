@@ -159,9 +159,7 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 }
 
 void NonLinearProjection::initTextures() {    
-    if (sgct::Engine::instance()->getRunMode() <=
-        sgct::Engine::OpenGL_Compatibility_Profile)
-    {
+    if (sgct::Engine::instance()->isOpenGLCompatibilityMode()) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
     }
@@ -297,8 +295,7 @@ void NonLinearProjection::initTextures() {
         }
     }
 
-    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compatibility_Profile)
-    {
+    if (sgct::Engine::instance()->isOpenGLCompatibilityMode()) {
         glPopAttrib();
     }
 }

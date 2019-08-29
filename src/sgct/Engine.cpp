@@ -34,11 +34,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdexcept>
 #include <glm/gtc/type_ptr.hpp>
 
-//#define __SGCT_RENDER_LOOP_DEBUG__
-
 // Callback wrappers for GLFW
-std::function<void(int, int)> gKeyboardCallbackFnPtr = nullptr;
-std::function<void(int, int, int, int)> gKeyboardCallbackFnPtr2 = nullptr;
+std::function<void(int, int, int, int)> gKeyboardCallbackFnPtr = nullptr;
 std::function<void(unsigned int)> gCharCallbackFnPtr = nullptr;
 std::function<void(unsigned int, int)> gCharCallbackFnPtr2 = nullptr;
 std::function<void(int, int, int)> gMouseButtonCallbackFnPtr = nullptr;
@@ -52,7 +49,7 @@ bool sRunUpdateFrameLockLoop = true;
 
 #ifdef GLEW_MX
 GLEWContext* glewGetContext();
-#endif
+#endif // GLEW_MX
 
 namespace {
     constexpr const bool UseSleepToWaitForNodes = false;
@@ -77,11 +74,7 @@ namespace {
 
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         if (gKeyboardCallbackFnPtr) {
-            gKeyboardCallbackFnPtr(key, action);
-        }
-
-        if (gKeyboardCallbackFnPtr2) {
-            gKeyboardCallbackFnPtr2(key, scancode, action, mods);
+            gKeyboardCallbackFnPtr(key, scancode, action, mods);
         }
     }
 
@@ -145,6 +138,55 @@ namespace {
 
         gCurrentTouchPoints.setLatestPointsHandled();
     }
+
+    void outputHelpMessage() {
+        fprintf(stderr, R"(
+Parameters:
+------------------------------------
+-config <filename.xml>
+    Set xml confiuration file
+-logPath <filepath>
+    Set log file path
+--help
+    Display help message and exit
+-local <integer>
+    Force node in configuration to localhost (index starts at 0)
+--client
+    Run the application as client\n\t(only available when running as local)
+--slave
+    Run the application as client\n\t(only available when running as local)
+--debug
+    Set the notify level of messagehandler to debug
+--Firm-Sync
+    Enable firm frame sync
+--Loose-Sync
+    Disable firm frame sync
+--Ignore-Sync
+    Disable frame sync
+-MSAA <integer>
+    Enable MSAA as default (argument must be a power of two)
+--FXAA
+    Enable FXAA as default
+-notify <integer>
+    Set the notify level used in the MessageHandler\n\t(0 = highest priority)
+--gDebugger
+    Force textures to be generated using glTexImage2D instead of glTexStorage2D
+--No-FBO
+    Disable frame buffer objects
+    (some stereo modes, Multi-Window rendering,
+    FXAA and fisheye rendering will be disabled)
+--Capture-PNG
+    Use png images for screen capture (default)
+--Capture-JPG
+    Use jpg images for screen capture
+--Capture-TGA
+    Use tga images for screen capture
+-numberOfCaptureThreads <integer>
+    Set the maximum amount of thread that should be used during framecapture (default 8)
+------------------------------------
+)");
+    }
+
 } // namespace
 
 namespace sgct {
@@ -245,7 +287,7 @@ bool Engine::init(RunMode rm) {
 
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         GLFWwindow* window = getWindowPtr(i).getWindowHandle();
-        if (gKeyboardCallbackFnPtr || gKeyboardCallbackFnPtr2) {
+        if (gKeyboardCallbackFnPtr) {
             glfwSetKeyCallback(window, keyCallback);
         }
         if (gMouseButtonCallbackFnPtr) {
@@ -532,6 +574,8 @@ bool Engine::initWindows() {
     if (mPreWindowFnPtr) {
         mPreWindowFnPtr();
     }
+
+    mStatistics = std::make_unique<sgct_core::Statistics>();
 
     GLFWwindow* share = nullptr;
     size_t lastWindowIdx = mThisNode->getNumberOfWindows() - 1;
@@ -954,9 +998,7 @@ void Engine::clearAllCallbacks() {
     mInternalDrawOverlaysFn = nullptr;
     mInternalRenderPostFXFn = nullptr;
 
-    // global
     gKeyboardCallbackFnPtr = nullptr;
-    gKeyboardCallbackFnPtr2 = nullptr;
     gCharCallbackFnPtr = nullptr;
     gMouseButtonCallbackFnPtr = nullptr;
     gMousePosCallbackFnPtr = nullptr;
@@ -1113,6 +1155,8 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
 }
 
 void Engine::render() {
+    using namespace sgct_core;
+
     if (!mInitialized) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
@@ -1121,49 +1165,28 @@ void Engine::render() {
         return;
     }
     
-    mRunning = GL_TRUE;
+    mRunning = true;
 
-    // create openGL query objects for opengl 3.3+
-    GLuint time_queries[2];
+    // create OpenGL query objects for Opengl 3.3+
+    GLuint timeQueries[2];
     if (!mFixedOGLPipeline) {
-        getCurrentWindowPtr().makeOpenGLContextCurrent(
-            SGCTWindow::Context::Shared
-        );
-        glGenQueries(2, time_queries);
+        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+        glGenQueries(2, timeQueries);
     }
 
     while (mRunning) {
         mRenderingOffScreen = false;
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: Updating tracking devices\n"
-        );
-#endif
-
         // update tracking data
         if (isMaster()) {
-            sgct_core::ClusterManager::instance()->getTrackingManagerPtr().updateTrackingDevices();
+            ClusterManager::instance()->getTrackingManagerPtr().updateTrackingDevices();
         }
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: Running pre-sync\n"
-        );
-#endif
         if (mPreSyncFnPtr) {
             mPreSyncFnPtr();
         }
 
         if ( mNetworkConnections->isComputerServer()) {
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
-                "Render-Loop: Encoding data\n"
-            );
-#endif
             SharedData::instance()->encode();
         }
         else {
@@ -1177,22 +1200,9 @@ void Engine::render() {
             }
         }
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: Sync/framelock\n"
-        );
-#endif
         if (!frameLock(SyncStage::PreStage)) {
             break;
         }
-
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: running post-sync-pre-draw\n"
-        );
-#endif
 
         // check if re-size needed of VBO and PBO
         // context switching may occur if multiple windows are used
@@ -1220,7 +1230,7 @@ void Engine::render() {
         calculateFPS(startFrameTime); //measures time between calls
 
         if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(time_queries[0], GL_TIMESTAMP);
+            glQueryCounter(timeQueries[0], GL_TIMESTAMP);
         }
 
         // Render Viewports / Draw
@@ -1244,18 +1254,12 @@ void Engine::render() {
                 SGCTWindow::StereoMode sm = win.getStereoMode();
 
                 // Render Left/Mono non-linear projection viewports to cubemap
-                mCurrentRenderTarget = NonLinearBuffer;
+                mCurrentRenderTarget = RenderTarget::NonLinearBuffer;
                 sgct_core::NonLinearProjection * nonLinearProjPtr;
                 for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
-                    mCurrentViewportIndex[MainViewport] = j;
+                    mCurrentViewportIndex.main = j;
 
                     if (win.getViewport(j).hasSubViewports()) {
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-                        MessageHandler::instance()->print(
-                            MessageHandler::Level::Info,
-                            "Render-Loop: Rendering sub-viewports\n"
-                        );
-#endif
                         nonLinearProjPtr = win.getViewport(j).getNonLinearProjectionPtr();
                         mCurrentOffScreenBuffer = nonLinearProjPtr->getOffScreenBuffer();
 
@@ -1263,11 +1267,11 @@ void Engine::render() {
                         if (sm == SGCTWindow::StereoMode::NoStereo) {
                             //for mono viewports frustum mode can be selected by user or xml
                             mCurrentFrustumMode = win.getViewport(j).getEye();
-                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
+                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex.sub);
                         }
                         else {
                             mCurrentFrustumMode = sgct_core::Frustum::StereoLeftEye;
-                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
+                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex.sub);
                         }
 
                         //FBO index, every window and every non-linear projection has it's own FBO
@@ -1276,15 +1280,9 @@ void Engine::render() {
                 }
 
                 // Render left/mono regular viewports to fbo
-                mCurrentRenderTarget = WindowBuffer;
+                mCurrentRenderTarget = RenderTarget::WindowBuffer;
                 mCurrentOffScreenBuffer = win.getFBOPtr();
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Info,
-                    "Render-Loop: Rendering\n"
-                );
-#endif
                 // if any stereo type (except passive) then set frustum mode to left eye
                 if (sm == SGCTWindow::StereoMode::NoStereo) {
                     mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
@@ -1304,40 +1302,28 @@ void Engine::render() {
                     mCurrentDrawBufferIndex = firstDrawBufferIndexInWindow;
 
                     // Render right non-linear projection viewports to cubemap
-                    mCurrentRenderTarget = NonLinearBuffer;
+                    mCurrentRenderTarget = RenderTarget::NonLinearBuffer;
                     sgct_core::NonLinearProjection * nonLinearProjPtr;
                     for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
-                        mCurrentViewportIndex[MainViewport] = j;
+                        mCurrentViewportIndex.main = j;
 
                         if (win.getViewport(j).hasSubViewports()) {
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-                            MessageHandler::instance()->print(
-                                MessageHandler::Level::Info,
-                                "Render-Loop: Rendering sub-viewports\n"
-                            );
-#endif
                             nonLinearProjPtr = win.getViewport(j).getNonLinearProjectionPtr();
                             mCurrentOffScreenBuffer = nonLinearProjPtr->getOffScreenBuffer();
 
                             nonLinearProjPtr->setAlpha(getCurrentWindowPtr().getAlpha() ? 0.f : 1.f);
                             mCurrentFrustumMode = sgct_core::Frustum::StereoRightEye;
-                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
+                            nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex.sub);
 
-                            //FBO index, every window and every non-linear projection has it's own FBO
+                            // FBO index, every window and every non-linear projection has it's own FBO
                             mCurrentDrawBufferIndex++;
                         }
                     }
 
                     // Render right regular viewports to FBO
-                    mCurrentRenderTarget = WindowBuffer;
+                    mCurrentRenderTarget = RenderTarget::WindowBuffer;
                     mCurrentOffScreenBuffer = win.getFBOPtr();
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Info,
-                        "Render-Loop: Rendering\n"
-                    );
-#endif
                     mCurrentFrustumMode = sgct_core::Frustum::StereoRightEye;
                     // use a single texture for side-by-side and top-bottom stereo modes
                     sm >= SGCTWindow::StereoMode::SideBySide ?
@@ -1350,13 +1336,6 @@ void Engine::render() {
                 }
 
                 // Done Rendering Viewports to FBO
-
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Info,
-                    "Render-Loop: Rendering FBO quad\n"
-                );
-#endif
             }
         }
 
@@ -1371,27 +1350,14 @@ void Engine::render() {
                 }
             }
         }
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: Running post-sync\n"
-        );
-#endif
         getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
 
 #ifdef __SGCT_DEBUG__
         checkForOGLErrors();
 #endif
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: swap and update data\n"
-        );
-#endif
-        
         if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(time_queries[1], GL_TIMESTAMP);
+            glQueryCounter(timeQueries[1], GL_TIMESTAMP);
         }
 
         double endFrameTime = glfwGetTime();
@@ -1409,7 +1375,7 @@ void Engine::render() {
             GLint done = GL_FALSE;
             while (!done) {
                 glGetQueryObjectiv(
-                    time_queries[1],
+                    timeQueries[1],
                     GL_QUERY_RESULT_AVAILABLE,
                     &done
                 );
@@ -1418,40 +1384,22 @@ void Engine::render() {
             GLuint64 timerStart;
             GLuint64 timerEnd;
             // get the query results
-            glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
-            glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
+            glGetQueryObjectui64v(timeQueries[0], GL_QUERY_RESULT, &timerStart);
+            glGetQueryObjectui64v(timeQueries[1], GL_QUERY_RESULT, &timerEnd);
 
             const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
             mStatistics->setDrawTime(static_cast<float>(t));
         }
 
         if (mShowGraph) {
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
-                "Render-Loop: update stats VBOs\n"
-            );
-#endif
             mStatistics->update();
         }
         
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
-            "Render-Loop: lock\n"
-        );
-#endif
         // master will wait for nodes render before swapping
         if (!frameLock(SyncStage::PostStage)) {
             break;
         }
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
-            "Render-Loop: Swap buffers\n"
-        );
-#endif
         // Swap front and back rendering buffers
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             mThisNode->setCurrentWindowIndex(i);
@@ -1475,18 +1423,11 @@ void Engine::render() {
             mShotCounter++;
         }
         mTakeScreenshot = false;
-
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "Render-Loop: End iteration\n"
-        );
-#endif
     }
 
     if (!mFixedOGLPipeline) {
         getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
-        glDeleteQueries(2, time_queries);
+        glDeleteQueries(2, timeQueries);
     }
 }
 
@@ -2111,7 +2052,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     // render all viewports for selected eye
     for (size_t i = 0; i < getCurrentWindowPtr().getNumberOfViewports(); i++) {
         getCurrentWindowPtr().setCurrentViewport(i);
-        mCurrentViewportIndex[MainViewport] = i;
+        mCurrentViewportIndex.main = i;
         sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(i);
 
         if (!vp.isEnabled()) {
@@ -2229,7 +2170,7 @@ void Engine::render2D() {
     size_t numberOfIterations = getCurrentWindowPtr().getNumberOfViewports();
     for (size_t i = 0; i < numberOfIterations; i++) {
         getCurrentWindowPtr().setCurrentViewport(i);
-        mCurrentViewportIndex[MainViewport] = i;
+        mCurrentViewportIndex.main = i;
             
         if (!getCurrentWindowPtr().getCurrentViewport()->isEnabled()) {
             continue;
@@ -3223,12 +3164,8 @@ void Engine::setScreenShotCallback(std::function<void(sgct_core::Image*, size_t,
     mScreenShotFnPtr = std::move(fn);
 }
 
-void Engine::setKeyboardCallbackFunction(std::function<void(int, int)> fn) {
-    gKeyboardCallbackFnPtr = std::move(fn);
-}
-
 void Engine::setKeyboardCallbackFunction(std::function<void(int, int, int, int)> fn) {
-    gKeyboardCallbackFnPtr2 = std::move(fn);
+    gKeyboardCallbackFnPtr = std::move(fn);
 }
 
 void Engine::setCharCallbackFunction(std::function<void(unsigned int)> fn) {
@@ -3743,28 +3680,20 @@ double Engine::getTime() {
     return glfwGetTime();
 }
 
-size_t Engine::getCurrentViewportIndex(ViewportTypes vp) const {
-    return mCurrentViewportIndex[vp];
+glm::ivec2 Engine::getCurrentViewportSize() const {
+    return { mCurrentViewportCoords.z, mCurrentViewportCoords.w };
 }
 
-void Engine::getCurrentViewportSize(int& x, int& y) const {
-    x = mCurrentViewportCoords[2];
-    y = mCurrentViewportCoords[3];
+glm::ivec2 Engine::getCurrentDrawBufferSize() const {
+    return mDrawBufferResolutions[mCurrentDrawBufferIndex];
 }
 
-void Engine::getCurrentDrawBufferSize(int& x, int& y) const {
-    x = mDrawBufferResolutions[mCurrentDrawBufferIndex].x;
-    y = mDrawBufferResolutions[mCurrentDrawBufferIndex].y;
-}
-
-void Engine::getDrawBufferSize(const size_t& index, int& x, int& y) const {
+glm::ivec2 Engine::getDrawBufferSize(size_t index) const {
     if (index < mDrawBufferResolutions.size()) {
-        x = mDrawBufferResolutions[index].x;
-        y = mDrawBufferResolutions[index].y;
+        return mDrawBufferResolutions[index];
     }
     else {
-        x = 0;
-        y = 0;
+        return glm::ivec2(0, 0);
     }
 }
 
@@ -3787,7 +3716,7 @@ sgct_core::OffScreenBuffer* Engine::getCurrentFBO() const {
 
 glm::ivec4 Engine::getCurrentViewportPixelCoords() const {
     const sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(
-        mCurrentViewportIndex[MainViewport]
+        mCurrentViewportIndex.main
     );
     if (vp.hasSubViewports()) {
         return vp.getNonLinearProjectionPtr()->getViewportCoords();
@@ -3812,29 +3741,6 @@ void Engine::setScreenShotNumber(unsigned int number) {
 
 unsigned int Engine::getScreenShotNumber() const {
     return mShotCounter;
-}
-
-void sgct::Engine::outputHelpMessage() {
-    fprintf( stderr, "\nParameters:\n------------------------------------\n\
-\n-config <filename.xml>           \n\tSet xml confiuration file\n\
-\n-logPath <filepath>              \n\tSet log file path\n\
-\n--help                           \n\tDisplay help message and exit\n\
-\n-local <integer>                 \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\
-\n--client                         \n\tRun the application as client\n\t(only available when running as local)\n\
-\n--slave                          \n\tRun the application as client\n\t(only available when running as local)\n\
-\n--debug                          \n\tSet the notify level of messagehandler to debug\n\
-\n--Firm-Sync                      \n\tEnable firm frame sync\n\
-\n--Loose-Sync                     \n\tDisable firm frame sync\n\
-\n--Ignore-Sync                    \n\tDisable frame sync\n\
-\n-MSAA    <integer>                  \n\tEnable MSAA as default (argument must be a power of two)\n\
-\n--FXAA                           \n\tEnable FXAA as default\n\
-\n-notify <integer>                \n\tSet the notify level used in the MessageHandler\n\t(0 = highest priority)\n\
-\n--gDebugger                      \n\tForce textures to be genareted using glTexImage2D instead of glTexStorage2D\n\
-\n--No-FBO                         \n\tDisable frame buffer objects\n\t(some stereo modes, Multi-Window rendering,\n\tFXAA and fisheye rendering will be disabled)\n\
-\n--Capture-PNG                    \n\tUse png images for screen capture (default)\n\
-\n--Capture-JPG                    \n\tUse jpg images for screen capture\n\
-\n--Capture-TGA                    \n\tUse tga images for screen capture\n\
-\n-numberOfCaptureThreads <integer>\n\tSet the maximum amount of threads\n\tthat should be used during framecapture (default 8)\n------------------------------------\n\n");
 }
 
 } // namespace sgct

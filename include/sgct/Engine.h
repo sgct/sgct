@@ -97,8 +97,7 @@ public:
         Normals,
         Positions
     };
-    enum RenderTarget { WindowBuffer, NonLinearBuffer };
-    enum ViewportTypes { MainViewport, SubViewport };
+    enum class RenderTarget { WindowBuffer, NonLinearBuffer };
 
 public:
     /// \returns the static pointer to the engine instance
@@ -234,7 +233,7 @@ public:
      * setKeyboardCallbackFunction description.
      */
     void setExitKey(int key);
-    void setExitWaitTime(double time);
+
     void updateFrustums();
 
     /// Add a post effect to all windows.
@@ -985,35 +984,25 @@ void sgct::Engine::clearBuffer() {
     /// Get the GLSL version string that matches the run mode setting
     std::string getGLSLVersion() const;
 
-    /// Get the current viewportindex for given type: MainViewport or SubViewport
-    size_t getCurrentViewportIndex(ViewportTypes vp) const;
-
     /**
      * Get the active viewport size in pixels.
-     *
-     * \param x the horizontal size
-     * \param y the vertical size
      */
-    void getCurrentViewportSize(int& x, int& y) const;
+    glm::ivec2 getCurrentViewportSize() const;
 
     /**
      * Get the active FBO buffer size. Each window has its own buffer plus any additional
      * non-linear projection targets.
-     *
-     * \param x the horizontal size
-     * \param y the vertical size
      */
-    void getCurrentDrawBufferSize(int& x, int& y) const;
+    glm::ivec2 getCurrentDrawBufferSize() const;
 
     /**
      * Get the selected FBO buffer size. Each window has its own buffer plus any
      * additional non-linear projection targets.
      *
      * \param index index of selected drawbuffer
-     * \param x the horizontal size
-     * \param y the vertical size
      */
-    void getDrawBufferSize(const size_t& index, int& x, int& y) const;
+    glm::ivec2 getDrawBufferSize(size_t index) const;
+
     size_t getNumberOfDrawBuffers() const;
 
     /// \return the active FBO buffer index.
@@ -1198,8 +1187,6 @@ private:
 
     static void clearBuffer();
 
-    static void outputHelpMessage();
-
 private:
     static Engine* mInstance;
 
@@ -1236,8 +1223,12 @@ private:
     glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> mDrawBufferResolutions;
     size_t mCurrentDrawBufferIndex = 0;
-    size_t mCurrentViewportIndex[2] = { 0, 0 };
-    RenderTarget mCurrentRenderTarget = WindowBuffer;
+
+    struct {
+        size_t main = 0;
+        size_t sub = 0;
+    } mCurrentViewportIndex;
+    RenderTarget mCurrentRenderTarget = RenderTarget::WindowBuffer;
     sgct_core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
 
     bool mShowInfo = true;
@@ -1276,7 +1267,7 @@ private:
 
     std::string configFilename;
     std::string mLogfilePath;
-    int mRunning;
+    bool mRunning;
     bool mInitialized = false;
     std::string mAAInfo;
 

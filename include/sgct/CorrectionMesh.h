@@ -96,17 +96,18 @@ private:
     bool readAndGenerateMpcdiMesh(const std::string& meshPath, Viewport& parent);
     void setupSimpleMesh(CorrectionMeshGeometry& geomPtr, Viewport& parent);
     void setupMaskMesh(Viewport& parent, bool flipX, bool flipY);
-    void createMesh(CorrectionMeshGeometry& geomPtr);
-    void exportMesh(const std::string& exportMeshPath);
-    void cleanUp();
-        
-    void render(const CorrectionMeshGeometry& mt) const;
 
     struct CorrectionMeshVertex {
         float x, y;
         float s, t;
         float r, g, b, a;
     };
+    void createMesh(CorrectionMeshGeometry& geomPtr, CorrectionMeshVertex* vertices,
+        unsigned int* indices);
+    void exportMesh(const std::string& exportMeshPath);
+    void cleanUp();
+        
+    void render(const CorrectionMeshGeometry& mt) const;
 
     CorrectionMeshVertex* mTempVertices = nullptr;
     unsigned int* mTempIndices = nullptr;

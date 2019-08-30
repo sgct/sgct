@@ -107,7 +107,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
 {    
     // generate unwarped mask
     setupSimpleMesh(mGeometries.quad, parent);
-    createMesh(mGeometries.quad);
+    createMesh(mGeometries.quad, mTempVertices, mTempIndices);
     cleanUp();
     
     // generate unwarped mesh for mask
@@ -120,14 +120,14 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
         bool flipX = false;
         bool flipY = false;
         setupMaskMesh(parent, flipX, flipY);
-        createMesh(mGeometries.mask);
+        createMesh(mGeometries.mask, mTempVertices, mTempIndices);
         cleanUp();
     }
 
     // fallback if no mesh is provided
     if (meshPath.empty()) {
         setupSimpleMesh(mGeometries.warp, parent);
-        createMesh(mGeometries.warp);
+        createMesh(mGeometries.warp, mTempVertices, mTempIndices);
         cleanUp();
 
         sgct::MessageHandler::instance()->print(
@@ -194,7 +194,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
         );
 
         setupSimpleMesh(mGeometries.warp, parent);
-        createMesh(mGeometries.warp);
+        createMesh(mGeometries.warp, mTempVertices, mTempIndices);
         cleanUp();
         return false;
     }
@@ -344,7 +344,7 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
 
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -506,7 +506,7 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
     mGeometries.warp.mNumberOfIndices = numberOfIndices;
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -895,7 +895,7 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
 
     texturedVertexList.clear();
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1297,7 +1297,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
 
     mGeometries.warp.mGeometryType = GL_TRIANGLE_STRIP;
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1525,7 +1525,7 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
 
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1677,7 +1677,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     );
 
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     // force regeneration of dome render quad
     FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
@@ -1792,7 +1792,7 @@ bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewpor
     );
 
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -2081,7 +2081,7 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
 
     mGeometries.warp.mGeometryType = GL_TRIANGLES;
 
-    createMesh(mGeometries.warp);
+    createMesh(mGeometries.warp, mTempVertices, mTempIndices);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -2200,7 +2200,9 @@ void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flipX, bool flipY) {
     mTempVertices[3].y = 2.f * (1.f * parent.getSize().y + parent.getPosition().y) - 1.f;
 }
 
-void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
+void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr,
+                                CorrectionMeshVertex* vertices, unsigned int* indices)
+{
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
@@ -2226,7 +2228,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
         glBufferData(
             GL_ARRAY_BUFFER,
             geomPtr.mNumberOfVertices * sizeof(CorrectionMeshVertex),
-            mTempVertices,
+            vertices,
             GL_STATIC_DRAW
         );
 
@@ -2266,7 +2268,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
             geomPtr.mNumberOfIndices * sizeof(unsigned int),
-            mTempIndices,
+            indices,
             GL_STATIC_DRAW
         );
 
@@ -2285,7 +2287,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
         glBegin(geomPtr.mGeometryType);
         
         for (unsigned int i = 0; i < geomPtr.mNumberOfIndices; i++) {
-            const CorrectionMeshVertex& vertex = mTempVertices[mTempIndices[i]];
+            const CorrectionMeshVertex& vertex = vertices[indices[i]];
 
             glColor4f(vertex.r, vertex.g, vertex.b, vertex.a);
             glTexCoord2f(vertex.s, vertex.t);

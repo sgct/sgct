@@ -15,18 +15,12 @@ namespace sgct_core {
     
 class Viewport;
 
-/*!
-    Helper class for reading and rendering a correction mesh.
-    A correction mesh is used for warping and edge-blending.
+/**
+ * Helper class for reading and rendering a correction mesh. A correction mesh is used for
+ * warping and edge-blending.
  */
 class CorrectionMesh {
 public:
-    enum MeshType {
-        QUAD_MESH = 0,
-        WARP_MESH,
-        MASK_MESH,
-        LAST_MESH
-    };
     enum class MeshHint {
         None = 0,
         DomeProjection,
@@ -39,16 +33,34 @@ public:
         Mpcdi
     };
         
-    CorrectionMesh();
-
+    /**
+     * This function finds a suitible parser for warping meshes and loads them into
+     * memory.
+     *
+     * \param meshPath the path to the mesh data
+     * \param meshHint a hint to pass to the parser selector
+     * \param parent the pointer to parent viewport
+     *
+     * \return true if mesh found and loaded successfully
+     */
     bool readAndGenerateMesh(std::string meshPath, Viewport& parent,
         MeshHint hint = MeshHint::None);
-    void render(const MeshType& mt) const;
+
+    /// Render the final mesh where for mapping the frame buffer to the screen.
+    void renderQuadMesh() const;
+
+    /// Render the final mesh where for mapping the frame buffer to the screen.
+    void renderWarpMesh() const;
+
+    /// Render the final mesh where for mapping the frame buffer to the screen.
+    void renderMaskMesh() const;
+
+    /// Parse hint from string to enum.
     static MeshHint parseHint(const std::string& hintStr);
         
 private:
     enum class MeshFormat {
-        None = 0,
+        None,
         DomeProjection,
         Scaleable,
         Sciss,
@@ -59,16 +71,21 @@ private:
         Mpcdi
     };
 
-    class CorrectionMeshGeometry {
-    public:
+    struct CorrectionMeshGeometry {
         ~CorrectionMeshGeometry();
 
         GLenum mGeometryType = GL_TRIANGLE_STRIP;
         unsigned int mNumberOfVertices = 0;
         unsigned int mNumberOfIndices = 0;
-        unsigned int mMeshData[3] = { 0, 0, 0 };
+        unsigned int mVertexMeshData = 0;
+        unsigned int mIndexMeshData = 0;
+        unsigned int mArrayMeshData = 0;
     };
 
+    /**
+     * Parse data from domeprojection's camera based calibration system.
+     * Domeprojection.com
+     */
     bool readAndGenerateDomeProjectionMesh(const std::string& meshPath, Viewport& parent);
     bool readAndGenerateScalableMesh(const std::string& meshPath, Viewport& parent);
     bool readAndGenerateScissMesh(const std::string& meshPath, Viewport& parent);
@@ -83,24 +100,22 @@ private:
     void exportMesh(const std::string& exportMeshPath);
     void cleanUp();
         
-    enum Buffer {
-        Vertex = 0,
-        Index,
-        Array
-    };
+    void render(const CorrectionMeshGeometry& mt) const;
 
     struct CorrectionMeshVertex {
-        float x, y;    //Vertex 8
-        float s, t;    //Texcoord0 8
-        float r, g, b, a; //color 16
-
-        //ATI performs better using sizes of power of two
+        float x, y;
+        float s, t;
+        float r, g, b, a;
     };
 
     CorrectionMeshVertex* mTempVertices = nullptr;
     unsigned int* mTempIndices = nullptr;
-        
-    CorrectionMeshGeometry mGeometries[3];
+       
+    struct {
+        CorrectionMeshGeometry quad;
+        CorrectionMeshGeometry warp;
+        CorrectionMeshGeometry mask;
+    } mGeometries;
 };
     
 } // namespace sgct_core

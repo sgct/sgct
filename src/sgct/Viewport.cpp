@@ -21,9 +21,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
     std::optional<float> parseFrustumElement(const tinyxml2::XMLElement& elem,
-                                             const char* frustumTag)
+                                             std::string_view frustumTag)
     {
-        if (strcmp(frustumTag, elem.Value()) == 0) {
+        if (frustumTag == elem.Value()) {
             try {
                 return std::stof(elem.GetText());
             }
@@ -97,27 +97,29 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
     }
 
     if (element->Attribute("tracked")) {
-        setTracked(strcmp(element->Attribute("tracked"), "true") == 0);
+        std::string_view tracked = element->Attribute("tracked");
+        setTracked(tracked == "true");
     }
 
     // get eye if set
     if (element->Attribute("eye")) {
-        if (strcmp("center", element->Attribute("eye")) == 0) {
+        std::string_view eye = element->Attribute("eye");
+        if (eye == "center") {
             setEye(Frustum::MonoEye);
         }
-        else if (strcmp("left", element->Attribute("eye")) == 0) {
+        else if (eye == "left") {
             setEye(Frustum::StereoLeftEye);
         }
-        else if (strcmp("right", element->Attribute("eye")) == 0) {
+        else if (eye == "right") {
             setEye(Frustum::StereoRightEye);
         }
     }
 
     tinyxml2::XMLElement* subElement = element->FirstChildElement();
-    while (subElement != nullptr) {
+    while (subElement) {
         using namespace tinyxml2;
 
-        const std::string val = subElement->Value();
+        std::string_view val = subElement->Value();
         if (val == "Pos") {
             float x;
             float y;
@@ -249,8 +251,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
 
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
-        const char* val = child->Value();
-        if (strcmp("frustum", val) == 0) {
+        std::string_view val = child->Value();
+        if (val == "frustum") {
             float distance = 10.f;
             glm::quat rotQuat;
             glm::vec3 offset(0.f, 0.f, 0.f);
@@ -329,8 +331,8 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
     glm::vec3 offset(0.f, 0.f, 0.f);
 
     XMLElement* subElement = element->FirstChildElement();
-    while (subElement != nullptr) {
-        const std::string val = subElement->Value();
+    while (subElement) {
+        std::string_view val = subElement->Value();
 
         if (val == "FOV") {
             if (subElement->QueryFloatAttribute("down", &down) == XML_NO_ERROR &&
@@ -403,16 +405,18 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     }
 
     if (element->Attribute("method")) {
+        std::string_view method = element->Attribute("method");
         fishProj->setRenderingMethod(
-            strcmp(element->Attribute("method"), "five_face_cube") == 0 ?
+            method == "five_face_cube" ?
                 FisheyeProjection::FisheyeMethod::FiveFaceCube :
                 FisheyeProjection::FisheyeMethod::FourFaceCube
         );
     }
 
     if (element->Attribute("interpolation")) {
+        std::string_view interpolation = element->Attribute("interpolation");
         fishProj->setInterpolationMode(
-            strcmp(element->Attribute("interpolation"), "cubic") == 0 ?
+            interpolation == "cubic" ?
                 NonLinearProjection::InterpolationMode::Cubic :
                 NonLinearProjection::InterpolationMode::Linear
         );
@@ -438,8 +442,8 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
 
 
     tinyxml2::XMLElement* subElement = element->FirstChildElement();
-    while (subElement != nullptr) {
-        const std::string val = subElement->Value();
+    while (subElement) {
+        std::string_view val = subElement->Value();
 
         if (val == "Crop") {
             float cropLeft = 0.f;
@@ -470,7 +474,6 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
             fishProj->setClearColor(color);
         }
 
-        //iterate
         subElement = subElement->NextSiblingElement();
     }
 
@@ -498,7 +501,7 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
         }
     }
     if (element->Attribute("mapping")) {
-        const std::string val = element->Attribute("mapping");
+        std::string_view val = element->Attribute("mapping");
         if (val == "fisheye") {
             spoutProj->setSpoutMapping(SpoutOutputProjection::Mapping::Fisheye);
         }
@@ -517,8 +520,8 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
     }
 
     tinyxml2::XMLElement* subElement = element->FirstChildElement();
-    while (subElement != nullptr) {
-        const std::string val = subElement->Value();
+    while (subElement) {
+        std::string_view val = subElement->Value();
 
         if (val == "Background") {
             glm::vec4 color;
@@ -590,8 +593,8 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
         std::string top;
     } meshes;
 
-    while (subElement != nullptr) {
-        const std::string val = subElement->Value();
+    while (subElement) {
+        std::string_view val = subElement->Value();
 
         if (val == "Background") {
             glm::vec4 color;
@@ -706,9 +709,21 @@ void Viewport::loadData() {
     }
 }
 
-void Viewport::renderMesh(CorrectionMesh::MeshType mt) const {
+void Viewport::renderQuadMesh() const {
     if (mEnabled) {
-        mCM.render(mt);
+        mCM.renderQuadMesh();
+    }
+}
+
+void Viewport::renderWarpMesh() const {
+    if (mEnabled) {
+        mCM.renderWarpMesh();
+    }
+}
+
+void Viewport::renderMaskMesh() const {
+    if (mEnabled) {
+        mCM.renderMaskMesh();
     }
 }
 

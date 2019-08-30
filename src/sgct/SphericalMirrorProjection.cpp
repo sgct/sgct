@@ -379,16 +379,16 @@ void SphericalMirrorProjection::renderInternal() {
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, &MVP[0][0]);
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceFront);
-    mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
+    mMeshes.bottom.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceLeft);
-    mMeshes.left.render(CorrectionMesh::WARP_MESH);
+    mMeshes.left.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceRight);
-    mMeshes.right.render(CorrectionMesh::WARP_MESH);
+    mMeshes.right.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
-    mMeshes.top.render(CorrectionMesh::WARP_MESH);
+    mMeshes.top.renderWarpMesh();
 
     sgct::ShaderProgram::unbind();
 
@@ -444,16 +444,16 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glUniform1i(mTexLoc, 0);
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceFront);
-    mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
+    mMeshes.bottom.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceLeft);
-    mMeshes.left.render(CorrectionMesh::WARP_MESH);
+    mMeshes.left.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceRight);
-    mMeshes.right.render(CorrectionMesh::WARP_MESH);
+    mMeshes.right.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
-    mMeshes.top.render(CorrectionMesh::WARP_MESH);
+    mMeshes.top.renderWarpMesh();
 
     sgct::ShaderProgram::unbind();
 

@@ -1755,11 +1755,8 @@ void Engine::renderFBOTexture() {
         
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(BufferMode::BackBufferBlack);
-    
-    sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
-        sgct_core::CorrectionMesh::WARP_MESH :
-        sgct_core::CorrectionMesh::QUAD_MESH;
-
+   
+    const bool useWarping = SGCTSettings::instance()->getUseWarping();
     SGCTWindow::StereoMode sm = win.getStereoMode();
     if (sm > SGCTWindow::StereoMode::Active && sm < SGCTWindow::StereoMode::SideBySide) {
         glActiveTexture(GL_TEXTURE0);
@@ -1774,7 +1771,12 @@ void Engine::renderFBOTexture() {
         glUniform1i(win.getStereoShaderRightTexLoc(), 1);
 
         for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-            win.getViewport(i).renderMesh(mt);
+            if (useWarping) {
+               win.getViewport(i).renderWarpMesh();
+            }
+            else {
+                win.getViewport(i).renderQuadMesh();
+            }
         }
     }
     else {
@@ -1786,7 +1788,12 @@ void Engine::renderFBOTexture() {
         maskShaderSet = true;
 
         for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-            win.getViewport(i).renderMesh(mt);
+            if (useWarping) {
+                win.getViewport(i).renderWarpMesh();
+            }
+            else {
+                win.getViewport(i).renderQuadMesh();
+            }
         }
 
         // render right eye in active stereo mode
@@ -1799,7 +1806,12 @@ void Engine::renderFBOTexture() {
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
             for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-                win.getViewport(i).renderMesh(mt);
+                if (useWarping) {
+                    win.getViewport(i).renderWarpMesh();
+                }
+                else {
+                    win.getViewport(i).renderQuadMesh();
+                }
             }
         }
     }
@@ -1824,7 +1836,7 @@ void Engine::renderFBOTexture() {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
             }
         }
 
@@ -1836,11 +1848,11 @@ void Engine::renderFBOTexture() {
 
                 // inverse multiply
                 glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
 
                 // add
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
             }
         }
 
@@ -1885,9 +1897,10 @@ void Engine::renderFBOTextureFixedPipeline() {
     
     SGCTWindow::StereoMode sm = win.getStereoMode();
 
-    sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
-        sgct_core::CorrectionMesh::WARP_MESH :
-        sgct_core::CorrectionMesh::QUAD_MESH;
+    const bool useWarping = SGCTSettings::instance()->getUseWarping();
+    //sgct_core::CorrectionMesh::MeshType mt =  ?
+    //    sgct_core::CorrectionMesh::WARP_MESH :
+    //    sgct_core::CorrectionMesh::QUAD_MESH;
 
     if (sm > SGCTWindow::StereoMode::Active &&
         sm < SGCTWindow::StereoMode::SideBySide)
@@ -1906,7 +1919,12 @@ void Engine::renderFBOTextureFixedPipeline() {
         glEnable(GL_TEXTURE_2D);
 
         for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-            win.getViewport(i).renderMesh(mt);
+            if (useWarping) {
+                win.getViewport(i).renderWarpMesh();
+            }
+            else {
+                win.getViewport(i).renderQuadMesh();
+            }
         }
         ShaderProgram::unbind();
     }
@@ -1916,7 +1934,12 @@ void Engine::renderFBOTextureFixedPipeline() {
         glEnable(GL_TEXTURE_2D);
 
         for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-            win.getViewport(i).renderMesh(mt);
+            if (useWarping) {
+                win.getViewport(i).renderWarpMesh();
+            }
+            else {
+                win.getViewport(i).renderQuadMesh();
+            }
         }
 
         // render right eye in active stereo mode
@@ -1930,7 +1953,12 @@ void Engine::renderFBOTextureFixedPipeline() {
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
 
             for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
-                win.getViewport(i).renderMesh(mt);
+                if (useWarping) {
+                    win.getViewport(i).renderWarpMesh();
+                }
+                else {
+                    win.getViewport(i).renderQuadMesh();
+                }
             }
         }
     }
@@ -1955,7 +1983,7 @@ void Engine::renderFBOTextureFixedPipeline() {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
             }
         }
 
@@ -1967,11 +1995,11 @@ void Engine::renderFBOTextureFixedPipeline() {
 
                 // inverse multiply
                 glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
 
                 // add
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                vp.renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+                vp.renderMaskMesh();
             }
         }
     }

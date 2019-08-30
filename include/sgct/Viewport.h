@@ -49,11 +49,14 @@ public:
     void setTracked(bool state);
     void loadData();
 
-    /**
-     * Render the viewport mesh which the framebuffer texture is attached to
-     * \param type of mesh; quad, warped or mask
-     */
-    void renderMesh(CorrectionMesh::MeshType mt) const;
+    /// Render the viewport mesh which the framebuffer texture is attached to
+    void renderQuadMesh() const;
+
+    /// Render the viewport mesh which the framebuffer texture is attached to
+    void renderWarpMesh() const;
+
+    /// Render the viewport mesh which the framebuffer texture is attached to
+    void renderMaskMesh() const;
 
     bool hasOverlayTexture() const;
     bool hasBlendMaskTexture() const;

@@ -561,7 +561,7 @@ namespace {
             );
         }
         else {
-            usrPtr = ClusterManager::instance()->getDefaultUserPtr();
+            usrPtr = ClusterManager::instance()->getDefaultUser();
         }
 
         std::optional<float> eyeSep = parseValue<float>(*element, "eyeSeparation");
@@ -699,7 +699,7 @@ namespace {
         using namespace tinyxml2;
 
         ClusterManager& cm = *ClusterManager::instance();
-        cm.getTrackingManagerPtr().addDeviceToCurrentTracker(element->Attribute("name"));
+        cm.getTrackingManager().addDeviceToCurrentTracker(element->Attribute("name"));
 
         XMLElement* child = element->FirstChildElement();
 
@@ -709,7 +709,7 @@ namespace {
             if (childVal == "Sensor") {
                 std::optional<int> id = parseValue<int>(*child, "id");
                 if (child->Attribute("vrpnAddress") && id) {
-                    cm.getTrackingManagerPtr().addSensorToCurrentDevice(
+                    cm.getTrackingManager().addSensorToCurrentDevice(
                         child->Attribute("vrpnAddress"),
                         *id
                     );
@@ -718,7 +718,7 @@ namespace {
             else if (childVal == "Buttons") {
                 std::optional<int> count = parseValue<int>(*child, "count");
                 if (child->Attribute("vrpnAddress") && count) {
-                    cm.getTrackingManagerPtr().addButtonsToCurrentDevice(
+                    cm.getTrackingManager().addButtonsToCurrentDevice(
                         child->Attribute("vrpnAddress"),
                         *count
                     );
@@ -731,7 +731,7 @@ namespace {
                     "count"
                 );
                 if (child->Attribute("vrpnAddress") && count) {
-                    cm.getTrackingManagerPtr().addAnalogsToCurrentDevice(
+                    cm.getTrackingManager().addAnalogsToCurrentDevice(
                         child->Attribute("vrpnAddress"),
                         *count
                     );
@@ -740,7 +740,7 @@ namespace {
             else if (childVal == "Offset") {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                     device.setOffset(std::move(*offset));
@@ -753,7 +753,7 @@ namespace {
                 }
             }
             else if (childVal == "Orientation") {
-                sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                 sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                 sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                 device.setOrientation(
@@ -764,7 +764,7 @@ namespace {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
 
                 if (quat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                     device.setOrientation(std::move(*quat));
@@ -784,7 +784,7 @@ namespace {
 
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -811,7 +811,7 @@ namespace {
         using namespace tinyxml2;
 
         ClusterManager& cm = *ClusterManager::instance();
-        cm.getTrackingManagerPtr().addTracker(std::string(element->Attribute("name")));
+        cm.getTrackingManager().addTracker(std::string(element->Attribute("name")));
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
@@ -823,7 +823,7 @@ namespace {
             else if (childVal == "Offset") {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                     device.setOffset(std::move(*offset));
@@ -836,7 +836,7 @@ namespace {
                 }
             }
             else if (childVal == "Orientation") {
-                sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                 sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                 sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                 device.setOrientation(
@@ -846,7 +846,7 @@ namespace {
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
                 if (quat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
                     device.setOrientation(std::move(*quat));
@@ -861,7 +861,7 @@ namespace {
             else if (childVal == "Scale") {
                 std::optional<double> value = parseValue<double>(*child, "value");
                 if (value) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                     tr.setScale(*value);
                 }
@@ -880,7 +880,7 @@ namespace {
 
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
+                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
                     sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
 
                     if (transpose) {

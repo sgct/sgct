@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-BaseViewport::BaseViewport() : mUser(ClusterManager::instance()->getDefaultUserPtr()) {}
+BaseViewport::BaseViewport() : mUser(ClusterManager::instance()->getDefaultUser()) {}
 
 /*!
 Name this viewport

@@ -20,7 +20,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace {
 
 void setupViewport() {
-    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindow();
 
     glm::ivec2 position = glm::ivec2(
         cWin.getCurrentViewport()->getPosition() *
@@ -86,7 +86,7 @@ void setupViewport() {
 
 glm::mat4 setupOrthoMat() {
     glm::mat4 orthoMat;
-    sgct::SGCTWindow& win = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& win = sgct::Engine::instance()->getCurrentWindow();
 
     glm::ivec2 res = win.getResolution();
     glm::vec2 size = win.getCurrentViewport()->getSize();

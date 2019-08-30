@@ -84,14 +84,14 @@ SGCTNode* ClusterManager::getNodePtr(const std::string& name) {
 /*!
     \returns a pointer to the node that this application is running on
 */
-SGCTNode* ClusterManager::getThisNodePtr() {
+SGCTNode* ClusterManager::getThisNode() {
     return mThisNodeId < 0 ? nullptr : &nodes[mThisNodeId];
 }
 
 /*!
 \returns the pointer to the default user
 */
-SGCTUser* ClusterManager::getDefaultUserPtr() {
+SGCTUser* ClusterManager::getDefaultUser() {
     return mUsers[0].get();
 }
 
@@ -278,7 +278,7 @@ ClusterManager::MeshImplementation ClusterManager::getMeshImplementation() const
     return mMeshImpl;
 }
 
-sgct::SGCTTrackingManager& ClusterManager::getTrackingManagerPtr() {
+sgct::SGCTTrackingManager& ClusterManager::getTrackingManager() {
     return mTrackingManager;
 }
 

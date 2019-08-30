@@ -156,7 +156,7 @@ void SGCTTrackingManager::startSampling() {
 
     // if tracked user not found
     if (mHeadUser == nullptr) {
-        mHeadUser = sgct_core::ClusterManager::instance()->getDefaultUserPtr();
+        mHeadUser = sgct_core::ClusterManager::instance()->getDefaultUser();
     }
         
     // link the head tracker

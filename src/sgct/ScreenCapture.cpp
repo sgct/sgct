@@ -311,7 +311,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 break;
         }
         filename = tmpPath;
-        sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+        sgct::SGCTWindow& win = sgct::Engine::instance()->getWindow(mWindowIndex);
         
         if (win.getName().empty()) {
             filename += "_win" + std::to_string(mWindowIndex);
@@ -392,7 +392,7 @@ void ScreenCapture::updateDownloadFormat() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
-    sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+    sgct::SGCTWindow& win = sgct::Engine::instance()->getWindow(mWindowIndex);
     
     if (CapSrc == CaptureSource::Texture) {
         if (mResolution != win.getFramebufferResolution()) {

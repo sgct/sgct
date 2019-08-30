@@ -110,14 +110,14 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
             break;
         case Frustum::StereoLeftEye:
             setOffset(glm::vec3(
-                -eng.getDefaultUserPtr()->getEyeSeparation() / mDiameter,
+                -eng.getDefaultUser()->getEyeSeparation() / mDiameter,
                 0.f,
                 0.f
             ));
             break;
         case Frustum::StereoRightEye:
             setOffset(glm::vec3(
-                eng.getDefaultUserPtr()->getEyeSeparation() / mDiameter,
+                eng.getDefaultUser()->getEyeSeparation() / mDiameter,
                 0.f,
                 0.f
             ));
@@ -1110,7 +1110,7 @@ void FisheyeProjection::renderInternal() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+    const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1188,7 +1188,7 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+    const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1239,7 +1239,7 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
             attachTextures(idx);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
@@ -1262,7 +1262,7 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
             sgct::Engine::mInstance->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1292,9 +1292,9 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
                 sgct::Engine::mInstance->mFarClippingPlaneDist
             );
 
-            sgct::Engine::mInstance->getCurrentWindowPtr().bindVAO();
+            sgct::Engine::mInstance->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::mInstance->getCurrentWindowPtr().unbindVAO();
+            sgct::Engine::mInstance->getCurrentWindow().unbindVAO();
 
             sgct::ShaderProgram::unbind();
 
@@ -1329,7 +1329,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             attachTextures(idx);
         }
 
-        sgct::Engine::instance()->getCurrentWindowPtr().setCurrentViewport(&vp);
+        sgct::Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
@@ -1369,7 +1369,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             );
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1389,7 +1389,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            sgct::Engine::mInstance->getCurrentWindowPtr().bindVBO();
+            sgct::Engine::mInstance->getCurrentWindow().bindVBO();
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1408,7 +1408,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
                 reinterpret_cast<void*>(8)
             );
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
+            sgct::Engine::mInstance->getCurrentWindow().unbindVBO();
             glPopClientAttrib();
 
             sgct::ShaderProgram::unbind();

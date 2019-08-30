@@ -1884,7 +1884,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
         }
     }
 
-    float aspect = sgct::Engine::instance()->getCurrentWindowPtr().getAspectRatio() *
+    float aspect = sgct::Engine::instance()->getCurrentWindow().getAspectRatio() *
                    (parent.getSize().x / parent.getSize().y);
     
     for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++) {

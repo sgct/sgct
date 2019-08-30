@@ -48,8 +48,8 @@ public:
 
     SGCTNode* getNodePtr(size_t index);
     SGCTNode* getNodePtr(const std::string& name);
-    SGCTNode* getThisNodePtr();
-    SGCTUser* getDefaultUserPtr();
+    SGCTNode* getThisNode();
+    SGCTUser* getDefaultUser();
     SGCTUser* getUserPtr(const std::string& name);
     SGCTUser* getTrackedUserPtr();
     NetworkManager::NetworkMode getNetworkMode() const;
@@ -119,7 +119,7 @@ public:
     /*!
         \returns the pointer to the tracking manager
     */
-    sgct::SGCTTrackingManager& getTrackingManagerPtr();
+    sgct::SGCTTrackingManager& getTrackingManager();
 
 private:
     ClusterManager();

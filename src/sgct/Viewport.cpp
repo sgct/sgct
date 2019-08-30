@@ -52,7 +52,7 @@ Viewport::Viewport(float x, float y, float xSize, float ySize) {
     mEye = Frustum::MonoEye;
     mEnabled = true;
     mName = "NoName";
-    mUser = ClusterManager::instance()->getDefaultUserPtr();
+    mUser = ClusterManager::instance()->getDefaultUser();
     mProjectionPlane.reset();
 }
 

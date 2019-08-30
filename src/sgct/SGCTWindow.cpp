@@ -41,7 +41,7 @@ constexpr const float QuadVerts[20] = {
 };
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -49,14 +49,14 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
     width = std::max(width, 1);
     height = std::max(height, 1);
     for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindowPtr(i).getWindowHandle() == window) {
-            node->getWindowPtr(i).setWindowResolution(glm::ivec2(width, height));
+        if (node->getWindow(i).getWindowHandle() == window) {
+            node->getWindow(i).setWindowResolution(glm::ivec2(width, height));
         }
     }
 }
 
 void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -64,34 +64,34 @@ void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
     width = std::max(width, 1);
     height = std::max(height, 1);
     for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindowPtr(i).getWindowHandle() == window) {
-            node->getWindowPtr(i).setFramebufferResolution(glm::ivec2(width, height));
+        if (node->getWindow(i).getWindowHandle() == window) {
+            node->getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
         }
     }
 }
 
 void windowFocusCallback(GLFWwindow* window, int state) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
 
     for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindowPtr(i).getWindowHandle() == window) {
-            node->getWindowPtr(i).setFocused(state == GL_TRUE);
+        if (node->getWindow(i).getWindowHandle() == window) {
+            node->getWindow(i).setFocused(state == GL_TRUE);
         }
     }
 }
 
 void windowIconifyCallback(GLFWwindow* window, int state) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
 
     for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindowPtr(i).getWindowHandle() == window) {
-            node->getWindowPtr(i).setIconified(state == GL_TRUE);
+        if (node->getWindow(i).getWindowHandle() == window) {
+            node->getWindow(i).setIconified(state == GL_TRUE);
         }
     }
 }
@@ -228,7 +228,7 @@ void SGCTWindow::init() {
 
     using namespace sgct_core;
     std::string title = "SGCT node: " +
-        ClusterManager::instance()->getThisNodePtr()->getAddress() +
+        ClusterManager::instance()->getThisNode()->getAddress() +
         " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
         + ": " + std::to_string(mId) + ")";
 

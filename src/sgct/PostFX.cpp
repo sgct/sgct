@@ -110,7 +110,7 @@ const std::string& PostFX::getName() const {
 
 void PostFX::internalRender() {
     SGCTWindow& win =
-        sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
+        sgct_core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO
     win.getFBO()->attachColorTexture(mOutputTexture);
@@ -139,7 +139,7 @@ void PostFX::internalRender() {
 
 void PostFX::internalRenderFixedPipeline() {
     SGCTWindow& win =
-        sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
+        sgct_core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO
     win.getFBO()->attachColorTexture(mOutputTexture);

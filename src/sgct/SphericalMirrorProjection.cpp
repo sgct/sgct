@@ -98,7 +98,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
 
 void SphericalMirrorProjection::initVBO() {
     Viewport* vp = dynamic_cast<Viewport*>(
-        sgct::Engine::instance()->getCurrentWindowPtr().getCurrentViewport()
+        sgct::Engine::instance()->getCurrentWindow().getCurrentViewport()
     );
     if (vp) {
         mMeshes.bottom.readAndGenerateMesh(mMeshPaths.bottom, *vp);
@@ -348,7 +348,7 @@ void SphericalMirrorProjection::attachTextures(unsigned int texture) {
 void SphericalMirrorProjection::renderInternal() {
     sgct::Engine::instance()->enterCurrentViewport();
 
-    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -364,7 +364,7 @@ void SphericalMirrorProjection::renderInternal() {
     glActiveTexture(GL_TEXTURE0);
     
     glDisable(GL_CULL_FACE);
-    bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+    bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -405,7 +405,7 @@ void SphericalMirrorProjection::renderInternal() {
 void SphericalMirrorProjection::renderInternalFixedPipeline() {
     sgct::Engine::mInstance->enterCurrentViewport();
 
-    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
     
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -475,7 +475,7 @@ void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) 
             attachTextures(texture);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&bv);
+        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture
@@ -509,7 +509,7 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
             attachTextures(texture);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&bv);
+        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture

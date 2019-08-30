@@ -128,7 +128,7 @@ NetworkManager::~NetworkManager() {
 
 bool NetworkManager::init() {
     sgct_core::ClusterManager& cm = *ClusterManager::instance();
-    std::string thisAddress = cm.getThisNodePtr()->getAddress();
+    std::string thisAddress = cm.getThisNode()->getAddress();
     if (thisAddress.empty()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -157,7 +157,7 @@ bool NetworkManager::init() {
 
     // if faking an address (running local) then add it to the search list
     if (mMode != NetworkMode::Remote) {
-        mLocalAddresses.push_back(cm.getThisNodePtr()->getAddress());
+        mLocalAddresses.push_back(cm.getThisNode()->getAddress());
     }
 
     // Add Cluster Functionality
@@ -165,14 +165,14 @@ bool NetworkManager::init() {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < mNetworkConnections.size(); i++) {
             const std::string port = mNetworkConnections[i]->getPort();
-            if (port == cm.getThisNodePtr()->getSyncPort() ||
-                port == cm.getThisNodePtr()->getDataTransferPort() ||
+            if (port == cm.getThisNode()->getSyncPort() ||
+                port == cm.getThisNode()->getDataTransferPort() ||
                 port == cm.getExternalControlPort())
             {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
                     "NetworkManager: Port %s is already used by connection %u\n",
-                    cm.getThisNodePtr()->getSyncPort().c_str(), i
+                    cm.getThisNode()->getSyncPort().c_str(), i
                 );
                 return false;
             }
@@ -181,7 +181,7 @@ bool NetworkManager::init() {
         // if client
         if (!mIsServer) {
             bool addSyncPort = addConnection(
-                cm.getThisNodePtr()->getSyncPort(),
+                cm.getThisNode()->getSyncPort(),
                 remoteAddress
             );
             if (addSyncPort) {
@@ -202,7 +202,7 @@ bool NetworkManager::init() {
 
             // add data transfer connection
             bool addTransferPort = addConnection(
-                cm.getThisNodePtr()->getDataTransferPort(),
+                cm.getThisNode()->getDataTransferPort(),
                 remoteAddress,
                 SGCTNetwork::ConnectionTypes::DataTransfer
             );

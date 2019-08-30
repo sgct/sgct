@@ -45,11 +45,11 @@ int SGCTNode::getNumberOfWindows() {
     return static_cast<int>(mWindows.size());
 }
 
-sgct::SGCTWindow& SGCTNode::getWindowPtr(int index) {
+sgct::SGCTWindow& SGCTNode::getWindow(int index) {
     return mWindows[index];
 }
 
-sgct::SGCTWindow& SGCTNode::getCurrentWindowPtr() {
+sgct::SGCTWindow& SGCTNode::getCurrentWindow() {
     return mWindows[mCurrentWindowIndex];
 }
 

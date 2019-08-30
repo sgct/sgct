@@ -153,17 +153,16 @@ public:
      *   4.4 Init PBOs
      *
      * \param rm The optional run mode.
+     * \param configurationFile The configuration file that should be loaded. This
+     *        overwrites the value passed from the commandline
      */
-    bool init(RunMode rm = RunMode::Default_Mode);
+    bool init(RunMode rm = RunMode::Default_Mode, std::string configurationFile = "");
 
     /// Terminates SGCT.
     void terminate();
 
     /// This is SGCT's renderloop where rendering & synchronization takes place.
     void render();
-
-    /// Set the configuration file path. Must be done before Engine::init().
-    void setConfigurationFile(std::string configFilePath);
 
     /// \returns the frame time (delta time) in seconds
     double getDt() const;
@@ -235,6 +234,10 @@ public:
      */
     void setExitKey(int key);
 
+    /**
+     * This functions updates the frustum of all viewports on demand. However if the
+     * viewport is tracked this is done on the fly.
+     */
     void updateFrustums();
 
     /// Add a post effect to all windows.
@@ -651,7 +654,9 @@ void sgct::Engine::clearBuffer() {
      *        arguments: const char * buffer, int buffer length
      *
      * All TCP messages must be separated by carriage return (CR) followed by a newline
-     * (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
+     * (NL). Look at this [tutorial
+     * (https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for
+     * more info.
      */
     void setExternalControlCallback(
         std::function<void(const char* buffer, int length)> fn);
@@ -878,30 +883,23 @@ void sgct::Engine::clearBuffer() {
      */
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
-    /**
-     * This function puts the current thread to sleep during a specified time.
-     *
-     * \param secs is the time to sleep the thread
-     */
-    static void sleep(double secs);
-
     /// Returns a pointer to this node (running on this computer).
-    const sgct_core::SGCTNode* getThisNodePtr(size_t index) const;
+    const sgct_core::SGCTNode* getThisNode(size_t index) const;
 
     /// Returns a pointer to a specified window by index on this node.
-    SGCTWindow& getWindowPtr(size_t index) const;
+    SGCTWindow& getWindow(size_t index) const;
 
     /// Returns the number of windows for this node.
     size_t getNumberOfWindows() const;
 
     /// Returns a pointer to the current window that is beeing rendered
-    SGCTWindow& getCurrentWindowPtr() const;
+    SGCTWindow& getCurrentWindow() const;
 
     /// Returns an index to the current window that is beeing rendered
     size_t getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
-    static sgct_core::SGCTUser* getDefaultUserPtr();
+    static sgct_core::SGCTUser* getDefaultUser();
 
     /// Returns a pointer to the tracking manager pointer
     static SGCTTrackingManager& getTrackingManager();
@@ -980,10 +978,9 @@ void sgct::Engine::clearBuffer() {
     bool isOGLPipelineFixed() const;
 
     bool isOpenGLCompatibilityMode() const;
-    //RunMode getRunMode() const;
 
     /// Get the GLSL version string that matches the run mode setting
-    std::string getGLSLVersion() const;
+    const std::string& getGLSLVersion() const;
 
     /**
      * Get the active viewport size in pixels.
@@ -1039,7 +1036,6 @@ void sgct::Engine::clearBuffer() {
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
 private:
-    enum class SyncStage { PreStage = 0, PostStage };
     enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 
     /// Initiates network communication.
@@ -1058,14 +1054,19 @@ private:
     void clearAllCallbacks();
 
     /**
-     * Locks the rendering thread for synchronization. The two stages are:
-     *
-     * 1. PreStage, locks the slaves until data is successfully received
-     * 2. PostStage, locks master until slaves are ready to swap buffers
-     *
-     * Sync time from statistics is the time each computer waits for sync.
+     * Locks the rendering thread for synchronization. Locks the slaves until data is
+     * successfully received. Sync time from statistics is the time each computer waits
+     * for sync.
      */
-    bool frameLock(SyncStage stage);
+    bool frameLockPreStage();
+
+    /**
+     * Locks the rendering thread for synchronization. Locks master until slaves are ready
+     * to swap buffers. Sync time from statistics is the time each computer waits for
+     * sync.
+     */
+    bool frameLockPostStage();
+
     void calculateFPS(double timestamp);
 
     /**
@@ -1093,6 +1094,7 @@ private:
      * per second.
      */
     void updateAAInfo(const SGCTWindow& window);
+
     void updateDrawBufferResolutions();
 
     /**
@@ -1183,10 +1185,9 @@ private:
 
     static void clearBuffer();
 
-private:
+
     static Engine* mInstance;
 
-    //function pointers
     std::function<void()> mDrawFnPtr;
     std::function<void()> mPreSyncFnPtr;
     std::function<void()> mPostSyncPreDrawFnPtr;
@@ -1259,7 +1260,7 @@ private:
     std::unique_ptr<sgct_core::Statistics> mStatistics;
     sgct_core::SGCTNode* mThisNode = nullptr;
 
-    std::thread* mThreadPtr = nullptr;
+    std::unique_ptr<std::thread> mThreadPtr;
 
     std::string configFilename;
     std::string mLogfilePath;

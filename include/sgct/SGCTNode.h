@@ -50,10 +50,10 @@ public:
     int getNumberOfWindows();
 
     /// Get the window pointer at index in window vector.
-    sgct::SGCTWindow& getWindowPtr(int index);
+    sgct::SGCTWindow& getWindow(int index);
 
     /// Get the active window pointer.
-    sgct::SGCTWindow& getCurrentWindowPtr();
+    sgct::SGCTWindow& getCurrentWindow();
 
     /// Get the current window index
     int getCurrentWindowIndex();

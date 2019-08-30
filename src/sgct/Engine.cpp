@@ -128,7 +128,7 @@ namespace {
 
     void touchCallback(GLFWwindow* window, GLFWtouch* touchPoints, int count) {
         sgct::Engine& eng = *sgct::Engine::instance();
-        glm::ivec4 coords = eng.getCurrentWindowPtr().getCurrentViewportPixelCoords();
+        glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
         gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
 
@@ -217,8 +217,11 @@ Engine::~Engine() {
     clean();
 }
 
-bool Engine::init(RunMode rm) {
+bool Engine::init(RunMode rm, std::string configurationFile) {
     mRunMode = rm;
+    if (!configurationFile.empty()) {
+        configFilename = std::move(configurationFile);
+    }
 
     MessageHandler::instance()->print(
         MessageHandler::Level::VersionInfo,
@@ -234,7 +237,7 @@ bool Engine::init(RunMode rm) {
             MessageHandler::Level::Error,
             "Failed to init GLFW! Application will close in 5 seconds\n"
         );
-        sleep(5.0);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
     }
 
@@ -249,8 +252,7 @@ bool Engine::init(RunMode rm) {
             "Error in xml config file parsing. %s. Application will close in 5 seconds\n",
             e.what()
         );
-        sleep(5.0);
-
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
     }
 
@@ -259,7 +261,7 @@ bool Engine::init(RunMode rm) {
             MessageHandler::Level::Error,
             "Network init error. Application will close in 5 seconds\n"
         );
-        sleep(5.0);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
     }
 
@@ -268,7 +270,7 @@ bool Engine::init(RunMode rm) {
             MessageHandler::Level::Error,
             "Window init error. Application will close in 5 seconds\n"
         );
-        sleep(5.0);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
     }
 
@@ -276,7 +278,7 @@ bool Engine::init(RunMode rm) {
     // pending resolution, so it needs to apply it using the same routine as in the end of
     // a frame.
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        mThisNode->getWindowPtr(i).updateResolutions();
+        mThisNode->getWindow(i).updateResolutions();
     }
 
     // if a single node, skip syncing
@@ -285,7 +287,7 @@ bool Engine::init(RunMode rm) {
     }
 
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        GLFWwindow* window = getWindowPtr(i).getWindowHandle();
+        GLFWwindow* window = getWindow(i).getWindowHandle();
         if (gKeyboardCallbackFnPtr) {
             glfwSetKeyCallback(window, keyCallback);
         }
@@ -369,12 +371,12 @@ bool Engine::initNetwork() {
         );
     }
 
-    // If the user has provided the node id as an incorrect cmd argument then make the mThisNode invalid
+    // If the user has provided the node id as an incorrect cmd argument then make the
+    // mThisNode invalid
     if (sgct_core::ClusterManager::instance()->getThisNodeId() >=
         static_cast<int>(sgct_core::ClusterManager::instance()->getNumberOfNodes()) ||
         sgct_core::ClusterManager::instance()->getThisNodeId() < 0)
     {
-        //fatal error
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "This computer is not a part of the cluster configuration\n"
@@ -383,7 +385,7 @@ bool Engine::initNetwork() {
         return false;
     }
     else {
-        mThisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+        mThisNode = sgct_core::ClusterManager::instance()->getThisNode();
     }
 
     if (!mLogfilePath.empty()) {
@@ -534,10 +536,10 @@ bool Engine::initWindows() {
     size_t lastWindowIdx = mThisNode->getNumberOfWindows() - 1;
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         if (i > 0) {
-            share = mThisNode->getWindowPtr(0).getWindowHandle();
+            share = mThisNode->getWindow(0).getWindowHandle();
         }
         
-        if (!mThisNode->getWindowPtr(i).openWindow(share, lastWindowIdx)) {
+        if (!mThisNode->getWindow(i).openWindow(share, lastWindowIdx)) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "Failed to open window %d\n", i
@@ -569,7 +571,7 @@ bool Engine::initWindows() {
 
     // Window/Contexty creation callback
     if (mThisNode->getNumberOfWindows() > 0) {
-        share = mThisNode->getWindowPtr(0).getWindowHandle();
+        share = mThisNode->getWindow(0).getWindowHandle();
 
         if (mContextCreationFnPtr) {
             mContextCreationFnPtr(share);
@@ -584,7 +586,7 @@ bool Engine::initWindows() {
     }
 
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        SGCTWindow& win = mThisNode->getWindowPtr(i);
+        SGCTWindow& win = mThisNode->getWindow(i);
         win.init();
         updateAAInfo(win);
     }
@@ -595,7 +597,7 @@ bool Engine::initWindows() {
 
     if (RunFrameLockCheckThread) {
         if (sgct_core::ClusterManager::instance()->getNumberOfNodes() > 1) {
-            mThreadPtr = new std::thread(updateFrameLockLoop, nullptr);
+            mThreadPtr = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
         }
     }
 
@@ -635,15 +637,15 @@ void Engine::initOGL() {
     // Get OpenGL version
     int mOpenGL_Version[3];
     mOpenGL_Version[0] = glfwGetWindowAttrib(
-        getCurrentWindowPtr().getWindowHandle(),
+        getCurrentWindow().getWindowHandle(),
         GLFW_CONTEXT_VERSION_MAJOR
     );
     mOpenGL_Version[1] = glfwGetWindowAttrib(
-        getCurrentWindowPtr().getWindowHandle(),
+        getCurrentWindow().getWindowHandle(),
         GLFW_CONTEXT_VERSION_MINOR
     );
     mOpenGL_Version[2] = glfwGetWindowAttrib(
-        getCurrentWindowPtr().getWindowHandle(),
+        getCurrentWindow().getWindowHandle(),
         GLFW_CONTEXT_REVISION
     );
 
@@ -684,7 +686,7 @@ void Engine::initOGL() {
         SGCTSettings::instance()->setUseFBO(true);
 
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            mThisNode->getWindowPtr(i).setNumberOfAASamples(1);
+            mThisNode->getWindow(i).setNumberOfAASamples(1);
         }
     }
 
@@ -700,7 +702,7 @@ void Engine::initOGL() {
     }
 
     // init window opengl data
-    getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+    getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
 
     loadShaders();
     mStatistics->initVBO(mFixedOGLPipeline);
@@ -721,7 +723,7 @@ void Engine::initOGL() {
     for( size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->setCurrentWindowIndex(i);
         // set context to shared
-        getCurrentWindowPtr().initOGL();
+        getCurrentWindow().initOGL();
         
         if (mScreenShotFnPtr) {
             // set callback
@@ -732,7 +734,7 @@ void Engine::initOGL() {
                 invokeScreenShotCallback(img, size, idx, type);
             };
             
-            sgct::SGCTWindow& win = getCurrentWindowPtr();
+            sgct::SGCTWindow& win = getCurrentWindow();
             // left channel (Mono and Stereo_Left)
             sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
                 SGCTWindow::Eye::MonoOrLeft
@@ -752,7 +754,7 @@ void Engine::initOGL() {
 
     // link all users to their viewports
     for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
-        SGCTWindow& winPtr = mThisNode->getWindowPtr(w);
+        SGCTWindow& winPtr = mThisNode->getWindow(w);
         for (unsigned int i = 0; i < winPtr.getNumberOfViewports(); i++) {
             winPtr.getViewport(i).linkUserName();
         }
@@ -797,7 +799,7 @@ void Engine::initOGL() {
 
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         // generate mesh (VAO and VBO)
-        mThisNode->getWindowPtr(i).initContextSpecificOGL();
+        mThisNode->getWindow(i).initContextSpecificOGL();
     }
 
     // check for errors
@@ -817,7 +819,7 @@ void Engine::clean() {
 
     if (mCleanUpFnPtr) {
         if (mThisNode && mThisNode->getNumberOfWindows() > 0) {
-            mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(
+            mThisNode->getWindow(0).makeOpenGLContextCurrent(
                 SGCTWindow::Context::Shared
             );
         }
@@ -834,7 +836,7 @@ void Engine::clean() {
     if (mThreadPtr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "Waiting for frameLock thread to finish...\n"
+            "Waiting for frameLock thread to finish\n"
         );
 
         sgct::SGCTMutexManager::instance()->mFrameSyncMutex.lock();
@@ -842,7 +844,6 @@ void Engine::clean() {
         sgct::SGCTMutexManager::instance()->mFrameSyncMutex.unlock();
 
         mThreadPtr->join();
-        delete mThreadPtr;
         mThreadPtr = nullptr;
         MessageHandler::instance()->print(MessageHandler::Level::Debug, "Done.\n");
     }
@@ -850,7 +851,7 @@ void Engine::clean() {
     // de-init window and unbind swapgroups
     if (mThisNode && sgct_core::ClusterManager::instance()->getNumberOfNodes() > 0) {
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            mThisNode->getWindowPtr(i).close();
+            mThisNode->getWindow(i).close();
         }
     }
 
@@ -859,7 +860,7 @@ void Engine::clean() {
 
     // Shared contex
     if (mThisNode && mThisNode->getNumberOfWindows() > 0) {
-        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+        mThisNode->getWindow(0).makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
     }
 
     mStatistics = nullptr;
@@ -890,7 +891,7 @@ void Engine::clean() {
 
     // Window specific context
     if (mThisNode && mThisNode->getNumberOfWindows() > 0) {
-        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(SGCTWindow::Context::Window);
+        mThisNode->getWindow(0).makeOpenGLContextCurrent(SGCTWindow::Context::Window);
     }
     
     MessageHandler::instance()->print(
@@ -962,146 +963,144 @@ void Engine::clearAllCallbacks() {
     }
 }
 
-bool Engine::frameLock(sgct::Engine::SyncStage stage) {
-    if (stage == SyncStage::PreStage) {
-        double t0 = glfwGetTime();
-        // from server to clients
-        mNetworkConnections->sync(
-            sgct_core::NetworkManager::SyncMode::SendDataToClients,
-            *mStatistics
-        ); 
-        mStatistics->setSyncTime(static_cast<float>(glfwGetTime() - t0));
+bool Engine::frameLockPreStage() {
+    using namespace sgct_core;
 
-        // run only on clients/slaves
-        if (!sgct_core::ClusterManager::instance()->getIgnoreSync() &&
-            !mNetworkConnections->isComputerServer()) 
-        {
-            // not server
-            t0 = glfwGetTime();
-            while (mNetworkConnections->isRunning() && mRunning) {
-                if (mNetworkConnections->isSyncComplete()) {
-                    break;
-                }
+    double t0 = glfwGetTime();
+    // from server to clients
+    mNetworkConnections->sync(NetworkManager::SyncMode::SendDataToClients, *mStatistics);
+    mStatistics->setSyncTime(static_cast<float>(glfwGetTime() - t0));
 
-                if (UseSleepToWaitForNodes) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                }
-                else {
-                    std::unique_lock<std::mutex> lk(
-                        SGCTMutexManager::instance()->mFrameSyncMutex
-                    );
-                    sgct_core::NetworkManager::gCond.wait(lk);
-                }
-                
-                // for debugging
-                sgct_core::SGCTNetwork* conn;
-                if (glfwGetTime() - t0 > 1.0)  {
-                    // more than a second
-                    conn = mNetworkConnections->getSyncConnectionByIndex(0);
-                    if (mPrintSyncMessage && !conn->isUpdated()) {
-                        MessageHandler::instance()->print(
-                            MessageHandler::Level::Info,
-                            "Slave: waiting for master... send frame %d != previous recv "
-                            "frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: "
-                            "%s\n\tNvidia universal frame number: %u\n\tSGCT frame "
-                            "number: %u\n",
-                            conn->getSendFrameCurrent(),
-                            conn->getRecvFramePrevious(),
-                            getCurrentWindowPtr().isUsingSwapGroups() ? "enabled" : "disabled",
-                            getCurrentWindowPtr().isBarrierActive() ? "enabled" : "disabled",
-                            getCurrentWindowPtr().getSwapGroupFrameNumber(),
-                            mFrameCounter
-                        );
-                    }
-                    
-                    if (glfwGetTime() - t0 > mSyncTimeout) {
-                        // more than a minute
-                        MessageHandler::instance()->print(
-                            MessageHandler::Level::Error,
-                            "Slave: no sync signal from master after %.1f seconds! "
-                            "Exiting...",
-                            mSyncTimeout
-                        );
-                        return false;
-                    }
-                }
+    // run only on clients/slaves
+    if (ClusterManager::instance()->getIgnoreSync() ||
+        mNetworkConnections->isComputerServer())
+    {
+        return true;
+    }
+
+
+    // not server
+    t0 = glfwGetTime();
+    while (mNetworkConnections->isRunning() && mRunning) {
+        if (mNetworkConnections->isSyncComplete()) {
+            break;
+        }
+
+        if (UseSleepToWaitForNodes) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        else {
+            std::unique_lock lk(SGCTMutexManager::instance()->mFrameSyncMutex);
+            sgct_core::NetworkManager::gCond.wait(lk);
+        }
+
+        // for debugging
+        sgct_core::SGCTNetwork* conn;
+        if (glfwGetTime() - t0 > 1.0) {
+            // more than a second
+            conn = mNetworkConnections->getSyncConnectionByIndex(0);
+            if (mPrintSyncMessage && !conn->isUpdated()) {
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Info,
+                    "Slave: waiting for master... send frame %d != previous recv "
+                    "frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: "
+                    "%s\n\tNvidia universal frame number: %u\n\tSGCT frame "
+                    "number: %u\n",
+                    conn->getSendFrameCurrent(),
+                    conn->getRecvFramePrevious(),
+                    getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
+                    getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
+                    getCurrentWindow().getSwapGroupFrameNumber(),
+                    mFrameCounter
+                );
             }
 
-            // A this point all data needed for rendering a frame is received.
-            // Let's signal that back to the master/server.
-            mNetworkConnections->sync(
-                sgct_core::NetworkManager::SyncMode::AcknowledgeData,
-                *mStatistics
+            if (glfwGetTime() - t0 > mSyncTimeout) {
+                // more than a minute
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
+                    "Slave: no sync signal from master after %.1f seconds! "
+                    "Exiting...", mSyncTimeout
+                );
+                return false;
+            }
+        }
+    }
+
+    // A this point all data needed for rendering a frame is received.
+    // Let's signal that back to the master/server.
+    mNetworkConnections->sync(NetworkManager::SyncMode::AcknowledgeData, *mStatistics);
+    mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
+
+    return true;
+}
+
+bool Engine::frameLockPostStage() {
+    // post stage
+    if (sgct_core::ClusterManager::instance()->getIgnoreSync() ||
+        !mNetworkConnections->isComputerServer())
+    {
+        return true;
+    }
+
+    double t0 = glfwGetTime();
+    while (mNetworkConnections->isRunning() && mRunning &&
+           mNetworkConnections->getActiveConnectionsCount() > 0)
+    {
+        if (mNetworkConnections->isSyncComplete()) {
+            break;
+        }
+
+        if (UseSleepToWaitForNodes) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        else {
+            std::unique_lock lk(SGCTMutexManager::instance()->mFrameSyncMutex);
+            sgct_core::NetworkManager::gCond.wait(lk);
+        }
+
+        // for debugging
+
+        if (glfwGetTime() - t0 <= 1.0) {
+            continue;
+        }
+        // more than a second
+
+        for (int i = 0; i < mNetworkConnections->getSyncConnectionsCount(); i++) {
+            const sgct_core::SGCTNetwork& conn =
+                mNetworkConnections->getConnectionByIndex(i);
+
+            if (mPrintSyncMessage && !conn.isUpdated()) {
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Info,
+                    "Waiting for slave%d: send frame %d != recv frame %d\n\t"
+                    "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
+                    "Nvidia universal frame number: %u\n\t"
+                    "SGCT frame number: %u\n",
+                    i,
+                    mNetworkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
+                    mNetworkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
+                    getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
+                    getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
+                    getCurrentWindow().getSwapGroupFrameNumber(),
+                    mFrameCounter
+                );
+            }
+        }
+
+        if (glfwGetTime() - t0 > mSyncTimeout) {
+            // more than a minute
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
+                "Master: no sync signal from all slaves after %.1f seconds. "
+                "Exiting\n", mSyncTimeout
             );
 
-            mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
+            return false;
         }
     }
-    else {
-        // post stage
-        if (!sgct_core::ClusterManager::instance()->getIgnoreSync() &&
-            mNetworkConnections->isComputerServer())
-        {
-            double t0 = glfwGetTime();
-            while (mNetworkConnections->isRunning() && mRunning &&
-                   mNetworkConnections->getActiveConnectionsCount() > 0)
-            {
-                if (mNetworkConnections->isSyncComplete()) {
-                    break;
-                }
+    mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
 
-                if (UseSleepToWaitForNodes) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                }
-                else {
-                    std::unique_lock lk(SGCTMutexManager::instance()->mFrameSyncMutex);
-                    sgct_core::NetworkManager::gCond.wait(lk);
-                }
-
-                // for debugging
-                if (glfwGetTime() - t0 > 1.0) {
-                    // more than a second
-                    for (unsigned int i = 0;
-                         i < mNetworkConnections->getSyncConnectionsCount();
-                         i++)
-                    {
-                        const sgct_core::SGCTNetwork& conn =
-                            mNetworkConnections->getConnectionByIndex(i);
-
-                        if (mPrintSyncMessage && !conn.isUpdated()) {
-                            MessageHandler::instance()->print(
-                                MessageHandler::Level::Info,
-                                "Waiting for slave%d: send frame %d != recv frame %d\n\t"
-                                "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
-                                "Nvidia universal frame number: %u\n\t"
-                                "SGCT frame number: %u\n",
-                                i,
-                                mNetworkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
-                                mNetworkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
-                                getCurrentWindowPtr().isUsingSwapGroups() ? "enabled" : "disabled",
-                                getCurrentWindowPtr().isBarrierActive() ? "enabled" : "disabled",
-                                getCurrentWindowPtr().getSwapGroupFrameNumber(),
-                                mFrameCounter
-                            );
-                        }
-                    }
-                    
-                    if (glfwGetTime() - t0 > mSyncTimeout) {
-                        // more than a minute
-                        MessageHandler::instance()->print(
-                            MessageHandler::Level::Error,
-                            "Master: no sync signal from all slaves after %.1f seconds "
-                            "Exiting...", mSyncTimeout
-                        );
-                        
-                        return false;
-                    }
-                }
-            }
-            mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
-        }
-    }
-    
     return true;
 }
 
@@ -1119,12 +1118,12 @@ void Engine::render() {
     mRunning = true;
 
     // create OpenGL query objects for Opengl 3.3+
-    GLuint timeQueriesBegin;
-    GLuint timeQueriesEnd;
+    GLuint timeQueryBegin;
+    GLuint timeQueryEnd;
     if (!mFixedOGLPipeline) {
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
-        glGenQueries(1, &timeQueriesBegin);
-        glGenQueries(1, &timeQueriesEnd);
+        getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+        glGenQueries(1, &timeQueryBegin);
+        glGenQueries(1, &timeQueryEnd);
     }
 
     while (mRunning) {
@@ -1132,7 +1131,7 @@ void Engine::render() {
 
         // update tracking data
         if (isMaster()) {
-            ClusterManager::instance()->getTrackingManagerPtr().updateTrackingDevices();
+            ClusterManager::instance()->getTrackingManager().updateTrackingDevices();
         }
 
         if (mPreSyncFnPtr) {
@@ -1151,7 +1150,7 @@ void Engine::render() {
             break;
         }
 
-        if (!frameLock(SyncStage::PreStage)) {
+        if (!frameLockPreStage()) {
             break;
         }
 
@@ -1159,7 +1158,7 @@ void Engine::render() {
         // context switching may occur if multiple windows are used
         bool buffersNeedUpdate = false;
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            const bool bufUpdate = mThisNode->getWindowPtr(i).update();
+            const bool bufUpdate = mThisNode->getWindow(i).update();
             buffersNeedUpdate |= bufUpdate;
         }
 
@@ -1169,7 +1168,7 @@ void Engine::render() {
     
         mRenderingOffScreen = SGCTSettings::instance()->useFBO();
         if (mRenderingOffScreen) {
-            getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+            getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
         }
 
         // Make sure correct context is current
@@ -1181,7 +1180,7 @@ void Engine::render() {
         calculateFPS(startFrameTime); // measures time between calls
 
         if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(timeQueriesBegin, GL_TIMESTAMP);
+            glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
         }
 
         // Render Viewports / Draw
@@ -1189,9 +1188,9 @@ void Engine::render() {
         size_t firstDrawBufferIndexInWindow = 0;
 
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            SGCTWindow& win = mThisNode->getWindowPtr(i);
-            if (!(mThisNode->getWindowPtr(i).isVisible() ||
-                  mThisNode->getWindowPtr(i).isRenderingWhileHidden()))
+            SGCTWindow& win = mThisNode->getWindow(i);
+            if (!(mThisNode->getWindow(i).isVisible() ||
+                  mThisNode->getWindow(i).isRenderingWhileHidden()))
             {
                 continue;
             }
@@ -1204,7 +1203,7 @@ void Engine::render() {
             // windows but then set the current window. Not sure if this works, so I'll
             // leave this in here commented out for now
             //mThisNode->setCurrentWindowIndex(i);
-            //SGCTWindow& win = getCurrentWindowPtr();
+            //SGCTWindow& win = getCurrentWindow();
 
             if (!mRenderingOffScreen) {
                 win.makeOpenGLContextCurrent(SGCTWindow::Context::Window);
@@ -1216,16 +1215,16 @@ void Engine::render() {
             mCurrentRenderTarget = RenderTarget::NonLinearBuffer;
 
             for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
+                Viewport& vp = win.getViewport(j);
                 mCurrentViewportIndex.main = j;
-                if (!win.getViewport(j).hasSubViewports()) {
+                if (!vp.hasSubViewports()) {
                     continue;
                 }
 
-                NonLinearProjection* nonLinearProj =
-                    win.getViewport(j).getNonLinearProjection();
+                NonLinearProjection* nonLinearProj = vp.getNonLinearProjection();
                 mCurrentOffScreenBuffer = nonLinearProj->getOffScreenBuffer();
 
-                nonLinearProj->setAlpha(getCurrentWindowPtr().getAlpha() ? 0.f : 1.f);
+                nonLinearProj->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
                 if (sm == SGCTWindow::StereoMode::NoStereo) {
                     //for mono viewports frustum mode can be selected by user or xml
                     mCurrentFrustumMode = win.getViewport(j).getEye();
@@ -1262,7 +1261,7 @@ void Engine::render() {
                 continue;
             }
 
-            //jump back counter to the first buffer index for current window
+            // jump back counter to the first buffer index for current window
             mCurrentDrawBufferIndex = firstDrawBufferIndexInWindow;
 
             // Render right non-linear projection viewports to cubemap
@@ -1276,7 +1275,7 @@ void Engine::render() {
                 NonLinearProjection* p = win.getViewport(j).getNonLinearProjection();
                 mCurrentOffScreenBuffer = p->getOffScreenBuffer();
 
-                p->setAlpha(getCurrentWindowPtr().getAlpha() ? 0.f : 1.f);
+                p->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
                 mCurrentFrustumMode = Frustum::StereoRightEye;
                 p->renderCubemap(&mCurrentViewportIndex.sub);
 
@@ -1303,7 +1302,7 @@ void Engine::render() {
 
         // Render to screen
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            if (mThisNode->getWindowPtr(i).isVisible()) {
+            if (mThisNode->getWindow(i).isVisible()) {
                 mThisNode->setCurrentWindowIndex(i);
 
                 mRenderingOffScreen = false;
@@ -1312,14 +1311,14 @@ void Engine::render() {
                 }
             }
         }
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+        getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
 
 #ifdef __SGCT_DEBUG__
         checkForOGLErrors();
 #endif
 
         if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(timeQueriesEnd, GL_TIMESTAMP);
+            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
         }
 
         double endFrameTime = glfwGetTime();
@@ -1336,14 +1335,14 @@ void Engine::render() {
             // wait until the query results are available
             GLint done = GL_FALSE;
             while (!done) {
-                glGetQueryObjectiv(timeQueriesEnd, GL_QUERY_RESULT_AVAILABLE, &done);
+                glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
             }
 
             GLuint64 timerStart;
             GLuint64 timerEnd;
             // get the query results
-            glGetQueryObjectui64v(timeQueriesBegin, GL_QUERY_RESULT, &timerStart);
-            glGetQueryObjectui64v(timeQueriesEnd, GL_QUERY_RESULT, &timerEnd);
+            glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
+            glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
 
             const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
             mStatistics->setDrawTime(static_cast<float>(t));
@@ -1354,18 +1353,18 @@ void Engine::render() {
         }
         
         // master will wait for nodes render before swapping
-        if (!frameLock(SyncStage::PostStage)) {
+        if (!frameLockPostStage()) {
             break;
         }
 
         // Swap front and back rendering buffers
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            mThisNode->getWindowPtr(i).swap(mTakeScreenshot);
+            mThisNode->getWindow(i).swap(mTakeScreenshot);
         }
 
         glfwPollEvents();
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            mThisNode->getWindowPtr(i).updateResolutions();
+            mThisNode->getWindow(i).updateResolutions();
         }
 
         // Check if ESC key was pressed or window was closed
@@ -1382,26 +1381,22 @@ void Engine::render() {
     }
 
     if (!mFixedOGLPipeline) {
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
-        glDeleteQueries(1, &timeQueriesBegin);
-        glDeleteQueries(1, &timeQueriesEnd);
+        getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
+        glDeleteQueries(1, &timeQueryBegin);
+        glDeleteQueries(1, &timeQueryEnd);
     }
-}
-
-void Engine::setConfigurationFile(std::string configFilePath) {
-    configFilename = std::move(configFilePath);
 }
 
 void Engine::renderDisplayInfo() {
 #if INCLUDE_SGCT_TEXT
-    unsigned int lFrameNumber = getCurrentWindowPtr()->getSwapGroupFrameNumber();
+    unsigned int lFrameNumber = getCurrentWindow().getSwapGroupFrameNumber();
 
     glm::vec4 strokeColor = sgct_text::FontManager::instance()->getStrokeColor();
     sgct_text::FontManager::instance()->setStrokeColor(glm::vec4(0.f, 0.f, 0.f, 0.8f));
 
     unsigned int font_size = SGCTSettings::instance()->getOSDTextFontSize();
     font_size = static_cast<unsigned int>(
-        static_cast<float>(font_size) * getCurrentWindowPtr()->getXScale()
+        static_cast<float>(font_size) * getCurrentWindow().getScale().x
     );
     
     sgct_text::Font* font = sgct_text::FontManager::instance()->getFont(
@@ -1411,16 +1406,14 @@ void Engine::renderDisplayInfo() {
 
     if (font) {
         float lineHeight = font->getHeight() * 1.59f;
-        float xPos = static_cast<float>(getCurrentWindowPtr()->getXResolution()) *
-                     SGCTSettings::instance()->getOSDTextXOffset();
-        float yPos = static_cast<float>(getCurrentWindowPtr()->getYResolution()) *
-                     SGCTSettings::instance()->getOSDTextYOffset();
+        glm::vec2 pos = glm::vec2(getCurrentWindow().getResolution()) *
+                        SGCTSettings::instance()->getOSDTextOffset();
         
         sgct_text::print(
             font,
             sgct_text::TopLeft,
-            xPos,
-            lineHeight * 6.f + yPos,
+            pos.x,
+            lineHeight * 6.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Node ip: %s (%s)",
             mThisNode->getAddress().c_str(),
@@ -1430,8 +1423,8 @@ void Engine::renderDisplayInfo() {
         sgct_text::print(
             font,
             sgct_text::TopLeft,
-            xPos,
-            lineHeight * 5.f + yPos,
+            pos.x,
+            lineHeight * 5.f + pos.y,
             glm::vec4(0.8f,0.8f,0.f,1.f),
             "Frame rate: %.2f Hz, frame: %u",
             mStatistics->getAvgFPS(),
@@ -1441,8 +1434,8 @@ void Engine::renderDisplayInfo() {
         sgct_text::print(
             font,
             sgct_text::TopLeft,
-            xPos,
-            lineHeight * 4.f + yPos,
+            pos.x,
+            lineHeight * 4.f + pos.y,
             glm::vec4(0.8f, 0.f, 0.8f, 1.f),
             "Avg. draw time: %.2f ms",
             mStatistics->getAvgDrawTime() * 1000.f
@@ -1452,8 +1445,8 @@ void Engine::renderDisplayInfo() {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 3.f + yPos,
+                pos.x,
+                lineHeight * 3.f + pos.y,
                 glm::vec4(0.f,0.8f,0.8f,1.f),
                 "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)",
                 mStatistics->getAvgSyncTime() * 1000.0,
@@ -1465,26 +1458,26 @@ void Engine::renderDisplayInfo() {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 3.f + yPos,
+                pos.x,
+                lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
                 "Avg. sync time: %.2f ms",
                 mStatistics->getAvgSyncTime() * 1000.0
             );
         }
 
-        bool usingSwapGroups = getCurrentWindowPtr()->isUsingSwapGroups();
+        bool usingSwapGroups = getCurrentWindow()->isUsingSwapGroups();
         if (usingSwapGroups) {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 2.f + yPos,
+                pos.x,
+                lineHeight * 2.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Swap groups: %s and barrier is %s (%s) | Frame: %d",
-                getCurrentWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
-                getCurrentWindowPtr()->isBarrierActive() ? "active" : "inactive",
-                getCurrentWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
+                getCurrentWindow().isUsingSwapGroups() ? "Enabled" : "Disabled",
+                getCurrentWindow().isBarrierActive() ? "active" : "inactive",
+                getCurrentWindow().isSwapGroupMaster() ? "master" : "slave",
                 lFrameNumber
             );
         }
@@ -1492,8 +1485,8 @@ void Engine::renderDisplayInfo() {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 2.f + yPos,
+                pos.x,
+                lineHeight * 2.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Swap groups: Disabled"
             );
@@ -1502,19 +1495,19 @@ void Engine::renderDisplayInfo() {
         sgct_text::print(
             font,
             sgct_text::TopLeft,
-            xPos,
-            lineHeight * 1.f + yPos,
+            pos.x,
+            lineHeight * 1.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Frame buffer resolution: %d x %d",
-            getCurrentWindowPtr()->getXFramebufferResolution(),
-            getCurrentWindowPtr()->getYFramebufferResolution()
+            getCurrentWindow().getFramebufferResolution().x,
+            getCurrentWindow().getFramebufferResolution().y
         );
 
         sgct_text::print(
             font,
             sgct_text::TopLeft,
-            xPos,
-            lineHeight * 0.f + yPos,
+            pos.x,
+            lineHeight * 0.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Anti-Aliasing: %s",
             mAAInfo.c_str()
@@ -1525,22 +1518,22 @@ void Engine::renderDisplayInfo() {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 8.f + yPos,
+                pos.x,
+                lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Stereo type: %s\nCurrent eye: Left",
-                getCurrentWindowPtr()->getStereoModeStr().c_str()
+                getCurrentWindow().getStereoModeStr().c_str()
             );
         }
         else if (mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye) {
             sgct_text::print(
                 font,
                 sgct_text::TopLeft,
-                xPos,
-                lineHeight * 8.f + yPos,
+                pos.x,
+                lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Stereo type: %s\nCurrent eye:          Right",
-                getCurrentWindowPtr()->getStereoModeStr().c_str()
+                getCurrentWindow().getStereoModeStr().c_str()
             );
         }
     }
@@ -1584,7 +1577,8 @@ void Engine::drawFixedPipeline() {
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     
-    enterCurrentViewport(); //set glViewport & glScissor
+    // set glViewport & glScissor
+    enterCurrentViewport();
     
     if (SGCTSettings::instance()->useFBO()) {
         setAndClearBuffer(BufferMode::RenderToTexture);
@@ -1598,7 +1592,7 @@ void Engine::drawFixedPipeline() {
     glMatrixMode(GL_PROJECTION);
 
     sgct_core::SGCTProjection& proj =
-        getCurrentWindowPtr().getCurrentViewport()->getProjection(mCurrentFrustumMode);
+        getCurrentWindow().getCurrentViewport()->getProjection(mCurrentFrustumMode);
 
     glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
 
@@ -1623,9 +1617,9 @@ void Engine::drawFixedPipeline() {
 }
 
 void Engine::drawOverlays() {
-    for (size_t i = 0; i < getCurrentWindowPtr().getNumberOfViewports(); i++) {
-        getCurrentWindowPtr().setCurrentViewport(i);
-        const sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(i);
+    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+        getCurrentWindow().setCurrentViewport(i);
+        const sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
         
         // if viewport has overlay
         if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
@@ -1638,18 +1632,17 @@ void Engine::drawOverlays() {
         glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
         mShader.overlay.bind();
         glUniform1i(mShaderLoc.overlayTex, 0);
-        getCurrentWindowPtr().bindVAO();
+        getCurrentWindow().bindVAO();
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        getCurrentWindowPtr().unbindVAO();
+        getCurrentWindow().unbindVAO();
         ShaderProgram::unbind();
     }
 }
 
 void Engine::drawOverlaysFixedPipeline() {
-    std::size_t numberOfIterations = getCurrentWindowPtr().getNumberOfViewports();
-    for (size_t i = 0; i < numberOfIterations; i++) {
-        getCurrentWindowPtr().setCurrentViewport(i);
-        const sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(i);
+    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+        getCurrentWindow().setCurrentViewport(i);
+        const sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
 
         if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
             return;
@@ -1660,8 +1653,6 @@ void Engine::drawOverlaysFixedPipeline() {
         glLoadIdentity();
         glPushMatrix();
             
-        // Some code (using OpenSceneGraph) can mess up the viewport settings. To ensure
-        // correct mapping enter the current viewport.
         enterCurrentViewport();
 
         glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
@@ -1684,7 +1675,7 @@ void Engine::drawOverlaysFixedPipeline() {
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             
-        getCurrentWindowPtr().bindVBO();
+        getCurrentWindow().bindVBO();
 
         glClientActiveTexture(GL_TEXTURE0);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1695,7 +1686,7 @@ void Engine::drawOverlaysFixedPipeline() {
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        getCurrentWindowPtr().unbindVBO();
+        getCurrentWindow().unbindVBO();
 
         glPopClientAttrib();
         glPopAttrib();
@@ -1709,11 +1700,11 @@ void Engine::prepareBuffer(TextureIndexes ti) {
     if (!SGCTSettings::instance()->useFBO()) {
         return;
     }
-    if (getCurrentWindowPtr().usePostFX()) {
+    if (getCurrentWindow().usePostFX()) {
         ti = Intermediate;
     }
 
-    sgct_core::OffScreenBuffer* fbo = getCurrentWindowPtr().getFBO();
+    sgct_core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
 
     fbo->bind();
     if (fbo->isMultiSampled()) {
@@ -1721,22 +1712,22 @@ void Engine::prepareBuffer(TextureIndexes ti) {
     }
 
     // update attachments
-    fbo->attachColorTexture(getCurrentWindowPtr().getFrameBufferTexture(ti));
+    fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
 
     if (SGCTSettings::instance()->useDepthTexture()) {
-        fbo->attachDepthTexture(getCurrentWindowPtr().getFrameBufferTexture(Depth));
+        fbo->attachDepthTexture(getCurrentWindow().getFrameBufferTexture(Depth));
     }
 
     if (SGCTSettings::instance()->useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(Normals),
+            getCurrentWindow().getFrameBufferTexture(Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (SGCTSettings::instance()->usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(Positions),
+            getCurrentWindow().getFrameBufferTexture(Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1747,7 +1738,7 @@ void Engine::renderFBOTexture() {
 
     bool maskShaderSet = false;
 
-    SGCTWindow& win = getCurrentWindowPtr();
+    SGCTWindow& win = getCurrentWindow();
     win.makeOpenGLContextCurrent(SGCTWindow::Context::Window);
 
     glDisable(GL_BLEND);
@@ -1765,16 +1756,12 @@ void Engine::renderFBOTexture() {
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(BufferMode::BackBufferBlack);
     
-    size_t numberOfIterations = win.getNumberOfViewports();
-
     sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
         sgct_core::CorrectionMesh::WARP_MESH :
         sgct_core::CorrectionMesh::QUAD_MESH;
 
     SGCTWindow::StereoMode sm = win.getStereoMode();
-    if (sm > SGCTWindow::StereoMode::Active &&
-        sm < SGCTWindow::StereoMode::SideBySide)
-    {
+    if (sm > SGCTWindow::StereoMode::Active && sm < SGCTWindow::StereoMode::SideBySide) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
 
@@ -1798,7 +1785,7 @@ void Engine::renderFBOTexture() {
         glUniform1i(mShaderLoc.monoTex, 0);
         maskShaderSet = true;
 
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             win.getViewport(i).renderMesh(mt);
         }
 
@@ -1811,7 +1798,7 @@ void Engine::renderFBOTexture() {
             setAndClearBuffer(BufferMode::BackBufferBlack);
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
-            for (size_t i = 0; i < numberOfIterations; i++) {
+            for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
                 win.getViewport(i).renderMesh(mt);
             }
         }
@@ -1833,7 +1820,7 @@ void Engine::renderFBOTexture() {
 
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
@@ -1842,7 +1829,7 @@ void Engine::renderFBOTexture() {
         }
 
         // render black level masks
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
@@ -1857,7 +1844,6 @@ void Engine::renderFBOTexture() {
             }
         }
 
-        // restore
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
@@ -1869,20 +1855,18 @@ void Engine::renderFBOTexture() {
 void Engine::renderFBOTextureFixedPipeline() {
     sgct_core::OffScreenBuffer::unBind();
     
-    SGCTWindow& win = getCurrentWindowPtr();
+    SGCTWindow& win = getCurrentWindow();
     win.makeOpenGLContextCurrent(SGCTWindow::Context::Window);
     
     mCurrentFrustumMode = win.getStereoMode() == SGCTWindow::StereoMode::Active ?
         sgct_core::Frustum::StereoLeftEye :
         sgct_core::Frustum::MonoEye;
     
-    glm::ivec2 size = glm::ivec2(
-        glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
-    );
-    glViewport(0, 0, size.x, size.y);
+    glm::ivec2 s = glm::ivec2(glm::ceil(win.getScale() * glm::vec2(win.getResolution())));
+    glViewport(0, 0, s.x, s.y);
     setAndClearBuffer(BufferMode::BackBufferBlack);
 
-    //enter ortho mode
+    // enter ortho mode
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
@@ -1895,13 +1879,10 @@ void Engine::renderFBOTextureFixedPipeline() {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
-    // needed for shaders
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glLoadIdentity();
     
-    std::size_t numberOfIterations = win.getNumberOfViewports();
-
     SGCTWindow::StereoMode sm = win.getStereoMode();
 
     sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
@@ -1924,7 +1905,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
         glEnable(GL_TEXTURE_2D);
 
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             win.getViewport(i).renderMesh(mt);
         }
         ShaderProgram::unbind();
@@ -1934,7 +1915,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
         glEnable(GL_TEXTURE_2D);
 
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             win.getViewport(i).renderMesh(mt);
         }
 
@@ -1948,7 +1929,7 @@ void Engine::renderFBOTextureFixedPipeline() {
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
 
-            for (size_t i = 0; i < numberOfIterations; i++) {
+            for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
                 win.getViewport(i).renderMesh(mt);
             }
         }
@@ -1970,7 +1951,7 @@ void Engine::renderFBOTextureFixedPipeline() {
 
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
@@ -1979,7 +1960,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         }
 
         // render black level masks
-        for (size_t i = 0; i < numberOfIterations; i++) {
+        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
@@ -2004,13 +1985,13 @@ void Engine::renderFBOTextureFixedPipeline() {
 void Engine::renderViewports(TextureIndexes ti) {
     prepareBuffer(ti);
 
-    SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();
+    SGCTWindow::StereoMode sm = getCurrentWindow().getStereoMode();
     
     // render all viewports for selected eye
-    for (size_t i = 0; i < getCurrentWindowPtr().getNumberOfViewports(); i++) {
-        getCurrentWindowPtr().setCurrentViewport(i);
+    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+        getCurrentWindow().setCurrentViewport(i);
         mCurrentViewportIndex.main = i;
-        sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(i);
+        sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
 
         if (!vp.isEnabled()) {
             continue;
@@ -2030,7 +2011,7 @@ void Engine::renderViewports(TextureIndexes ti) {
                 );
             }
 
-            if (getCurrentWindowPtr().getCallDraw3DFunction()) {
+            if (getCurrentWindow().getCallDraw3DFunction()) {
                 vp.getNonLinearProjection()->render();
             }
         }
@@ -2046,19 +2027,19 @@ void Engine::renderViewports(TextureIndexes ti) {
 
             // check if we want to copy the previous window into this one before we go
             // ahead with anyting else
-            if (getCurrentWindowPtr().getCopyPreviousWindowToCurrentWindow()) {
+            if (getCurrentWindow().getCopyPreviousWindowToCurrentWindow()) {
                 copyPreviousWindowViewportToCurrentWindowViewport(mCurrentFrustumMode);
             }
 
-            if (getCurrentWindowPtr().getCallDraw3DFunction()) {
+            if (getCurrentWindow().getCallDraw3DFunction()) {
                 mInternalDrawFn();
             }
         }
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!getCurrentWindowPtr().getCallDraw3DFunction() &&
-        !getCurrentWindowPtr().getCopyPreviousWindowToCurrentWindow())
+    if (!getCurrentWindow().getCallDraw3DFunction() &&
+        !getCurrentWindow().getCopyPreviousWindowToCurrentWindow())
     {
         if (SGCTSettings::instance()->useFBO()) {
             setAndClearBuffer(BufferMode::RenderToTexture);
@@ -2081,7 +2062,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     bool splitScreenStereo = (sm >= SGCTWindow::StereoMode::SideBySide);
     if (!(splitScreenStereo && mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye))
     {
-        if (getCurrentWindowPtr().usePostFX()) {
+        if (getCurrentWindow().usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); //only used if multisampled FBOs
 
@@ -2124,34 +2105,34 @@ void Engine::render2D() {
     if (!(mShowGraph || mShowInfo || mDraw2DFnPtr)) {
         return;
     }
-    size_t numberOfIterations = getCurrentWindowPtr().getNumberOfViewports();
-    for (size_t i = 0; i < numberOfIterations; i++) {
-        getCurrentWindowPtr().setCurrentViewport(i);
+
+    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+        getCurrentWindow().setCurrentViewport(i);
         mCurrentViewportIndex.main = i;
             
-        if (!getCurrentWindowPtr().getCurrentViewport()->isEnabled()) {
+        if (!getCurrentWindow().getCurrentViewport()->isEnabled()) {
             continue;
         }
         enterCurrentViewport();
 
         if (mShowGraph) {
             mStatistics->draw(
-                static_cast<float>(getCurrentWindowPtr().getFramebufferResolution().y)
-                / static_cast<float>(getCurrentWindowPtr().getResolution().y)
+                static_cast<float>(getCurrentWindow().getFramebufferResolution().y)
+                / static_cast<float>(getCurrentWindow().getResolution().y)
             );
         }
         // The text renderer enters automatically the correct viewport
         if (mShowInfo) {
             // choose specified eye from config
-            if (getCurrentWindowPtr().getStereoMode() == SGCTWindow::StereoMode::NoStereo)
+            if (getCurrentWindow().getStereoMode() == SGCTWindow::StereoMode::NoStereo)
             {
-                mCurrentFrustumMode = getCurrentWindowPtr().getCurrentViewport()->getEye();
+                mCurrentFrustumMode = getCurrentWindow().getCurrentViewport()->getEye();
             }
             renderDisplayInfo();
         }
 
         // Check if we should call the use defined draw2D function
-        if (mDraw2DFnPtr && getCurrentWindowPtr().getCallDraw2DFunction()) {
+        if (mDraw2DFnPtr && getCurrentWindow().getCallDraw2DFunction()) {
             mDraw2DFnPtr();
         }
     }
@@ -2160,46 +2141,48 @@ void Engine::render2D() {
 void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    PostFX* lastFx = nullptr;
 
-    size_t numberOfPasses = getCurrentWindowPtr().getNumberOfPostFXs();
+    size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
     for (size_t i = 0; i < numberOfPasses; i++) {
-        PostFX& fx = getCurrentWindowPtr().getPostFX(i);
-        lastFx = &getCurrentWindowPtr().getPostFX(i);
+        PostFX& fx = getCurrentWindow().getPostFX(i);
 
         // set output
-        if (i == (numberOfPasses - 1) && !getCurrentWindowPtr().useFXAA()) {
+        if (i == (numberOfPasses - 1) && !getCurrentWindow().useFXAA()) {
             // if last
             fx.setOutputTexture(
-                getCurrentWindowPtr().getFrameBufferTexture(finalTargetIndex)
+                getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
             );
         }
         else {
             // ping pong between the two FX buffers
             fx.setOutputTexture(
-                getCurrentWindowPtr().getFrameBufferTexture((i % 2 == 0) ? FX1 : FX2)
+                getCurrentWindow().getFrameBufferTexture((i % 2 == 0) ? FX1 : FX2)
             ); 
         }
 
         // set input (dependent on output)
         if (i == 0) {
-            fx.setInputTexture(getCurrentWindowPtr().getFrameBufferTexture(Intermediate));
+            fx.setInputTexture(getCurrentWindow().getFrameBufferTexture(Intermediate));
         }
         else {
-            PostFX& fxPrevious = getCurrentWindowPtr().getPostFX(i - 1);
+            PostFX& fxPrevious = getCurrentWindow().getPostFX(i - 1);
             fx.setInputTexture(fxPrevious.getOutputTexture());
         }
 
         fx.render();
     }
-    if (getCurrentWindowPtr().useFXAA()) {
+
+    if (getCurrentWindow().useFXAA()) {
+        PostFX* lastFx = numberOfPasses > 0 ?
+            &getCurrentWindow().getPostFX(numberOfPasses - 1) :
+            nullptr;
+
         // bind target FBO
-        getCurrentWindowPtr().getFBO()->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(finalTargetIndex)
+        getCurrentWindow().getFBO()->attachColorTexture(
+            getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
         );
 
-        glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
-        // if for some reson the active texture has been reset
+        glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
         glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -2212,7 +2195,7 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
         else {
             glBindTexture(
                 GL_TEXTURE_2D,
-                getCurrentWindowPtr().getFrameBufferTexture(Intermediate)
+                getCurrentWindow().getFrameBufferTexture(Intermediate)
             );
         }
 
@@ -2229,9 +2212,9 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
             SGCTSettings::instance()->getFXAASubPixOffset()
         );
 
-        getCurrentWindowPtr().bindVAO();
+        getCurrentWindow().bindVAO();
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        getCurrentWindowPtr().unbindVAO();
+        getCurrentWindow().unbindVAO();
 
         //unbind FXAA
         ShaderProgram::unbind();
@@ -2241,9 +2224,7 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
 void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    PostFX* lastFx = nullptr;
-
-    size_t numberOfPasses = getCurrentWindowPtr().getNumberOfPostFXs();
+    size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
     if (numberOfPasses > 0) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glEnable(GL_TEXTURE_2D);
@@ -2254,29 +2235,28 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
     }
 
     for (size_t i = 0; i < numberOfPasses; i++) {
-        PostFX& fx = getCurrentWindowPtr().getPostFX(i);
-        lastFx = &getCurrentWindowPtr().getPostFX(i);
+        PostFX& fx = getCurrentWindow().getPostFX(i);
 
         // set output
-        if (i == (numberOfPasses - 1) && !getCurrentWindowPtr().useFXAA()) {
+        if (i == (numberOfPasses - 1) && !getCurrentWindow().useFXAA()) {
             // if last
             fx.setOutputTexture(
-                getCurrentWindowPtr().getFrameBufferTexture(finalTargetIndex)
+                getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
             );
         }
         else {
             // ping pong between the two FX buffers
             fx.setOutputTexture(
-                getCurrentWindowPtr().getFrameBufferTexture((i % 2 == 0) ? FX1 : FX2)
+                getCurrentWindow().getFrameBufferTexture((i % 2 == 0) ? FX1 : FX2)
             );
         }
 
         // set input (dependent on output)
         if (i == 0) {
-            fx.setInputTexture(getCurrentWindowPtr().getFrameBufferTexture(Intermediate));
+            fx.setInputTexture(getCurrentWindow().getFrameBufferTexture(Intermediate));
         }
         else {
-            PostFX& fxPrevious = getCurrentWindowPtr().getPostFX(i - 1);
+            PostFX& fxPrevious = getCurrentWindow().getPostFX(i - 1);
             fx.setInputTexture(fxPrevious.getOutputTexture());
         }
 
@@ -2287,10 +2267,14 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glPopAttrib();
     }
 
-    if (getCurrentWindowPtr().useFXAA()) {
+    if (getCurrentWindow().useFXAA()) {
+        PostFX* lastFx = numberOfPasses > 0 ?
+            &getCurrentWindow().getPostFX(numberOfPasses - 1) :
+            nullptr;
+
         // bind target FBO
-        getCurrentWindowPtr().getFBO()->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(finalTargetIndex)
+        getCurrentWindow().getFBO()->attachColorTexture(
+            getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
         );
 
         // if for some reson the active texture has been reset
@@ -2299,7 +2283,7 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glLoadIdentity();
 
         glMatrixMode(GL_MODELVIEW);
-        glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
+        glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
         glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         
         glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -2314,7 +2298,7 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         else {
             glBindTexture(
                 GL_TEXTURE_2D,
-                getCurrentWindowPtr().getFrameBufferTexture(Intermediate)
+                getCurrentWindow().getFrameBufferTexture(Intermediate)
             );
         }
 
@@ -2337,7 +2321,7 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-        getCurrentWindowPtr().bindVBO();
+        getCurrentWindow().bindVBO();
         glClientActiveTexture(GL_TEXTURE0);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -2347,7 +2331,7 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        getCurrentWindowPtr().unbindVBO();
+        getCurrentWindow().unbindVBO();
 
         ShaderProgram::unbind();
 
@@ -2357,13 +2341,13 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
 }
 
 void Engine::updateRenderingTargets(TextureIndexes ti) {
-    //copy AA-buffer to "regular"/non-AA buffer
-    sgct_core::OffScreenBuffer* fbo = getCurrentWindowPtr().getFBO();
+    // copy AA-buffer to "regular"/non-AA buffer
+    sgct_core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
     if (!fbo->isMultiSampled()) {
         return;
     }
 
-    if (getCurrentWindowPtr().usePostFX()) {
+    if (getCurrentWindow().usePostFX()) {
         ti = Intermediate;
     }
 
@@ -2371,22 +2355,22 @@ void Engine::updateRenderingTargets(TextureIndexes ti) {
     fbo->bindBlit();
 
     // update attachments
-    fbo->attachColorTexture(getCurrentWindowPtr().getFrameBufferTexture(ti));
+    fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
 
     if (SGCTSettings::instance()->useDepthTexture()) {
-        fbo->attachDepthTexture(getCurrentWindowPtr().getFrameBufferTexture(Depth));
+        fbo->attachDepthTexture(getCurrentWindow().getFrameBufferTexture(Depth));
     }
 
     if (SGCTSettings::instance()->useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(Normals),
+            getCurrentWindow().getFrameBufferTexture(Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (SGCTSettings::instance()->usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindowPtr().getFrameBufferTexture(Positions),
+            getCurrentWindow().getFrameBufferTexture(Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -2451,7 +2435,7 @@ void Engine::loadShaders() {
     mShader.fxaa.bind();
 
     mShaderLoc.sizeX = mShader.fxaa.getUniformLocation("rt_w");
-    glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
+    glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
     glUniform1f(mShaderLoc.sizeX, static_cast<float>(framebufferSize.x));
 
     mShaderLoc.sizeY = mShader.fxaa.getUniformLocation("rt_h");
@@ -2508,45 +2492,45 @@ void Engine::loadShaders() {
         }
         mShader.fboQuad.createAndLinkProgram();
         mShader.fboQuad.bind();
-        mShaderLoc.monoTex = mShader.fboQuad.getUniformLocation( "Tex" );
+        mShaderLoc.monoTex = mShader.fboQuad.getUniformLocation("Tex");
         glUniform1i(mShaderLoc.monoTex, 0);
         ShaderProgram::unbind();
         
-        std::string Overlay_vert_shader;
-        std::string Overlay_frag_shader;
-        Overlay_vert_shader = sgct_core::shaders_modern::OverlayVert;
-        Overlay_frag_shader = sgct_core::shaders_modern::OverlayFrag;
+        std::string overlayVertShader;
+        std::string overlayFragShader;
+        overlayVertShader = sgct_core::shaders_modern::OverlayVert;
+        overlayFragShader = sgct_core::shaders_modern::OverlayFrag;
         
         //replace glsl version
         sgct_helpers::findAndReplace(
-            Overlay_vert_shader,
+            overlayVertShader,
             "**glsl_version**",
             getGLSLVersion()
         );
         sgct_helpers::findAndReplace(
-            Overlay_frag_shader,
+            overlayFragShader,
             "**glsl_version**",
             getGLSLVersion()
         );
         
         mShader.overlay.setName("OverlayShader");
-        bool overlayVertShader = mShader.overlay.addShaderSrc(
-            Overlay_vert_shader,
+        bool overlayVertSuccess = mShader.overlay.addShaderSrc(
+            overlayVertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
         );
-        if (!overlayVertShader) {
+        if (!overlayVertSuccess) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "Failed to load overlay vertex shader\n"
             );
         }
-        bool overlayFragShader = mShader.overlay.addShaderSrc(
-            Overlay_frag_shader,
+        bool overlayFragSuccess = mShader.overlay.addShaderSrc(
+            overlayFragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
         );
-        if (!overlayFragShader) {
+        if (!overlayFragSuccess) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "Failed to load overlay fragment shader\n"
@@ -2562,9 +2546,9 @@ void Engine::loadShaders() {
 
 void Engine::setAndClearBuffer(BufferMode mode) {
     if (mode < BufferMode::RenderToTexture) {
-        const bool doubleBuffered = getCurrentWindowPtr().isDoubleBuffered();
+        const bool doubleBuffered = getCurrentWindow().isDoubleBuffered();
         // Set buffer
-        if (getCurrentWindowPtr().getStereoMode() != SGCTWindow::StereoMode::Active) {
+        if (getCurrentWindow().getStereoMode() != SGCTWindow::StereoMode::Active) {
             glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
             glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
         }
@@ -2592,56 +2576,34 @@ void Engine::setAndClearBuffer(BufferMode mode) {
 }
 
 bool Engine::checkForOGLErrors() {
-    GLenum oglError = glGetError();
+    using Level = MessageHandler::Level;
+    MessageHandler& mh = *MessageHandler::instance();
 
+    const GLenum oglError = glGetError();
     switch (oglError) {
         case GL_INVALID_ENUM:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_INVALID_ENUM\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_INVALID_ENUM\n");
             break;
         case GL_INVALID_VALUE:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_INVALID_VALUE\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_INVALID_VALUE\n");
             break;
         case GL_INVALID_OPERATION:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_INVALID_OPERATION\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_INVALID_OPERATION\n");
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n");
             break;
         case GL_STACK_OVERFLOW:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_STACK_OVERFLOW\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_STACK_OVERFLOW\n");
             break;
         case GL_STACK_UNDERFLOW:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_STACK_UNDERFLOW\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_STACK_UNDERFLOW\n");
             break;
         case GL_OUT_OF_MEMORY:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_OUT_OF_MEMORY\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_OUT_OF_MEMORY\n");
             break;
         case GL_TABLE_TOO_LARGE:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "OpenGL error: GL_TABLE_TOO_LARGE\n"
-            );
+            mh.print(Level::Error, "OpenGL error: GL_TABLE_TOO_LARGE\n");
             break;
     }
 
@@ -2665,12 +2627,12 @@ sgct_core::Frustum::FrustumMode Engine::getCurrentFrustumMode() const {
 }
 
 const glm::mat4& Engine::getCurrentProjectionMatrix() const {
-    const sgct_core::BaseViewport& vp = *getCurrentWindowPtr().getCurrentViewport();
+    const sgct_core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(mCurrentFrustumMode).getProjectionMatrix();
 }
 
 const glm::mat4& Engine::getCurrentViewMatrix() const {
-    const sgct_core::BaseViewport& vp = *getCurrentWindowPtr().getCurrentViewport();
+    const sgct_core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(mCurrentFrustumMode).getViewMatrix();
 }
 
@@ -2679,18 +2641,18 @@ const glm::mat4& Engine::getModelMatrix() const {
 }
 
 const glm::mat4& Engine::getCurrentViewProjectionMatrix() const {
-    const sgct_core::BaseViewport& vp = *getCurrentWindowPtr().getCurrentViewport();
+    const sgct_core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(mCurrentFrustumMode).getViewProjectionMatrix();
 }
 
 glm::mat4 Engine::getCurrentModelViewProjectionMatrix() const {
-    const sgct_core::BaseViewport& vp = *getCurrentWindowPtr().getCurrentViewport();
+    const sgct_core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(mCurrentFrustumMode).getViewProjectionMatrix() * 
            sgct_core::ClusterManager::instance()->getSceneTransform();
 }
 
 glm::mat4 Engine::getCurrentModelViewMatrix() const {
-    const sgct_core::BaseViewport& vp = *getCurrentWindowPtr().getCurrentViewport();
+    const sgct_core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(mCurrentFrustumMode).getViewMatrix() *
            sgct_core::ClusterManager::instance()->getSceneTransform();
 }
@@ -2707,20 +2669,20 @@ bool Engine::isOpenGLCompatibilityMode() const {
     return mRunMode <= RunMode::OpenGL_Compatibility_Profile;
 }
 
-std::string Engine::getGLSLVersion() const {
+const std::string& Engine::getGLSLVersion() const {
     return mGLSLVersion;
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
     // clear the buffers initially
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        mThisNode->getWindowPtr(i).makeOpenGLContextCurrent(SGCTWindow::Context::Window);
-        glDrawBuffer(getCurrentWindowPtr().isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        mThisNode->getWindow(i).makeOpenGLContextCurrent(SGCTWindow::Context::Window);
+        glDrawBuffer(getCurrentWindow().isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (mThisNode->getWindowPtr(i).isDoubleBuffered()) {
-            glfwSwapBuffers(mThisNode->getWindowPtr(i).getWindowHandle());
+        if (mThisNode->getWindow(i).isDoubleBuffered()) {
+            glfwSwapBuffers(mThisNode->getWindow(i).getWindowHandle());
         }
         else {
             glFinish();
@@ -2768,15 +2730,15 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         MessageHandler::instance()->setShowTime(false);
         
         while (mNetworkConnections->isRunning() && !mThisNode->getKeyPressed(mExitKey) &&
-            !mThisNode->shouldAllWindowsClose() && !mTerminate)
+               !mThisNode->shouldAllWindowsClose() && !mTerminate)
         {
             MessageHandler::instance()->print(MessageHandler::Level::Info, ".");
 
             // Swap front and back rendering buffers
             for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                if (mThisNode->getWindowPtr(i).isDoubleBuffered()) {
-                    glfwSwapBuffers(mThisNode->getWindowPtr(i).getWindowHandle());
+                if (mThisNode->getWindow(i).isDoubleBuffered()) {
+                    glfwSwapBuffers(mThisNode->getWindow(i).getWindowHandle());
                 }
                 else {
                     glFinish();
@@ -2788,7 +2750,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
                 break;
             }
 
-            sleep(0.1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         MessageHandler::instance()->print(MessageHandler::Level::Info, "\n");
 
@@ -2798,8 +2760,8 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
             // key buffers also swapped
             for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                if (mThisNode->getWindowPtr(i).isDoubleBuffered()) {
-                    glfwSwapBuffers(mThisNode->getWindowPtr(i).getWindowHandle());
+                if (mThisNode->getWindow(i).isDoubleBuffered()) {
+                    glfwSwapBuffers(mThisNode->getWindow(i).getWindowHandle());
                 }
                 else {
                     glFinish();
@@ -2816,22 +2778,20 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
 }
 
-/*!
-    This functions updates the frustum of all viewports on demand. However if the viewport is tracked this is done on the fly.
-*/
 void Engine::updateFrustums() {
     if (mThisNode == nullptr) {
         return;
     }
 
     for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
-        SGCTWindow& win = mThisNode->getWindowPtr(w);
+        SGCTWindow& win = mThisNode->getWindow(w);
         for (unsigned int i = 0; i < win.getNumberOfViewports(); i++) {
             sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
                 continue;
             }
+
             if (vp.hasSubViewports()) {
                 sgct_core::NonLinearProjection& proj = *vp.getNonLinearProjection();
                 proj.updateFrustums(
@@ -2887,7 +2847,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
         return;
     }
 
-    SGCTWindow& previousWindow = getWindowPtr(getCurrentWindowIndex() - 1);
+    SGCTWindow& previousWindow = getWindow(getCurrentWindowIndex() - 1);
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
@@ -2909,11 +2869,11 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(frustumMode));
 
-    getCurrentWindowPtr().bindVAO();
+    getCurrentWindow().bindVAO();
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    getCurrentWindowPtr().unbindVAO();
+    getCurrentWindow().unbindVAO();
     ShaderProgram::unbind();
 }
 
@@ -3160,7 +3120,7 @@ void sgct::Engine::clearBuffer() {
         color.r,
         color.g,
         color.b,
-        instance()->getCurrentWindowPtr().getAlpha() ? 0.f : color.a
+        instance()->getCurrentWindow().getAlpha() ? 0.f : color.a
     );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -3173,15 +3133,15 @@ void Engine::printNodeInfo(unsigned int nodeId) {
 }
 
 void Engine::enterCurrentViewport() {
-    sgct_core::BaseViewport* vp = getCurrentWindowPtr().getCurrentViewport();
+    sgct_core::BaseViewport* vp = getCurrentWindow().getCurrentViewport();
     
-    glm::vec2 res = glm::vec2(getCurrentWindowPtr().getFramebufferResolution());
+    glm::vec2 res = glm::vec2(getCurrentWindow().getFramebufferResolution());
         
     glm::vec2 p = vp->getPosition() * res;
     glm::vec2 s = vp->getSize() * res;
     mCurrentViewportCoords = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
 
-    SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();
+    SGCTWindow::StereoMode sm = getCurrentWindow().getStereoMode();
     if (sm >= SGCTWindow::StereoMode::SideBySide) {
         if (mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye) {
             switch (sm) {
@@ -3268,8 +3228,8 @@ void Engine::calculateFPS(double timestamp) {
         tmpTime = 0.f;
 
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            if (mThisNode->getWindowPtr(i).isVisible()) {
-                updateAAInfo(mThisNode->getWindowPtr(i));
+            if (mThisNode->getWindow(i).isVisible()) {
+                updateAAInfo(mThisNode->getWindow(i));
             }
         }
     }
@@ -3327,7 +3287,7 @@ void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClipp
 
 void Engine::setEyeSeparation(float eyeSeparation) {
     for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
-        SGCTWindow& window = mThisNode->getWindowPtr(w);
+        SGCTWindow& window = mThisNode->getWindow(w);
 
         for (unsigned int i = 0; i < window.getNumberOfViewports(); i++) {
             window.getViewport(i).getUser()->setEyeSeparation(eyeSeparation);
@@ -3346,17 +3306,17 @@ void Engine::setExitKey(int key) {
 
 void Engine::addPostFX(PostFX& fx) {
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        mThisNode->getWindowPtr(i).setUsePostFX(true);
-        mThisNode->getWindowPtr(i).addPostFX(fx);
+        mThisNode->getWindow(i).setUsePostFX(true);
+        mThisNode->getWindow(i).addPostFX(fx);
     }
 }
 
 unsigned int Engine::getCurrentDrawTexture() const {
-    if (getCurrentWindowPtr().usePostFX()) {
-        return getCurrentWindowPtr().getFrameBufferTexture(Intermediate);
+    if (getCurrentWindow().usePostFX()) {
+        return getCurrentWindow().getFrameBufferTexture(Intermediate);
     }
     else {
-        return getCurrentWindowPtr().getFrameBufferTexture(
+        return getCurrentWindow().getFrameBufferTexture(
             mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye ?
                 RightEye :
                 LeftEye
@@ -3365,24 +3325,24 @@ unsigned int Engine::getCurrentDrawTexture() const {
 }
 
 unsigned int Engine::getCurrentDepthTexture() const {
-    return getCurrentWindowPtr().getFrameBufferTexture(Depth);
+    return getCurrentWindow().getFrameBufferTexture(Depth);
 }
 
 unsigned int Engine::getCurrentNormalTexture() const {
-    return getCurrentWindowPtr().getFrameBufferTexture(Normals);
+    return getCurrentWindow().getFrameBufferTexture(Normals);
 }
 
 unsigned int Engine::getCurrentPositionTexture() const {
-    return getCurrentWindowPtr().getFrameBufferTexture(Positions);
+    return getCurrentWindow().getFrameBufferTexture(Positions);
 }
 
 glm::ivec2 Engine::getCurrentResolution() const {
-    return getCurrentWindowPtr().getFramebufferResolution();
+    return getCurrentWindow().getFramebufferResolution();
 }
 
 size_t Engine::getFocusedWindowIndex() const {
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        if (mThisNode->getWindowPtr(i).isFocused()) {
+        if (mThisNode->getWindow(i).isFocused()) {
             return i;
         }
     }
@@ -3510,7 +3470,7 @@ void Engine::updateDrawBufferResolutions() {
     mDrawBufferResolutions.clear();
 
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        SGCTWindow& win = getWindowPtr(i);
+        SGCTWindow& win = getWindow(i);
         
         // first add cubemap resolutions if any
         for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
@@ -3528,26 +3488,26 @@ void Engine::updateDrawBufferResolutions() {
 }
 
 int Engine::getKey(size_t winIndex, int key) {
-    return glfwGetKey(mInstance->getWindowPtr(winIndex).getWindowHandle(), key);
+    return glfwGetKey(mInstance->getWindow(winIndex).getWindowHandle(), key);
 }
 
 int Engine::getMouseButton(size_t winIndex, int button) {
     return glfwGetMouseButton(
-        mInstance->getWindowPtr(winIndex).getWindowHandle(),
+        mInstance->getWindow(winIndex).getWindowHandle(),
         button
     );
 }
 
 void Engine::getMousePos(size_t winIndex, double* xPos, double* yPos) {
-    glfwGetCursorPos(mInstance->getWindowPtr(winIndex).getWindowHandle(), xPos, yPos);
+    glfwGetCursorPos(mInstance->getWindow(winIndex).getWindowHandle(), xPos, yPos);
 }
 
 void Engine::setMousePos(size_t winIndex, double xPos, double yPos) {
-    glfwSetCursorPos(mInstance->getWindowPtr(winIndex).getWindowHandle(), xPos, yPos);
+    glfwSetCursorPos(mInstance->getWindow(winIndex).getWindowHandle(), xPos, yPos);
 }
 
 void Engine::setMouseCursorVisibility(size_t winIndex, bool state) {
-    GLFWwindow* win = mInstance->getWindowPtr(winIndex).getWindowHandle();
+    GLFWwindow* win = mInstance->getWindow(winIndex).getWindowHandle();
     glfwSetInputMode(win, GLFW_CURSOR, state ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
 }
 
@@ -3563,36 +3523,32 @@ const unsigned char* Engine::getJoystickButtons(int joystick, int* numOfValues) 
     return glfwGetJoystickButtons(joystick, numOfValues);
 }
 
-void Engine::sleep(double secs) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(secs * 1000)));
-}
-
-const sgct_core::SGCTNode* Engine::getThisNodePtr(size_t index) const {
+const sgct_core::SGCTNode* Engine::getThisNode(size_t index) const {
     return mThisNode;
 }
 
-SGCTWindow& Engine::getWindowPtr(size_t index) const {
-    return mThisNode->getWindowPtr(index);
+SGCTWindow& Engine::getWindow(size_t index) const {
+    return mThisNode->getWindow(index);
 }
 
 size_t Engine::getNumberOfWindows() const {
     return mThisNode->getNumberOfWindows();
 }
 
-SGCTWindow& Engine::getCurrentWindowPtr() const {
-    return mThisNode->getCurrentWindowPtr();
+SGCTWindow& Engine::getCurrentWindow() const {
+    return mThisNode->getCurrentWindow();
 }
 
 size_t Engine::getCurrentWindowIndex() const {
     return mThisNode->getCurrentWindowIndex();
 }
 
-sgct_core::SGCTUser* Engine::getDefaultUserPtr() {
-    return sgct_core::ClusterManager::instance()->getDefaultUserPtr();
+sgct_core::SGCTUser* Engine::getDefaultUser() {
+    return sgct_core::ClusterManager::instance()->getDefaultUser();
 }
 
 SGCTTrackingManager& Engine::getTrackingManager() {
-    return sgct_core::ClusterManager::instance()->getTrackingManagerPtr();
+    return sgct_core::ClusterManager::instance()->getTrackingManager();
 }
 
 size_t Engine::createTimer(double millisec, void(*fnPtr)(size_t)) {
@@ -3672,7 +3628,7 @@ sgct_core::OffScreenBuffer* Engine::getCurrentFBO() const {
 }
 
 glm::ivec4 Engine::getCurrentViewportPixelCoords() const {
-    const sgct_core::Viewport& vp = getCurrentWindowPtr().getViewport(
+    const sgct_core::Viewport& vp = getCurrentWindow().getViewport(
         mCurrentViewportIndex.main
     );
     if (vp.hasSubViewports()) {

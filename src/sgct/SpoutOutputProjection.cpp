@@ -865,7 +865,7 @@ void SpoutOutputProjection::renderInternal() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+        bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -972,7 +972,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+        bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1057,7 +1057,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             attachTextures(idx);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         //blit MSAA fbo to texture
@@ -1080,7 +1080,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             sgct::Engine::mInstance->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1107,9 +1107,9 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glUniform1f(mSwapNearLoc, engine->mNearClippingPlaneDist);
             glUniform1f(mSwapFarLoc, engine->mFarClippingPlaneDist);
 
-            engine->getCurrentWindowPtr().bindVAO();
+            engine->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            engine->getCurrentWindowPtr().unbindVAO();
+            engine->getCurrentWindow().unbindVAO();
 
             // unbind shader
             sgct::ShaderProgram::unbind();
@@ -1168,7 +1168,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             attachTextures(idx);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         //blit MSAA fbo to texture
@@ -1206,7 +1206,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glUniform1f(mSwapFarLoc, sgct::Engine::mInstance->mFarClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
+            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1226,7 +1226,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            sgct::Engine::mInstance->getCurrentWindowPtr().bindVBO();
+            sgct::Engine::mInstance->getCurrentWindow().bindVBO();
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1235,7 +1235,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
+            sgct::Engine::mInstance->getCurrentWindow().unbindVBO();
             glPopClientAttrib();
 
             // unbind shader

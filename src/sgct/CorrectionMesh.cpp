@@ -11,8 +11,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTSettings.h>
-#include <sgct/Viewport.h>
 #include <sgct/SGCTUser.h>
+#include <sgct/Viewport.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <algorithm>
 #include <fstream>
@@ -48,41 +48,41 @@ namespace {
         return true;
     }
 
+    struct SCISSTexturedVertex {
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;
+        float tx = 0.f;
+        float ty = 0.f;
+        float tz = 0.f;
+    };
+
+    struct SCISSViewData {
+        // Rotation quaternion
+        float qx = 0.f;
+        float qy = 0.f;
+        float qz = 0.f;
+        float qw = 1.f;
+
+        // Position of view (currently unused in Uniview)
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;
+
+        float fovUp = 20.f;
+        float fovDown = 20.f;
+        float fovLeft = 20.f;
+        float fovRight = 20.f;
+    };
+
+    enum SCISSDistortionType {
+        MESHTYPE_PLANAR,
+        MESHTYPE_CUBE
+    };
+
 } // namespace
 
 namespace sgct_core {
-
-struct SCISSTexturedVertex {
-    float x = 0.f;
-    float y = 0.f;
-    float z = 0.f;
-    float tx = 0.f;
-    float ty = 0.f;
-    float tz = 0.f;
-};
-
-struct SCISSViewData {
-    // Rotation quaternion
-    float qx = 0.f;
-    float qy = 0.f;
-    float qz = 0.f;
-    float qw = 1.f;
-
-    // Position of view (currently unused in Uniview)
-    float x = 0.f;
-    float y = 0.f;
-    float z = 0.f;
-
-    float fovUp = 20.f;
-    float fovDown = 20.f;
-    float fovLeft = 20.f;
-    float fovRight = 20.f;
-};
-
-enum SCISSDistortionType {
-    MESHTYPE_PLANAR,
-    MESHTYPE_CUBE
-};
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     sgct::MessageHandler::instance()->print(
@@ -232,15 +232,14 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
     unsigned int numberOfRows = 0;
     while (!feof(meshFile)) {
         char lineBuffer[MaxLineLength];
-        
-        float x;
-        float y;
-        float u;
-        float v;
-        unsigned int col;
-        unsigned int row;
-
         if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
+            float x;
+            float y;
+            float u;
+            float v;
+            unsigned int col;
+            unsigned int row;
+
             if (_sscanf(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
             {
                 // init to max intensity (opaque white)
@@ -368,12 +367,10 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
     unsigned int numberOfVertices = 0;
     unsigned int numberOfIndices = 0;
 
-    struct {
-        double left;
-        double right;
-        double bottom;
-        double top;
-    } orthoCoords;
+    double leftOrtho;
+    double rightOrtho;
+    double bottomOrtho;
+    double topOrtho;
     glm::ivec2 resolution;
 
     unsigned int a, b, c;
@@ -418,11 +415,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
 
                 if (_sscanf(lineBuffer, "VERTICES %u", &numberOfVertices) == 1) {
                     buf.vertices.resize(numberOfVertices);
-                    memset(
-                        buf.vertices.data(),
-                        0,
-                        numberOfVertices * sizeof(CorrectionMeshVertex)
-                    );
+                    std::fill(buf.vertices.begin(), buf.vertices.end(), 0);
                 }
 
                 else if (_sscanf(lineBuffer, "FACES %u", &numberOfFaces) == 1) {
@@ -432,16 +425,16 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
                 }
                 else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, 16, &tmpD) == 2) {
                     if (strcmp(tmpBuf, "LEFT") == 0) {
-                        orthoCoords.left = tmpD;
+                        leftOrtho = tmpD;
                     }
                     else if (strcmp(tmpBuf, "RIGHT") == 0) {
-                        orthoCoords.right = tmpD;
+                        rightOrtho = tmpD;
                     }
                     else if (strcmp(tmpBuf, "BOTTOM") == 0) {
-                        orthoCoords.bottom = tmpD;
+                        bottomOrtho = tmpD;
                     }
                     else if (strcmp(tmpBuf, "TOP") == 0) {
-                        orthoCoords.top = tmpD;
+                        topOrtho = tmpD;
                     }
                 }
                 else if (_sscanf(lineBuffer, "NATIVEXRES %u", &tmpUI) == 1) {
@@ -464,10 +457,10 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
 
     // normalize
     for (unsigned int i = 0; i < numberOfVertices; i++) {
-        const float xMin = static_cast<float>(orthoCoords.left);
-        const float xMax = static_cast<float>(orthoCoords.right);
-        const float yMin = static_cast<float>(orthoCoords.bottom);
-        const float yMax = static_cast<float>(orthoCoords.top);
+        const float xMin = static_cast<float>(leftOrtho);
+        const float xMax = static_cast<float>(rightOrtho);
+        const float yMin = static_cast<float>(bottomOrtho);
+        const float yMax = static_cast<float>(topOrtho);
 
         // normalize between 0.0 and 1.0
         const float xVal = (buf.vertices[i].x - xMin) / (xMax - xMin);
@@ -576,11 +569,11 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
     }
 
     // read mapping type
-    unsigned int mappingType;
+    unsigned int type;
 #if (_MSC_VER >= 1400)
-    retval = fread_s(&mappingType, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
+    retval = fread_s(&type, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
 #else
-    retval = fread(&mappingType, sizeof(unsigned int), 1, meshFile);
+    retval = fread(&type, sizeof(unsigned int), 1, meshFile);
 #endif
     if (retval != 1) {
         sgct::MessageHandler::instance()->print(
@@ -594,18 +587,24 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "CorrectionMesh: Mapping type = %s (%u)\n",
-            mappingType == 0 ? "planar" : "cube", mappingType
+            type == 0 ? "planar" : "cube", type
         );
     }
 
     // read viewdata
     SCISSViewData viewData;
-    double yaw, pitch, roll;
 #if (_MSC_VER >= 1400)
-    retval = fread_s(&viewData, sizeof(SCISSViewData), sizeof(SCISSViewData), 1, meshFile);
+    retval = fread_s(
+        &viewData,
+        sizeof(SCISSViewData),
+        sizeof(SCISSViewData),
+        1,
+        meshFile
+    );
 #else
     retval = fread(&viewData, sizeof(SCISSViewData), 1, meshFile);
 #endif
+    double yaw, pitch, roll;
     if (retval != 1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -663,7 +662,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
     // read number of vertices
     unsigned int size[2];
 #if (_MSC_VER >= 1400)
-    retval = fread_s(size, sizeof(unsigned int)*2, sizeof(unsigned int), 2, meshFile);
+    retval = fread_s(size, sizeof(unsigned int) * 2, sizeof(unsigned int), 2, meshFile);
 #else
     retval = fread(size, sizeof(unsigned int), 2, meshFile);
 #endif
@@ -923,10 +922,6 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
         meshPath.c_str()
     );
 
-    float xrange = 1.f;
-    float yrange = 1.f;
-    std::vector<float> xcorrections, ycorrections;
-
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(meshPath.c_str()) != tinyxml2::XML_NO_ERROR) {
         std::string str = "Parsing failed after: ";
@@ -984,6 +979,11 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
         return false;
     }
 
+    float xrange = 1.f;
+    float yrange = 1.f;
+    std::vector<float> xcorrections, ycorrections;
+
+
     XMLElement* child = element->FirstChildElement();
     while (child) {
         std::string_view childVal = child->Value();
@@ -1018,8 +1018,8 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
         return false;
     }
 
-    float numberOfColsf = sqrtf(static_cast<float>(xcorrections.size()));
-    float numberOfRowsf = sqrtf(static_cast<float>(ycorrections.size()));
+    float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
+    float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceilf(numberOfColsf) != numberOfColsf || ceilf(numberOfRowsf) != numberOfRowsf) {
         sgct::MessageHandler::instance()->print(
@@ -1196,8 +1196,15 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
     for (unsigned int r = 0; r < numberOfRows; r++) {
         for (unsigned int c = 0; c < numberOfCols; c++) {
             // vertex-mapping
-            const float u = (static_cast<float>(c) / (static_cast<float>(numberOfCols) - 1.f));
-            const float v = 1.f - (static_cast<float>(r) / (static_cast<float>(numberOfRows) - 1.f));
+            const float u = (static_cast<float>(c) /
+                            (static_cast<float>(numberOfCols) - 1.f));
+
+            // @TODO (abock, 2019-09-01);  Not sure why we are inverting the y coordinate
+            // for this, but we do it multiple times in this file and I'm starting to get
+            // the impression that there might be a flipping issue going on somewhere
+            // deeper
+            const float v = 1.f - (static_cast<float>(r) /
+                                  (static_cast<float>(numberOfRows) - 1.f));
 
             const float x = u + xcorrections[i];
             const float y = v - ycorrections[i];
@@ -1430,7 +1437,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
         // half height
         const float hh = (1200.f / 2048.f) * hw;
         
-        verticalFov = 2.f * glm::degrees<float>(atanf(hh));
+        verticalFov = 2.f * glm::degrees<float>(atan(hh));
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
@@ -1534,7 +1541,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
 }
 
 bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
-                                                   const Viewport& parent)
+                                            const Viewport& parent)
 {
     Buffer buf;
 
@@ -1564,28 +1571,26 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     }
 #endif
 
-    int mappingType = -1;
-    int size[2] = { -1, -1 };
-    unsigned int counter = 0;
-    float x, y, s, t, intensity;
     char lineBuffer[MaxLineLength];
 
     // get the fist line containing the mapping type id
+    int mappingType = -1;
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         _sscanf(lineBuffer, "%d", &mappingType);
     }
 
     // get the mesh dimensions
+    glm::ivec2 meshSize = glm::ivec2(-1, -1);
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
-        if (_sscanf(lineBuffer, "%d %d", &size[0], &size[1]) == 2) {
-            buf.vertices.resize(size[0] * size[1]);
+        if (_sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
+            buf.vertices.reserve(meshSize.x * meshSize.y);
             mWarpGeometry.mNumberOfVertices =
-                static_cast<unsigned int>(size[0] * size[1]);
+                static_cast<unsigned int>(meshSize.x * meshSize.y);
         }
     }
 
     // check if everyting useful is set
-    if (mappingType == -1 || size[0] == -1 || size[1] == -1) {
+    if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "CorrectionMesh: Invalid data"
@@ -1594,31 +1599,33 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     }
 
     // get all data
+    float x, y, s, t, intensity;
     while (!feof(meshFile)) {
         if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
             if (_sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5) {
-                buf.vertices[counter].x = x;
-                buf.vertices[counter].y = y;
-                buf.vertices[counter].s = s;
-                buf.vertices[counter].t = t;
+                CorrectionMeshVertex vertex;
+                vertex.x = x;
+                vertex.y = y;
+                vertex.s = s;
+                vertex.t = t;
 
-                buf.vertices[counter].r = intensity;
-                buf.vertices[counter].g = intensity;
-                buf.vertices[counter].b = intensity;
-                buf.vertices[counter].a = 1.f;
+                vertex.r = intensity;
+                vertex.g = intensity;
+                vertex.b = intensity;
+                vertex.a = 1.f;
 
-                counter++;
+                buf.vertices.push_back(vertex);
             }
         }
     }
 
     // generate indices
-    for (int c = 0; c < (size[0] - 1); c++) {
-        for (int r = 0; r < (size[1] - 1); r++) {
-            const int i0 = r * size[0] + c;
-            const int i1 = r * size[0] + (c + 1);
-            const int i2 = (r + 1) * size[0] + (c + 1);
-            const int i3 = (r + 1) * size[0] + c;
+    for (int c = 0; c < (meshSize.x - 1); c++) {
+        for (int r = 0; r < (meshSize.y - 1); r++) {
+            const int i0 = r * meshSize.x + c;
+            const int i1 = r * meshSize.x + (c + 1);
+            const int i2 = (r + 1) * meshSize.x + (c + 1);
+            const int i3 = (r + 1) * meshSize.x + c;
 
             // 3      2
             //  x____x
@@ -1922,8 +1929,8 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         );
     }
     const int numCorrectionValues = numberOfCols * numberOfRows;
-    float* corrGridX = new float[numCorrectionValues];
-    float* corrGridY = new float[numCorrectionValues];
+    std::vector<float> corrGridX(numCorrectionValues);
+    std::vector<float> corrGridY(numCorrectionValues);
     float errorPos;
     const int value32bit = 4;
 
@@ -1931,15 +1938,15 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         size_t ret;
         for (int i = 0; i < numCorrectionValues; ++i) {
 #ifdef __WIN32__
-            ret = fread_s(corrGridX + i, numCorrectionValues, sizeof(int), 1, meshFile);
-            ret = fread_s(corrGridY + i, numCorrectionValues, sizeof(int), 1, meshFile);
+            ret = fread_s(&corrGridX[i], numCorrectionValues, sizeof(int), 1, meshFile);
+            ret = fread_s(&corrGridY[i], numCorrectionValues, sizeof(int), 1, meshFile);
             // MPCDI uses the PFM format for correction grid. PFM format is designed for
             // 3 RGB values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for error value
             ret = fread_s(&errorPos, numCorrectionValues, sizeof(int), 1, meshFile);
 #else
-            ret = fread(corrGridX + i, sizeof(float), 1, meshFile);
-            ret = fread(corrGridY + i, sizeof(float), 1, meshFile);
+            ret = fread(&corrGridX[i], sizeof(float), 1, meshFile);
+            ret = fread(&corrGridY[i], sizeof(float), 1, meshFile);
             ret = fread(&errorPos, sizeof(float), 1, meshFile);
 #endif
         }
@@ -1986,6 +1993,9 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         warpedPos[i].x = smoothPos[i].x + corrGridX[i];
         warpedPos[i].y = smoothPos[i].y + corrGridY[i];
     }
+
+    corrGridX.clear();
+    corrGridY.clear();
 
 #ifdef NORMALIZE_CORRECTION_MESH
     glm::vec2 max = *std::max_element(warpedPos, warpedPos + numCorrectionValues);
@@ -2192,8 +2202,8 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr,
             );
         }
 
-        glGenBuffers(1, &(geomPtr.mVertexMeshData));
-        glGenBuffers(1, &(geomPtr.mIndexMeshData));
+        glGenBuffers(1, &geomPtr.mVertexMeshData);
+        glGenBuffers(1, &geomPtr.mIndexMeshData);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "CorrectionMesh: Generating VBOs: %d %d\n",
@@ -2290,82 +2300,81 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "CorrectionMesh error: Failed to export '%s'. "
-            "Geometry type is not supported!\n",
-            exportMeshPath.c_str()
+            "Geometry type is not supported!\n", exportMeshPath.c_str()
         );
         return;
     }
     
     std::ofstream file(exportMeshPath, std::ios::out);
-    if (file.is_open()) {
-        file << std::fixed;
-        file << std::setprecision(6);
-        
-        file << "# SGCT warping mesh\n";
-        file << "# Number of vertices: " << mWarpGeometry.mNumberOfVertices << "\n";
-        
-        // export vertices
-        for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-            file << "v " << vertices[i].x << " " << vertices[i].y << " 0\n";
-        }
-
-        // export texture coords
-        for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-            file << "vt " << vertices[i].s << " " << vertices[i].t << " 0\n";
-        }
-
-        // export generated normals
-        for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-            file << "vn 0 0 1\n";
-        }
-
-        file << "# Number of faces: " << mWarpGeometry.mNumberOfIndices / 3 << "\n";
-
-        // export face indices
-        if (mWarpGeometry.mGeometryType == GL_TRIANGLES) {
-            for (unsigned int i = 0; i < mWarpGeometry.mNumberOfIndices; i += 3) {
-                file << "f " << indices[i] + 1 << '/' << indices[i] + 1 <<
-                        '/' << indices[i] + 1 << ' ';
-                file << indices[i + 1] + 1 << '/' << indices[i + 1] + 1 <<
-                        '/' << indices[i + 1] + 1 << " ";
-                file << indices[i + 2] + 1 << '/' << indices[i + 2] + 1 <<
-                        '/' << indices[i + 2] + 1 << '\n';
-            }
-        }
-        else {
-            // triangle strip
-
-            // first base triangle
-            file << "f " << indices[0] + 1 << '/' << indices[0] + 1 <<
-                    '/' << indices[0] + 1 << ' ';
-            file << indices[1] + 1 << '/' << indices[1] + 1 <<
-                    '/' << indices[1] + 1 << " ";
-            file << indices[2] + 1 << '/' << indices[2] + 1 <<
-                    '/' << indices[2] + 1 << '\n';
-
-            for (unsigned int i = 2; i < mWarpGeometry.mNumberOfIndices; i++) {
-                file << "f " << indices[i] + 1 << '/' << indices[i] + 1 <<
-                        '/' << indices[i] + 1 << ' ';
-                file << indices[i - 1] + 1 << '/' << indices[i - 1] + 1 <<
-                        '/' << indices[i - 1] + 1 << ' ';
-                file << indices[i - 2] + 1 << '/' << indices[i - 2] + 1 <<
-                        '/' << indices[i - 2] + 1 << '\n';
-            }
-        }
-
-        file.close();
-
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
-            "CorrectionMesh: Mesh '%s' exported successfully\n", exportMeshPath.c_str()
-        );
-    }
-    else {
+    if (!file.is_open()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "CorrectionMesh error: Failed to export '%s'\n", exportMeshPath.c_str()
         );
+        return;
     }
+
+    file << std::fixed;
+    file << std::setprecision(6);
+        
+    file << "# SGCT warping mesh\n";
+    file << "# Number of vertices: " << mWarpGeometry.mNumberOfVertices << "\n";
+        
+    // export vertices
+    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+        file << "v " << vertices[i].x << " " << vertices[i].y << " 0\n";
+    }
+
+    // export texture coords
+    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+        file << "vt " << vertices[i].s << " " << vertices[i].t << " 0\n";
+    }
+
+    // export generated normals
+    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+        file << "vn 0 0 1\n";
+    }
+
+    file << "# Number of faces: " << mWarpGeometry.mNumberOfIndices / 3 << "\n";
+
+    // export face indices
+    if (mWarpGeometry.mGeometryType == GL_TRIANGLES) {
+        for (unsigned int i = 0; i < mWarpGeometry.mNumberOfIndices; i += 3) {
+            file << "f " << indices[i] + 1 << '/' << indices[i] + 1 << '/'
+                 << indices[i] + 1 << ' ';
+            file << indices[i + 1] + 1 << '/' << indices[i + 1] + 1 << '/'
+                 << indices[i + 1] + 1 << " ";
+            file << indices[i + 2] + 1 << '/' << indices[i + 2] + 1 << '/'
+                 << indices[i + 2] + 1 << '\n';
+        }
+    }
+    else {
+        // triangle strip
+
+        // first base triangle
+        file << "f " << indices[0] + 1 << '/' << indices[0] + 1 << '/'
+             << indices[0] + 1 << ' ';
+        file << indices[1] + 1 << '/' << indices[1] + 1 << '/'
+             << indices[1] + 1 << " ";
+        file << indices[2] + 1 << '/' << indices[2] + 1 << '/'
+             << indices[2] + 1 << '\n';
+
+        for (unsigned int i = 2; i < mWarpGeometry.mNumberOfIndices; i++) {
+            file << "f " << indices[i] + 1 << '/' << indices[i] + 1 << '/'
+                 << indices[i] + 1 << ' ';
+            file << indices[i - 1] + 1 << '/' << indices[i - 1] + 1 << '/'
+                 << indices[i - 1] + 1 << ' ';
+            file << indices[i - 2] + 1 << '/' << indices[i - 2] + 1 << '/'
+                 << indices[i - 2] + 1 << '\n';
+        }
+    }
+
+    file.close();
+
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::Level::Info,
+        "CorrectionMesh: Mesh '%s' exported successfully\n", exportMeshPath.c_str()
+    );
 }
 
 void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {

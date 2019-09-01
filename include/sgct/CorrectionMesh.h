@@ -106,7 +106,6 @@ private:
 
     bool generatePaulBourkeMesh(const std::string& meshPath, const Viewport& parent);
 
-
     void createMesh(CorrectionMeshGeometry& geomPtr,
         const std::vector<CorrectionMeshVertex>& vertices,
         const std::vector<unsigned int>& indices);

@@ -10,6 +10,7 @@
 
 #include <sgct/ogl_headers.h>
 #include <string>
+#include <vector>
 
 namespace sgct_core {
     
@@ -82,41 +83,43 @@ private:
         unsigned int mArrayMeshData = 0;
     };
 
-    /**
-     * Parse data from domeprojection's camera based calibration system.
-     * Domeprojection.com
-     */
-    bool readAndGenerateDomeProjectionMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateScalableMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateScissMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateSimCADMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateSkySkanMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGeneratePaulBourkeMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateOBJMesh(const std::string& meshPath, Viewport& parent);
-    bool readAndGenerateMpcdiMesh(const std::string& meshPath, Viewport& parent);
-    void setupSimpleMesh(CorrectionMeshGeometry& geomPtr, Viewport& parent);
-    void setupMaskMesh(Viewport& parent, bool flipX, bool flipY);
-
     struct CorrectionMeshVertex {
         float x, y;
         float s, t;
         float r, g, b, a;
     };
-    void createMesh(CorrectionMeshGeometry& geomPtr, CorrectionMeshVertex* vertices,
-        unsigned int* indices);
-    void exportMesh(const std::string& exportMeshPath);
-    void cleanUp();
-        
+
+    struct Buffer {
+        std::vector<CorrectionMeshVertex> vertices;
+        std::vector<unsigned int> indices;
+    };
+
+    Buffer setupSimpleMesh(CorrectionMeshGeometry& geomPtr, const Viewport& parent);
+    Buffer setupMaskMesh(const Viewport& parent, bool flipX, bool flipY);
+    bool generateDomeProjectionMesh(const std::string& meshPath, const Viewport& parent);
+    bool generateScalableMesh(const std::string& meshPath, const Viewport& parent);
+    bool generateScissMesh(const std::string& meshPath, Viewport& parent);
+    bool generateSimCADMesh(const std::string& meshPath, const Viewport& parent);
+    bool generateSkySkanMesh(const std::string& meshPath, Viewport& parent);
+    bool generateOBJMesh(const std::string& meshPath, const Viewport& parent);
+    bool generateMpcdiMesh(const std::string& meshPath, const Viewport& parent);
+
+    bool generatePaulBourkeMesh(const std::string& meshPath, const Viewport& parent);
+
+
+    void createMesh(CorrectionMeshGeometry& geomPtr,
+        const std::vector<CorrectionMeshVertex>& vertices,
+        const std::vector<unsigned int>& indices);
+
+    void exportMesh(const std::string& exportMeshPath,
+        const std::vector<CorrectionMeshVertex>& vertices,
+        const std::vector<unsigned int>& indices);
+
     void render(const CorrectionMeshGeometry& mt) const;
 
-    CorrectionMeshVertex* mTempVertices = nullptr;
-    unsigned int* mTempIndices = nullptr;
-       
-    struct {
-        CorrectionMeshGeometry quad;
-        CorrectionMeshGeometry warp;
-        CorrectionMeshGeometry mask;
-    } mGeometries;
+    CorrectionMeshGeometry mQuadGeometry;
+    CorrectionMeshGeometry mWarpGeometry;
+    CorrectionMeshGeometry mMaskGeometry;
 };
     
 } // namespace sgct_core

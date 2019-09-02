@@ -19,14 +19,15 @@ namespace sgct_core {
 
 class SGCTUser;
 
-/*!
-    This class holds and manages viewportdata and calculates frustums
-*/
+/**
+ * This class holds and manages viewportdata and calculates frustums
+ */
 class BaseViewport {
 public:
     BaseViewport();
     virtual ~BaseViewport() = default;
 
+    /// Name this viewport
     void setName(std::string name);
     void setPos(float x, float y);
     void setSize(float x, float y);
@@ -55,6 +56,8 @@ public:
 
     void calculateFrustum(const Frustum::FrustumMode& frustumMode,
         float nearClippingPlane, float farClippingPlane);
+
+    /// Make projection symmetric relative to user
     void calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
         float nearClippingPlane, float farClippingPlane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,

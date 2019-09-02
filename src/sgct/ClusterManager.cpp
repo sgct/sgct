@@ -32,29 +32,29 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager() {
-    mUsers.push_back(SGCTUser("default"));
+    mUsers.push_back(std::make_unique<SGCTUser>("default"));
 }
 
-void ClusterManager::addNode(SGCTNode node) {
+void ClusterManager::addNode(std::unique_ptr<SGCTNode> node) {
     nodes.push_back(std::move(node));
 }
 
-void ClusterManager::addUser(SGCTUser userPtr) {
+void ClusterManager::addUser(std::unique_ptr<SGCTUser> userPtr) {
     mUsers.push_back(std::move(userPtr));
 }
 
 SGCTNode* ClusterManager::getNode(size_t index) {
-    return (index < nodes.size()) ? &nodes[index] : nullptr;
+    return (index < nodes.size()) ? nodes[index].get() : nullptr;
 }
 
 SGCTNode* ClusterManager::getNode(const std::string& name) {
     auto it = std::find_if(
         nodes.begin(),
         nodes.end(),
-        [&name](const SGCTNode& n) { return n.getName() == name; }
+        [&name](const std::unique_ptr<SGCTNode>& n) { return n->getName() == name; }
     );
     if (it != nodes.end()) {
-        return &(*it);
+        return it->get();
     }
     else {
         return nullptr;
@@ -62,21 +62,21 @@ SGCTNode* ClusterManager::getNode(const std::string& name) {
 }
 
 SGCTNode* ClusterManager::getThisNode() {
-    return mThisNodeId < 0 ? nullptr : &nodes[mThisNodeId];
+    return mThisNodeId < 0 ? nullptr : nodes[mThisNodeId].get();
 }
 
 SGCTUser* ClusterManager::getDefaultUser() {
-    return &mUsers[0];
+    return mUsers[0].get();
 }
 
 SGCTUser* ClusterManager::getUser(const std::string& name) {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [&name](const SGCTUser& user) { return user.getName() == name; }
+        [&name](const std::unique_ptr<SGCTUser>& user) { return user->getName() == name; }
     );
     if (it != mUsers.end()) {
-        return &*it;
+        return it->get();
     }
     else {
         return nullptr;
@@ -87,10 +87,10 @@ SGCTUser* ClusterManager::getTrackedUser() {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [](const SGCTUser& u) { return u.isTracked(); }
+        [](const std::unique_ptr<SGCTUser>& u) { return u->isTracked(); }
     );
     if (it != mUsers.end()) {
-        return &*it;
+        return it->get();
     }
     else {
         return nullptr;

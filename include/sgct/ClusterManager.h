@@ -43,10 +43,10 @@ public:
     };
 
     /// Add a cluster node to the manager's vector.
-    void addNode(SGCTNode node);
+    void addNode(std::unique_ptr<SGCTNode> node);
 
     /// Add a user ptr.
-    void addUser(SGCTUser userPtr);
+    void addUser(std::unique_ptr<SGCTUser> userPtr);
 
     /**
      * Get a pointer to a specific node.
@@ -102,7 +102,7 @@ public:
     int getThisNodeId() const;
 
     /**
-     * \returns the dns, name or IP of the master in the cluster (depends on what's been
+     * \return the dns, name or IP of the master in the cluster (depends on what's been
      * set in the XML config)
      */
     const std::string& getMasterAddress() const;
@@ -178,7 +178,6 @@ public:
 
 private:
     ClusterManager();
-    ~ClusterManager() = default;
 
     /**
      * Updates the scene transform. Calculates the transform matrix using:
@@ -188,7 +187,11 @@ private:
 
     static ClusterManager* mInstance;
 
-    std::vector<SGCTNode> nodes;
+    // @TODO (abock 2019-09-02): I tried changing this to a std::vector<SGCTNode>, but
+    // this class is handing out pointers to external classes left and right, so we can't
+    // have a datastructure that will willynilly move its contents around in memory.
+    // #sadface
+    std::vector<std::unique_ptr<SGCTNode>> nodes;
 
     int masterIndex = -1;
     int mThisNodeId = -1;
@@ -199,7 +202,8 @@ private:
     std::string mExternalControlPort;
     bool mUseASCIIForExternalControl = true;
 
-    std::vector<SGCTUser> mUsers;
+    // @TODO (abock, 2019-09-02): See nodes
+    std::vector<std::unique_ptr<SGCTUser>> mUsers;
     sgct::SGCTTrackingManager mTrackingManager;
 
     glm::mat4 mSceneTransform = glm::mat4(1.f);

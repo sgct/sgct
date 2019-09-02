@@ -152,7 +152,7 @@ void SGCTTrackingManager::startSampling() {
         return;
     }
     // find user with headtracking
-    mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUserPtr();
+    mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUser();
 
     // if tracked user not found
     if (mHeadUser == nullptr) {

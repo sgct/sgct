@@ -14,9 +14,6 @@ namespace sgct_core {
 
 BaseViewport::BaseViewport() : mUser(ClusterManager::instance()->getDefaultUser()) {}
 
-/*!
-Name this viewport
-*/
 void BaseViewport::setName(std::string name) {
     mName = std::move(name);
 }
@@ -133,9 +130,6 @@ void BaseViewport::calculateFrustum(const Frustum::FrustumMode& frustumMode,
     );
 }
 
-/*!
-   Make projection symmetric relative to user
-*/
 void BaseViewport::calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
                                              float nearClippingPlane,
                                              float farClippingPlane)

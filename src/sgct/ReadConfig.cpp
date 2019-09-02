@@ -508,37 +508,37 @@ namespace {
         using namespace sgct_core;
         using namespace tinyxml2;
 
-        SGCTNode node;
+        std::unique_ptr<SGCTNode> node = std::make_unique<SGCTNode>();
 
         if (element->Attribute("address")) {
-            node.setAddress(element->Attribute("address"));
+            node->setAddress(element->Attribute("address"));
         }
         if (element->Attribute("name")) {
-            node.setName(element->Attribute("name"));
+            node->setName(element->Attribute("name"));
         }
         if (element->Attribute("ip")) {
             // backward compability with older versions of SGCT config files
-            node.setAddress(element->Attribute("ip"));
+            node->setAddress(element->Attribute("ip"));
         }
         if (element->Attribute("port")) {
-            node.setSyncPort(element->Attribute("port"));
+            node->setSyncPort(element->Attribute("port"));
         }
         if (element->Attribute("syncPort")) {
-            node.setSyncPort(element->Attribute("syncPort"));
+            node->setSyncPort(element->Attribute("syncPort"));
         }
         if (element->Attribute("dataTransferPort")) {
-            node.setDataTransferPort(element->Attribute("dataTransferPort"));
+            node->setDataTransferPort(element->Attribute("dataTransferPort"));
         }
         if (element->Attribute("swapLock")) {
             const bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
-            node.setUseSwapGroups(useSwapLock);
+            node->setUseSwapGroups(useSwapLock);
         }
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
             std::string_view childVal = child->Value();
             if (childVal == "Window") {
-                parseWindow(child, xmlFileName, node);
+                parseWindow(child, xmlFileName, *node);
             }
             child = child->NextSiblingElement();
         }
@@ -552,8 +552,8 @@ namespace {
         SGCTUser* usrPtr;
         if (element->Attribute("name")) {
             std::string name = element->Attribute("name");
-            SGCTUser usr(std::move(name));
-            usrPtr = &usr;
+            std::unique_ptr<SGCTUser> usr = std::make_unique<SGCTUser>(std::move(name));
+            usrPtr = usr.get();
             ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,

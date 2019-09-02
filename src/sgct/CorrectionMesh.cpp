@@ -415,7 +415,11 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
 
                 if (_sscanf(lineBuffer, "VERTICES %u", &numberOfVertices) == 1) {
                     buf.vertices.resize(numberOfVertices);
-                    std::fill(buf.vertices.begin(), buf.vertices.end(), 0);
+                    std::fill(
+                        buf.vertices.begin(),
+                        buf.vertices.end(),
+                        CorrectionMeshVertex()
+                    );
                 }
 
                 else if (_sscanf(lineBuffer, "FACES %u", &numberOfFaces) == 1) {

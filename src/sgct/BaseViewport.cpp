@@ -103,7 +103,7 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
-    SGCTUser* user = ClusterManager::instance()->getUserPtr(mUserName);
+    SGCTUser* user = ClusterManager::instance()->getUser(mUserName);
     if (user != nullptr) {
         mUser = user;
     }

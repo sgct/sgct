@@ -32,22 +32,22 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager() {
-    mUsers.push_back(std::make_unique<SGCTUser>("default"));
+    mUsers.push_back(SGCTUser("default"));
 }
 
 void ClusterManager::addNode(SGCTNode node) {
     nodes.push_back(std::move(node));
 }
 
-void ClusterManager::addUser(std::unique_ptr<SGCTUser> userPtr) {
+void ClusterManager::addUser(SGCTUser userPtr) {
     mUsers.push_back(std::move(userPtr));
 }
 
-SGCTNode* ClusterManager::getNodePtr(size_t index) {
+SGCTNode* ClusterManager::getNode(size_t index) {
     return (index < nodes.size()) ? &nodes[index] : nullptr;
 }
 
-SGCTNode* ClusterManager::getNodePtr(const std::string& name) {
+SGCTNode* ClusterManager::getNode(const std::string& name) {
     auto it = std::find_if(
         nodes.begin(),
         nodes.end(),
@@ -66,31 +66,31 @@ SGCTNode* ClusterManager::getThisNode() {
 }
 
 SGCTUser* ClusterManager::getDefaultUser() {
-    return mUsers[0].get();
+    return &mUsers[0];
 }
 
-SGCTUser* ClusterManager::getUserPtr(const std::string& name) {
+SGCTUser* ClusterManager::getUser(const std::string& name) {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [&name](const std::unique_ptr<SGCTUser>& user) { return user->getName() == name; }
+        [&name](const SGCTUser& user) { return user.getName() == name; }
     );
     if (it != mUsers.end()) {
-        return it->get();
+        return &*it;
     }
     else {
         return nullptr;
     }
 }
 
-SGCTUser* ClusterManager::getTrackedUserPtr() {
+SGCTUser* ClusterManager::getTrackedUser() {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [](const std::unique_ptr<SGCTUser>& u) { return u->isTracked(); }
+        [](const SGCTUser& u) { return u.isTracked(); }
     );
     if (it != mUsers.end()) {
-        return it->get();
+        return &*it;
     }
     else {
         return nullptr;

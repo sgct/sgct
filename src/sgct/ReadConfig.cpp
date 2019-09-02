@@ -552,8 +552,8 @@ namespace {
         SGCTUser* usrPtr;
         if (element->Attribute("name")) {
             std::string name = element->Attribute("name");
-            std::unique_ptr<SGCTUser> usr = std::make_unique<SGCTUser>(std::move(name));
-            usrPtr = usr.get();
+            SGCTUser usr(std::move(name));
+            usrPtr = &usr;
             ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
@@ -1201,8 +1201,8 @@ void readConfig(const std::string& filename) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
             "\tNode(%d) address: %s [%s]\n", i,
-            ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
-            ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str()
+            ClusterManager::instance()->getNode(i)->getAddress().c_str(),
+            ClusterManager::instance()->getNode(i)->getSyncPort().c_str()
         );
     }
 }

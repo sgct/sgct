@@ -233,16 +233,16 @@ bool NetworkManager::init() {
         // add all connections from config file
         for (unsigned int i = 0; i < cm.getNumberOfNodes(); i++) {
             // don't add itself if server
-            if (mIsServer && !matchAddress(cm.getNodePtr(i)->getAddress())) {
+            if (mIsServer && !matchAddress(cm.getNode(i)->getAddress())) {
                 bool addSyncPort = addConnection(
-                    cm.getNodePtr(i)->getSyncPort(),
+                    cm.getNode(i)->getSyncPort(),
                     remoteAddress
                 );
                 if (!addSyncPort) {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
                         "NetworkManager: Failed to add network connection to %s!\n",
-                        cm.getNodePtr(i)->getAddress().c_str()
+                        cm.getNode(i)->getAddress().c_str()
                     );
                     return false;
                 }
@@ -259,7 +259,7 @@ bool NetworkManager::init() {
 
                 // add data transfer connection
                 bool addTransferPort = addConnection(
-                    cm.getNodePtr(i)->getDataTransferPort(),
+                    cm.getNode(i)->getDataTransferPort(),
                     remoteAddress,
                     SGCTNetwork::ConnectionTypes::DataTransfer
                 );
@@ -919,7 +919,7 @@ bool NetworkManager::areAllNodesConnected() {
 void NetworkManager::retrieveNodeId() {
     for (size_t i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
         // check ip
-        if (matchAddress(ClusterManager::instance()->getNodePtr(i)->getAddress())) {
+        if (matchAddress(ClusterManager::instance()->getNode(i)->getAddress())) {
             ClusterManager::instance()->setThisNodeId(static_cast<int>(i));
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,

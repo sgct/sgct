@@ -30,10 +30,10 @@ class SGCTUser;
  */
 class ClusterManager {
 public:
-    /// Get the ClusterManager instance */
+    /// Get the ClusterManager instance
     static ClusterManager* instance();
 
-    /// Destroy the ClusterManager */
+    /// Destroy the ClusterManager
     static void destroy();
 
     /// Different modes for warping/edge blending meshes 
@@ -46,7 +46,7 @@ public:
     void addNode(SGCTNode node);
 
     /// Add a user ptr.
-    void addUser(std::unique_ptr<SGCTUser> userPtr);
+    void addUser(SGCTUser userPtr);
 
     /**
      * Get a pointer to a specific node.
@@ -55,16 +55,16 @@ public:
      *
      * \return the pointer to the requested node or nullptr if not found
      */
-    SGCTNode* getNodePtr(size_t index);
+    SGCTNode* getNode(size_t index);
 
     /**
      * Get a pointer to a specific node.
      *
      * \param name of the node to search for
      *
-     * \return the pointer to the requested node or NULL if not found
+     * \return the pointer to the requested node or nullptr if not found
      */
-    SGCTNode* getNodePtr(const std::string& name);
+    SGCTNode* getNode(const std::string& name);
 
     /// \return a pointer to the node that this application is running on
     SGCTNode* getThisNode();
@@ -73,10 +73,10 @@ public:
     SGCTUser* getDefaultUser();
 
     /// \return the pointer to a named user. nullptr is returned if no user is found.
-    SGCTUser* getUserPtr(const std::string& name);
+    SGCTUser* getUser(const std::string& name);
 
     /// \return the pointer to the tracked user. Returns nullptr if no user is tracked.
-    SGCTUser* getTrackedUserPtr();
+    SGCTUser* getTrackedUser();
 
     /// \return the current network mode
     NetworkManager::NetworkMode getNetworkMode() const;
@@ -199,7 +199,7 @@ private:
     std::string mExternalControlPort;
     bool mUseASCIIForExternalControl = true;
 
-    std::vector<std::unique_ptr<SGCTUser>> mUsers;
+    std::vector<SGCTUser> mUsers;
     sgct::SGCTTrackingManager mTrackingManager;
 
     glm::mat4 mSceneTransform = glm::mat4(1.f);

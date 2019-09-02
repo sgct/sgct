@@ -252,7 +252,7 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
 
-            mSubViewports[0].setSize(1.f - cropLevel, 1.f);
+            mSubViewports[0].setSize(glm::vec2(1.f - cropLevel, 1.f));
 
             mSubViewports[0].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
@@ -281,8 +281,8 @@ void FisheyeProjection::initViewports() {
             upperLeft.x = -projectionOffset;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports[1].setPos(cropLevel, 0.f);
-            mSubViewports[1].setSize(1.f - cropLevel, 1.f);
+            mSubViewports[1].setPos(glm::vec2(cropLevel, 0.f));
+            mSubViewports[1].setSize(glm::vec2(1.f - cropLevel, 1.f));
 
             mSubViewports[1].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
@@ -310,8 +310,8 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports[2].setPos(0.f, cropLevel);
-            mSubViewports[2].setSize(1.f, 1.f - cropLevel);
+            mSubViewports[2].setPos(glm::vec2(0.f, cropLevel));
+            mSubViewports[2].setSize(glm::vec2(1.f, 1.f - cropLevel));
 
             mSubViewports[2].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
@@ -340,7 +340,7 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
 
-            mSubViewports[3].setSize(1.f, 1.f - cropLevel);
+            mSubViewports[3].setSize(glm::vec2(1.f, 1.f - cropLevel));
 
             mSubViewports[3].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)

@@ -29,19 +29,19 @@ public:
 
     /// Name this viewport
     void setName(std::string name);
-    void setPos(float x, float y);
-    void setSize(float x, float y);
+    void setPos(glm::vec2 position);
+    void setSize(glm::vec2 size);
     void setEnabled(bool state);
-    void setUser(SGCTUser* user);
+    void setUser(SGCTUser& user);
     void setUserName(std::string userName);
     void setEye(Frustum::FrustumMode eye);
     
     const std::string& getName() const;
-    glm::vec2 getPosition() const;
-    glm::vec2 getSize() const;
+    const glm::vec2& getPosition() const;
+    const glm::vec2& getSize() const;
     float getHorizontalFieldOfViewDegrees() const;
     
-    SGCTUser* getUser() const;
+    SGCTUser& getUser() const;
     Frustum::FrustumMode getEye() const;
     SGCTProjection& getProjection(Frustum::FrustumMode frustumMode);
     const SGCTProjection& getProjection(Frustum::FrustumMode frustumMode) const;
@@ -54,11 +54,11 @@ public:
     bool isEnabled() const;
     void linkUserName();
 
-    void calculateFrustum(const Frustum::FrustumMode& frustumMode,
+    void calculateFrustum(Frustum::FrustumMode frustumMode,
         float nearClippingPlane, float farClippingPlane);
 
     /// Make projection symmetric relative to user
-    void calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
+    void calculateNonLinearFrustum(Frustum::FrustumMode frustumMode,
         float nearClippingPlane, float farClippingPlane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
@@ -68,18 +68,21 @@ public:
     void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
 
 protected:
-    SGCTProjection mProjections[3];
+    struct {
+        SGCTProjection mono;
+        SGCTProjection stereoLeft;
+        SGCTProjection stereoRight;
+    } mProjections;
+    
     SGCTProjectionPlane mProjectionPlane;
     Frustum::FrustumMode mEye = Frustum::MonoEye;
 
-    SGCTUser* mUser;
+    SGCTUser& mUser;
     std::string mName = "NoName";
     std::string mUserName;
     bool mEnabled = true;
-    float mX = 0.f;
-    float mY = 0.f;
-    float mXSize = 1.f;
-    float mYSize = 1.f;
+    glm::vec2 mPosition = glm::vec2(0.f, 0.f);
+    glm::vec2 mSize = glm::vec2(1.f, 1.f);
 
     struct {
         glm::vec3 lowerLeft;

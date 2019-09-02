@@ -136,7 +136,7 @@ void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::FrustumMode fm) {
     mPreferedMonoFrustumMode = fm;
 }
 
-void NonLinearProjection::setUser(SGCTUser* user) {
+void NonLinearProjection::setUser(SGCTUser& user) {
     for (int i = 0; i < 6; ++i) {
         mSubViewports[i].setUser(user);
     }

@@ -3318,7 +3318,7 @@ void Engine::setEyeSeparation(float eyeSeparation) {
         SGCTWindow& window = mThisNode->getWindow(w);
 
         for (unsigned int i = 0; i < window.getNumberOfViewports(); i++) {
-            window.getViewport(i).getUser()->setEyeSeparation(eyeSeparation);
+            window.getViewport(i).getUser().setEyeSeparation(eyeSeparation);
         }
     }
     updateFrustums();

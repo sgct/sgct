@@ -314,7 +314,7 @@ void SpoutOutputProjection::initViewports() {
                     glm::vec3(0.f, 1.f, 0.f)
                 );
                 upperRight.x = radius;
-                mSubViewports[i].setSize(1.f, 1.f);
+                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
                 break;
             case CubeFaces::NegX: //-X face
                 rotMat = glm::rotate(
@@ -324,8 +324,8 @@ void SpoutOutputProjection::initViewports() {
                 );
                 lowerLeft.x = -radius;
                 upperLeft.x = -radius;
-                mSubViewports[i].setPos(0.f, 0.f);
-                mSubViewports[i].setSize(1.f, 1.f);
+                mSubViewports[i].setPos(glm::vec2(0.f, 0.f));
+                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
                 break;
             case CubeFaces::PosY: //+Y face
                 rotMat = glm::rotate(
@@ -334,8 +334,8 @@ void SpoutOutputProjection::initViewports() {
                     glm::vec3(1.f, 0.f, 0.f)
                 );
                 lowerLeft.y = -radius;
-                mSubViewports[i].setPos(0.f, 0.f);
-                mSubViewports[i].setSize(1.f, 1.f);
+                mSubViewports[i].setPos(glm::vec2(0.f, 0.f));
+                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
                 break;
             case CubeFaces::NegY: //-Y face
                 rotMat = glm::rotate(
@@ -345,7 +345,7 @@ void SpoutOutputProjection::initViewports() {
                 );
                 upperLeft.y = radius;
                 upperRight.y = radius;
-                mSubViewports[i].setSize(1.f, 1.f);
+                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
                 break;
             case CubeFaces::PosZ: //+Z face
                 rotMat = rollRot;

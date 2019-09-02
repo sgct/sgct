@@ -45,14 +45,8 @@ namespace sgct_core {
 Viewport::Viewport() : Viewport(0.f, 0.f, 0.f, 0.f) {}
 
 Viewport::Viewport(float x, float y, float xSize, float ySize) {
-    mX = x;
-    mY = y;
-    mXSize = xSize;
-    mYSize = ySize;
-    mEye = Frustum::MonoEye;
-    mEnabled = true;
-    mName = "NoName";
-    mUser = ClusterManager::instance()->getDefaultUser();
+    mPosition = glm::vec2(x, y);
+    mSize = glm::vec2(xSize, ySize);
     mProjectionPlane.reset();
 }
 
@@ -121,12 +115,11 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
 
         std::string_view val = subElement->Value();
         if (val == "Pos") {
-            float x;
-            float y;
-            if (subElement->QueryFloatAttribute("x", &x) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &y) == XML_NO_ERROR)
+            glm::vec2 position;
+            if (subElement->QueryFloatAttribute("x", &position[0]) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("y", &position[1]) == XML_NO_ERROR)
             {
-                setPos(x, y);
+                setPos(std::move(position));
             }
             else {
                 sgct::MessageHandler::instance()->print(
@@ -136,12 +129,11 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
             }
         }
         else if (val == "Size") {
-            float x;
-            float y;
-            if (subElement->QueryFloatAttribute("x", &x) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &y) == XML_NO_ERROR)
+            glm::vec2 size;
+            if (subElement->QueryFloatAttribute("x", &size[0]) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("y", &size[1]) == XML_NO_ERROR)
             {
-                setSize(x, y);
+                setSize(std::move(size));
             }
             else {
                 sgct::MessageHandler::instance()->print(
@@ -186,12 +178,11 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         setName(element->Attribute("id"));
     }
 
-    float vpPositionX;
-    float vpPositionY;
-    if (element->QueryFloatAttribute("x", &vpPositionX) == XML_NO_ERROR &&
-        element->QueryFloatAttribute("y", &vpPositionY) == XML_NO_ERROR)
+    glm::vec2 vpPosition;
+    if (element->QueryFloatAttribute("x", &vpPosition[0]) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("y", &vpPosition[1]) == XML_NO_ERROR)
     {
-        setPos(vpPositionX, vpPositionY);
+        setPos(std::move(vpPosition));
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -200,12 +191,11 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         );
     }
 
-    float vpSizeX;
-    float vpSizeY;
-    if (element->QueryFloatAttribute("xSize", &vpSizeX) == XML_NO_ERROR &&
-        element->QueryFloatAttribute("ySize", &vpSizeY) == XML_NO_ERROR)
+    glm::vec2 vpSize;
+    if (element->QueryFloatAttribute("xSize", &vpSize[0]) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("ySize", &vpSize[1]) == XML_NO_ERROR)
     {
-        setSize(vpSizeX, vpSizeY);
+        setSize(std::move(vpSize));
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -214,16 +204,15 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         );
     }
 
-    float vpResolutionX;
-    float vpResolutionY;
-    if (element->QueryFloatAttribute("xResolution", &vpResolutionX) == XML_NO_ERROR &&
-        element->QueryFloatAttribute("yResolution", &vpResolutionY) == XML_NO_ERROR)
+    glm::vec2 vpResolution;
+    if (element->QueryFloatAttribute("xResolution", &vpResolution[0]) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("yResolution", &vpResolution[1]) == XML_NO_ERROR)
     {
-        float expectedResolutionX = std::floor(vpResolutionX * winResX);
-        float expectedResolutionY = std::floor(vpResolutionY * winResY);
+        float expectedResolutionX = std::floor(vpResolution.x * winResX);
+        float expectedResolutionY = std::floor(vpResolution.y * winResY);
         
-        if (expectedResolutionX != vpResolutionX ||
-            expectedResolutionY != vpResolutionY)
+        if (expectedResolutionX != vpResolution.x ||
+            expectedResolutionY != vpResolution.y)
         {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Warning,

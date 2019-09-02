@@ -775,7 +775,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
 
     fclose(meshFile);
 
-    parent.getUser()->setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
+    parent.getUser().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
 
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
@@ -1460,7 +1460,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
     rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.f, 0.f, 0.f));
 
-    parent.getUser()->setPos(glm::vec3(0.f));
+    parent.getUser().setPos(glm::vec3(0.f));
     parent.setViewPlaneCoordsUsingFOVs(
         verticalFov / 2.f,
         -verticalFov / 2.f,

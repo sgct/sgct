@@ -3180,7 +3180,7 @@ void Engine::enterCurrentViewport() {
                 case SGCTWindow::StereoMode::SideBySideInverted:
                     mCurrentViewportCoords.x =
                         (mCurrentViewportCoords.x / 2) + (mCurrentViewportCoords.z / 2);
-                    mCurrentViewportCoords.y = mCurrentViewportCoords.z / 2;
+                    mCurrentViewportCoords.z = mCurrentViewportCoords.z / 2;
                     break;
                 case SGCTWindow::StereoMode::TopBottom:
                     mCurrentViewportCoords.y =

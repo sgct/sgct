@@ -205,14 +205,14 @@ void FisheyeProjection::initViewports() {
     if (mMethod == FisheyeMethod::FiveFaceCube &&
         mFOV >= topFaceLimit && mFOV <= fiveFaceLimit)
     {
-        float cosAngle = cosf(glm::radians(mFOV / 2.f));
+        float cosAngle = cos(glm::radians(mFOV / 2.f));
         float normalizedProjectionOffset = 0.f;
         if (mFOV < 180.f) {
             normalizedProjectionOffset = 1.f - mFOV / 180.f; // [-1, 0]
         }
         else {
-            normalizedProjectionOffset = sqrtf((2.f * cosAngle * cosAngle) /
-                                               (1.f - cosAngle * cosAngle)); // [0, 1]
+            normalizedProjectionOffset = sqrt((2.f * cosAngle * cosAngle) /
+                                              (1.f - cosAngle * cosAngle)); // [0, 1]
         }
 
         projectionOffset = normalizedProjectionOffset * radius;
@@ -230,13 +230,13 @@ void FisheyeProjection::initViewports() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 rollRot = glm::rotate(
-        tiltMat,
-        glm::radians(45.f),
-        glm::vec3(0.f, 0.f, 1.f)
-    );
-
     if (mMethod == FisheyeMethod::FiveFaceCube || mMethod == FisheyeMethod::SixFaceCube) {
+        const glm::mat4 rollRot = glm::rotate(
+            tiltMat,
+            glm::radians(45.f),
+            glm::vec3(0.f, 0.f, 1.f)
+        );
+
         // +X face
         {
             mSubViewports[0].setName("Fisheye +X");
@@ -393,12 +393,19 @@ void FisheyeProjection::initViewports() {
         }
     }
     else {
+        const glm::mat4 panRot = glm::rotate(
+            tiltMat,
+            glm::radians(45.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+
+
         // +X face
         {
             mSubViewports[0].setName("Fisheye +X");
             
             const glm::mat4 rotMat = glm::rotate(
-                rollRot,
+                panRot,
                 glm::radians(-90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
@@ -420,7 +427,7 @@ void FisheyeProjection::initViewports() {
             mSubViewports[1].setEnabled(false);
 
             const glm::mat4 rotMat = glm::rotate(
-                rollRot,
+                panRot,
                 glm::radians(90.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );
@@ -441,7 +448,7 @@ void FisheyeProjection::initViewports() {
             mSubViewports[2].setName("Fisheye +Y");
 
             const glm::mat4 rotMat = glm::rotate(
-                rollRot,
+                panRot,
                 glm::radians(-90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
@@ -462,7 +469,7 @@ void FisheyeProjection::initViewports() {
             mSubViewports[3].setName("Fisheye -Y");
             
             const glm::mat4 rotMat = glm::rotate(
-                rollRot,
+                panRot,
                 glm::radians(90.f),
                 glm::vec3(1.f, 0.f, 0.f)
             );
@@ -483,13 +490,13 @@ void FisheyeProjection::initViewports() {
             mSubViewports[4].setName("Fisheye +Z");
             
             mSubViewports[4].getProjectionPlane().setCoordinateLowerLeft(
-                glm::vec3(rollRot * lowerLeftBase)
+                glm::vec3(panRot * lowerLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperLeft(
-                glm::vec3(rollRot * upperLeftBase)
+                glm::vec3(panRot * upperLeftBase)
             );
             mSubViewports[4].getProjectionPlane().setCoordinateUpperRight(
-                glm::vec3(rollRot * upperRightBase)
+                glm::vec3(panRot * upperRightBase)
             );
 
         }
@@ -504,7 +511,7 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
 
             const glm::mat4 rotMat = glm::rotate(
-                rollRot,
+                panRot,
                 glm::radians(180.f),
                 glm::vec3(0.f, 1.f, 0.f)
             );

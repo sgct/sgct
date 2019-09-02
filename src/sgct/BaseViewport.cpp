@@ -242,7 +242,7 @@ float BaseViewport::getHorizontalFieldOfViewDegrees() const {
     const float xDist = (mProjectionPlane.getCoordinateUpperRight().x -
         mProjectionPlane.getCoordinateUpperLeft().x) / 2;
     const float zDist = mProjectionPlane.getCoordinateUpperRight().z;
-    return (glm::degrees(atan(fabs(xDist / zDist)))) * 2;
+    return (glm::degrees(atan(abs(xDist / zDist)))) * 2;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float horizFovDeg, float aspectRatio) {

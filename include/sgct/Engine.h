@@ -429,14 +429,14 @@ void sgct::Engine::clearBuffer() {
      * \param fn is the std function pointer of a clean up function callback
      */
     void setCleanUpFunction(std::function<void(void)> fn);
-    
+
     /**
-     * This function sets the keyboard callback (GLFW wrapper) where the two parameters
-     * are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a
-     * special character defined in the table below. Action can either be SGCT_PRESS or
-     * SGCT_RELEASE. All windows are connected to this callback.
+     * This function sets the keyboard callback (GLFW wrapper) where the four parameters
+     * are: int key, int scancode, int action, int mods. Modifier keys can be a
+     * combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All
+     * windows are connected to this callback.
      *
-     * \param fnPtr is the function pointer to a keyboard callback function
+     * \param fn is the std function of a keyboard callback function
      *
      * Name          | Description
      * ------------- | -------------
@@ -572,18 +572,6 @@ void sgct::Engine::clearBuffer() {
      * SGCT_KEY_RIGHT_SUPER | Right super
      * SGCT_KEY_MENU | Menu
      * SGCT_KEY_LAST | Last key index
-     */
-    void setKeyboardCallbackFunction(std::function<void(int key, int action)> fn);
-
-    /**
-     * This function sets the keyboard callback (GLFW wrapper) where the four parameters
-     * are: int key, int scancode, int action, int mods. Modifier keys can be a
-     * combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All
-     * windows are connected to this callback.
-     *
-     * \param fn is the std function of a keyboard callback function
-     *
-     * \see sgct::Engine::setKeyboardCallbackFunction
      */
     void setKeyboardCallbackFunction(
         std::function<void(int key, int scanCode, int action, int modifiers)> fn);

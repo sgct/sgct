@@ -1,25 +1,32 @@
 #include "Dome.h"
+#include <sgct.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/Image.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/SharedData.h>
+#include <sgct/SharedDataTypes.h>
+#include <sgct/TextureManager.h>
 
-sgct::Engine * gEngine;
+sgct::Engine* gEngine;
 
 void draw();
 void initGL();
-void preSync();
 void postSync();
 void encode();
 void decode();
 void cleanUp();
-void keyCallback(int key, int action);
-void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei);
+void keyCallback(int key, int scancode, int action, int modifier);
+void screenShot(sgct_core::Image* imPtr, size_t winIndex,
+    sgct_core::ScreenCapture::EyeIndex ei);
 
 void drawGeoCorrPatt();
 void drawColCorrPatt();
-void drawCube();
-void loadData();
 void drawTexturedObject();
 
-Dome * mDome = NULL;
-unsigned char * mData = NULL;
+Dome* mDome = nullptr;
+unsigned char* mData = nullptr;
 
 sgct::SharedInt16 displayState(0);
 sgct::SharedInt16 colorState(0);
@@ -32,7 +39,7 @@ sgct::SharedBool wireframe(false);
 sgct::SharedBool warping(true);
 sgct::SharedInt32 textureIndex(0);
 
-const int16_t lastState = 7;
+const int16_t lastState = 6;
 bool ctrlPressed = false;
 bool shiftPressed = false;
 bool useShader = true;
@@ -42,73 +49,68 @@ double tilt = 0.0;
 double radius = 7.4;
 
 std::vector<glm::vec3> colors;
-std::vector<std::pair<std::string, unsigned int> > textures;
+std::vector<std::pair<std::string, unsigned int>> textures;
 
-int main( int argc, char* argv[] )
-{
-    
-    // Allocate
-    gEngine = new sgct::Engine( argc, argv );
+using namespace sgct;
 
-    sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    MessageHandler::instance()->setNotifyLevel(MessageHandler::Level::NotifyAll);
     
-    //parse arguments
-    for (int i = 0; i < argc; i++)
-    {
-        if (strcmp(argv[i], "-tex") == 0 && argc >(i + 1))
-        {
-            std::pair<std::string, unsigned int> tmpPair;
-            tmpPair.first.assign(argv[i + 1]);
-            tmpPair.second = GL_FALSE;
+    // parse arguments
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "-tex") == 0 && argc >(i + 1)) {
+            std::pair<std::string, unsigned int> tmpPair(argv[i + 1], GL_FALSE);
             textures.push_back(tmpPair);
             
-            sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
+            MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
         }
-        else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1))
-        {
+        else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1)) {
             tilt = atof(argv[i + 1]);
             isTiltSet = true;
             
-            sgct::MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
+            MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
         }
-        else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1))
-        {
+        else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1)) {
             radius = atof(argv[i + 1]);
             isTiltSet = true;
 
-            sgct::MessageHandler::instance()->print("Setting radius to: %f\n", radius);
+            MessageHandler::instance()->print("Setting radius to: %f\n", radius);
         }
-        else if (strcmp(argv[i], "--use-display-lists") == 0)
-        {
+        else if (strcmp(argv[i], "--use-display-lists") == 0) {
             useDisplayLists = true;
-            sgct::MessageHandler::instance()->print("Display lists will be used in legacy pipeline.\n");
+            MessageHandler::instance()->print("Display lists will be used in legacy pipeline.\n");
         }
     }
     
-    if( useDisplayLists )
-        sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
-    else
-        sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
+    if (useDisplayLists) {
+        sgct_core::ClusterManager::instance()->setMeshImplementation(
+            sgct_core::ClusterManager::MeshImplementation::DisplayList
+        );
+    }
+    else {
+        sgct_core::ClusterManager::instance()->setMeshImplementation(
+            sgct_core::ClusterManager::MeshImplementation::BufferObjects
+        );
+    }
     
-    //sgct::SGCTSettings::instance()->setCaptureFormat("tga");
-    //sgct::SGCTSettings::instance()->setCaptureFromBackBuffer(true);
-    
-    sgct::SGCTSettings::instance()->setCaptureFromBackBuffer(true);
+    SGCTSettings::instance()->setCaptureFromBackBuffer(true);
 
     // Bind your functions
-    gEngine->setDrawFunction( draw );
-    gEngine->setInitOGLFunction( initGL );
-    gEngine->setPreSyncFunction( preSync );
-    gEngine->setPostSyncPreDrawFunction( postSync );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setCleanUpFunction( cleanUp );
+    gEngine->setDrawFunction(draw);
+    gEngine->setInitOGLFunction(initGL);
+    gEngine->setPostSyncPreDrawFunction(postSync);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setCleanUpFunction(cleanUp);
     //gEngine->setScreenShotCallback( screenShot );
     sgct::SharedData::instance()->setEncodeFunction(encode);
     sgct::SharedData::instance()->setDecodeFunction(decode);
     
     // Init the engine
-    if( !gEngine->init() )
-    {
+    if (!gEngine->init()) {
         delete gEngine;
         return EXIT_FAILURE;
     }
@@ -120,109 +122,127 @@ int main( int argc, char* argv[] )
     delete gEngine;
     
     // Exit program
-    exit( EXIT_SUCCESS );
+    exit(EXIT_SUCCESS);
 }
 
-void draw()
-{
+void draw() {
     glDepthMask(GL_FALSE);
     
-    switch( displayState.getVal() )
-    {
+    switch (displayState.getVal()) {
         case 0:
         default:
             drawGeoCorrPatt();
             break;
-            
         case 1:
             drawColCorrPatt();
             break;
-            
         case 2:
             drawColCorrPatt();
             break;
-            
         case 3:
             drawColCorrPatt();
             break;
-            
         case 4:
             drawColCorrPatt();
             break;
-            
         case 5:
             drawColCorrPatt();
             break;
-            
         case 6:
-            drawCube();
-            break;
-            
-        case 7:
             drawTexturedObject();
             break;
     }
     
-    if (showBlendZones.getVal())
+    if (showBlendZones.getVal()) {
         mDome->drawBlendZones();
+    }
     
-    if (showChannelZones.getVal())
+    if (showChannelZones.getVal()) {
         mDome->drawChannelZones();
+    }
 
 #if INCLUDE_SGCT_TEXT
-    if (showId.getVal())
-    {
-        sgct::SGCTWindow * win = gEngine->getCurrentWindowPtr();
-        sgct_core::BaseViewport * vp = win->getCurrentViewport();
-        float w = static_cast<float>(win->getXResolution()) * vp->getXSize();
-        float h = static_cast<float>(win->getYResolution()) * vp->getYSize();
+    if (showId.getVal()) {
+        sgct::SGCTWindow& win = gEngine->getCurrentWindow();
+        sgct_core::BaseViewport* vp = win.getCurrentViewport();
+        const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
+        const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
         
-        float s1 = h / 8.0f;
-        float s2 = h / 20.0f;
         
-        float offset = w / 2.0f - w/7.0f;
+        const float offset = w / 2.f - w / 7.f;
         
-        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s1)),
-			sgct_text::TOP_LEFT, offset, h/2.0f - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId());
-        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s2)),
-			sgct_text::TOP_LEFT, offset, h / 2.0f - (s1 + s2) * 1.2f, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str());
+        const float s1 = h / 8.f;
+        sgct_text::Font* f1 = sgct_text::FontManager::instance()->getFont(
+            "SGCTFont",
+            static_cast<unsigned int>(s1)
+        );
+
+        sgct_text::print(
+            f1,
+            sgct_text::TextAlignMode::TopLeft,
+            offset,
+            h / 2.f - s1,
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            "%d",
+            sgct_core::ClusterManager::instance()->getThisNodeId()
+        );
+
+        const float s2 = h / 20.f;
+        sgct_text::Font* f2 = sgct_text::FontManager::instance()->getFont(
+            "SGCTFont",
+            static_cast<unsigned int>(s2)
+        );
+        sgct_text::print(
+            f2,
+            sgct_text::TextAlignMode::TopLeft,
+            offset,
+            h / 2.f - (s1 + s2) * 1.2f,
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            "%s",
+            sgct_core::ClusterManager::instance()->getThisNode()->getAddress().c_str()
+        );
     }
 #endif
 
     glDepthMask(GL_TRUE);
 }
 
-void initGL()
-{
-    colors.push_back( glm::vec3(1.00f, 1.00f, 1.00f) ); //white
-    colors.push_back( glm::vec3(0.25f, 0.25f, 0.25f) ); //25% gray
-    colors.push_back( glm::vec3(0.50f, 0.50f, 0.50f) ); //50% gray
-    colors.push_back( glm::vec3(0.75f, 0.75f, 0.75f) ); //75% gray
-    colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
-    colors.push_back( glm::vec3(1.00f, 0.50f, 0.00f) ); //orange
-    colors.push_back( glm::vec3(1.00f, 1.00f, 0.00f) ); //yellow
-    colors.push_back( glm::vec3(0.50f, 1.00f, 0.00f) ); //yellow-green
-    colors.push_back( glm::vec3(0.00f, 1.00f, 0.00f) ); //green
-    colors.push_back( glm::vec3(0.00f, 1.00f, 0.50f) ); //green-cyan
-    colors.push_back( glm::vec3(0.00f, 1.00f, 1.00f) ); //cyan
-    colors.push_back( glm::vec3(0.00f, 0.50f, 1.00f) ); //cyan-blue
-    colors.push_back( glm::vec3(0.00f, 0.00f, 1.00f) ); //blue
-    colors.push_back( glm::vec3(0.50f, 0.00f, 1.00f) ); //blue-magenta
-    colors.push_back( glm::vec3(1.00f, 0.00f, 1.00f) ); //magenta
-    colors.push_back( glm::vec3(1.00f, 0.00f, 0.50f) ); //magenta-red
-    colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
+void initGL() {
+    colors.push_back(glm::vec3(1.00f, 1.00f, 1.00f)); //white
+    colors.push_back(glm::vec3(0.25f, 0.25f, 0.25f)); //25% gray
+    colors.push_back(glm::vec3(0.50f, 0.50f, 0.50f)); //50% gray
+    colors.push_back(glm::vec3(0.75f, 0.75f, 0.75f)); //75% gray
+    colors.push_back(glm::vec3(1.00f, 0.00f, 0.00f)); //red
+    colors.push_back(glm::vec3(1.00f, 0.50f, 0.00f)); //orange
+    colors.push_back(glm::vec3(1.00f, 1.00f, 0.00f)); //yellow
+    colors.push_back(glm::vec3(0.50f, 1.00f, 0.00f)); //yellow-green
+    colors.push_back(glm::vec3(0.00f, 1.00f, 0.00f)); //green
+    colors.push_back(glm::vec3(0.00f, 1.00f, 0.50f)); //green-cyan
+    colors.push_back(glm::vec3(0.00f, 1.00f, 1.00f)); //cyan
+    colors.push_back(glm::vec3(0.00f, 0.50f, 1.00f)); //cyan-blue
+    colors.push_back(glm::vec3(0.00f, 0.00f, 1.00f)); //blue
+    colors.push_back(glm::vec3(0.50f, 0.00f, 1.00f)); //blue-magenta
+    colors.push_back(glm::vec3(1.00f, 0.00f, 1.00f)); //magenta
+    colors.push_back(glm::vec3(1.00f, 0.00f, 0.50f)); //magenta-red
+    colors.push_back(glm::vec3(1.00f, 0.00f, 0.00f)); //red
     
-    if (isTiltSet)
+    if (isTiltSet) {
         mDome = new Dome(radius, static_cast<float>(tilt));
-    else
+    }
+    else {
         mDome = new Dome(radius, 0.f);
+    }
     mDome->generateDisplayList();
     
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-    //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::Generic);
-    for (std::size_t i = 0; i < textures.size(); i++)
-        sgct::TextureManager::instance()->loadUnManagedTexture(
-                                                               textures[i].second, textures[i].first, true, 4);
+    TextureManager::instance()->setAnisotropicFilterSize(4.f);
+    for (size_t i = 0; i < textures.size(); i++) {
+        TextureManager::instance()->loadUnManagedTexture(
+            textures[i].second,
+            textures[i].first,
+            true,
+            4
+        );
+    }
     
     glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -230,15 +250,8 @@ void initGL()
     //glEnable(GL_NORMALIZE);
 }
 
-void preSync()
-{
-    ;
-}
-
-void postSync()
-{
-    if (takeScreenShot.getVal())
-    {
+void postSync() {
+    if (takeScreenShot.getVal()) {
         takeScreenShot.setVal(false);
         gEngine->takeScreenshot();
     }
@@ -247,128 +260,121 @@ void postSync()
     sgct::SGCTSettings::instance()->setUseWarping(warping.getVal());
 }
 
-void encode()
-{
-    sgct::SharedData::instance()->writeInt16( &displayState );
-    sgct::SharedData::instance()->writeInt16(&colorState);
-    sgct::SharedData::instance()->writeBool( &showGeoCorrectionPattern );
-    sgct::SharedData::instance()->writeBool( &showBlendZones );
-    sgct::SharedData::instance()->writeBool( &showChannelZones );
-    sgct::SharedData::instance()->writeBool( &takeScreenShot );
-    sgct::SharedData::instance()->writeBool( &wireframe );
-    sgct::SharedData::instance()->writeBool( &warping );
-    sgct::SharedData::instance()->writeBool( &showId );
-    sgct::SharedData::instance()->writeInt32( &textureIndex );
+void encode() {
+    sgct::SharedData::instance()->writeInt16(displayState);
+    sgct::SharedData::instance()->writeInt16(colorState);
+    sgct::SharedData::instance()->writeBool(showGeoCorrectionPattern);
+    sgct::SharedData::instance()->writeBool(showBlendZones);
+    sgct::SharedData::instance()->writeBool(showChannelZones);
+    sgct::SharedData::instance()->writeBool(takeScreenShot);
+    sgct::SharedData::instance()->writeBool(wireframe);
+    sgct::SharedData::instance()->writeBool(warping);
+    sgct::SharedData::instance()->writeBool(showId);
+    sgct::SharedData::instance()->writeInt32(textureIndex);
 }
 
 void decode()
 {
-    sgct::SharedData::instance()->readInt16(&displayState);
-    sgct::SharedData::instance()->readInt16(&colorState);
-    sgct::SharedData::instance()->readBool( &showGeoCorrectionPattern );
-    sgct::SharedData::instance()->readBool( &showBlendZones );
-    sgct::SharedData::instance()->readBool( &showChannelZones );
-    sgct::SharedData::instance()->readBool( &takeScreenShot );
-    sgct::SharedData::instance()->readBool( &wireframe );
-    sgct::SharedData::instance()->readBool( &warping );
-    sgct::SharedData::instance()->readBool( &showId );
-    sgct::SharedData::instance()->readInt32( &textureIndex );
+    sgct::SharedData::instance()->readInt16(displayState);
+    sgct::SharedData::instance()->readInt16(colorState);
+    sgct::SharedData::instance()->readBool(showGeoCorrectionPattern);
+    sgct::SharedData::instance()->readBool(showBlendZones);
+    sgct::SharedData::instance()->readBool(showChannelZones);
+    sgct::SharedData::instance()->readBool(takeScreenShot);
+    sgct::SharedData::instance()->readBool(wireframe);
+    sgct::SharedData::instance()->readBool(warping);
+    sgct::SharedData::instance()->readBool(showId);
+    sgct::SharedData::instance()->readInt32(textureIndex);
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        switch (key) {
             case SGCT_KEY_LEFT_CONTROL:
             case SGCT_KEY_RIGHT_CONTROL:
                 ctrlPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
                 break;
-                
             case SGCT_KEY_LEFT_SHIFT:
             case SGCT_KEY_RIGHT_SHIFT:
                 shiftPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
                 break;
-                
             case SGCT_KEY_LEFT:
-                if(action == SGCT_PRESS)
-                {
-                    if( displayState.getVal() > 0 )
+                if (action == SGCT_PRESS) {
+                    if (displayState.getVal() > 0) {
                         displayState.setVal(displayState.getVal() - 1);
-                    else
-                        displayState.setVal( lastState );
+                    }
+                    else {
+                        displayState.setVal(lastState);
+                    }
                 }
                 break;
-                
             case SGCT_KEY_RIGHT:
-                if(action == SGCT_PRESS)
-                {
-                    if( displayState.getVal() < lastState )
+                if (action == SGCT_PRESS) {
+                    if (displayState.getVal() < lastState) {
                         displayState.setVal(displayState.getVal() + 1);
-                    else
+                    }
+                    else {
                         displayState.setVal(0);
+                    }
                 }
                 break;
-                
             case SGCT_KEY_DOWN:
-                if(action == SGCT_PRESS)
-                {
-                    if( colorState.getVal() > 0 )
-                        colorState.setVal( colorState.getVal() - 1 );
-                    else
-                        colorState.setVal( static_cast<int16_t>(colors.size()-1) );
+                if (action == SGCT_PRESS) {
+                    if (colorState.getVal() > 0) {
+                        colorState.setVal(colorState.getVal() - 1);
+                    }
+                    else {
+                        colorState.setVal(static_cast<int16_t>(colors.size() - 1));
+                    }
                 }
                 break;
-                
             case SGCT_KEY_UP:
-                if(action == SGCT_PRESS)
-                {
-                    if (colorState.getVal() < static_cast<int16_t>(colors.size() - 1))
-                        colorState.setVal( colorState.getVal() + 1 );
-                    else
+                if (action == SGCT_PRESS) {
+                    if (colorState.getVal() < static_cast<int16_t>(colors.size() - 1)) {
+                        colorState.setVal(colorState.getVal() + 1);
+                    }
+                    else {
                         colorState.setVal(0);
+                    }
                 }
                 break;
-                
             case SGCT_KEY_B:
-                if(action == SGCT_PRESS)
-                    showBlendZones.toggle();
-                break;
-                
-            case SGCT_KEY_C:
-                if(action == SGCT_PRESS)
-                    showChannelZones.toggle();
-                break;
-                
-            case SGCT_KEY_G:
-                if(action == SGCT_PRESS)
-                    showGeoCorrectionPattern.toggle();
-                break;
-                
-            case SGCT_KEY_I:
-                if (action == SGCT_PRESS)
-                    showId.toggle();
-                break;
-                
-            case SGCT_KEY_P:
-                if(action == SGCT_PRESS)
-                    takeScreenShot.setVal(true);
-                break;
-                
-            case SGCT_KEY_W:
-                if (action == SGCT_PRESS)
-                {
-                    if (ctrlPressed)
-                        warping.toggle();
-                    else
-                        wireframe.toggle();
+                if (action == SGCT_PRESS) {
+                    showBlendZones.setVal(!showBlendZones.getVal());
                 }
                 break;
-
+            case SGCT_KEY_C:
+                if (action == SGCT_PRESS) {
+                    showChannelZones.setVal(!showChannelZones.getVal());
+                }
+                break;
+            case SGCT_KEY_G:
+                if (action == SGCT_PRESS) {
+                    showGeoCorrectionPattern.setVal(!showGeoCorrectionPattern.getVal());
+                }
+                break;
+            case SGCT_KEY_I:
+                if (action == SGCT_PRESS) {
+                    showId.setVal(showId.getVal());
+                }
+                break;
+            case SGCT_KEY_P:
+                if (action == SGCT_PRESS) {
+                    takeScreenShot.setVal(true);
+                }
+                break;
+            case SGCT_KEY_W:
+                if (action == SGCT_PRESS) {
+                    if (ctrlPressed) {
+                        warping.setVal(!warping.getVal());
+                    }
+                    else {
+                        wireframe.setVal(!wireframe.getVal());
+                    }
+                }
+                break;
             case SGCT_KEY_SPACE:
-                if (action == SGCT_PRESS)
-                {
+                if (action == SGCT_PRESS) {
                     textureIndex.setVal((textureIndex.getVal() + 1) % textures.size());
                 }
                 break;
@@ -376,213 +382,74 @@ void keyCallback(int key, int action)
     }
 }
 
-void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei)
+void screenShot(sgct_core::Image* im, size_t winIndex,
+                sgct_core::ScreenCapture::EyeIndex ei)
 {
     std::string eye;
-    switch(ei)
-    {
-        case sgct_core::ScreenCapture::MONO:
+    switch (ei) {
+        case sgct_core::ScreenCapture::EyeIndex::Mono:
         default:
-            eye.assign("mono");
+            eye = "mono";
             break;
-            
-        case sgct_core::ScreenCapture::STEREO_LEFT:
-            eye.assign("left");
+        case sgct_core::ScreenCapture::EyeIndex::StereoLeft:
+            eye = "left";
             break;
-            
-        case sgct_core::ScreenCapture::STEREO_RIGHT:
-            eye.assign("Right");
+        case sgct_core::ScreenCapture::EyeIndex::StereoRight:
+            eye = "Right";
             break;
     }
     
-    sgct::MessageHandler::instance()->print("Taking screenshot %dx%d %d bpp, win=%u %s\n",
-                                            imPtr->getWidth(), imPtr->getHeight(),
-                                            imPtr->getChannels() * 8,
-                                            winIndex, eye.c_str()
-                                            );
-    std::size_t lastAllocSize = 0;
-    std::size_t dataSize = imPtr->getWidth() * imPtr->getChannels() * imPtr->getChannels();
+    MessageHandler::instance()->print(
+        "Taking screenshot %dx%d %d bpp, win=%u %s\n",
+        im->getWidth(), im->getHeight(), im->getChannels() * 8, winIndex, eye.c_str()
+    );
 
-    if( mData == NULL )
-    {
-        mData = new (std::nothrow) unsigned char[dataSize];
+    size_t lastAllocSize = 0;
+    size_t dataSize = im->getWidth() * im->getChannels() * im->getChannels();
+
+    if (mData == nullptr) {
+        mData = new unsigned char[dataSize];
         lastAllocSize = dataSize;
     }
-    else if( lastAllocSize < dataSize )
-    {
-        sgct::MessageHandler::instance()->print("Re-allocating image data to...\n");
+    else if (lastAllocSize < dataSize) {
+        MessageHandler::instance()->print("Re-allocating image data to...\n");
         delete [] mData;
-        mData = new (std::nothrow) unsigned char[dataSize];
+        mData = new unsigned char[dataSize];
         lastAllocSize = dataSize;
     }
     
-    double t0 = sgct::Engine::getTime();
-    memcpy(mData, imPtr->getData(), dataSize);
-    sgct::MessageHandler::instance()->print("Time to copy %.3f ms\n", (sgct::Engine::getTime()-t0)*1000.0);
+    double t0 = Engine::getTime();
+    memcpy(mData, im->getData(), dataSize);
+    MessageHandler::instance()->print(
+        "Time to copy %.3f ms\n",
+        (sgct::Engine::getTime() - t0) * 1000.0
+    );
 }
 
-void cleanUp()
-{
-    for (std::size_t i = 0; i < textures.size(); i++)
-        if( textures[i].second )
-            glDeleteTextures(1, &(textures[i].second));
-    
-    if( mDome )
-        delete mDome;
-    
-    if( mData )
-    {
-        delete [] mData;
-        mData = NULL;
+void cleanUp() {
+    for (size_t i = 0; i < textures.size(); i++) {
+        glDeleteTextures(1, &(textures[i].second));
     }
+    
+    delete mDome;
+    delete[] mData;
 }
 
-void drawGeoCorrPatt()
-{
-    if( showGeoCorrectionPattern.getVal() )
+void drawGeoCorrPatt() {
+    if (showGeoCorrectionPattern.getVal()) {
         mDome->drawGeoCorrPattern();
+    }
 }
 
-void drawColCorrPatt()
-{
-    mDome->drawColCorrPattern( &colors[ colorState.getVal() ],
-                              static_cast<int>((displayState.getVal()-1)) %5);
+void drawColCorrPatt() {
+    mDome->drawColCorrPattern(
+        &colors[colorState.getVal()],
+        static_cast<Dome::PatternMode>(static_cast<int>((displayState.getVal() - 1)) % 5)
+    );
 }
 
-void drawCube()
-{
-    /*vpr::System::usleep( mSharedData->delay );
-     
-     glPushMatrix();
-     glTranslatef(offset[0],offset[1],offset[2]);
-     
-     if( mSharedData->spinningCube )
-     {
-     static float angle = 0.0f;
-     angle += static_cast<float>(mSharedData->dt * mSharedData->speed);
-     glRotatef( angle, 0.0f, 1.0f, 0.0f );
-     }
-     
-     glDepthMask(GL_FALSE);
-     
-     if( mSharedData->bufferTest )
-     {
-     static unsigned int frames = 0;
-     
-     if( frames % 2 == 0 )
-     glColor4f(1.0f, 0.0f, 0.0f, 1.0);
-     else
-     glColor4f(0.0f, 1.0f, 0.0f, 1.0);
-     
-     if( frames > 10000 )
-     frames = 0;
-     else
-     frames++;
-     }
-     else
-     glColor4fv(colors[mSharedData->colorState].col);
-     glLineWidth(2);
-     
-     float size;
-     switch(calibrationType)
-     {
-     case CYLINDER:
-     size = 5.0f;
-     break;
-     
-     case DOME:
-     size = mDome->getRadius() * 2.0f;
-     break;
-     
-     default:
-     size = 5.0f;
-     break;
-     }
-     
-     glBegin(GL_LINES);
-     //X-lines
-     
-     glVertex3f( -size*0.5f, size*0.5f, size*0.5f );
-     glVertex3f( size*0.5f, size*0.5f, size*0.5f );
-     
-     glVertex3f( -size*0.5f, size*0.5f, -size*0.5f );
-     glVertex3f( size*0.5f, size*0.5f, -size*0.5f );
-     
-     glVertex3f( -size*0.5f, -size*0.5f, -size*0.5f );
-     glVertex3f( size*0.5f, -size*0.5f, -size*0.5f );
-     
-     glVertex3f( -size*0.5f, -size*0.5f, size*0.5f );
-     glVertex3f( size*0.5f, -size*0.5f, size*0.5f );
-     
-     //Y-lines
-     glVertex3f( -size*0.5f, -size*0.5f, -size*0.5f );
-     glVertex3f( -size*0.5f, size*0.5f, -size*0.5f );
-     
-     glVertex3f( size*0.5f, -size*0.5f, -size*0.5f );
-     glVertex3f( size*0.5f, size*0.5f, -size*0.5f );
-     
-     glVertex3f( -size*0.5f, -size*0.5f, size*0.5f );
-     glVertex3f( -size*0.5f, size*0.5f, size*0.5f );
-     
-     glVertex3f( size*0.5f, -size*0.5f, size*0.5f );
-     glVertex3f( size*0.5f, size*0.5f, size*0.5f );
-     
-     //Z-lines
-     glVertex3f( size*0.5f, size*0.5f, -size*0.5f );
-     glVertex3f( size*0.5f, size*0.5f, size*0.5f );
-     
-     glVertex3f( -size*0.5f, size*0.5f, -size*0.5f );
-     glVertex3f( -size*0.5f, size*0.5f, size*0.5f );
-     
-     glVertex3f( size*0.5f, -size*0.5f, -size*0.5f );
-     glVertex3f( size*0.5f, -size*0.5f, size*0.5f );
-     
-     glVertex3f( -size*0.5f, -size*0.5f, -size*0.5f );
-     glVertex3f( -size*0.5f, -size*0.5f, size*0.5f );
-     glEnd();
-     
-     glDepthMask(GL_TRUE);
-     glPopMatrix();
-     
-     glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-     freetype::print(font, 400, 400, "FPS: %.3f\nSpeed: %.0fx\nDelay: %d us", fps, mSharedData->speed, (unsigned int)mSharedData->delay);
-     
-     */
-}
-
-void loadData()
-{
-    /*//todo: fixa kompression från xml
-     for(unsigned int i=0;i<texFilenames.size();i++)
-     tex.loadTexture(texFilenames[i].c_str(), true, false);
-     
-     blender = Shader::create();
-     const char * shaderName = "textureblend";
-     useShader = blender->set( shaderName );
-     
-     if( useShader )
-     {
-     if ( blender->p == 0 )
-     fprintf( stderr, "Shader object '%s' not created!\n", shaderName);
-     else
-     {
-     texLoc1 = -1;
-     texLoc2 = -1;
-     blenderLoc = -1;
-     
-     texLoc1 = glGetUniformLocation( blender->p, "tex1" );
-     texLoc2 = glGetUniformLocation( blender->p, "tex2" );
-     blenderLoc = glGetUniformLocation( blender->p, "blender" );
-     
-     fprintf( stderr, "Shader object '%s' created\n", shaderName);
-     }
-     }*/
-}
-
-void drawTexturedObject()
-{
-    if (static_cast<int32_t>(textures.size()) > textureIndex.getVal())
-    {
+void drawTexturedObject() {
+    if (static_cast<int32_t>(textures.size()) > textureIndex.getVal()) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textures[textureIndex.getVal()].second);
         glEnable(GL_TEXTURE_2D);
@@ -597,46 +464,4 @@ void drawTexturedObject()
         //glActiveTexture(GL_TEXTURE0);
         //glDisable(GL_TEXTURE_2D);
     }
-    
-    
-    /*if(tex.getStoredTextureCount() == 0)
-     return;
-     
-     if( useShader )
-     {
-     float crossFadeTime = 0.6f;
-     float blendVal = (mSharedData->animationTime - (10.0f-crossFadeTime))/(10.0f - (10.0f-crossFadeTime));
-     
-     if( blendVal < 0.0f)
-     blendVal = 0.0f;
-     
-     glUseProgram( blender->p );
-     glUniform1i( texLoc1, 0 );
-     glUniform1i( texLoc2, 1 );
-     glUniform1f( blenderLoc, blendVal );
-     }
-     
-     glActiveTexture( GL_TEXTURE0 );
-     glBindTexture( GL_TEXTURE_2D, tex.getTexID(mSharedData->frameCount) );
-     glEnable( GL_TEXTURE_2D );
-     
-     glActiveTexture( GL_TEXTURE1 );
-     glBindTexture( GL_TEXTURE_2D, tex.getTexID((mSharedData->frameCount+1)%tex.getStoredTextureCount()) );
-     glEnable( GL_TEXTURE_2D );
-     
-     if( calibrationType == DOME )
-     {
-     mDome->setTiltOffset( mSharedData->tiltOffset );
-     mDome->drawTexturedSphere();
-     }
-     
-     glActiveTexture( GL_TEXTURE1 );
-     glDisable( GL_TEXTURE_2D );
-     glActiveTexture( GL_TEXTURE0 );
-     glDisable( GL_TEXTURE_2D );
-     
-     if( useShader )
-     glUseProgram( 0 );
-     
-     */
 }

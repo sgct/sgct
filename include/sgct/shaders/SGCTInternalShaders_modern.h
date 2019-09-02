@@ -104,7 +104,7 @@ constexpr const char* AnaglyphRedCyanFrag = R"(
         vec4 rightVals = texture(RightTex, UV);
         float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;
 
-        Color = Col * vec4(leftLum, rightLum, rightLum, max(leftVals.a, rightVals.a);
+        Color = Col * vec4(leftLum, rightLum, rightLum, max(leftVals.a, rightVals.a));
     }
 )";
 

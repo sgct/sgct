@@ -65,8 +65,8 @@ SGCTNode* ClusterManager::getThisNode() {
     return mThisNodeId < 0 ? nullptr : nodes[mThisNodeId].get();
 }
 
-SGCTUser* ClusterManager::getDefaultUser() {
-    return mUsers[0].get();
+SGCTUser& ClusterManager::getDefaultUser() {
+    return *mUsers[0];
 }
 
 SGCTUser* ClusterManager::getUser(const std::string& name) {

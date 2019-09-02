@@ -3571,7 +3571,7 @@ size_t Engine::getCurrentWindowIndex() const {
     return mThisNode->getCurrentWindowIndex();
 }
 
-sgct_core::SGCTUser* Engine::getDefaultUser() {
+sgct_core::SGCTUser& Engine::getDefaultUser() {
     return sgct_core::ClusterManager::instance()->getDefaultUser();
 }
 

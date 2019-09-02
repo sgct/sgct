@@ -70,7 +70,7 @@ public:
     SGCTNode* getThisNode();
 
     /// \return the pointer to the default user
-    SGCTUser* getDefaultUser();
+    SGCTUser& getDefaultUser();
 
     /// \return the pointer to a named user. nullptr is returned if no user is found.
     SGCTUser* getUser(const std::string& name);

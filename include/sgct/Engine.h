@@ -899,7 +899,7 @@ void sgct::Engine::clearBuffer() {
     size_t getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
-    static sgct_core::SGCTUser* getDefaultUser();
+    static sgct_core::SGCTUser& getDefaultUser();
 
     /// Returns a pointer to the tracking manager pointer
     static SGCTTrackingManager& getTrackingManager();

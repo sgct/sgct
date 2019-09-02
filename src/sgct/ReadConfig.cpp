@@ -561,7 +561,7 @@ namespace {
             );
         }
         else {
-            usrPtr = ClusterManager::instance()->getDefaultUser();
+            usrPtr = &ClusterManager::instance()->getDefaultUser();
         }
 
         std::optional<float> eyeSep = parseValue<float>(*element, "eyeSeparation");

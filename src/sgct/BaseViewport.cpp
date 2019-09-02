@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 
 BaseViewport::BaseViewport()
-    : mUser(*ClusterManager::instance()->getDefaultUser())
+    : mUser(ClusterManager::instance()->getDefaultUser())
 {}
 
 void BaseViewport::setName(std::string name) {
@@ -246,19 +246,19 @@ float BaseViewport::getHorizontalFieldOfViewDegrees() const {
 }
 
 void BaseViewport::setHorizontalFieldOfView(float horizFovDeg, float aspectRatio) {
-    const float zDist = mProjectionPlane.getCoordinateUpperRight().z;
+    const float zDist = abs(mProjectionPlane.getCoordinateUpperRight().z);
 
-    const float projDimX = abs(zDist) * tan(glm::radians<float>(horizFovDeg) / 2.f);
+    const float projDimX = zDist * tan(glm::radians<float>(horizFovDeg) / 2.f);
     const float projDimY = projDimX / aspectRatio;
-    float verticalAngle = glm::degrees(atan(projDimY / fabs(zDist)));
+    float vertAngle = glm::degrees(atan(projDimY / zDist));
 
     setViewPlaneCoordsUsingFOVs(
-         verticalAngle,
-        -verticalAngle,
+        vertAngle,
+        -vertAngle,
         -horizFovDeg / 2.f,
          horizFovDeg / 2.f,
          mRot,
-         fabs(zDist)
+         zDist
     );
 }
 

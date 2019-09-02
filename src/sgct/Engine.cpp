@@ -1188,7 +1188,6 @@ void Engine::render() {
         size_t firstDrawBufferIndexInWindow = 0;
 
         for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-            SGCTWindow& win = mThisNode->getWindow(i);
             if (!(mThisNode->getWindow(i).isVisible() ||
                   mThisNode->getWindow(i).isRenderingWhileHidden()))
             {
@@ -1199,11 +1198,12 @@ void Engine::render() {
             // store the first buffer index for each window
             firstDrawBufferIndexInWindow = mCurrentDrawBufferIndex;
 
-            // @TODO (abock, 2019-08-29): This is kinda weird; we iterate over all of the
-            // windows but then set the current window. Not sure if this works, so I'll
-            // leave this in here commented out for now
-            //mThisNode->setCurrentWindowIndex(i);
-            //SGCTWindow& win = getCurrentWindow();
+            // @TODO (abock, 2019-09-02): This is kinda weird; I tried commenting this
+            // part out and only use mThisNode->getWindow(i) directly, but then it failed
+            // to have two separate rendering windows. So some hidden state somewhere, I
+            // guess?!
+            mThisNode->setCurrentWindowIndex(i);
+            SGCTWindow& win = getCurrentWindow();
 
             if (!mRenderingOffScreen) {
                 win.makeOpenGLContextCurrent(SGCTWindow::Context::Window);

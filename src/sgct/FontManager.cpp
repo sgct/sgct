@@ -112,6 +112,11 @@ FontManager::FontManager() {
 }
 
 FontManager::~FontManager() {
+    // We need to delete all of the fonts before destroying the FreeType library or else
+    // the destructor of the Font classes will access the library after it has been
+    // destroyed
+    mFontMap.clear();
+
     if (mFTLibrary) {
         FT_Done_FreeType(mFTLibrary);
     }

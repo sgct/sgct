@@ -302,7 +302,8 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
     height = gd.mStrokeBitmapPtr->rows;
 
     // Allocate memory for the texture data
-    pixels.resize(2 * width * height, 0);
+    pixels.resize(2 * width * height);
+    std::fill(pixels.begin(), pixels.end(), 0);
 
     // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
     // operator so that value which we use will be 0 if we are in the padding zone, and
@@ -313,21 +314,21 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
         for (int i = 0; i < width; ++i) {
             const int k = i - offsetWidth;
             const int l = j - offsetRows;
-            if (k < gd.mBitmapPtr->width && l < gd.mBitmapPtr->rows && k >= 0 && l >= 0) {
 
+            const int idx = 2 * (i + j * width);
+            if (k >= gd.mBitmapPtr->width || l >= gd.mBitmapPtr->rows || k < 0 || l < 0) {
+                pixels[idx] = 0;
             }
-            pixels[2 * (i + j * width)] =
-                gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
+            else {
+                pixels[idx] = gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
+            }
 
-            unsigned char strokeVal =
-                (i >= gd.mStrokeBitmapPtr->width || j >= gd.mStrokeBitmapPtr->rows) ?
-                0 :
-                gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
+            const bool strokeInRange = i >= gd.mStrokeBitmapPtr->width ||
+                                       j >= gd.mStrokeBitmapPtr->rows;
+            unsigned char strokeVal = strokeInRange ?
+                0 : gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
 
-            // simple union
-            pixels[2 * (i + j * width) + 1] = strokeVal < pixels[2 * (i + j * width)] ?
-                pixels[2 * (i + j*width)] :
-                strokeVal;
+            pixels[idx + 1] = strokeVal < pixels[idx] ? pixels[idx] : strokeVal;
         }
     }
 

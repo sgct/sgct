@@ -464,7 +464,7 @@ void print(Font* font, TextAlignMode mode, float x, float y, const char* format,
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
     render2d(lines, *font, mode, x, y, glm::vec4(1.f));
 }
 
@@ -480,7 +480,7 @@ void print(Font* font, TextAlignMode mode, float x, float y,
     std::vector<wchar_t> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
     render2d(lines, *font, mode, x, y, glm::vec4(1.f));
 }
 
@@ -496,7 +496,7 @@ void print(Font* font, TextAlignMode mode, float x, float y, const glm::vec4& co
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
     render2d(lines, *font, mode, x, y, color);
 }
 
@@ -512,7 +512,7 @@ void print(Font* font, TextAlignMode mode, float x, float y, const glm::vec4& co
     std::vector<wchar_t> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
     render2d(lines, *font, mode, x, y, color);
 }
 
@@ -525,7 +525,7 @@ void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const char* format, 
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
     render3d(lines, *font, mode, mvp, glm::vec4(1.f));
 }
 
@@ -540,7 +540,7 @@ void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* forma
     std::vector<wchar_t> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
     render3d(lines, *font, mode, mvp, glm::vec4(1.f));
 }
 
@@ -556,7 +556,7 @@ void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::string(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
     render3d(lines, *font, mode, mvp, color);
 }
 
@@ -572,7 +572,7 @@ void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
     std::vector<wchar_t> buf = parseArgList(args, format);
     va_end(args);
 
-    std::vector<std::wstring> lines = split(std::wstring(buf.begin(), buf.end()), L'\n');
+    std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
     render3d(lines, *font, mode, mvp, color);
 }
 

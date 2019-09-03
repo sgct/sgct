@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <sgct/FontManager.h>
 #endif
 #include <sgct/ClusterManager.h>
+#include <sgct/Font.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>
 #include <sgct/ReadConfig.h>
@@ -768,7 +769,7 @@ void Engine::initOGL() {
         const bool success = sgct_text::FontManager::instance()->addFont(
             "SGCTFont",
             tmpPath,
-            sgct_text::FontManager::Local
+            sgct_text::FontManager::FontPath::Local
         );
         if (!success) {
             sgct_text::FontManager::instance()->getFont(
@@ -1396,7 +1397,7 @@ void Engine::renderDisplayInfo() {
         
         sgct_text::print(
             font,
-            sgct_text::TopLeft,
+            sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 6.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1407,7 +1408,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TopLeft,
+            sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 5.f + pos.y,
             glm::vec4(0.8f,0.8f,0.f,1.f),
@@ -1418,7 +1419,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TopLeft,
+            sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 4.f + pos.y,
             glm::vec4(0.8f, 0.f, 0.8f, 1.f),
@@ -1429,7 +1430,7 @@ void Engine::renderDisplayInfo() {
         if (isMaster()) {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f,0.8f,0.8f,1.f),
@@ -1442,7 +1443,7 @@ void Engine::renderDisplayInfo() {
         else {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
@@ -1451,11 +1452,11 @@ void Engine::renderDisplayInfo() {
             );
         }
 
-        bool usingSwapGroups = getCurrentWindow()->isUsingSwapGroups();
+        bool usingSwapGroups = getCurrentWindow().isUsingSwapGroups();
         if (usingSwapGroups) {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 2.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1469,7 +1470,7 @@ void Engine::renderDisplayInfo() {
         else {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 2.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1479,7 +1480,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TopLeft,
+            sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 1.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1490,7 +1491,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TopLeft,
+            sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 0.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1502,7 +1503,7 @@ void Engine::renderDisplayInfo() {
         if (mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye) {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1513,7 +1514,7 @@ void Engine::renderDisplayInfo() {
         else if (mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye) {
             sgct_text::print(
                 font,
-                sgct_text::TopLeft,
+                sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),

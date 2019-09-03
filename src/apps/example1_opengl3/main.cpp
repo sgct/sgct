@@ -9,7 +9,7 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 
 //global vars
 GLuint vertexArray = GL_FALSE;
@@ -115,7 +115,7 @@ void myDrawFun()
 {
     float speed = 0.8f;
 
-    glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( currentTime.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
@@ -138,18 +138,18 @@ void myPreSyncFun()
     if( gEngine->isMaster() )
     {
         //get the time in seconds
-        curr_time.setVal(sgct::Engine::getTime());
+        currentTime.setVal(sgct::Engine::getTime());
     }
 }
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
 }
 
 void myCleanUpFun()

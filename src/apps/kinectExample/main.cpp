@@ -8,7 +8,7 @@ void myPreSyncFun();
 void myEncodeFun();
 void myDecodeFun();
 
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedFloat size_factor(0.5f);
 
 //pointer to a left hand
@@ -74,7 +74,7 @@ void myInitOGLFun()
 void myDrawFun()
 {
     float speed = 50.0f;
-    glRotatef(static_cast<float>( curr_time.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
+    glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
 
     float size = size_factor.getVal();
 
@@ -97,7 +97,7 @@ void myPreSyncFun()
     if( gEngine->isMaster() )
     {
         //get the time in seconds
-        curr_time.setVal(sgct::Engine::getTime());
+        currentTime.setVal(sgct::Engine::getTime());
 
         if(!error)
         {
@@ -111,12 +111,12 @@ void myPreSyncFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeFloat( &size_factor );
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readFloat( &size_factor );
 }

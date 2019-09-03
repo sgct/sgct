@@ -26,7 +26,7 @@ GLuint vertexBuffers[3];
 GLsizei numberOfVertices = 0;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 
 int main( int argc, char* argv[] )
 {
@@ -68,7 +68,7 @@ void myDrawFun()
 
     //create scene transform (animation)
     glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 
     glMultMatrixf( glm::value_ptr(scene_mat) ); //multiply the modelview matrix with the scene transform
 
@@ -114,7 +114,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 
@@ -142,12 +142,12 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
 }
 
 /*!

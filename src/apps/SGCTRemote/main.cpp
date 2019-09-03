@@ -7,7 +7,7 @@ void myPreSyncFun();
 void myEncodeFun();
 void myDecodeFun();
 
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 
 void myPostSyncPreDrawFun();
 void externalControlMessageCallback(const char * receivedChars, int size);
@@ -54,7 +54,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
     float speed = 50.0f;
-    glRotatef(static_cast<float>( curr_time.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
+    glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
 
     float size = size_factor.getVal();
 
@@ -77,7 +77,7 @@ void myPreSyncFun()
     if( gEngine->isMaster() )
     {
         //get the time in seconds
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 
@@ -90,7 +90,7 @@ void myPostSyncPreDrawFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeFloat( &size_factor );
     sgct::SharedData::instance()->writeBool( &showStats );
     sgct::SharedData::instance()->writeBool( &showGraph );
@@ -99,7 +99,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readFloat( &size_factor );
     sgct::SharedData::instance()->readBool( &showStats );
     sgct::SharedData::instance()->readBool( &showGraph );

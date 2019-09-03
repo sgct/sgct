@@ -59,7 +59,7 @@ sgct_utils::SGCTDome * dome = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 
 int main( int argc, char* argv[] )
 {
@@ -145,7 +145,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
         
         //if texture is uploaded then iterate the index
         if (serverUploadDone.getVal() && clientsUploadDone.getVal())
@@ -191,7 +191,7 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&info);
     sgct::SharedData::instance()->writeBool(&stats);
     sgct::SharedData::instance()->writeBool(&wireframe);
@@ -201,7 +201,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&info);
     sgct::SharedData::instance()->readBool(&stats);
     sgct::SharedData::instance()->readBool(&wireframe);

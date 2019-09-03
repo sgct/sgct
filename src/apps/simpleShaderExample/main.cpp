@@ -16,7 +16,7 @@ void keyCallback(int key, int action);
 int time_loc = -1;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool reloadShader(false);
 
 int main( int argc, char* argv[] )
@@ -51,10 +51,10 @@ void myDrawFun()
 {
     //set current shader program
     sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
-    glUniform1f( time_loc, static_cast<float>( curr_time.getVal() ) );
+    glUniform1f( time_loc, static_cast<float>( currentTime.getVal() ) );
 
     float speed = 50.0f;
-    glRotatef(static_cast<float>( curr_time.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
+    glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
 
     //render a single triangle
     glBegin(GL_TRIANGLES);
@@ -79,13 +79,13 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &reloadShader );
 }
 
@@ -93,7 +93,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 

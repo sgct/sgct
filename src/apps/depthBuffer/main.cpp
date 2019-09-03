@@ -30,7 +30,7 @@ GLfloat lightDiffuse[]= { 0.8f, 0.8f, 0.8f, 1.0f };
 GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -118,7 +118,7 @@ void myDrawFun()
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     
     glTranslatef( 0.0f, -0.15f, 2.5f );
-    glRotatef( static_cast<float>( curr_time.getVal() ) * 8.0f, 0.0f, 1.0f, 0.0f );
+    glRotatef( static_cast<float>( currentTime.getVal() ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
     glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -132,7 +132,7 @@ void myDrawFun()
 
     //set current shader program
     sgct::ShaderManager::instance()->bindShaderProgram("Heightmap");
-    glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
+    glUniform1f( curr_timeLoc, static_cast<float>( currentTime.getVal() ) );
     glUniform1i( myTextureLocations[0], 0 );
     glUniform1i( myTextureLocations[1], 1 );
     //glUniform1f(curr_timeLoc, 0.0f);
@@ -157,7 +157,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() && !mPause)
     {
-        curr_time.setVal( curr_time.getVal() + gEngine->getAvgDt());
+        currentTime.setVal( currentTime.getVal() + gEngine->getAvgDt());
     }
 }
 
@@ -235,7 +235,7 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&wireframe);
     sgct::SharedData::instance()->writeBool(&info);
     sgct::SharedData::instance()->writeBool(&stats);
@@ -246,7 +246,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&wireframe);
     sgct::SharedData::instance()->readBool(&info);
     sgct::SharedData::instance()->readBool(&stats);

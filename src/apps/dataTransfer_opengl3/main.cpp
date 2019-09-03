@@ -56,7 +56,7 @@ sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 
 int main( int argc, char* argv[] )
 {
@@ -119,8 +119,8 @@ void myDrawFun()
 
     //create scene transform (animation)
     glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
 
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
@@ -148,7 +148,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
         
         //if texture is uploaded then iterate the index
         if (serverUploadDone.getVal() && clientsUploadDone.getVal())
@@ -195,7 +195,7 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&info);
     sgct::SharedData::instance()->writeBool(&stats);
     sgct::SharedData::instance()->writeInt32(&texIndex);
@@ -203,7 +203,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&info);
     sgct::SharedData::instance()->readBool(&stats);
     sgct::SharedData::instance()->readInt32(&texIndex);

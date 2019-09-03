@@ -17,7 +17,7 @@ void keyCallback(int key, int action);
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool takeScreenshot(false);
 
 //shader locs
@@ -65,8 +65,8 @@ void myDrawFun()
     double speed = 25.0;
     
     glTranslatef(0.0f, 0.0f, -3.0f);
-    glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
-    glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
+    glRotated(currentTime.getVal() * speed, 0.0, -1.0, 0.0);
+    glRotated(currentTime.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
     glColor3f(1.0f,1.0f,1.0f);
 
     float worldMatrix[16];
@@ -92,7 +92,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 
@@ -136,13 +136,13 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&takeScreenshot);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&takeScreenshot);
 }
 

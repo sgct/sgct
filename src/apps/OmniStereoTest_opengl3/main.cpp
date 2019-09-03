@@ -25,7 +25,7 @@ GLint Matrix_Loc = -1;
 GLint Grid_Matrix_Loc = -1;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool takeScreenshot(true);
 
 //omni var
@@ -126,7 +126,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 
@@ -184,13 +184,13 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&takeScreenshot);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&takeScreenshot);
 }
 

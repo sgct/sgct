@@ -11,7 +11,7 @@ void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
 
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool reloadShader(false);
 
 //global vars
@@ -97,13 +97,13 @@ void myDrawFun()
 {
     float speed = 0.87f;
 
-    glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( currentTime.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
         
     glUniformMatrix4fv(matrix_loc, 1, GL_FALSE, &MVP[0][0]);
-    glUniform1f( time_loc, static_cast<float>( curr_time.getVal() ) );
+    glUniform1f( time_loc, static_cast<float>( currentTime.getVal() ) );
 
     glBindVertexArray(vertexArray);
     
@@ -119,7 +119,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() )
     {
-        curr_time.setVal( sgct::Engine::getTime() );
+        currentTime.setVal( sgct::Engine::getTime() );
     }
 }
 
@@ -156,13 +156,13 @@ void keyCallback(int key, int action)
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &reloadShader );
 }
 

@@ -46,7 +46,7 @@ glm::vec4 lightSpecular( 1.0f, 1.0f, 1.0f, 1.0f );
 bool mPause = false;
 
 //variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble currentTime(0.0);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -101,7 +101,7 @@ void myDrawFun()
 
     //create scene transform (animation)
     glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, -0.15f, 2.5f ) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, 1.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::mat4 MVP        = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
     glm::mat4 MV        = gEngine->getCurrentModelViewMatrix() * scene_mat;
@@ -120,7 +120,7 @@ void myDrawFun()
     glUniformMatrix4fv(MV_Loc,        1, GL_FALSE, &MV[0][0]);
     glUniformMatrix4fv(MVLight_Loc, 1, GL_FALSE, &MV_light[0][0]);
     glUniformMatrix3fv(NM_Loc,        1, GL_FALSE, &NM[0][0]);
-    glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
+    glUniform1f( curr_timeLoc, static_cast<float>( currentTime.getVal() ) );
 
     glBindVertexArray(vertexArray);
 
@@ -142,7 +142,7 @@ void myPreSyncFun()
 {
     if( gEngine->isMaster() && !mPause)
     {
-        curr_time.setVal( curr_time.getVal() + gEngine->getAvgDt());
+        currentTime.setVal( currentTime.getVal() + gEngine->getAvgDt());
     }
 }
 
@@ -241,7 +241,7 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &wireframe );
     sgct::SharedData::instance()->writeBool( &info );
     sgct::SharedData::instance()->writeBool( &stats );
@@ -252,7 +252,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &wireframe );
     sgct::SharedData::instance()->readBool( &info );
     sgct::SharedData::instance()->readBool( &stats );

@@ -22,7 +22,7 @@ void generateTerrainGrid( float width, float height, unsigned int wRes, unsigned
 //shader data
 sgct::ShaderProgram mSp;
 GLint myTextureLocations[]    = { -1, -1 };
-GLint curr_timeLoc            = -1;
+GLint currTimeLoc            = -1;
 GLint MVP_Loc                = -1;
 GLint MV_Loc                = -1;
 GLint MVLight_Loc            = -1;
@@ -120,7 +120,7 @@ void myDrawFun()
     glUniformMatrix4fv(MV_Loc,        1, GL_FALSE, &MV[0][0]);
     glUniformMatrix4fv(MVLight_Loc, 1, GL_FALSE, &MV_light[0][0]);
     glUniformMatrix3fv(NM_Loc,        1, GL_FALSE, &NM[0][0]);
-    glUniform1f( curr_timeLoc, static_cast<float>( currentTime.getVal() ) );
+    glUniform1f( currTimeLoc, static_cast<float>( currentTime.getVal() ) );
 
     glBindVertexArray(vertexArray);
 
@@ -179,7 +179,7 @@ void myInitOGLFun()
     mSp.bind();
     myTextureLocations[0]    = mSp.getUniformLocation( "hTex" );
     myTextureLocations[1]    = mSp.getUniformLocation( "nTex" );
-    curr_timeLoc            = mSp.getUniformLocation( "curr_time" );
+    currTimeLoc            = mSp.getUniformLocation( "curr_time" );
     MVP_Loc                    = mSp.getUniformLocation( "MVP" );
     MV_Loc                    = mSp.getUniformLocation( "MV" );
     MVLight_Loc                = mSp.getUniformLocation( "MV_light" );

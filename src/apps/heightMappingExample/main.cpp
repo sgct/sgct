@@ -15,7 +15,7 @@ void myDecodeFun();
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 int myTextureLocations[2];
-int curr_timeLoc;
+int currTimeLoc;
 bool mPause = false;
 GLuint myTerrainDisplayList = 0;
 
@@ -82,7 +82,7 @@ void myDrawFun()
 
     //set current shader program
     sgct::ShaderManager::instance()->bindShaderProgram( "Heightmap" );
-    glUniform1f( curr_timeLoc, static_cast<float>( currentTime.getVal() ) );
+    glUniform1f( currTimeLoc, static_cast<float>( currentTime.getVal() ) );
 
     glLineWidth(2.0); //for wireframe
     glCallList(myTerrainDisplayList);
@@ -153,10 +153,10 @@ void myInitOGLFun()
     sgct::ShaderManager::instance()->bindShaderProgram( "Heightmap" );
     myTextureLocations[0] = -1;
     myTextureLocations[1] = -1;
-    curr_timeLoc = -1;
+    currTimeLoc = -1;
     myTextureLocations[0] = sgct::ShaderManager::instance()->getShaderProgram( "Heightmap").getUniformLocation( "hTex" );
     myTextureLocations[1] = sgct::ShaderManager::instance()->getShaderProgram( "Heightmap").getUniformLocation( "nTex" );
-    curr_timeLoc = sgct::ShaderManager::instance()->getShaderProgram( "Heightmap").getUniformLocation( "curr_time" );
+    currTimeLoc = sgct::ShaderManager::instance()->getShaderProgram( "Heightmap").getUniformLocation( "curr_time" );
 
     glUniform1i( myTextureLocations[0], 0 );
     glUniform1i( myTextureLocations[1], 1 );

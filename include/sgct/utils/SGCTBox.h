@@ -23,7 +23,7 @@ class SGCTBox {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
-    /// This constructor requires a valid openGL contex 
+    /// This constructor requires a valid openGL context
     SGCTBox(float size, TextureMappingMode mode = TextureMappingMode::Regular);
     ~SGCTBox();
 

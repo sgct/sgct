@@ -98,7 +98,7 @@ public:
      * \code{.cpp}
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble( curr_time );
+    sgct::SharedData::instance()->writeDouble(currentTime);
 }
 \endcode
     */
@@ -110,7 +110,7 @@ void myEncodeFun()
 \code{.cpp}
 void myDecodeFun()
 {
-    curr_time = sgct::SharedData::instance()->readDouble();
+    currentTime = sgct::SharedData::instance()->readDouble();
 }
 \endcode
     */

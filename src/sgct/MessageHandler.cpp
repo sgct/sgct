@@ -14,27 +14,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <iostream>
 #include <sstream>
 
-namespace {
-    const char* getTimeOfDayStr() {
-        constexpr int TimeBufferSize = 9;
-        char Buffer[TimeBufferSize];
-        time_t now = time(nullptr);
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-        tm timeInfo;
-        errno_t err = localtime_s(&timeInfo, &now);
-        if (err == 0) {
-            strftime(Buffer, TimeBufferSize, "%X", &timeInfo);
-        }
-#else
-        tm* timeInfoPtr;
-        timeInfoPtr = localtime(&now);
-        strftime(Buffer, TIME_BUFFER_SIZE, "%X", timeInfoPtr);
-#endif
-
-        return Buffer;
-    }
-} // namespace
-
 namespace sgct {
 
 MessageHandler* MessageHandler::mInstance = nullptr;
@@ -81,18 +60,20 @@ void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
     print("\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
 }
 
-void MessageHandler::printv(const char*fmt, va_list ap) {
+void MessageHandler::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(SGCTMutexManager::instance()->mConsoleMutex);
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > mMaxMessageSize) {
-        mParseBuffer.resize(size, 0);
+        mParseBuffer.resize(size);
+        std::fill(mParseBuffer.begin(), mParseBuffer.end(), 0);
         
         mMaxMessageSize = size;
         mCombinedMessageSize = mMaxMessageSize + 32;
 
-        mCombinedBuffer.resize(mCombinedMessageSize, 0);
+        mCombinedBuffer.resize(mCombinedMessageSize);
+        std::fill(mCombinedBuffer.begin(), mCombinedBuffer.end(), 0);
         mRecBuffer.resize(mMaxMessageSize);
         mBuffer.resize(mMaxMessageSize);
     }
@@ -109,19 +90,34 @@ void MessageHandler::printv(const char*fmt, va_list ap) {
 
     // print local
     if (mShowTime) {
+        constexpr int TimeBufferSize = 9;
+        char TimeBuffer[TimeBufferSize];
+        time_t now = time(nullptr);
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+        tm timeInfo;
+        errno_t err = localtime_s(&timeInfo, &now);
+        if (err == 0) {
+            strftime(TimeBuffer, TimeBufferSize, "%X", &timeInfo);
+        }
+#else
+        tm* timeInfoPtr;
+        timeInfoPtr = localtime(&now);
+        strftime(TimeBuffer, TIME_BUFFER_SIZE, "%X", timeInfoPtr);
+#endif
+
 #if (_MSC_VER >= 1400)
         sprintf_s(
             mCombinedBuffer.data(),
             mCombinedMessageSize,
             "%s| %s",
-            getTimeOfDayStr(),
+            TimeBuffer,
             mParseBuffer.data()
         );
 #else
-        sprintf(mCombinedBuffer.data(), "%s| %s", getTimeOfDayStr(), mParseBuffer.data());
+        sprintf(mCombinedBuffer.data(), "%s| %s", TimeBuffer, mParseBuffer.data());
 #endif
         if (mLogToConsole) {
-            std::cerr << std::string(mCombinedBuffer.begin(), mCombinedBuffer.end());
+            std::cerr << mCombinedBuffer.data();
         }
 
         if (mLogToFile) {
@@ -133,7 +129,7 @@ void MessageHandler::printv(const char*fmt, va_list ap) {
     }
     else {
         if (mLogToConsole) {
-            std::cerr << std::string(mParseBuffer.begin(), mParseBuffer.end());
+            std::cerr << mParseBuffer.data();
         }
 
         if (mLogToFile) {

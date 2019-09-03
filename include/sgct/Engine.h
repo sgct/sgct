@@ -577,9 +577,6 @@ void sgct::Engine::clearBuffer() {
         std::function<void(int key, int scanCode, int action, int modifiers)> fn);
 
     /// All windows are connected to this callback.
-    void setCharCallbackFunction(std::function<void(unsigned int unicodeChar)> fn);
-
-    /// All windows are connected to this callback.
     void setCharCallbackFunction(
         std::function<void(unsigned int unicode, int modifiers)> fn);
 

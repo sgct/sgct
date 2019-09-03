@@ -36,8 +36,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 // Callback wrappers for GLFW
 std::function<void(int, int, int, int)> gKeyboardCallbackFnPtr = nullptr;
-std::function<void(unsigned int)> gCharCallbackFnPtr = nullptr;
-std::function<void(unsigned int, int)> gCharCallbackFnPtr2 = nullptr;
+std::function<void(unsigned int, int)> gCharCallbackFnPtr = nullptr;
 std::function<void(int, int, int)> gMouseButtonCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMousePosCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFnPtr = nullptr;
@@ -78,19 +77,9 @@ namespace {
         }
     }
 
-    void keyCharCallback(GLFWwindow* window, unsigned int ch) {
-        if (gCharCallbackFnPtr) {
-            gCharCallbackFnPtr(ch);
-        }
-    }
-
     void keyCharModsCallback(GLFWwindow* window, unsigned int ch, int mod) {
         if (gCharCallbackFnPtr) {
-            gCharCallbackFnPtr(ch);
-        }
-
-        if (gCharCallbackFnPtr2) {
-            gCharCallbackFnPtr2(ch, mod);
+            gCharCallbackFnPtr(ch, mod);
         }
     }
 
@@ -298,9 +287,6 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
             glfwSetCursorPosCallback(window, mousePosCallback);
         }
         if (gCharCallbackFnPtr) {
-            glfwSetCharCallback(window, keyCharCallback);
-        }
-        if (gCharCallbackFnPtr2) {
             glfwSetCharModsCallback(window, keyCharModsCallback);
         }
         if (gMouseScrollCallbackFnPtr) {
@@ -951,7 +937,6 @@ void Engine::clearAllCallbacks() {
     mInternalRenderPostFXFn = nullptr;
 
     gKeyboardCallbackFnPtr = nullptr;
-    gCharCallbackFnPtr = nullptr;
     gMouseButtonCallbackFnPtr = nullptr;
     gMousePosCallbackFnPtr = nullptr;
     gMouseScrollCallbackFnPtr = nullptr;
@@ -3113,12 +3098,8 @@ void Engine::setKeyboardCallbackFunction(std::function<void(int, int, int, int)>
     gKeyboardCallbackFnPtr = std::move(fn);
 }
 
-void Engine::setCharCallbackFunction(std::function<void(unsigned int)> fn) {
-    gCharCallbackFnPtr = std::move(fn);
-}
-
 void Engine::setCharCallbackFunction(std::function<void(unsigned int, int)> fn) {
-    gCharCallbackFnPtr2 = std::move(fn);
+    gCharCallbackFnPtr = std::move(fn);
 }
 
 void Engine::setMouseButtonCallbackFunction(std::function<void(int, int, int)> fn) {

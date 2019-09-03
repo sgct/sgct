@@ -123,8 +123,8 @@ void SGCTNetwork::init(std::string port, std::string address, bool isServer,
 
     // Resolve the local address and port to be used by the server
     int addrRes = getaddrinfo(
-        mServer ? nullptr : address.c_str(),
-        port.c_str(),
+        mServer ? nullptr : mAddress.c_str(),
+        mPort.c_str(),
         &hints,
         &res
     );

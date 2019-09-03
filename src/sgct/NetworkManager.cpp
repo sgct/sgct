@@ -615,7 +615,7 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
         "NetworkManager: Number of connected data transfer nodes %u of %u\n",
-        numberOfConnectedDataTransferNodesCounter,totalNumberOfTransferConnections
+        numberOfConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
     sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
@@ -647,24 +647,26 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
                     continue;
                 }
                 char data[SGCTNetwork::HeaderSize];
+                std::fill(std::begin(data), std::end(data), SGCTNetwork::DefaultId);
                 data[0] = SGCTNetwork::ConnectedId;
-                std::fill(
-                    data + 1,
-                    data + 1 + SGCTNetwork::HeaderSize,
-                    SGCTNetwork::DefaultId
-                );
+                //std::fill(
+                //    data + 1,
+                //    data + 1 + SGCTNetwork::HeaderSize,
+                //    SGCTNetwork::DefaultId
+                //);
 
                 mSyncConnections[i]->sendData(&data, SGCTNetwork::HeaderSize);
             }
             for (unsigned int i = 0; i < mDataTransferConnections.size(); i++) {
                 if (mDataTransferConnections[i]->isConnected()) {
                     char data[SGCTNetwork::HeaderSize];
+                    std::fill(std::begin(data), std::end(data), SGCTNetwork::DefaultId);
                     data[0] = SGCTNetwork::ConnectedId;
-                    std::fill(
-                        data + 1,
-                        data + 1 + SGCTNetwork::HeaderSize,
-                        SGCTNetwork::DefaultId
-                    );
+                    //std::fill(
+                    //    data + 1,
+                    //    data + 1 + SGCTNetwork::HeaderSize,
+                    //    SGCTNetwork::DefaultId
+                    //);
                     mDataTransferConnections[i]->sendData(&data, SGCTNetwork::HeaderSize);
                 }
             }
@@ -815,10 +817,13 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         switch (connection->getType()) {
             case SGCTNetwork::ConnectionTypes::SyncConnection:
                 mSyncConnections.push_back(connection.get());
+                break;
             case SGCTNetwork::ConnectionTypes::DataTransfer:
                 mDataTransferConnections.push_back(connection.get());
+                break;
             default:
                 mExternalControlConnection = connection.get();
+                break;
         }
     }
 

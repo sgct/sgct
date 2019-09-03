@@ -45,8 +45,8 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
     glPushMatrix();
     glRotatef(-mTilt, 1.0f, 0.0f, 0.0f);
 
-    float intensity0;
-    float intensity1;
+    float i0;
+    float i1;
 
     for (int e = 0; e < (ElevationSteps - 1); e++) {
         float elevation0 = glm::radians(
@@ -58,32 +58,30 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
         
         switch (mode) {
             case PatternMode::Step:
-                intensity0 = 1.0f - static_cast<float>(e)/static_cast<float>(ElevationSteps -1);
-                intensity1 = intensity0;
+                i0 = 1.f - static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
+                i1 = i0;
                 break;
             case PatternMode::StepInverted:
-                intensity0 = static_cast<float>(e)/static_cast<float>(ElevationSteps -1);
-                intensity1 = intensity0;
+                i0 = static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
+                i1 = i0;
                 break;
             case PatternMode::Gradient:
-                intensity0 = 1.0f - static_cast<float>(e)/static_cast<float>(ElevationSteps -2);
-                intensity1 = 1.0f - static_cast<float>(e+1)/static_cast<float>(ElevationSteps -2);
+                i0 = 1.f - static_cast<float>(e) / static_cast<float>(ElevationSteps - 2);
+                i1 = 1.f - static_cast<float>(e + 1) /
+                           static_cast<float>(ElevationSteps - 2);
                 break;
             case PatternMode::GradientInverted:
-                intensity0 = static_cast<float>(e)/static_cast<float>(ElevationSteps -2);
-                intensity1 = static_cast<float>(e+1)/static_cast<float>(ElevationSteps -2);
+                i0 = static_cast<float>(e) / static_cast<float>(ElevationSteps - 2);
+                i1 = static_cast<float>(e + 1) / static_cast<float>(ElevationSteps - 2);
                 break;
             case PatternMode::Solid:
-                intensity0 = 1.0;
-                intensity1 = intensity0;
-                break;
             default:
-                intensity0 = 1.0;
-                intensity1 = intensity0;
+                i0 = 1.f;
+                i1 = i0;
                 break;
         }
 
-        glBegin( GL_TRIANGLE_STRIP );
+        glBegin(GL_TRIANGLE_STRIP);
 
         const float y0 = mRadius * sin(elevation0);
         const float y1 = mRadius * sin(elevation1);
@@ -99,9 +97,9 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
             const float x1 = mRadius * cos(elevation1) * sin(azimuth);
             const float z1 = -mRadius * cos(elevation1) * cos(azimuth);
 
-            glColor3f(color->r * intensity0, color->g * intensity0,  color->b * intensity0);
+            glColor3f(color->r * i0, color->g * i0,  color->b * i0);
             glVertex3f(x0, y0, z0);
-            glColor3f(color->r * intensity1, color->g * intensity1,  color->b * intensity1);
+            glColor3f(color->r * i1, color->g * i1,  color->b * i1);
             glVertex3f(x1, y1, z1);
         }
 
@@ -122,7 +120,7 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
     const float y0 = mRadius * sin(elevation0);
     const float y1 = mRadius * sin(elevation1);
 
-    glColor3f(color->r * intensity1, color->g * intensity1, color->b * intensity1);
+    glColor3f(color->r * i1, color->g * i1, color->b * i1);
     glVertex3f(0.f, y1, 0.f);
         
     for (int a = 0; a <= AzimuthSteps; a++) {
@@ -133,7 +131,7 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
         const float x0 = mRadius * cos(elevation0) * sin(azimuth);
         const float z0 = -mRadius * cos(elevation0) * cos(azimuth);
 
-        glColor3f(color->r * intensity0, color->g * intensity0, color->b * intensity0);
+        glColor3f(color->r * i0, color->g * i0, color->b * i0);
         glVertex3f(x0, y0, z0);
     }
 
@@ -153,7 +151,7 @@ void Dome::generateDisplayList() {
     glPushMatrix();
     glRotatef(-mTilt, 1.f, 0.f, 0.f);
 
-    float x, y, z;
+    //float x, y, z;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -173,12 +171,12 @@ void Dome::generateDisplayList() {
         
         glBegin(GL_LINE_LOOP);
 
-        y = mRadius * sin(elevation);
+        const float y = mRadius * sin(elevation);
         
         for (float a = 0.f; a < 360.f; a += 2.25f) {
             const float azimuth = glm::radians(a);
-            x = mRadius * cosf( elevation ) * sinf( azimuth );
-            z = -mRadius * cosf( elevation ) * cosf( azimuth );
+            const float x = mRadius * cos(elevation) * sin(azimuth);
+            const float z = -mRadius * cos(elevation) * cos(azimuth);
             
             glVertex3f(x, y, z);
         }
@@ -202,9 +200,9 @@ void Dome::generateDisplayList() {
         glBegin(GL_LINE_STRIP);
         for (float e = 0.f; e <= 90.f; e += 2.25f) {
             const float elevation = glm::radians(e);
-            x = mRadius * cos(elevation) * sin(azimuth);
-            y = mRadius * sin(elevation);
-            z = -mRadius * cos(elevation) * cos(azimuth);
+            const float x = mRadius * cos(elevation) * sin(azimuth);
+            const float y = mRadius * sin(elevation);
+            const float z = -mRadius * cos(elevation) * cos(azimuth);
                 
             glVertex3f(x, y, z);
         }
@@ -488,7 +486,7 @@ void Dome::generateDisplayList() {
         mVertices.push_back(mRingVertices);
     }
         
-    //CAP
+    // CAP
     DomeVertex pole;
     mRingVertices.clear();
 
@@ -523,9 +521,9 @@ void Dome::generateDisplayList() {
         dv0.z = -cos(elevation0) * cos(azimuth);
 
         dv0.s = (static_cast<float>(ElevationSteps - e) /
-                 static_cast<float>(ElevationSteps)) * sinf(azimuth);
+                 static_cast<float>(ElevationSteps)) * sin(azimuth);
         dv0.t = (static_cast<float>(ElevationSteps - e) /
-                 static_cast<float>(ElevationSteps)) * -cosf(azimuth);
+                 static_cast<float>(ElevationSteps)) * -cos(azimuth);
         dv0.s = (dv0.s * 0.5f) + 0.5f;
         dv0.t = (dv0.t * 0.5f) + 0.5f;
             
@@ -551,7 +549,7 @@ void Dome::drawLatitudeLines(float latitude, float minLongitude, float maxLongit
     
     glColor3f(1.f, 0.1f, 0.1f);
     glBegin(GL_LINE_STRIP);
-    const float y = mRadius * sinf( glm::radians(latitude) );
+    const float y = mRadius * sin(glm::radians(latitude));
     for (int a = 0; a <= segments; a++) {
         const float azimuth = glm::radians(minLongitude + static_cast<float>(a) * dh);
         const float x = mRadius * cos(glm::radians(latitude)) * sin(azimuth);

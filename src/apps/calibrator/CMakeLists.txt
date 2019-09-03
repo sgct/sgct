@@ -19,8 +19,8 @@ add_executable(${APP_NAME}
 	Dome.h
 	Dome.cpp)
 
-    set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
-    set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
 option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)

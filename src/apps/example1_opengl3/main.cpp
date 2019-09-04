@@ -16,7 +16,7 @@ GLuint vertexArray = GL_FALSE;
 GLuint vertexPositionBuffer = GL_FALSE;
 GLuint vertexColorBuffer = GL_FALSE;
 
-GLint Matrix_Loc = -1;
+GLint matrixLoc = -1;
 
 int main( int argc, char* argv[] )
 {
@@ -106,7 +106,7 @@ void myInitFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    matrixLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
  
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -120,7 +120,7 @@ void drawFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
         
-    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, &MVP[0][0]);
 
     glBindVertexArray(vertexArray);
     

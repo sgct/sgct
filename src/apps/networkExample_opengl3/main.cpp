@@ -29,7 +29,7 @@ void networkAck(int packageId, int clientId);
 void networkDecode(void * receivedData, int receivedlength, int packageId, int clientId);
 
 sgct_utils::SGCTBox * myBox = NULL;
-GLint Matrix_Loc = -1;
+GLint matrixLoc = -1;
 
 //variables to share across cluster
 sgct::SharedDouble currentTime(0.0);
@@ -118,7 +118,7 @@ void drawFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, &MVP[0][0]);
 
     //draw the box
     myBox->draw();
@@ -157,7 +157,7 @@ void initOGLFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    matrixLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
     glUniform1i( Tex_Loc, 0 );
 

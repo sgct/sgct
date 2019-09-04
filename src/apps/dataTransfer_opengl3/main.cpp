@@ -9,6 +9,7 @@
 
 namespace {
     constexpr const int HeaderSize = 1;
+    enum class ImageType { JPEG, PNG };
 
     sgct::Engine* gEngine;
 
@@ -31,7 +32,6 @@ namespace {
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
-    enum class ImageType { JPEG, PNG };
     std::unique_ptr<sgct_utils::SGCTBox> box;
     GLint matrixLoc = -1;
 

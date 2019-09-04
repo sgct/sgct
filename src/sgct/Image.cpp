@@ -60,7 +60,7 @@ namespace {
         if (length <= 0) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image: PNG reading error! Invalid lenght."
+                "Image: PNG reading error. Invalid length"
             );
             return;
         }
@@ -69,7 +69,7 @@ namespace {
         if (png_ptr->io_ptr == nullptr) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image: PNG reading error! Invalid source pointer."
+                "Image: PNG reading error. Invalid source pointer"
             );
             return;
         }
@@ -77,7 +77,7 @@ namespace {
         if (outData == nullptr) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image: PNG reading error! Invalid destination pointer."
+                "Image: PNG reading error. Invalid destination pointer"
             );
             return;
         }
@@ -119,7 +119,7 @@ bool Image::load(std::string filename) {
     if (filename.empty()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Cannot load emtpy filepath!\n"
+            "Image error: Cannot load emtpy filepath\n"
         );
         return false;
     }
@@ -133,7 +133,7 @@ bool Image::load(std::string filename) {
             if (res) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "Image: '%s' was loaded successfully (%.2f ms)!\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)\n",
                     filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -144,7 +144,7 @@ bool Image::load(std::string filename) {
             if (res) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "Image: '%s' was loaded successfully (%.2f ms)!\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)\n",
                     filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -155,7 +155,7 @@ bool Image::load(std::string filename) {
             if (res) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "Image: '%s' was loaded successfully (%.2f ms)!\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)\n",
                     filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -236,8 +236,8 @@ bool Image::loadJPEG(std::string filename) {
     // 12-bit
     mBytesPerChannel = 1; 
     mChannels = cinfo.output_components;
-    mSize_x = cinfo.output_width;
-    mSize_y = cinfo.output_height;
+    mSizeX = cinfo.output_width;
+    mSizeY = cinfo.output_height;
     
     if (!allocateOrResizeData()) {
         jpeg_destroy_decompress(&cinfo);
@@ -249,10 +249,10 @@ bool Image::loadJPEG(std::string filename) {
     buffer = (*cinfo.mem->alloc_sarray)
         ((j_common_ptr)&cinfo, JPOOL_IMAGE, static_cast<JDIMENSION>(row_stride), 1);
 
-    size_t r = mSize_y - 1;
+    size_t r = mSizeY - 1;
     while (cinfo.output_scanline < cinfo.output_height) {
         jpeg_read_scanlines(&cinfo, buffer, 1);
-        //flip vertically
+        // flip vertically
         memcpy(mData + row_stride*r, buffer[0], row_stride);
         r--;
     }
@@ -263,7 +263,7 @@ bool Image::loadJPEG(std::string filename) {
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
-        "Image: Loaded %s (%dx%d).\n", mFilename.c_str(), mSize_x, mSize_y
+        "Image: Loaded %s (%dx%d).\n", mFilename.c_str(), mSizeX, mSizeY
     );
 
     return true;
@@ -273,14 +273,14 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     if (data == nullptr || len <= 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load JPEG from memory. Invalid input data."
+            "Image: failed to load JPEG from memory. Invalid input data"
         );
         return false;
     }
     
     tjhandle turbo_jpeg_handle = tjInitDecompress();
 
-    //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
+    // only supports 8-bit per color depth for jpeg even if the format supports 12-bit
     mBytesPerChannel = 1; 
     
     int jpegsubsamp;
@@ -289,15 +289,15 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
         turbo_jpeg_handle,
         data,
         static_cast<unsigned long>(len),
-        reinterpret_cast<int*>(&mSize_x),
-        reinterpret_cast<int*>(&mSize_y),
+        reinterpret_cast<int*>(&mSizeX),
+        reinterpret_cast<int*>(&mSizeY),
         &jpegsubsamp,
         &colorspace
     );
     if (decompress < 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr()
+            "Image: failed to load JPEG from memory. Error: %s\n", tjGetErrorStr()
         );
         tjDestroy(turbo_jpeg_handle);
         return false;
@@ -324,8 +324,8 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     if (mChannels < 1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load JPEG from memory. Unsupported chrominance"
-            "subsampling!\n"
+            "Image: failed to load JPEG from memory. Unsupported chrominance "
+            "subsampling\n"
         );
         tjDestroy(turbo_jpeg_handle);
         return false;
@@ -347,20 +347,20 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
         data,
         static_cast<unsigned long>(len),
         mData,
-        static_cast<int>(mSize_x),
+        static_cast<int>(mSizeX),
         0,
-        static_cast<int>(mSize_y),
+        static_cast<int>(mSizeY),
         pixelformat,
         TJFLAG_FASTDCT | TJFLAG_BOTTOMUP
     );
     if (decompress < 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr()
+            "Image: failed to load JPEG from memory. Error: %s\n", tjGetErrorStr()
         );
         tjDestroy(turbo_jpeg_handle);
         
-        delete [] mData;
+        delete[] mData;
         mData = nullptr;
         
         return false;
@@ -368,7 +368,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Error,
-        "Image: Loaded %dx%d JPEG from memory.\n", mSize_x, mSize_y
+        "Image: Loaded %dx%d JPEG from memory\n", mSizeX, mSizeY
     );
     
     tjDestroy(turbo_jpeg_handle);
@@ -389,7 +389,7 @@ bool Image::loadPNG(std::string filename) {
     int color_type, bpp;
 
     FILE* fp = nullptr;
-    #if (_MSC_VER >= 1400) //visual studio 2005 or later
+    #if (_MSC_VER >= 1400)
     if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -459,8 +459,8 @@ bool Image::loadPNG(std::string filename) {
     png_get_IHDR(
         png_ptr,
         info_ptr,
-        reinterpret_cast<png_uint_32*>(&mSize_x),
-        reinterpret_cast<png_uint_32*>(&mSize_y),
+        reinterpret_cast<png_uint_32*>(&mSizeX),
+        reinterpret_cast<png_uint_32*>(&mSizeY),
         &bpp,
         &color_type,
         nullptr,
@@ -494,7 +494,7 @@ bool Image::loadPNG(std::string filename) {
         mChannels = 2;
     }
     else if (color_type == PNG_COLOR_TYPE_PALETTE) {
-        png_set_expand(png_ptr); //expand to RGB -> PNG_TRANSFORM_EXPAND
+        png_set_expand(png_ptr); // expand to RGB -> PNG_TRANSFORM_EXPAND
         mChannels = 3;
     }
     else if (color_type == PNG_COLOR_TYPE_RGB) {
@@ -519,8 +519,8 @@ bool Image::loadPNG(std::string filename) {
 
     //flip the image
     size_t pos = mDataSize;
-    for (size_t i = 0; i < mSize_y; i++) {
-        pos -= mSize_x * mChannels;
+    for (size_t i = 0; i < mSizeY; i++) {
+        pos -= mSizeX * mChannels;
         png_read_row(png_ptr, &mData[pos], nullptr);
     }
 
@@ -530,7 +530,7 @@ bool Image::loadPNG(std::string filename) {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
         "Image: Loaded %s (%dx%d %d-bit).\n",
-        mFilename.c_str(), mSize_x, mSize_y, mBytesPerChannel * 8
+        mFilename.c_str(), mSizeX, mSizeY, mBytesPerChannel * 8
     );
 
     return true;
@@ -540,7 +540,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     if (data == nullptr || len <= PngBytesToCheck) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load PNG from memory. Invalid input data."
+            "Image: failed to load PNG from memory. Invalid input data"
         );
         return false;
     }
@@ -555,7 +555,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     if (!png_check_sig( header, PngBytesToCheck)) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Invalid PNG file header.\n"
+            "Image error: Invalid PNG file header\n"
         );
         return false;
     }
@@ -564,7 +564,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     if (png_ptr == nullptr) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Can't initialize PNG.\n"
+            "Image error: Can't initialize PNG\n"
         );
         return false;
     }
@@ -574,12 +574,12 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         png_destroy_read_struct(&png_ptr, nullptr, nullptr);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Can't allocate memory to read PNG data.\n"
+            "Image error: Can't allocate memory to read PNG data\n"
         );
         return false;
     }
     
-    //set the read position in memory
+    // set the read position in memory
     PNG_IO_DATA io;
     io.memOffset = PngBytesToCheck;
     io.data = data;
@@ -589,7 +589,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Exception occurred while reading PNG data.\n"
+            "Image error: Exception occurred while reading PNG data\n"
         );
         return false;
     }
@@ -600,8 +600,8 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     png_get_IHDR(
         png_ptr,
         info_ptr,
-        reinterpret_cast<png_uint_32*>(&mSize_x),
-        reinterpret_cast<png_uint_32*>(&mSize_y),
+        reinterpret_cast<png_uint_32*>(&mSizeX),
+        reinterpret_cast<png_uint_32*>(&mSizeY),
         &bpp,
         &color_type,
         nullptr,
@@ -609,7 +609,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         nullptr
     );
     
-    //set options
+    // set options
     if (mPreferBGRForImport) {
         png_set_bgr(png_ptr);
     }
@@ -617,7 +617,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         png_set_packing(png_ptr);
     }
     else if (bpp == 16) {
-        png_set_swap(png_ptr); //PNG_TRANSFORM_SWAP_ENDIAN
+        png_set_swap(png_ptr); // PNG_TRANSFORM_SWAP_ENDIAN
     }
 
     mBytesPerChannel = bpp / 8;
@@ -633,7 +633,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         mChannels = 2;
     }
     else if (color_type == PNG_COLOR_TYPE_PALETTE) {
-        png_set_expand(png_ptr); //expand to RGB -> PNG_TRANSFORM_EXPAND
+        png_set_expand(png_ptr); // expand to RGB -> PNG_TRANSFORM_EXPAND
         mChannels = 3;
     }
     else if (color_type == PNG_COLOR_TYPE_RGB) {
@@ -654,10 +654,10 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         return false;
     }
 
-    //flip the image
+    // flip the image
     size_t pos = mDataSize;
-    for (size_t i = 0; i < mSize_y; i++) {
-        pos -= mSize_x * mChannels;
+    for (size_t i = 0; i < mSizeY; i++) {
+        pos -= mSizeX * mChannels;
         png_read_row(png_ptr, &mData[pos], nullptr);
     }
 
@@ -665,8 +665,8 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
-        "Image: Loaded %dx%d %d-bit PNG from memory.\n",
-        mSize_x, mSize_y, mBytesPerChannel * 8
+        "Image: Loaded %dx%d %d-bit PNG from memory\n",
+        mSizeX, mSizeY, mBytesPerChannel * 8
     );
     
     return true;
@@ -674,7 +674,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
 
 bool Image::loadTGA(std::string filename) {
     if (filename.empty()) {
-        //one char + dot and suffix and is 5 char
+        // one char + dot and suffix and is 5 char
         return false;
     }
 
@@ -683,7 +683,7 @@ bool Image::loadTGA(std::string filename) {
     unsigned char header[TgaBytesToCheck];
 
     FILE* fp = nullptr;
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#if (_MSC_VER >= 1400)
     if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -713,8 +713,8 @@ bool Image::loadTGA(std::string filename) {
     }
 
     unsigned char data_type = header[2];
-    mSize_x = static_cast<int>(header[12]) + (static_cast<int>(header[13]) << 8);
-    mSize_y = static_cast<int>(header[14]) + (static_cast<int>(header[15]) << 8);
+    mSizeX = static_cast<int>(header[12]) + (static_cast<int>(header[13]) << 8);
+    mSizeY = static_cast<int>(header[14]) + (static_cast<int>(header[15]) << 8);
     mChannels = static_cast<int>(header[16]) / 8;
 
     if (!allocateOrResizeData()) {
@@ -723,7 +723,7 @@ bool Image::loadTGA(std::string filename) {
     }
     
     if (data_type == 10) {
-        //RGB rle
+        // RGB rle
         if (!decodeTGARLE(fp)) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
@@ -752,7 +752,7 @@ bool Image::loadTGA(std::string filename) {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
         "Image: Loaded %s (%dx%d %d-bit).\n",
-        mFilename.c_str(), mSize_x, mSize_y, mBytesPerChannel * 8
+        mFilename.c_str(), mSizeX, mSizeY, mBytesPerChannel * 8
     );
     return true;
 }
@@ -761,14 +761,14 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
     if (data == nullptr || len <= TgaBytesToCheck) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image: failed to load TGA from memory. Invalid input data."
+            "Image: failed to load TGA from memory. Invalid input data"
         );
         return false;
     }
 
     unsigned char data_type = data[2];
-    mSize_x = static_cast<int>(data[12]) + (static_cast<int>(data[13]) << 8);
-    mSize_y = static_cast<int>(data[14]) + (static_cast<int>(data[15]) << 8);
+    mSizeX = static_cast<int>(data[12]) + (static_cast<int>(data[13]) << 8);
+    mSizeY = static_cast<int>(data[14]) + (static_cast<int>(data[15]) << 8);
     mChannels = static_cast<int>(data[16]) / 8;
 
     if (!allocateOrResizeData()) {
@@ -780,7 +780,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
         if (!decodeTGARLE(&data[TgaBytesToCheck], len - TgaBytesToCheck)) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image error: data is corrupted or insufficent!\n"
+                "Image error: data is corrupted or insufficent\n"
             );
             return false;
         }
@@ -789,7 +789,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
         if (len < (mDataSize + TgaBytesToCheck)) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image error: data is corrupted or insufficent!\n"
+                "Image error: data is corrupted or insufficent\n"
             );
             return false;
         }
@@ -799,22 +799,19 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
     
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
-        "Image: Loaded %dx%d TGA from memory.\n", mSize_x, mSize_y
+        "Image: Loaded %dx%d TGA from memory\n", mSizeX, mSizeY
     );
 
     return true;
 }
 
 bool Image::decodeTGARLE(FILE* fp) {
-    size_t pixelcount = mSize_x * mSize_y;
-    size_t currentpixel = 0;
-    size_t currentbyte = 0;
-    unsigned char chunkheader;
-    unsigned char * chunkPtr;
-    size_t res;
+    const size_t pixelCount = mSizeX * mSizeY;
+    size_t currentPixel = 0;
+    size_t currentByte = 0;
 
     do {
-        chunkheader = 0;
+        unsigned char chunkheader = 0;
 
         if (fread(&chunkheader, 1, 1, fp) == 0) {
             return false;
@@ -823,48 +820,48 @@ bool Image::decodeTGARLE(FILE* fp) {
         if (chunkheader < 128) {
             chunkheader++;
             for (unsigned char counter = 0; counter < chunkheader; counter++) {
-                res = fread(&mData[currentbyte], 1, mChannels, fp);
+                const size_t res = fread(&mData[currentByte], 1, mChannels, fp);
                 if (res != mChannels) {
                     return false;
                 }
 
-                currentbyte += mChannels;
-                currentpixel++;
+                currentByte += mChannels;
+                currentPixel++;
 
-                if (currentpixel > pixelcount) {
+                if (currentPixel > pixelCount) {
                     break;
                 }
             }
         }
         else {
             chunkheader -= 127;
-            res = fread(&mData[currentbyte], 1, mChannels, fp);
+            const size_t res = fread(&mData[currentByte], 1, mChannels, fp);
             if (res != mChannels) {
                 return false;
             }
 
-            chunkPtr = &mData[currentbyte];
-            currentbyte += mChannels;
-            currentpixel++;
+            unsigned char* chunkPtr = &mData[currentByte];
+            currentByte += mChannels;
+            currentPixel++;
 
             for (short counter = 1; counter < chunkheader; counter++) {
-                memcpy(&mData[currentbyte], chunkPtr, mChannels);
+                memcpy(&mData[currentByte], chunkPtr, mChannels);
 
-                currentbyte += mChannels;
-                currentpixel++;
+                currentByte += mChannels;
+                currentPixel++;
 
-                if (currentpixel > pixelcount) {
+                if (currentPixel > pixelCount) {
                     break;
                 }
             }
         }
-    } while (currentpixel < pixelcount);
+    } while (currentPixel < pixelCount);
 
     return true;
 }
 
 bool Image::decodeTGARLE(unsigned char* data, size_t len) {
-    size_t pixelcount = mSize_x * mSize_y;
+    size_t pixelcount = mSizeX * mSizeY;
     size_t currentpixel = 0;
     size_t currentbyte = 0;
     unsigned char chunkheader;
@@ -928,20 +925,16 @@ bool Image::decodeTGARLE(unsigned char* data, size_t len) {
                 }
             }
         }
-
     } while (currentpixel < pixelcount);
 
     return true;
 }
 
-/*!
-    Save the buffer to file. Type is automatically set by filename suffix.
-*/
 bool Image::save() {
     if (mFilename.empty()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Filename not set for saving image.\n"
+            "Image error: Filename not set for saving image\n"
         );
         return false;
     }
@@ -966,13 +959,6 @@ bool Image::save() {
     }
 }
 
-/*!
-        Compression levels 1-9.
-        -1 = Default compression
-        0 = No compression
-        1 = Best speed
-        9 = Best compression
-*/
 bool Image::savePNG(std::string filename, int compressionLevel) {
     setFilename(std::move(filename));
     return savePNG(compressionLevel);
@@ -986,7 +972,7 @@ bool Image::savePNG(int compressionLevel) {
     if (mBytesPerChannel > 2) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Cannot save %d-bit PNG.\n", mBytesPerChannel * 8
+            "Image error: Cannot save %d-bit PNG\n", mBytesPerChannel * 8
         );
         return false;
     }
@@ -994,7 +980,7 @@ bool Image::savePNG(int compressionLevel) {
     double t0 = sgct::Engine::getTime();
     
     FILE* fp = nullptr;
-    #if (_MSC_VER >= 1400) //visual studio 2005 or later
+#if (_MSC_VER >= 1400)
     if (fopen_s( &fp, mFilename.c_str(), "wb") != 0 || !fp) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -1002,7 +988,7 @@ bool Image::savePNG(int compressionLevel) {
         );
         return false;
     }
-    #else
+#else
     fp = fopen(mFilename.c_str(), "wb");
     if (fp == nullptr) {
         sgct::MessageHandler::instance()->print(
@@ -1011,9 +997,9 @@ bool Image::savePNG(int compressionLevel) {
         );
         return false;
     }
-    #endif
+#endif
 
-    /* initialize stuff */
+    // initialize stuff
     png_structp png_ptr = png_create_write_struct(
         PNG_LIBPNG_VER_STRING,
         nullptr,
@@ -1024,15 +1010,15 @@ bool Image::savePNG(int compressionLevel) {
         return false;
     }
 
-    //set compression
+    // set compression
     png_set_compression_level(png_ptr, compressionLevel);
-    //png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
+    // png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
     
     png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
     
     png_set_compression_mem_level(png_ptr, 8);
-    //png_set_compression_mem_level(png_ptr, MAX_MEM_LEVEL);
-    //png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
+    // png_set_compression_mem_level(png_ptr, MAX_MEM_LEVEL);
+    // png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
     
     sgct::SGCTSettings::instance()->getUseRLE() ? 
         png_set_compression_strategy(png_ptr, Z_RLE) :
@@ -1073,12 +1059,12 @@ bool Image::savePNG(int compressionLevel) {
         return false;
     }
 
-    /* write header */
+    // write header
     png_set_IHDR(
         png_ptr,
         info_ptr,
-        static_cast<int>(mSize_x),
-        static_cast<int>(mSize_y),
+        static_cast<int>(mSizeX),
+        static_cast<int>(mSizeY),
         static_cast<int>(mBytesPerChannel) * 8,
         color_type,
         PNG_INTERLACE_NONE,
@@ -1093,37 +1079,35 @@ bool Image::savePNG(int compressionLevel) {
     }
     png_write_info(png_ptr, info_ptr);
 
-    /* write bytes */
+    // write bytes
     if (setjmp(png_jmpbuf(png_ptr))) {
         return false;
     }
 
-    //swap big-endian to little endian
+    // swap big-endian to little endian
     if (mBytesPerChannel == 2) {
         png_set_swap(png_ptr);
     }
 
-    for (size_t y = 0; y < mSize_y; y++) {
-        mRowPtrs[(mSize_y - 1) - y] = reinterpret_cast<png_bytep>(
-            &mData[y * mSize_x * mChannels * mBytesPerChannel]
+    for (size_t y = 0; y < mSizeY; y++) {
+        mRowPtrs[(mSizeY - 1) - y] = reinterpret_cast<png_bytep>(
+            &mData[y * mSizeX * mChannels * mBytesPerChannel]
         );
     }
     png_write_image(png_ptr, mRowPtrs);
 
-    /* end write */
+    // end write
     if (setjmp(png_jmpbuf(png_ptr))) {
         return false;
     }
 
     png_write_end(png_ptr, nullptr);
-
     png_destroy_write_struct(&png_ptr, &info_ptr);
-
     fclose(fp);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "Image: '%s' was saved successfully (%.2f ms)!\n",
+        "Image: '%s' was saved successfully (%.2f ms)\n",
         mFilename.c_str(),
         (sgct::Engine::getTime() - t0) * 1000.0
     );
@@ -1139,7 +1123,7 @@ bool Image::saveJPEG(int quality) {
     if (mBytesPerChannel > 1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Cannot save %d-bit JPEG.\n", mBytesPerChannel * 8
+            "Image error: Cannot save %d-bit JPEG\n", mBytesPerChannel * 8
         );
         return false;
     }
@@ -1147,7 +1131,7 @@ bool Image::saveJPEG(int quality) {
     double t0 = sgct::Engine::getTime();
 
     FILE* fp = nullptr;
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#if (_MSC_VER >= 1400)
     if (fopen_s(&fp, mFilename.c_str(), "wb") != 0 || !fp) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -1169,15 +1153,15 @@ bool Image::saveJPEG(int quality) {
     jpeg_compress_struct cinfo;
     jpeg_error_mgr jerr;
     
-    JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-    size_t row_stride;    /* physical row width in image buffer */
+    JSAMPROW row_pointer[1]; // pointer to JSAMPLE row[s]
+    size_t row_stride;       // physical row width in image buffer
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
     jpeg_stdio_dest(&cinfo, fp);
 
-    cinfo.image_width = static_cast<JDIMENSION>(mSize_x);
-    cinfo.image_height = static_cast<JDIMENSION>(mSize_y);
+    cinfo.image_width = static_cast<JDIMENSION>(mSizeX);
+    cinfo.image_height = static_cast<JDIMENSION>(mSizeY);
     cinfo.input_components = static_cast<int>(mChannels);
 
     switch (mChannels) {
@@ -1199,7 +1183,7 @@ bool Image::saveJPEG(int quality) {
     if (cinfo.in_color_space == JCS_UNKNOWN) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: JPEG doesn't support two channel output!\n"
+            "Image error: JPEG doesn't support two channel output\n"
         );
         return false;
     }
@@ -1210,11 +1194,11 @@ bool Image::saveJPEG(int quality) {
 
     jpeg_start_compress(&cinfo, TRUE);
 
-    row_stride = mSize_x * mChannels; // JSAMPLEs per row in image_buffer
+    row_stride = mSizeX * mChannels; // JSAMPLEs per row in image_buffer
 
     while (cinfo.next_scanline < cinfo.image_height) {
-        //flip vertically
-        row_pointer[0] = &mData[(mSize_y - cinfo.next_scanline - 1) * row_stride];
+        // flip vertically
+        row_pointer[0] = &mData[(mSizeY - cinfo.next_scanline - 1) * row_stride];
         jpeg_write_scanlines(&cinfo, row_pointer, 1);
     }
 
@@ -1225,7 +1209,7 @@ bool Image::saveJPEG(int quality) {
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "Image: '%s' was saved successfully (%.2f ms)!\n",
+        "Image: '%s' was saved successfully (%.2f ms)\n",
         mFilename.c_str(),
         (sgct::Engine::getTime() - t0) * 1000.0
     );
@@ -1240,7 +1224,7 @@ bool Image::saveTGA() {
     if (mBytesPerChannel > 1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Cannot save %d-bit TGA.\n", mBytesPerChannel * 8
+            "Image error: Cannot save %d-bit TGA\n", mBytesPerChannel * 8
         );
         return false;
     }
@@ -1271,25 +1255,25 @@ bool Image::saveTGA() {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image error: Can't create TGA texture file '%s'.\n"
-            "Luminance alpha not supported by the TGA format.\n",
+            "Luminance alpha not supported by the TGA format\n",
             mFilename.c_str()
         );
         return false;
     }
 
     /*
-    TGA data type field
-    0  -  No image data included.
-    1  -  Uncompressed, color-mapped images.
-    2  -  Uncompressed, RGB images.
-    3  -  Uncompressed, black and white images.
-    9  -  Runlength encoded color-mapped images.
-    10  -  Runlength encoded RGB images.
-    11  -  Compressed, black and white images.
-    32  -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding.
-    33  -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding.
-           4-pass quadtree-type process.
-    */
+     * TGA data type field
+     * 0  -  No image data included
+     * 1  -  Uncompressed, color-mapped images
+     * 2  -  Uncompressed, RGB images
+     * 3  -  Uncompressed, black and white images
+     * 9  -  Runlength encoded color-mapped images
+     * 10 -  Runlength encoded RGB images
+     * 11 -  Compressed, black and white images
+     * 32 -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding
+     * 33 -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding
+     *       4-pass quadtree-type process
+     */
 
     unsigned char data_type;
     switch (mChannels) {
@@ -1306,10 +1290,10 @@ bool Image::saveTGA() {
     // The image header
     unsigned char header[TgaBytesToCheck] = { 0 };
     header[ 2] = data_type; //datatype
-    header[12] =  mSize_x        & 0xFF;
-    header[13] = (mSize_x  >> 8) & 0xFF;
-    header[14] =  mSize_y       & 0xFF;
-    header[15] = (mSize_y >> 8) & 0xFF;
+    header[12] =  mSizeX        & 0xFF;
+    header[13] = (mSizeX  >> 8) & 0xFF;
+    header[14] =  mSizeY        & 0xFF;
+    header[15] = (mSizeY >> 8)  & 0xFF;
     header[16] = static_cast<unsigned char>(mChannels * 8);  // bits per pixel
 
     fwrite(header, sizeof(unsigned char), sizeof(header), fp);
@@ -1323,7 +1307,7 @@ bool Image::saveTGA() {
 
     // convert the image data from RGB(a) to BGR(A)
     if (!mPreferBGRForExport) {
-        mPreferBGRForImport = true;//reset BGR flag for texture manager
+        mPreferBGRForImport = true; //reset BGR flag for texture manager
         
         unsigned char tmp;
         if (mChannels >= 3) {
@@ -1335,22 +1319,17 @@ bool Image::saveTGA() {
         }
     }
 
-    //write row-by-row
-    if ( data_type != 10) {
+    // write row-by-row
+    if (data_type != 10) {
         // Non RLE compression
         fwrite(mData, 1, mDataSize, fp);
-
-        /*for(int y=0; y<mSize_y; y++)
-            fwrite(&mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);*/
     }
     else {
-        //RLE ->only for RBG and minimum size is 3x3
-        for (size_t y = 0; y < mSize_y; y++) {
+        // RLE ->only for RBG and minimum size is 3x3
+        for (size_t y = 0; y < mSizeY; y++) {
             size_t pos = 0;
-            unsigned char* row;
-            
-            while (pos < mSize_y) {
-                row = &mData[y * mSize_x * mChannels];
+            while (pos < mSizeY) {
+                unsigned char* row = &mData[y * mSizeX * mChannels];
                 bool rle = isTGAPackageRLE(row, pos);
                 size_t len = getTGAPackageLength(row, pos, rle);
                 
@@ -1361,18 +1340,12 @@ bool Image::saveTGA() {
                 }
                 
                 fwrite(&packetHeader, 1, 1, fp);
-                
-                if (rle) {
-                    fwrite(row + pos * mChannels, mChannels, 1, fp);
-                }
-                else {
-                    fwrite(row + pos * mChannels, mChannels, len, fp);
-                }
+                fwrite(row + pos * mChannels, mChannels, rle ? 1 : len, fp);
                 
                 pos += len;
             }
-        }//end for
-    }//end if RLE
+        }
+    }
 
     fwrite(footer, sizeof(char), sizeof(footer), fp);
 
@@ -1380,7 +1353,7 @@ bool Image::saveTGA() {
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "Image: '%s' was saved successfully (%.2f ms)!\n",
+        "Image: '%s' was saved successfully (%.2f ms)\n",
         mFilename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
     );
 
@@ -1388,34 +1361,30 @@ bool Image::saveTGA() {
 }
 
 bool Image::isTGAPackageRLE(unsigned char* row, size_t pos) {
-    if (pos == mSize_x - 1) {
+    if (pos == mSizeX - 1) {
         return false;
     }
     
     unsigned char* p0 = row + pos * mChannels;
     unsigned char* p1 = p0 + mChannels;
     
-    //minimum three same pixels in row
-    return ((pos < mSize_x - 2) &&
+    // minimum three same pixels in row
+    return ((pos < mSizeX - 2) &&
             memcmp(p0, p1, mChannels) == 0 &&
             memcmp(p1, p1 + mChannels, mChannels) == 0);
 }
 
 size_t Image::getTGAPackageLength(unsigned char* row, size_t pos, bool rle) {
-    if (mSize_x - pos < 3) {
-        return mSize_x - pos;
+    if (mSizeX - pos < 3) {
+        return mSizeX - pos;
     }
-    
-    /*if (pos == mSize_x - 1)
-        return 1;
-    
-    if (pos == mSize_x - 2)
-        return 2;*/
     
     int len = 2;
     if (rle) {
-        while (pos + len < mSize_x) {
-            if (memcmp(&row[pos * mChannels], &row[(pos + len) * mChannels], mChannels) == 0) {
+        while (pos + len < mSizeX) {
+            unsigned char* m1 = &row[pos * mChannels];
+            unsigned char* m2 = &row[(pos + len) * mChannels];
+            if (memcmp(m1, m2, mChannels) == 0) {
                 len++;
             }
             else {
@@ -1428,7 +1397,7 @@ size_t Image::getTGAPackageLength(unsigned char* row, size_t pos, bool rle) {
         }
     }
     else {
-        while (pos + len < mSize_x) {
+        while (pos + len < mSizeX) {
             if (isTGAPackageRLE(row, pos + len)) {
                 return len;
             }
@@ -1446,10 +1415,10 @@ size_t Image::getTGAPackageLength(unsigned char* row, size_t pos, bool rle) {
 
 void Image::setFilename(std::string filename) {
     if (filename.empty() || filename.length() < 5) {
-        //one char + dot and suffix and is 5 char
+        // one char + dot and suffix and is 5 char
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Invalid filename!\n"
+            "Image error: Invalid filename\n"
         );
         return;
     }
@@ -1457,16 +1426,10 @@ void Image::setFilename(std::string filename) {
     mFilename = std::move(filename);
 }
 
-/*!
-Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for most GPU hardware and is used as default.
-*/
 void Image::setPreferBGRExport(bool state) {
     mPreferBGRForExport = state;
 }
 
-/*!
-Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for most GPU hardware and is used as default.
-*/
 void Image::setPreferBGRImport(bool state) {
     mPreferBGRForImport = state;
 }
@@ -1501,7 +1464,7 @@ const unsigned char* Image::getData() const {
 }
 
 unsigned char* Image::getDataAt(size_t x, size_t y) {
-    return &mData[(y * mSize_x + x) * mChannels];
+    return &mData[(y * mSizeX + x) * mChannels];
 }
 
 size_t Image::getChannels() const {
@@ -1509,11 +1472,11 @@ size_t Image::getChannels() const {
 }
 
 size_t Image::getWidth() const {
-    return mSize_x;
+    return mSizeX;
 }
 
 size_t Image::getHeight() const {
-    return mSize_y;
+    return mSizeY;
 }
 
 size_t Image::getDataSize() const {
@@ -1524,66 +1487,51 @@ size_t Image::getBytesPerChannel() const {
     return mBytesPerChannel;
 }
 
-/*!
-Get sample from image data (all pixel values)
-*/
 unsigned char* Image::getSampleAt(size_t x, size_t y) {
-    return &mData[(y * mSize_x + x) * mChannels * mBytesPerChannel];
+    return &mData[(y * mSizeX + x) * mChannels * mBytesPerChannel];
 }
 
-/*!
-Set sample to image data (all pixel values)
-*/
 void Image::setSampleAt(unsigned char* val, size_t x, size_t y) {
     memcpy(
-        &mData[(y * mSize_x + x) * mChannels * mBytesPerChannel],
+        &mData[(y * mSizeX + x) * mChannels * mBytesPerChannel],
         val,
         mChannels * mBytesPerChannel
     );
 }
 
-/*!
-Get sample from image data
-*/
 unsigned char Image::getSampleAt(size_t x, size_t y, ChannelType c) {
-    return mData[(y * mSize_x + x) * mChannels + c];
+    return mData[(y * mSizeX + x) * mChannels + c];
 }
 
-/*!
-Set sample to image data
-*/
 void Image::setSampleAt(unsigned char val, size_t x, size_t y, ChannelType c) {
-    mData[(y * mSize_x + x) * mChannels + c] = val;
+    mData[(y * mSizeX + x) * mChannels + c] = val;
 }
 
-/*!
- Get interpolated sample from image data
-*/
 float Image::getInterpolatedSampleAt(float x, float y, ChannelType c) {
-    int px = static_cast<int>(x); //floor x
-    int py = static_cast<int>(y); //floor y
+    const int px = static_cast<int>(x); // floor x
+    const int py = static_cast<int>(y); // floor y
     
     // Calculate the weights for each pixel
-    float fx = x - static_cast<float>(px);
-    float fy = y - static_cast<float>(py);
+    const float fx = x - static_cast<float>(px);
+    const float fy = y - static_cast<float>(py);
     
-    //if no need for interpolation
+    // if no need for interpolation
     if (fx == 0.f && fy == 0.f) {
         return static_cast<float>(getSampleAt(px, py, c));
     }
     
-    float fx1 = 1.f - fx;
-    float fy1 = 1.f - fy;
+    const float fx1 = 1.f - fx;
+    const float fy1 = 1.f - fy;
     
-    float w0 = fx1 * fy1;
-    float w1 = fx  * fy1;
-    float w2 = fx1 * fy;
-    float w3 = fx  * fy;
+    const float w0 = fx1 * fy1;
+    const float w1 = fx  * fy1;
+    const float w2 = fx1 * fy;
+    const float w3 = fx  * fy;
     
-    float p0 = static_cast<float>(getSampleAt(px, py, c));
-    float p1 = static_cast<float>(getSampleAt(px, py+1, c));
-    float p2 = static_cast<float>(getSampleAt(px+1, py, c));
-    float p3 = static_cast<float>(getSampleAt(px+1, py+1, c));
+    const float p0 = static_cast<float>(getSampleAt(px, py, c));
+    const float p1 = static_cast<float>(getSampleAt(px, py + 1, c));
+    const float p2 = static_cast<float>(getSampleAt(px + 1, py, c));
+    const float p3 = static_cast<float>(getSampleAt(px + 1, py + 1, c));
     
     return p0 * w0 + p1 * w1 + p2 * w2 + p3 * w3;
 }
@@ -1602,8 +1550,8 @@ void Image::setDataPtr(unsigned char* dPtr) {
 }
 
 void Image::setSize(size_t width, size_t height) {
-    mSize_x = width;
-    mSize_y = height;
+    mSizeX = width;
+    mSizeY = height;
 }
 
 void Image::setChannels(size_t channels) {
@@ -1614,26 +1562,26 @@ void Image::setBytesPerChannel(size_t bpc) {
     mBytesPerChannel = bpc;
 }
 
-const char* Image::getFilename() {
-    return mFilename.c_str();
+const std::string& Image::getFilename() const {
+    return mFilename;
 }
 
 bool Image::allocateOrResizeData() {
     double t0 = sgct::Engine::getTime();
     
-    size_t dataSize = mChannels * mSize_x * mSize_y * mBytesPerChannel;
+    size_t dataSize = mChannels * mSizeX * mSizeY * mBytesPerChannel;
 
     if (dataSize <= 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Invalid image size %dx%d %d channels!\n",
-            mSize_x, mSize_y, mChannels
+            "Image error: Invalid image size %dx%d %d channels\n",
+            mSizeX, mSizeY, mChannels
         );
         return false;
     }
 
     if (mData && mDataSize != dataSize) {
-        //re-allocate if needed
+        // re-allocate if needed
         cleanup();
     }
 
@@ -1646,7 +1594,7 @@ bool Image::allocateOrResizeData() {
         catch (std::bad_alloc& ba) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Image error: Failed to allocate %d bytes of image data (%s).\n",
+                "Image error: Failed to allocate %d bytes of image data (%s)\n",
                 dataSize, ba.what()
             );
             mData = nullptr;
@@ -1660,7 +1608,7 @@ bool Image::allocateOrResizeData() {
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Image: Allocated %d bytes for image data (%.2f ms).\n",
+            "Image: Allocated %d bytes for image data (%.2f ms)\n",
             mDataSize, (sgct::Engine::getTime() - t0) * 1000.0
         );
     }
@@ -1675,12 +1623,12 @@ bool Image::allocateRowPtrs() {
     }
 
     try {
-        mRowPtrs = new png_bytep[mSize_y];
+        mRowPtrs = new png_bytep[mSizeY];
     }
     catch (std::bad_alloc& ba) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Image error: Failed to allocate pointers for image data (%s).\n",
+            "Image error: Failed to allocate pointers for image data (%s)\n",
             ba.what()
         );
         mRowPtrs = nullptr;

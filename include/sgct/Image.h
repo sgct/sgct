@@ -36,14 +36,34 @@ public:
     bool loadJPEG(unsigned char* data, size_t len);
     bool loadTGA(std::string filename);
     bool loadTGA(unsigned char* data, size_t len);
+
+    /// Save the buffer to file. Type is automatically set by filename suffix.
     bool save();
+
+    /**
+     * Compression levels 1-9.
+     *   -1 = Default compression
+     *    0 = No compression
+     *    1 = Best speed
+     *    9 = Best compression
+     */
     bool savePNG(std::string filename, int compressionLevel = -1);
     bool savePNG(int compressionLevel = -1);
     bool saveJPEG(int quality = 100);
     bool saveTGA();
     void setFilename(std::string filename);
     void setPreferBGRExport(bool state);
+
+    /**
+     * Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for
+     * most GPU hardware and is used as default.
+     */
     void setPreferBGRImport(bool state);
+
+    /**
+     * Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for
+     * most GPU hardware and is used as default.
+     */
     bool getPreferBGRExport() const;
     bool getPreferBGRImport() const;
 
@@ -56,20 +76,26 @@ public:
     size_t getDataSize() const;
     size_t getBytesPerChannel() const;
 
+    /// Get sample from image data (all pixel values)
     unsigned char* getSampleAt(size_t x, size_t y);
+
+    /// Set sample to image data (all pixel values)
     void setSampleAt(unsigned char* val, size_t x, size_t y);
 
-    //only valid for 8-bit images
+    /// Get sample from image data. Only valid for 8-bit images
     unsigned char getSampleAt(size_t x, size_t y, ChannelType c);
+
+    /// Set sample to image data
     void setSampleAt(unsigned char val, size_t x, size_t y, ChannelType c);
+
+    /// Get interpolated sample from image data
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
-    
 
     void setDataPtr(unsigned char* dPtr);
     void setSize(size_t width, size_t height);
     void setChannels(size_t channels);
     void setBytesPerChannel(size_t bpc);
-    const char* getFilename();
+    const std::string& getFilename() const;
 
 private:
     void cleanup();
@@ -77,11 +103,11 @@ private:
     bool isTGAPackageRLE(unsigned char* row, size_t pos);
     bool decodeTGARLE(FILE* fp);
     bool decodeTGARLE(unsigned char* data, size_t len);
-    std::size_t getTGAPackageLength(unsigned char* row, size_t pos, bool rle);
+    size_t getTGAPackageLength(unsigned char* row, size_t pos, bool rle);
     
     size_t mChannels = 0;
-    size_t mSize_x = 0;
-    size_t mSize_y = 0;
+    size_t mSizeX = 0;
+    size_t mSizeY = 0;
     size_t mDataSize = 0;
     size_t mBytesPerChannel = 1;
     std::string mFilename;

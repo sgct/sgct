@@ -489,7 +489,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     gEngine = new sgct::Engine(arg);
 
-    gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gEngine->setClearColor(0.f, 0.f, 0.f, 0.f);
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setExternalControlCallback(externalControlCallback);
     gEngine->setKeyboardCallbackFunction(keyCallback);
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
 
     if (gEngine->isMaster()) {
         for (int i = 0; i < ExtendedSize; i++) {
-            extraData.addVal(static_cast<float>(rand() % 500) / 500.0f);
+            extraData.addVal(static_cast<float>(rand() % 500) / 500.f);
         }
     }
 

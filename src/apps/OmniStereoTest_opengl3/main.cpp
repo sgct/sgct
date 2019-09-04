@@ -21,7 +21,7 @@ void drawOmniStereo();
 glm::mat4 levels[3];
 sgct_utils::SGCTBox * myBox = NULL;
 sgct_utils::SGCTDomeGrid * myGrid = NULL;
-GLint Matrix_Loc = -1;
+GLint matrixLoc = -1;
 GLint Grid_Matrix_Loc = -1;
 
 //variables to share across cluster
@@ -168,7 +168,7 @@ void initOGLFun()
             "base.vert",
             "base.frag" );
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    matrixLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
     glUniform1i( Tex_Loc, 0 );
 
@@ -211,7 +211,7 @@ void renderBoxes(glm::mat4 transform)
             glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(a), glm::vec3(0.0f, 1.0f, 0.0f));
 
             boxTrans = transform * rot * levels[l];
-            glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &boxTrans[0][0]);
+            glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, &boxTrans[0][0]);
 
             //draw the box
             myBox->draw();

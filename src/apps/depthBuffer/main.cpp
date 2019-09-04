@@ -1,53 +1,45 @@
-#include <stdlib.h>
-#include <stdio.h>
-
+#include <sgct.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/PostFX.h>
+#include <sgct/SGCTUser.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "sgct.h"
-#include "sgct/ClusterManager.h"
-#include "sgct/PostFX.h"
-#include "sgct/SGCTUser.h"
+namespace {
+    sgct::Engine* gEngine;
+
+    int myTextureLocations[2];
+    int currTimeLoc;
+    bool mPause = false;
+    GLuint terrainDisplayList = 0;
+
+    // light data
+    const glm::vec4 lightPosition = glm::vec4(-2.f, 5.f, 5.f, 1.f);
+    const glm::vec4 lightAmbient = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
+    const glm::vec4 lightDiffuse = glm::vec4(0.8f, 0.8f, 0.8f, 1.f);
+    const glm::vec4 lightSpecular = glm::vec4(1.f, 1.f, 1.f, 1.f);
+
+    // variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedBool wireframe(false);
+    sgct::SharedBool info(false);
+    sgct::SharedBool stats(false);
+    sgct::SharedBool takeScreenshot(false);
+    sgct::SharedBool useTracking(false);
+    sgct::SharedBool reloadShaders(false);
+
+    sgct::PostFX fx;
+    struct {
+        int colorTex = -1;
+        int depthTex = -1;
+        int nearClip = -1;
+        int farClip = -1;
+    } fxLocation;
+
+} // namespace
 
 using namespace sgct;
-
-Engine* gEngine;
-
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
-
-void keyCallback(int key, int scancode, int action, int modifiers);
-void drawTerrainGrid(float width, float height, unsigned int wRes, unsigned int dRes);
-
-int myTextureLocations[2];
-int currTimeLoc;
-bool mPause = false;
-GLuint myTerrainDisplayList = 0;
-
-//light data
-GLfloat lightPosition[] = { -2.0f, 5.0f, 5.0f, 1.0f };
-GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
-GLfloat lightDiffuse[]= { 0.8f, 0.8f, 0.8f, 1.0f };
-GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
-
-//variables to share across cluster
-SharedDouble currentTime(0.0);
-SharedBool wireframe(false);
-SharedBool info(false);
-SharedBool stats(false);
-SharedBool takeScreenshot(false);
-SharedBool useTracking(false);
-SharedBool reloadShaders(false);
-
-PostFX fx;
-int fxCTexLoc = -1;
-int fxDTexLoc = -1;
-int fxNearLoc = -1;
-int fxFarLoc = -1;
 
 #ifdef Test
 sgct_utils::SGCTSphere * mySphere = NULL;
@@ -57,10 +49,10 @@ void updatePass() {
     glActiveTexture(GL_TEXTURE1);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDepthTexture());
-    glUniform1i(fxCTexLoc, 0);
-    glUniform1i(fxDTexLoc, 1);
-    glUniform1f(fxNearLoc, gEngine->getNearClippingPlane());
-    glUniform1f(fxFarLoc, gEngine->getFarClippingPlane());
+    glUniform1i(fxLocation.colorTex, 0);
+    glUniform1i(fxLocation.depthTex, 1);
+    glUniform1f(fxLocation.nearClip, gEngine->getNearClippingPlane());
+    glUniform1f(fxLocation.farClip, gEngine->getFarClippingPlane());
 }
 
 void setupPostFXs() {
@@ -68,43 +60,57 @@ void setupPostFXs() {
     fx.setUpdateUniformsFunction( updatePass );
     ShaderProgram& sp = fx.getShaderProgram();
     sp.bind();
-    fxCTexLoc = sp.getUniformLocation("cTex");
-    fxDTexLoc = sp.getUniformLocation("dTex");
-    fxNearLoc = sp.getUniformLocation("near");
-    fxFarLoc = sp.getUniformLocation("far");
+    fxLocation.colorTex = sp.getUniformLocation("cTex");
+    fxLocation.depthTex = sp.getUniformLocation("dTex");
+    fxLocation.nearClip = sp.getUniformLocation("near");
+    fxLocation.farClip = sp.getUniformLocation("far");
     sp.unbind();
     gEngine->addPostFX(fx);
 }
 
-int main(int argc, char* argv[]) {
-    std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new Engine(arg);
+/**
+ * Will draw a flat surface that can be used for the heightmapped terrain.
+ *
+ * @param width Width of the surface
+ * @param depth Depth of the surface
+ * @param wRes Width resolution of the surface
+ * @param dRes Depth resolution of the surface
+ */
+void drawTerrainGrid(float width, float depth, unsigned int wRes, unsigned int dRes) {
+    const float wStart = -width * 0.5f;
+    const float dStart = -depth * 0.5f;
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    
-    SGCTSettings::instance()->setUseDepthTexture(true);
+    const float dW = width / static_cast<float>(wRes);
+    const float dD = depth / static_cast<float>(dRes);
 
-    if (!gEngine->init()) {
-        delete gEngine;
-        return EXIT_FAILURE;
+    for (unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex) {
+        const float dPosLow = dStart + dD * static_cast<float>(depthIndex);
+        const float dPosHigh = dStart + dD * static_cast<float>(depthIndex + 1);
+        const float dTexCoordLow = depthIndex / static_cast<float>(dRes);
+        const float dTexCoordHigh = (depthIndex + 1) / static_cast<float>(dRes);
+
+        glBegin(GL_TRIANGLE_STRIP);
+        glNormal3f(0.f, 1.f, 0.f);
+        for (unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex) {
+            const float wPos = wStart + dW * static_cast<float>(widthIndex);
+            const float wTexCoord = widthIndex / static_cast<float>(wRes);
+
+            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordLow);
+            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordLow);
+            glVertex3f(wPos, 0.f, dPosLow);
+
+            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordHigh);
+            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordHigh);
+            glVertex3f(wPos, 0.f, dPosHigh);
+        }
+
+        glEnd();
     }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    gEngine->render();
-    delete gEngine;
-    exit(EXIT_SUCCESS);
 }
 
 void drawFun() {
 #ifndef Test
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    glLightfv(GL_LIGHT0, GL_POSITION, glm::value_ptr(lightPosition));
     
     glTranslatef(0.f, -0.15f, 2.5f);
     glRotatef(static_cast<float>(currentTime.getVal()) * 8.f, 0.f, 1.f, 0.f);
@@ -126,7 +132,7 @@ void drawFun() {
     glUniform1i(myTextureLocations[1], 1);
 
     glLineWidth(2.0);
-    glCallList(myTerrainDisplayList);
+    glCallList(terrainDisplayList);
 
     // unset current shader program
     ShaderManager::instance()->unBindShaderProgram();
@@ -176,18 +182,17 @@ void initOGLFun() {
 
     // Set up light 0
     glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(lightAmbient));
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(lightDiffuse));
+    glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(lightSpecular));
 
     // create and compile display list
-    myTerrainDisplayList = glGenLists(1);
-    glNewList(myTerrainDisplayList, GL_COMPILE);
+    terrainDisplayList = glGenLists(1);
+    glNewList(terrainDisplayList, GL_COMPILE);
     // draw the terrain once to add it to the display list
     drawTerrainGrid(1.f, 1.f, 256, 256);
     glEndList();
 
-    //sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
     TextureManager::instance()->loadTexture(
         "heightmap",
         "../SharedResources/heightmap.png",
@@ -256,47 +261,7 @@ void cleanUpFun() {
 #ifdef Test
     delete mySphere;
 #endif
-    glDeleteLists(myTerrainDisplayList, 1);
-}
-
-/**
- * Will draw a flat surface that can be used for the heightmapped terrain.
- *
- * @param width Width of the surface
- * @param depth Depth of the surface
- * @param wRes Width resolution of the surface
- * @param dRes Depth resolution of the surface
- */
-void drawTerrainGrid(float width, float depth, unsigned int wRes, unsigned int dRes) {
-    const float wStart = -width * 0.5f;
-    const float dStart = -depth * 0.5f;
-
-    const float dW = width / static_cast<float>(wRes);
-    const float dD = depth / static_cast<float>(dRes);
-
-    for (unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex) {
-        const float dPosLow = dStart + dD * static_cast<float>(depthIndex);
-        const float dPosHigh = dStart + dD * static_cast<float>(depthIndex + 1);
-        const float dTexCoordLow = depthIndex / static_cast<float>(dRes);
-        const float dTexCoordHigh = (depthIndex+1) / static_cast<float>(dRes);
-
-        glBegin(GL_TRIANGLE_STRIP);
-        glNormal3f(0.f, 1.f, 0.f);
-        for (unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex ) {
-            const float wPos = wStart + dW * static_cast<float>( widthIndex );
-            const float wTexCoord = widthIndex / static_cast<float>( wRes );
-
-            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordLow);
-            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordLow);
-            glVertex3f(wPos, 0.f, dPosLow);
-
-            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordHigh);
-            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordHigh);
-            glVertex3f(wPos, 0.f, dPosHigh);
-        }
-
-        glEnd();
-    }
+    glDeleteLists(terrainDisplayList, 1);
 }
 
 void keyCallback(int key, int, int action, int) {
@@ -363,4 +328,30 @@ void keyCallback(int key, int, int action, int) {
             break;
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+
+    SGCTSettings::instance()->setUseDepthTexture(true);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

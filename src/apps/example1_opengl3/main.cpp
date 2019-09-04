@@ -1,163 +1,136 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void myInitFun();
-void drawFun();
-void preSyncFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
+    sgct::SharedDouble currentTime(0.0);
 
-sgct::SharedDouble currentTime(0.0);
+    GLuint vertexArray = 0;
+    GLuint vertexPositionBuffer = 0;
+    GLuint vertexColorBuffer = 0;
 
-//global vars
-GLuint vertexArray = GL_FALSE;
-GLuint vertexPositionBuffer = GL_FALSE;
-GLuint vertexColorBuffer = GL_FALSE;
+    GLint matrixLoc = -1;
+} // namespace
 
-GLint matrixLoc = -1;
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    // Allocate
-    gEngine = new sgct::Engine( argc, argv );
-
-    // Bind your functions
-    gEngine->setInitOGLFunction( myInitFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Init the engine
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up (de-allocate)
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void myInitFun()
-{
-    const GLfloat vertex_position_data[] = { 
-        -0.5f, -0.5f, 0.0f,
-         0.0f, 0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f
+void initFun() {
+    const GLfloat positionData[] = { 
+        -0.5f, -0.5f, 0.f,
+         0.f, 0.5f, 0.f,
+         0.5f, -0.5f, 0.f
     };
 
-    const GLfloat vertex_color_data[] = { 
+    const GLfloat colorData[] = { 
         1.0f, 0.0f, 0.0f, //red
         0.0f, 1.0f, 0.0f, //green
         0.0f, 0.0f, 1.0f //blue
     };
 
-    //generate the VAO
+    // generate the VAO
     glGenVertexArrays(1, &vertexArray);
     glBindVertexArray(vertexArray);
 
-    //generate VBO for vertex positions
+    // generate VBO for vertex positions
     glGenBuffers(1, &vertexPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
-    //upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_position_data), vertex_position_data, GL_STATIC_DRAW);
+    // upload data to GPU
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-    );
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 
-    //generate VBO for vertex colors
+    // generate VBO for vertex colors
     glGenBuffers(1, &vertexColorBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexColorBuffer);
-    //upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_color_data), vertex_color_data, GL_STATIC_DRAW);
+    // upload data to GPU
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colorData), colorData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-    );
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 
-    //unbind
+    // unbind
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "SimpleVertexShader.vertexshader",
-            "SimpleFragmentShader.fragmentshader" );
+    ShaderManager::instance()->addShaderProgram(
+        "xform",
+        "SimpleVertexShader.vertexshader",
+        "SimpleFragmentShader.fragmentshader"
+    );
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    ShaderManager::instance()->bindShaderProgram("xform");
  
-    matrixLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
+    matrixLoc = prg.getUniformLocation("MVP");
  
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
-void drawFun()
-{
+void drawFun() {
     float speed = 0.8f;
 
-    glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( currentTime.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+    glm::mat4 scene = glm::rotate(
+        glm::mat4(1.f),
+        static_cast<float>(currentTime.getVal()) * speed,
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    ShaderManager::instance()->bindShaderProgram("xform");
         
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, &MVP[0][0]);
-
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glBindVertexArray(vertexArray);
     
-    // Draw the triangle !
+    // Draw the triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //unbind
+    // unbind
     glBindVertexArray(0);
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void preSyncFun()
-{
-    //set the time only on the master
-    if( gEngine->isMaster() )
-    {
-        //get the time in seconds
+void preSyncFun() {
+    // set the time only on the master
+    if (gEngine->isMaster()) {
+        // get the time in seconds
         currentTime.setVal(sgct::Engine::getTime());
     }
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
+void encodeFun() {
+    sgct::SharedData::instance()->writeDouble(currentTime);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble( &currentTime );
+void decodeFun() {
+    sgct::SharedData::instance()->readDouble(currentTime);
 }
 
-void cleanUpFun()
-{
-    if(vertexPositionBuffer)
-        glDeleteBuffers(1, &vertexPositionBuffer);
-    if(vertexColorBuffer)
-        glDeleteBuffers(1, &vertexColorBuffer);
-    if(vertexArray)
-        glDeleteVertexArrays(1, &vertexArray);
+void cleanUpFun() {
+    glDeleteBuffers(1, &vertexPositionBuffer);
+    glDeleteBuffers(1, &vertexColorBuffer);
+    glDeleteVertexArrays(1, &vertexArray);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    // Bind your functions
+    gEngine->setInitOGLFunction(initFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    // Init the engine
+    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

@@ -2,7 +2,7 @@
 
 sgct::Engine * gEngine;
 
-void myInitFun();
+void initFun();
 void drawFun();
 void preSyncFun();
 void postSyncPreDrawFun();
@@ -27,7 +27,7 @@ int main( int argc, char* argv[] )
     gEngine = new sgct::Engine( argc, argv );
 
     // Bind your functions
-    gEngine->setInitOGLFunction( myInitFun );
+    gEngine->setInitOGLFunction( initFun );
     gEngine->setDrawFunction( drawFun );
     gEngine->setPreSyncFunction( preSyncFun );
     gEngine->setCleanUpFunction( cleanUpFun );
@@ -53,7 +53,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myInitFun()
+void initFun()
 {
     const GLfloat vertex_position_data[] = { 
         -0.5f, -0.5f, 0.0f,

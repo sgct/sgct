@@ -3,11 +3,11 @@
 sgct::Engine * gEngine;
 
 void myInitFun();
-void myDrawFun();
-void myPreSyncFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 
 sgct::SharedDouble currentTime(0.0);
 
@@ -25,11 +25,11 @@ int main( int argc, char* argv[] )
 
     // Bind your functions
     gEngine->setInitOGLFunction( myInitFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
@@ -111,7 +111,7 @@ void myInitFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myDrawFun()
+void drawFun()
 {
     float speed = 0.8f;
 
@@ -132,7 +132,7 @@ void myDrawFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     //set the time only on the master
     if( gEngine->isMaster() )
@@ -142,17 +142,17 @@ void myPreSyncFun()
     }
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(vertexPositionBuffer)
         glDeleteBuffers(1, &vertexPositionBuffer);

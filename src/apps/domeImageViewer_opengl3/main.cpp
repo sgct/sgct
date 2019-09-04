@@ -6,22 +6,22 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 void keyCallback(int key, int action);
 void contextCreationCallback(GLFWwindow * win);
 
 //drag and drop files to window
-void myDropCallback(int count, const char** paths);
+void dropCallback(int count, const char** paths);
 
-void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex);
-void myDataTransferStatus(bool connected, int clientIndex);
-void myDataTransferAcknowledge(int packageId, int clientIndex);
+void dataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex);
+void dataTransferStatus(bool connected, int clientIndex);
+void dataTransferAcknowledge(int packageId, int clientIndex);
 
 void startDataTransfer();
 void readImage(unsigned char * data, int len);
@@ -54,7 +54,7 @@ sgct::SharedVector<GLuint> texIds;
 double sendTimer = 0.0;
 
 enum imageType { IM_JPEG, IM_PNG };
-const int headerSize = 1;
+const int HeaderSize = 1;
 sgct_utils::SGCTDome * dome = NULL;
 GLint Matrix_Loc = -1;
 
@@ -67,14 +67,14 @@ int main( int argc, char* argv[] )
     
     gEngine = new sgct::Engine( argc, argv );
     
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction( cleanUpFun );
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setContextCreationCallback( contextCreationCallback );
-    gEngine->setDropCallbackFunction(myDropCallback);
+    gEngine->setDropCallbackFunction(dropCallback);
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
     {
@@ -82,14 +82,14 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     
-    gEngine->setDataTransferCallback(myDataTransferDecoder);
-    gEngine->setDataTransferStatusCallback(myDataTransferStatus);
-    gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
+    gEngine->setDataTransferCallback(dataTransferDecoder);
+    gEngine->setDataTransferStatusCallback(dataTransferStatus);
+    gEngine->setDataAcknowledgeCallback(dataTransferAcknowledge);
     //gEngine->setDataTransferCompression(true, 6);
 
     //sgct::SharedData::instance()->setCompression(true);
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -109,7 +109,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {    
     if (texIndex.getVal() != -1)
     {
@@ -141,7 +141,7 @@ void myDrawFun()
     }
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -161,14 +161,14 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
     gEngine->setWireframe(wireframe.getVal());
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
 
@@ -189,7 +189,7 @@ void myInitOGLFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&info);
@@ -199,7 +199,7 @@ void myEncodeFun()
     sgct::SharedData::instance()->writeInt32(&incrIndex);
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&info);
@@ -209,7 +209,7 @@ void myDecodeFun()
     sgct::SharedData::instance()->readInt32(&incrIndex);
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if (dome != NULL)
         delete dome;
@@ -304,7 +304,7 @@ void contextCreationCallback(GLFWwindow * win)
         loadThread = new (std::nothrow) std::thread(threadWorker);
 }
 
-void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
+void dataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
     sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
@@ -315,12 +315,12 @@ void myDataTransferDecoder(void * receivedData, int receivedlength, int packageI
     uploadTexture();
 }
 
-void myDataTransferStatus(bool connected, int clientIndex)
+void dataTransferStatus(bool connected, int clientIndex)
 {
     sgct::MessageHandler::instance()->print("Transfer node %d is %s.\n", clientIndex, connected ? "connected" : "disconnected");
 }
 
-void myDataTransferAcknowledge(int packageId, int clientIndex)
+void dataTransferAcknowledge(int packageId, int clientIndex)
 {
     sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
     
@@ -386,13 +386,13 @@ void startDataTransfer()
             std::streamsize size = file.tellg();
             file.seekg(0, std::ios::beg);
 
-            std::vector<char> buffer(size + headerSize);
+            std::vector<char> buffer(size + HeaderSize);
             char type = tmpPair.second;
 
             //write header (single unsigned char)
             buffer[0] = type;
 
-            if (file.read(buffer.data() + headerSize, size))
+            if (file.read(buffer.data() + HeaderSize, size))
             {
                 //transfer
                 gEngine->transferDataBetweenNodes(buffer.data(), static_cast<int>(buffer.size()), i);
@@ -416,11 +416,11 @@ void readImage(unsigned char * data, int len)
     switch( type )
     {
         case IM_JPEG:
-            result = img->loadJPEG(reinterpret_cast<unsigned char*>(data + headerSize), len - headerSize);
+            result = img->loadJPEG(reinterpret_cast<unsigned char*>(data + HeaderSize), len - HeaderSize);
             break;
             
         case IM_PNG:
-            result = img->loadPNG(reinterpret_cast<unsigned char*>(data + headerSize), len - headerSize);
+            result = img->loadPNG(reinterpret_cast<unsigned char*>(data + HeaderSize), len - HeaderSize);
             break;
     }
     
@@ -524,7 +524,7 @@ void uploadTexture()
     mutex.unlock();
 }
 
-void myDropCallback(int count, const char** paths)
+void dropCallback(int count, const char** paths)
 {
     if (gEngine->isMaster())
     {

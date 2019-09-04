@@ -5,12 +5,12 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
 void keyCallback(int key, int action);
 
 int time_loc = -1;
@@ -23,13 +23,13 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     if( !gEngine->init() )
     {
@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     //set current shader program
     sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
@@ -67,7 +67,7 @@ void myDrawFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::ShaderManager::instance()->addShaderProgram( "SimpleColor", "simple.vert", "simple.frag" );
     sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
@@ -77,19 +77,19 @@ void myInitOGLFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &reloadShader );
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -97,7 +97,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     if( reloadShader.getVal() )
     {

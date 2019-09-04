@@ -4,13 +4,13 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myCleanUpFun();
-void myEncodeFun();
-void myDecodeFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void cleanUpFun();
+void encodeFun();
+void decodeFun();
 
 void drawScene();
 void clearBuffers();
@@ -39,11 +39,11 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
 
     if( !gEngine->init() )
     {
@@ -51,8 +51,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -64,7 +64,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     sgct_core::OffScreenBuffer * fbo = gEngine->getCurrentFBO();
     std::size_t drawIndex = gEngine->getCurrentDrawBufferIndex();
@@ -155,7 +155,7 @@ void drawScene()
     glPopAttrib();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -163,7 +163,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     //Fisheye cubemaps are constant size
     for(unsigned int i=0; i < gEngine->getNumberOfWindows(); i++)
@@ -174,7 +174,7 @@ void myPostSyncPreDrawFun()
         }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
@@ -207,7 +207,7 @@ void myInitOGLFun()
     createFBOs();
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(myBox != NULL) delete myBox;
     
@@ -215,12 +215,12 @@ void myCleanUpFun()
     buffers.clear();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(  &currentTime  );
 }

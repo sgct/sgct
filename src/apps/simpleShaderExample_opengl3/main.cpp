@@ -3,12 +3,12 @@
 sgct::Engine * gEngine;
 
 void myInitFun();
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 void keyCallback(int key, int action);
 
 sgct::SharedDouble currentTime(0.0);
@@ -28,13 +28,13 @@ int main( int argc, char* argv[] )
 
     // Bind your functions
     gEngine->setInitOGLFunction( myInitFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
@@ -93,7 +93,7 @@ void myInitFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myDrawFun()
+void drawFun()
 {
     float speed = 0.87f;
 
@@ -115,7 +115,7 @@ void myDrawFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -123,7 +123,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     if( reloadShader.getVal() )
     {
@@ -154,19 +154,19 @@ void keyCallback(int key, int action)
     }
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &reloadShader );
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(vertexPositionBuffer)
         glDeleteBuffers(1, &vertexPositionBuffer);

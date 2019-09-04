@@ -15,14 +15,14 @@ namespace {
 
 sgct::Engine* gEngine;
 
-void myDrawFun();
+void drawFun();
 void myDraw2DFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
 void myPostDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
 
 void keyCallback(int key, int scancode, int action, int mods);
 void externalControlCallback(const char * receivedChars, int size);
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     gEngine = new sgct::Engine(arg);
 
     gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setInitOGLFunction( initOGLFun );
     gEngine->setExternalControlCallback(externalControlCallback);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setDraw2DFunction(myDraw2DFun);
@@ -66,12 +66,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setPostDrawFunction( myPostDrawFun );
 
     const std::vector<std::string>& addresses =
@@ -119,7 +119,7 @@ void myDraw2DFun() {
 #endif
 }
 
-void myDrawFun() {
+void drawFun() {
     if (slowRendering.getVal()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -340,7 +340,7 @@ void myDrawFun() {
 #endif
 }
 
-void myPreSyncFun() {
+void preSyncFun() {
     if (gEngine->isMaster()) {
         dt.setVal(gEngine->getDt());
         currentTime.setVal(gEngine->getTime());
@@ -365,7 +365,7 @@ void myPreSyncFun() {
     }
 }
 
-void myPostSyncPreDrawFun() {
+void postSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(showFPS.getVal());
 
     // barrier is set by swap group not window both windows has the same HDC
@@ -387,7 +387,7 @@ void myPostDrawFun() {
     }
 }
 
-void myInitOGLFun() {
+void initOGLFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glDisable(GL_LIGHTING);
@@ -407,7 +407,7 @@ void myInitOGLFun() {
     );
 }
 
-void myEncodeFun() {
+void encodeFun() {
     unsigned char flags = 0;
     flags = showFPS.getVal()        ? flags | 1   : flags & ~1;   // bit 1
     flags = extraPackages.getVal()  ? flags | 2   : flags & ~2;   // bit 2
@@ -431,7 +431,7 @@ void myEncodeFun() {
     }
 }
 
-void myDecodeFun() {
+void decodeFun() {
     sgct::SharedUChar sf;
     sgct::SharedData::instance()->readDouble(dt);
     sgct::SharedData::instance()->readDouble(currentTime);

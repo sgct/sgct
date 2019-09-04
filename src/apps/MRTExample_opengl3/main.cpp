@@ -6,13 +6,13 @@
 sgct::Engine * gEngine;
 
 //callbacks
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 void keyCallback(int key, int action);
 
 sgct_utils::SGCTBox * myBox = NULL;
@@ -31,11 +31,11 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction( cleanUpFun );
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
     //force normal & position textures to be created & used in rendering loop
@@ -50,8 +50,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -98,7 +98,7 @@ void myDrawFun()
     glDisable(GL_DEPTH_TEST);
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -106,7 +106,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     if (takeScreenshot.getVal())
     {
@@ -115,7 +115,7 @@ void myPostSyncPreDrawFun()
     }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::ShaderManager::instance()->addShaderProgram("MRT", "mrt.vert", "mrt.frag");
     sgct::ShaderManager::instance()->bindShaderProgram("MRT");
@@ -151,19 +151,19 @@ void myInitOGLFun()
     glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&takeScreenshot);
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&takeScreenshot);
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(myBox != NULL)
         delete myBox;

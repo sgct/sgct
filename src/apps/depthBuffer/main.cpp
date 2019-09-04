@@ -12,13 +12,13 @@ using namespace sgct;
 
 Engine* gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 
 void keyCallback(int key, int scancode, int action, int modifiers);
 void drawTerrainGrid(float width, float height, unsigned int wRes, unsigned int dRes);
@@ -80,11 +80,11 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     gEngine = new Engine(arg);
 
-    gEngine->setInitOGLFunction(myInitOGLFun);
-    gEngine->setDrawFunction(myDrawFun);
-    gEngine->setPreSyncFunction(myPreSyncFun);
-    gEngine->setCleanUpFunction(myCleanUpFun);
-    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     
     SGCTSettings::instance()->setUseDepthTexture(true);
@@ -94,15 +94,15 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
     delete gEngine;
     exit(EXIT_SUCCESS);
 }
 
-void myDrawFun() {
+void drawFun() {
 #ifndef Test
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     
@@ -141,13 +141,13 @@ void myDrawFun() {
 #endif
 }
 
-void myPreSyncFun() {
+void preSyncFun() {
     if (gEngine->isMaster() && !mPause) {
         currentTime.setVal(currentTime.getVal() + gEngine->getAvgDt());
     }
 }
 
-void myPostSyncPreDrawFun() {
+void postSyncPreDrawFun() {
     gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
@@ -167,7 +167,7 @@ void myPostSyncPreDrawFun() {
     }
 }
 
-void myInitOGLFun() {
+void initOGLFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
@@ -232,7 +232,7 @@ void myInitOGLFun() {
 #endif
 }
 
-void myEncodeFun() {
+void encodeFun() {
     sgct::SharedData::instance()->writeDouble(currentTime);
     sgct::SharedData::instance()->writeBool(wireframe);
     sgct::SharedData::instance()->writeBool(info);
@@ -242,7 +242,7 @@ void myEncodeFun() {
     sgct::SharedData::instance()->writeBool(reloadShaders);
 }
 
-void myDecodeFun() {
+void decodeFun() {
     sgct::SharedData::instance()->readDouble(currentTime);
     sgct::SharedData::instance()->readBool(wireframe);
     sgct::SharedData::instance()->readBool(info);
@@ -252,7 +252,7 @@ void myDecodeFun() {
     sgct::SharedData::instance()->readBool(reloadShaders);
 }
 
-void myCleanUpFun() {
+void cleanUpFun() {
 #ifdef Test
     delete mySphere;
 #endif

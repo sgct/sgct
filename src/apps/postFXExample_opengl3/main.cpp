@@ -4,12 +4,12 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 
 sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
@@ -98,10 +98,10 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
     {
@@ -109,8 +109,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -122,7 +122,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
@@ -152,7 +152,7 @@ void myDrawFun()
     glDisable( GL_DEPTH_TEST );
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -160,7 +160,7 @@ void myPreSyncFun()
     }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
@@ -189,17 +189,17 @@ void myInitOGLFun()
     setupPostFXs();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(&currentTime);
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(&currentTime);
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(myBox != NULL)
         delete myBox;

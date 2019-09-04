@@ -7,13 +7,13 @@
 sgct::Engine * gEngine;
 
 //callbacks
-void myDrawFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void postSyncPreDrawFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 void keyCallback(int key, int action);
 
 //regular functions
@@ -36,11 +36,11 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
@@ -49,8 +49,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
@@ -96,7 +96,7 @@ void myDrawFun()
     glDisable( GL_DEPTH_TEST );
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -104,7 +104,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     if( reloadShader.getVal() )
     {
@@ -124,7 +124,7 @@ void myPostSyncPreDrawFun()
     }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
     sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
@@ -151,13 +151,13 @@ void myInitOGLFun()
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readBool( &reloadShader );
@@ -168,7 +168,7 @@ void myDecodeFun()
     Textures are deleted automatically when using texture manager
     Shaders are deleted automatically when using shader manager
 */
-void myCleanUpFun()
+void cleanUpFun()
 {
     if( VertexArrayID )
     {

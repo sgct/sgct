@@ -6,13 +6,13 @@ sgct::Engine * gEngine;
 //-----------------------
 // function declarations 
 //-----------------------
-void myInitOGLFun();
-void myPreSyncFun();
-void myDrawFun();
+void initOGLFun();
+void preSyncFun();
+void drawFun();
 
 //for syncing variables across a cluster
-void myEncodeFun();
-void myDecodeFun();
+void encodeFun();
+void decodeFun();
 
 void drawAxes(float size);
 void drawWireCube(float size);
@@ -37,9 +37,9 @@ int main( int argc, char* argv[] )
     gEngine = new sgct::Engine( argc, argv );
 
     // Bind your functions
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setDrawFunction( drawFun );
 
     // Init the engine
     if( !gEngine->init() )
@@ -48,8 +48,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
-    sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
+    sgct::SharedData::instance()->setEncodeFunction( encodeFun );
+    sgct::SharedData::instance()->setDecodeFunction( decodeFun );
 
     // Main loop
     gEngine->render();
@@ -61,7 +61,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     glEnable(GL_DEPTH_TEST);
 
@@ -98,7 +98,7 @@ void myInitOGLFun()
 /*
     This callback is called once per render loop iteration.
 */
-void myPreSyncFun()
+void preSyncFun()
 {
     /*
     Store all transforms in the array by looping through all trackers and all devices.
@@ -186,7 +186,7 @@ void myPreSyncFun()
     This callback can be called several times per render loop iteration.
     Using a single viewport in stereo (3D) usually results in refresh rate of 120 Hz.
 */
-void myDrawFun()
+void drawFun()
 {
     //draw some yellow cubes in space
     for( float i=-0.5f; i<=0.5f; i+=0.2f)
@@ -239,14 +239,14 @@ void myDrawFun()
 #endif
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeVector( &sharedTransforms );
     sgct::SharedData::instance()->writeString( &sharedText );
     sgct::SharedData::instance()->writeObj( &sharedHeadSensorIndex );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readVector( &sharedTransforms );
     sgct::SharedData::instance()->readString( &sharedText );

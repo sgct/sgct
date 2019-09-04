@@ -4,14 +4,14 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPostSyncPreDrawFun();
-void myPreSyncFun();
+void drawFun();
+void postSyncPreDrawFun();
+void preSyncFun();
 void myPostDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 
 void renderBoxes(glm::mat4 transform);
 void renderGrid(glm::mat4 transform);
@@ -67,12 +67,12 @@ int main( int argc, char* argv[] )
 
     sgct::SGCTSettings::instance()->setSwapInterval(0);
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setPostDrawFunction( myPostDrawFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
     {
@@ -80,8 +80,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -93,7 +93,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
@@ -122,7 +122,7 @@ void myDrawFun()
     glDisable( GL_DEPTH_TEST );
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -130,7 +130,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     if (takeScreenshot.getVal())
     {
@@ -145,7 +145,7 @@ void myPostDrawFun()
     gEngine->terminate();
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
@@ -182,19 +182,19 @@ void myInitOGLFun()
     initOmniStereo(domeDiameter, domeTilt, maskOutSimilarities);
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(&currentTime);
     sgct::SharedData::instance()->writeBool(&takeScreenshot);
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(&currentTime);
     sgct::SharedData::instance()->readBool(&takeScreenshot);
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
     if(myBox != NULL)
         delete myBox;

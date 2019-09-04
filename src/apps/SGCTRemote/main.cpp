@@ -2,14 +2,14 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myEncodeFun();
-void myDecodeFun();
+void drawFun();
+void preSyncFun();
+void encodeFun();
+void decodeFun();
 
 sgct::SharedDouble currentTime(0.0);
 
-void myPostSyncPreDrawFun();
+void postSyncPreDrawFun();
 void externalControlMessageCallback(const char * receivedChars, int size);
 void externalControlStatusCallback(bool connected);
 
@@ -25,14 +25,14 @@ int main( int argc, char* argv[] )
     gEngine = new sgct::Engine( argc, argv );
 
     // Bind your functions
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
     gEngine->setExternalControlCallback( externalControlMessageCallback );
     gEngine->setExternalControlStatusCallback( externalControlStatusCallback );
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
     if( !gEngine->init() )
@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     float speed = 50.0f;
     glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
@@ -71,7 +71,7 @@ void myDrawFun()
     glEnd();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     //set the time only on the master
     if( gEngine->isMaster() )
@@ -81,14 +81,14 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDrawFun()
 {
     gEngine->setDisplayInfoVisibility( showStats.getVal() );
     gEngine->setStatsGraphVisibility( showGraph.getVal() );
     gEngine->setWireframe( showWireframe.getVal() );
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeFloat( &size_factor );
@@ -97,7 +97,7 @@ void myEncodeFun()
     sgct::SharedData::instance()->writeBool( &showWireframe );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readFloat( &size_factor );

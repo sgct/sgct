@@ -5,11 +5,11 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
+void drawFun();
+void preSyncFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
 //input callbacks
 void keyCallback(int key, int action);
 void mouseButtonCallback(int button, int action, int mods);
@@ -45,9 +45,9 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
     gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
     gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -61,8 +61,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
-    sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
+    sgct::SharedData::instance()->setEncodeFunction( encodeFun );
+    sgct::SharedData::instance()->setDecodeFunction( decodeFun );
 
     // Main loop
     gEngine->render();
@@ -75,7 +75,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     //create and compile display list
     myLandscapeDisplayList = glGenLists(1);
@@ -99,7 +99,7 @@ void myInitOGLFun()
     glEndList();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -164,7 +164,7 @@ void myPreSyncFun()
     }
 }
 
-void myDrawFun()
+void drawFun()
 {
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LESS);
@@ -177,12 +177,12 @@ void myDrawFun()
     glEnable(GL_DEPTH_TEST);
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeObj( &xform );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readObj( &xform );
 }

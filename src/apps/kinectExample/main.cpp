@@ -2,11 +2,11 @@
 
 sgct::Engine * gEngine;
 
-void myInitOGLFun();
-void myDrawFun();
-void myPreSyncFun();
-void myEncodeFun();
-void myDecodeFun();
+void initOGLFun();
+void drawFun();
+void preSyncFun();
+void encodeFun();
+void decodeFun();
 
 sgct::SharedDouble currentTime(0.0);
 sgct::SharedFloat size_factor(0.5f);
@@ -25,11 +25,11 @@ int main( int argc, char* argv[] )
     gEngine = new sgct::Engine( argc, argv );
 
     // Bind your functions
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
     if( !gEngine->init() )
@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     glEnable(GL_DEPTH_TEST);
  
@@ -71,7 +71,7 @@ void myInitOGLFun()
     }
 }
 
-void myDrawFun()
+void drawFun()
 {
     float speed = 50.0f;
     glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
@@ -91,7 +91,7 @@ void myDrawFun()
     glEnd();
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     //set the time only on the master
     if( gEngine->isMaster() )
@@ -109,13 +109,13 @@ void myPreSyncFun()
     }
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
     sgct::SharedData::instance()->writeFloat( &size_factor );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
     sgct::SharedData::instance()->readFloat( &size_factor );

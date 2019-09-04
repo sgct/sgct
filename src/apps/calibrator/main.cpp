@@ -8,121 +8,63 @@
 #include <sgct/SharedData.h>
 #include <sgct/SharedDataTypes.h>
 #include <sgct/TextureManager.h>
+#include <memory>
 
-sgct::Engine* gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void draw();
-void initGL();
-void postSync();
-void encode();
-void decode();
-void cleanUp();
-void keyCallback(int key, int scancode, int action, int modifier);
-void screenShot(sgct_core::Image* imPtr, size_t winIndex,
-    sgct_core::ScreenCapture::EyeIndex ei);
+    std::unique_ptr<Dome> gDome;
+    std::vector<unsigned char> gData;
 
-void drawGeoCorrPatt();
-void drawColCorrPatt();
-void drawTexturedObject();
+    sgct::SharedInt16 displayState(0);
+    sgct::SharedInt16 colorState(0);
+    sgct::SharedBool showGeoCorrectionPattern(true);
+    sgct::SharedBool showBlendZones(false);
+    sgct::SharedBool showChannelZones(false);
+    sgct::SharedBool showId(false);
+    sgct::SharedBool takeScreenShot(false);
+    sgct::SharedBool wireframe(false);
+    sgct::SharedBool warping(true);
+    sgct::SharedInt32 textureIndex(0);
 
-Dome* mDome = nullptr;
-unsigned char* mData = nullptr;
+    const int16_t lastState = 6;
+    bool ctrlPressed = false;
+    bool shiftPressed = false;
+    bool useShader = true;
+    bool isTiltSet = false;
+    bool useDisplayLists = false;
+    double tilt = 0.0;
+    double radius = 7.4;
 
-sgct::SharedInt16 displayState(0);
-sgct::SharedInt16 colorState(0);
-sgct::SharedBool showGeoCorrectionPattern(true);
-sgct::SharedBool showBlendZones(false);
-sgct::SharedBool showChannelZones(false);
-sgct::SharedBool showId(false);
-sgct::SharedBool takeScreenShot(false);
-sgct::SharedBool wireframe(false);
-sgct::SharedBool warping(true);
-sgct::SharedInt32 textureIndex(0);
-
-const int16_t lastState = 6;
-bool ctrlPressed = false;
-bool shiftPressed = false;
-bool useShader = true;
-bool isTiltSet = false;
-bool useDisplayLists = false;
-double tilt = 0.0;
-double radius = 7.4;
-
-std::vector<glm::vec3> colors;
-std::vector<std::pair<std::string, unsigned int>> textures;
+    std::vector<glm::vec3> colors;
+    std::vector<std::pair<std::string, unsigned int>> textures;
+} // namespace
 
 using namespace sgct;
 
-
-int main(int argc, char* argv[]) {
-    std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new Engine(arg);
-
-    MessageHandler::instance()->setNotifyLevel(MessageHandler::Level::NotifyAll);
-    
-    // parse arguments
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "-tex") == 0 && argc >(i + 1)) {
-            std::pair<std::string, unsigned int> tmpPair(argv[i + 1], GL_FALSE);
-            textures.push_back(tmpPair);
-            
-            MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1)) {
-            tilt = atof(argv[i + 1]);
-            isTiltSet = true;
-            
-            MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
-        }
-        else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1)) {
-            radius = atof(argv[i + 1]);
-            isTiltSet = true;
-
-            MessageHandler::instance()->print("Setting radius to: %f\n", radius);
-        }
-        else if (strcmp(argv[i], "--use-display-lists") == 0) {
-            useDisplayLists = true;
-            MessageHandler::instance()->print("Display lists will be used in legacy pipeline.\n");
-        }
+void drawGeoCorrPatt() {
+    if (showGeoCorrectionPattern.getVal()) {
+        gDome->drawGeoCorrPattern();
     }
-    
-    if (useDisplayLists) {
-        sgct_core::ClusterManager::instance()->setMeshImplementation(
-            sgct_core::ClusterManager::MeshImplementation::DisplayList
-        );
-    }
-    else {
-        sgct_core::ClusterManager::instance()->setMeshImplementation(
-            sgct_core::ClusterManager::MeshImplementation::BufferObjects
-        );
-    }
-    
-    SGCTSettings::instance()->setCaptureFromBackBuffer(true);
+}
 
-    // Bind your functions
-    gEngine->setDrawFunction(draw);
-    gEngine->setInitOGLFunction(initGL);
-    gEngine->setPostSyncPreDrawFunction(postSync);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setCleanUpFunction(cleanUp);
-    //gEngine->setScreenShotCallback( screenShot );
-    sgct::SharedData::instance()->setEncodeFunction(encode);
-    sgct::SharedData::instance()->setDecodeFunction(decode);
-    
-    // Init the engine
-    if (!gEngine->init()) {
-        delete gEngine;
-        return EXIT_FAILURE;
+void drawColCorrPatt() {
+    gDome->drawColCorrPattern(
+        &colors[colorState.getVal()],
+        static_cast<Dome::PatternMode>(static_cast<int>((displayState.getVal() - 1)) % 5)
+    );
+}
+
+void drawTexturedObject() {
+    if (static_cast<int32_t>(textures.size()) > textureIndex.getVal()) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textures[textureIndex.getVal()].second);
+        glEnable(GL_TEXTURE_2D);
+
+        gDome->drawTexturedSphere();
+
+        glDisable(GL_TEXTURE_2D);
     }
-    
-    // Main loop
-    gEngine->render();
-    
-    // Clean up (de-allocate)
-    delete gEngine;
-    
-    // Exit program
-    exit(EXIT_SUCCESS);
 }
 
 void draw() {
@@ -154,11 +96,11 @@ void draw() {
     }
     
     if (showBlendZones.getVal()) {
-        mDome->drawBlendZones();
+        gDome->drawBlendZones();
     }
     
     if (showChannelZones.getVal()) {
-        mDome->drawChannelZones();
+        gDome->drawChannelZones();
     }
 
 #if INCLUDE_SGCT_TEXT
@@ -226,13 +168,8 @@ void initGL() {
     colors.push_back(glm::vec3(1.00f, 0.00f, 0.50f)); //magenta-red
     colors.push_back(glm::vec3(1.00f, 0.00f, 0.00f)); //red
     
-    if (isTiltSet) {
-        mDome = new Dome(radius, static_cast<float>(tilt));
-    }
-    else {
-        mDome = new Dome(radius, 0.f);
-    }
-    mDome->generateDisplayList();
+    gDome = std::make_unique<Dome>(radius, isTiltSet ? static_cast<float>(tilt) : 0.f);
+    gDome->generateDisplayList();
     
     TextureManager::instance()->setAnisotropicFilterSize(4.f);
     for (size_t i = 0; i < textures.size(); i++) {
@@ -405,21 +342,20 @@ void screenShot(sgct_core::Image* im, size_t winIndex,
     );
 
     size_t lastAllocSize = 0;
-    size_t dataSize = im->getWidth() * im->getChannels() * im->getChannels();
+    const size_t dataSize = im->getWidth() * im->getChannels() * im->getChannels();
 
-    if (mData == nullptr) {
-        mData = new unsigned char[dataSize];
+    if (gData.empty()) {
+        gData.resize(dataSize);
         lastAllocSize = dataSize;
     }
     else if (lastAllocSize < dataSize) {
-        MessageHandler::instance()->print("Re-allocating image data to...\n");
-        delete [] mData;
-        mData = new unsigned char[dataSize];
+        MessageHandler::instance()->print("Re-allocating image data to\n");
+        gData.resize(dataSize);
         lastAllocSize = dataSize;
     }
     
     double t0 = Engine::getTime();
-    memcpy(mData, im->getData(), dataSize);
+    memcpy(gData.data(), im->getData(), dataSize);
     MessageHandler::instance()->print(
         "Time to copy %.3f ms\n",
         (sgct::Engine::getTime() - t0) * 1000.0
@@ -430,38 +366,77 @@ void cleanUp() {
     for (size_t i = 0; i < textures.size(); i++) {
         glDeleteTextures(1, &(textures[i].second));
     }
-    
-    delete mDome;
-    delete[] mData;
 }
 
-void drawGeoCorrPatt() {
-    if (showGeoCorrectionPattern.getVal()) {
-        mDome->drawGeoCorrPattern();
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    MessageHandler::instance()->setNotifyLevel(MessageHandler::Level::NotifyAll);
+
+    // parse arguments
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "-tex") == 0 && argc > (i + 1)) {
+            std::pair<std::string, unsigned int> tmpPair(argv[i + 1], GL_FALSE);
+            textures.push_back(tmpPair);
+
+            MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
+        }
+        else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1)) {
+            tilt = atof(argv[i + 1]);
+            isTiltSet = true;
+
+            MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
+        }
+        else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1)) {
+            radius = atof(argv[i + 1]);
+            isTiltSet = true;
+
+            MessageHandler::instance()->print("Setting radius to: %f\n", radius);
+        }
+        else if (strcmp(argv[i], "--use-display-lists") == 0) {
+            useDisplayLists = true;
+            MessageHandler::instance()->print(
+                "Display lists will be used in legacy pipeline\n"
+            );
+        }
     }
-}
 
-void drawColCorrPatt() {
-    mDome->drawColCorrPattern(
-        &colors[colorState.getVal()],
-        static_cast<Dome::PatternMode>(static_cast<int>((displayState.getVal() - 1)) % 5)
-    );
-}
-
-void drawTexturedObject() {
-    if (static_cast<int32_t>(textures.size()) > textureIndex.getVal()) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures[textureIndex.getVal()].second);
-        glEnable(GL_TEXTURE_2D);
-        
-        /*glActiveTexture(GL_TEXTURE1);
-         glBindTexture(GL_TEXTURE_2D, textures[0].second);
-         glEnable(GL_TEXTURE_2D);*/
-        
-        mDome->drawTexturedSphere();
-        
-        glDisable(GL_TEXTURE_2D);
-        //glActiveTexture(GL_TEXTURE0);
-        //glDisable(GL_TEXTURE_2D);
+    if (useDisplayLists) {
+        sgct_core::ClusterManager::instance()->setMeshImplementation(
+            sgct_core::ClusterManager::MeshImplementation::DisplayList
+        );
     }
+    else {
+        sgct_core::ClusterManager::instance()->setMeshImplementation(
+            sgct_core::ClusterManager::MeshImplementation::BufferObjects
+        );
+    }
+
+    SGCTSettings::instance()->setCaptureFromBackBuffer(true);
+
+    // Bind your functions
+    gEngine->setDrawFunction(draw);
+    gEngine->setInitOGLFunction(initGL);
+    gEngine->setPostSyncPreDrawFunction(postSync);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setCleanUpFunction(cleanUp);
+    //gEngine->setScreenShotCallback( screenShot );
+    sgct::SharedData::instance()->setEncodeFunction(encode);
+    sgct::SharedData::instance()->setDecodeFunction(decode);
+
+    // Init the engine
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    // Main loop
+    gEngine->render();
+
+    // Clean up (de-allocate)
+    delete gEngine;
+
+    // Exit program
+    exit(EXIT_SUCCESS);
 }

@@ -1,89 +1,31 @@
-﻿#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
-#include "sgct/ClusterManager.h"
-#include "sgct/Engine.h"
-#include "sgct/Font.h"
-#include "sgct/FontManager.h"
-#include "sgct/NetworkManager.h"
-#include "sgct/SGCTWindow.h"
+﻿#include <sgct.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/Font.h>
+#include <sgct/FontManager.h>
+#include <sgct/NetworkManager.h>
+#include <sgct/SGCTWindow.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {
     constexpr const int ExtendedSize = 10000;
+
+    sgct::Engine* gEngine;
+
+    sgct::SharedDouble dt(0.0);
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedWString sTimeOfDay;
+    sgct::SharedBool showFPS(false);
+    sgct::SharedBool extraPackages(false);
+    sgct::SharedBool barrier(false);
+    sgct::SharedBool resetCounter(false);
+    sgct::SharedBool stats(false);
+    sgct::SharedBool takeScreenshot(false);
+    sgct::SharedBool slowRendering(false);
+    sgct::SharedBool frametest(false);
+    sgct::SharedFloat speed(5.f);
+    sgct::SharedVector<float> extraData;
 } // namespace
-
-sgct::Engine* gEngine;
-
-void drawFun();
-void myDraw2DFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void myPostDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-
-void keyCallback(int key, int scancode, int action, int mods);
-void externalControlCallback(const char * receivedChars, int size);
-
-//variables to share across cluster
-sgct::SharedDouble dt(0.0);
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedWString sTimeOfDay;
-sgct::SharedBool showFPS(false);
-sgct::SharedBool extraPackages(false);
-sgct::SharedBool barrier(false);
-sgct::SharedBool resetCounter(false);
-sgct::SharedBool stats(false);
-sgct::SharedBool takeScreenshot(false);
-sgct::SharedBool slowRendering(false);
-sgct::SharedBool frametest(false);
-sgct::SharedFloat speed(5.f);
-sgct::SharedVector<float> extraData;
-
-void drawGrid(float size, int steps);
-
-int main(int argc, char* argv[]) {
-    std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
-
-    gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setExternalControlCallback(externalControlCallback);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setDraw2DFunction(myDraw2DFun);
-
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    if (gEngine->isMaster()) {
-        for (int i = 0; i < ExtendedSize; i++) {
-            extraData.addVal(static_cast<float>(rand() % 500) / 500.0f);
-        }
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setPostDrawFunction( myPostDrawFun );
-
-    const std::vector<std::string>& addresses =
-        sgct_core::NetworkManager::instance()->getLocalAddresses();
-    for (unsigned int i = 0; i < addresses.size(); i++) {
-        fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
-    }
-
-    gEngine->render();
-    delete gEngine;
-    exit(EXIT_SUCCESS);
-}
 
 void myDraw2DFun() {
 #if INCLUDE_SGCT_TEXT
@@ -541,4 +483,45 @@ void externalControlCallback(const char* receivedChars, int size) {
             gEngine->setExternalControlBufferSize(4096);
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setExternalControlCallback(externalControlCallback);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setDraw2DFunction(myDraw2DFun);
+
+    if (!gEngine->init())
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    if (gEngine->isMaster()) {
+        for (int i = 0; i < ExtendedSize; i++) {
+            extraData.addVal(static_cast<float>(rand() % 500) / 500.0f);
+        }
+    }
+
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setPostDrawFunction(myPostDrawFun);
+
+    const std::vector<std::string>& addresses =
+        sgct_core::NetworkManager::instance()->getLocalAddresses();
+    for (unsigned int i = 0; i < addresses.size(); i++) {
+        fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
+    }
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

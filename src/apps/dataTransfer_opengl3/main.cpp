@@ -1,19 +1,16 @@
+#include <sgct.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Image.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <fstream>
 #include <memory>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "sgct.h"
-#include "sgct/ClusterManager.h"
-#include "sgct/Image.h"
-
-using namespace sgct;
 
 namespace {
     constexpr const int HeaderSize = 1;
 
-    Engine* gEngine;
+    sgct::Engine* gEngine;
 
     std::unique_ptr<std::thread> loadThread;
     std::mutex mutex;
@@ -21,17 +18,17 @@ namespace {
     GLFWwindow* sharedWindow;
     std::unique_ptr<sgct_core::Image> transImg;
 
-    SharedBool info(false);
-    SharedBool stats(false);
-    SharedInt32 texIndex(-1);
+    sgct::SharedBool info(false);
+    sgct::SharedBool stats(false);
+    sgct::SharedInt32 texIndex(-1);
 
-    SharedInt32 currentPackage(-1);
-    SharedBool running(true);
-    SharedBool transfer(false);
-    SharedBool serverUploadDone(false);
-    SharedBool clientsUploadDone(false);
-    SharedVector<std::pair<std::string, int>> imagePaths;
-    SharedVector<GLuint> texIds;
+    sgct::SharedInt32 currentPackage(-1);
+    sgct::SharedBool running(true);
+    sgct::SharedBool transfer(false);
+    sgct::SharedBool serverUploadDone(false);
+    sgct::SharedBool clientsUploadDone(false);
+    sgct::SharedVector<std::pair<std::string, int>> imagePaths;
+    sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
     enum class ImageType { JPEG, PNG };
@@ -39,8 +36,11 @@ namespace {
     GLint matrixLoc = -1;
 
     // variables to share across cluster
-    SharedDouble currentTime(0.0);
+    sgct::SharedDouble currentTime(0.0);
 } // namespace
+
+using namespace sgct;
+
 
 void drawFun() {
     glEnable(GL_DEPTH_TEST);

@@ -39,7 +39,7 @@ namespace {
         }
 
         SGCTTracker* trackerPtr = reinterpret_cast<SGCTTracker*>(userdata);
-        SGCTTrackingDevice* devicePtr = trackerPtr->getDevicePtrBySensorId(t.sensor);
+        SGCTTrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
 
         if (devicePtr == nullptr) {
             return;
@@ -72,13 +72,13 @@ namespace {
         while (true) {
             double t = sgct::Engine::getTime();
             for (size_t i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
-                sgct::SGCTTracker* trackerPtr = tmPtr->getTrackerPtr(i);
+                sgct::SGCTTracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
                 }
                 for (size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
-                    if (!trackerPtr->getDevicePtr(j)->isEnabled()) {
+                    if (!trackerPtr->getDevice(j)->isEnabled()) {
                         continue;
                     }
 
@@ -161,11 +161,11 @@ void SGCTTrackingManager::startSampling() {
         
     // link the head tracker
     const std::string& trackerName = mHeadUser->getHeadTrackerName();
-    SGCTTracker* trackerPtr = getTrackerPtr(trackerName);
+    SGCTTracker* trackerPtr = getTracker(trackerName);
 
     const std::string& deviceName = mHeadUser->getHeadTrackerDeviceName();
     if (trackerPtr) {
-        mHead = trackerPtr->getDevicePtr(deviceName);
+        mHead = trackerPtr->getDevice(deviceName);
     }
 
     if (mHead == nullptr && !trackerName.empty() && !deviceName.empty()) {
@@ -183,7 +183,7 @@ void SGCTTrackingManager::startSampling() {
 void SGCTTrackingManager::updateTrackingDevices() {
     for (const std::unique_ptr<SGCTTracker>& tracker : mTrackers) {
         for (size_t j = 0; j < tracker->getNumberOfDevices(); j++) {
-            SGCTTrackingDevice* tdPtr = tracker->getDevicePtr(j);
+            SGCTTrackingDevice* tdPtr = tracker->getDevice(j);
             if (tdPtr->isEnabled() && tdPtr == mHead && mHeadUser) {
                 mHeadUser->setTransform(tdPtr->getWorldTransform());
             }
@@ -192,7 +192,7 @@ void SGCTTrackingManager::updateTrackingDevices() {
 }
 
 void SGCTTrackingManager::addTracker(std::string name) {
-    if (!getTrackerPtr(name)) {
+    if (!getTracker(name)) {
         mTrackers.push_back(std::make_unique<SGCTTracker>(name));
         gTrackers.push_back(std::vector<VRPNPointer>());
 
@@ -224,7 +224,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) 
     std::pair<std::set<std::string>::iterator, bool> retVal = mAddresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevicePtr();
+    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (devicePtr) {
         devicePtr->setSensorId(id);
@@ -255,7 +255,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(std::string address, int nBu
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevicePtr();
+    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
@@ -282,7 +282,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(std::string address, int nAx
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevicePtr();
+    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
         MessageHandler::instance()->print(
@@ -316,15 +316,15 @@ SGCTTrackingDevice* SGCTTrackingManager::getHeadDevicePtr() const {
     return mHead;
 }
 
-SGCTTracker* SGCTTrackingManager::getLastTrackerPtr() const {
+SGCTTracker* SGCTTrackingManager::getLastTracker() const {
     return !mTrackers.empty() ? mTrackers.back().get() : nullptr;
 }
 
-SGCTTracker* SGCTTrackingManager::getTrackerPtr(size_t index) const {
+SGCTTracker* SGCTTrackingManager::getTracker(size_t index) const {
     return index < mTrackers.size() ? mTrackers[index].get() : nullptr;
 }
 
-SGCTTracker* SGCTTrackingManager::getTrackerPtr(const std::string& name) const {
+SGCTTracker* SGCTTrackingManager::getTracker(const std::string& name) const {
     auto it = std::find_if(
         mTrackers.cbegin(),
         mTrackers.cend(),

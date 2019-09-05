@@ -73,12 +73,12 @@ void initOGLFun()
         //allocate shared data
         for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
         {
-            trackerPtr = sgct::Engine::getTrackingManager()->getTrackerPtr(i);
+            trackerPtr = sgct::Engine::getTrackingManager()->getTracker(i);
             
             //init the shared vector with identity matrixes
             for(size_t j=0; j<trackerPtr->getNumberOfDevices(); j++)
             {
-                devicePtr = trackerPtr->getDevicePtr(j);
+                devicePtr = trackerPtr->getDevice(j);
             
                 if( devicePtr->hasSensor() )
                 {
@@ -121,7 +121,7 @@ void preSyncFun()
         */
         for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
         {
-            trackerPtr = sgct::Engine::getTrackingManager()->getTrackerPtr(i);
+            trackerPtr = sgct::Engine::getTrackingManager()->getTracker(i);
         
             
             /*
@@ -129,7 +129,7 @@ void preSyncFun()
             */
             for(size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++)
             {
-                devicePtr = trackerPtr->getDevicePtr(j);
+                devicePtr = trackerPtr->getDevice(j);
                 
                 ss << "Device " << i <<  "-" << j << ": " << devicePtr->getName() << "\n";
                 

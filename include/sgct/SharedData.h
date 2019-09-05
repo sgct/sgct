@@ -150,19 +150,18 @@ template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
     T val = sobj.getVal();
     
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    std::unique_lock lk(SGCTMutexManager::instance()->mDataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(T));
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T>& sobj) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
     T val = *reinterpret_cast<T*>(&dataBlock[pos]);
     pos += sizeof(T);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
-    
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+
     sobj.setVal(val);
 }
 

@@ -44,9 +44,9 @@ public:
     int getNumberOfDevices() const;
     SGCTTrackingDevice* getHeadDevicePtr() const;
 
-    SGCTTracker* getLastTrackerPtr() const;
-    SGCTTracker* getTrackerPtr(size_t index) const;
-    SGCTTracker* getTrackerPtr(const std::string& name) const;
+    SGCTTracker* getLastTracker() const;
+    SGCTTracker* getTracker(size_t index) const;
+    SGCTTracker* getTracker(const std::string& name) const;
 
     void setEnabled(bool state);
     void setSamplingTime(double t);

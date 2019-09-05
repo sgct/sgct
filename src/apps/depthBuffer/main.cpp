@@ -9,7 +9,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    int myTextureLocations[2];
+    int textureLocations[2];
     int currTimeLoc;
     bool mPause = false;
     GLuint terrainDisplayList = 0;
@@ -128,8 +128,8 @@ void drawFun() {
     // set current shader program
     ShaderManager::instance()->bindShaderProgram("Heightmap");
     glUniform1f(currTimeLoc, static_cast<float>(currentTime.getVal()));
-    glUniform1i(myTextureLocations[0], 0);
-    glUniform1i(myTextureLocations[1], 1);
+    glUniform1i(textureLocations[0], 0);
+    glUniform1i(textureLocations[1], 1);
 
     glLineWidth(2.0);
     glCallList(terrainDisplayList);
@@ -216,15 +216,15 @@ void initOGLFun() {
     const ShaderProgram& heightMapProg = ShaderManager::instance()->getShaderProgram(
         "Heightmap"
     );
-    myTextureLocations[0] = -1;
-    myTextureLocations[1] = -1;
+    textureLocations[0] = -1;
+    textureLocations[1] = -1;
     currTimeLoc = -1;
-    myTextureLocations[0] = heightMapProg.getUniformLocation("hTex");
-    myTextureLocations[1] = heightMapProg.getUniformLocation("nTex");
+    textureLocations[0] = heightMapProg.getUniformLocation("hTex");
+    textureLocations[1] = heightMapProg.getUniformLocation("nTex");
     currTimeLoc = heightMapProg.getUniformLocation("curr_time");
 
-    glUniform1i(myTextureLocations[0], 0);
-    glUniform1i(myTextureLocations[1], 1);
+    glUniform1i(textureLocations[0], 0);
+    glUniform1i(textureLocations[1], 1);
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
     setupPostFXs();

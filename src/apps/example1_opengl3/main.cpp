@@ -24,9 +24,9 @@ void initFun() {
     };
 
     const GLfloat colorData[] = { 
-        1.0f, 0.0f, 0.0f, //red
-        0.0f, 1.0f, 0.0f, //green
-        0.0f, 0.0f, 1.0f //blue
+        1.f, 0.f, 0.f,
+        0.f, 1.f, 0.f,
+        0.f, 0.f, 1.f
     };
 
     // generate the VAO

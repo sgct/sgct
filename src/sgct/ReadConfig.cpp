@@ -741,8 +741,8 @@ namespace {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                     device.setOffset(std::move(*offset));
                 }
                 else {
@@ -754,8 +754,8 @@ namespace {
             }
             else if (childVal == "Orientation") {
                 sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                sgct::SGCTTracker& tr = *m.getLastTracker();
+                sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                 device.setOrientation(
                     sgct_core::readconfig::parseOrientationNode(child)
                 );
@@ -765,8 +765,8 @@ namespace {
 
                 if (quat) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                     device.setOrientation(std::move(*quat));
                 }
                 else {
@@ -785,8 +785,8 @@ namespace {
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
 
                     if (transpose) {
                         device.setTransform(glm::transpose(*mat));
@@ -824,8 +824,8 @@ namespace {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                     device.setOffset(std::move(*offset));
                 }
                 else {
@@ -837,8 +837,8 @@ namespace {
             }
             else if (childVal == "Orientation") {
                 sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                sgct::SGCTTracker& tr = *m.getLastTracker();
+                sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                 device.setOrientation(
                     sgct_core::readconfig::parseOrientationNode(child)
                 );
@@ -847,8 +847,8 @@ namespace {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
                 if (quat) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
                     device.setOrientation(std::move(*quat));
                 }
                 else {
@@ -862,7 +862,7 @@ namespace {
                 std::optional<double> value = parseValue<double>(*child, "value");
                 if (value) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
                     tr.setScale(*value);
                 }
                 else {
@@ -881,7 +881,7 @@ namespace {
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
                     sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
+                    sgct::SGCTTracker& tr = *m.getLastTracker();
 
                     if (transpose) {
                         tr.setTransform(glm::transpose(std::move(*mat)));

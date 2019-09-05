@@ -1,122 +1,106 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/SGCTTracker.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/SGCTTrackingManager.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void initOGLFun();
-void drawFun();
-void preSyncFun();
-void encodeFun();
-void decodeFun();
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedFloat sizeFactor(0.5f);
 
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedFloat size_factor(0.5f);
+    sgct::SGCTTrackingDevice* leftHand = nullptr;
+    sgct::SGCTTrackingDevice* rightHand = nullptr;
 
-//pointer to a left hand
-sgct::SGCTTrackingDevice * leftHand = NULL;
-//pointer to a right hand
-sgct::SGCTTrackingDevice * rightHand = NULL;
+} // namespace
 
-bool error = false;
-
-int main( int argc, char* argv[] )
-{
-
-    // Allocate
-    gEngine = new sgct::Engine( argc, argv );
-
-    // Bind your functions
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Init the engine
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up (de-allocate)
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void initOGLFun()
-{
+void initOGLFun() {
     glEnable(GL_DEPTH_TEST);
  
-    //connect only to VRPN on the master
-    if( gEngine->isMaster() )
-    {
-        //get the tracking pointers
-        sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
-        if(tracker != NULL)
-        {
-            leftHand    = tracker->getDevicePtr("Left Hand");
-            rightHand    = tracker->getDevicePtr("Right Hand");
+    // connect only to VRPN on the master
+    if (gEngine->isMaster()) {
+        // get the tracking pointers
+        sgct::SGCTTracker* tracker = sgct::Engine::getTrackingManager().getTracker(
+            "Kinect0"
+        );
+        if (tracker) {
+            leftHand = tracker->getDevice("Left Hand");
+            rightHand = tracker->getDevice("Right Hand");
         }
 
-        if(leftHand == NULL || rightHand == NULL)
-        {
-            error = true;
-            sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
+        if (leftHand == nullptr || rightHand == nullptr) {
+            sgct::MessageHandler::instance()->print(
+                "Failed to get pointers to hand trackers!\n"
+            );
         }
     }
 }
 
-void drawFun()
-{
-    float speed = 50.0f;
-    glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
+void drawFun() {
+    if (leftHand == nullptr || rightHand == nullptr) {
+        return;
+    }
 
-    float size = size_factor.getVal();
+    const float Speed = 50.f;
+    glRotatef(static_cast<float>(currentTime.getVal() ) * Speed, 0.f, 1.f, 0.f);
 
-    //render a single triangle
+    const float size = sizeFactor.getVal();
+
+    // render a single triangle
     glBegin(GL_TRIANGLES);
-        glColor3f(1.0f, 0.0f, 0.0f); //Red
-        glVertex3f(-0.5f * size, -0.5f * size, 0.0f);
+    glColor3f(1.f, 0.f, 0.f);
+    glVertex3f(-0.5f * size, -0.5f * size, 0.f);
  
-        glColor3f(0.0f, 1.0f, 0.0f); //Green
-        glVertex3f(0.0f, 0.5f * size, 0.0f);
+    glColor3f(0.f, 1.f, 0.f);
+    glVertex3f(0.f, 0.5f * size, 0.f);
  
-        glColor3f(0.0f, 0.0f, 1.0f); //Blue
-        glVertex3f(0.5f * size, -0.5f * size, 0.0f);
+    glColor3f(0.f, 0.f, 1.f);
+    glVertex3f(0.5f * size, -0.5f * size, 0.f);
     glEnd();
 }
 
-void preSyncFun()
-{
-    //set the time only on the master
-    if( gEngine->isMaster() )
-    {
-        //get the time in seconds
+void preSyncFun() {
+    if (leftHand == nullptr || rightHand == nullptr) {
+        return;
+    }
+
+    // set the time only on the master
+    if (gEngine->isMaster()) {
+        // get the time in seconds
         currentTime.setVal(sgct::Engine::getTime());
 
-        if(!error)
-        {
-            glm::vec3 leftPos = leftHand->getPosition();
-            glm::vec3 rightPos = rightHand->getPosition();
-            float dist = glm::length(leftPos - rightPos);
-            size_factor.setVal( (dist < 2.0f && dist > 0.2f) ? dist : 0.5f );
-        }
+        const glm::vec3 leftPos = leftHand->getPosition();
+        const glm::vec3 rightPos = rightHand->getPosition();
+        const float dist = glm::length(leftPos - rightPos);
+        sizeFactor.setVal((dist < 2.f && dist > 0.2f) ? dist : 0.5f);
     }
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
-    sgct::SharedData::instance()->writeFloat( &size_factor );
+void encodeFun() {
+    sgct::SharedData::instance()->writeDouble(currentTime);
+    sgct::SharedData::instance()->writeFloat(sizeFactor);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble( &currentTime );
-    sgct::SharedData::instance()->readFloat( &size_factor );
+void decodeFun() {
+    sgct::SharedData::instance()->readDouble(currentTime);
+    sgct::SharedData::instance()->readFloat(sizeFactor);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

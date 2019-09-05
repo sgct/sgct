@@ -25,10 +25,10 @@ public:
     void setEnabled(bool state);
     void addDevice(std::string name, size_t index);
 
-    SGCTTrackingDevice* getLastDevicePtr() const;
-    SGCTTrackingDevice* getDevicePtr(size_t index) const;
-    SGCTTrackingDevice* getDevicePtr(const std::string& name) const;
-    SGCTTrackingDevice* getDevicePtrBySensorId(int id) const;
+    SGCTTrackingDevice* getLastDevice() const;
+    SGCTTrackingDevice* getDevice(size_t index) const;
+    SGCTTrackingDevice* getDevice(const std::string& name) const;
+    SGCTTrackingDevice* getDeviceBySensorId(int id) const;
 
     /// Set the orientation as quaternion
     void setOrientation(glm::quat q);

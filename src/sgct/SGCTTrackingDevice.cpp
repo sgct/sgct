@@ -47,7 +47,7 @@ void SGCTTrackingDevice::setNumberOfAxes(int numOfAxes) {
 
 void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     sgct_core::ClusterManager& cm = *sgct_core::ClusterManager::instance();
-    SGCTTracker* parent = cm.getTrackingManager().getTrackerPtr(mParentIndex);
+    SGCTTracker* parent = cm.getTrackingManager().getTracker(mParentIndex);
 
     if (parent == nullptr) {
         MessageHandler::instance()->print(

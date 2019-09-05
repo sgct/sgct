@@ -1,134 +1,164 @@
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/SGCTUser.h>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#define GRID_SIZE 256
+namespace {
+    constexpr const int GridSize = 256;
 
-sgct::Engine * gEngine;
+    sgct::Engine* gEngine;
 
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
+    // shader data
+    sgct::ShaderProgram mSp;
+    GLint heightTextureLoc = -1;
+    GLint normalTextureLoc = -1;
+    GLint currTimeLoc = -1;
+    GLint MVPLoc = -1;
+    GLint MVLoc = -1;
+    GLint MVLightLoc = -1;
+    GLint NMLoc = -1;
+    GLint lightPosLoc = -1;
+    GLint lightAmbLoc = -1;
+    GLint lightDifLoc = -1;
+    GLint lightSpeLoc = -1;
 
-void keyCallback(int key, int action);
-void generateTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
+    // opengl objects
+    GLuint vertexArray = 0;
+    GLuint vertexPositionBuffer = 0;
+    GLuint texCoordBuffer = 0;
 
-//shader data
-sgct::ShaderProgram mSp;
-GLint myTextureLocations[]    = { -1, -1 };
-GLint currTimeLoc            = -1;
-GLint MVP_Loc                = -1;
-GLint MV_Loc                = -1;
-GLint MVLight_Loc            = -1;
-GLint NM_Loc                = -1;
-GLint lightPos_Loc            = -1;
-GLint lightAmb_Loc            = -1;
-GLint lightDif_Loc            = -1;
-GLint lightSpe_Loc            = -1;
+    // light data
+    const glm::vec4 lightPosition(-2.f, 5.f, 5.f, 1.f);
+    const glm::vec4 lightAmbient(0.1f, 0.1f, 0.1f, 1.f);
+    const glm::vec4 lightDiffuse(0.8f, 0.8f, 0.8f, 1.f);
+    const glm::vec4 lightSpecular(1.f, 1.f, 1.f, 1.f);
 
-//opengl objects
-GLuint vertexArray = GL_FALSE;
-GLuint vertexPositionBuffer = GL_FALSE;
-GLuint texCoordBuffer = GL_FALSE;
+    bool mPause = false;
 
-//light data
-glm::vec3 lightPosition( -2.0f, 5.0f, 5.0f );
-glm::vec4 lightAmbient( 0.1f, 0.1f, 0.1f, 1.0f );
-glm::vec4 lightDiffuse( 0.8f, 0.8f, 0.8f, 1.0f );
-glm::vec4 lightSpecular( 1.0f, 1.0f, 1.0f, 1.0f );
+    // variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedBool wireframe(false);
+    sgct::SharedBool info(false);
+    sgct::SharedBool stats(false);
+    sgct::SharedBool takeScreenshot(false);
+    sgct::SharedBool useTracking(false);
+    sgct::SharedObject<sgct::SGCTWindow::StereoMode> stereoMode;
 
-bool mPause = false;
+    struct Geometry {
+        std::vector<float> vertPos;
+        std::vector<float> texCoord;
+        GLsizei numberOfVerts = 0;
+    };
+} // namespace
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedBool wireframe(false);
-sgct::SharedBool info(false);
-sgct::SharedBool stats(false);
-sgct::SharedBool takeScreenshot(false);
-sgct::SharedBool useTracking(false);
-sgct::SharedInt32 stereoMode(0);
-
-//geometry
-std::vector<float> mVertPos;
-std::vector<float> mTexCoord;
-GLsizei mNumberOfVerts = 0;
-
-int main( int argc, char* argv[] )
+/**
+ *
+ * Will draw a flat surface that can be used for the heightmapped terrain.
+ *
+ * \param width Width of the surface
+ * \param depth Depth of the surface
+ * \param wRes Width resolution of the surface
+ * \param dRes Depth resolution of the surface
+ */
+Geometry generateTerrainGrid(float width, float depth, unsigned int wRes, unsigned int
+                             dRes)
 {
-    gEngine = new sgct::Engine( argc, argv );
+    const float wStart = -width * 0.5f;
+    const float dStart = -depth * 0.5f;
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
+    const float dW = width / static_cast<float>(wRes);
+    const float dD = depth / static_cast<float>(dRes);
 
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
+    Geometry res;
+
+    for (unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex) {
+        const float dPosLow = dStart + dD * static_cast<float>(depthIndex);
+        const float dPosHigh = dStart + dD * static_cast<float>(depthIndex + 1);
+        const float dTexCoordLow = depthIndex / static_cast<float>(dRes);
+        const float dTexCoordHigh = (depthIndex + 1) / static_cast<float>(dRes);
+
+        for (unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex) {
+            const float wPos = wStart + dW * static_cast<float>(widthIndex);
+            const float wTexCoord = widthIndex / static_cast<float>(wRes);
+
+            // p0
+            res.vertPos.push_back(wPos);
+            res.vertPos.push_back(0.f);
+            res.vertPos.push_back(dPosLow);
+
+            // p1
+            res.vertPos.push_back(wPos);
+            res.vertPos.push_back(0.f);
+            res.vertPos.push_back(dPosHigh);
+
+            // tex0
+            res.texCoord.push_back(wTexCoord);
+            res.texCoord.push_back(dTexCoordLow);
+
+            // tex1
+            res.texCoord.push_back(wTexCoord);
+            res.texCoord.push_back(dTexCoordHigh);
+        }
     }
 
-    sgct::SharedData::instance()->setEncodeFunction( encodeFun );
-    sgct::SharedData::instance()->setDecodeFunction( decodeFun );
+    // each vertex has three componets (x, y & z)
+    res.numberOfVerts = static_cast<GLsizei>(res.vertPos.size() / 3);
 
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
+    return res;
 }
 
-void drawFun()
-{    
+void drawFun() {    
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 
-    glLineWidth(1.0); //for wireframe
+    // for wireframe
+    glLineWidth(1.0);
 
-    double speed = 0.14;
+    constexpr double Speed = 0.14;
 
     //create scene transform (animation)
-    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, -0.15f, 2.5f ) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.15f, 2.5f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * Speed),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
 
-    glm::mat4 MVP        = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
-    glm::mat4 MV        = gEngine->getCurrentModelViewMatrix() * scene_mat;
-    glm::mat4 MV_light    = gEngine->getCurrentModelViewMatrix();
-    glm::mat3 NM        = glm::inverseTranspose( glm::mat3( MV ) );
+    const glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 MV = gEngine->getCurrentModelViewMatrix() * scene;
+    const glm::mat4 MV_light = gEngine->getCurrentModelViewMatrix();
+    const glm::mat3 NM = glm::inverseTranspose(glm::mat3(MV));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId( "heightmap" ));
+    glBindTexture(
+        GL_TEXTURE_2D,
+        sgct::TextureManager::instance()->getTextureId("heightmap")
+    );
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId( "normalmap" ));
+    glBindTexture(
+        GL_TEXTURE_2D,
+        sgct::TextureManager::instance()->getTextureId("normalmap")
+    );
 
     mSp.bind();
 
-    glUniformMatrix4fv(MVP_Loc,        1, GL_FALSE, &MVP[0][0]);
-    glUniformMatrix4fv(MV_Loc,        1, GL_FALSE, &MV[0][0]);
-    glUniformMatrix4fv(MVLight_Loc, 1, GL_FALSE, &MV_light[0][0]);
-    glUniformMatrix3fv(NM_Loc,        1, GL_FALSE, &NM[0][0]);
-    glUniform1f( currTimeLoc, static_cast<float>( currentTime.getVal() ) );
+    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(MVLoc, 1, GL_FALSE, glm::value_ptr(MV));
+    glUniformMatrix4fv(MVLightLoc, 1, GL_FALSE, glm::value_ptr(MV_light));
+    glUniformMatrix3fv(NMLoc, 1, GL_FALSE, glm::value_ptr(NM));
+    glUniform1f(currTimeLoc, static_cast<float>(currentTime.getVal()));
 
     glBindVertexArray(vertexArray);
 
-    // Draw the triangles !
-    for (unsigned int i = 0; i < GRID_SIZE; i++)
-        glDrawArrays(GL_TRIANGLE_STRIP, i * GRID_SIZE * 2, GRID_SIZE * 2);
+    // Draw the triangles
+    for (unsigned int i = 0; i < GridSize; i++) {
+        glDrawArrays(GL_TRIANGLE_STRIP, i * GridSize * 2, GridSize * 2);
+    }
 
-    //unbind
     glBindVertexArray(0);
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -138,254 +168,176 @@ void drawFun()
     glDisable(GL_CULL_FACE);
 }
 
-void preSyncFun()
-{
-    if( gEngine->isMaster() && !mPause)
-    {
-        currentTime.setVal( currentTime.getVal() + gEngine->getAvgDt());
+void preSyncFun() {
+    if (gEngine->isMaster() && !mPause) {
+        currentTime.setVal(currentTime.getVal() + gEngine->getAvgDt());
     }
 }
 
-void postSyncPreDrawFun()
-{
+void postSyncPreDrawFun() {
     gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
-    sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
+    sgct_core::ClusterManager::instance()->getTrackingManager().setEnabled(
+        useTracking.getVal()
+    );
 
-    if( takeScreenshot.getVal() )
-    {
+    if (takeScreenshot.getVal()) {
         gEngine->takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
-void initOGLFun()
-{
-    stereoMode.setVal( gEngine->getWindowPtr(0)->getStereoMode() );
+void initOGLFun() {
+    stereoMode.setVal(gEngine->getWindow(0).getStereoMode());
 
-    //Set up backface culling
+    // Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    // our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
     glDepthFunc(GL_LESS);
 
-    //setup textures
-    sgct::TextureManager::instance()->loadTexture("heightmap", "../SharedResources/heightmap.png", true, 0);
-    sgct::TextureManager::instance()->loadTexture("normalmap", "../SharedResources/normalmap.png", true, 0);
+    sgct::TextureManager::instance()->loadTexture(
+        "heightmap",
+        "../SharedResources/heightmap.png",
+        true,
+        0
+    );
+    sgct::TextureManager::instance()->loadTexture(
+        "normalmap",
+        "../SharedResources/normalmap.png",
+        true,
+        0
+    );
 
-    //setup shader
-    sgct::ShaderManager::instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );
+    // setup shader
+    sgct::ShaderManager::instance()->addShaderProgram(
+        mSp,
+        "Heightmap",
+        "heightmap.vert",
+        "heightmap.frag"
+    );
 
     mSp.bind();
-    myTextureLocations[0]    = mSp.getUniformLocation( "hTex" );
-    myTextureLocations[1]    = mSp.getUniformLocation( "nTex" );
-    currTimeLoc            = mSp.getUniformLocation( "curr_time" );
-    MVP_Loc                    = mSp.getUniformLocation( "MVP" );
-    MV_Loc                    = mSp.getUniformLocation( "MV" );
-    MVLight_Loc                = mSp.getUniformLocation( "MV_light" );
-    NM_Loc                    = mSp.getUniformLocation( "normalMatrix" );
-    lightPos_Loc            = mSp.getUniformLocation( "lightPos" );
-    lightAmb_Loc            = mSp.getUniformLocation( "light_ambient" );
-    lightDif_Loc            = mSp.getUniformLocation( "light_diffuse" );
-    lightSpe_Loc            = mSp.getUniformLocation( "light_specular" );
-    glUniform1i( myTextureLocations[0], 0 );
-    glUniform1i( myTextureLocations[1], 1 );
-    glUniform4f( lightPos_Loc, lightPosition.x, lightPosition.y, lightPosition.z, 1.0f );
-    glUniform4f( lightAmb_Loc, lightAmbient.r, lightAmbient.g, lightAmbient.b, lightAmbient.a );
-    glUniform4f( lightDif_Loc, lightDiffuse.r, lightDiffuse.g, lightDiffuse.b, lightDiffuse.a );
-    glUniform4f( lightSpe_Loc, lightSpecular.r, lightSpecular.g, lightSpecular.b, lightSpecular.a );
+    heightTextureLoc = mSp.getUniformLocation("hTex");
+    normalTextureLoc = mSp.getUniformLocation("nTex");
+    currTimeLoc = mSp.getUniformLocation("curr_time");
+    MVPLoc = mSp.getUniformLocation("MVP");
+    MVLoc = mSp.getUniformLocation("MV");
+    MVLightLoc = mSp.getUniformLocation("MV_light");
+    NMLoc = mSp.getUniformLocation("normalMatrix");
+    lightPosLoc = mSp.getUniformLocation("lightPos");
+    lightAmbLoc = mSp.getUniformLocation("light_ambient");
+    lightDifLoc = mSp.getUniformLocation("light_diffuse");
+    lightSpeLoc = mSp.getUniformLocation("light_specular");
+    glUniform1i(heightTextureLoc, 0);
+    glUniform1i(normalTextureLoc, 1);
+    glUniform4fv(lightPosLoc, 1, glm::value_ptr(lightPosition));
+    glUniform4fv(lightAmbLoc, 1, glm::value_ptr(lightAmbient));
+    glUniform4fv(lightDifLoc, 1, glm::value_ptr(lightDiffuse));
+    glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
-    //generate mesh
-    generateTerrainGrid(1.0f, 1.0f, GRID_SIZE, GRID_SIZE);
+    Geometry geometry = generateTerrainGrid(1.0f, 1.0f, GridSize, GridSize);
 
-    //generate vertex array
     glGenVertexArrays(1, &vertexArray);
     glBindVertexArray(vertexArray);
 
-    //generate vertex position buffer
     glGenBuffers(1, &vertexPositionBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mVertPos.size(), &mVertPos[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(float) * geometry.vertPos.size(),
+        geometry.vertPos.data(),
+        GL_STATIC_DRAW
     );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 
-    //generate texture coord buffer
+    // generate texture coord buffer
     glGenBuffers(1, &texCoordBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, texCoordBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mTexCoord.size(), &mTexCoord[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(float) * geometry.texCoord.size(),
+        geometry.texCoord.data(),
+        GL_STATIC_DRAW
     );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 
-    glBindVertexArray(0); //unbind
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    //cleanup
-    mVertPos.clear();
-    mTexCoord.clear();
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
-    sgct::SharedData::instance()->writeBool( &wireframe );
-    sgct::SharedData::instance()->writeBool( &info );
-    sgct::SharedData::instance()->writeBool( &stats );
-    sgct::SharedData::instance()->writeBool( &takeScreenshot );
-    sgct::SharedData::instance()->writeBool( &useTracking );
-    sgct::SharedData::instance()->writeInt32( &stereoMode );
+void encodeFun() {
+    sgct::SharedData::instance()->writeDouble(currentTime);
+    sgct::SharedData::instance()->writeBool(wireframe);
+    sgct::SharedData::instance()->writeBool(info);
+    sgct::SharedData::instance()->writeBool(stats);
+    sgct::SharedData::instance()->writeBool(takeScreenshot);
+    sgct::SharedData::instance()->writeBool(useTracking);
+    sgct::SharedData::instance()->writeObj(stereoMode);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble( &currentTime );
-    sgct::SharedData::instance()->readBool( &wireframe );
-    sgct::SharedData::instance()->readBool( &info );
-    sgct::SharedData::instance()->readBool( &stats );
-    sgct::SharedData::instance()->readBool( &takeScreenshot );
-    sgct::SharedData::instance()->readBool( &useTracking );
-    sgct::SharedData::instance()->readInt32( &stereoMode );
+void decodeFun() {
+    sgct::SharedData::instance()->readDouble(currentTime);
+    sgct::SharedData::instance()->readBool(wireframe);
+    sgct::SharedData::instance()->readBool(info);
+    sgct::SharedData::instance()->readBool(stats);
+    sgct::SharedData::instance()->readBool(takeScreenshot);
+    sgct::SharedData::instance()->readBool(useTracking);
+    sgct::SharedData::instance()->readObj(stereoMode);
 }
 
-/*!
-Will draw a flat surface that can be used for the heightmapped terrain.
-@param    width    Width of the surface
-@param    depth    Depth of the surface
-@param    wRes    Width resolution of the surface
-@param    dRes    Depth resolution of the surface
-*/
-void generateTerrainGrid( float width, float depth, unsigned int wRes, unsigned int dRes )
-{
-    float wStart = -width * 0.5f;
-    float dStart = -depth * 0.5f;
-
-    float dW = width / static_cast<float>( wRes );
-    float dD = depth / static_cast<float>( dRes );
-
-    //cleanup
-    mVertPos.clear();
-    mTexCoord.clear();
-
-    for( unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex )
-    {
-        float dPosLow = dStart + dD * static_cast<float>( depthIndex );
-        float dPosHigh = dStart + dD * static_cast<float>( depthIndex + 1 );
-        float dTexCoordLow = depthIndex / static_cast<float>( dRes );
-        float dTexCoordHigh = (depthIndex+1) / static_cast<float>( dRes );
-
-        for( unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex )
-        {
-            float wPos = wStart + dW * static_cast<float>( widthIndex );
-            float wTexCoord = widthIndex / static_cast<float>( wRes );
-
-            //p0
-            mVertPos.push_back( wPos ); //x
-            mVertPos.push_back( 0.0f ); //y
-            mVertPos.push_back( dPosLow ); //z
-
-            //p1
-            mVertPos.push_back( wPos ); //x
-            mVertPos.push_back( 0.0f ); //y
-            mVertPos.push_back( dPosHigh ); //z
-
-            //tex0
-            mTexCoord.push_back( wTexCoord ); //s
-            mTexCoord.push_back( dTexCoordLow ); //t
-
-            //tex1
-            mTexCoord.push_back( wTexCoord ); //s
-            mTexCoord.push_back( dTexCoordHigh ); //t
-        }
-    }
-
-    mNumberOfVerts = static_cast<GLsizei>(mVertPos.size() / 3); //each vertex has three componets (x, y & z)
-}
-
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster() && action == SGCT_PRESS) {
+        switch (key) {
         case 'S':
-            if(action == SGCT_PRESS)
-                stats.toggle();
+            stats.setVal(!stats.getVal());
             break;
-
         case 'I':
-            if(action == SGCT_PRESS)
-                info.toggle();
+            info.setVal(!info.getVal());
             break;
-
         case 'W':
-            if(action == SGCT_PRESS)
-                wireframe.toggle();
+            wireframe.setVal(!wireframe.getVal());
             break;
-
         case 'Q':
-            if(action == SGCT_PRESS)
-                gEngine->terminate();
+            gEngine->terminate();
             break;
-
         case 'T':
-            if(action == SGCT_PRESS)
-                useTracking.toggle();
+            useTracking.setVal(!useTracking.getVal());
             break;
-
         case 'E':
-            if(action == SGCT_PRESS)
-            {
-                glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
-                sgct_core::ClusterManager::instance()->getDefaultUserPtr()->setTransform(xform);
+            sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
+            );
+            break;
+        case SGCT_KEY_SPACE:
+            mPause = !mPause;
+            break;
+        case 'F':
+            for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
             }
             break;
-
-        case SGCT_KEY_SPACE:
-            if(action == SGCT_PRESS)
-                mPause = !mPause;
-            break;
-
-        case 'F':
-            if(action == SGCT_PRESS)
-                for(std::size_t i=0; i<gEngine->getNumberOfWindows(); i++)
-                {
-                    gEngine->getWindowPtr(i)->setUseFXAA( !gEngine->getWindowPtr(i)->useFXAA() );
-                }
-            break;
-
         case 'P':
         case SGCT_KEY_F10:
-            if(action == SGCT_PRESS)
-                takeScreenshot.setVal( true );
+            takeScreenshot.setVal(true);
             break;
-
         case SGCT_KEY_LEFT:
-            if(action == SGCT_PRESS)
-            {
-                if( stereoMode.getVal() > 0 )
-                    stereoMode.setVal( (stereoMode.getVal() - 1) % sgct::SGCTWindow::Number_Of_Stereo_Items );
-                else
-                    stereoMode.setVal( sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+            if (static_cast<int>(stereoMode.getVal()) > 0) {
+                using StereoMode = sgct::SGCTWindow::StereoMode;
+                const int v = static_cast<int>(stereoMode.getVal()) - 1;
+                StereoMode m = static_cast<StereoMode>(v);
+                stereoMode.setVal(m);
             }
             break;
-
         case SGCT_KEY_RIGHT:
-            if(action == SGCT_PRESS)
-                stereoMode.setVal( (stereoMode.getVal() + 1) % sgct::SGCTWindow::Number_Of_Stereo_Items );
+            using StereoMode = sgct::SGCTWindow::StereoMode;
+            const int v = static_cast<int>(stereoMode.getVal()) + 1;
+            StereoMode m = static_cast<StereoMode>(v);
+            stereoMode.setVal(m);
             break;
         }
     }
@@ -399,4 +351,28 @@ void cleanUpFun()
         glDeleteBuffers(1, &texCoordBuffer);
     if(vertexArray)
         glDeleteVertexArrays(1, &vertexArray);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+
+    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

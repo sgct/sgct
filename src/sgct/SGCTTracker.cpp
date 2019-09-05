@@ -33,15 +33,15 @@ void SGCTTracker::addDevice(std::string name, size_t index) {
     );
 }
 
-SGCTTrackingDevice* SGCTTracker::getLastDevicePtr() const {
+SGCTTrackingDevice* SGCTTracker::getLastDevice() const {
     return !mTrackingDevices.empty() ? mTrackingDevices.back().get() : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtr(size_t index) const {
+SGCTTrackingDevice* SGCTTracker::getDevice(size_t index) const {
     return index < mTrackingDevices.size() ? mTrackingDevices[index].get() : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) const {
+SGCTTrackingDevice* SGCTTracker::getDevice(const std::string& name) const {
     auto it = std::find_if(
         mTrackingDevices.begin(),
         mTrackingDevices.end(),
@@ -57,7 +57,7 @@ SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) const {
     }
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtrBySensorId(int id) const {
+SGCTTrackingDevice* SGCTTracker::getDeviceBySensorId(int id) const {
     auto it = std::find_if(
         mTrackingDevices.begin(),
         mTrackingDevices.end(),

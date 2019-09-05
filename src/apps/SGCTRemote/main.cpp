@@ -16,7 +16,7 @@ void externalControlStatusCallback(bool connected);
 sgct::SharedBool showStats(false);
 sgct::SharedBool showGraph(false);
 sgct::SharedBool showWireframe(false);
-sgct::SharedFloat size_factor(0.5f);
+sgct::SharedFloat sizeFactor(0.5f);
 
 int main( int argc, char* argv[] )
 {
@@ -56,7 +56,7 @@ void drawFun()
     float speed = 50.0f;
     glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
 
-    float size = size_factor.getVal();
+    float size = sizeFactor.getVal();
 
     //render a single triangle
     glBegin(GL_TRIANGLES);
@@ -91,7 +91,7 @@ void postSyncPreDrawFun()
 void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble( &currentTime );
-    sgct::SharedData::instance()->writeFloat( &size_factor );
+    sgct::SharedData::instance()->writeFloat( &sizeFactor );
     sgct::SharedData::instance()->writeBool( &showStats );
     sgct::SharedData::instance()->writeBool( &showGraph );
     sgct::SharedData::instance()->writeBool( &showWireframe );
@@ -100,7 +100,7 @@ void encodeFun()
 void decodeFun()
 {
     sgct::SharedData::instance()->readDouble( &currentTime );
-    sgct::SharedData::instance()->readFloat( &size_factor );
+    sgct::SharedData::instance()->readFloat( &sizeFactor );
     sgct::SharedData::instance()->readBool( &showStats );
     sgct::SharedData::instance()->readBool( &showGraph );
     sgct::SharedData::instance()->readBool( &showWireframe );
@@ -127,7 +127,7 @@ void externalControlMessageCallback(const char * receivedChars, int size)
             //parse string to int
             int tmpVal = atoi(receivedChars + 5);
             //recalc percent to float
-            size_factor.setVal(static_cast<float>(tmpVal)/100.0f);
+            sizeFactor.setVal(static_cast<float>(tmpVal)/100.0f);
         }
 
         sgct::MessageHandler::instance()->print("Message: '%s', size: %d\n", receivedChars, size);

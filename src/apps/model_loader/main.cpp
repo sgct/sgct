@@ -1,100 +1,137 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
 #include "objloader.hpp"
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-//callbacks
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
-void keyCallback(int key, int action);
+    bool hasUVs = false; //init to false and set to true when loading UVs
+    bool hasNormals = false; //init to false and set to true when loading normals
 
-//regular functions
-void loadModel( std::string filename );
-bool hasUVs = false; //init to false and set to true when loading UVs
-bool hasNormals = false; //init to false and set to true when loading normals
+    enum VBO_INDEXES { VBO_POSITIONS = 0, VBO_UVS, VBO_NORMALS };
+    GLuint vboPositions = 0;
+    GLuint vboUvs = 0;
+    GLuint vboNormals = 0;
+    GLsizei numberOfVertices = 0;
 
-enum VBO_INDEXES { VBO_POSITIONS = 0, VBO_UVS, VBO_NORMALS };
-GLuint vertexBuffers[3];
-GLsizei numberOfVertices = 0;
+    //variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
+} // namespace
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
+/// Loads obj model and uploads to the GPU 
+void loadModel(std::string filename) {
+    // Read our .obj file
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals;
 
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
+    const bool success = loadOBJ(filename.c_str(), positions, uvs, normals);
+    if (success) {
+        // store the number of triangles
+        numberOfVertices = static_cast<GLsizei>(positions.size());
+
+        glGenBuffers(1, &vboPositions);
+        glGenBuffers(1, &vboUvs);
+        glGenBuffers(1, &vboNormals);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            positions.size() * sizeof(glm::vec3),
+            positions.data(),
+            GL_STATIC_DRAW
+        );
+
+        if (!uvs.empty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                uvs.size() * sizeof(glm::vec2),
+                uvs.data(),
+                GL_STATIC_DRAW
+            );
+            hasUVs = true;
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                "Warning: Model is missing UV data\n"
+            );
+        }
+
+        if (!normals.empty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                normals.size() * sizeof(glm::vec3),
+                normals.data(),
+                GL_STATIC_DRAW
+            );
+            hasNormals = true;
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                "Warning: Model is missing normal data\n"
+            );
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+
+        sgct::MessageHandler::instance()->print(
+            "Model '%s' loaded successfully (%u vertices, VBOs: %u %u %u)\n",
+            filename.c_str(), numberOfVertices, vboPositions, vboUvs, vboNormals
+        );
     }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
+    else {
+        sgct::MessageHandler::instance()->print(
+            "Failed to load model '%s'\n", filename.c_str()
+        );
+    }
 }
 
-void drawFun()
-{
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-    glEnable( GL_TEXTURE_2D );
+void drawFun() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
 
-    double speed = 0.44;
+    constexpr const double Speed = 0.44;
 
-    //create scene transform (animation)
-    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    // create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * Speed),
+        glm::vec3(0.f, -1.f, 0.f)
+    );
 
-    glMultMatrixf( glm::value_ptr(scene_mat) ); //multiply the modelview matrix with the scene transform
+    glMultMatrixf(glm::value_ptr(scene));
 
-    // ------ draw model --------------- //
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT); //push attributes to the stack in order to unset them correctly
+    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4f(1.f, 1.f, 1.f, 1.f);
 
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_POSITIONS ] );
+    glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
-    if(hasUVs)
-    {
+    if (hasUVs) {
         glClientActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_UVS ] );
+        glBindTexture(
+            GL_TEXTURE_2D, 
+            sgct::TextureManager::instance()->getTextureId("box")
+        );
+        glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glTexCoordPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
     }
     
-    if(hasNormals)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_NORMALS ] );
+    if (hasNormals) {
+        glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
 
         glEnableClientState(GL_NORMAL_ARRAY);
         glNormalPointer(GL_FLOAT, 0, reinterpret_cast<void*>(0));
@@ -102,141 +139,81 @@ void drawFun()
     
     glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
 
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE); //unbind
+    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
     glPopClientAttrib();
-    // ----------------------------------//
 
-    glDisable( GL_CULL_FACE );
-    glDisable( GL_DEPTH_TEST );
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(sgct::Engine::getTime());
     }
 }
 
-void postSyncPreDrawFun()
-{
-    ;
-}
-
-void initOGLFun()
-{
+void initOGLFun() {
     sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
     sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    sgct::TextureManager::instance()->setCompression(
+        sgct::TextureManager::CompressionMode::S3TC_DXT
+    );
+    sgct::TextureManager::instance()->loadTexture(
+        "box",
+        "../SharedResources/box.png",
+        true
+    );
 
-    loadModel( "../SharedResources/box.obj" );
+    loadModel("../SharedResources/box.obj");
     
     glEnable( GL_TEXTURE_2D );
-    glDisable(GL_LIGHTING); //no lights at the moment
+    glDisable(GL_LIGHTING);
 
-    //Set up backface culling
+    // Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&currentTime);
+void encodeFun() {
+    sgct::SharedData::instance()->writeDouble(currentTime);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&currentTime);
+void decodeFun() {
+    sgct::SharedData::instance()->readDouble(currentTime);
 }
 
-/*!
-    De-allocate data from GPU
-    Textures are deleted automatically when using texture manager
-    Shaders are deleted automatically when using shader manager
-*/
-void cleanUpFun()
-{
-    if( vertexBuffers[0] ) //if first is created, all has been created.
-    {
-        glDeleteBuffers(3, &vertexBuffers[0]);
-        for(unsigned int i=0; i<3; i++)
-            vertexBuffers[i] = GL_FALSE;
+/**
+ * De-allocate data from GPU. Textures are deleted automatically when using texture
+ * manager. Shaders are deleted automatically when using shader manager
+ */
+void cleanUpFun() {
+    glDeleteBuffers(1, &vboPositions);
+    vboPositions = 0;
+    glDeleteBuffers(1, &vboUvs);
+    vboUvs = 0;
+    glDeleteBuffers(1, &vboNormals);
+    vboNormals = 0;
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
     }
-}
 
-/*
-    Loads obj model and uploads to the GPU 
-*/
-void loadModel( std::string filename )
-{
-    // Read our .obj file
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
-    
-    //if successful
-    if( loadOBJ( filename.c_str(), positions, uvs, normals) )
-    {
-        //store the number of triangles
-        numberOfVertices = static_cast<GLsizei>( positions.size() );
-        
-        //init VBOs
-        for(unsigned int i=0; i<3; i++)
-            vertexBuffers[i] = GL_FALSE;
-        glGenBuffers(3, &vertexBuffers[0]);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_POSITIONS ] );
-        glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), &positions[0], GL_STATIC_DRAW);
-    
-        if( uvs.size() > 0 )
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_UVS ] );
-            glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-            hasUVs = true;
-        }
-        else
-            sgct::MessageHandler::instance()->print("Warning: Model is missing UV data.\n");
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
-        if( normals.size() > 0 )
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_NORMALS ] );
-            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-            hasNormals = true;
-        }
-        else
-            sgct::MessageHandler::instance()->print("Warning: Model is missing normal data.\n");
-
-        glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE); //unbind VBO
-
-        //clear vertex data that is uploaded on GPU
-        positions.clear();
-        uvs.clear();
-        normals.clear();
-
-        //print some usefull info
-        sgct::MessageHandler::instance()->print("Model '%s' loaded successfully (%u vertices, VBOs: %u %u %u).\n",
-            filename.c_str(),
-            numberOfVertices,
-            vertexBuffers[VBO_POSITIONS],
-            vertexBuffers[VBO_UVS],
-            vertexBuffers[VBO_NORMALS] );
-    }
-    else
-        sgct::MessageHandler::instance()->print("Failed to load model '%s'!\n", filename.c_str() );
-
-}
-
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        /*switch( key )
-        {
-        case SGCT_KEY_R:
-            if(action == SGCT_PRESS)
-                ;//do something
-            break;
-        }*/
-    }
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

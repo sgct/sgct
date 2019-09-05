@@ -1,15 +1,14 @@
-#include <vector>
-#include <stdio.h>
-#include <string>
-#include <cstring>
+#include "objloader.hpp"
 
+#include <vector>
+#include <string>
 #include <glm/glm.hpp>
 
-#include "objloader.hpp"
 
 // Very, VERY simple OBJ loader.
 // Here is a short list of features a real function would provide : 
-// - Binary files. Reading a model should be just a few memcpy's away, not parsing a file at runtime. In short : OBJ is not very great.
+// - Binary files. Reading a model should be just a few memcpy's away, not parsing a file
+//   at runtime. In short : OBJ is not very great.
 // - Animations & bones (includes bones weights)
 // - Multiple UVs
 // - All attributes should be optional, not "forced"
@@ -17,351 +16,291 @@
 // - More secure. Change another line and you can inject code.
 // - Loading from memory, stream, etc
 
-bool loadOBJ(
-    const char * path, 
-    std::vector<glm::vec3> & out_vertices, 
-    std::vector<glm::vec2> & out_uvs,
-    std::vector<glm::vec3> & out_normals
-){
-    printf("Loading OBJ file %s...\n", path);
+bool loadOBJ(const std::string& path, std::vector<glm::vec3>& vertices, 
+             std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals)
+{
+    printf("Loading OBJ file %s\n", path.c_str());
 
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-    std::vector<glm::vec3> temp_vertices; 
-    std::vector<glm::vec2> temp_uvs;
-    std::vector<glm::vec3> temp_normals;
+    struct {
+        std::vector<glm::vec3> vertices;
+        std::vector<glm::vec2> uvs;
+        std::vector<glm::vec3> normals;
+    } tmp;
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    errno_t err;
-    FILE * file;
-    err = fopen_s(&file, path, "r");
-    if (err != 0)
+#if (_MSC_VER >= 1400)
+    FILE* file;
+    errno_t err = fopen_s(&file, path.c_str(), "r");
+    const bool success = (err == 0);
 #else
-    FILE * file = fopen(path, "r");
-    if (file == NULL)
+    FILE* file = fopen(path.c_str(), "r");
+    const bool success = file;
 #endif
-    {
+    if (!success) {
         printf("Impossible to open the file! Are you in the right path?\n");
         return false;
     }
 
-    const int lineheaderStrSize = 128;
-    const int faceCoordStrSize = 64;
+    constexpr const int LineHeaderStrSize = 128;
+    constexpr const int FaceCoordStrSize = 64;
 
-    char lineHeader[lineheaderStrSize];
+    char lineHeader[LineHeaderStrSize];
 
-    //holders for face coord data
-    //supports only triangles (3 values)
-    //fix to read 3DsMax obj exported files by Miro
-    char faceCoord0[faceCoordStrSize];
-    char faceCoord1[faceCoordStrSize];
-    char faceCoord2[faceCoordStrSize];
+    // holders for face coord data
+    // supports only triangles (3 values)
+    // fix to read 3DsMax obj exported files by Miro
+    char faceCoord0[FaceCoordStrSize];
+    char faceCoord1[FaceCoordStrSize];
+    char faceCoord2[FaceCoordStrSize];
 
-    while( true )
-    {
+    while (true) {
         // read the first word of the line
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-        int res = fscanf_s(file, "%s", lineHeader, lineheaderStrSize);
+#if (_MSC_VER >= 1400)
+        int res = fscanf_s(file, "%s", lineHeader, LineHeaderStrSize);
 #else
         int res = fscanf(file, "%s", lineHeader);
 #endif
-        if (res == EOF)
-            break; // EOF = End Of File. Quit the loop.
+        // EOF = End Of File. Quit the loop.
+        if (res == EOF) {
+            break; 
+        }
 
-        // else : parse lineHeader
-        
-        if ( strcmp( lineHeader, "v" ) == 0 )
-        {
+        if (strcmp(lineHeader, "v") == 0) {
             glm::vec3 vertex;
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-            fscanf_s(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+#if (_MSC_VER >= 1400)
+            fscanf_s(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 #else
-            fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+            fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 #endif
-            temp_vertices.push_back(vertex);
+            tmp.vertices.push_back(vertex);
         }
-        else if ( strcmp( lineHeader, "vt" ) == 0 )
-        {
+        else if (strcmp(lineHeader, "vt") == 0) {
             glm::vec2 uv;
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-            fscanf_s(file, "%f %f\n", &uv.x, &uv.y );
+#if (_MSC_VER >= 1400)
+            fscanf_s(file, "%f %f\n", &uv.x, &uv.y);
 #else
-            fscanf(file, "%f %f\n", &uv.x, &uv.y );
+            fscanf(file, "%f %f\n", &uv.x, &uv.y);
 #endif
-            temp_uvs.push_back(uv);
+            tmp.uvs.push_back(uv);
         }
-        else if ( strcmp( lineHeader, "vn" ) == 0 )
-        {
+        else if (strcmp(lineHeader, "vn") == 0) {
             glm::vec3 normal;
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-            fscanf_s(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+#if (_MSC_VER >= 1400)
+            fscanf_s(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 #else
-            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 #endif
-            temp_normals.push_back(normal);
+            tmp.normals.push_back(normal);
         }
-        else if ( strcmp( lineHeader, "f" ) == 0 )
-        {
+        else if (strcmp( lineHeader, "f") == 0) {
             std::string vertex1, vertex2, vertex3;
-            unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-            /*int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
-            if (matches != 9){
-                printf("File can't be read by our simple parser :-( Try exporting with other options\n");
-                return false;
-            }*/
+            unsigned int vIdx0;
+            unsigned int vIdx1;
+            unsigned int vIdx2;
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-            int matches = fscanf_s(file, "%s %s %s\n", faceCoord0, faceCoordStrSize, faceCoord1, faceCoordStrSize, faceCoord2, faceCoordStrSize);
+            unsigned int uvIdx0;
+            unsigned int uvIdx1;
+            unsigned int uvIdx2;
+
+            unsigned int nrmlIdx0;
+            unsigned int nrmlIdx1;
+            unsigned int nrmlIdx2;
+
+#if (_MSC_VER >= 1400)
+            int matches = fscanf_s(
+                file,
+                "%s %s %s\n",
+                faceCoord0,
+                FaceCoordStrSize,
+                faceCoord1,
+                FaceCoordStrSize,
+                faceCoord2,
+                FaceCoordStrSize
+            );
 #else
-            int matches = fscanf(file, "%s %s %s\n", faceCoord0, faceCoord1, faceCoord2 );
+            int matches = fscanf(file, "%s %s %s\n", faceCoord0, faceCoord1, faceCoord2);
 #endif
-            if (matches != 3)
-            {
-                printf("File can't be read by our simple parser. Only triangle meshes can be read.\n");
+            if (matches != 3) {
+                printf("Parser can only read simple triangle meshes are supported\n");
                 return false;
             }
-            else
-            {
-
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                if( sscanf_s( faceCoord0, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0] ) == 3 ) //vertex + uv + normal valid
+            else {
+#if (_MSC_VER >= 1400)
+                // vertex + uv + normal valid
+                if (sscanf_s(faceCoord0, "%d/%d/%d", &vIdx0, &uvIdx0, &nrmlIdx0) == 3)
 #else
-                if (sscanf(faceCoord0, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]) == 3) //vertex + uv + normal valid
+                // vertex + uv + normal valid
+                if (sscanf(faceCoord0, "%d/%d/%d", &vIdx0, &uvIdx0, &nrmlIdx0) == 3)
 #endif
                 {
-
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord1, "%d/%d/%d", &vertexIndex[1], &uvIndex[1], &normalIndex[1] ) != 3 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord1, "%d/%d/%d", &vIdx1, &uvIdx1, &nrmlIdx1) != 3)
 #else
-                    if (sscanf(faceCoord1, "%d/%d/%d", &vertexIndex[1], &uvIndex[1], &normalIndex[1]) != 3)
+                    if (sscanf(faceCoord1, "%d/%d/%d", &vIdx1, &uvIdx1, &nrmlIdx1) != 3)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
+                        printf("Parser can't read 2nd face indexes\n");
                         return false;
                     }
                     
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord2, "%d/%d/%d", &vertexIndex[2], &uvIndex[2], &normalIndex[2] ) != 3 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord2, "%d/%d/%d", &vIdx2, &uvIdx2, &nrmlIdx2) != 3)
 #else
-                    if (sscanf(faceCoord2, "%d/%d/%d", &vertexIndex[2], &uvIndex[2], &normalIndex[2]) != 3)
+                    if (sscanf(faceCoord2, "%d/%d/%d", &vIdx2, &uvIdx2, &nrmlIdx2) != 3)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
+                        printf("Parser can't read 3rd face indexes\n");
                         return false;
                     }
 
-                    vertexIndices.push_back(vertexIndex[0]);
-                    vertexIndices.push_back(vertexIndex[1]);
-                    vertexIndices.push_back(vertexIndex[2]);
-                    uvIndices    .push_back(uvIndex[0]);
-                    uvIndices    .push_back(uvIndex[1]);
-                    uvIndices    .push_back(uvIndex[2]);
-                    normalIndices.push_back(normalIndex[0]);
-                    normalIndices.push_back(normalIndex[1]);
-                    normalIndices.push_back(normalIndex[2]);
+                    vertexIndices.push_back(vIdx0);
+                    vertexIndices.push_back(vIdx1);
+                    vertexIndices.push_back(vIdx2);
+                    uvIndices    .push_back(uvIdx0);
+                    uvIndices    .push_back(uvIdx1);
+                    uvIndices    .push_back(uvIdx2);
+                    normalIndices.push_back(nrmlIdx0);
+                    normalIndices.push_back(nrmlIdx1);
+                    normalIndices.push_back(nrmlIdx2);
                 }
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                else if( sscanf_s( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+#if (_MSC_VER >= 1400)
+                // vertex + normal valid
+                else if (sscanf_s(faceCoord0, "%d//%d", &vIdx0, &nrmlIdx0) == 2)
 #else
-                else if( sscanf( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+                // vertex + normal valid
+                else if (sscanf(faceCoord0, "%d//%d", &vIdx0, &nrmlIdx0) == 2)
 #endif
                 {
-
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1] ) != 2 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord1, "%d//%d", &vIdx1, &nrmlIdx1) != 2)
 #else
-                    if (sscanf(faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1]) != 2)
+                    if (sscanf(faceCoord1, "%d//%d", &vIdx1, &nrmlIdx1) != 2)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
+                        printf("Parser can't read 2nd face indexes\n");
                         return false;
                     }
                     
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord2, "%d//%d", &vIdx2, &nrmlIdx2) != 2)
 #else
-                    if( sscanf( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+                    if (sscanf(faceCoord2, "%d//%d", &vIdx2, &nrmlIdx2) != 2)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
+                        printf("Parser can't read 3rd face indexes\n");
                         return false;
                     }
 
-                    vertexIndices.push_back(vertexIndex[0]);
-                    vertexIndices.push_back(vertexIndex[1]);
-                    vertexIndices.push_back(vertexIndex[2]);
-                    normalIndices.push_back(normalIndex[0]);
-                    normalIndices.push_back(normalIndex[1]);
-                    normalIndices.push_back(normalIndex[2]);
-                }
-
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                else if( sscanf_s( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
-#else
-                else if( sscanf( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
-#endif
-                {
-                    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later    
-                    if( sscanf_s( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
-#else
-                    if( sscanf( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
-#endif
-                    {
-                        printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
-                        return false;
-                    }
-                    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
-#else
-                    if( sscanf( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
-#endif
-                    {
-                        printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
-                        return false;
-                    }
-
-                    vertexIndices.push_back(vertexIndex[0]);
-                    vertexIndices.push_back(vertexIndex[1]);
-                    vertexIndices.push_back(vertexIndex[2]);
-                    uvIndices    .push_back(uvIndex[0]);
-                    uvIndices    .push_back(uvIndex[1]);
-                    uvIndices    .push_back(uvIndex[2]);
+                    vertexIndices.push_back(vIdx0);
+                    vertexIndices.push_back(vIdx1);
+                    vertexIndices.push_back(vIdx2);
+                    normalIndices.push_back(nrmlIdx0);
+                    normalIndices.push_back(nrmlIdx1);
+                    normalIndices.push_back(nrmlIdx2);
                 }
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                else if( sscanf_s( faceCoord0, "%d///", &vertexIndex[0] ) == 1 ) //vertex only
+#if (_MSC_VER >= 1400)
+                // vertex + uv valid
+                else if (sscanf_s(faceCoord0, "%d/%d//", &vIdx0, &uvIdx0) == 2)
 #else
-                else if (sscanf(faceCoord0, "%d///", &vertexIndex[0]) == 1) //vertex only
+                else if (sscanf(faceCoord0, "%d/%d//", &vIdx0, &uvIdx0) == 2)
 #endif
                 {
-                    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord1, "%d///", &vertexIndex[1] ) != 1 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord1, "%d/%d//", &vIdx1, &uvIdx1) != 2)
 #else
-                    if (sscanf(faceCoord1, "%d///", &vertexIndex[1]) != 1)
+                    if( sscanf( faceCoord1, "%d/%d//", &vIdx1, &uvIdx1) != 2)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
+                        printf("Parser can't read 2nd face indexes\n");
                         return false;
                     }
                     
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-                    if( sscanf_s( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord2, "%d/%d//", &vIdx2, &uvIdx2) != 2)
 #else
-                    if( sscanf( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+                    if (sscanf(faceCoord2, "%d/%d//", &vIdx2, &uvIdx2) != 2)
 #endif
                     {
-                        printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
+                        printf("Parser can't read 3rd face indexes\n");
                         return false;
                     }
 
-                    vertexIndices.push_back(vertexIndex[0]);
-                    vertexIndices.push_back(vertexIndex[1]);
-                    vertexIndices.push_back(vertexIndex[2]);
+                    vertexIndices.push_back(vIdx0);
+                    vertexIndices.push_back(vIdx1);
+                    vertexIndices.push_back(vIdx2);
+                    uvIndices    .push_back(uvIdx0);
+                    uvIndices    .push_back(uvIdx1);
+                    uvIndices    .push_back(uvIdx2);
                 }
-                else //fail
+
+#if (_MSC_VER >= 1400)
+                // vertex only
+                else if (sscanf_s(faceCoord0, "%d///", &vIdx0) == 1)
+#else
+                // vertex only
+                else if (sscanf(faceCoord0, "%d///", &vIdx0) == 1)
+#endif
                 {
-                    printf("File can't be read by our simple parser. Face format is unknown.\n");
+                    
+#if (_MSC_VER >= 1400)
+                    if (sscanf_s(faceCoord1, "%d///", &vIdx1) != 1)
+#else
+                    if (sscanf(faceCoord1, "%d///", &vIdx1) != 1)
+#endif
+                    {
+                        printf("Parser can't read 2nd face indexes\n");
+                        return false;
+                    }
+                    
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+                    if (sscanf_s(faceCoord2, "%d///", &vIdx2) != 1)
+#else
+                    if (sscanf(faceCoord2, "%d///", &vIdx2) != 1)
+#endif
+                    {
+                        printf("Parser can't read 3rd face indexes.\n");
+                        return false;
+                    }
+
+                    vertexIndices.push_back(vIdx0);
+                    vertexIndices.push_back(vIdx1);
+                    vertexIndices.push_back(vIdx2);
+                }
+                else  {
+                    printf("File can't be read by our parser. Face format is unknown.\n");
                     return false;
                 }
             }
-        }else{
+        } else {
             // Probably a comment, eat up the rest of the line
-            char stupidBuffer[1000];
-            fgets(stupidBuffer, 1000, file);
+            char StupidBuffer[1000];
+            fgets(StupidBuffer, 1000, file);
         }
 
     }
 
     // For each vertex of each triangle
-    for( unsigned int i=0; i<vertexIndices.size(); i++ )
-    {
+    for (unsigned int i = 0; i < vertexIndices.size(); i++) {
         // Get the indices of its attributes
         unsigned int vertexIndex = vertexIndices[i];
-        unsigned int uvIndex;
-        unsigned int normalIndex;
 
         // Get the attributes thanks to the index
-        glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
-        out_vertices.push_back(vertex);
+        glm::vec3 vertex = tmp.vertices[vertexIndex - 1];
+        vertices.push_back(vertex);
 
-        if( uvIndices.size() > 0 )
-        {
-            uvIndex = uvIndices[i];
-            glm::vec2 uv = temp_uvs[ uvIndex-1 ];
-            out_uvs.push_back(uv);
+        if (!uvIndices.empty()) {
+            unsigned int uvIndex = uvIndices[i];
+            glm::vec2 uv = tmp.uvs[uvIndex - 1];
+            uvs.push_back(uv);
         }
 
-        if( normalIndices.size() > 0 )
-        {
-            normalIndex = normalIndices[i];
-            glm::vec3 normal = temp_normals[ normalIndex-1 ];
-            out_normals.push_back(normal);
+        if (!normalIndices.empty() > 0) {
+            unsigned int normalIndex = normalIndices[i];
+            glm::vec3 normal = tmp.normals[normalIndex - 1];
+            normals.push_back(normal);
         }
     }
 
     return true;
 }
-
-
-#ifdef USE_ASSIMP // don't use this #define, it's only for me (it AssImp fails to compile on your machine, at least all the other tutorials still work)
-
-// Include AssImp
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
-
-bool loadAssImp(
-    const char * path, 
-    std::vector<unsigned short> & indices,
-    std::vector<glm::vec3> & vertices,
-    std::vector<glm::vec2> & uvs,
-    std::vector<glm::vec3> & normals
-){
-
-    Assimp::Importer importer;
-
-    const aiScene* scene = importer.ReadFile(path, 0/*aiProcess_JoinIdenticalVertices | aiProcess_SortByPType*/);
-    if( !scene) {
-        fprintf( stderr, importer.GetErrorString());
-        return false;
-    }
-    const aiMesh* mesh = scene->mMeshes[0]; // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
-
-    // Fill vertices positions
-    vertices.reserve(mesh->mNumVertices);
-    for(unsigned int i=0; i<mesh->mNumVertices; i++){
-        aiVector3D pos = mesh->mVertices[i];
-        vertices.push_back(glm::vec3(pos.x, pos.y, pos.z));
-    }
-
-    // Fill vertices texture coordinates
-    uvs.reserve(mesh->mNumVertices);
-    for(unsigned int i=0; i<mesh->mNumVertices; i++){
-        aiVector3D UVW = mesh->mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
-        uvs.push_back(glm::vec2(UVW.x, UVW.y));
-    }
-
-    // Fill vertices normals
-    normals.reserve(mesh->mNumVertices);
-    for(unsigned int i=0; i<mesh->mNumVertices; i++){
-        aiVector3D n = mesh->mNormals[i];
-        normals.push_back(glm::vec3(n.x, n.y, n.z));
-    }
-
-
-    // Fill face indices
-    indices.reserve(3*mesh->mNumFaces);
-    for (unsigned int i=0; i<mesh->mNumFaces; i++){
-        // Assume the model has only triangles.
-        indices.push_back(mesh->mFaces[i].mIndices[0]);
-        indices.push_back(mesh->mFaces[i].mIndices[1]);
-        indices.push_back(mesh->mFaces[i].mIndices[2]);
-    }
-    
-    // The "scene" pointer will be deleted automatically by "importer"
-
-}
-
-#endif

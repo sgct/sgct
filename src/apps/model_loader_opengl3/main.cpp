@@ -25,8 +25,8 @@ GLuint VertexArrayID = GL_FALSE;
 GLsizei numberOfVertices = 0;
 
 //shader locations
-GLint MVP_Loc = -1;
-GLint NM_Loc = -1;
+GLint MVPLoc = -1;
+GLint NMLoc = -1;
 
 //variables to share across cluster
 sgct::SharedDouble currentTime(0.0);
@@ -81,8 +81,8 @@ void drawFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-    glUniformMatrix4fv(MVP_Loc, 1, GL_FALSE, &MVP[0][0]);
-    glUniformMatrix3fv(NM_Loc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix3fv(NMLoc, 1, GL_FALSE, &MVP[0][0]);
 
     // ------ draw model --------------- //
     glBindVertexArray(VertexArrayID);
@@ -114,8 +114,8 @@ void postSyncPreDrawFun()
         //reset locations
         sp.bind();
 
-        MVP_Loc = sp.getUniformLocation( "MVP" );
-        NM_Loc = sp.getUniformLocation( "NM" );
+        MVPLoc = sp.getUniformLocation( "MVP" );
+        NMLoc = sp.getUniformLocation( "NM" );
         GLint Tex_Loc = sp.getUniformLocation( "Tex" );
         glUniform1i( Tex_Loc, 0 );
 
@@ -143,8 +143,8 @@ void initOGLFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-    MVP_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    NM_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "NM" );
+    MVPLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    NMLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "NM" );
     GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
     glUniform1i( Tex_Loc, 0 );
 

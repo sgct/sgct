@@ -10,7 +10,6 @@ namespace {
     bool hasUVs = false; //init to false and set to true when loading UVs
     bool hasNormals = false; //init to false and set to true when loading normals
 
-    enum VBO_INDEXES { VBO_POSITIONS = 0, VBO_UVS, VBO_NORMALS };
     GLuint vboPositions = 0;
     GLuint vboUvs = 0;
     GLuint vboNormals = 0;
@@ -21,6 +20,7 @@ namespace {
 
 } // namespace
 
+using namespace sgct;
 
 /// Loads obj model and uploads to the GPU 
 void loadModel(std::string filename) {
@@ -120,10 +120,7 @@ void drawFun() {
 
     if (hasUVs) {
         glClientActiveTexture(GL_TEXTURE0);
-        glBindTexture(
-            GL_TEXTURE_2D, 
-            sgct::TextureManager::instance()->getTextureId("box")
-        );
+        glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
         glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -154,12 +151,10 @@ void preSyncFun() {
 }
 
 void initOGLFun() {
-    sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-    sgct::TextureManager::instance()->setCompression(
-        sgct::TextureManager::CompressionMode::S3TC_DXT
-    );
-    sgct::TextureManager::instance()->loadTexture(
+    TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
+    TextureManager::instance()->setAnisotropicFilterSize(4.0f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture(
         "box",
         "../SharedResources/box.png",
         true
@@ -176,11 +171,11 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeDouble(currentTime);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readDouble(currentTime);
 }
 
 /**
@@ -198,7 +193,7 @@ void cleanUpFun() {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    gEngine = new Engine(arg);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
@@ -210,8 +205,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
     delete gEngine;

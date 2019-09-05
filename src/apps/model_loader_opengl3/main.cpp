@@ -1,294 +1,271 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
 #include "objloader.hpp"
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-//callbacks
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
-void keyCallback(int key, int action);
+    GLuint vboPositions = 0;
+    GLuint vboUvs = 0;
+    GLuint vboNormals = 0;
+    GLuint VertexArrayID = 0;
+    GLsizei numberOfVertices = 0;
 
-//regular functions
-void loadModel( std::string filename );
+    // shader locations
+    GLint MVPLoc = -1;
+    GLint NMLoc = -1;
 
-enum VBO_INDEXES { VBO_POSITIONS = 0, VBO_UVS, VBO_NORMALS };
-GLuint vertexBuffers[3];
-GLuint VertexArrayID = GL_FALSE;
-GLsizei numberOfVertices = 0;
+    // variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedBool reloadShader(false);
 
-//shader locations
-GLint MVPLoc = -1;
-GLint NMLoc = -1;
+} // namespace
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedBool reloadShader(false);
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-
-    double speed = 0.44;
-
-    //create scene transform (animation)
-    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( currentTime.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
-    glm::mat3 NM = glm::inverseTranspose(glm::mat3( gEngine->getCurrentModelViewMatrix() * scene_mat ));
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
-
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
-
-    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, &MVP[0][0]);
-    glUniformMatrix3fv(NMLoc, 1, GL_FALSE, &MVP[0][0]);
-
-    // ------ draw model --------------- //
-    glBindVertexArray(VertexArrayID);
-    glDrawArrays(GL_TRIANGLES, 0, numberOfVertices );
-    glBindVertexArray(GL_FALSE); //unbind
-    // ----------------------------------//
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-
-    glDisable( GL_CULL_FACE );
-    glDisable( GL_DEPTH_TEST );
-}
-
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
-    }
-}
-
-void postSyncPreDrawFun()
-{
-    if( reloadShader.getVal() )
-    {
-        sgct::ShaderProgram sp = sgct::ShaderManager::instance()->getShaderProgram( "xform" );
-        sp.reload();
-
-        //reset locations
-        sp.bind();
-
-        MVPLoc = sp.getUniformLocation( "MVP" );
-        NMLoc = sp.getUniformLocation( "NM" );
-        GLint Tex_Loc = sp.getUniformLocation( "Tex" );
-        glUniform1i( Tex_Loc, 0 );
-
-        sp.unbind();
-        reloadShader.setVal(false);
-    }
-}
-
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
-
-    loadModel( "../SharedResources/box.obj" );
-    
-    //Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
-
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "simple.vert",
-            "simple.frag" );
-
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
-
-    MVPLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    NMLoc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "NM" );
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-    glUniform1i( Tex_Loc, 0 );
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-}
-
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
-    sgct::SharedData::instance()->writeBool( &reloadShader );
-}
-
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble( &currentTime );
-    sgct::SharedData::instance()->readBool( &reloadShader );
-}
-
-/*!
-    De-allocate data from GPU
-    Textures are deleted automatically when using texture manager
-    Shaders are deleted automatically when using shader manager
-*/
-void cleanUpFun()
-{
-    if( VertexArrayID )
-    {
-        glDeleteVertexArrays(1, &VertexArrayID);
-        VertexArrayID = GL_FALSE;
-    }
-
-    if( vertexBuffers[0] ) //if first is created, all has been created.
-    {
-        glDeleteBuffers(3, &vertexBuffers[0]);
-        for(unsigned int i=0; i<3; i++)
-            vertexBuffers[i] = GL_FALSE;
-    }
-}
-
-/*
-    Loads obj model and uploads to the GPU 
-*/
-void loadModel( std::string filename )
-{
+/// Loads obj model and uploads to the GPU 
+void loadModel(std::string filename) {
     // Read our .obj file
     std::vector<glm::vec3> positions;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals;
-    
-    //if successful
-    if( loadOBJ( filename.c_str(), positions, uvs, normals) )
-    {
-        //store the number of triangles
-        numberOfVertices = static_cast<GLsizei>( positions.size() );
-        
-        //create VAO
+
+    const bool success = loadOBJ(filename.c_str(), positions, uvs, normals);
+    if (success) {
+        // store the number of triangles
+        numberOfVertices = static_cast<GLsizei>(positions.size());
+
+        // create VAO
         glGenVertexArrays(1, &VertexArrayID);
         glBindVertexArray(VertexArrayID);
 
-        //init VBOs
-        for(unsigned int i=0; i<3; i++)
-            vertexBuffers[i] = GL_FALSE;
-        glGenBuffers(3, &vertexBuffers[0]);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_POSITIONS ] );
-        glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), &positions[0], GL_STATIC_DRAW);
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(
-            0,                  // attribute
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            reinterpret_cast<void*>(0) // array buffer offset
+        glGenBuffers(1, &vboPositions);
+        glGenBuffers(1, &vboUvs);
+        glGenBuffers(1, &vboNormals);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vboPositions);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            positions.size() * sizeof(glm::vec3),
+            positions.data(),
+            GL_STATIC_DRAW
         );
 
-        if( uvs.size() > 0 )
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_UVS ] );
-            glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-            // 2nd attribute buffer : UVs
+        // first attribute buffer : vertices
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+        if (!uvs.empty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                uvs.size() * sizeof(glm::vec2),
+                uvs.data(),
+                GL_STATIC_DRAW
+            );
+
+            // second attribute buffer : UVs
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(
-                1,                                // attribute
-                2,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                reinterpret_cast<void*>(0) // array buffer offset
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                "Warning: Model is missing UV data\n"
             );
         }
-        else
-            sgct::MessageHandler::instance()->print("Warning: Model is missing UV data.\n");
 
-        if( normals.size() > 0 )
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_NORMALS ] );
-            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-            // 3nd attribute buffer : Normals
+        if (!normals.empty()) {
+            glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                normals.size() * sizeof(glm::vec3),
+                normals.data(),
+                GL_STATIC_DRAW
+            );
+            // third attribute buffer : Normals
             glEnableVertexAttribArray(2);
-            glVertexAttribPointer(
-                2,                                // attribute
-                3,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                reinterpret_cast<void*>(0) // array buffer offset
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                "Warning: Model is missing normal data\n"
             );
         }
-        else
-            sgct::MessageHandler::instance()->print("Warning: Model is missing normal data.\n");
 
-        glBindVertexArray(GL_FALSE); //unbind VAO
+        glBindVertexArray(GL_FALSE);
 
-        //clear vertex data that is uploaded on GPU
+        // clear vertex data that is uploaded on GPU
         positions.clear();
         uvs.clear();
         normals.clear();
 
         //print some usefull info
-        sgct::MessageHandler::instance()->print("Model '%s' loaded successfully (%u vertices, VAO: %u, VBOs: %u %u %u).\n",
-            filename.c_str(),
-            numberOfVertices,
-            VertexArrayID,
-            vertexBuffers[VBO_POSITIONS],
-            vertexBuffers[VBO_UVS],
-            vertexBuffers[VBO_NORMALS] );
+        sgct::MessageHandler::instance()->print(
+            "Model '%s' loaded successfully (%u vertices, VAO: %u, VBOs: %u %u %u).\n",
+            filename.c_str(), numberOfVertices, VertexArrayID,
+            vboPositions, vboUvs, vboNormals
+        );
     }
-    else
-        sgct::MessageHandler::instance()->print("Failed to load model '%s'!\n", filename.c_str() );
-
+    else {
+        sgct::MessageHandler::instance()->print(
+            "Failed to load model '%s'!\n", filename.c_str()
+        );
+    }
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-        case SGCT_KEY_R:
-            if(action == SGCT_PRESS)
-                reloadShader.setVal(true);
-            break;
+void drawFun() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    constexpr const double Speed = 0.44;
+
+    //create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * Speed),
+        glm::vec3(0.f, -1.f, 0.f)
+    );
+
+    const glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat3 NM = glm::inverseTranspose(
+        glm::mat3(gEngine->getCurrentModelViewMatrix() * scene)
+    );
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+
+    ShaderManager::instance()->bindShaderProgram("xform");
+
+    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix3fv(NMLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+
+    glBindVertexArray(VertexArrayID);
+    glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
+    glBindVertexArray(GL_FALSE);
+
+    ShaderManager::instance()->unBindShaderProgram();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+}
+
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
+    }
+}
+
+void postSyncPreDrawFun() {
+    if (!reloadShader.getVal()) {
+        return;
+    }
+
+    ShaderManager::instance()->reloadShaderProgram("xform");
+    const ShaderProgram& sp = ShaderManager::instance()->getShaderProgram("xform");
+
+    // reset locations
+    sp.bind();
+
+    MVPLoc = sp.getUniformLocation("MVP");
+    NMLoc = sp.getUniformLocation("NM");
+    GLint Tex_Loc = sp.getUniformLocation("Tex");
+    glUniform1i(Tex_Loc, 0);
+
+    sp.unbind();
+    reloadShader.setVal(false);
+}
+
+void initOGLFun() {
+    TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
+    TextureManager::instance()->setAnisotropicFilterSize(4.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture(
+        "box",
+        "../SharedResources/box.png",
+        true
+    );
+
+    loadModel("../SharedResources/box.obj");
+    
+    // Set up backface culling
+    glCullFace(GL_BACK);
+    // our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
+
+    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+
+    ShaderManager::instance()->bindShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+
+    MVPLoc = prog.getUniformLocation("MVP");
+    NMLoc = prog.getUniformLocation("NM");
+    GLint textureLocation = prog.getUniformLocation("Tex");
+    glUniform1i(textureLocation, 0);
+
+    ShaderManager::instance()->unBindShaderProgram();
+}
+
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeBool(reloadShader);
+}
+
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readBool(reloadShader);
+}
+
+/**
+ * De-allocate data from GPU. Textures are deleted automatically when using texture
+ * manager. Shaders are deleted automatically when using shader manager
+*/
+void cleanUpFun() {
+    glDeleteVertexArrays(1, &VertexArrayID);
+    VertexArrayID = 0;
+
+    glDeleteBuffers(1, &vboPositions);
+    vboPositions = 0;
+    glDeleteBuffers(1, &vboUvs);
+    vboUvs = 0;
+    glDeleteBuffers(1, &vboNormals);
+    vboNormals = 0;
+}
+
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        switch (key) {
+            case SGCT_KEY_R:
+                if (action == SGCT_PRESS) {
+                    reloadShader.setVal(true);
+                }
+                break;
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

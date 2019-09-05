@@ -14,22 +14,22 @@ namespace {
 
 } // namespace
 
+using namespace sgct;
+
 void initOGLFun() {
     glEnable(GL_DEPTH_TEST);
  
     // connect only to VRPN on the master
     if (gEngine->isMaster()) {
         // get the tracking pointers
-        sgct::SGCTTracker* tracker = sgct::Engine::getTrackingManager().getTracker(
-            "Kinect0"
-        );
+        SGCTTracker* tracker = Engine::getTrackingManager().getTracker("Kinect0");
         if (tracker) {
             leftHand = tracker->getDevice("Left Hand");
             rightHand = tracker->getDevice("Right Hand");
         }
 
         if (leftHand == nullptr || rightHand == nullptr) {
-            sgct::MessageHandler::instance()->print(
+            MessageHandler::instance()->print(
                 "Failed to get pointers to hand trackers!\n"
             );
         }
@@ -77,29 +77,30 @@ void preSyncFun() {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
-    sgct::SharedData::instance()->writeFloat(sizeFactor);
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeFloat(sizeFactor);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
-    sgct::SharedData::instance()->readFloat(sizeFactor);
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readFloat(sizeFactor);
 }
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    gEngine = new Engine(arg);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     if (!gEngine->init()) {
         delete gEngine;
         return EXIT_FAILURE;
     }
+
     gEngine->render();
     delete gEngine;
     exit(EXIT_SUCCESS);

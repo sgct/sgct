@@ -53,6 +53,8 @@ namespace {
     };
 } // namespace
 
+using namespace sgct;
+
 /**
  *
  * Will draw a flat surface that can be used for the heightmapped terrain.
@@ -133,16 +135,10 @@ void drawFun() {
     const glm::mat3 NM = glm::inverseTranspose(glm::mat3(MV));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(
-        GL_TEXTURE_2D,
-        sgct::TextureManager::instance()->getTextureId("heightmap")
-    );
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("heightmap"));
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(
-        GL_TEXTURE_2D,
-        sgct::TextureManager::instance()->getTextureId("normalmap")
-    );
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("normalmap"));
 
     mSp.bind();
 
@@ -161,7 +157,7 @@ void drawFun() {
 
     glBindVertexArray(0);
 
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -197,13 +193,13 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
     glDepthFunc(GL_LESS);
 
-    sgct::TextureManager::instance()->loadTexture(
+    TextureManager::instance()->loadTexture(
         "heightmap",
         "../SharedResources/heightmap.png",
         true,
         0
     );
-    sgct::TextureManager::instance()->loadTexture(
+    TextureManager::instance()->loadTexture(
         "normalmap",
         "../SharedResources/normalmap.png",
         true,
@@ -211,7 +207,7 @@ void initOGLFun() {
     );
 
     // setup shader
-    sgct::ShaderManager::instance()->addShaderProgram(
+    ShaderManager::instance()->addShaderProgram(
         mSp,
         "Heightmap",
         "heightmap.vert",
@@ -236,7 +232,7 @@ void initOGLFun() {
     glUniform4fv(lightAmbLoc, 1, glm::value_ptr(lightAmbient));
     glUniform4fv(lightDifLoc, 1, glm::value_ptr(lightDiffuse));
     glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 
     Geometry geometry = generateTerrainGrid(1.0f, 1.0f, GridSize, GridSize);
 
@@ -271,91 +267,85 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
-    sgct::SharedData::instance()->writeBool(wireframe);
-    sgct::SharedData::instance()->writeBool(info);
-    sgct::SharedData::instance()->writeBool(stats);
-    sgct::SharedData::instance()->writeBool(takeScreenshot);
-    sgct::SharedData::instance()->writeBool(useTracking);
-    sgct::SharedData::instance()->writeObj(stereoMode);
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeBool(wireframe);
+    SharedData::instance()->writeBool(info);
+    SharedData::instance()->writeBool(stats);
+    SharedData::instance()->writeBool(takeScreenshot);
+    SharedData::instance()->writeBool(useTracking);
+    SharedData::instance()->writeObj(stereoMode);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
-    sgct::SharedData::instance()->readBool(wireframe);
-    sgct::SharedData::instance()->readBool(info);
-    sgct::SharedData::instance()->readBool(stats);
-    sgct::SharedData::instance()->readBool(takeScreenshot);
-    sgct::SharedData::instance()->readBool(useTracking);
-    sgct::SharedData::instance()->readObj(stereoMode);
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readBool(wireframe);
+    SharedData::instance()->readBool(info);
+    SharedData::instance()->readBool(stats);
+    SharedData::instance()->readBool(takeScreenshot);
+    SharedData::instance()->readBool(useTracking);
+    SharedData::instance()->readObj(stereoMode);
 }
 
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster() && action == SGCT_PRESS) {
         switch (key) {
-        case 'S':
-            stats.setVal(!stats.getVal());
-            break;
-        case 'I':
-            info.setVal(!info.getVal());
-            break;
-        case 'W':
-            wireframe.setVal(!wireframe.getVal());
-            break;
-        case 'Q':
-            gEngine->terminate();
-            break;
-        case 'T':
-            useTracking.setVal(!useTracking.getVal());
-            break;
-        case 'E':
-            sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
-                glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
-            );
-            break;
-        case SGCT_KEY_SPACE:
-            mPause = !mPause;
-            break;
-        case 'F':
-            for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-                gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
-            }
-            break;
-        case 'P':
-        case SGCT_KEY_F10:
-            takeScreenshot.setVal(true);
-            break;
-        case SGCT_KEY_LEFT:
-            if (static_cast<int>(stereoMode.getVal()) > 0) {
-                using StereoMode = sgct::SGCTWindow::StereoMode;
-                const int v = static_cast<int>(stereoMode.getVal()) - 1;
-                StereoMode m = static_cast<StereoMode>(v);
+            case 'S':
+                stats.setVal(!stats.getVal());
+                break;
+            case 'I':
+                info.setVal(!info.getVal());
+                break;
+            case 'W':
+                wireframe.setVal(!wireframe.getVal());
+                break;
+            case 'Q':
+                gEngine->terminate();
+                break;
+            case 'T':
+                useTracking.setVal(!useTracking.getVal());
+                break;
+            case 'E':
+                sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                    glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
+                );
+                break;
+            case SGCT_KEY_SPACE:
+                mPause = !mPause;
+                break;
+            case 'F':
+                for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                    gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
+                }
+                break;
+            case 'P':
+            case SGCT_KEY_F10:
+                takeScreenshot.setVal(true);
+                break;
+            case SGCT_KEY_LEFT:
+                if (static_cast<int>(stereoMode.getVal()) > 0) {
+                    const int v = static_cast<int>(stereoMode.getVal()) - 1;
+                    SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
+                    stereoMode.setVal(m);
+                }
+                break;
+            case SGCT_KEY_RIGHT:
+                const int v = static_cast<int>(stereoMode.getVal()) + 1;
+                SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
                 stereoMode.setVal(m);
-            }
-            break;
-        case SGCT_KEY_RIGHT:
-            using StereoMode = sgct::SGCTWindow::StereoMode;
-            const int v = static_cast<int>(stereoMode.getVal()) + 1;
-            StereoMode m = static_cast<StereoMode>(v);
-            stereoMode.setVal(m);
-            break;
+                break;
         }
     }
 }
 
-void cleanUpFun()
-{
-    if(vertexPositionBuffer)
-        glDeleteBuffers(1, &vertexPositionBuffer);
-    if(texCoordBuffer)
-        glDeleteBuffers(1, &texCoordBuffer);
-    if(vertexArray)
-        glDeleteVertexArrays(1, &vertexArray);
+void cleanUpFun() {
+    glDeleteBuffers(1, &vertexPositionBuffer);
+    glDeleteBuffers(1, &texCoordBuffer);
+    glDeleteVertexArrays(1, &vertexArray);
 }
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    gEngine = new Engine(arg);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
@@ -364,13 +354,13 @@ int main(int argc, char* argv[]) {
     gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
-    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
         delete gEngine;
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
     delete gEngine;

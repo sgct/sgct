@@ -30,7 +30,6 @@ namespace {
 
 using namespace sgct;
 
-
 /**
  * Will draw a flat surface that can be used for the heightmapped terrain.
  *
@@ -253,7 +252,7 @@ void keyCallback(int key, int, int action, int) {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    gEngine = new Engine(arg);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
@@ -266,8 +265,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
 

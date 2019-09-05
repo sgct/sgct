@@ -1,168 +1,145 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-//callbacks
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
-void keyCallback(int key, int action);
+    std::unique_ptr<sgct_utils::SGCTBox> myBox;
 
-sgct_utils::SGCTBox * myBox = NULL;
+    // variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedBool takeScreenshot(false);
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedBool takeScreenshot(false);
+    // shader locs
+    int textureID = -1;
+    int worldMatrixTransposeId = -1;
 
-//shader locs
-int m_textureID = -1;
-int m_worldMatrixTransposeID = -1;
+} // namespace
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+using namespace sgct;
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setCleanUpFunction( cleanUpFun );
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-
-    //force normal & position textures to be created & used in rendering loop
-    //sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit); //default is 16-bit
-    //sgct::SGCTSettings::instance()->setUseDepthTexture(true);
-    sgct::SGCTSettings::instance()->setUseNormalTexture(true);
-    sgct::SGCTSettings::instance()->setUsePositionTexture(true);
-
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    double speed = 25.0;
+void drawFun() {
+    constexpr const double Speed = 25.0;
     
-    glTranslatef(0.0f, 0.0f, -3.0f);
-    glRotated(currentTime.getVal() * speed, 0.0, -1.0, 0.0);
-    glRotated(currentTime.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-    glColor3f(1.0f,1.0f,1.0f);
+    glTranslatef(0.f, 0.f, -3.f);
+    glRotated(currentTime.getVal() * Speed, 0.0, -1.0, 0.0);
+    glRotated(currentTime.getVal() * (Speed / 2.0), 1.0, 0.0, 0.0);
+    glColor3f(1.f, 1.f, 1.f);
 
     float worldMatrix[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, worldMatrix);
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
     
-    //set MRT shader program
-    sgct::ShaderManager::instance()->bindShaderProgram("MRT");
+    // set MRT shader program
+    ShaderManager::instance()->bindShaderProgram("MRT");
 
-    glUniform1i(m_textureID, 0);
-    glUniformMatrix4fv(m_worldMatrixTransposeID, 1, GL_TRUE, worldMatrix);  //transpose in transfere
+    glUniform1i(textureID, 0);
+    // transpose in transfere
+    glUniformMatrix4fv(worldMatrixTransposeId, 1, GL_TRUE, worldMatrix);
 
-    //draw the box
     myBox->draw();
-
-    //unset current shader program
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
     }
 }
 
-void postSyncPreDrawFun()
-{
-    if (takeScreenshot.getVal())
-    {
+void postSyncPreDrawFun() {
+    if (takeScreenshot.getVal()) {
         gEngine->takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
-void initOGLFun()
-{
-    sgct::ShaderManager::instance()->addShaderProgram("MRT", "mrt.vert", "mrt.frag");
-    sgct::ShaderManager::instance()->bindShaderProgram("MRT");
+void initOGLFun() {
+    ShaderManager::instance()->addShaderProgram("MRT", "mrt.vert", "mrt.frag");
+    ShaderManager::instance()->bindShaderProgram("MRT");
 
-    m_textureID = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("tDiffuse");
-    m_worldMatrixTransposeID = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("WorldMatrixTranspose");
+    const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
+    textureID = prg.getUniformLocation("tDiffuse");
+    worldMatrixTransposeId = prg.getUniformLocation("WorldMatrixTranspose");
 
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
     
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture(
+        "box",
+        "../SharedResources/box.png",
+        true
+    );
 
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
+    myBox = std::make_unique<sgct_utils::SGCTBox>(
+        2.f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        );
     
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
-    glEnable( GL_CULL_FACE );
-    glEnable( GL_TEXTURE_2D );
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
 
-    //Set up backface culling
+    // Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    // our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&currentTime);
-    sgct::SharedData::instance()->writeBool(&takeScreenshot);
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeBool(takeScreenshot);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&currentTime);
-    sgct::SharedData::instance()->readBool(&takeScreenshot);
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readBool(takeScreenshot);
 }
 
-void cleanUpFun()
-{
-    if(myBox != NULL)
-        delete myBox;
+void cleanUpFun() {
+    myBox = nullptr;
 }
 
-void keyCallback(int key, int action)
-{
-    if (gEngine->isMaster())
-    {
-        switch (key)
-        {
-        case SGCT_KEY_P:
-        case SGCT_KEY_F10:
-            if (action == SGCT_PRESS)
-                takeScreenshot.setVal(true);
-            break;
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        switch (key) {
+            case SGCT_KEY_P:
+            case SGCT_KEY_F10:
+                if (action == SGCT_PRESS) {
+                    takeScreenshot.setVal(true);
+                }
+                break;
         }
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+
+    SGCTSettings::instance()->setUseNormalTexture(true);
+    SGCTSettings::instance()->setUsePositionTexture(true);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

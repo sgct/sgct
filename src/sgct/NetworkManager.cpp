@@ -498,7 +498,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         memset(buffer.data() + 9, SGCTNetwork::DefaultId, sizeof(int));
 
         // add data to buffer
-        memcpy(buffer.data() + SGCTNetwork::HeaderSize, data, length);
+        memcpy(buffer.data() + SGCTNetwork::HeaderSize, data, length - SGCTNetwork::HeaderSize);
         //int offset = 0;
         //int stride = 4096;
 

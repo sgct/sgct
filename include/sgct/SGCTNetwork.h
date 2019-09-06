@@ -52,6 +52,7 @@ public:
     static const size_t HeaderSize = 13;
 
     SGCTNetwork();
+    ~SGCTNetwork();
 
     /**
      * Inits this network connection.

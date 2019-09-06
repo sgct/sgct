@@ -98,6 +98,10 @@ SGCTNetwork::SGCTNetwork()
     id++;
 }
 
+SGCTNetwork::~SGCTNetwork() {
+    closeNetwork(false);
+}
+
 void SGCTNetwork::init(std::string port, std::string address, bool isServer,
                        ConnectionTypes connectionType)
 {

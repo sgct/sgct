@@ -1214,8 +1214,8 @@ private:
     RenderTarget mCurrentRenderTarget = RenderTarget::WindowBuffer;
     sgct_core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
 
-    bool mShowInfo = true;
-    bool mShowGraph = true;
+    bool mShowInfo = false;
+    bool mShowGraph = false;
     bool mShowWireframe = false;
     bool mTakeScreenshot = false;
     bool mTerminate = false;

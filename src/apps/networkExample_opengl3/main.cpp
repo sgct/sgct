@@ -12,7 +12,7 @@ namespace {
     std::atomic_bool connected;
     std::atomic_bool running;
 
-    std::unique_ptr<sgct_utils::SGCTBox> myBox;
+    std::unique_ptr<sgct_utils::SGCTBox> box;
     GLint matrixLoc = -1;
 
     sgct::SharedDouble currentTime(0.0);
@@ -248,7 +248,7 @@ void drawFun() {
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    myBox->draw();
+    box->draw();
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -267,7 +267,7 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    myBox = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::SGCTBox>(
         2.f,
         sgct_utils::SGCTBox::TextureMappingMode::Regular
     );
@@ -301,7 +301,7 @@ void decodeFun() {
 }
 
 void cleanUpFun() {
-    myBox = nullptr;
+    box = nullptr;
     running = false;
 
     if (connectionThread) {

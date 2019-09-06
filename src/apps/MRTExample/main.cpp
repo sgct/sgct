@@ -3,7 +3,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> myBox;
+    std::unique_ptr<sgct_utils::SGCTBox> box;
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -38,7 +38,7 @@ void drawFun() {
     // transpose in transfere
     glUniformMatrix4fv(worldMatrixTransposeId, 1, GL_TRUE, worldMatrix);
 
-    myBox->draw();
+    box->draw();
     ShaderManager::instance()->unBindShaderProgram();
 }
 
@@ -73,7 +73,7 @@ void initOGLFun() {
         true
     );
 
-    myBox = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::SGCTBox>(
         2.f,
         sgct_utils::SGCTBox::TextureMappingMode::Regular
         );
@@ -101,7 +101,7 @@ void decodeFun() {
 }
 
 void cleanUpFun() {
-    myBox = nullptr;
+    box = nullptr;
 }
 
 void keyCallback(int key, int, int action, int) {

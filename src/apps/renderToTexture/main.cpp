@@ -30,7 +30,7 @@ struct fbData
 };
 
 std::vector<fbData> buffers;
-sgct_utils::SGCTBox * myBox = NULL;
+sgct_utils::SGCTBox * box = NULL;
 
 //variables to share across cluster
 sgct::SharedDouble currentTime(0.0);
@@ -149,7 +149,7 @@ void drawScene()
     glColor3f(1.0f, 1.0f, 1.0f);
     glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
     //draw the box
-    myBox->draw();
+    box->draw();
     glPopMatrix();
 
     glPopAttrib();
@@ -180,7 +180,7 @@ void initOGLFun()
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
+    box = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
     //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
     //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
 
@@ -209,7 +209,7 @@ void initOGLFun()
 
 void cleanUpFun()
 {
-    if(myBox != NULL) delete myBox;
+    if(box != NULL) delete box;
     
     clearBuffers();
     buffers.clear();

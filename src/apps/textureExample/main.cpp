@@ -11,7 +11,7 @@ void encodeFun();
 void decodeFun();
 void cleanUpFun();
 
-sgct_utils::SGCTBox * myBox = NULL;
+sgct_utils::SGCTBox * box = NULL;
 
 //variables to share across cluster
 sgct::SharedDouble currentTime(0.0);
@@ -57,7 +57,7 @@ void drawFun()
     glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
 
     //draw the box
-    myBox->draw();
+    box->draw();
 }
 
 void preSyncFun()
@@ -74,7 +74,7 @@ void initOGLFun()
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
+    box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
     //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
     //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
 
@@ -101,6 +101,6 @@ void decodeFun()
 
 void cleanUpFun()
 {
-    if(myBox != NULL)
-        delete myBox;
+    if(box != NULL)
+        delete box;
 }

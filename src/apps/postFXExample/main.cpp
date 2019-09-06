@@ -1,184 +1,181 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/PostFX.h>
+#include <sgct/SGCTWindow.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void drawFun();
-void preSyncFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
+    std::unique_ptr<sgct_utils::SGCTBox> box;
+    sgct::SharedDouble currentTime(0.0);
 
-sgct_utils::SGCTBox * box = NULL;
+    struct {
+        GLint pass1 = -1;
+        GLint pass2 = -1;
+        GLint pass3 = -1;
+        GLint pass4 = -1;
+    } postFXTextureLocation;
+    GLint originalTextureLocation = -1;
+    struct {
+        GLint pass2 = -1;
+        GLint pass3 = -1;
+    } sizeLocation;
+} // namespace
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
+using namespace sgct;
 
-//Post FX shader locations
-GLint PostFX_Matrix_Loc[] = { -1, -1, -1, -1};
-GLint PostFX_Texture_Loc[] = { -1, -1, -1, -1};
-GLint Tex2_Loc = -1;
-GLint Size_Loc[] = { -1, -1 };
-
-void updatePass1()
-{
-    glUniform1i( PostFX_Texture_Loc[0], 0 );
+void updatePass1() {
+    glUniform1i(postFXTextureLocation.pass1, 0);
 }
 
-void updatePass2()
-{
-    glUniform1i( PostFX_Texture_Loc[1], 0 );
-    glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getCurrentXResolution() ) );
+void updatePass2() {
+    glUniform1i(postFXTextureLocation.pass2, 0);
+    glUniform1f(
+        sizeLocation.pass2,
+        static_cast<float>(gEngine->getCurrentResolution().x)
+    );
 }
 
-void updatePass3()
-{
-    glUniform1i( PostFX_Texture_Loc[2], 0 );
-    glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getCurrentYResolution() ) );
+void updatePass3() {
+    glUniform1i(postFXTextureLocation.pass3, 0);
+    glUniform1f(
+        sizeLocation.pass3,
+        static_cast<float>(gEngine->getCurrentResolution().y)
+    );
 }
 
-void updatePass4()
-{
+void updatePass4() {
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture() );
-    glUniform1i( PostFX_Texture_Loc[3], 0 );
-    glUniform1i( Tex2_Loc, 1 );
+    glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture());
+    glUniform1i(postFXTextureLocation.pass4, 0);
+    glUniform1i(originalTextureLocation, 1);
 }
 
-void setupPostFXs()
-{
-    sgct::PostFX fx[4];
-    sgct::ShaderProgram * sp;
-
-    fx[0].init("Threshold", "base.vert", "threshold.frag");
-    fx[0].setUpdateUniformsFunction( updatePass1 );
-    sp = fx[0].getShaderProgram();
-    sp->bind();
-        PostFX_Texture_Loc[0] = sp->getUniformLocation( "Tex" );
-        Tex2_Loc = sp->getUniformLocation( "TexOrig" );
-    sp->unbind();
-    gEngine->addPostFX( fx[0] );
-
-    fx[1].init("HBlur", "blur_h.vert", "blur.frag");
-    fx[1].setUpdateUniformsFunction( updatePass2 );
-    sp = fx[1].getShaderProgram();
-    sp->bind();
-        PostFX_Texture_Loc[1] = sp->getUniformLocation( "Tex" );
-        Size_Loc[0] = sp->getUniformLocation( "Size" );
-    sp->unbind();
-    gEngine->addPostFX( fx[1] );
-
-    fx[2].init("VBlur", "blur_v.vert", "blur.frag");
-    fx[2].setUpdateUniformsFunction( updatePass3 );
-    sp = fx[2].getShaderProgram();
-    sp->bind();
-        PostFX_Texture_Loc[2] = sp->getUniformLocation( "Tex" );
-        Size_Loc[1] = sp->getUniformLocation( "Size" );
-    sp->unbind();
-    gEngine->addPostFX( fx[2] );
-
-    fx[3].init("Glow", "base.vert", "glow.frag");
-    fx[3].setUpdateUniformsFunction( updatePass4 );
-    sp = fx[3].getShaderProgram();
-    sp->bind();
-        PostFX_Texture_Loc[3] = sp->getUniformLocation( "Tex" );
-        Tex2_Loc = sp->getUniformLocation( "TexOrig" );
-    sp->unbind();
-    gEngine->addPostFX( fx[3] );
-
-    if( gEngine->getNumberOfWindows() > 1 )
-        gEngine->getWindowPtr(1)->setUsePostFX( false );
-}
-
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
-
-    if( !gEngine->init() )
+void setupPostFXs() {
     {
-        delete gEngine;
-        return EXIT_FAILURE;
+        PostFX fx;
+        fx.init("Threshold", "base.vert", "threshold.frag");
+        fx.setUpdateUniformsFunction(updatePass1);
+        ShaderProgram& sp = fx.getShaderProgram();
+        sp.bind();
+        postFXTextureLocation.pass1 = sp.getUniformLocation("Tex");
+        originalTextureLocation = sp.getUniformLocation("TexOrig");
+        sp.unbind();
+        gEngine->addPostFX(std::move(fx));
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    {
+        PostFX fx;
+        fx.init("HBlur", "blur_h.vert", "blur.frag");
+        fx.setUpdateUniformsFunction(updatePass2);
+        ShaderProgram& sp = fx.getShaderProgram();
+        sp.bind();
+        postFXTextureLocation.pass2 = sp.getUniformLocation("Tex");
+        sizeLocation.pass2 = sp.getUniformLocation("Size");
+        sp.unbind();
+        gEngine->addPostFX(std::move(fx));
+    }
 
-    // Main loop
-    gEngine->render();
+    {
+        PostFX fx;
+        fx.init("VBlur", "blur_v.vert", "blur.frag");
+        fx.setUpdateUniformsFunction(updatePass3);
+        ShaderProgram& sp = fx.getShaderProgram();
+        sp.bind();
+        postFXTextureLocation.pass3 = sp.getUniformLocation("Tex");
+        sizeLocation.pass3 = sp.getUniformLocation("Size");
+        sp.unbind();
+        gEngine->addPostFX(std::move(fx));
+    }
 
-    // Clean up
-    delete gEngine;
+    {
+        PostFX fx;
+        fx.init("Glow", "base.vert", "glow.frag");
+        fx.setUpdateUniformsFunction(updatePass4);
+        ShaderProgram& sp = fx.getShaderProgram();
+        sp.bind();
+        postFXTextureLocation.pass4 = sp.getUniformLocation("Tex");
+        originalTextureLocation = sp.getUniformLocation("TexOrig");
+        sp.unbind();
+        gEngine->addPostFX(std::move(fx));
+    }
 
-    // Exit program
-    exit( EXIT_SUCCESS );
+    if (gEngine->getNumberOfWindows() > 1) {
+        gEngine->getWindow(1).setUsePostFX(false);
+    }
 }
 
-void drawFun()
-{
-    double speed = 25.0;
+void drawFun() {
+    constexpr const double Speed = 25.0;
     
-    glTranslatef(0.0f, 0.0f, -3.0f);
-    glRotated(currentTime.getVal() * speed, 0.0, -1.0, 0.0);
-    glRotated(currentTime.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-    glColor3f(1.0f,1.0f,1.0f);
+    glTranslatef(0.f, 0.f, -3.f);
+    glRotated(currentTime.getVal() * Speed, 0.0, -1.0, 0.0);
+    glRotated(currentTime.getVal() * (Speed  / 2.0), 1.0, 0.0, 0.0);
+    glColor3f(1.f, 1.f, 1.f);
     
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
     
-    //draw the box
     box->draw();
 }
 
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
     }
 }
 
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+void initOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-    
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
-    glEnable( GL_CULL_FACE );
-    glEnable( GL_TEXTURE_2D );
+    box = std::make_unique<sgct_utils::SGCTBox>(
+        2.f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+    );
 
-    //Set up backface culling
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
+
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 
     setupPostFXs();
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&currentTime);
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&currentTime);
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
 }
 
-void cleanUpFun()
-{
-    if(box != NULL)
-        delete box;
+void cleanUpFun() {
+    box = nullptr;
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

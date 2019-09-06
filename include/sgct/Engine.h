@@ -242,7 +242,7 @@ public:
     void updateFrustums();
 
     /// Add a post effect to all windows.
-    void addPostFX(PostFX& fx);
+    void addPostFX(PostFX fx);
 
     /**
      * \return the active draw texture if frame buffer objects are used,

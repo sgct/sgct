@@ -3314,10 +3314,10 @@ void Engine::setExitKey(int key) {
     mExitKey = key;
 }
 
-void Engine::addPostFX(PostFX& fx) {
+void Engine::addPostFX(PostFX fx) {
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->getWindow(i).setUsePostFX(true);
-        mThisNode->getWindow(i).addPostFX(fx);
+        mThisNode->getWindow(i).addPostFX(std::move(fx));
     }
 }
 

@@ -1,23 +1,21 @@
-#include "sgct.h"
+#include <sgct.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
+} // namespace
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+using namespace sgct;
 
-    if( !gEngine->init() )
-    {
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    if (!gEngine->init()) {
         delete gEngine;
         return EXIT_FAILURE;
     }
 
-    // Main loop
     gEngine->render();
-
-    // Clean up
     delete gEngine;
-
-    // Exit program
     exit( EXIT_SUCCESS );
 }

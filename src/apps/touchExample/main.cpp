@@ -53,7 +53,7 @@ GLuint VAOs[2] = { GL_FALSE, GL_FALSE };
 GLuint VBOs[2] = { GL_FALSE, GL_FALSE };
 //shader locations
 GLint Matrix_Locs[2] = { -1, -1 };
-GLint alpha_Loc = -1;
+GLint alphaLocation = -1;
 
 int numberOfVerts[2] = { 0, 0 };
 
@@ -132,7 +132,7 @@ void initOGLFun()
         "pyramidShader.frag");
     sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
     Matrix_Locs[PYRAMID] = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("MVP");
-    alpha_Loc = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("alpha");
+    alphaLocation = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("alpha");
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
@@ -356,11 +356,11 @@ void drawPyramid(int index)
     //draw lines
     glLineWidth(2.0f);
     glPolygonOffset(1.0f, 0.1f); //offset to avoid z-buffer fighting
-    glUniform1f(alpha_Loc, 0.8f);
+    glUniform1f(alphaLocation, 0.8f);
     glDrawArrays(GL_LINES, 0, 16);
     //draw triangles
     glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
-    glUniform1f(alpha_Loc, 0.3f);
+    glUniform1f(alphaLocation, 0.3f);
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
     //unbind

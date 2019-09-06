@@ -1,114 +1,200 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/SGCTWindow.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine * gEngine;
 
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void cleanUpFun();
-void encodeFun();
-void decodeFun();
+    struct FramebufferData {
+        unsigned int texture;
+        unsigned int fbo;
+        unsigned int renderBuffer;
+        unsigned int depthBuffer;
+        glm::ivec2 size;
+    };
 
-void drawScene();
-void clearBuffers();
-void createFBOs();
-void resizeFBOs();
-void createTextures();
+    std::vector<FramebufferData> buffers;
+    std::unique_ptr<sgct_utils::SGCTBox> box;
 
-//FBO-stuff
-struct fbData
-{
-    unsigned int texture;
-    unsigned int fbo;
-    unsigned int renderBuffer;
-    unsigned int depthBuffer;
-    int width;
-    int height;
-};
+    //variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
 
-std::vector<fbData> buffers;
-sgct_utils::SGCTBox * box = NULL;
+} // namespace
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+void drawScene() {
+    glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
+    constexpr const double Speed = 25.0;
 
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
+    glPushMatrix();
+    glTranslatef(0.f, 0.f, -3.f);
+    glRotated(currentTime.getVal() * Speed, 0.0, -1.0, 0.0);
+    glRotated(currentTime.getVal() * (Speed / 2.0), 1.0, 0.0, 0.0);
+    glColor3f(1.f, 1.f, 1.f);
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
+    box->draw();
+    glPopMatrix();
+    glPopAttrib();
 }
 
-void drawFun()
-{
-    sgct_core::OffScreenBuffer * fbo = gEngine->getCurrentFBO();
-    std::size_t drawIndex = gEngine->getCurrentDrawBufferIndex();
-    
-    //get viewport data and set the viewport
-    glViewport(0, 0, buffers[drawIndex].width, buffers[drawIndex].height);
+void clearBuffers() {
+    for (unsigned int i = 0; i < buffers.size(); i++) {
+        glDeleteFramebuffers(1, &(buffers[i].fbo));
+        glDeleteRenderbuffers(1, &(buffers[i].renderBuffer));
+        glGenRenderbuffers(1, &(buffers[i].depthBuffer));
 
-    //bind fbo
+        glDeleteTextures(1, &(buffers[i].texture));
+
+        buffers[i].fbo = 0;
+        buffers[i].renderBuffer = 0;
+        buffers[i].depthBuffer = 0;
+        buffers[i].texture = 0;
+        buffers[i].size = glm::ivec2(1, 1);
+    }
+}
+
+void createTextures() {
+    glEnable(GL_TEXTURE_2D);
+
+    for (unsigned int i = 0; i < buffers.size(); i++) {
+        glGenTextures(1, &buffers[i].texture);
+        glBindTexture(GL_TEXTURE_2D, buffers[i].texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA8,
+            buffers[i].size.x,
+            buffers[i].size.y,
+            0,
+            GL_BGRA,
+            GL_UNSIGNED_BYTE,
+            nullptr
+        );
+    }
+
+    gEngine->checkForOGLErrors();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void createFBOs() {
+    for (size_t i = 0 ; i < buffers.size(); ++i) {
+        buffers[i].fbo = 0;
+        buffers[i].renderBuffer = 0;
+        buffers[i].depthBuffer = 0;
+        buffers[i].texture = 0;
+        buffers[i].size = gEngine->getDrawBufferSize(i);
+    }
+
+    createTextures();
+
+    for (FramebufferData& data : buffers) {
+        glGenFramebuffers(1, &data.fbo);
+        glGenRenderbuffers(1, &data.renderBuffer);
+        glGenRenderbuffers(1, &data.depthBuffer);
+
+        // setup color buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, data.fbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, data.renderBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, data.size.x, data.size.y);
+        glFramebufferRenderbuffer(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0,
+            GL_RENDERBUFFER,
+            data.renderBuffer
+        );
+
+        //setup depth buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, data.fbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, data.depthBuffer);
+        glRenderbufferStorage(
+            GL_RENDERBUFFER,
+            GL_DEPTH_COMPONENT32,
+            data.size.x,
+            data.size.y
+        );
+        glFramebufferRenderbuffer(
+            GL_FRAMEBUFFER,
+            GL_DEPTH_ATTACHMENT,
+            GL_RENDERBUFFER,
+            data.depthBuffer
+        );
+
+        // Does the GPU support current FBO configuration?
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            MessageHandler::instance()->print("Something went wrong creating FBO\n");
+        }
+
+        // unbind
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+}
+
+void resizeFBOs() {
+    MessageHandler::instance()->print("Re-sizing buffers\n");
+    clearBuffers();
+    createFBOs();
+}
+
+void drawFun() {
+    sgct_core::OffScreenBuffer* fbo = gEngine->getCurrentFBO();
+    size_t drawIndex = gEngine->getCurrentDrawBufferIndex();
+    
+    // get viewport data and set the viewport
+    glViewport(0, 0, buffers[drawIndex].size.x, buffers[drawIndex].size.y);
+
+    // bind fbo
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, buffers[drawIndex].fbo );
-    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffers[drawIndex].texture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, buffers[drawIndex].fbo);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D,
+        buffers[drawIndex].texture,
+        0
+    );
 
     glMatrixMode(GL_PROJECTION);
 
-    glLoadMatrixf( glm::value_ptr(gEngine->getCurrentViewProjectionMatrix()) );
+    glLoadMatrixf(glm::value_ptr(gEngine->getCurrentViewProjectionMatrix()));
 
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf( glm::value_ptr( gEngine->getModelMatrix() ) );
+    glLoadMatrixf(glm::value_ptr(gEngine->getModelMatrix()));
 
-    //clear
-    glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
+    // clear
+    glClearColor(0.f, 0.f, 0.2f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //draw scene to texture target
+    // draw scene to texture target
     drawScene();
 
-    if (fbo)
+    if (fbo) {
         fbo->bind();
+    }
 
-    //render a quad in ortho/2D mode with target texture
-    //--------------------------------------------------
-    //set viewport
-    const int * coords = gEngine->getCurrentViewportPixelCoords();
-    glViewport(coords[0], coords[1], coords[2], coords[3]);
+    // render a quad in ortho/2D mode with target texture
+    // set viewport
+    glm::ivec4 coords = gEngine->getCurrentViewportPixelCoords();
+    glViewport(coords.x, coords.y, coords.z, coords.z);
     
-    //enter ortho mode (2D projection)
+    // enter ortho mode (2D projection)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
     glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 2.0);
     glMatrixMode(GL_MODELVIEW);
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "InvertColor" );
-    glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
+    ShaderManager::instance()->bindShaderProgram("InvertColor");
+    glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT);
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
@@ -117,206 +203,111 @@ void drawFun()
 
     glBindTexture(GL_TEXTURE_2D, buffers[drawIndex].texture);
 
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.f, 1.f, 1.f);
     glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 0.0f);
-        glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, 1.0f);
-        glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 1.0f);
+    glTexCoord2f(0.f, 0.f);
+    glVertex2f(0.f, 0.f);
+    glTexCoord2f(1.f, 0.f);
+    glVertex2f(1.f, 0.f);
+    glTexCoord2f(1.f, 1.f);
+    glVertex2f(1.f, 1.f);
+    glTexCoord2f(0.f, 1.f);
+    glVertex2f(0.f, 1.f);
     glEnd();
 
-    //restore
     glPopAttrib();
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
-    //exit ortho mode
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 }
 
-void drawScene()
-{    
-    glPushAttrib( GL_ENABLE_BIT );
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_TEXTURE_2D);
-
-    double speed = 25.0;
-    
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -3.0f);
-    glRotated(currentTime.getVal() * speed, 0.0, -1.0, 0.0);
-    glRotated(currentTime.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
-    //draw the box
-    box->draw();
-    glPopMatrix();
-
-    glPopAttrib();
-}
-
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal(sgct::Engine::getTime());
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
     }
 }
 
-void postSyncPreDrawFun()
-{
-    //Fisheye cubemaps are constant size
-    for(unsigned int i=0; i < gEngine->getNumberOfWindows(); i++)
-        if( gEngine->getWindowPtr(i)->isWindowResized() )
-        {
+void postSyncPreDrawFun() {
+    // Fisheye cubemaps are constant size
+    for (unsigned int i = 0; i < gEngine->getNumberOfWindows(); i++) {
+        if (gEngine->getWindow(i).isWindowResized()) {
             resizeFBOs();
             break;
         }
+    }
 }
 
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+void initOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
+    box = std::make_unique<sgct_utils::SGCTBox>(
+        1.f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+    );
 
-    //set up shader
-    sgct::ShaderManager::instance()->addShaderProgram( "InvertColor", "simple.vert", "simple.frag" );
-    sgct::ShaderManager::instance()->bindShaderProgram( "InvertColor" );
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    // set up shader
+    ShaderManager::instance()->addShaderProgram(
+        "InvertColor",
+        "simple.vert",
+        "simple.frag"
+    );
+    ShaderManager::instance()->bindShaderProgram("InvertColor");
+    ShaderManager::instance()->unBindShaderProgram();
     
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
 
-    //Set up backface culling
+    // Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 
-    std::size_t numberOfBuffers = gEngine->getNumberOfDrawBuffers();
-    for (std::size_t i = 0; i < numberOfBuffers; i++)
-    {
-        fbData tmpBuffer;
+    size_t numberOfBuffers = gEngine->getNumberOfDrawBuffers();
+    for (size_t i = 0; i < numberOfBuffers; i++) {
+        FramebufferData tmpBuffer;
         buffers.push_back(tmpBuffer);
     }
 
     createFBOs();
 }
 
-void cleanUpFun()
-{
-    if(box != NULL) delete box;
+void cleanUpFun() {
+    box = nullptr;
     
     clearBuffers();
     buffers.clear();
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble(  &currentTime  );
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
 }
 
-void createFBOs()
-{
-    for (std::size_t i = 0; i < buffers.size(); i++)
-    {
-        gEngine->getDrawBufferSize(i, buffers[i].width, buffers[i].height);
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
 
-        buffers[i].fbo                = GL_FALSE;
-        buffers[i].renderBuffer        = GL_FALSE;
-        buffers[i].depthBuffer        = GL_FALSE;
-        buffers[i].texture            = GL_FALSE;
-    }
-    
-    //create targets
-    createTextures();
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
 
-    for(unsigned int i=0; i < buffers.size(); i++)
-    {
-        //sgct::MessageHandler::instance()->print("Creating a %dx%d fbo...\n", buffers[i].width, buffers[i].height);
-
-        glGenFramebuffers(1, &(buffers[i].fbo));
-        glGenRenderbuffers(1, &(buffers[i].renderBuffer));
-        glGenRenderbuffers(1, &(buffers[i].depthBuffer));
-
-        //setup color buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, buffers[i].fbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, buffers[i].renderBuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, buffers[i].width, buffers[i].height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, buffers[i].renderBuffer);    
-
-        //setup depth buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, buffers[i].fbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, buffers[i].depthBuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, buffers[i].width, buffers[i].height );
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffers[i].depthBuffer);
-
-        //Does the GPU support current FBO configuration?
-        if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
-            sgct::MessageHandler::instance()->print("Something went wrong creating FBO!\n");
-
-        //unbind
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-}
-
-void resizeFBOs()
-{
-    sgct::MessageHandler::instance()->print("Re-sizing buffers\n");
-    
-    clearBuffers();
-
-    //create FBO
-    createFBOs();
-}
-
-void clearBuffers()
-{
-    for(unsigned int i=0; i < buffers.size(); i++)
-    {
-        //delete buffers
-        glDeleteFramebuffers(1,        &(buffers[i].fbo));
-        glDeleteRenderbuffers(1,    &(buffers[i].renderBuffer));
-        glGenRenderbuffers(1,        &(buffers[i].depthBuffer));
-
-        //delete textures
-        glDeleteTextures(1,    &(buffers[i].texture));
-        
-        buffers[i].fbo = 0;
-        buffers[i].renderBuffer = 0;
-        buffers[i].depthBuffer = 0;
-        buffers[i].texture = 0;
-        buffers[i].width = 1;
-        buffers[i].height = 1;
-    }
-}
-
-void createTextures()
-{
-    glEnable(GL_TEXTURE_2D);
-
-    for( unsigned int i=0; i<buffers.size(); i++ )
-    {
-        glGenTextures(1, &(buffers[i].texture));
-        glBindTexture(GL_TEXTURE_2D, buffers[i].texture);
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, buffers[i].width, buffers[i].height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
     }
 
-    gEngine->checkForOGLErrors();
-    //sgct::MessageHandler::instance()->print("%d target textures created.\n", numberOfTargets);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
-    glDisable(GL_TEXTURE_2D);
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

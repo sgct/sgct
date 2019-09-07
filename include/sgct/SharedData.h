@@ -96,7 +96,7 @@ public:
      * Set the encode callback.
      * Sample of a encode function:
      * \code{.cpp}
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(currentTime);
 }
@@ -108,7 +108,7 @@ void myEncodeFun()
      * Set the decoder callback.
      * Sample of a decode function:
 \code{.cpp}
-void myDecodeFun()
+void decodeFun()
 {
     currentTime = sgct::SharedData::instance()->readDouble();
 }

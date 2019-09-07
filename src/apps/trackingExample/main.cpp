@@ -1,225 +1,219 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/SGCTTracker.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/SGCTTrackingManager.h>
+#include <sgct/SGCTWindow.h>
 #include <sstream>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-//-----------------------
-// function declarations 
-//-----------------------
-void initOGLFun();
-void preSyncFun();
-void drawFun();
+    // store each device's transform 4x4 matrix in a shared vector
+    sgct::SharedVector<glm::mat4> sharedTransforms;
+    sgct::SharedString sharedText;
+    sgct::SharedObject<size_t> sharedHeadSensorIndex(0);
+} // namespace
 
-//for syncing variables across a cluster
-void encodeFun();
-void decodeFun();
+using namespace sgct;
 
-void drawAxes(float size);
-void drawWireCube(float size);
+void drawWireCube(float size) {
+    // bottom
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(-size, -size, -size);
+    glVertex3f(size, -size, -size);
+    glVertex3f(size, -size, size);
+    glVertex3f(-size, -size, size);
+    glVertex3f(-size, -size, -size);
+    glEnd();
 
-//-----------------------
-// variable declarations 
-//-----------------------
+    // top
+    glBegin(GL_LINE_STRIP);
+    glVertex3f(-size, size, -size);
+    glVertex3f(size, size, -size);
+    glVertex3f(size, size, size);
+    glVertex3f(-size, size, size);
+    glVertex3f(-size, size, -size);
+    glEnd();
 
-//store each device's transform 4x4 matrix in a shared vector
-sgct::SharedVector<glm::mat4> sharedTransforms;
-sgct::SharedString sharedText;
-sgct::SharedObject<size_t> sharedHeadSensorIndex(0);
+    // sides
+    glBegin(GL_LINES);
+    glVertex3f(-size, -size, -size);
+    glVertex3f(-size, size, -size);
 
-//pointer to a device
-sgct::SGCTTrackingDevice * devicePtr = NULL;
-//pointer to a tracker
-sgct::SGCTTracker * trackerPtr = NULL;
+    glVertex3f(size, -size, -size);
+    glVertex3f(size, size, -size);
 
-int main( int argc, char* argv[] )
-{
-    // Allocate
-    gEngine = new sgct::Engine( argc, argv );
+    glVertex3f(size, -size, size);
+    glVertex3f(size, size, size);
 
-    // Bind your functions
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setDrawFunction( drawFun );
-
-    // Init the engine
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction( encodeFun );
-    sgct::SharedData::instance()->setDecodeFunction( decodeFun );
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
+    glVertex3f(-size, -size, size);
+    glVertex3f(-size, size, size);
+    glEnd();
 }
 
-void initOGLFun()
-{
+void drawAxes(float size) {
+    glLineWidth(2.0);
+    glBegin(GL_LINES);
+
+    // x-axis
+    glColor3f(1.f, 0.f, 0.f);
+    glVertex3f(0.f, 0.f, 0.f);
+    glVertex3f(size, 0.f, 0.f);
+
+    // y-axis
+    glColor3f(0.f, 1.f, 0.f);
+    glVertex3f(0.f, 0.f, 0.f);
+    glVertex3f(0.f, size, 0.f);
+
+    // z-axis
+    glColor3f(0.f, 0.f, 1.f);
+    glVertex3f(0.f, 0.f, 0.f);
+    glVertex3f(0.f, 0.f, size);
+
+    glEnd();
+}
+
+void initOGLFun() {
     glEnable(GL_DEPTH_TEST);
 
-    //only store the tracking data on the master node
-    if( gEngine->isMaster() )
-    {
-        size_t index = 0;
-        
-        //allocate shared data
-        for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
-        {
-            trackerPtr = sgct::Engine::getTrackingManager()->getTracker(i);
-            
-            //init the shared vector with identity matrixes
-            for(size_t j=0; j<trackerPtr->getNumberOfDevices(); j++)
-            {
-                devicePtr = trackerPtr->getDevice(j);
-            
-                if( devicePtr->hasSensor() )
-                {
-                    sharedTransforms.addVal( glm::mat4(1.0f) );
-                    
-                    //find the head sensor
-                    if( sgct::Engine::getTrackingManager()->getHeadDevicePtr() == devicePtr )
-                        sharedHeadSensorIndex.setVal(index);
+    // only store the tracking data on the master node
+    if (!gEngine->isMaster()) {
+        return;
+    }
 
-                    index++;
+    size_t index = 0;
+        
+    for (size_t i = 0; i < Engine::getTrackingManager().getNumberOfTrackers(); i++) {
+        sgct::SGCTTracker* trackerPtr = sgct::Engine::getTrackingManager().getTracker(i);
+            
+        // init the shared vector with identity matrixes
+        for (size_t j= 0; j < trackerPtr->getNumberOfDevices(); j++) {
+            sgct::SGCTTrackingDevice* devicePtr = trackerPtr->getDevice(j);
+            
+            if (devicePtr->hasSensor()) {
+                sharedTransforms.addVal(glm::mat4(1.f));
+                    
+                // find the head sensor
+                if (Engine::getTrackingManager().getHeadDevice() == devicePtr) {
+                    sharedHeadSensorIndex.setVal(index);
                 }
+
+                index++;
             }
         }
     }
 }
 
-/*
-    This callback is called once per render loop iteration.
-*/
-void preSyncFun()
-{
+// This callback is called once per render loop iteration.
+void preSyncFun() {
     /*
-    Store all transforms in the array by looping through all trackers and all devices.
+     *
+     * Store all transforms in the array by looping through all trackers and all devices.
+     *
+     * Storing values from the tracker in the pre-sync callback will guarantee that the
+     * values are equal for all draw calls within the same frame. This prevents the
+     * application from getting different tracked data for left and right draws using a
+     * stereoscopic display. Remember to get all sensor, button and analog data that will
+     * affect the rendering in this stage.
+     */
 
-    Storing values from the tracker in the pre-sync callback will guarantee
-    that the values are equal for all draw calls within the same frame.
-    This prevents the application from getting different tracked data for
-    left and right draws using a stereoscopic display. Remember to get
-    all sensor, button and analog data that will affect the rendering in this stage.
-    */
-
-    //only store the tracking data on the master node
-    if( gEngine->isMaster() )
-    {
-        size_t index = 0;
-        std::stringstream ss;
-        
-        /*
-            Loop trough all trackers (like intersense IS-900, Microsoft Kinect, PhaseSpace etc.)
-        */
-        for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
-        {
-            trackerPtr = sgct::Engine::getTrackingManager()->getTracker(i);
-        
-            
-            /*
-                Loop trough all tracking devices (like headtracker, wand, stylus etc.)
-            */
-            for(size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++)
-            {
-                devicePtr = trackerPtr->getDevice(j);
-                
-                ss << "Device " << i <<  "-" << j << ": " << devicePtr->getName() << "\n";
-                
-                if( devicePtr->hasSensor() )
-                {
-                    sharedTransforms.setValAt( index, devicePtr->getWorldTransform() );
-                    index++;
-
-                    double trackerTime = devicePtr->getTrackerDeltaTime();
-                    ss << "     Sensor id: " << devicePtr->getSensorId()
-                        << " freq: " << (trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime) << " Hz\n";
-
-                    ss << "\n     Pos\n"
-                        << "          x=" << devicePtr->getPosition().x << "\n"
-                        << "          y=" << devicePtr->getPosition().y << "\n"
-                        << "          z=" << devicePtr->getPosition().z << "\n";
-
-                    ss << "\n     Rot\n"
-                        << "          rx=" << devicePtr->getEulerAngles().x << "\n"
-                        << "          ry=" << devicePtr->getEulerAngles().y << "\n"
-                        << "          rz=" << devicePtr->getEulerAngles().z << "\n";
-                }
-
-                if( devicePtr->hasButtons() )
-                {
-                    ss << "\n     Buttons\n";
-                    
-                    for(size_t k=0; k < devicePtr->getNumberOfButtons(); k++)
-                    {
-                        ss << "          Button " << k << ": " << (devicePtr->getButton(k) ? "pressed" : "released") << "\n";
-                    }
-                }
-
-                if( devicePtr->hasAnalogs() )
-                {
-                    ss << "\n     Analog axes\n";
-                    
-                    for(size_t k=0; k < devicePtr->getNumberOfAxes(); k++)
-                    {
-                        ss << "          Axis " << k << ": " << devicePtr->getAnalog(k) << "\n";
-                    }
-                }
-
-                ss << "\n";
-            }
-        }
-
-        //store the string stream into the shared string
-        sharedText.setVal( ss.str() );
+    // only store the tracking data on the master node
+    if (!gEngine->isMaster()) {
+        return;
     }
+
+    size_t index = 0;
+    std::stringstream ss;
+        
+    // Loop through trackers (like intersense IS-900, Microsoft Kinect, PhaseSpace etc.)
+    for (size_t i = 0; i < Engine::getTrackingManager().getNumberOfTrackers(); i++) {
+        sgct::SGCTTracker* trackerPtr = Engine::getTrackingManager().getTracker(i);
+        
+        // Loop trough all tracking devices (like headtracker, wand, stylus etc.)
+        for (size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
+            sgct::SGCTTrackingDevice* devicePtr = trackerPtr->getDevice(j);
+                
+            ss << "Device " << i << '-' << j << ": " << devicePtr->getName() << '\n';
+                
+            if (devicePtr->hasSensor()) {
+                sharedTransforms.setValAt(index, devicePtr->getWorldTransform());
+                index++;
+
+                const double time = devicePtr->getTrackerDeltaTime();
+                ss << "     Sensor id: " << devicePtr->getSensorId()
+                   << " freq: " << (time <= 0.0 ? 0.0 : 1.0 / time) << " Hz\n";
+
+                ss << "\n     Pos\n"
+                   << "          x=" << devicePtr->getPosition().x << '\n'
+                   << "          y=" << devicePtr->getPosition().y << '\n'
+                   << "          z=" << devicePtr->getPosition().z << '\n';
+
+                ss << "\n     Rot\n"
+                   << "          rx=" << devicePtr->getEulerAngles().x << '\n'
+                   << "          ry=" << devicePtr->getEulerAngles().y << '\n'
+                   << "          rz=" << devicePtr->getEulerAngles().z << '\n';
+            }
+
+            if (devicePtr->hasButtons()) {
+                ss << "\n     Buttons\n";
+                    
+                for (size_t k = 0; k < devicePtr->getNumberOfButtons(); k++) {
+                    ss << "          Button " << k << ": "
+                       << (devicePtr->getButton(k) ? "pressed" : "released") << '\n';
+                }
+            }
+
+            if (devicePtr->hasAnalogs()) {
+                ss << "\n     Analog axes\n";
+                    
+                for (size_t k = 0; k < devicePtr->getNumberOfAxes(); k++) {
+                    ss << "          Axis " << k << ": "
+                       << devicePtr->getAnalog(k) << '\n';
+                }
+            }
+
+            ss << '\n';
+        }
+    }
+
+    // store the string stream into the shared string
+    sharedText.setVal(ss.str());
 }
 
 /*
-    This callback can be called several times per render loop iteration.
-    Using a single viewport in stereo (3D) usually results in refresh rate of 120 Hz.
-*/
-void drawFun()
-{
-    //draw some yellow cubes in space
-    for( float i=-0.5f; i<=0.5f; i+=0.2f)
-        for(float j=-0.5f; j<=0.5f; j+=0.2f)
-        {
+ * This callback can be called several times per render loop iteration. Using a single
+ * viewport in stereo (3D) usually results in refresh rate of 120 Hz.
+ */
+void drawFun() {
+    // draw some yellow cubes in space
+    for (float i = -0.5f; i <= 0.5f; i += 0.2f) {
+        for (float j = -0.5f; j <= 0.5f; j += 0.2f) {
             glPushMatrix();
-            glTranslatef(i, j, 0.0f);
-            glColor3f(1.0f,1.0f,0.0f);
+            glTranslatef(i, j, 0.f);
+            glColor3f(1.f, 1.f, 0.f);
             drawWireCube(0.04f);
             glPopMatrix();
         }
+    }
 
-    //draw a cube and axes around each wand
-    for(size_t i = 0; i < sharedTransforms.getSize(); i++)
-    {
-        if(i != sharedHeadSensorIndex.getVal()) 
-        {
+    // draw a cube and axes around each wand
+    for (size_t i = 0; i < sharedTransforms.getSize(); i++) {
+        if (i != sharedHeadSensorIndex.getVal())  {
             glLineWidth(2.0);
-
             glPushMatrix();
+            glMultMatrixf(glm::value_ptr(sharedTransforms.getValAt(i)));
 
-            glMultMatrixf( glm::value_ptr( sharedTransforms.getValAt( i ) ) );
-
-            glColor3f(0.5f,0.5f,0.5f);
+            glColor3f(0.5f, 0.5f, 0.5f);
             drawWireCube(0.1f);
 
             drawAxes(0.1f);
 
-            //draw pointer line
+            // draw pointer line
             glBegin(GL_LINES);
-            glColor3f(1.0f,1.0f,0.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, -5.0f);
+            glColor3f(1.f, 1.f, 0.f);
+            glVertex3f(0.f, 0.f, 0.f);
+            glVertex3f(0.f, 0.f, -5.f);
             glEnd();
 
             glPopMatrix();
@@ -227,87 +221,54 @@ void drawFun()
     }
 
 #if INCLUDE_SGCT_TEXT
-    //draw text
-    float textVerticalPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getYResolution()) - 100.0f;
-    int fontSize = 12;
+    // draw text
+    const float textVerticalPos = static_cast<float>(
+        gEngine->getCurrentWindow().getResolution().y
+    ) - 100.0f;
+    constexpr const int fontSize = 12;
     
-    glColor3f(1.0f, 1.0f, 1.0f);
-    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ),
-		sgct_text::TOP_LEFT,
-        120.0f, textVerticalPos,
-        sharedText.getVal().c_str() );
+    glColor3f(1.f, 1.f, 1.f);
+    sgct_text::print(
+        sgct_text::FontManager::instance()->getFont("SGCTFont", fontSize),
+        sgct_text::TextAlignMode::TopLeft,
+        120.0f,
+        textVerticalPos,
+        sharedText.getVal().c_str()
+    );
 #endif
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeVector( &sharedTransforms );
-    sgct::SharedData::instance()->writeString( &sharedText );
-    sgct::SharedData::instance()->writeObj( &sharedHeadSensorIndex );
+void encodeFun() {
+    SharedData::instance()->writeVector(sharedTransforms);
+    SharedData::instance()->writeString(sharedText);
+    SharedData::instance()->writeObj(sharedHeadSensorIndex);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readVector( &sharedTransforms );
-    sgct::SharedData::instance()->readString( &sharedText );
-    sgct::SharedData::instance()->readObj( &sharedHeadSensorIndex );
+void decodeFun() {
+    SharedData::instance()->readVector(sharedTransforms);
+    SharedData::instance()->readString(sharedText);
+    SharedData::instance()->readObj(sharedHeadSensorIndex);
 }
 
-void drawAxes(float size)
-{
-    glLineWidth(2.0);
-    glBegin(GL_LINES);
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
 
-    //x-axis
-    glColor3f(1.0f,0.0f,0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(size, 0.0f, 0.0f);
+    // Bind your functions
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setDrawFunction(drawFun);
 
-    //y-axis
-    glColor3f(0.0f,1.0f,0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, size, 0.0f);
+    // Init the engine
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
 
-    //z-axis
-    glColor3f(0.0f,0.0f,1.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, size);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
-    glEnd();
-}
-
-void drawWireCube(float size)
-{
-    //bottom
-    glBegin(GL_LINE_STRIP);
-    glVertex3f( -size, -size, -size);
-    glVertex3f( size, -size, -size);
-    glVertex3f( size, -size, size);
-    glVertex3f( -size, -size, size);
-    glVertex3f( -size, -size, -size);
-    glEnd();
-
-    //top
-    glBegin(GL_LINE_STRIP);
-    glVertex3f( -size, size, -size);
-    glVertex3f( size, size, -size);
-    glVertex3f( size, size, size);
-    glVertex3f( -size, size, size);
-    glVertex3f( -size, size, -size);
-    glEnd();
-
-    //sides
-    glBegin(GL_LINES);
-    glVertex3f( -size, -size, -size);
-    glVertex3f( -size, size, -size);
-
-    glVertex3f( size, -size, -size);
-    glVertex3f( size, size, -size);
-
-    glVertex3f( size, -size, size);
-    glVertex3f( size, size, size);
-
-    glVertex3f( -size, -size, size);
-    glVertex3f( -size, size, size);
-    glEnd();
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

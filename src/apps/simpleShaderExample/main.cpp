@@ -1,128 +1,96 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include <sgct.h>
 
-#include "sgct.h"
+namespace {
+    sgct::Engine* gEngine;
+    
+    int timeLoc = -1;
+    sgct::SharedDouble currentTime(0.0);
+    sgct::SharedBool reloadShader(false);
+} // namespace 
 
-sgct::Engine * gEngine;
+using namespace sgct;
 
-void drawFun();
-void preSyncFun();
-void postSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void keyCallback(int key, int action);
+void drawFun() {
+    // set current shader program
+    ShaderManager::instance()->bindShaderProgram("SimpleColor");
+    glUniform1f(timeLoc, static_cast<float>(currentTime.getVal()));
 
-int time_loc = -1;
+    constexpr const float Speed = 50.f;
+    glRotatef(static_cast<float>(currentTime.getVal()) * Speed, 0.f, 1.f, 0.f);
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
-sgct::SharedBool reloadShader(false);
-
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction( postSyncPreDrawFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    //set current shader program
-    sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
-    glUniform1f( time_loc, static_cast<float>( currentTime.getVal() ) );
-
-    float speed = 50.0f;
-    glRotatef(static_cast<float>( currentTime.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
-
-    //render a single triangle
     glBegin(GL_TRIANGLES);
-        glVertex3f(-0.5f, -0.5f, 0.0f);
-        glVertex3f(0.0f, 0.5f, 0.0f);
-        glVertex3f(0.5f, -0.5f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, 0.f);
+    glVertex3f(0.f, 0.5f, 0.f);
+    glVertex3f(0.5f, -0.5f, 0.f);
     glEnd();
 
-    //unset current shader program
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
-void initOGLFun()
-{
-    sgct::ShaderManager::instance()->addShaderProgram( "SimpleColor", "simple.vert", "simple.frag" );
-    sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
+void initOGLFun() {
+    ShaderManager& sm = *ShaderManager::instance();
+    sm.addShaderProgram("SimpleColor", "simple.vert", "simple.frag");
+    sm.bindShaderProgram("SimpleColor");
 
-    time_loc = sgct::ShaderManager::instance()->getShaderProgram( "SimpleColor").getUniformLocation( "curr_time" );
+    timeLoc = sm.getShaderProgram("SimpleColor").getUniformLocation("curr_time");
 
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( &currentTime );
-    sgct::SharedData::instance()->writeBool( &reloadShader );
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeBool(reloadShader);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble( &currentTime );
-    sgct::SharedData::instance()->readBool( &reloadShader );
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readBool(reloadShader);
 }
 
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
     }
 }
 
-void postSyncPreDrawFun()
-{
-    if( reloadShader.getVal() )
-    {
-        reloadShader.setVal(false); //reset
+void postSyncPreDrawFun() {
+    if (reloadShader.getVal()) {
+        reloadShader.setVal(false);
 
-        sgct::ShaderProgram sp = sgct::ShaderManager::instance()->getShaderProgram( "SimpleColor" );
+        ShaderManager& sm = *ShaderManager::instance();
+        ShaderProgram sp = sm.getShaderProgram("SimpleColor");
         sp.reload();
 
-        //reset location variables
-        sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
-        time_loc = sgct::ShaderManager::instance()->getShaderProgram( "SimpleColor").getUniformLocation( "curr_time" );
+        sm.bindShaderProgram("SimpleColor");
+        timeLoc = sm.getShaderProgram( "SimpleColor").getUniformLocation("curr_time");
         sgct::ShaderManager::instance()->unBindShaderProgram();
     }
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-        case SGCT_KEY_R:
-            if(action == SGCT_PRESS)
-                reloadShader.setVal(true);
-            break;
-        }
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster() && key == SGCT_KEY_R && action == SGCT_PRESS) {
+        reloadShader.setVal(true);
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

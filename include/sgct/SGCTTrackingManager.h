@@ -20,9 +20,9 @@ namespace sgct {
 
 class SGCTTrackingDevice;
 
-/*!
-Class that manages tracking systems
-*/
+/**
+ * Class that manages tracking systems
+ */
 class SGCTTrackingManager {
 public:
     ~SGCTTrackingManager();
@@ -42,7 +42,7 @@ public:
     
     int getNumberOfTrackers() const;
     int getNumberOfDevices() const;
-    SGCTTrackingDevice* getHeadDevicePtr() const;
+    SGCTTrackingDevice* getHeadDevice() const;
 
     SGCTTracker* getLastTracker() const;
     SGCTTracker* getTracker(size_t index) const;

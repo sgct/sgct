@@ -1,381 +1,74 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/SGCTUser.h>
+#include <sgct/Touch.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <sstream>
 
-sgct::Engine * gEngine;
+namespace {
+    constexpr const float RotationSpeed = 0.0017f;
+    constexpr const float WalkingSpeed = 2.5f;
+
+    constexpr const int LandscapeSize = 50;
+    constexpr const int NumberOfPyramids = 150;
+
+    sgct::Engine* gEngine;
+
+    bool buttonForward = false;
+    bool buttonBackward = false;
+    bool buttonLeft = false;
+    bool buttonRight = false;
+
+    // to check if left mouse button is pressed
+    bool mouseLeftButton = false;
+    // to check if one touch point is down
+    bool oneTouchDown = false;
+    // Holds the difference in position between when the left mouse button is pressed and
+    // when the mouse button is held
+    double mouseDx = 0.0;
+    // Stores the positions that will be compared to measure the difference
+    double mouseXPos[] = { 0.0, 0.0 };
+
+    glm::vec3 view(0.f, 0.f, 1.f);
+    glm::vec3 up(0.f, 1.f, 0.f);
+    glm::vec3 pos(0.f, 0.f, 0.f);
+
+    sgct::SharedObject<glm::mat4> xform;
+    glm::mat4 pyramidTransforms[NumberOfPyramids];
+
+    struct {
+        GLuint vao;
+        GLuint vbo;
+        GLint matrixLoc;
+        int nVertices;
+    } grid;
+
+    struct {
+        GLuint vao;
+        GLuint vbo;
+        GLint matrixLoc;
+        int nVertices;
+    } pyramid;
+
+    GLint alphaLocation = -1;
+
+    struct Vertex {
+        float mX = 0.f;
+        float mY = 0.f;
+        float mZ = 0.f;
+    };
+
+} // namespace
+
+using namespace sgct;
+
+void createXZGrid(int size, float yPos) {
+    grid.nVertices = size * 4;
+    std::vector<Vertex> vertData(grid.nVertices);
 
-void drawFun();
-void preSyncFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
-//input callbacks
-void keyCallback(int key, int action);
-void mouseButtonCallback(int button, int action, int mods);
-void touchCallback(const sgct_core::Touch* touchPoints);
-
-void drawXZGrid();
-void drawPyramid(int index);
-void createXZGrid(int size, float yPos);
-void createPyramid(float width);
-
-float rotationSpeed = 0.0017f;
-float walkingSpeed = 2.5f;
-
-const int landscapeSize = 50;
-const int numberOfPyramids = 150;
-
-bool arrowButtons[4];
-enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
-
-//to check if left mouse button is pressed
-bool mouseLeftButton = false;
-//to check if one touch point is down
-bool oneTouchDown = false;
-/* Holds the difference in position between when the left mouse button
-    is pressed and when the mouse button is held. */
-double mouseDx = 0.0;
-/* Stores the positions that will be compared to measure the difference. */
-double mouseXPos[] = { 0.0, 0.0 };
-
-glm::vec3 view(0.0f, 0.0f, 1.0f);
-glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 pos(0.0f, 0.0f, 0.0f);
-
-sgct::SharedObject<glm::mat4> xform;
-glm::mat4 pyramidTransforms[numberOfPyramids];
-
-enum geometryType { PYRAMID = 0, GRID };
-GLuint VAOs[2] = { GL_FALSE, GL_FALSE };
-GLuint VBOs[2] = { GL_FALSE, GL_FALSE };
-//shader locations
-GLint Matrix_Locs[2] = { -1, -1 };
-GLint alphaLocation = -1;
-
-int numberOfVerts[2] = { 0, 0 };
-
-class Vertex
-{
-public:
-    Vertex() { mX = mY = mZ = 0.0f; }
-    Vertex(float z, float y, float x) { mX = x; mY = y; mZ = z; }
-    float mX, mY, mZ;
-};
-
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
-    gEngine->setTouchCallbackFunction( touchCallback );
-    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    gEngine->setCleanUpFunction( cleanUpFun );
-
-    for(int i=0; i<4; i++)
-        arrowButtons[i] = false;
-
-    if (!gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ))
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction( encodeFun );
-    sgct::SharedData::instance()->setDecodeFunction( decodeFun );
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void initOGLFun()
-{
-    //generate the VAOs
-    glGenVertexArrays(2, &VAOs[0]);
-    //generate VBOs for vertex positions
-    glGenBuffers(2, &VBOs[0]);
-
-    createXZGrid(landscapeSize, -1.5f);
-    createPyramid(0.6f);
-
-    //pick a seed for the random function (must be same on all nodes)
-    srand(9745);
-    for(int i=0; i<numberOfPyramids; i++)
-    {
-        float xPos = static_cast<float>(rand()%landscapeSize - landscapeSize/2);
-        float zPos = static_cast<float>(rand()%landscapeSize - landscapeSize/2);
-
-        pyramidTransforms[i] = glm::translate(glm::mat4(1.0f), glm::vec3(xPos, -1.5f, zPos));
-    }
-
-    sgct::ShaderManager::instance()->addShaderProgram("gridShader",
-        "gridShader.vert",
-        "gridShader.frag");
-    sgct::ShaderManager::instance()->bindShaderProgram("gridShader");
-    Matrix_Locs[GRID] = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("MVP");
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-
-    sgct::ShaderManager::instance()->addShaderProgram("pyramidShader",
-        "pyramidShader.vert",
-        "pyramidShader.frag");
-    sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
-    Matrix_Locs[PYRAMID] = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("MVP");
-    alphaLocation = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("alpha");
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-}
-
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        if( mouseLeftButton )
-        {
-            double tmpYPos;
-            //get the mouse pos from first window
-            sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[0], &tmpYPos );
-            mouseDx = mouseXPos[0] - mouseXPos[1];
-        }
-        else if(!oneTouchDown)
-        {
-            mouseDx = 0.0;
-        }
-
-        static float panRot = 0.0f;
-        panRot += (static_cast<float>(mouseDx) * rotationSpeed * static_cast<float>(gEngine->getDt()));
-
-        glm::mat4 ViewRotateX = glm::rotate(
-            glm::mat4(1.0f),
-            panRot,
-            glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the y-axis
-
-        view = glm::inverse(glm::mat3(ViewRotateX)) * glm::vec3(0.0f, 0.0f, 1.0f);
-
-        glm::vec3 right = glm::cross(view, up);
-
-        if( arrowButtons[FORWARD] )
-            pos += (walkingSpeed * static_cast<float>(gEngine->getDt()) * view);
-        if( arrowButtons[BACKWARD] )
-            pos -= (walkingSpeed * static_cast<float>(gEngine->getDt()) * view);
-        if( arrowButtons[LEFT] )
-            pos -= (walkingSpeed * static_cast<float>(gEngine->getDt()) * right);
-        if( arrowButtons[RIGHT] )
-            pos += (walkingSpeed * static_cast<float>(gEngine->getDt()) * right);
-
-        /*
-            To get a first person camera, the world needs
-            to be transformed around the users head.
-
-            This is done by:
-            1, Transform the user to coordinate system origin
-            2, Apply navigation
-            3, Apply rotation
-            4, Transform the user back to original position
-
-            However, mathwise this process need to be reversed
-            due to the matrix multiplication order.
-        */
-
-        glm::mat4 result;
-        //4. transform user back to original position
-        result = glm::translate(glm::mat4(1.0f), sgct::Engine::getDefaultUserPtr()->getPos());
-        //3. apply view rotation
-        result *= ViewRotateX;
-        //2. apply navigation translation
-        result *= glm::translate(glm::mat4(1.0f), pos);
-        //1. transform user to coordinate system origin
-        result *= glm::translate(glm::mat4(1.0f), -sgct::Engine::getDefaultUserPtr()->getPos());
-
-        xform.setVal( result );
-    }
-}
-
-void drawFun()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    //glEnable(GL_DEPTH_TEST);
-    //glDepthFunc(GL_LESS);
-    glDisable(GL_DEPTH_TEST);
-
-    drawXZGrid();
-
-    for (int i = 0; i < numberOfPyramids; i++)
-        drawPyramid(i);
-
-    glEnable(GL_DEPTH_TEST);
-    //glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
-}
-
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeObj( &xform );
-}
-
-void decodeFun()
-{
-    sgct::SharedData::instance()->readObj( &xform );
-}
-
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-        case SGCT_KEY_UP:
-        case SGCT_KEY_W:
-            arrowButtons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
-            break;
-
-        case SGCT_KEY_DOWN:
-        case SGCT_KEY_S:
-            arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
-            break;
-
-        case SGCT_KEY_LEFT:
-        case SGCT_KEY_A:
-            arrowButtons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
-            break;
-
-        case SGCT_KEY_RIGHT:
-        case SGCT_KEY_D:
-            arrowButtons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
-            break;
-        }
-    }
-}
-
-void mouseButtonCallback(int button, int action, int)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( button )
-        {
-        case SGCT_MOUSE_BUTTON_LEFT:
-            mouseLeftButton = (action == SGCT_PRESS ? true : false);
-            double tmpYPos;
-            //set refPos
-            sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[1], &tmpYPos );
-            mouseDx = mouseXPos[0] - mouseXPos[1];
-            break;
-        }
-    }
-}
-
-void touchCallback(const sgct_core::Touch* touchPoints)
-{
-    std::vector<sgct_core::Touch::TouchPoint> latestTouchPoints = touchPoints->getLatestTouchPoints();
-    // Do not print info if only stationary touch points
-#ifdef _DEBUG
-    if (!touchPoints->isAllPointsStationary()) {
-        sgct::MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
-        sgct::MessageHandler::instance()->print("TouchPoints %i\n", latestTouchPoints.size());
-        for (std::size_t i = 0; i < latestTouchPoints.size(); ++i) {
-            sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]).c_str());
-        }
-    }
-#endif
-
-    if (gEngine->isMaster())
-    {
-        if (latestTouchPoints.size() == 1) {
-            if (latestTouchPoints[0].action != sgct_core::Touch::TouchPoint::Released) {
-                oneTouchDown = true;
-            }
-            else {
-                oneTouchDown = false;
-            }
-
-            if (latestTouchPoints[0].action == sgct_core::Touch::TouchPoint::Pressed) {
-                mouseXPos[0] = mouseXPos[1] = latestTouchPoints[0].pixelCoords.x;
-            }
-            else {
-                mouseXPos[0] = latestTouchPoints[0].pixelCoords.x;
-            }
-
-            mouseDx = mouseXPos[0] - mouseXPos[1];
-
-            /*std::stringstream ss;
-            ss << mouseDx;
-            sgct::MessageHandler::instance()->print("MouseDx %s\n", ss.str().c_str());*/
-        }
-        else if (latestTouchPoints.size() > 1) {
-            //Using distance between two first touch points
-            float oldDist = glm::distance(latestTouchPoints[0].normPixelCoords + latestTouchPoints[0].normPixelDiff, 
-                latestTouchPoints[1].normPixelCoords + latestTouchPoints[1].normPixelDiff);
-            float newDist = glm::distance(latestTouchPoints[0].normPixelCoords,
-                latestTouchPoints[1].normPixelCoords);
-            pos += (oldDist-newDist) * 100 * (walkingSpeed * static_cast<float>(gEngine->getDt()) * view);
-        }
-    }
-}
-
-void drawXZGrid(void)
-{
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
-
-    sgct::ShaderManager::instance()->bindShaderProgram("gridShader");
-
-    glUniformMatrix4fv(Matrix_Locs[GRID], 1, GL_FALSE, &MVP[0][0]);
-
-    glBindVertexArray(VAOs[GRID]);
-
-    glLineWidth(3.0f);
-    glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
-    glDrawArrays(GL_LINES, 0, numberOfVerts[GRID]);
-
-    //unbind
-    glBindVertexArray(0);
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-}
-
-void drawPyramid(int index)
-{
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal() * pyramidTransforms[index];
-
-    sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
-
-    glUniformMatrix4fv(Matrix_Locs[PYRAMID], 1, GL_FALSE, &MVP[0][0]);
-
-    glBindVertexArray(VAOs[PYRAMID]);
-
-    //draw lines
-    glLineWidth(2.0f);
-    glPolygonOffset(1.0f, 0.1f); //offset to avoid z-buffer fighting
-    glUniform1f(alphaLocation, 0.8f);
-    glDrawArrays(GL_LINES, 0, 16);
-    //draw triangles
-    glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
-    glUniform1f(alphaLocation, 0.3f);
-    glDrawArrays(GL_TRIANGLES, 16, 12);
-
-    //unbind
-    glBindVertexArray(0);
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-}
-
-void createXZGrid(int size, float yPos)
-{
-    numberOfVerts[GRID] = size * 4;
-    Vertex * vertData = new (std::nothrow) Vertex[numberOfVerts[GRID]];
-    
     int i = 0;
-    for (int x = -(size / 2); x < (size / 2); x++)
-    {
+    for (int x = -(size / 2); x < (size / 2); x++) {
         vertData[i].mX = static_cast<float>(x);
         vertData[i].mY = yPos;
         vertData[i].mZ = static_cast<float>(-(size / 2));
@@ -387,8 +80,7 @@ void createXZGrid(int size, float yPos)
         i += 2;
     }
 
-    for (int z = -(size / 2); z < (size / 2); z++)
-    {
+    for (int z = -(size / 2); z < (size / 2); z++) {
         vertData[i].mX = static_cast<float>(-(size / 2));
         vertData[i].mY = yPos;
         vertData[i].mZ = static_cast<float>(z);
@@ -400,103 +92,370 @@ void createXZGrid(int size, float yPos)
         i += 2;
     }
 
-    glBindVertexArray(VAOs[GRID]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[GRID]);
-    
-    //upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numberOfVerts[GRID], vertData, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-        );
+    glBindVertexArray(grid.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, grid.vbo);
 
-    //unbind
+    // upload data to GPU
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(Vertex) * grid.nVertices,
+        vertData.data(),
+        GL_STATIC_DRAW
+    );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+
     glBindVertexArray(GL_FALSE);
     glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
-
-    //clean up
-    delete[] vertData;
-    vertData = NULL;
 }
 
-void createPyramid(float width)
-{
+void createPyramid(float width) {
     std::vector<Vertex> vertData;
 
-    //enhance the pyramids with lines in the edges
-    //-x
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
-    //+x
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, -width / 2.0f));
-    //-z
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));
-    //+z
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
-    
-    //triangles
-    //-x
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
-    //+x
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, -width / 2.0f));
-    //-z
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, -width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));
-    //+z
-    vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
-    vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
-    vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
+    // enhance the pyramids with lines in the edges
+    // -x
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
+    // +x
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
+    // -z
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
+    // +z
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
+    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
 
-    numberOfVerts[PYRAMID] = static_cast<int>( vertData.size() );
+    // triangles
+    // -x
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, width / 2.f });
+    // +x
+    vertData.push_back(Vertex{ width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    // -z
+    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    // +z
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, width / 2.f });
 
-    glBindVertexArray(VAOs[PYRAMID]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[PYRAMID]);
+    pyramid.nVertices = static_cast<int>(vertData.size());
 
-    //upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numberOfVerts[PYRAMID], &vertData[0], GL_STATIC_DRAW);
+    glBindVertexArray(pyramid.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, pyramid.vbo);
+
+    // upload data to GPU
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(Vertex) * pyramid.nVertices,
+        vertData.data(),
+        GL_STATIC_DRAW
+    );
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-        );
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        0,
+        reinterpret_cast<void*>(0)
+    );
 
-    //unbind
     glBindVertexArray(GL_FALSE);
     glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
 
-    //clean up
     vertData.clear();
 }
 
-void cleanUpFun()
-{
-    if (VBOs[0])
-        glDeleteBuffers(2, &VBOs[0]);
-    if (VAOs[0])
-        glDeleteVertexArrays(2, &VAOs[0]);
+void drawXZGrid() {
+    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
+
+    ShaderManager::instance()->bindShaderProgram("gridShader");
+
+    glUniformMatrix4fv(grid.matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    glBindVertexArray(grid.vao);
+
+    glLineWidth(3.f);
+    // offset to avoid z-buffer fighting
+    glPolygonOffset(0.f, 0.f);
+    glDrawArrays(GL_LINES, 0, grid.nVertices);
+
+    glBindVertexArray(0);
+    ShaderManager::instance()->unBindShaderProgram();
+}
+
+void drawPyramid(int index) {
+    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() *
+        xform.getVal() * pyramidTransforms[index];
+
+    ShaderManager::instance()->bindShaderProgram("pyramidShader");
+
+    glUniformMatrix4fv(pyramid.matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glBindVertexArray(pyramid.vao);
+    glLineWidth(2.0f);
+    // offset to avoid z-buffer fighting
+    glPolygonOffset(1.f, 0.1f);
+    glUniform1f(alphaLocation, 0.8f);
+    glDrawArrays(GL_LINES, 0, 16);
+    // draw triangles
+    // offset to avoid z-buffer fighting
+    glPolygonOffset(0.f, 0.f);
+    glUniform1f(alphaLocation, 0.3f);
+    glDrawArrays(GL_TRIANGLES, 16, 12);
+
+    glBindVertexArray(0);
+    ShaderManager::instance()->unBindShaderProgram();
+}
+
+void initOGLFun() {
+    glGenVertexArrays(1, &grid.vao);
+    glGenVertexArrays(1, &pyramid.vao);
+
+    glGenBuffers(1, &grid.vbo);
+    glGenBuffers(1, &pyramid.vbo);
+
+    createXZGrid(LandscapeSize, -1.5f);
+    createPyramid(0.6f);
+
+    // pick a seed for the random function (must be same on all nodes)
+    srand(9745);
+    for (int i = 0; i < NumberOfPyramids; i++) {
+        const float xPos = static_cast<float>(rand() % LandscapeSize - LandscapeSize / 2);
+        const float zPos = static_cast<float>(rand() % LandscapeSize - LandscapeSize / 2);
+
+        pyramidTransforms[i] = glm::translate(
+            glm::mat4(1.f),
+            glm::vec3(xPos, -1.5f, zPos)
+        );
+    }
+
+    ShaderManager& sm = *ShaderManager::instance();
+    sm.addShaderProgram("gridShader", "gridShader.vert", "gridShader.frag");
+    sm.bindShaderProgram("gridShader");
+    grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("MVP");
+    sm.unBindShaderProgram();
+
+    sm.addShaderProgram("pyramidShader", "pyramidShader.vert", "pyramidShader.frag");
+    sm.bindShaderProgram("pyramidShader");
+    pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("MVP");
+    alphaLocation = sm.getShaderProgram("pyramidShader").getUniformLocation("alpha");
+    sm.unBindShaderProgram();
+}
+
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        if (mouseLeftButton) {
+            double yPos;
+            Engine::getMousePos(gEngine->getFocusedWindowIndex(), &mouseXPos[0], &yPos);
+            mouseDx = mouseXPos[0] - mouseXPos[1];
+        }
+        else if (!oneTouchDown) {
+            mouseDx = 0.0;
+        }
+
+        static float panRot = 0.0f;
+        panRot += static_cast<float>(mouseDx * RotationSpeed * gEngine->getDt());
+
+        // rotation around the y-axis
+        const glm::mat4 viewRotateX = glm::rotate(
+            glm::mat4(1.f),
+            panRot,
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+
+        view = glm::inverse(glm::mat3(viewRotateX)) * glm::vec3(0.f, 0.f, 1.f);
+
+        const glm::vec3 right = glm::cross(view, up);
+
+        if (buttonForward) {
+            pos += (WalkingSpeed * static_cast<float>(gEngine->getDt()) * view);
+        }
+        if (buttonBackward) {
+            pos -= (WalkingSpeed * static_cast<float>(gEngine->getDt()) * view);
+        }
+        if (buttonLeft) {
+            pos -= (WalkingSpeed * static_cast<float>(gEngine->getDt()) * right);
+        }
+        if (buttonRight) {
+            pos += (WalkingSpeed * static_cast<float>(gEngine->getDt()) * right);
+        }
+
+        /*
+         *  To get a first person camera, the world needs to be transformed around the
+         * users head.
+         *
+         * This is done by:
+         *   1. Transform the user to coordinate system origin
+         *   2. Apply navigation
+         *   3. Apply rotation
+         *   4. Transform the user back to original position
+         *
+         * However, mathwise this process need to be reversed due to the matrix
+         * multiplication order.
+         */
+
+        glm::mat4 result;
+        // 4. transform user back to original position
+        result = glm::translate(glm::mat4(1.f), Engine::getDefaultUser().getPosMono());
+        // 3. apply view rotation
+        result *= viewRotateX;
+        // 2. apply navigation translation
+        result *= glm::translate(glm::mat4(1.f), pos);
+        // 1. transform user to coordinate system origin
+        result *= glm::translate(glm::mat4(1.f), -Engine::getDefaultUser().getPosMono());
+
+        xform.setVal(result);
+    }
+}
+
+void drawFun() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_DEPTH_TEST);
+
+    drawXZGrid();
+
+    for (int i = 0; i < NumberOfPyramids; i++) {
+        drawPyramid(i);
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+}
+
+void encodeFun() {
+    SharedData::instance()->writeObj(xform);
+}
+
+void decodeFun() {
+    SharedData::instance()->readObj(xform);
+}
+
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        switch (key) {
+            case SGCT_KEY_UP:
+            case SGCT_KEY_W:
+                buttonForward = (action == SGCT_REPEAT || action == SGCT_PRESS);
+                break;
+            case SGCT_KEY_DOWN:
+            case SGCT_KEY_S:
+                buttonBackward = (action == SGCT_REPEAT || action == SGCT_PRESS);
+                break;
+            case SGCT_KEY_LEFT:
+            case SGCT_KEY_A:
+                buttonLeft = (action == SGCT_REPEAT || action == SGCT_PRESS);
+                break;
+            case SGCT_KEY_RIGHT:
+            case SGCT_KEY_D:
+                buttonRight = (action == SGCT_REPEAT || action == SGCT_PRESS);
+                break;
+        }
+    }
+}
+
+void mouseButtonCallback(int button, int action, int) {
+    if (gEngine->isMaster() && button == SGCT_MOUSE_BUTTON_LEFT) {
+        mouseLeftButton = (action == SGCT_PRESS);
+        double yPos;
+        Engine::getMousePos(gEngine->getFocusedWindowIndex(), &mouseXPos[1], &yPos);
+        mouseDx = mouseXPos[0] - mouseXPos[1];
+    }
+}
+
+void touchCallback(const sgct_core::Touch* touchPoints) {
+    std::vector<sgct_core::Touch::TouchPoint> latestTouchPoints =
+        touchPoints->getLatestTouchPoints();
+
+    // Do not print info if only stationary touch points
+#ifdef _DEBUG
+    if (!touchPoints->areAllPointsStationary()) {
+        MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
+        MessageHandler::instance()->print("TouchPoints %i\n", latestTouchPoints.size());
+        for (std::size_t i = 0; i < latestTouchPoints.size(); ++i) {
+            MessageHandler::instance()->print(
+                "TouchPoint: %s\n",
+                sgct_core::getTouchPointInfo(latestTouchPoints[i]).c_str()
+            );
+        }
+    }
+#endif
+
+    using TouchPoint = sgct_core::Touch::TouchPoint;
+    if (gEngine->isMaster()) {
+        if (latestTouchPoints.size() == 1) {
+            oneTouchDown =
+                latestTouchPoints[0].action != TouchPoint::TouchAction::Released;
+
+            if (latestTouchPoints[0].action == TouchPoint::TouchAction::Pressed) {
+                mouseXPos[0] = mouseXPos[1] = latestTouchPoints[0].pixelCoords.x;
+            }
+            else {
+                mouseXPos[0] = latestTouchPoints[0].pixelCoords.x;
+            }
+
+            mouseDx = mouseXPos[0] - mouseXPos[1];
+        }
+        else if (latestTouchPoints.size() > 1) {
+            // Using distance between two first touch points
+            const float oldDist = glm::distance(
+                latestTouchPoints[0].normPixelCoords + latestTouchPoints[0].normPixelDiff, 
+                latestTouchPoints[1].normPixelCoords + latestTouchPoints[1].normPixelDiff
+            );
+            const float newDist = glm::distance(
+                latestTouchPoints[0].normPixelCoords,
+                latestTouchPoints[1].normPixelCoords
+            );
+            pos += (oldDist-newDist) * 100 *
+                   (WalkingSpeed * static_cast<float>(gEngine->getDt()) * view);
+        }
+    }
+}
+
+void cleanUpFun() {
+    glDeleteBuffers(1, &grid.vbo);
+    glDeleteBuffers(1, &pyramid.vbo);
+    glDeleteVertexArrays(1, &grid.vao);
+    glDeleteVertexArrays(1, &pyramid.vao);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
+    gEngine->setTouchCallbackFunction(touchCallback);
+    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    gEngine->setCleanUpFunction(cleanUpFun);
+
+    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

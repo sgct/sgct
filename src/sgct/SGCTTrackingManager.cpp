@@ -312,7 +312,7 @@ int SGCTTrackingManager::getNumberOfDevices() const {
     return mNumberOfDevices;
 }
 
-SGCTTrackingDevice* SGCTTrackingManager::getHeadDevicePtr() const {
+SGCTTrackingDevice* SGCTTrackingManager::getHeadDevice() const {
     return mHead;
 }
 

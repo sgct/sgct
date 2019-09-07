@@ -1,106 +1,85 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void drawFun();
-void preSyncFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void cleanUpFun();
+    std::unique_ptr<sgct_utils::SGCTBox> box;
+    sgct::SharedDouble currentTime(0.0);
+} // namespace
 
-sgct_utils::SGCTBox * box = NULL;
+using namespace sgct;
 
-//variables to share across cluster
-sgct::SharedDouble currentTime(0.0);
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+void drawFun() {
+    constexpr const double Speed = 25.0;
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setCleanUpFunction( cleanUpFun );
+    glTranslatef(0.f, 0.f, -3.f);
+    glRotated(currentTime.getVal() * Speed, 0.0, -1.0, 0.0);
+    glRotated(currentTime.getVal() * (Speed / 2.0), 1.0, 0.0, 0.0);
+    glColor3f(1.f, 1.f, 1.f);
 
-    if( !gEngine->init() )
-    {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+
+    box->draw();
+}
+
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
+    }
+}
+
+void initOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+
+    box = std::make_unique<sgct_utils::SGCTBox>(
+        2.f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+    );
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
+
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+}
+
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
+}
+
+void decodeFun() {
+    SharedData::instance()->readDouble(currentTime);
+}
+
+void cleanUpFun() {
+    box = nullptr;
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+
+    if (!gEngine->init()) {
         delete gEngine;
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
-    // Main loop
     gEngine->render();
-
-    // Clean up
     delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    double speed = 25.0;
-
-    glTranslatef(0.0f, 0.0f, -3.0f);
-    glRotated(currentTime.getVal() * speed, 0.0, -1.0, 0.0);
-    glRotated(currentTime.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-    glColor3f(1.0f,1.0f,1.0f);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
-
-    //draw the box
-    box->draw();
-}
-
-void preSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        currentTime.setVal( sgct::Engine::getTime() );
-    }
-}
-
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
-
-    box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
-    glEnable( GL_CULL_FACE );
-    glEnable( GL_TEXTURE_2D );
-
-    //Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
-}
-
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&currentTime);
-}
-
-void decodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&currentTime);
-}
-
-void cleanUpFun()
-{
-    if(box != NULL)
-        delete box;
+    exit(EXIT_SUCCESS);
 }

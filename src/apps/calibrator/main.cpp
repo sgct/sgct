@@ -33,8 +33,8 @@ namespace {
     bool useShader = true;
     bool isTiltSet = false;
     bool useDisplayLists = false;
-    double tilt = 0.0;
-    double radius = 7.4;
+    float tilt = 0.0;
+    float radius = 7.4f;
 
     std::vector<glm::vec3> colors;
     std::vector<std::pair<std::string, unsigned int>> textures;
@@ -168,7 +168,7 @@ void initGL() {
     colors.push_back(glm::vec3(1.00f, 0.00f, 0.50f)); //magenta-red
     colors.push_back(glm::vec3(1.00f, 0.00f, 0.00f)); //red
     
-    gDome = std::make_unique<Dome>(radius, isTiltSet ? static_cast<float>(tilt) : 0.f);
+    gDome = std::make_unique<Dome>(radius, isTiltSet ? tilt : 0.f);
     gDome->generateDisplayList();
     
     TextureManager::instance()->setAnisotropicFilterSize(4.f);
@@ -383,13 +383,13 @@ int main(int argc, char* argv[]) {
             MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
         }
         else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1)) {
-            tilt = atof(argv[i + 1]);
+            tilt = static_cast<float>(atof(argv[i + 1]));
             isTiltSet = true;
 
             MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
         }
         else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1)) {
-            radius = atof(argv[i + 1]);
+            radius = static_cast<float>(atof(argv[i + 1]));
             isTiltSet = true;
 
             MessageHandler::instance()->print("Setting radius to: %f\n", radius);

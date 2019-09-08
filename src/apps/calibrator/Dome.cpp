@@ -33,7 +33,7 @@ void Dome::drawBlendZones() {
 
 void Dome::drawTexturedSphere() {
     glPushMatrix();
-    glRotatef(-(mTilt+mTiltOffset), 1.0f, 0.0f, 0.0f);
+    glRotatef(-(mTilt+mTiltOffset), 1.f, 0.f, 0.f);
     glCallList( mTexDisplayList );
     glPopMatrix();
 }
@@ -43,7 +43,7 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
     constexpr const int AzimuthSteps = 128;
     
     glPushMatrix();
-    glRotatef(-mTilt, 1.0f, 0.0f, 0.0f);
+    glRotatef(-mTilt, 1.f, 0.f, 0.f);
 
     float i0;
     float i1;
@@ -106,7 +106,7 @@ void Dome::drawColCorrPattern(glm::vec3* color, PatternMode mode) {
         glEnd();
     }
     
-    //CAP
+    // CAP
     int e = ElevationSteps - 1;
     float elevation0 = glm::radians(
         static_cast<float>(e * 90) / static_cast<float>(ElevationSteps)
@@ -150,8 +150,6 @@ void Dome::generateDisplayList() {
     
     glPushMatrix();
     glRotatef(-mTilt, 1.f, 0.f, 0.f);
-
-    //float x, y, z;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -228,12 +226,6 @@ void Dome::generateDisplayList() {
     // Cap blend area
     drawLatitudeLines(8.25f + 49.5f, 0.f, 360.f, 256);
     drawLatitudeLines(8.25f + 56.f, 0.f, 360.f, 256);
-
-    // Cap-Ch1 blend
-    /*drawVerticalFrustumLine(gmtl::Vec3f(-5.18765f, 0.852762f, -5.88139f),
-        gmtl::Vec3f(-5.18765f, 5.939094f, -2.23591f),
-        64);*/
-
 
     // Side blends
     drawLongitudeLines(-180.f - 6.35f, 0.f, 8.25f + 56.0f, 64);

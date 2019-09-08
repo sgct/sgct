@@ -1,2 +1,0 @@
-composite -compose plus "SGCT_Omni Stereo_L_000000.png" "SGCT_Omni Stereo_R_000000.png" res_omni_stereo.png
-composite -compose plus "SGCT_Regular Stereo_L_000000.png" "SGCT_Regular Stereo_R_000000.png" res_regular_stereo.png

@@ -11,6 +11,8 @@ endif()
 
 SET(BUILD_SHARED_LIBS OFF)
 project("sgct")
+cmake_policy(SET CMP0079 NEW)
+
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
 set(SGCT_VERSION_REVISION "0")
@@ -184,25 +186,25 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs)
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 
-#add_subdirectory(
+add_subdirectory(src/sgct)
 
-file (GLOB_RECURSE sgctSRC "${CMAKE_CURRENT_SOURCE_DIR}/src/sgct/*.cpp")
-file (GLOB_RECURSE sgctInc "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/*.h")
+#file (GLOB_RECURSE sgctSRC "${CMAKE_CURRENT_SOURCE_DIR}/src/sgct/*.cpp")
+#file (GLOB_RECURSE sgctInc "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/*.h")
 
 #include_directories("include/external/freetype")
 #Set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h" "include/external/freetype")
-set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h")
+#set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h")
 
 
 
 SET(LIB_NAME sgct)
 
 
-add_library(${LIB_NAME} STATIC
-    ${ALL_SRC}
-    )
-set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD 17)
-set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+#add_library(${LIB_NAME} STATIC
+    #${ALL_SRC}
+#    )
+#set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD 17)
+#set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 
@@ -399,14 +401,8 @@ add_definitions(-DGLEW_NO_GLU)
 #   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 #endif()
 
-target_link_libraries(${LIB_NAME} PRIVATE debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
-
-#to make sure that everything is build when post_build events runs
-
 target_link_libraries(
-  ${LIB_NAME}
-  PRIVATE
-    glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
+  ${LIB_NAME} PRIVATE glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
 if (SGCT_TEXT)
     target_link_libraries(${LIB_NAME} PRIVATE freetype)
@@ -417,9 +413,17 @@ target_include_directories(${LIB_NAME}
     ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
   PRIVATE
     ${PROJECT_BINARY_DIR}/src/deps/vrpn
+    ${PROJECT_SOURCE_DIR}/src/deps/vrpn
     ${PROJECT_BINARY_DIR}/src/deps/lpng
+    ${PROJECT_SOURCE_DIR}/src/deps/lpng
+    ${PROJECT_BINARY_DIR}/src/deps/zlib
+    ${PROJECT_SOURCE_DIR}/src/deps/zlib
     ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
+    ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
+    ${PROJECT_BINARY_DIR}/src/deps/zlib/contrib/minizip
+    ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
     ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
+    ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
 )
 
 

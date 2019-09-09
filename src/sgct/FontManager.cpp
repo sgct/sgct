@@ -96,14 +96,14 @@ FontManager::FontManager() {
     }
 
     // Set default font path
-#if __WIN32__
+#ifdef WIN32
     char FontDir[128];
     const UINT success = GetWindowsDirectory(FontDir, 128);
     if (success > 0) {
         mDefaultFontPath = FontDir;
         mDefaultFontPath += "\\Fonts\\";
     }
-#elif __APPLE__
+#elif defined(__APPLE__)
     //System Fonts
     mDefaultFontPath = "/Library/Fonts/";
 #else

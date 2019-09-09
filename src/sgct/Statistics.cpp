@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Statistics.h>
 
 #include <GL/glew.h>
-#if __WIN32__
+#ifdef WIN32
 #include <GL/wglew.h>
 #elif __LINUX__
 #else

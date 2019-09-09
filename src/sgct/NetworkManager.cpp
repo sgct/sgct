@@ -28,7 +28,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <zlib.h>
 #endif
 
-#ifdef _WIN_PLATFORM
+#ifdef WIN32
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #ifdef _XCODE

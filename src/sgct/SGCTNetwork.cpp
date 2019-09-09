@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #define _WIN32_WINNT 0x501
 #endif
 
-#ifdef __WIN32__
+#ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #define VC_EXTRALEAN
     #include <windows.h>

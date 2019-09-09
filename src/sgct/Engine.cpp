@@ -7,10 +7,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Engine.h>
 
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     #include <sgct/freetype.h>
     #include <sgct/FontManager.h>
-#endif
+#endif // SGCT_HAS_TEXT
 #include <sgct/ClusterManager.h>
 #include <sgct/Font.h>
 #include <sgct/MessageHandler.h>
@@ -750,7 +750,7 @@ void Engine::initOGL() {
     updateFrustums();
 
     // Add fonts
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     if (SGCTSettings::instance()->getOSDTextFontPath().empty()) {
         const bool success = sgct_text::FontManager::instance()->addFont(
             "SGCTFont",
@@ -868,13 +868,13 @@ void Engine::clean() {
     );
     TextureManager::destroy();
 
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
         "Destroying font manager\n"
     );
     sgct_text::FontManager::destroy();
-#endif
+#endif // SGCT_HAS_TEXT
 
     // Window specific context
     if (mThisNode && mThisNode->getNumberOfWindows() > 0) {
@@ -1374,7 +1374,7 @@ void Engine::render() {
 }
 
 void Engine::renderDisplayInfo() {
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     unsigned int lFrameNumber = getCurrentWindow().getSwapGroupFrameNumber();
 
     glm::vec4 strokeColor = sgct_text::FontManager::instance()->getStrokeColor();
@@ -1526,7 +1526,7 @@ void Engine::renderDisplayInfo() {
 
     // reset
     sgct_text::FontManager::instance()->setStrokeColor(strokeColor);
-#endif
+#endif // SGCT_HAS_TEXT
 }
 
 void Engine::draw() {

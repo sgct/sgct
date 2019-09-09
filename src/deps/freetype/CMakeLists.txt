@@ -5,8 +5,6 @@ cmake_minimum_required(VERSION 2.8)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
-project(freetype)
-
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "5")
 set(VERSION_PATCH "2")
@@ -17,10 +15,12 @@ add_definitions(-DFT2_BUILD_LIBRARY)
 
 # Specify library include directories
 include_directories(
-				"${SGCT_SOURCE_PATH}/src/deps/zlib"
-				"${PROJECT_SOURCE_DIR}/include"
-				"${SGCT_SOURCE_PATH}/include/external/freetype"
-				"${SGCT_BINARY_PATH}/src/deps/lpng/zlib") #needed for zconf
+  "${PROJECT_SOURCE_DIR}/src/deps/freetype/include"
+  "${PROJECT_SOURCE_DIR}/src/deps/zlib"
+  "${PROJECT_SOURCE_DIR}/include"
+  "${PROJECT_SOURCE_DIR}/include/external/freetype"
+  "${PROJECT_SOURCE_DIR}/include/external/freetype"
+  "${PROJECT_BINARY_DIR}/src/deps/lpng/zlib") #needed for zconf
 
 # Create the configuration file
 #message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include.")

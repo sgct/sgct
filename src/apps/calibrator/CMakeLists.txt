@@ -2,13 +2,14 @@
 # SGCT Project Authors see Authors.txt
 
 add_executable(calibrator main.cpp Dome.h Dome.cpp)
+target_link_libraries(calibrator PRIVATE sgct)
 
 set_property(TARGET calibrator PROPERTY CXX_STANDARD 17)
 set_property(TARGET calibrator PROPERTY CXX_STANDARD_REQUIRED ON)
 
 option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
-set(EXAMPLE_TARGET_PATH ${SGCT_EXAMPLE_OUTPUT_DIR}/calibrator) 
-    
+set(EXAMPLE_TARGET_PATH ${SGCT_EXAMPLE_OUTPUT_DIR}/calibrator)
+
 set_target_properties(calibrator PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPLE_TARGET_PATH}
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPLE_TARGET_PATH}
@@ -33,61 +34,19 @@ if (SGCT_COPY_EXAMPLE_RESOURCES)
         file(GLOB scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.command")
         file(COPY ${scripts} DESTINATION ${EXAMPLE_TARGET_PATH})
     endif()
-endif()		
-    
-if (NOT DEFINED SGCT_RELEASE_LIBRARY)
-    if(SGCT_CPP11)	
-        find_library(SGCT_RELEASE_LIBRARY
-            NAMES sgct_cpp11 libsgct_cpp11 REQUIRED)
-    else()
-        find_library(SGCT_RELEASE_LIBRARY
-            NAMES sgct libsgct REQUIRED)
-    endif()
 endif()
-        
-if (NOT DEFINED SGCT_DEBUG_LIBRARY)		
-    if(SGCT_CPP11)	
-        find_library(SGCT_DEBUG_LIBRARY 
-            NAMES sgct_cpp11d libsgct_cpp11d REQUIRED)
-    else()
-        find_library(SGCT_DEBUG_LIBRARY 
-            NAMES sgctd libsgctd REQUIRED)
-    endif()
-endif()
-
-if (NOT DEFINED SGCT_INCLUDE_DIRECTORY)
-    if (WIN32)
-        find_path(SGCT_INCLUDE_DIRECTORY 
-            NAMES sgct
-            PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
-            REQUIRED)
-    else ()
-        find_path(SGCT_INCLUDE_DIRECTORY 
-            NAMES sgct
-            PATH_SUFFIXES sgct
-            PATHS $ENV{SGCT_ROOT_DIR}/include
-            REQUIRED)
-    endif()
-endif()
-    
-set(SGCT_LIBS
-    debug ${SGCT_DEBUG_LIBRARY}
-    optimized ${SGCT_RELEASE_LIBRARY}
-)
 
 find_package(OpenGL REQUIRED)
 
-target_include_directories(calibrator PRIVATE ${SGCT_INCLUDE_DIRECTORY})
-
 if (WIN32)
-    target_link_libraries(calibrator PRIVATE ${SGCT_LIBS} ${OPENGL_gl_LIBRARY} ws2_32)
+    target_link_libraries(calibrator PRIVATE ${OPENGL_gl_LIBRARY} ws2_32)
 elseif (APPLE)
     find_library(COCOA_LIBRARY Cocoa REQUIRED)
     find_library(IOKIT_LIBRARY IOKit REQUIRED)
     find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
     target_link_libraries(calibrator PRIVATE
-        ${SGCT_LIBS} ${OPENGL_gl_LIBRARY} ${COCOA_LIBRARY} ${IOKIT_LIBRARY}
+        ${OPENGL_gl_LIBRARY} ${COCOA_LIBRARY} ${IOKIT_LIBRARY}
         ${COREVIDEO_LIBRARY}
     )
 else() #linux
@@ -95,7 +54,7 @@ else() #linux
     find_package(Threads REQUIRED)
 
     target_link_libraries(calibrator PRIVATE
-        ${SGCT_LIBS} ${OPENGL_gl_LIBRARY} ${X11_X11_LIB} ${X11_Xrandr_LIB}
+        ${OPENGL_gl_LIBRARY} ${X11_X11_LIB} ${X11_Xrandr_LIB}
         ${X11_Xinerama_LIB} ${X11_Xinput_LIB} ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
         ${CMAKE_THREAD_LIBS_INIT}
     )
@@ -228,5 +187,5 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         "-Wold-style-cast"
         "-Woverloaded-virtual"
         "-Wno-long-long"
-    )            
+    )
 endif ()

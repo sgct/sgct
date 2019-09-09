@@ -2,7 +2,6 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(SGCT_Deps)
 
 function(disable_external_warnings library_name)
     if (MSVC)

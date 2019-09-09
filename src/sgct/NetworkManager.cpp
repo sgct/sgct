@@ -831,7 +831,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
 }
 
 void NetworkManager::initAPI() {
-#ifdef _WIN_PLATFORM
+#ifdef WIN32
     WORD version = MAKEWORD(2, 2);
 
     WSADATA wsaData;

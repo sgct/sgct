@@ -117,16 +117,46 @@ target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 set_property(TARGET sgct PROPERTY CXX_STANDARD 17)
 set_property(TARGET sgct PROPERTY CXX_STANDARD_REQUIRED ON)
 
-install(TARGETS sgct
-  RUNTIME DESTINATION bin/release CONFIGURATIONS Release
-  ARCHIVE DESTINATION lib/release CONFIGURATIONS Release
-  LIBRARY DESTINATION lib/release CONFIGURATIONS Release
-  BUNDLE  DESTINATION lib/release CONFIGURATIONS Release
+target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
+
+target_link_libraries(
+  sgct PRIVATE glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
+if (SGCT_TEXT)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
+  target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/include/external/freetype)
+  target_link_libraries(sgct PRIVATE freetype)
+endif ()
+
+target_include_directories(sgct
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
+  PRIVATE
+    ${PROJECT_BINARY_DIR}/src/deps/vrpn
+    ${PROJECT_SOURCE_DIR}/src/deps/vrpn
+    ${PROJECT_BINARY_DIR}/src/deps/lpng
+    ${PROJECT_SOURCE_DIR}/src/deps/lpng
+    ${PROJECT_BINARY_DIR}/src/deps/zlib
+    ${PROJECT_SOURCE_DIR}/src/deps/zlib
+    ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
+    ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
+    ${PROJECT_BINARY_DIR}/src/deps/zlib/contrib/minizip
+    ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
+    ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
+    ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
+)
+
+
+# install(TARGETS sgct
+#   RUNTIME DESTINATION bin/release CONFIGURATIONS Release
+#   ARCHIVE DESTINATION lib/release CONFIGURATIONS Release
+#   LIBRARY DESTINATION lib/release CONFIGURATIONS Release
+#   BUNDLE  DESTINATION lib/release CONFIGURATIONS Release
+# )
   
-install(TARGETS sgct
-  RUNTIME DESTINATION bin/debug CONFIGURATIONS Debug
-  ARCHIVE DESTINATION lib/debug CONFIGURATIONS Debug
-  LIBRARY DESTINATION lib/debug CONFIGURATIONS Debug
-  BUNDLE  DESTINATION lib/debug CONFIGURATIONS Debug
-)
+# install(TARGETS sgct
+#   RUNTIME DESTINATION bin/debug CONFIGURATIONS Debug
+#   ARCHIVE DESTINATION lib/debug CONFIGURATIONS Debug
+#   LIBRARY DESTINATION lib/debug CONFIGURATIONS Debug
+#   BUNDLE  DESTINATION lib/debug CONFIGURATIONS Debug
+# )

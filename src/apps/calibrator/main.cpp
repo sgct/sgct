@@ -10,6 +10,12 @@
 #include <sgct/TextureManager.h>
 #include <memory>
 
+#ifdef SGCT_HAS_TEXT
+#include <sgct/Font.h>
+#include <sgct/FontManager.h>
+#include <sgct/freetype.h>
+#endif // SGCT_HAS_TEXT
+
 namespace {
     sgct::Engine* gEngine;
 
@@ -103,7 +109,7 @@ void draw() {
         gDome->drawChannelZones();
     }
 
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
         sgct::SGCTWindow& win = gEngine->getCurrentWindow();
         sgct_core::BaseViewport* vp = win.getCurrentViewport();
@@ -144,7 +150,7 @@ void draw() {
             sgct_core::ClusterManager::instance()->getThisNode()->getAddress().c_str()
         );
     }
-#endif
+#endif // SGCT_HAS_TEXT
 
     glDepthMask(GL_TRUE);
 }

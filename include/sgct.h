@@ -442,12 +442,12 @@ License type: BSD\n
 #include <sgct/Engine.h>
 #include <sgct/SharedData.h>
 #include <sgct/TextureManager.h>
-#if INCLUDE_SGCT_TEXT
+#ifdef HAS_SGCT_TEXT
     #include <sgct/FontManager.h>
     #include <sgct/freetype.h>
     //for backwards compability
     namespace Freetype = sgct_text;
-#endif
+#endif // HAS_SGCT_TEXT
 #include <sgct/MessageHandler.h>
 #include <sgct/ShaderManager.h>
 #include <sgct/SGCTSettings.h>

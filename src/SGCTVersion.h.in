@@ -5,19 +5,17 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SGCT_VERSION_H_
-#define _SGCT_VERSION_H_
+#ifndef __SGCT__VERSION__H__
+#define __SGCT__VERSION__H__
 
-#define SGCT_VERSION_MAJOR    @SGCT_VERSION_MAJOR@
-#define SGCT_VERSION_MINOR    @SGCT_VERSION_MINOR@
-#define SGCT_VERSION_REVISION @SGCT_VERSION_REVISION@
-
-#include <stdio.h>
 #include <string>
 
-namespace sgct
-{
-	std::string getSGCTVersion();
+namespace sgct {
+    constexpr const int VersionMajor = @SGCT_VERSION_MAJOR@;
+    constexpr const int VersionMinor = @SGCT_VERSION_MINOR@;
+    constexpr const int VersionRevision = @SGCT_VERSION_REVISION@;
+
+    std::string getSGCTVersion();
 }
 
-#endif
+#endif // __SGCT__VERSION__H__

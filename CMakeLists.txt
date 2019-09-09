@@ -3,14 +3,14 @@
 #
 # General project settings
 #
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 endif()
 
 SET(BUILD_SHARED_LIBS OFF)
-PROJECT("sgct")
+project("sgct")
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
 set(SGCT_VERSION_REVISION "0")
@@ -32,16 +32,11 @@ option(SGCT_DOXYGEN_QUIET "Suppress warnings" ON)
 option(SGCT_CUSTOMOUTPUTDIRS "Use custom output directories" ON)
 
 
-#if(NOT WIN32)
-#   option(SGCT_MAKE_RELEASE "make realease" OFF)
-#endif()
-
 if (MSVC)
     option(SGCT_USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
     option(SGCT_BUILD_CSHARP_PROJECTS "Build C# projects" ON)
 endif()
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
-option(SGCT_LIGHT_ONLY "Don't merge external libs" OFF)
 option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
 if( MINGW  )
     option(SGCT_MINGW64 "Use MinGW64" ON)
@@ -155,8 +150,6 @@ else()
 endif()
 MESSAGE(STATUS "SGCT lib path: ${SGCT_LIB_PATH}")
 
-SET(LIB_NAME sgct_light)
-
 set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
 if(SGCT_CUSTOMOUTPUTDIRS)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}")
@@ -183,45 +176,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in ${CMAKE_CURRENT_S
 #update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode.sh @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode_cpp11.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_linux.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_linux.sh @ONLY)
-
-#setup merge static lib scripts
-if(NOT SGCT_LIGHT_ONLY)
-    if(MSVC)
-        if(SGCT_TEXT)
-            set(SGCT_FREETYPE_RELEASE_LIB_PATH "deps\\freetype.lib")
-            set(SGCT_FREETYPE_DEBUG_LIB_PATH "deps\\freetyped.lib")
-        
-        endif()
-        configure_file(${SGCT_LIB_SRC_PATH}/merge_libs.bat.in ${SGCT_LIB_PATH}/merge_libs.bat @ONLY)
-    else()
-        if(CMAKE_GENERATOR STREQUAL Xcode)
-            set(SGCT_SHELL_NAME merge_libs_xcode.sh)
-            if(SGCT_TEXT)
-                set(SGCT_FREETYPE_RELEASE_LIB_PATH "deps/libfreetype.a")
-                set(SGCT_FREETYPE_DEBUG_LIB_PATH "deps/libfreetyped.a")
-            endif()
-        else()
-            set(SGCT_SHELL_NAME merge_libs.sh)
-            if(SGCT_TEXT)
-                set(SGCT_FREETYPE_RELEASE_LIB_PATH "ar x deps/libfreetype.a")
-                set(SGCT_FREETYPE_DEBUG_LIB_PATH "ar x deps/libfreetyped.a")
-            else()
-                set(SGCT_FREETYPE_RELEASE_LIB_PATH "#") #add empty comment
-                set(SGCT_FREETYPE_DEBUG_LIB_PATH "#") #add empty comment
-            endif()
-        endif()
-        
-        configure_file(${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME}.in ${SGCT_LIB_PATH}/tmp/${SGCT_SHELL_NAME} @ONLY)
-        file(COPY ${SGCT_LIB_PATH}/tmp/${SGCT_SHELL_NAME}
-            DESTINATION ${SGCT_LIB_PATH}
-            FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
-            GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-        file(REMOVE_RECURSE ${SGCT_LIB_PATH}/tmp)
-    endif()
-endif()
 
 #crate directories
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/installer)
@@ -230,17 +184,19 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs)
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 
+#add_subdirectory(
+
 file (GLOB_RECURSE sgctSRC "${CMAKE_CURRENT_SOURCE_DIR}/src/sgct/*.cpp")
 file (GLOB_RECURSE sgctInc "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/*.h")
 
 #include_directories("include/external/freetype")
 #Set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h" "include/external/freetype")
-Set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h")
+set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h")
 
-#print all
-# FOREACH(ALL_SRCName ${ALL_SRC})
-#     MESSAGE(STATUS "Adding file: ${ALL_SRCName}")
-# ENDFOREACH(ALL_SRCName)
+
+
+SET(LIB_NAME sgct)
+
 
 add_library(${LIB_NAME} STATIC
     ${ALL_SRC}
@@ -306,11 +262,10 @@ if(MSVC)
 endif(MSVC)
 
 if(NOT SGCT_NO_EXTERNAL_LIBRARIES)
-
-    ADD_SUBDIRECTORY(src/deps)
+    add_subdirectory(src/deps)
 
     if(SGCT_BUILD_ALUT)
-        ADD_SUBDIRECTORY(additional_deps/freealut-1.1.0-src)
+        add_subdirectory(additional_deps/freealut-1.1.0-src)
     endif(SGCT_BUILD_ALUT)
 endif()
     
@@ -377,7 +332,7 @@ else() # Linux or FreeBSD
         ${X11_Xinput_LIB}
         ${X11_Xxf86vm_LIB}
         ${X11_Xcursor_LIB}
-        ${CMAKE_THREAD_LIBS_INIT}       
+        ${CMAKE_THREAD_LIBS_INIT}
     )
 
     set(DEBUG_LIBS
@@ -444,62 +399,31 @@ add_definitions(-DGLEW_NO_GLU)
 #   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 #endif()
 
-target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
+target_link_libraries(${LIB_NAME} PRIVATE debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
 
-set(SGCT_DEPS glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn)
-#prepend freetype
-if(SGCT_TEXT)
-    set(SGCT_DEPS freetype ${SGCT_DEPS})
-endif()
-add_dependencies(${LIB_NAME} ${SGCT_DEPS})
+target_link_libraries(
+  ${LIB_NAME}
+  PRIVATE
+    glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
+)
+if (SGCT_TEXT)
+    target_link_libraries(${LIB_NAME} PRIVATE freetype)
+endif ()
 
-#including deps
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/deps/glfw/include)
+target_include_directories(${LIB_NAME}
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
+  PRIVATE
+    ${PROJECT_BINARY_DIR}/src/deps/vrpn
+    ${PROJECT_BINARY_DIR}/src/deps/lpng
+    ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
+    ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
+)
 
-#including directories with generated config files in this scope
-include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/vrpn)
-include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/lpng)
-include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib)
-include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
 
-#merge libs
-if(NOT SGCT_LIGHT_ONLY)
-    if(MSVC)
-        add_custom_command(TARGET ${LIB_NAME}
-            POST_BUILD
-            COMMAND "merge_libs.bat"
-            WORKING_DIRECTORY ${SGCT_LIB_PATH}
-            )
-    else()
-        add_custom_command(TARGET ${LIB_NAME}
-            POST_BUILD
-            COMMAND "./${SGCT_SHELL_NAME}"
-            WORKING_DIRECTORY ${SGCT_LIB_PATH})
-    endif()
-endif()
-        
-#if(SGCT_MAKE_RELEASE)
-#   if( APPLE )
-#       if( SGCT_CPP11 )
-#           add_custom_command(TARGET ${LIB_NAME}
-#               POST_BUILD
-#               COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh"
-#               WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
-#       else()
-#           add_custom_command(TARGET ${LIB_NAME}
-#               POST_BUILD
-#               COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_xcode.sh"
-#               WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
-#       endif()
-#   elseif( NOT WIN32 ) #linux
-#       add_custom_command(TARGET ${LIB_NAME}
-#           POST_BUILD
-#           COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_linux.sh"
-#           WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
-#   endif()
-#endif()
+
 
 SET(SPOUT_ENABLED "0")
 if(SGCT_EXAMPLES)
@@ -521,12 +445,9 @@ if(SGCT_EXAMPLES)
     
     set(SGCT_EXAMPLE_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin/examples)
     #message(STATUS "Example out directory=${SGCT_EXAMPLE_OUTPUT_DIR}")
-    ADD_SUBDIRECTORY(src/apps)
+    add_subdirectory(src/apps)
 endif()
 
-#must be placed after examples subdirectory
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/sgct_osg_all_win.nsi @ONLY)
-    
 if(SGCT_DOXYGEN)
     find_package(Doxygen)
     if (DOXYGEN_FOUND)

@@ -8,13 +8,17 @@ set_property(TARGET calibrator PROPERTY CXX_STANDARD 17)
 set_property(TARGET calibrator PROPERTY CXX_STANDARD_REQUIRED ON)
 
 option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
-set(EXAMPLE_TARGET_PATH ${SGCT_EXAMPLE_OUTPUT_DIR}/calibrator)
 
-set_target_properties(calibrator PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPLE_TARGET_PATH}
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPLE_TARGET_PATH}
-    FOLDER "Examples"
-)
+
+function (copy_files target)
+  # Add the copy command
+  foreach(file_i ${ARGN})
+    add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${file_i}"
+    $<TARGET_FILE_DIR:${target}>)
+  endforeach ()
+endfunction ()
 
 # copy data
 if (SGCT_COPY_EXAMPLE_RESOURCES)
@@ -26,14 +30,16 @@ if (SGCT_COPY_EXAMPLE_RESOURCES)
         "${CMAKE_CURRENT_SOURCE_DIR}/*.vert*"
         "${CMAKE_CURRENT_SOURCE_DIR}/*.frag*"
     )
-    file(COPY ${files} DESTINATION ${EXAMPLE_TARGET_PATH})
+    copy_files(calibrator ${files})
+
     if (WIN32)
         file(GLOB scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.bat")
-        file(COPY ${scripts} DESTINATION ${EXAMPLE_TARGET_PATH})
     elseif (UNIX)
         file(GLOB scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.command")
-        file(COPY ${scripts} DESTINATION ${EXAMPLE_TARGET_PATH})
     endif()
+
+    copy_files(calibrator ${scripts})
+
 endif()
 
 find_package(OpenGL REQUIRED)

@@ -10,10 +10,7 @@ option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 option(SGCT_TEXT "Build SGCT with Freetype2" ON)
 option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
 
-# configure settings
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY)
-
-# update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY)
 
 add_subdirectory(src/sgct)

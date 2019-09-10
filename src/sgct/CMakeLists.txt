@@ -131,10 +131,10 @@ if (SGCT_SPOUT_SUPPORT)
 endif ()
 
 find_package(OpenGL REQUIRED)
-target_link_libraries(sgct INTERFACE ${OPENGL_gl_LIBRARY})
+target_link_libraries(sgct PUBLIC ${OPENGL_gl_LIBRARY})
 
 if (WIN32)
-  target_link_libraries(sgct INTERFACE ws2_32)
+  target_link_libraries(sgct PRIVATE ws2_32)
 elseif (APPLE)
     find_library(COCOA_LIBRARY Cocoa REQUIRED)
     find_library(IOKIT_LIBRARY IOKit REQUIRED)
@@ -162,27 +162,10 @@ target_include_directories(sgct
     ${PROJECT_SOURCE_DIR}/src/deps/vrpn
     ${PROJECT_BINARY_DIR}/src/deps/lpng
     ${PROJECT_SOURCE_DIR}/src/deps/lpng
-    #${PROJECT_BINARY_DIR}/src/deps/zlib
     ${PROJECT_SOURCE_DIR}/src/deps/zlib
     ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
     ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
-    #${PROJECT_BINARY_DIR}/src/deps/zlib/contrib/minizip
     ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
     ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
     ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
 )
-
-
-# install(TARGETS sgct
-#   RUNTIME DESTINATION bin/release CONFIGURATIONS Release
-#   ARCHIVE DESTINATION lib/release CONFIGURATIONS Release
-#   LIBRARY DESTINATION lib/release CONFIGURATIONS Release
-#   BUNDLE  DESTINATION lib/release CONFIGURATIONS Release
-# )
-  
-# install(TARGETS sgct
-#   RUNTIME DESTINATION bin/debug CONFIGURATIONS Debug
-#   ARCHIVE DESTINATION lib/debug CONFIGURATIONS Debug
-#   LIBRARY DESTINATION lib/debug CONFIGURATIONS Debug
-#   BUNDLE  DESTINATION lib/debug CONFIGURATIONS Debug
-# )

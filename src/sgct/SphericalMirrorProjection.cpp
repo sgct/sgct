@@ -460,7 +460,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glPopClientAttrib();
     glPopAttrib();
 
-    //exit ortho mode
+    // exit ortho mode
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 }

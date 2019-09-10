@@ -830,7 +830,7 @@ void sgct::Engine::clearBuffer() {
     static void setMouseCursorVisibility(int winIndex, bool state);
 
     /**
-     * \param joystick is the joystick id. Availible id's:
+     * \param joystick is the joystick id. Availible ids:
      *   - SGCT_JOYSTICK_1
      *   - SGCT_JOYSTICK_2
      *   - SGCT_JOYSTICK_3

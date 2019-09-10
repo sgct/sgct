@@ -328,6 +328,7 @@ void SGCTSettings::setCaptureFormat(CaptureFormat format) {
 
 const std::string& SGCTSettings::getCapturePath(CapturePath cpi) const {
     switch (cpi) {
+        default:
         case CapturePath::Mono:
             return mCapturePath.mono;
         case CapturePath::LeftStereo:

@@ -90,7 +90,12 @@ namespace {
 
 
     sgct_core::Image::FormatType getFormatType(std::string filename) {
-        std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+        std::transform(
+            filename.begin(),
+            filename.end(),
+            filename.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
 
         if (filename.find(".png") != std::string::npos) {
             return sgct_core::Image::FormatType::PNG;
@@ -303,7 +308,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
         return false;
     }
     
-    int pixelformat;
+    int pixelformat = 0;
     switch(jpegsubsamp) {
         case TJSAMP_444:
         case TJSAMP_422:
@@ -317,7 +322,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
             pixelformat = TJPF_GRAY;
             break;
         default:
-            mChannels = -1;
+            mChannels = static_cast<size_t>(-1);
             break;
     }
     

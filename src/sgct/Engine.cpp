@@ -58,7 +58,7 @@ namespace {
 
     // For feedback: breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
-    void updateFrameLockLoop(void* arg) {
+    void updateFrameLockLoop(void*) {
         bool run = true;
 
         while (run) {
@@ -72,31 +72,31 @@ namespace {
         }
     }
 
-    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    void keyCallback(GLFWwindow*, int key, int scancode, int action, int mods) {
         if (gKeyboardCallbackFnPtr) {
             gKeyboardCallbackFnPtr(key, scancode, action, mods);
         }
     }
 
-    void keyCharModsCallback(GLFWwindow* window, unsigned int ch, int mod) {
+    void keyCharModsCallback(GLFWwindow*, unsigned int ch, int mod) {
         if (gCharCallbackFnPtr) {
             gCharCallbackFnPtr(ch, mod);
         }
     }
 
-    void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    void mouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
         if (gMouseButtonCallbackFnPtr) {
             gMouseButtonCallbackFnPtr(button, action, mods);
         }
     }
 
-    void mousePosCallback(GLFWwindow* window, double xPos, double yPos) {
+    void mousePosCallback(GLFWwindow*, double xPos, double yPos) {
         if (gMousePosCallbackFnPtr) {
             gMousePosCallbackFnPtr(xPos, yPos);
         }
     }
 
-    void mouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
+    void mouseScrollCallback(GLFWwindow*, double xOffset, double yOffset) {
         if (gMouseScrollCallbackFnPtr) {
             gMouseScrollCallbackFnPtr(xOffset, yOffset);
         }
@@ -105,18 +105,18 @@ namespace {
     void glfwErrorCallback(int error, const char* description) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "GLFW error: %s\n", description
+            "GLFW error (%i): %s\n", error, description
         );
     }
 
-    void dropCallback(GLFWwindow* window, int count, const char** paths) {
+    void dropCallback(GLFWwindow*, int count, const char** paths) {
         if (gDropCallbackFnPtr) {
             gDropCallbackFnPtr(count, paths);
         }
     }
 
 
-    void touchCallback(GLFWwindow* window, GLFWtouch* touchPoints, int count) {
+    void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
         sgct::Engine& eng = *sgct::Engine::instance();
         glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
@@ -267,7 +267,7 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
     // Window resolution may have been set when reading config. However, it only sets a
     // pending resolution, so it needs to apply it using the same routine as in the end of
     // a frame.
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->getWindow(i).updateResolutions();
     }
 
@@ -276,7 +276,7 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
         sgct_core::ClusterManager::instance()->setUseIgnoreSync(true);
     }
 
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         GLFWwindow* window = getWindow(i).getWindowHandle();
         if (gKeyboardCallbackFnPtr) {
             glfwSetKeyCallback(window, keyCallback);
@@ -521,7 +521,7 @@ bool Engine::initWindows() {
 
     GLFWwindow* share = nullptr;
     size_t lastWindowIdx = mThisNode->getNumberOfWindows() - 1;
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         if (i > 0) {
             share = mThisNode->getWindow(0).getWindowHandle();
         }
@@ -572,7 +572,7 @@ bool Engine::initWindows() {
         return false;
     }
 
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         SGCTWindow& win = mThisNode->getWindow(i);
         win.init();
         updateAAInfo(win);
@@ -672,7 +672,7 @@ void Engine::initOGL() {
         );
         SGCTSettings::instance()->setUseFBO(true);
 
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             mThisNode->getWindow(i).setNumberOfAASamples(1);
         }
     }
@@ -707,7 +707,7 @@ void Engine::initOGL() {
     }
 
     // create all textures, etc
-    for( size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->setCurrentWindowIndex(i);
         // set context to shared
         getCurrentWindow().initOGL();
@@ -740,7 +740,7 @@ void Engine::initOGL() {
     }
 
     // link all users to their viewports
-    for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
+    for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& winPtr = mThisNode->getWindow(w);
         for (unsigned int i = 0; i < winPtr.getNumberOfViewports(); i++) {
             winPtr.getViewport(i).linkUserName();
@@ -784,7 +784,7 @@ void Engine::initOGL() {
     SGCTWindow::setBarrier(true);
     SGCTWindow::resetSwapGroupFrameNumber();
 
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         // generate mesh (VAO and VBO)
         mThisNode->getWindow(i).initContextSpecificOGL();
     }
@@ -837,7 +837,7 @@ void Engine::clean() {
 
     // de-init window and unbind swapgroups
     if (mThisNode && sgct_core::ClusterManager::instance()->getNumberOfNodes() > 0) {
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             mThisNode->getWindow(i).close();
         }
     }
@@ -1104,8 +1104,8 @@ void Engine::render() {
     mRunning = true;
 
     // create OpenGL query objects for Opengl 3.3+
-    GLuint timeQueryBegin;
-    GLuint timeQueryEnd;
+    GLuint timeQueryBegin = 0;
+    GLuint timeQueryEnd = 0;
     if (!mFixedOGLPipeline) {
         getCurrentWindow().makeOpenGLContextCurrent(SGCTWindow::Context::Shared);
         glGenQueries(1, &timeQueryBegin);
@@ -1143,7 +1143,7 @@ void Engine::render() {
         // check if re-size needed of VBO and PBO
         // context switching may occur if multiple windows are used
         bool buffersNeedUpdate = false;
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             const bool bufUpdate = mThisNode->getWindow(i).update();
             buffersNeedUpdate |= bufUpdate;
         }
@@ -1173,7 +1173,7 @@ void Engine::render() {
         mCurrentDrawBufferIndex = 0;
         size_t firstDrawBufferIndexInWindow = 0;
 
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             if (!(mThisNode->getWindow(i).isVisible() ||
                   mThisNode->getWindow(i).isRenderingWhileHidden()))
             {
@@ -1287,7 +1287,7 @@ void Engine::render() {
         }
 
         // Render to screen
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             if (mThisNode->getWindow(i).isVisible()) {
                 mThisNode->setCurrentWindowIndex(i);
 
@@ -1344,12 +1344,12 @@ void Engine::render() {
         }
 
         // Swap front and back rendering buffers
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             mThisNode->getWindow(i).swap(mTakeScreenshot);
         }
 
         glfwPollEvents();
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             mThisNode->getWindow(i).updateResolutions();
         }
 
@@ -2689,7 +2689,7 @@ const std::string& Engine::getGLSLVersion() const {
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
     // clear the buffers initially
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->getWindow(i).makeOpenGLContextCurrent(SGCTWindow::Context::Window);
         glDrawBuffer(getCurrentWindow().isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -2749,7 +2749,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
             MessageHandler::instance()->print(MessageHandler::Level::Info, ".");
 
             // Swap front and back rendering buffers
-            for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+            for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 if (mThisNode->getWindow(i).isDoubleBuffered()) {
                     glfwSwapBuffers(mThisNode->getWindow(i).getWindowHandle());
@@ -2772,7 +2772,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         while (mThisNode->getKeyPressed(mExitKey)) {
             // Swap front and back rendering buffers
             // key buffers also swapped
-            for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+            for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 if (mThisNode->getWindow(i).isDoubleBuffered()) {
                     glfwSwapBuffers(mThisNode->getWindow(i).getWindowHandle());
@@ -2797,7 +2797,7 @@ void Engine::updateFrustums() {
         return;
     }
 
-    for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
+    for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& win = mThisNode->getWindow(w);
         for (unsigned int i = 0; i < win.getNumberOfViewports(); i++) {
             sgct_core::Viewport& vp = win.getViewport(i);
@@ -3237,7 +3237,7 @@ void Engine::calculateFPS(double timestamp) {
         renderedFrames = 0.f;
         tmpTime = 0.f;
 
-        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+        for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
             if (mThisNode->getWindow(i).isVisible()) {
                 updateAAInfo(mThisNode->getWindow(i));
             }
@@ -3296,7 +3296,7 @@ void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClipp
 }
 
 void Engine::setEyeSeparation(float eyeSeparation) {
-    for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++) {
+    for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& window = mThisNode->getWindow(w);
 
         for (unsigned int i = 0; i < window.getNumberOfViewports(); i++) {
@@ -3315,7 +3315,7 @@ void Engine::setExitKey(int key) {
 }
 
 void Engine::addPostFX(PostFX fx) {
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         mThisNode->getWindow(i).setUsePostFX(true);
         mThisNode->getWindow(i).addPostFX(std::move(fx));
     }
@@ -3351,7 +3351,7 @@ glm::ivec2 Engine::getCurrentResolution() const {
 }
 
 size_t Engine::getFocusedWindowIndex() const {
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         if (mThisNode->getWindow(i).isFocused()) {
             return i;
         }
@@ -3376,7 +3376,7 @@ void Engine::takeScreenshot() {
 }
 
 void Engine::invokeDecodeCallbackForExternalControl(const char* receivedData,
-                                                    int receivedLength, int clientId)
+                                                    int receivedLength, int)
 {
     if (mExternalDecodeCallbackFnPtr && receivedLength > 0) {
         mExternalDecodeCallbackFnPtr(receivedData, receivedLength);
@@ -3479,7 +3479,7 @@ void Engine::updateAAInfo(const SGCTWindow& window) {
 void Engine::updateDrawBufferResolutions() {
     mDrawBufferResolutions.clear();
 
-    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
+    for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         SGCTWindow& win = getWindow(i);
         
         // first add cubemap resolutions if any
@@ -3497,26 +3497,26 @@ void Engine::updateDrawBufferResolutions() {
     }
 }
 
-int Engine::getKey(size_t winIndex, int key) {
+int Engine::getKey(int winIndex, int key) {
     return glfwGetKey(mInstance->getWindow(winIndex).getWindowHandle(), key);
 }
 
-int Engine::getMouseButton(size_t winIndex, int button) {
+int Engine::getMouseButton(int winIndex, int button) {
     return glfwGetMouseButton(
         mInstance->getWindow(winIndex).getWindowHandle(),
         button
     );
 }
 
-void Engine::getMousePos(size_t winIndex, double* xPos, double* yPos) {
+void Engine::getMousePos(int winIndex, double* xPos, double* yPos) {
     glfwGetCursorPos(mInstance->getWindow(winIndex).getWindowHandle(), xPos, yPos);
 }
 
-void Engine::setMousePos(size_t winIndex, double xPos, double yPos) {
+void Engine::setMousePos(int winIndex, double xPos, double yPos) {
     glfwSetCursorPos(mInstance->getWindow(winIndex).getWindowHandle(), xPos, yPos);
 }
 
-void Engine::setMouseCursorVisibility(size_t winIndex, bool state) {
+void Engine::setMouseCursorVisibility(int winIndex, bool state) {
     GLFWwindow* win = mInstance->getWindow(winIndex).getWindowHandle();
     glfwSetInputMode(win, GLFW_CURSOR, state ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
 }
@@ -3533,11 +3533,11 @@ const unsigned char* Engine::getJoystickButtons(int joystick, int* numOfValues) 
     return glfwGetJoystickButtons(joystick, numOfValues);
 }
 
-const sgct_core::SGCTNode* Engine::getThisNode(size_t index) const {
+const sgct_core::SGCTNode* Engine::getThisNode() const {
     return mThisNode;
 }
 
-SGCTWindow& Engine::getWindow(size_t index) const {
+SGCTWindow& Engine::getWindow(int index) const {
     return mThisNode->getWindow(index);
 }
 
@@ -3549,7 +3549,7 @@ SGCTWindow& Engine::getCurrentWindow() const {
     return mThisNode->getCurrentWindow();
 }
 
-size_t Engine::getCurrentWindowIndex() const {
+int Engine::getCurrentWindowIndex() const {
     return mThisNode->getCurrentWindowIndex();
 }
 

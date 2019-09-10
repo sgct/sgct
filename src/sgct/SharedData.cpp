@@ -92,10 +92,10 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void)) {
     mDecodeFn = fnPtr;
 }
 
-void SharedData::decode(const char* receivedData, int receivedlength, int clientIndex) {
+void SharedData::decode(const char* receivedData, int receivedlength, int) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_ALL,
+        MessageHandler::Level::NotifyAll,
         "SharedData::decode\n"
     );
 #endif

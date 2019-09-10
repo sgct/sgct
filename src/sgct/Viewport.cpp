@@ -311,10 +311,10 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
     using namespace tinyxml2;
 
     bool validFOV = false;
-    float down;
-    float left;
-    float right;
-    float up;
+    float down = 0.f;
+    float left = 0.f;
+    float right = 0.f;
+    float up = 0.f;
     float distance = 10.f;
     glm::quat rotQuat;
     glm::vec3 offset(0.f, 0.f, 0.f);
@@ -472,12 +472,13 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
 
 void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 #ifndef SGCT_HAS_SPOUT
+    (void)element;
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Warning,
         "ReadConfig: Spout library not added to SGCT\n"
     );
     return;
-#endif
+#else
     std::unique_ptr<SpoutOutputProjection> spoutProj =
         std::make_unique<SpoutOutputProjection>();
 
@@ -550,6 +551,7 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 
     spoutProj->setUseDepthTransformation(true);
     mNonLinearProjection = std::move(spoutProj);
+#endif
 }
 
 void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {

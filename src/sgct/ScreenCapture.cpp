@@ -23,7 +23,8 @@ namespace {
         if (!saveSuccess) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Error: Failed to save '%s'\n", ptr->mFrameBufferImage->getFilename()
+                "Error: Failed to save '%s'\n",
+                ptr->mFrameBufferImage->getFilename().c_str()
             );
         }
         ptr->mRunning = false;
@@ -257,7 +258,7 @@ void ScreenCapture::setUsePBO(bool state) {
     );
 }
 
-void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
+void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     mEyeIndex = ei;
     
     mSCTIs.resize(mNumberOfThreads);

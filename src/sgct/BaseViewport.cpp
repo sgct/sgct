@@ -66,6 +66,7 @@ Frustum::FrustumMode BaseViewport::getEye() const {
 
 SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
     switch (frustumMode) {
+        default:
         case Frustum::FrustumMode::MonoEye:
             return mProjections.mono;
         case Frustum::FrustumMode::StereoLeftEye:
@@ -78,6 +79,7 @@ SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
 const SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) const
 {
     switch (frustumMode) {
+        default:
         case Frustum::FrustumMode::MonoEye:
             return mProjections.mono;
         case Frustum::FrustumMode::StereoLeftEye:

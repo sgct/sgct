@@ -791,7 +791,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \return SGCT_PRESS or SGCT_RELEASE
      */
-    static int getKey(size_t winIndex, int key);
+    static int getKey(int winIndex, int key);
 
     /**
      * Checks if specified mouse button has been pressed.
@@ -801,7 +801,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \return SGCT_PRESS or SGCT_RELEASE
      */
-    static int getMouseButton(size_t winIndex, int button);
+    static int getMouseButton(int winIndex, int button);
     
     /**
      * Get the mouse position.
@@ -810,7 +810,7 @@ void sgct::Engine::clearBuffer() {
      * \param xPos x screen coordinate
      * \param yPos y screen coordinate
      */
-    static void getMousePos(size_t winIndex, double* xPos, double* yPos);
+    static void getMousePos(int winIndex, double* xPos, double* yPos);
 
     /**
      * Set the mouse position.
@@ -819,7 +819,7 @@ void sgct::Engine::clearBuffer() {
      * \param xPos x screen coordinate
      * \param yPos y screen coordinate
      */
-    static void setMousePos(size_t winIndex, double xPos, double yPos);
+    static void setMousePos(int winIndex, double xPos, double yPos);
     
     /**
      * Set the mouse cursor/pointer visibility.
@@ -827,7 +827,7 @@ void sgct::Engine::clearBuffer() {
      * \param winIndex specifies which window's input to set
      * \param state set to true if mouse cursor should be visible
      */
-    static void setMouseCursorVisibility(size_t winIndex, bool state);
+    static void setMouseCursorVisibility(int winIndex, bool state);
 
     /**
      * \param joystick is the joystick id. Availible id's:
@@ -870,10 +870,10 @@ void sgct::Engine::clearBuffer() {
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
     /// Returns a pointer to this node (running on this computer).
-    const sgct_core::SGCTNode* getThisNode(size_t index) const;
+    const sgct_core::SGCTNode* getThisNode() const;
 
     /// Returns a pointer to a specified window by index on this node.
-    SGCTWindow& getWindow(size_t index) const;
+    SGCTWindow& getWindow(int index) const;
 
     /// Returns the number of windows for this node.
     size_t getNumberOfWindows() const;
@@ -882,7 +882,7 @@ void sgct::Engine::clearBuffer() {
     SGCTWindow& getCurrentWindow() const;
 
     /// Returns an index to the current window that is beeing rendered
-    size_t getCurrentWindowIndex() const;
+    int getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
     static sgct_core::SGCTUser& getDefaultUser();

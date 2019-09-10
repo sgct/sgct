@@ -18,7 +18,12 @@ namespace sgct_core {
 int cubeMapResolutionForQuality(const std::string& quality) {
     std::string q = quality;
     q.resize(quality.size());
-    std::transform(quality.begin(), quality.end(), q.begin(), ::tolower);
+    std::transform(
+        quality.begin(),
+        quality.end(),
+        q.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
 
     static const std::unordered_map<std::string, int> Map = {
         { "low",     256 },

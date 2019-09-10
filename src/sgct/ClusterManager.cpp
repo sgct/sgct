@@ -154,7 +154,12 @@ const std::string& ClusterManager::getMasterAddress() const {
 }
 
 void ClusterManager::setMasterAddress(std::string address) {
-    std::transform(address.begin(), address.end(), address.begin(), ::tolower);
+    std::transform(
+        address.begin(),
+        address.end(),
+        address.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
     mMasterAddress = std::move(address);
 }
 

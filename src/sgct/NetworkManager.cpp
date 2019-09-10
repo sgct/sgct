@@ -342,9 +342,6 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
             // iterate counter
             int currentFrame = connection->iterateFrameCounter();
 
-            unsigned char* currentFrameDataPtr = (unsigned char *)&currentFrame;
-            unsigned char* currentSizeDataPtr = (unsigned char *)&currentSize;
-
             unsigned char* dataBlock = sgct::SharedData::instance()->getDataBlock();
             std::memcpy(dataBlock + 1, &currentFrame, sizeof(int));
             std::memcpy(dataBlock + 5, &currentSize, sizeof(int));
@@ -447,7 +444,9 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 
     buffer.resize(length);
 
-    buffer[0] = mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
+    buffer[0] = static_cast<char>(
+        mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId
+    );
     std::memcpy(buffer.data() + 1, &packageId, sizeof(int));
 
     if (mCompress) {
@@ -541,19 +540,19 @@ unsigned int NetworkManager::getActiveDataTransferConnectionsCount() {
     return mNumberOfActiveDataTransferConnections;
 }
 
-unsigned int NetworkManager::getConnectionsCount() {
+int NetworkManager::getConnectionsCount() {
     std::unique_lock lock(sgct::SGCTMutexManager::instance()->mDataSyncMutex);
-    return static_cast<unsigned int>(mNetworkConnections.size());
+    return static_cast<int>(mNetworkConnections.size());
 }
 
-unsigned int NetworkManager::getSyncConnectionsCount() {
+int NetworkManager::getSyncConnectionsCount() {
     std::unique_lock lock(sgct::SGCTMutexManager::instance()->mDataSyncMutex);
-    return static_cast<unsigned int>(mSyncConnections.size());
+    return static_cast<int>(mSyncConnections.size());
 }
 
-unsigned int NetworkManager::getDataTransferConnectionsCount() {
+int NetworkManager::getDataTransferConnectionsCount() {
     std::unique_lock lock(sgct::SGCTMutexManager::instance()->mDataSyncMutex);
-    return static_cast<unsigned int>(mDataTransferConnections.size());
+    return static_cast<int>(mDataTransferConnections.size());
 }
 
 const SGCTNetwork& NetworkManager::getConnectionByIndex(unsigned int index) const {
@@ -647,26 +646,24 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
                     continue;
                 }
                 char data[SGCTNetwork::HeaderSize];
-                std::fill(std::begin(data), std::end(data), SGCTNetwork::DefaultId);
+                std::fill(
+                    std::begin(data),
+                    std::end(data),
+                    static_cast<char>(SGCTNetwork::DefaultId)
+                );
                 data[0] = SGCTNetwork::ConnectedId;
-                //std::fill(
-                //    data + 1,
-                //    data + 1 + SGCTNetwork::HeaderSize,
-                //    SGCTNetwork::DefaultId
-                //);
 
                 mSyncConnections[i]->sendData(&data, SGCTNetwork::HeaderSize);
             }
             for (unsigned int i = 0; i < mDataTransferConnections.size(); i++) {
                 if (mDataTransferConnections[i]->isConnected()) {
                     char data[SGCTNetwork::HeaderSize];
-                    std::fill(std::begin(data), std::end(data), SGCTNetwork::DefaultId);
+                    std::fill(
+                        std::begin(data),
+                        std::end(data),
+                        static_cast<char>(SGCTNetwork::DefaultId)
+                    );
                     data[0] = SGCTNetwork::ConnectedId;
-                    //std::fill(
-                    //    data + 1,
-                    //    data + 1 + SGCTNetwork::HeaderSize,
-                    //    SGCTNetwork::DefaultId
-                    //);
                     mDataTransferConnections[i]->sendData(&data, SGCTNetwork::HeaderSize);
                 }
             }
@@ -858,7 +855,12 @@ void NetworkManager::getHostInfo() {
 
     mHostName = tmpStr;
     // add hostname and adress in lower case
-    std::transform(mHostName.begin(), mHostName.end(), mHostName.begin(), ::tolower);
+    std::transform(
+        mHostName.begin(),
+        mHostName.end(),
+        mHostName.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
     mLocalAddresses.push_back(mHostName);
 
     addrinfo hints;
@@ -893,7 +895,12 @@ void NetworkManager::getHostInfo() {
     freeaddrinfo(info);
 
     for (std::string& dns : mDNSNames) {
-        std::transform(dns.begin(), dns.end(), dns.begin(), ::tolower);
+        std::transform(
+            dns.begin(),
+            dns.end(),
+            dns.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
         mLocalAddresses.push_back(dns);
     }
 

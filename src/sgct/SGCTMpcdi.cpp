@@ -192,7 +192,11 @@ bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
         return false;
     }
     sf.buffer.resize(fileInfo.uncompressed_size);
-    int err = unzReadCurrentFile(zipfile, sf.buffer.data(), sf.buffer.size());
+    int err = unzReadCurrentFile(
+        zipfile,
+        sf.buffer.data(),
+        static_cast<unsigned int>(sf.buffer.size())
+    );
     if (err < 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,

@@ -109,18 +109,16 @@ set(SOURCE_FILES
   utils/SGCTSphere.cpp
 )
 
-source_group("Source Files" FILES ${SOURCE_FILES})
-
 add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-set_property(TARGET sgct PROPERTY CXX_STANDARD 17)
-set_property(TARGET sgct PROPERTY CXX_STANDARD_REQUIRED ON)
+set_compile_options(sgct)
 
-target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
+target_compile_definitions(sgct PRIVATE GLEW_STATIC GLEW_NO_GLU)
 
-target_link_libraries(
-  sgct PRIVATE glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
+target_link_libraries(sgct
+  PRIVATE
+    glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
 if (SGCT_TEXT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
@@ -145,7 +143,7 @@ elseif (APPLE)
     target_link_libraries(calibrator PRIVATE
         ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
     )
-else() #linux
+else() # Linux
     find_package(X11 REQUIRED)
     find_package(Threads REQUIRED)
 
@@ -164,11 +162,11 @@ target_include_directories(sgct
     ${PROJECT_SOURCE_DIR}/src/deps/vrpn
     ${PROJECT_BINARY_DIR}/src/deps/lpng
     ${PROJECT_SOURCE_DIR}/src/deps/lpng
-    ${PROJECT_BINARY_DIR}/src/deps/zlib
+    #${PROJECT_BINARY_DIR}/src/deps/zlib
     ${PROJECT_SOURCE_DIR}/src/deps/zlib
     ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
     ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
-    ${PROJECT_BINARY_DIR}/src/deps/zlib/contrib/minizip
+    #${PROJECT_BINARY_DIR}/src/deps/zlib/contrib/minizip
     ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
     ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
     ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo

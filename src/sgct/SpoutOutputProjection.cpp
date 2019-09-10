@@ -55,7 +55,7 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     }
 }
 
-void SpoutOutputProjection::update(glm::vec2 size) {
+void SpoutOutputProjection::update(glm::vec2) {
     mVerts[0] = 0.f;
     mVerts[1] = 0.f;
     mVerts[2] = -1.f;

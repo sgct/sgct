@@ -106,8 +106,10 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
                                          MeshHint hint)
 {    
     // generate unwarped mask
-    Buffer buf = setupSimpleMesh(mQuadGeometry, parent);
-    createMesh(mQuadGeometry, buf.vertices, buf.indices);
+    {
+        Buffer buf = setupSimpleMesh(mQuadGeometry, parent);
+        createMesh(mQuadGeometry, buf.vertices, buf.indices);
+    }
     
     // generate unwarped mesh for mask
     if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
@@ -136,7 +138,12 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
     
     // transform to lowercase
     std::string path(meshPath);
-    std::transform(path.begin(), path.end(), path.begin(), ::tolower);
+    std::transform(
+        path.begin(),
+        path.end(),
+        path.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
 
     bool loadStatus = false;
 
@@ -171,7 +178,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
     else if (path.find(".obj") != std::string::npos) {
         // default for this suffix
         if (hint == MeshHint::None || hint == MeshHint::Obj) {
-            loadStatus = generateOBJMesh(meshPath, parent);
+            loadStatus = generateOBJMesh(meshPath);
         }
     }
     else if (path.find(".mpcdi") != std::string::npos) {
@@ -367,10 +374,10 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
     unsigned int numberOfVertices = 0;
     unsigned int numberOfIndices = 0;
 
-    double leftOrtho;
-    double rightOrtho;
-    double bottomOrtho;
-    double topOrtho;
+    double leftOrtho = 0.0;
+    double rightOrtho = 0.0;
+    double bottomOrtho = 0.0;
+    double topOrtho = 0.0;
     glm::ivec2 resolution;
 
     unsigned int a, b, c;
@@ -802,12 +809,12 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
         scissVertex.tx = glm::clamp(scissVertex.tx, 0.f, 1.f);
         scissVertex.ty = glm::clamp(scissVertex.ty, 0.f, 1.f);
 
-        const glm::vec2& size = parent.getSize();
-        const glm::vec2& pos = parent.getPosition();
+        const glm::vec2& s = parent.getSize();
+        const glm::vec2& p = parent.getPosition();
 
         // convert to [-1, 1]
-        vertex.x = 2.f * (scissVertex.x * size.x + pos.x) - 1.f;
-        vertex.y = 2.f * ((1.f - scissVertex.y) * size.y + pos.y) - 1.f;
+        vertex.x = 2.f * (scissVertex.x * s.x + p.x) - 1.f;
+        vertex.y = 2.f * ((1.f - scissVertex.y) * s.y + p.y) - 1.f;
 
         vertex.s = scissVertex.tx * parent.getSize().x + parent.getPosition().x;
         vertex.t = scissVertex.ty * parent.getSize().y + parent.getPosition().y;
@@ -1510,15 +1517,15 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
     }
 
     for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-        const glm::vec2& size = parent.getSize();
-        const glm::vec2& pos = parent.getPosition();
+        const glm::vec2& s = parent.getSize();
+        const glm::vec2& p = parent.getPosition();
 
         // convert to [-1, 1]
-        buf.vertices[i].x = 2.f * (buf.vertices[i].x * size.x + pos.x) - 1.f;
-        buf.vertices[i].y = 2.f * ((1.f - buf.vertices[i].y) * size.y + pos.y) - 1.f;
+        buf.vertices[i].x = 2.f * (buf.vertices[i].x * s.x + p.x) - 1.f;
+        buf.vertices[i].y = 2.f * ((1.f - buf.vertices[i].y) * s.y + p.y) - 1.f;
 
-        buf.vertices[i].s = buf.vertices[i].s * size.x + pos.x;
-        buf.vertices[i].t = buf.vertices[i].t * size.y + pos.y;
+        buf.vertices[i].s = buf.vertices[i].s * s.x + p.x;
+        buf.vertices[i].t = buf.vertices[i].t * s.y + p.y;
     }
 
     // allocate and copy indices
@@ -1704,8 +1711,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     return true;
 }
 
-bool CorrectionMesh::generateOBJMesh(const std::string& meshPath, const Viewport& parent)
-{
+bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
     Buffer buf;
 
     sgct::MessageHandler::instance()->print(
@@ -1812,8 +1818,8 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     bool isReadingFile = !meshPath.empty();
 
     FILE* meshFile = nullptr;
-    size_t srcSizeBytes;
-    const unsigned char* srcBuff;
+    size_t srcSizeBytes = 0;
+    const unsigned char* srcBuff = nullptr;
     if (isReadingFile) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
@@ -1857,7 +1863,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     int nNewlines = 0;
     do {
         size_t retval;
-        char headerChar;
+        char headerChar = 0;
         if (isReadingFile) {
 #if (_MSC_VER >= 1400)
             retval = fread_s(&headerChar, sizeof(char)*1, sizeof(char), 1, meshFile);
@@ -1867,7 +1873,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         }
         else {
             if (srcIdx == srcSizeBytes) {
-                retval = -1;
+                retval = static_cast<size_t>(-1);
             }
             else {
                 headerChar = srcBuff[srcIdx++];
@@ -1939,7 +1945,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     const int value32bit = 4;
 
     if (isReadingFile) {
-        size_t ret;
+        size_t ret = 0;
         for (int i = 0; i < numCorrectionValues; ++i) {
 #ifdef __WIN32__
             ret = fread_s(&corrGridX[i], numCorrectionValues, sizeof(int), 1, meshFile);
@@ -2470,7 +2476,12 @@ CorrectionMesh::MeshHint CorrectionMesh::parseHint(const std::string& hintStr) {
     
     // transform to lowercase
     std::string str(hintStr);
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    std::transform(
+        str.begin(),
+        str.end(),
+        str.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
 
     sgct_core::CorrectionMesh::MeshHint hint = MeshHint::None;
     if (str == "domeprojection") {

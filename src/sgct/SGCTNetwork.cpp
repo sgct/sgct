@@ -579,7 +579,7 @@ bool SGCTNetwork::isUpdated() const {
             // slaves receive first and then send so the prev should be equal to the send
             (mRecvFramePrevious == mSendFrameCurrent) :
             // if loose sync just check if updated
-            mUpdated;
+            mUpdated.load();
     }
 
     return (state && mConnected);

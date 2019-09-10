@@ -58,7 +58,7 @@ public:
     ScreenCapture();
     ~ScreenCapture();
 
-    void init(size_t windowIndex, EyeIndex ei);
+    void init(int windowIndex, EyeIndex ei);
 
     /**
      * Initializes the pixel buffer object (PBO) or re-sizes it if the frame buffer size
@@ -135,7 +135,7 @@ private:
     bool mPreferBGR = true;
     EyeIndex mEyeIndex = EyeIndex::Mono;
     CaptureFormat mFormat = CaptureFormat::PNG;
-    size_t mWindowIndex = 0;
+    int mWindowIndex = 0;
 };
 
 } // namespace sgct_core

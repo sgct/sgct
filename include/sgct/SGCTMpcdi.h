@@ -65,7 +65,7 @@ private:
         std::vector<char> buffer;
     };
 
-    bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
+    bool processSubFile(SubFile& sf, const std::string& suffix,
         const std::string& filename, unzFile zipfile, const unz_file_info& fileInfo);
 
     SubFile mXmlFileContents;

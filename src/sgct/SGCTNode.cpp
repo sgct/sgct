@@ -92,7 +92,12 @@ bool SGCTNode::isUsingSwapGroups() const {
 }
 
 void SGCTNode::setAddress(std::string address) {
-    std::transform(address.begin(), address.end(), address.begin(), ::tolower);
+    std::transform(
+        address.begin(),
+        address.end(),
+        address.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
     mAddress = std::move(address);
 
     sgct::MessageHandler::instance()->print(

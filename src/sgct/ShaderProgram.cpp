@@ -181,7 +181,7 @@ bool ShaderProgram::checkLinkStatus() const {
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Shader program[%s] linking error: %s\n", mName.c_str(), log
+            "Shader program[%s] linking error: %s\n", mName.c_str(), log.data()
         );
 
         return false;

@@ -318,7 +318,7 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
         }
     }
 
-    GLint internalFormat;
+    GLint internalFormat = 0;
     unsigned int bpc = static_cast<unsigned int>(imgPtr.getBytesPerChannel());
 
     if (bpc > 2) {

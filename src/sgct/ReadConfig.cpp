@@ -53,7 +53,12 @@ namespace {
     )";
 
     sgct::SGCTWindow::StereoMode getStereoType(std::string type) {
-        std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+        std::transform(
+            type.begin(),
+            type.end(),
+            type.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
 
         if (type == "none" || type == "no_stereo") {
             return sgct::SGCTWindow::StereoMode::NoStereo;
@@ -102,7 +107,12 @@ namespace {
     }
 
     sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type) {
-        std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+        std::transform(
+            type.begin(),
+            type.end(),
+            type.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
 
         if (type == "8") {
             return sgct::SGCTWindow::ColorBitDepth::Depth8;

@@ -303,7 +303,7 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
 
     // Allocate memory for the texture data
     pixels.resize(2 * width * height);
-    std::fill(pixels.begin(), pixels.end(), 0);
+    std::fill(pixels.begin(), pixels.end(), unsigned char(0));
 
     // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
     // operator so that value which we use will be 0 if we are in the padding zone, and

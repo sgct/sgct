@@ -1124,7 +1124,7 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
 
     // Determine the internal texture format, the texture format, and the pixel type
     const auto [internalFormat, format, pType] =
-        [this, type](SGCTWindow::TextureType type) -> std::tuple<int, unsigned int, int> {
+        [this](SGCTWindow::TextureType type) -> std::tuple<int, unsigned int, int> {
             switch (type) {
                 default:
                 case TextureType::Color:

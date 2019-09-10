@@ -68,9 +68,9 @@ public:
     unsigned int getActiveConnectionsCount();
     unsigned int getActiveSyncConnectionsCount();
     unsigned int getActiveDataTransferConnectionsCount();
-    unsigned int getConnectionsCount();
-    unsigned int getSyncConnectionsCount();
-    unsigned int getDataTransferConnectionsCount();
+    int getConnectionsCount();
+    int getSyncConnectionsCount();
+    int getDataTransferConnectionsCount();
     const SGCTNetwork& getConnectionByIndex(unsigned int index) const;
     SGCTNetwork* getSyncConnectionByIndex(unsigned int index) const;
     const std::vector<std::string>& getLocalAddresses() const;

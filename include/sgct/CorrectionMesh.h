@@ -101,7 +101,7 @@ private:
     bool generateScissMesh(const std::string& meshPath, Viewport& parent);
     bool generateSimCADMesh(const std::string& meshPath, const Viewport& parent);
     bool generateSkySkanMesh(const std::string& meshPath, Viewport& parent);
-    bool generateOBJMesh(const std::string& meshPath, const Viewport& parent);
+    bool generateOBJMesh(const std::string& meshPath);
     bool generateMpcdiMesh(const std::string& meshPath, const Viewport& parent);
 
     bool generatePaulBourkeMesh(const std::string& meshPath, const Viewport& parent);

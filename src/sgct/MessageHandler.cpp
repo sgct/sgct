@@ -67,13 +67,13 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > mMaxMessageSize) {
         mParseBuffer.resize(size);
-        std::fill(mParseBuffer.begin(), mParseBuffer.end(), 0);
+        std::fill(mParseBuffer.begin(), mParseBuffer.end(), char(0));
         
         mMaxMessageSize = size;
         mCombinedMessageSize = mMaxMessageSize + 32;
 
         mCombinedBuffer.resize(mCombinedMessageSize);
-        std::fill(mCombinedBuffer.begin(), mCombinedBuffer.end(), 0);
+        std::fill(mCombinedBuffer.begin(), mCombinedBuffer.end(), char(0));
         mRecBuffer.resize(mMaxMessageSize);
         mBuffer.resize(mMaxMessageSize);
     }

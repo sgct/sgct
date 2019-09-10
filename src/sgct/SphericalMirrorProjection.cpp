@@ -23,7 +23,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-void SphericalMirrorProjection::update(glm::vec2 size) {}
+void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {

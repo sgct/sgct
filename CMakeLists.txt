@@ -10,6 +10,9 @@ option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 option(SGCT_TEXT "Build SGCT with Freetype2" ON)
 option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
 
+include (support/copy_files.cmake)
+include (support/set_compile_options.cmake)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY)
 
@@ -19,18 +22,14 @@ if (WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
 endif ()
 
-if (SGCT_SPOUT_SUPPORT)
-  set(SPOUT_DEFINITIONS "-DSGCT_HAS_SPOUT")
-else ()
-  set(SPOUT_DEFINITIONS "")
-endif ()
-add_definitions(${SPOUT_DEFINITIONS})
-
-find_package(OpenGL REQUIRED)
-
 if (NOT SGCT_NO_EXTERNAL_LIBRARIES)
     add_subdirectory(src/deps)
 endif()
+
+
+
+
+
 
 if (SGCT_EXAMPLES)
     add_subdirectory(src/apps)

@@ -128,6 +128,34 @@ if (SGCT_TEXT)
   target_link_libraries(sgct PRIVATE freetype)
 endif ()
 
+if (SGCT_SPOUT_SUPPORT)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
+endif ()
+
+find_package(OpenGL REQUIRED)
+target_link_libraries(sgct INTERFACE ${OPENGL_gl_LIBRARY})
+
+if (WIN32)
+  target_link_libraries(sgct INTERFACE ws2_32)
+elseif (APPLE)
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(IOKIT_LIBRARY IOKit REQUIRED)
+    find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
+
+    target_link_libraries(calibrator PRIVATE
+        ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
+    )
+else() #linux
+    find_package(X11 REQUIRED)
+    find_package(Threads REQUIRED)
+
+    target_link_libraries(calibrator PRIVATE
+        ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
+        ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
+    )
+endif ()
+
+
 target_include_directories(sgct
   PUBLIC
     ${PROJECT_SOURCE_DIR}/src/deps/glfw/include

@@ -4,194 +4,24 @@
 add_executable(calibrator main.cpp Dome.h Dome.cpp)
 target_link_libraries(calibrator PRIVATE sgct)
 
-set_property(TARGET calibrator PROPERTY CXX_STANDARD 17)
-set_property(TARGET calibrator PROPERTY CXX_STANDARD_REQUIRED ON)
+set_compile_options(calibrator)
 
-option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
-
-
-function (copy_files target)
-  # Add the copy command
-  foreach(file_i ${ARGN})
-    add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${file_i}"
-    $<TARGET_FILE_DIR:${target}>)
-  endforeach ()
-endfunction ()
-
-# copy data
-if (SGCT_COPY_EXAMPLE_RESOURCES)
-    file(GLOB files
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.png"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.jpg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.xml"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.mpcdi"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.vert*"
-        "${CMAKE_CURRENT_SOURCE_DIR}/*.frag*"
-    )
-    copy_files(calibrator ${files})
-
-    if (WIN32)
-        file(GLOB scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.bat")
-    elseif (UNIX)
-        file(GLOB scripts "${CMAKE_CURRENT_SOURCE_DIR}/*.command")
-    endif()
-
-    copy_files(calibrator ${scripts})
-
-endif()
-
-find_package(OpenGL REQUIRED)
-
-if (WIN32)
-    target_link_libraries(calibrator PRIVATE ${OPENGL_gl_LIBRARY} ws2_32)
-elseif (APPLE)
-    find_library(COCOA_LIBRARY Cocoa REQUIRED)
-    find_library(IOKIT_LIBRARY IOKit REQUIRED)
-    find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
-
-    target_link_libraries(calibrator PRIVATE
-        ${OPENGL_gl_LIBRARY} ${COCOA_LIBRARY} ${IOKIT_LIBRARY}
-        ${COREVIDEO_LIBRARY}
-    )
-else() #linux
-    find_package(X11 REQUIRED)
-    find_package(Threads REQUIRED)
-
-    target_link_libraries(calibrator PRIVATE
-        ${OPENGL_gl_LIBRARY} ${X11_X11_LIB} ${X11_Xrandr_LIB}
-        ${X11_Xinerama_LIB} ${X11_Xinput_LIB} ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
-        ${CMAKE_THREAD_LIBS_INIT}
-    )
-endif()
-
-if (MSVC)
-    target_compile_options(
-        calibrator
-        PRIVATE
-        "/ZI"       # Edit and continue support
-        "/MP"       # Multi-threading support
-        "/W4"       # Highest warning level
-        "/wd4201"   # nonstandard extension used : nameless struct/union
-        "/wd4505"   # unreferenced local function has been removed
-        "/std:c++17"
-        "/permissive-"
-        "/Zc:strictStrings-"    # Windows header don't adhere to this
-        "/Zc:__cplusplus" # Correctly set the __cplusplus macro
-    )
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(
-        calibrator
-        PRIVATE
-        "-stdlib=libc++"
-        "-Wall"
-        "-Wextra"
-        "-Wabstract-vbase-init"
-        "-Warray-bounds-pointer-arithmetic"
-        "-Wassign-enum"
-        "-Wauto-import"
-        "-Wbad-function-cast"
-        "-Wbitfield-constant-conversion"
-        "-Wcast-calling-convention"
-        "-Wcast-qual"
-        "-Wchar-subscripts"
-        "-Wcomma"
-        "-Wcomment"
-        "-Wcomplex-component-init"
-        "-Wconditional-uninitialized"
-        "-Wdate-time"
-        "-Wdeprecated-implementations"
-        "-Wdollar-in-identifier-extension"
-        "-Wduplicate-enum"
-        "-Wduplicate-method-match"
-        "-Wempty-body"
-        "-Wformat-pedantic"
-        "-Wheader-hygiene"
-        "-Widiomatic-parentheses"
-        "-Wimplicit-fallthrough"
-        "-Wimport-preprocessor-directive-pedantic"
-        "-Winconsistent-missing-override"
-        "-Winfinite-recursion"
-        "-Wkeyword-macro"
-        "-Wlanguage-extension-token"
-        "-Wloop-analysis"
-        "-Wmethod-signatures"
-        "-Wmicrosoft-end-of-file"
-        "-Wmicrosoft-enum-forward-reference"
-        "-Wmicrosoft-fixed-enum"
-        "-Wmicrosoft-flexible-array"
-        "-Wmismatched-tags"
-        "-Wmissing-field-initializers"
-        "-Wmissing-noreturn"
-        "-Wnewline-eof"
-        "-Wnon-virtual-dtor"
-        "-Wold-style-cast"
-        "-Woverloaded-virtual"
-        "-Wpessimizing-move"
-        "-Wpointer-arith"
-        "-Wpragmas"
-        "-Wredundant-move"
-        "-Wreorder"
-        "-Wsemicolon-before-method-body"
-        "-Wshadow-field-in-constructor"
-        "-Wshift-sign-overflow"
-        "-Wshorten-64-to-32"
-        "-Wsign-compare"
-        "-Wstring-conversion"
-        "-Wtautological-compare"
-        "-Wthread-safety"
-        "-Wundef"
-        "-Wundefined-reinterpret-cast"
-        "-Wuninitialized"
-        "-Wunneeded-internal-declaration"
-        "-Wunneeded-member-function"
-        "-Wunreachable-code-break"
-        "-Wunreachable-code-loop-increment"
-        "-Wunreachable-code-return"
-        "-Wunused-exception-parameter"
-        "-Wunused-label"
-        "-Wunused-local-typedef"
-        "-Wunused-macros"
-        "-Wunused-parameter"
-        "-Wunused-private-field"
-        "-Wunused-result"
-        "-Wunused-variable"
-        "-Wused-but-marked-unused"
-        "-Wvariadic-macros"
-        "-Wvla"
-        "-Wzero-length-array"
-        "-Wno-missing-braces"
-    )
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    target_compile_options(
-        calibrator
-        PRIVATE
-        "-ggdb"
-        "-Wall"
-        "-Wextra"
-        "-Wpedantic"
-        "-Wunused-parameter"
-        "-Wuninitialized"
-        "-Wsuggest-attribute=const"
-        "-Wsuggest-final-types"
-        "-Wsuggest-final-methods"
-        "-Wsuggest-override"
-        "-Walloc-zero"
-        "-Wduplicated-cond"
-        "-Wshadow"
-        "-Wundef"
-        "-Wcast-qual"
-        "-Wzero-as-null-pointer-constant"
-        "-Wdate-time"
-        "-Wuseless-cast"
-        "-Wlogical-op"
-        "-Wint-in-bool-context"
-
-        "-Wno-write-strings"
-        "-Wnon-virtual-dtor"
-        "-Wold-style-cast"
-        "-Woverloaded-virtual"
-        "-Wno-long-long"
-    )
-endif ()
+# TODO (abock, 2019-09-09) Maybe we want to replace this with a central location and create
+# the run scripts on the flight?
+set(files
+  "${CMAKE_CURRENT_SOURCE_DIR}/correction_mesh.mpcdi"
+  "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/mpcdi_example1_distorted.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/mpcdi_example2_undistorted.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_mpcdi_example1.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_mpcdi_example2.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_PlanarProjection_trackedAspectRatio.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_Projectionplane_trackedAspectRatio.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_Projectionplane_unTtrackedAspectRatio.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/single_PlanarProjection_tracked.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_tracked.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_unTracked.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/zero_distortion_mesh.mpcdi"
+)
+copy_files(calibrator ${files})

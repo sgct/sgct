@@ -14,8 +14,8 @@ namespace {
 
     struct SpoutData {
         SPOUTHANDLE spoutSender;
-        char spoutSenderName[256];
-        bool spoutInited;
+        char senderName[256];
+        bool initialized;
     };
     std::vector<SpoutData> spoutSendersData;
 
@@ -65,7 +65,7 @@ void postDrawFun() {
     glActiveTexture(GL_TEXTURE0);
     
     for (size_t i = 0; i < spoutSendersCount; i++) {
-        if (!spoutSendersData[i].spoutInited) {
+        if (!spoutSendersData[i].initialized) {
             continue;
         }
         int winIndex = windowData[i].first;
@@ -128,21 +128,21 @@ void initOGLFun() {
     for (size_t i = 0; i < spoutSendersCount; i++) {
         spoutSendersData[i].spoutSender = GetSpout();
 
-        strcpy_s(spoutSendersData[i].spoutSenderName, senderNames[i].c_str());
+        strcpy_s(spoutSendersData[i].senderName, senderNames[i].c_str());
         int winIndex = windowData[i].first;
         
         const bool success = spoutSendersData[i].spoutSender->CreateSender(
-            spoutSendersData[i].spoutSenderName,
+            spoutSendersData[i].senderName,
             gEngine->getWindow(winIndex).getFramebufferResolution().x,
             gEngine->getWindow(winIndex).getFramebufferResolution().y
         );
-        spoutSendersData[i].spoutInited = success;
+        spoutSendersData[i].initialized = success;
     }
     
     // set background
     Engine::instance()->setClearColor(0.3f, 0.3f, 0.3f, 0.f);
     
-    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 

@@ -152,7 +152,7 @@ void connect() {
         networkPtr->setPackageDecodeFunction(networkDecode);
         networkPtr->setAcknowledgeFunction(networkAck);
 
-        // must be inited after binding
+        // must be initialized after binding
         networkPtr->init(
             port,
             address,

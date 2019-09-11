@@ -8,6 +8,8 @@ target_link_libraries(SpoutExample_opengl3 PRIVATE sgct)
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
+  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
+  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
 )
 copy_files(SpoutExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(SpoutExample_opengl3)

@@ -781,7 +781,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         netPtr->setUpdateFunction([this](SGCTNetwork* c) { updateConnectionStatus(c); });
         netPtr->setConnectedFunction([this]() { setAllNodesConnected(); });
 
-        // must be inited after binding
+        // must be initialized after binding
         netPtr->init(port, address, mIsServer, connectionType);
         mNetworkConnections.push_back(std::move(netPtr));
     }

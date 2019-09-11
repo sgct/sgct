@@ -172,7 +172,6 @@ else() # Linux
   )
 endif ()
 
-
 target_include_directories(sgct
   PUBLIC
     ${PROJECT_SOURCE_DIR}/src/deps/glfw/include

@@ -1,9 +1,0 @@
-tinyxml2 1.0.5
-zlib 1.2.8
-lpng 1.6.17
-glew 1.12.0
-freetype 2.5.2
-glfw 3.1.1
-glm 0.9.6.3
-vrpn 07.33
-libjpeg-turbo-1.4.1

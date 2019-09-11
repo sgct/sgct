@@ -384,10 +384,10 @@ glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye) {
 
     vr::HmdMatrix34_t mat = HMD->GetEyeToHeadTransform(nEye);
     glm::mat4 matrixObj(
-        mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.0,
-        mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.0,
-        mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.0,
-        mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.0f
+        mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.f,
+        mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.f,
+        mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.f,
+        mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.f
     );
 
     return glm::inverse(matrixObj);

@@ -4,8 +4,8 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myInitOGLFun();
+void drawFun();
+void initOGLFun();
 
 GLfloat lightPosition[] = { 5.0f, 5.0f, 10.0f, 1.0f };
 GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
@@ -24,8 +24,8 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
 
     if( !gEngine->init() )
     {
@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     glTranslatef(0.0f, 0.0f, -3.0f);
@@ -52,7 +52,7 @@ void myDrawFun()
     mySphere->draw();
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     mySphere = new sgct_utils::SGCTSphere(1.0f, 32);
     

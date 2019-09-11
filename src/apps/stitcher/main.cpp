@@ -6,12 +6,12 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
+void drawFun();
+void preSyncFun();
 void myPostSyncPreDrawFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
 void myPreWinInitFun();
 void keyCallback(int key, int action);
 
@@ -207,9 +207,9 @@ int main( int argc, char* argv[] )
 
     }
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
     gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
     gEngine->setPreWindowFunction( myPreWinInitFun );
@@ -222,8 +222,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -237,7 +237,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     size_t index = counter % numberOfTextures;
 
@@ -286,7 +286,7 @@ void myDrawFun()
     counter++;
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if(sequence && iterator <= stopIndex)
     {
@@ -404,7 +404,7 @@ void myPreWinInitFun()
     }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
@@ -428,12 +428,12 @@ void myInitOGLFun()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeBool( &takeScreenshot );
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readBool( &takeScreenshot );
 }

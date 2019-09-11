@@ -2,15 +2,15 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myInitOGLFun();
+void drawFun();
+void initOGLFun();
 
 int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
 
     if( !gEngine->init() )
     {
@@ -28,7 +28,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     //enter ortho mode
     glMatrixMode(GL_PROJECTION);
@@ -69,7 +69,7 @@ void myDrawFun()
     glPopMatrix();
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     sgct::TextureManager::instance()->loadTexure("grid", "grid.png", true, 0);
 }

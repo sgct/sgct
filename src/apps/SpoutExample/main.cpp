@@ -13,16 +13,16 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+void drawFun();
+void preSyncFun();
+void initOGLFun();
+void encodeFun();
+void decodeFun();
+void cleanUpFun();
 
 bool bindSpout();
 
-sgct_utils::SGCTBox * myBox = NULL;
+sgct_utils::SGCTBox * box = NULL;
 //sgct_utils::SGCTPlane * myPlane = NULL;
 GLint Matrix_Loc = -1;
 GLint Flip_Loc = -1;
@@ -40,10 +40,10 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
+    gEngine->setPreSyncFunction( preSyncFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
     {
@@ -51,8 +51,8 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Main loop
     gEngine->render();
@@ -92,7 +92,7 @@ bool bindSpout()
     return false;
 }
 
-void myDrawFun()
+void drawFun()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
@@ -128,7 +128,7 @@ void myDrawFun()
     glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
     //draw the box
-    myBox->draw();
+    box->draw();
     //myPlane->draw();
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -140,7 +140,7 @@ void myDrawFun()
     glDisable( GL_DEPTH_TEST );
 }
 
-void myPreSyncFun()
+void preSyncFun()
 {
     if( gEngine->isMaster() )
     {
@@ -148,7 +148,7 @@ void myPreSyncFun()
     }
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     //setup spout
     spoutSenderName[0] = NULL;
@@ -161,9 +161,9 @@ void myInitOGLFun()
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+    box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
+    //box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
+    //box = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
 
     //myPlane = new sgct_utils::SGCTPlane(2.0f, 2.0f);
 
@@ -188,20 +188,20 @@ void myInitOGLFun()
     sgct::Engine::checkForOGLErrors();
 }
 
-void myEncodeFun()
+void encodeFun()
 {
     sgct::SharedData::instance()->writeDouble(&curr_time);
 }
 
-void myDecodeFun()
+void decodeFun()
 {
     sgct::SharedData::instance()->readDouble(&curr_time);
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
-    if(myBox)
-        delete myBox;
+    if(box)
+        delete box;
 
     //if (myPlane)
     //    delete myPlane;

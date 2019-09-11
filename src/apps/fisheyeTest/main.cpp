@@ -2,13 +2,13 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
+void drawFun();
 void myPostSyncPreDrawFun();
-void myInitOGLFun();
+void initOGLFun();
 void keyCallback(int key, int action);
-void myCleanUpFun();
+void cleanUpFun();
 
-sgct_utils::SGCTBox * myBox = NULL;
+sgct_utils::SGCTBox * box = NULL;
 
 bool info = false;
 bool stats = false;
@@ -26,11 +26,11 @@ int main( int argc, char* argv[] )
             thisNode->getWindowPtr(i)->setAlpha(true);
 
     // Bind your functions
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setInitOGLFunction( initOGLFun );
+    gEngine->setDrawFunction( drawFun );
     gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setCleanUpFunction( cleanUpFun );
 
     // Init the engine
     if( !gEngine->init() )
@@ -49,7 +49,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void drawFun()
 {
     glColor3f(1.0f,1.0f,1.0f);
     glEnable(GL_TEXTURE_2D);
@@ -99,32 +99,32 @@ void myDrawFun()
     
     glPushMatrix();
     glTranslatef(-1.0f, 0.0, 0.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0f, 0.0, 0.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(1.0f, 0.0, 0.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(-1.0f, -1.0, -1.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0f, -1.0, -1.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(1.0f, -1.0, -1.0f);
-        myBox->draw();
+        box->draw();
     glPopMatrix();
     glPopMatrix();
     glDisable(GL_TEXTURE_1D);*/
@@ -207,7 +207,7 @@ void myDrawFun()
     */
 }
 
-void myInitOGLFun()
+void initOGLFun()
 {
     //sgct::TextureManager::instance()->setAnisotropicFilterSize(2.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
@@ -217,7 +217,7 @@ void myInitOGLFun()
     sgct::TextureManager::instance()->loadTexure("bottom", "grid_bottom.png", true, 4);
 
     sgct::TextureManager::instance()->loadTexure("box", "box.png", true, 4);
-    myBox = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
+    box = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
 
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_COLOR_MATERIAL );
@@ -262,8 +262,8 @@ void keyCallback(int key, int action)
     }
 }
 
-void myCleanUpFun()
+void cleanUpFun()
 {
-    if(myBox != NULL)
-        delete myBox;
+    if(box != NULL)
+        delete box;
 }

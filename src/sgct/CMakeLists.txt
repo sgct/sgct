@@ -113,12 +113,12 @@ set(SOURCE_FILES
 )
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY
+  ${PROJECT_SOURCE_DIR}/src/SGCTConfig.h.in
+  ${PROJECT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY
 )
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY
+  ${PROJECT_SOURCE_DIR}/src/SGCTVersion.h.in
+  ${PROJECT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY
 )
 
 add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
@@ -132,7 +132,7 @@ target_link_libraries(sgct
     glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
 
-if (SGCT_TEXT_SUPPORT)
+if (SGCT_FREETYPE_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
   target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/include/external/freetype)
   target_link_libraries(sgct PRIVATE freetype)
@@ -140,8 +140,20 @@ endif ()
 
 if (SGCT_SPOUT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
-  target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout)
+  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/spout)
   target_link_libraries(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.lib)
+
+  get_target_property(tmp sgct DYNAMIC_LIBS)
+  if (NOT tmp)
+    set(tmp "")
+  endif ()
+
+  set_target_properties(sgct
+    PROPERTIES DYNAMIC_LIBS
+    "${tmp};${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.dll"
+  )
+
+  # set(SGCT_DYNAMIC_LIBRARIES "${SGCT_DYNAMIC_LIBRARIES};${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.dll" PARENT_SCOPE)
 endif ()
 
 if (SGCT_OPENVR_SUPPORT)

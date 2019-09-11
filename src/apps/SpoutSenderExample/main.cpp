@@ -1,273 +1,210 @@
-//tell Spout to use GLEW
-#define USE_GLEW
-#include "spoutGLextensions.h" // include before spout.h to avoid gl before glew issue
-#include "spout.h"
-
-//avoid include conflicts between spout and sgct
-#define SGCT_WINDOWS_INCLUDE
-#define SGCT_WINSOCK_INCLUDE
-
-#include <stdlib.h>
-#include <stdio.h>
+#include <sgct.h>
+#include <sgct/SGCTWindow.h>
+#include <SpoutLibrary.h>
 #include <sstream>
-#include "sgct.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+namespace {
+    sgct::Engine* gEngine;
 
-sgct::Engine * gEngine;
+    std::unique_ptr<sgct_utils::SGCTBox> box;
+    //sgct_utils::SGCTPlane * myPlane = NULL;
+    GLint matrixLoc = -1;
 
-void myPreWindowInitFun();
-void myDrawFun();
-void myPostDrawFun();
-void myPreSyncFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+    struct SpoutData {
+        SPOUTHANDLE spoutSender;
+        char spoutSenderName[256];
+        bool spoutInited;
+    };
+    std::vector<SpoutData> spoutSendersData;
 
-sgct_utils::SGCTBox * myBox = NULL;
-//sgct_utils::SGCTPlane * myPlane = NULL;
-GLint Matrix_Loc = -1;
+    size_t spoutSendersCount = 0;
+    std::vector<std::pair<int, bool>> windowData; // index and if lefteye
+    std::vector<std::string> senderNames;
 
-struct SpoutData
-{
-    SpoutSender * spoutSender;
-    char spoutSenderName[256];
-    bool spoutInited;
-};
+    // variables to share across cluster
+    sgct::SharedDouble currentTime(0.0);
+} // namespace
 
-SpoutData * spoutSendersData = NULL;
-std::size_t spoutSendersCount = 0;
-std::vector<std::pair<std::size_t, bool>> windowData; //index and if lefteye
-std::vector<std::string> senderNames;
+using namespace sgct;
 
+void drawFun() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
-//variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
+    constexpr const double Speed = 0.44;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+    // create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * Speed),
+        glm::vec3(0.f, -1.f, 0.f)
+    );
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPostDrawFunction( myPostDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    gEngine->setPreWindowFunction( myPreWindowInitFun );
-
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void myDrawFun()
-{
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-
-    double speed = 0.44;
-
-    //create scene transform (animation)
-    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
-
+    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
     glActiveTexture(GL_TEXTURE0);
+    ShaderManager::instance()->bindShaderProgram("xform");
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    sgct::ShaderManager::instance()->bindShaderProgram("xform");
+    box->draw();
 
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
-
-    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-
-    //draw the box
-    myBox->draw();
-    //myPlane->draw();
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-
-    glDisable( GL_CULL_FACE );
-    glDisable( GL_DEPTH_TEST );
+    ShaderManager::instance()->unBindShaderProgram();
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
-void myPostDrawFun()
-{
+void postDrawFun() {
     glActiveTexture(GL_TEXTURE0);
     
-    for (std::size_t i = 0; i < spoutSendersCount; i++)
-    {
-        if (spoutSendersData[i].spoutInited)
-        {
-            std::size_t winIndex = windowData[i].first;
-
-            GLuint texId;
-            if (windowData[i].second)
-                texId = gEngine->getWindowPtr(winIndex)->getFrameBufferTexture(sgct::Engine::LeftEye);
-            else
-                texId = gEngine->getWindowPtr(winIndex)->getFrameBufferTexture(sgct::Engine::RightEye);
-            
-            glBindTexture(GL_TEXTURE_2D, texId);
-            
-            //sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout disconnected.\n");
-            spoutSendersData[i].spoutSender->SendTexture(
-                texId,
-                GL_TEXTURE_2D,
-                gEngine->getWindowPtr(winIndex)->getXFramebufferResolution(),
-                gEngine->getWindowPtr(winIndex)->getYFramebufferResolution());
+    for (size_t i = 0; i < spoutSendersCount; i++) {
+        if (!spoutSendersData[i].spoutInited) {
+            continue;
         }
+        int winIndex = windowData[i].first;
+
+        GLuint texId;
+        if (windowData[i].second) {
+            texId = gEngine->getWindow(winIndex).getFrameBufferTexture(Engine::LeftEye);
+        }
+        else {
+            texId = gEngine->getWindow(winIndex).getFrameBufferTexture(Engine::RightEye);
+        }
+            
+        glBindTexture(GL_TEXTURE_2D, texId);
+            
+        spoutSendersData[i].spoutSender->SendTexture(
+            texId,
+            GL_TEXTURE_2D,
+            gEngine->getWindow(winIndex).getFramebufferResolution().x,
+            gEngine->getWindow(winIndex).getFramebufferResolution().y
+        );
     }
 
     glBindTexture(GL_TEXTURE_2D, GL_FALSE);
 }
 
-void myPreSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        curr_time.setVal( sgct::Engine::getTime() );
+void preSyncFun() {
+    if (gEngine->isMaster()) {
+        currentTime.setVal(Engine::getTime());
     }
 }
 
-void myPreWindowInitFun()
-{
+void preWindowInitFun() {
     std::string baseName = "SGCT_Window";
-    std::stringstream ss;
 
     //get number of framebuffer textures
-    sgct::SGCTWindow::StereoMode sm;
-    for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
-    {
-        sm = gEngine->getWindowPtr(i)->getStereoMode();
+    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
+        // do not resize buffers while minimized
+        gEngine->getWindow(i).setFixResolution(true);
 
-//#if SGCT_VERSION_MAJOR >= 2 && SGCT_VERSION_MINOR >= 6
-// enable rendering while window is closed / hidden
-// however other methods to exit application needs to be implemented
-// external tcp gui may be used to control this behaviour and exit the application in a clean way 
-//        gEngine->getWindowPtr(i)->setRenderWhileHidden(true); //render even if closed
-//#endif
-        gEngine->getWindowPtr(i)->setFixResolution(true); //do not resize buffers while minimized
-        //gEngine->getWindowPtr(i)->setVisibility(false); //hide window
+        if (gEngine->getWindow(i).isStereo()) {
+            senderNames.push_back(baseName + std::to_string(i) + "_Left");
+            windowData.push_back(std::pair(i, true));
 
-        //check if stereo
-        if (sm != sgct::SGCTWindow::No_Stereo && sm < sgct::SGCTWindow::Side_By_Side_Stereo)
-        {
-            ss.str(std::string()); //clear string stream
-            ss << baseName << i << "_Left";
-            senderNames.push_back(ss.str());
-            windowData.push_back(std::pair<std::size_t, bool>(i, true));
-
-            ss.str(std::string()); //clear string stream
-            ss << baseName << i << "_Right";
-            senderNames.push_back(ss.str());
-            windowData.push_back(std::pair<std::size_t, bool>(i, false));
+            senderNames.push_back(baseName + std::to_string(i) + "_Right");
+            windowData.push_back(std::pair(i, false));
         }
-        else
-        {
-            ss.str(std::string()); //clear string stream
-            ss << baseName << i;
-            senderNames.push_back(ss.str());
-            windowData.push_back(std::pair<std::size_t, bool>(i, true));
+        else {
+            senderNames.push_back(baseName + std::to_string(i));
+            windowData.push_back(std::pair(i, true));
         }
     }
 
     spoutSendersCount = senderNames.size();
 }
 
-void myInitOGLFun()
-{
-    //setup spout
-    spoutSendersData = new SpoutData[spoutSendersCount];    // Create a new SpoutData for every SGCT window
-    for (std::size_t i = 0; i < spoutSendersCount; i++)
-    {
-        spoutSendersData[i].spoutSender = new SpoutSender();
-        spoutSendersData[i].spoutInited = false;
+void initOGLFun() {
+    // setup spout
+    // Create a new SpoutData for every SGCT window
+    spoutSendersData.resize(spoutSendersCount);
+    for (size_t i = 0; i < spoutSendersCount; i++) {
+        spoutSendersData[i].spoutSender = GetSpout();
 
         strcpy_s(spoutSendersData[i].spoutSenderName, senderNames[i].c_str());
-        std::size_t winIndex = windowData[i].first;
+        int winIndex = windowData[i].first;
         
-        if( spoutSendersData[i].spoutSender->CreateSender(
+        const bool success = spoutSendersData[i].spoutSender->CreateSender(
             spoutSendersData[i].spoutSenderName,
-            gEngine->getWindowPtr(winIndex)->getXFramebufferResolution(),
-            gEngine->getWindowPtr(winIndex)->getYFramebufferResolution()
-            ) )
-            spoutSendersData[i].spoutInited = true;
+            gEngine->getWindow(winIndex).getFramebufferResolution().x,
+            gEngine->getWindow(winIndex).getFramebufferResolution().y
+        );
+        spoutSendersData[i].spoutInited = success;
     }
     
-    //set background
-    sgct::Engine::instance()->setClearColor(0.3f, 0.3f, 0.3f, 0.0f);
+    // set background
+    Engine::instance()->setClearColor(0.3f, 0.3f, 0.3f, 0.f);
     
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+    box = std::make_unique<sgct_utils::SGCTBox>(
+        2.f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+    );
 
-    //myPlane = new sgct_utils::SGCTPlane(2.0f, 2.0f);
-
-    //Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "xform.vert",
-            "xform.frag" );
+    ShaderManager::instance()->addShaderProgram("xform", "xform.vert", "xform.frag");
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    ShaderManager::instance()->bindShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
 
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-    glUniform1i( Tex_Loc, 0 );
+    matrixLoc = prog.getUniformLocation("MVP");
+    GLint textureLocation = prog.getUniformLocation("Tex");
+    glUniform1i(textureLocation, 0);
 
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 
-    sgct::Engine::checkForOGLErrors();
+    Engine::checkForOGLErrors();
 }
 
-void myEncodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+void encodeFun() {
+    SharedData::instance()->writeDouble(currentTime);
 }
 
-void myDecodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&curr_time);
+void decodeFun() {
+    sgct::SharedData::instance()->readDouble(currentTime);
 }
 
-void myCleanUpFun()
-{
-    if(myBox)
-        delete myBox;
+void cleanUpFun() {
+    box = nullptr;
 
-    //if (myPlane)
-    //    delete myPlane;
-
-    if (spoutSendersData)
-    {
-        for (std::size_t i = 0; i < spoutSendersCount; i++)
-        {
-            spoutSendersData[i].spoutSender->ReleaseSender();
-            delete spoutSendersData[i].spoutSender;
-        }
-
-        delete[] spoutSendersData;
-        spoutSendersData = NULL;
+    for (size_t i = 0; i < spoutSendersCount; i++) {
+        spoutSendersData[i].spoutSender->ReleaseSender();
+        spoutSendersData[i].spoutSender->Release();
     }
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPostDrawFunction(postDrawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setPreWindowFunction(preWindowInitFun);
+
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

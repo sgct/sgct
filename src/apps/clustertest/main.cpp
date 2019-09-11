@@ -28,7 +28,7 @@ namespace {
 } // namespace
 
 void myDraw2DFun() {
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     sgct_text::print(
         sgct_text::FontManager::instance()->getFont("SGCTFont", 24),
         sgct_text::TextAlignMode::TopLeft,
@@ -58,7 +58,7 @@ void myDraw2DFun() {
             extraData.getValAt(ExtendedSize / 2), extraData.getSize()
         );
     }
-#endif
+#endif // SGCT_HAS_TEXT
 }
 
 void drawFun() {
@@ -138,7 +138,7 @@ void drawFun() {
 
     glPopMatrix();
 
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     float xPos = gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f;
 
     glColor3f(1.f, 1.f, 0.f);
@@ -279,7 +279,7 @@ void drawFun() {
             "Swap group: Inactive"
         );
     }
-#endif
+#endif // SGCT_HAS_TEXT
 }
 
 void preSyncFun() {
@@ -323,7 +323,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void myPostDrawFun() {
+void postDrawFun() {
     if (gEngine->isMaster()) {
         resetCounter.setVal(false);
     }
@@ -513,7 +513,7 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setPostDrawFunction(myPostDrawFun);
+    gEngine->setPostDrawFunction(postDrawFun);
 
     const std::vector<std::string>& addresses =
         sgct_core::NetworkManager::instance()->getLocalAddresses();

@@ -372,7 +372,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void myPostDrawFun() {
+void postDrawFun() {
     // render a single frame and exit
     gEngine->terminate();
 }
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setPostDrawFunction(myPostDrawFun);
+    gEngine->setPostDrawFunction(postDrawFun);
     gEngine->setCleanUpFunction(cleanUpFun);
 
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {

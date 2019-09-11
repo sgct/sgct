@@ -1,26 +1,28 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(sgct)
 
+include(support/copy_files.cmake)
+include(support/set_compile_options.cmake)
+include(support/disable_external_warnings.cmake)
+
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
 set(SGCT_VERSION_REVISION "0")
 set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
 
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
-option(SGCT_TEXT "Build SGCT with Freetype2" ON)
+option(SGCT_TEXT_SUPPORT "Build SGCT with Freetype2" ON)
 option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
+option(SGCT_OPENVR_SUPPORT "SGCT OpenVR support" OFF)
 
-include (support/copy_files.cmake)
-include (support/set_compile_options.cmake)
+if (WIN32)
+  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY)
 
 add_subdirectory(src/sgct)
-
-if (WIN32)
-  option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
-endif ()
 
 if (NOT SGCT_NO_EXTERNAL_LIBRARIES)
     add_subdirectory(src/deps)

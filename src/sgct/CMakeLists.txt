@@ -1,4 +1,5 @@
 set(HEADER_FILES
+  ${PROJECT_SOURCE_DIR}/include/sgct.h
   ${PROJECT_SOURCE_DIR}/include/sgct/BaseViewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/ClusterManager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/CorrectionMesh.h
@@ -22,6 +23,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTMutexManager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTNetwork.h
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTNode.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/SGCTOpenVR.h
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTProjection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTProjectionPlane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/SGCTSettings.h
@@ -82,6 +84,7 @@ set(SOURCE_FILES
   SGCTMutexManager.cpp
   SGCTNetwork.cpp
   SGCTNode.cpp
+  SGCTOpenVR.cpp
   SGCTProjection.cpp
   SGCTProjectionPlane.cpp
   SGCTSettings.cpp
@@ -110,17 +113,16 @@ set(SOURCE_FILES
 )
 
 add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
 set_compile_options(sgct)
 
+target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_compile_definitions(sgct PRIVATE GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct
   PRIVATE
     glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
-if (SGCT_TEXT)
+if (SGCT_TEXT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
   target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/include/external/freetype)
   target_link_libraries(sgct PRIVATE freetype)
@@ -128,6 +130,11 @@ endif ()
 
 if (SGCT_SPOUT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
+endif ()
+
+if (SGCT_OPENVR_SUPPORT)
+  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_OPENVR)
 endif ()
 
 find_package(OpenGL REQUIRED)

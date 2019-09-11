@@ -23,7 +23,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 
 #ifdef SGCT_HAS_SPOUT
-#include <spout/SpoutLibrary.h>
+#include <SpoutLibrary.h>
 #endif
 
 namespace sgct_core {

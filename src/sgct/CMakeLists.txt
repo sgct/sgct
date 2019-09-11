@@ -112,6 +112,15 @@ set(SOURCE_FILES
   utils/SGCTSphere.cpp
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY
+)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY
+)
+
 add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
 set_compile_options(sgct)
 
@@ -122,6 +131,7 @@ target_link_libraries(sgct
   PRIVATE
     glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
 )
+
 if (SGCT_TEXT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
   target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/include/external/freetype)
@@ -130,11 +140,13 @@ endif ()
 
 if (SGCT_SPOUT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
+  target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout)
+  target_link_libraries(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.lib)
 endif ()
 
 if (SGCT_OPENVR_SUPPORT)
-  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_OPENVR)
+  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
 endif ()
 
 find_package(OpenGL REQUIRED)
@@ -143,21 +155,21 @@ target_link_libraries(sgct PUBLIC ${OPENGL_gl_LIBRARY})
 if (WIN32)
   target_link_libraries(sgct PRIVATE ws2_32)
 elseif (APPLE)
-    find_library(COCOA_LIBRARY Cocoa REQUIRED)
-    find_library(IOKIT_LIBRARY IOKit REQUIRED)
-    find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
+  find_library(COCOA_LIBRARY Cocoa REQUIRED)
+  find_library(IOKIT_LIBRARY IOKit REQUIRED)
+  find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
-    target_link_libraries(calibrator PRIVATE
-        ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
-    )
+  target_link_libraries(calibrator PRIVATE
+    ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
+  )
 else() # Linux
-    find_package(X11 REQUIRED)
-    find_package(Threads REQUIRED)
+  find_package(X11 REQUIRED)
+  find_package(Threads REQUIRED)
 
-    target_link_libraries(calibrator PRIVATE
-        ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
-        ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
-    )
+  target_link_libraries(calibrator PRIVATE
+    ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
+    ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
+  )
 endif ()
 
 

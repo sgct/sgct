@@ -5,7 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
+#ifdef SGCT_HAS_OPENVR
+
 #include <sgct/SGCTOpenVR.h>
+
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
@@ -407,3 +410,5 @@ glm::quat getInverseRotation(glm::mat4 matPose) {
 }
 
 } // namespace sgct::openvr
+
+#endif // SGCT_HAS_OPENVR

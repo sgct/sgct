@@ -1,1 +1,0 @@
-osgExampleRTT.exe -config ../../config/single.xml

@@ -1,3 +1,6 @@
 [submodule "src/deps/glfw"]
 	path = src/deps/glfw
 	url = https://github.com/opensgct/glfw
+[submodule "src/deps/openvr"]
+	path = src/deps/openvr
+	url = https://github.com/ValveSoftware/openvr.git

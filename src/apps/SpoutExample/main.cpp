@@ -22,8 +22,7 @@ namespace {
 } // namespace
 
 using namespace sgct;
-
-
+ 
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {

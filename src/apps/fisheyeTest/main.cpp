@@ -1,269 +1,151 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/ClusterManager.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void drawFun();
-void myPostSyncPreDrawFun();
-void initOGLFun();
-void keyCallback(int key, int action);
-void cleanUpFun();
+    std::unique_ptr<sgct_utils::SGCTBox> box;
 
-sgct_utils::SGCTBox * box = NULL;
+    bool info = false;
+    bool stats = false;
+    bool takeScreenshot = false;
+} // namespace
 
-bool info = false;
-bool stats = false;
-bool takeScreenshot = false;
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-
-    // Allocate
-    gEngine = new sgct::Engine( argc, argv );
-
-    sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
-    if( thisNode != NULL )
-        for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
-            thisNode->getWindowPtr(i)->setAlpha(true);
-
-    // Bind your functions
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setCleanUpFunction( cleanUpFun );
-
-    // Init the engine
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up (de-allocate)
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    glColor3f(1.0f,1.0f,1.0f);
+void drawFun() {
+    glColor3f(1.f, 1.f, 1.f);
     glEnable(GL_TEXTURE_2D);
 
-    float r = 7.5f; //dome radius
+    constexpr const float DomeRadius = 7.5f;
 
-    //right face
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("right") );
+    // right face
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("right"));
     glBegin(GL_QUADS);
-        glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
-        glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
-        glTexCoord2d(1.0,1.0); glVertex3f(r, r, 0.0f);
-        glTexCoord2d(0.0,1.0); glVertex3f(0.0f, r, -r);
+    glTexCoord2f(0.f, 0.f);
+    glVertex3f(0.f, -DomeRadius, -DomeRadius);
+    glTexCoord2f(1.f, 0.f);
+    glVertex3f(DomeRadius, -DomeRadius, 0.f);
+    glTexCoord2d(1.f, 1.f);
+    glVertex3f(DomeRadius, DomeRadius, 0.f);
+    glTexCoord2d(0.f, 1.f);
+    glVertex3f(0.f, DomeRadius, -DomeRadius);
     glEnd();
 
-    //left face
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("left") );
+    // left face
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("left"));
     glBegin(GL_QUADS);
-        glTexCoord2d(0.0,0.0); glVertex3f(-r, -r, 0.0f);
-        glTexCoord2d(1.0,0.0); glVertex3f(0.0f, -r, -r);
-        glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r, -r);
-        glTexCoord2d(0.0,1.0); glVertex3f(-r, r, 0.0f);
+    glTexCoord2f(0.f, 0.f);
+    glVertex3f(-DomeRadius, -DomeRadius, 0.f);
+    glTexCoord2f(1.f, 0.f);
+    glVertex3f(0.f, -DomeRadius, -DomeRadius);
+    glTexCoord2f(1.f, 1.f);
+    glVertex3f(0.f, DomeRadius, -DomeRadius);
+    glTexCoord2f(0.f, 1.f);
+    glVertex3f(-DomeRadius, DomeRadius, 0.f);
     glEnd();
 
-    //top face
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("top") );
+    // top face
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("top"));
     glBegin(GL_QUADS);
-        glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r,  r);
-        glTexCoord2d(1.0,0.0); glVertex3f(r,    r,  0.0f);
-        glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r,  -r);
-        glTexCoord2d(0.0,1.0); glVertex3f(-r,    r,  0.0f);
+    glTexCoord2f(0.f, 0.f);
+    glVertex3f(0.f, DomeRadius, DomeRadius);
+    glTexCoord2f(1.f, 0.f);
+    glVertex3f(DomeRadius, DomeRadius, 0.f);
+    glTexCoord2f(1.f, 1.f);
+    glVertex3f(0.f, DomeRadius,  -DomeRadius);
+    glTexCoord2f(0.f, 1.f);
+    glVertex3f(-DomeRadius, DomeRadius, 0.f);
     glEnd();
 
-    //bottom face
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("bottom") );
+    // bottom face
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("bottom"));
     glBegin(GL_QUADS);
-        glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, r);
-        glTexCoord2d(1.0,0.0); glVertex3f(-r,   -r, 0.0f);
-        glTexCoord2d(1.0,1.0); glVertex3f(0.0f, -r, -r);
-        glTexCoord2d(0.0,1.0); glVertex3f(r,   -r, 0.0f);
+    glTexCoord2f(0.f, 0.f);
+    glVertex3f(0.f, -DomeRadius, DomeRadius);
+    glTexCoord2f(1.f, 0.f);
+    glVertex3f(-DomeRadius,-DomeRadius, 0.f);
+    glTexCoord2f(1.f, 1.f);
+    glVertex3f(0.f, -DomeRadius, -DomeRadius);
+    glTexCoord2f(0.f, 1.f);
+    glVertex3f(DomeRadius, -DomeRadius, 0.f);
     glEnd();
-
-    /*glPushMatrix();
-    glTranslatef(0.0f, 0.0, -1.0f);
-    glColor3f(1.0f,1.0f,1.0f);
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
-    
-    glPushMatrix();
-    glTranslatef(-1.0f, 0.0, 0.0f);
-        box->draw();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0, 0.0f);
-        box->draw();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(1.0f, 0.0, 0.0f);
-        box->draw();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(-1.0f, -1.0, -1.0f);
-        box->draw();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.0f, -1.0, -1.0f);
-        box->draw();
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(1.0f, -1.0, -1.0f);
-        box->draw();
-    glPopMatrix();
-    glPopMatrix();
-    glDisable(GL_TEXTURE_1D);*/
-    /*
-    glColor3f(1.0f,1.0f,0.0f);
-    glLineWidth(5.0);
-    glBegin(GL_LINES);
-        glVertex3f(-r/2.0f, r/2.0f, 0.0f);
-        glVertex3f(0.0f, r/2.0f, -r/2.0f);
-
-        glVertex3f(-r/2.0f, -r/2.0f, 0.0f);
-        glVertex3f(0.0f, -r/2.0f, -r/2.0f);
-
-        glVertex3f(r/2.0f, r/2.0f, 0.0f);
-        glVertex3f(0.0f, r/2.0f, -r/2.0f);
-
-        glVertex3f(r/2.0f, -r/2.0f, 0.0f);
-        glVertex3f(0.0f, -r/2.0f, -r/2.0f);
-
-        glVertex3f(0.0f, -r/2.0f, -r/2.0f);
-        glVertex3f(0.0f, r/2.0f, -r/2.0f);
-    glEnd();
-
-    glColor3f(1.0f,0.5f,0.5f);
-    glLineWidth(5.0);
-    glBegin(GL_LINES);
-        glVertex3f(-r/4.0f, r/4.0f, 0.0f);
-        glVertex3f(0.0f, r/4.0f, -r/4.0f);
-
-        glVertex3f(-r/4.0f, -r/4.0f, 0.0f);
-        glVertex3f(0.0f, -r/4.0f, -r/4.0f);
-
-        glVertex3f(r/4.0f, r/4.0f, 0.0f);
-        glVertex3f(0.0f, r/4.0f, -r/4.0f);
-
-        glVertex3f(r/4.0f, -r/4.0f, 0.0f);
-        glVertex3f(0.0f, -r/4.0f, -r/4.0f);
-
-        glVertex3f(0.0f, -r/4.0f, -r/4.0f);
-        glVertex3f(0.0f, r/4.0f, -r/4.0f);
-    glEnd();
-
-    glColor3f(1.0f,0.0f,1.0f);
-    glLineWidth(2.0);
-    glBegin(GL_LINES);
-        glVertex3f(-r*2.0f, r*2.0f, 0.0f);
-        glVertex3f(0.0f, r*2.0f, -r*2.0f);
-
-        glVertex3f(-r*2.0f, -r*2.0f, 0.0f);
-        glVertex3f(0.0f, -r*2.0f, -r*2.0f);
-
-        glVertex3f(r*2.0f, r*2.0f, 0.0f);
-        glVertex3f(0.0f, r*2.0f, -r*2.0f);
-
-        glVertex3f(r*2.0f, -r*2.0f, 0.0f);
-        glVertex3f(0.0f, -r*2.0f, -r*2.0f);
-
-        glVertex3f(0.0f, -r*2.0f, -r*2.0f);
-        glVertex3f(0.0f, r*2.0f, -r*2.0f);
-    glEnd();
-
-    glColor3f(0.0f,1.0f,1.0f);
-    glLineWidth(2.0);
-    glBegin(GL_LINES);
-        glVertex3f(-r, r, 0.0f);
-        glVertex3f(0.0f, r, -r);
-
-        glVertex3f(-r, -r, 0.0f);
-        glVertex3f(0.0f, -r, -r);
-
-        glVertex3f(r, r, 0.0f);
-        glVertex3f(0.0f, r, -r);
-
-        glVertex3f(r, -r, 0.0f);
-        glVertex3f(0.0f, -r, -r);
-
-        glVertex3f(0.0f, -r, -r);
-        glVertex3f(0.0f, r, -r);
-    glEnd();
-    */
 }
 
-void initOGLFun()
-{
-    //sgct::TextureManager::instance()->setAnisotropicFilterSize(2.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
-    sgct::TextureManager::instance()->loadTexure("right", "grid_right.png", true, 4);
-    sgct::TextureManager::instance()->loadTexure("left", "grid_left.png", true, 4);
-    sgct::TextureManager::instance()->loadTexure("top", "grid_top.png", true, 4);
-    sgct::TextureManager::instance()->loadTexure("bottom", "grid_bottom.png", true, 4);
+void initOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
+    TextureManager::instance()->loadTexture("right", "grid_right.png", true, 4);
+    TextureManager::instance()->loadTexture("left", "grid_left.png", true, 4);
+    TextureManager::instance()->loadTexture("top", "grid_top.png", true, 4);
+    TextureManager::instance()->loadTexture("bottom", "grid_bottom.png", true, 4);
 
-    sgct::TextureManager::instance()->loadTexure("box", "box.png", true, 4);
-    box = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
+    TextureManager::instance()->loadTexture("box", "box.png", true, 4);
+    box = std::make_unique<sgct_utils::SGCTBox>(
+        0.5f,
+        sgct_utils::SGCTBox::TextureMappingMode::Regular
+    );
 
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
 }
 
-void myPostSyncPreDrawFun()
-{
+void myPostSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(info);
     gEngine->setStatsGraphVisibility(stats);
 
-    if( takeScreenshot )
-    {
+    if (takeScreenshot) {
         gEngine->takeScreenshot();
         takeScreenshot = false;
     }
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-        case 'S':
-            if(action == SGCT_PRESS)
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster() && action == SGCT_PRESS) {
+        switch (key) {
+            case 'S':
                 stats = !stats;
-            break;
-
-        case 'I':
-            if(action == SGCT_PRESS)
+                break;
+            case 'I':
                 info = !info;
-            break;
-
-        case 'P':
-        case SGCT_KEY_F10:
-            if(action == SGCT_PRESS)
+                break;
+            case 'P':
+            case SGCT_KEY_F10:
                 takeScreenshot = true;
-            break;
+                break;
         }
     }
 }
 
-void cleanUpFun()
-{
-    if(box != NULL)
-        delete box;
+void cleanUpFun() {
+    box = nullptr;
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new sgct::Engine(arg);
+
+    sgct_core::SGCTNode* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
+    if (thisNode) {
+        for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
+            thisNode->getWindow(i).setAlpha(true);
+        }
+    }
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setCleanUpFunction(cleanUpFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

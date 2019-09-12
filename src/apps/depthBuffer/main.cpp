@@ -42,7 +42,7 @@ namespace {
 using namespace sgct;
 
 #ifdef Test
-sgct_utils::SGCTSphere * mySphere = NULL;
+sgct_utils::SGCTSphere * sphere = NULL;
 #endif
 
 void updatePass() {
@@ -143,7 +143,7 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
 #else
-    mySphere->draw();
+    sphere->draw();
 #endif
 }
 
@@ -230,7 +230,7 @@ void initOGLFun() {
     setupPostFXs();
 
 #ifdef Test
-    mySphere = new sgct_utils::SGCTSphere(2.0f, 512);
+    sphere = new sgct_utils::SGCTSphere(2.0f, 512);
     gEngine->setNearAndFarClippingPlanes(1.0f, 3.0f);
 #else
     gEngine->setNearAndFarClippingPlanes(0.1f, 5.0f);
@@ -259,7 +259,7 @@ void decodeFun() {
 
 void cleanUpFun() {
 #ifdef Test
-    delete mySphere;
+    delete sphere;
 #endif
     glDeleteLists(terrainDisplayList, 1);
 }

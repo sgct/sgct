@@ -7,7 +7,6 @@ target_link_libraries(model_loader PRIVATE sgct)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
 )
 copy_files(model_loader ${files})
 copy_sgct_dynamic_libraries(model_loader)

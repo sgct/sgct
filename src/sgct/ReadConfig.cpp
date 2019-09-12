@@ -695,7 +695,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Warning,
-                        "ReadConfig: Unkonwn capturing format. Using PNG\n"
+                        "ReadConfig: Unknown capturing format. Using PNG\n"
                     );
                     return sgct::SGCTSettings::CaptureFormat::PNG;
                 }

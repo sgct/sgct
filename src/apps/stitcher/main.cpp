@@ -1,576 +1,559 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
+#include <sgct.h>
+#include <sgct/SGCTUser.h>
+#include <sgct/SGCTWindow.h>
 #include <algorithm>
-#include "sgct.h"
+#include <iostream>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void drawFun();
-void preSyncFun();
-void myPostSyncPreDrawFun();
-void initOGLFun();
-void encodeFun();
-void decodeFun();
-void myPreWinInitFun();
-void keyCallback(int key, int action);
+    enum class Rotation { ROT_0_DEG = 0, ROT_90_DEG, ROT_180_DEG, ROT_270_DEG };
+    enum class Sides {
+        RIGHT_SIDE_L = 0, BOTTOM_SIDE_L, TOP_SIDE_L, LEFT_SIDE_L,
+        RIGHT_SIDE_R, BOTTOM_SIDE_R, TOP_SIDE_R, LEFT_SIDE_R
+    };
 
-enum rotation { ROT_0_DEG = 0, ROT_90_DEG, ROT_180_DEG, ROT_270_DEG };
-enum sides { RIGHT_SIDE_L = 0, BOTTOM_SIDE_L, TOP_SIDE_L, LEFT_SIDE_L,
-    RIGHT_SIDE_R, BOTTOM_SIDE_R, TOP_SIDE_R, LEFT_SIDE_R};
+    std::string texturePaths[8];
+    GLuint textureIndices[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    Rotation sideRotations[] = {
+        Rotation::ROT_0_DEG,
+        Rotation::ROT_0_DEG,
+        Rotation::ROT_0_DEG,
+        Rotation::ROT_0_DEG
+    };
+    size_t activeTexture = 0;
+    size_t numberOfTextures = 0;
 
-sides getSideIndex(size_t index);
-void face(rotation rot);
+    int startIndex;
+    int stopIndex;
+    int numberOfDigits = 0;
+    int iterator;
+    bool sequence = false;
+    bool cubic = true;
 
-std::string texturePaths[8];
-GLuint textureIndices[] = {0, 0, 0, 0, 0, 0, 0, 0};
-rotation sideRotations[] = { ROT_0_DEG, ROT_0_DEG, ROT_0_DEG, ROT_0_DEG };
-size_t activeTexture = 0;
-size_t numberOfTextures = 0;
+    int counter = 0;
+    int startFrame = 0;
+    bool alpha = false;
+    bool stereo = false;
+    bool fxaa = false;
+    int numberOfMSAASamples = 1;
+    int resolution = 512;
+    int cubemapRes = 256;
+    float eyeSeparation = 0.065f;
+    float domeDiameter = 14.8f;
 
-int startIndex;
-int stopIndex;
-int numberOfDigits = 0;
-int iterator;
-bool sequence = false;
-bool cubic = true;
+    //sgct_utils::SGCTDome * dome = NULL;
 
-int counter = 0;
-int startFrame = 0;
-bool alpha = false;
-bool stereo = false;
-bool fxaa = false;
-int numberOfMSAASamples = 1;
-int resolution = 512;
-int cubemapRes = 256;
-float eyeSeparation = 0.065f;
-float domeDiameter = 14.8f;
+    //variables to share across cluster
+    sgct::SharedBool takeScreenshot(false);
 
-//sgct_utils::SGCTDome * dome = NULL;
+} // namespace
 
-//variables to share across cluster
-sgct::SharedBool takeScreenshot(false);
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    //parse arguments
-    for( int i = 0; i < argc; i++ )
-    {
-        //fprintf(stderr, "Argument %d: %s (total %d)\n", i, argv[i], argc);
-
-        if( strcmp(argv[i], "-tex") == 0 && argc > (i+1) )
-        {
-            std::string tmpStr(argv[i + 1]);
-            //to lower case
-            //std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
-            std::size_t found = tmpStr.find_last_of(".");
-            if (found != std::string::npos && found > 0)
-            {
-                numberOfDigits = 0;
-                for (std::size_t i = found - 1; i != 0; i--)
-                {
-                    //if not numerical
-                    if (tmpStr[i] < '0' || tmpStr[i] > '9')
-                    {
-                        tmpStr = tmpStr.substr(0, i + 1);
-                        break;
-                    }
-                    else
-                        numberOfDigits++;
-
-                }
-            }
-
-            texturePaths[getSideIndex(numberOfTextures)].assign(tmpStr);
-
-            numberOfTextures++;
-            sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i+1]);
-        }
-        else if( strcmp(argv[i], "-seq") == 0 && argc > (i+2) )
-        {
-            sequence = true;
-            startIndex        = atoi( argv[i+1] );
-            stopIndex        = atoi( argv[i+2] );
-            iterator = startIndex;
-            sgct::MessageHandler::instance()->print("Loading sequence from %d to %d\n", startIndex, stopIndex);
-        }
-        else if( strcmp(argv[i], "-rot") == 0 && argc > (i+4) )
-        {
-            int tmpRots[] = { 0, 0, 0, 0 };
-            tmpRots[0]        = atoi( argv[i+1] );
-            tmpRots[1]        = atoi( argv[i+2] );
-            tmpRots[2]        = atoi( argv[i+3] );
-            tmpRots[3]        = atoi( argv[i+4] );
-            sgct::MessageHandler::instance()->print("Setting image rotations to L: %d, R: %d, T: %d, B: %d\n",
-                tmpRots[0], tmpRots[1], tmpRots[2], tmpRots[3]);
-
-            for(size_t i=0; i<4; i++)
-            {
-                switch( tmpRots[i] )
-                {
-                case 0:
-                default:
-                    sideRotations[i] = ROT_0_DEG;
-                    break;
-
-                case 90:
-                    sideRotations[i] = ROT_90_DEG;
-                    break;
-
-                case 180:
-                    sideRotations[i] = ROT_180_DEG;
-                    break;
-
-                case 270:
-                    sideRotations[i] = ROT_270_DEG;
-                    break;
-                }
-            }
-        }
-        else if( strcmp(argv[i], "-start") == 0 && argc > (i+1) )
-        {
-            startFrame = atoi( argv[i+1] );
-            sgct::MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
-        }
-        else if (strcmp(argv[i], "-alpha") == 0 && argc > (i + 1))
-        {
-            alpha = (strcmp(argv[i + 1], "1") == 0);
-            sgct::MessageHandler::instance()->print("Setting alpha to %s\n", alpha ? "true" : "false");
-        }
-        else if (strcmp(argv[i], "-stereo") == 0 && argc > (i + 1))
-        {
-            stereo = (strcmp(argv[i + 1], "1") == 0);
-            sgct::MessageHandler::instance()->print("Setting stereo to %s\n", stereo ? "true" : "false");
-        }
-        else if (strcmp(argv[i], "-cubic") == 0 && argc > (i + 1))
-        {
-            cubic = (strcmp(argv[i + 1], "1") == 0);
-            sgct::MessageHandler::instance()->print("Setting cubic interpolation to %s\n", cubic ? "true" : "false");
-        }
-        else if (strcmp(argv[i], "-fxaa") == 0 && argc > (i + 1))
-        {
-            fxaa = (strcmp(argv[i + 1], "1") == 0);
-            sgct::MessageHandler::instance()->print("Setting fxaa to %s\n", alpha ? "true" : "false");
-        }
-        else if (strcmp(argv[i], "-eyeSep") == 0 && argc > (i + 1))
-        {
-            eyeSeparation = static_cast<float>( atof(argv[i + 1]) );
-            sgct::MessageHandler::instance()->print("Setting eye separation to %f\n", eyeSeparation);
-        }
-        else if (strcmp(argv[i], "-diameter") == 0 && argc > (i + 1))
-        {
-            domeDiameter = static_cast<float>(atof(argv[i + 1]));
-            sgct::MessageHandler::instance()->print("Setting dome diameter to %f\n", domeDiameter);
-        }
-        else if (strcmp(argv[i], "-msaa") == 0 && argc > (i + 1))
-        {
-            numberOfMSAASamples = atoi(argv[i + 1]);
-            sgct::MessageHandler::instance()->print("Number of MSAA samples set to %d\n", numberOfMSAASamples);
-        }
-        else if (strcmp(argv[i], "-res") == 0 && argc > (i + 1))
-        {
-            resolution = atoi(argv[i + 1]);
-            sgct::MessageHandler::instance()->print("Resolution set to %d\n", resolution);
-        }
-        else if (strcmp(argv[i], "-cubemap") == 0 && argc > (i + 1))
-        {
-            cubemapRes = atoi(argv[i + 1]);
-            sgct::MessageHandler::instance()->print("Cubemap resolution set to %d\n", cubemapRes);
-        }
-        else if (strcmp(argv[i], "-format") == 0 && argc > (i + 1))
-        {
-            sgct::SGCTSettings::instance()->setCaptureFormat(argv[i + 1]);
-            sgct::MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-leftPath") == 0 && argc > (i + 1))
-        {
-            sgct::SGCTSettings::instance()->setCapturePath( argv[i + 1], sgct::SGCTSettings::Mono );
-            sgct::SGCTSettings::instance()->setCapturePath(argv[i + 1], sgct::SGCTSettings::LeftStereo);
-
-            sgct::MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-rightPath") == 0 && argc > (i + 1))
-        {
-            sgct::SGCTSettings::instance()->setCapturePath(argv[i + 1], sgct::SGCTSettings::RightStereo);
-
-            sgct::MessageHandler::instance()->print("Right path set to %s\n", argv[i + 1]);
-        }
-        else if (strcmp(argv[i], "-compression") == 0 && argc > (i + 1))
-        {
-            int tmpi = atoi(argv[i + 1]);
-            sgct::SGCTSettings::instance()->setPNGCompressionLevel(tmpi);
-
-            sgct::MessageHandler::instance()->print("Compression set to %d\n", tmpi);
-        }
-
+void face(Rotation rot) {
+    switch (rot) {
+        case Rotation::ROT_0_DEG:
+        default:
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.f, 0.f);
+            glVertex2f(0.f, 0.f);
+            glTexCoord2f(0.f, 1.f);
+            glVertex2f(0.f, 1.f);
+            glTexCoord2f(1.f, 1.f);
+            glVertex2f(1.f, 1.f);
+            glTexCoord2f(1.f, 0.f);
+            glVertex2f(1.f, 0.f);
+            glEnd();
+            break;
+        case Rotation::ROT_90_DEG:
+            glBegin(GL_QUADS);
+            glTexCoord2f(1.f, 0.f);
+            glVertex2f(0.f, 0.f);
+            glTexCoord2f(0.f, 0.f);
+            glVertex2f(0.f, 1.f);
+            glTexCoord2f(0.f, 1.f);
+            glVertex2f(1.f, 1.f);
+            glTexCoord2f(1.f, 1.f);
+            glVertex2f(1.f, 0.f);
+            glEnd();
+            break;
+        case Rotation::ROT_180_DEG:
+            glBegin(GL_QUADS);
+            glTexCoord2f(1.f, 1.f);
+            glVertex2f(0.f, 0.f);
+            glTexCoord2f(1.f, 0.f);
+            glVertex2f(0.f, 1.f);
+            glTexCoord2f(0.f, 0.f);
+            glVertex2f(1.f, 1.f);
+            glTexCoord2f(0.f, 1.f);
+            glVertex2f(1.f, 0.f);
+            glEnd();
+            break;
+        case Rotation::ROT_270_DEG:
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.f, 1.f);
+            glVertex2f(0.f, 0.f);
+            glTexCoord2f(1.f, 1.f);
+            glVertex2f(0.f, 1.f);
+            glTexCoord2f(1.f, 0.f);
+            glVertex2f(1.f, 1.f);
+            glTexCoord2f(0.f, 0.f);
+            glVertex2f(1.f, 0.f);
+            glEnd();
+            break;
     }
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-    gEngine->setPreSyncFunction( preSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setPreWindowFunction( myPreWinInitFun );
-
-    gEngine->setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    //if( dome != NULL )
-    //    delete dome;
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
 }
 
-void drawFun()
-{
+
+void drawFun() {
     size_t index = counter % numberOfTextures;
-
-    if (textureIndices[index]) //if valid
-    {
-        //enter ortho mode
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glPushMatrix();
-        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-
-        glColor3f(1.0f,1.0f,1.0f);
-        glEnable(GL_TEXTURE_2D);
-
-        glBindTexture(GL_TEXTURE_2D, textureIndices[index]);
-
-        if( index == LEFT_SIDE_L || index == LEFT_SIDE_R )
-            face( sideRotations[0] );
-        else if( index == RIGHT_SIDE_L || index == RIGHT_SIDE_R )
-            face( sideRotations[1] );
-        else if( index == TOP_SIDE_L || index == TOP_SIDE_R )
-            face( sideRotations[2] );
-        else //bottom
-            face( sideRotations[3] );
-
-        glDisable(GL_TEXTURE_2D);
-
-        glPopAttrib();
-
-        //exit ortho mode
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-    }
-    else //bad texture
-    {
-        //std::cout << "NoTex: Texture handle:" << textureHandles[index] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[index]) <<
-        //            " index: " << index << " counter: " << counter << std::endl;
-    }
-
     counter++;
+
+    if (!textureIndices[index]) {
+        return;
+    }
+
+    // if valid
+    // enter ortho mode
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glPushMatrix();
+    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+
+    glColor3f(1.f, 1.f, 1.f);
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, textureIndices[index]);
+
+    Sides side = static_cast<Sides>(index);
+    if (side == Sides::LEFT_SIDE_L || side == Sides::LEFT_SIDE_R) {
+        face(sideRotations[0]);
+    }
+    else if (side == Sides::RIGHT_SIDE_L || side == Sides::RIGHT_SIDE_R) {
+        face(sideRotations[1]);
+    }
+    else if (side == Sides::TOP_SIDE_L || side == Sides::TOP_SIDE_R) {
+        face(sideRotations[2]);
+    }
+    else {
+        // button
+        face(sideRotations[3]);
+    }
+
+    glDisable(GL_TEXTURE_2D);
+
+    glPopAttrib();
+
+    // exit ortho mode
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
 }
 
-void preSyncFun()
-{
-    if(sequence && iterator <= stopIndex)
-    {
-        for( size_t i=0; i < numberOfTextures; i++)
-        {
+void preSyncFun() {
+    if (sequence && iterator <= stopIndex) {
+        for (size_t i = 0; i < numberOfTextures; i++) {
             char tmpStr[256];
 
-            if (numberOfDigits == 0)
-            {
-                #if (_MSC_VER >= 1400)
-                sprintf_s(tmpStr, 256, "%s.png",
-                    texturePaths[i].c_str() );
-                #else
-                sprintf(tmpStr, "%s.png",
-                    texturePaths[i].c_str() );
-                #endif
+            if (numberOfDigits == 0) {
+#if (_MSC_VER >= 1400)
+                sprintf_s(tmpStr, 256, "%s.png", texturePaths[i].c_str());
+#else
+                sprintf(tmpStr, "%s.png", texturePaths[i].c_str());
+#endif
             }
-            else
-            {
+            else {
                 char digitStr[16];
                 char zeros[16];
                 zeros[0] = '\0';
 
-                #if (_MSC_VER >= 1400)
+#if (_MSC_VER >= 1400)
                 sprintf_s(digitStr, 16, "%d", iterator);
-                #else
+#else
                 sprintf(digitStr, "%d", iterator);
-                #endif
+#endif
 
 
                 size_t currentSize = strlen(digitStr);
 
-                for (size_t j = 0; j < (numberOfDigits - currentSize); j++)
-                {
+                for (size_t j = 0; j < (numberOfDigits - currentSize); j++) {
                     zeros[j] = '0';
                     zeros[j + 1] = '\0';
                 }
 
-                #if (_MSC_VER >= 1400)
-                sprintf_s(tmpStr, 256, "%s%s%d.png",
-                    texturePaths[i].c_str(), zeros, iterator);
-                #else
-                sprintf(tmpStr, "%s%s%d.png",
-                    texturePaths[i].c_str(), zeros, iterator);
-                #endif
+#if (_MSC_VER >= 1400)
+                sprintf_s(
+                    tmpStr,
+                    256,
+                    "%s%s%d.png",
+                    texturePaths[i].c_str(),
+                    zeros,
+                    iterator
+                );
+#else
+                sprintf(tmpStr, "%s%s%d.png", texturePaths[i].c_str(), zeros, iterator);
+#endif
             }
 
-            //load the texture
-            if( !sgct::TextureManager::instance()->loadTexture(texturePaths[i], std::string(tmpStr), true, 1) )
-            {
-                std::cout << "Error: texture: " << textureIndices[i] <<
-                    " file: " << std::string(tmpStr) << " count: " << numberOfTextures << std::endl;
+            // load the texture
+            std::string str(tmpStr);
+            const bool loadSuccess = TextureManager::instance()->loadTexture(
+                texturePaths[i],
+                str,
+                true,
+                1
+            );
+            if (!loadSuccess) {
+                std::cout << "Error: texture: " << textureIndices[i] << " file: "
+                          << str << " count: " << numberOfTextures << '\n';
             }
-            else
-                textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+            else {
+                textureIndices[i] = TextureManager::instance()->getTextureId(
+                    texturePaths[i]
+                );
+            }
 
         }
 
-        //for( size_t i=0; i < numberOfTextures; i++)
-        //    fprintf(stderr, "Handle: %u, index: %u\n", textureHandles[i], sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]));
-
-        takeScreenshot.setVal( true );
+        takeScreenshot.setVal(true);
         iterator++;
     }
-    else if(sequence && iterator <= stopIndex && numberOfDigits == 0 )
-    {
-        for (size_t i = 0; i < numberOfTextures; i++)
-        {
-            if( sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1) )
-                textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+    else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
+        for (size_t i = 0; i < numberOfTextures; i++) {
+            const bool loadSuccess = TextureManager::instance()->loadTexture(
+                texturePaths[i],
+                texturePaths[i],
+                true,
+                1
+            );
+            if (loadSuccess) {
+                textureIndices[i] = TextureManager::instance()->getTextureId(
+                    texturePaths[i]
+                );
+            }
         }
 
-        takeScreenshot.setVal( true );
+        takeScreenshot.setVal(true);
         iterator++;
     }
 
     counter = 0;
 }
 
-void myPostSyncPreDrawFun()
-{
-    if( takeScreenshot.getVal() )
-    {
+void myPostSyncPreDrawFun() {
+    if (takeScreenshot.getVal()) {
         gEngine->takeScreenshot();
-        takeScreenshot.setVal( false );
+        takeScreenshot.setVal(false);
     }
 }
 
-void myPreWinInitFun()
-{
-    gEngine->getDefaultUserPtr()->setEyeSeparation(eyeSeparation);
-    for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
-    {
+void preWinInitFun() {
+    gEngine->getDefaultUser().setEyeSeparation(eyeSeparation);
+    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
+        SGCTWindow& win = gEngine->getWindow(i);
         gEngine->setScreenShotNumber(startFrame);
-        gEngine->getWindowPtr(i)->setAlpha(alpha);
+        win.setAlpha(alpha);
 
-        for (std::size_t j = 0; j < gEngine->getWindowPtr(i)->getNumberOfViewports(); j++)
-            if (gEngine->getWindowPtr(i)->getViewport(j)->hasSubViewports())
-            {
-                gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setClearColor(glm::vec4(0.0, 0.0, 0.0, 1.0));
-                gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setCubemapResolution(cubemapRes);
-                gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setInterpolationMode(sgct_core::NonLinearProjection::Cubic);
-
-                if (sgct_core::FisheyeProjection * fp = dynamic_cast<sgct_core::FisheyeProjection*>(gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()))
-                    fp->setDomeDiameter(domeDiameter);
+        for (int j = 0; j < gEngine->getWindow(i).getNumberOfViewports(); j++) {
+            sgct_core::Viewport& vp = win.getViewport(j);
+            if (!vp.hasSubViewports()) {
+                continue;
             }
+            vp.getNonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+            vp.getNonLinearProjection()->setCubemapResolution(cubemapRes);
+            vp.getNonLinearProjection()->setInterpolationMode(
+                sgct_core::NonLinearProjection::InterpolationMode::Cubic
+            );
+
+            sgct_core::FisheyeProjection* p = dynamic_cast<sgct_core::FisheyeProjection*>(
+                vp.getNonLinearProjection()
+            );
+            if (p) {
+                p->setDomeDiameter(domeDiameter);
+            }
+        }
         
-        gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
-        gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
-        gEngine->getWindowPtr(i)->setUseFXAA(fxaa);
-        if (stereo)
-            gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::Dummy_Stereo);
-        else
-            gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::No_Stereo);
+        win.setNumberOfAASamples(numberOfMSAASamples);
+        win.setFramebufferResolution(glm::ivec2(resolution, resolution));
+        win.setUseFXAA(fxaa);
+        if (stereo) {
+            win.setStereoMode(SGCTWindow::StereoMode::Dummy);
+        }
+        else {
+            win.setStereoMode(SGCTWindow::StereoMode::NoStereo);
+        }
     }
 }
 
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
-    sgct::TextureManager::instance()->setOverWriteMode(true);
-    //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+void initOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
+    TextureManager::instance()->setOverWriteMode(true);
 
-    //load all textures
-    if(!sequence)
-    {
-        for( size_t i=0; i<numberOfTextures; i++)
-        if (sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1))
-            textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+    // load all textures
+    if (!sequence) {
+        for (size_t i = 0; i < numberOfTextures; i++) {
+            const bool loadSuccess = TextureManager::instance()->loadTexture(
+                texturePaths[i],
+                texturePaths[i],
+                true,
+                1
+            );
+            if (loadSuccess) {
+                textureIndices[i] = TextureManager::instance()->getTextureId(
+                    texturePaths[i]
+                );
+            }
+        }
     }
 
-    //dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 360, 90);
-
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_COLOR_MATERIAL );
-    glDisable( GL_LIGHTING );
-    glEnable( GL_BLEND );
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void encodeFun()
-{
-    sgct::SharedData::instance()->writeBool( &takeScreenshot );
+void encodeFun() {
+    SharedData::instance()->writeBool(takeScreenshot);
 }
 
-void decodeFun()
-{
-    sgct::SharedData::instance()->readBool( &takeScreenshot );
+void decodeFun() {
+    SharedData::instance()->readBool(takeScreenshot);
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-        case 'P':
-        case SGCT_KEY_F10:
-            if(action == SGCT_PRESS)
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster() && action == SGCT_PRESS) {
+        switch (key) {
+            case 'P':
+            case SGCT_KEY_F10:
                 takeScreenshot.setVal(true);
-            break;
+                break;
         }
     }
 }
 
-sides getSideIndex(size_t index)
-{
-    sides tmpSide;
-
-    switch(index)
-    {
-    case 0:
-    default:
-        tmpSide = LEFT_SIDE_L;
-        break;
-
-    case 1:
-        tmpSide = RIGHT_SIDE_L;
-        break;
-
-    case 2:
-        tmpSide = TOP_SIDE_L;
-        break;
-
-    case 3:
-        tmpSide = BOTTOM_SIDE_L;
-        break;
-
-    case 4:
-        tmpSide = LEFT_SIDE_R;
-        break;
-
-    case 5:
-        tmpSide = RIGHT_SIDE_R;
-        break;
-
-    case 6:
-        tmpSide = TOP_SIDE_R;
-        break;
-
-    case 7:
-        tmpSide = BOTTOM_SIDE_R;
-        break;
+Sides getSideIndex(size_t index) {
+    switch (index) {
+        case 0:
+        default:
+            return Sides::LEFT_SIDE_L;
+        case 1:
+            return Sides::RIGHT_SIDE_L;
+        case 2:
+            return Sides::TOP_SIDE_L;
+        case 3:
+            return Sides::BOTTOM_SIDE_L;
+        case 4:
+            return Sides::LEFT_SIDE_R;
+        case 5:
+            return Sides::RIGHT_SIDE_R;
+        case 6:
+            return Sides::TOP_SIDE_R;
+        case 7:
+            return Sides::BOTTOM_SIDE_R;
     }
-
-    return tmpSide;
 }
 
-void face(rotation rot)
-{
-    switch(rot)
-    {
-    case ROT_0_DEG:
-    default:
-        {
-            glBegin(GL_QUADS);
-            glTexCoord2d(0.0, 0.0);
-            glVertex2d(0.0, 0.0);
 
-            glTexCoord2d(0.0, 1.0);
-            glVertex2d(0.0, 1.0);
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arguments(argv + 1, argv + argc);
+    gEngine = new Engine(arguments);
 
-            glTexCoord2d(1.0, 1.0);
-            glVertex2d(1.0, 1.0);
+    // parse arguments
+    for (int i = 0; i < argc; i++) {
+        std::string_view arg = argv[i];
+        if (arg == "-tex" && argc > (i + 1)) {
+            std::string tmpStr(argv[i + 1]);
+            size_t found = tmpStr.find_last_of(".");
+            if (found != std::string::npos && found > 0) {
+                numberOfDigits = 0;
+                for (size_t j = found - 1; j != 0; j--) {
+                    // if not numerical
+                    if (tmpStr[j] < '0' || tmpStr[j] > '9') {
+                        tmpStr = tmpStr.substr(0, i + 1);
+                        break;
+                    }
+                    else {
+                        numberOfDigits++;
+                    }
+                }
+            }
 
-            glTexCoord2d(1.0, 0.0);
-            glVertex2d(1.0, 0.0);
-            glEnd();
+            texturePaths[static_cast<int>(getSideIndex(numberOfTextures))] = tmpStr;
+
+            numberOfTextures++;
+            MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
         }
-        break;
-
-    case ROT_90_DEG:
-        {
-            glBegin(GL_QUADS);
-            glTexCoord2d(1.0, 0.0);
-            glVertex2d(0.0, 0.0);
-
-            glTexCoord2d(0.0, 0.0);
-            glVertex2d(0.0, 1.0);
-
-            glTexCoord2d(0.0, 1.0);
-            glVertex2d(1.0, 1.0);
-
-            glTexCoord2d(1.0, 1.0);
-            glVertex2d(1.0, 0.0);
-            glEnd();
+        else if (arg == "-seq" && argc > (i + 2)) {
+            sequence = true;
+            startIndex = atoi(argv[i + 1]);
+            stopIndex = atoi(argv[i + 2]);
+            iterator = startIndex;
+            MessageHandler::instance()->print(
+                "Loading sequence from %d to %d\n", startIndex, stopIndex
+            );
         }
-        break;
+        else if (arg == "-rot" && argc > (i + 4)) {
+            glm::ivec4 rotations = glm::ivec4(
+                atoi(argv[i + 1]),
+                atoi(argv[i + 2]),
+                atoi(argv[i + 3]),
+                atoi(argv[i + 4])
+            );
+            MessageHandler::instance()->print(
+                "Setting image rotations to L: %d, R: %d, T: %d, B: %d\n",
+                rotations.x, rotations.y, rotations.z, rotations.w
+            );
 
-    case ROT_180_DEG:
-        {
-            glBegin(GL_QUADS);
-            glTexCoord2d(1.0, 1.0);
-            glVertex2d(0.0, 0.0);
-
-            glTexCoord2d(1.0, 0.0);
-            glVertex2d(0.0, 1.0);
-
-            glTexCoord2d(0.0, 0.0);
-            glVertex2d(1.0, 1.0);
-
-            glTexCoord2d(0.0, 1.0);
-            glVertex2d(1.0, 0.0);
-            glEnd();
+            auto convertRotations = [](int v) {
+                switch (v) {
+                    case 0:
+                    default:
+                        return Rotation::ROT_0_DEG;
+                    case 90:
+                        return Rotation::ROT_90_DEG;
+                    case 180:
+                        return Rotation::ROT_180_DEG;
+                    case 270:
+                        return Rotation::ROT_270_DEG;
+                }
+            };
+            sideRotations[0] = convertRotations(rotations[0]);
+            sideRotations[1] = convertRotations(rotations[1]);
+            sideRotations[2] = convertRotations(rotations[2]);
+            sideRotations[3] = convertRotations(rotations[3]);
         }
-        break;
-
-    case ROT_270_DEG:
-        {
-            glBegin(GL_QUADS);
-            glTexCoord2d(0.0, 1.0);
-            glVertex2d(0.0, 0.0);
-
-            glTexCoord2d(1.0, 1.0);
-            glVertex2d(0.0, 1.0);
-
-            glTexCoord2d(1.0, 0.0);
-            glVertex2d(1.0, 1.0);
-
-            glTexCoord2d(0.0, 0.0);
-            glVertex2d(1.0, 0.0);
-            glEnd();
+        else if (arg == "-start" && argc > (i + 1)) {
+            startFrame = atoi(argv[i + 1]);
+            MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
         }
-        break;
+        else if (arg == "-alpha" && argc > (i + 1)) {
+            alpha = std::string_view(argv[i + 1]) == "1";
+            MessageHandler::instance()->print(
+                "Setting alpha to %s\n", alpha ? "true" : "false"
+            );
+        }
+        else if (arg == "-stereo" && argc > (i + 1)) {
+            stereo = std::string_view(argv[i + 1]) == "1";
+            MessageHandler::instance()->print(
+                "Setting stereo to %s\n", stereo ? "true" : "false"
+            );
+        }
+        else if (arg == "-cubic" && argc > (i + 1)) {
+            cubic = std::string_view(argv[i + 1]) == "1";
+            MessageHandler::instance()->print(
+                "Setting cubic interpolation to %s\n", cubic ? "true" : "false"
+            );
+        }
+        else if (arg == "-fxaa" && argc > (i + 1)) {
+            fxaa = std::string_view(argv[i + 1]) == "1";
+            MessageHandler::instance()->print(
+                "Setting fxaa to %s\n", fxaa ? "true" : "false"
+            );
+        }
+        else if (arg == "-eyeSep" && argc > (i + 1)) {
+            eyeSeparation = static_cast<float>(atof(argv[i + 1]));
+            MessageHandler::instance()->print(
+                "Setting eye separation to %f\n", eyeSeparation
+            );
+        }
+        else if (arg == "-diameter" && argc > (i + 1)) {
+            domeDiameter = static_cast<float>(atof(argv[i + 1]));
+            MessageHandler::instance()->print(
+                "Setting dome diameter to %f\n", domeDiameter
+            );
+        }
+        else if (arg == "-msaa" && argc > (i + 1)) {
+            numberOfMSAASamples = atoi(argv[i + 1]);
+            MessageHandler::instance()->print(
+                "Number of MSAA samples set to %d\n", numberOfMSAASamples
+            );
+        }
+        else if (arg == "-res" && argc > (i + 1)) {
+            resolution = atoi(argv[i + 1]);
+            MessageHandler::instance()->print("Resolution set to %d\n", resolution);
+        }
+        else if (arg == "-cubemap" && argc > (i + 1)) {
+            cubemapRes = atoi(argv[i + 1]);
+            MessageHandler::instance()->print(
+                "Cubemap resolution set to %d\n", cubemapRes
+            );
+        }
+        else if (arg == "-format" && argc > (i + 1)) {
+            std::string_view arg2 = argv[i + 1];
+            sgct::SGCTSettings::CaptureFormat f = [](std::string_view format) {
+                if (format == "png" || format == "PNG") {
+                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                }
+                else if (format == "tga" || format == "TGA") {
+                    return sgct::SGCTSettings::CaptureFormat::TGA;
+                }
+                else if (format == "jpg" || format == "JPG") {
+                    return sgct::SGCTSettings::CaptureFormat::JPG;
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        "Unknown capturing format. Using PNG\n"
+                    );
+                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                }
+            } (arg2);
+            SGCTSettings::instance()->setCaptureFormat(f);
+            sgct::MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
+        }
+        else if (arg == "-leftPath" && argc > (i + 1)) {
+            SGCTSettings::instance()->setCapturePath(
+                argv[i + 1],
+                SGCTSettings::CapturePath::Mono
+            );
+            SGCTSettings::instance()->setCapturePath(
+                argv[i + 1],
+                SGCTSettings::CapturePath::LeftStereo
+            );
+
+            MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
+        }
+        else if (arg == "-rightPath" && argc > (i + 1)) {
+            SGCTSettings::instance()->setCapturePath(
+                argv[i + 1],
+                SGCTSettings::CapturePath::RightStereo
+            );
+
+            MessageHandler::instance()->print("Right path set to %s\n", argv[i + 1]);
+        }
+        else if (arg == "-compression" && argc > (i + 1)) {
+            int tmpi = atoi(argv[i + 1]);
+            SGCTSettings::instance()->setPNGCompressionLevel(tmpi);
+
+            MessageHandler::instance()->print("Compression set to %d\n", tmpi);
+        }
     }
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+    gEngine->setPreSyncFunction(preSyncFun);
+    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setPreWindowFunction(preWinInitFun);
+
+    gEngine->setClearColor(0.f, 0.f, 0.f, 1.f);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

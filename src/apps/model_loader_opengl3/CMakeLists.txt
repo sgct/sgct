@@ -7,7 +7,6 @@ target_link_libraries(model_loader_opengl3 PRIVATE sgct)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
 )

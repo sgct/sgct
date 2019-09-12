@@ -1,79 +1,70 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include "sgct.h"
+#include <sgct.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void drawFun();
-void initOGLFun();
+    const glm::vec4 lightPosition = glm::vec4(5.f, 5.f, 10.f, 1.f);
+    const glm::vec4 lightAmbient = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
+    const glm::vec4 lightDiffuse = glm::vec4(0.6f, 0.6f, 0.6f, 1.f);
+    const glm::vec4 lightSpecular = glm::vec4(1.f, 1.f, 1.f, 1.f);
 
-GLfloat lightPosition[] = { 5.0f, 5.0f, 10.0f, 1.0f };
-GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
-GLfloat lightDiffuse[]= { 0.6f, 0.6f, 0.6f, 1.0f };
-GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
+    const glm::vec4 materialAmbient = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    const glm::vec4 materialDiffuse = glm::vec4(1.f, 1.f, 0.f, 1.f);
+    const glm::vec4 materialSpecular = glm::vec4(0.f, 1.f, 1.f, 1.f);
+    const float materialShininess = 64.f;
 
-GLfloat materialAmbient[] = {1.0, 0.0, 0.0, 1.0};
-GLfloat materialDiffuse[] = {1.0, 1.0, 0.0, 1.0};
-GLfloat materialSpecular[] = {0.0, 1.0, 1.0, 1.0};
-GLfloat materialShininess = 64;
+    std::unique_ptr<sgct_utils::SGCTSphere> sphere;
+} // namespace
 
-size_t myTextureIndex;
-sgct_utils::SGCTSphere * mySphere = NULL;
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+void drawFun() {
+    glLightfv(GL_LIGHT0, GL_POSITION, glm::value_ptr(lightPosition));
+    glTranslatef(0.f, 0.f, -3.f);
+    
+    sphere->draw();
+}
 
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
+void initOGLFun() {
+    sphere = std::make_unique<sgct_utils::SGCTSphere>(1.f, 32);
+    
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_NORMALIZE);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_LIGHTING);
 
-    if( !gEngine->init() )
-    {
+    // Set up light 0
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(lightAmbient));
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(lightDiffuse));
+    glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(lightSpecular));
+
+    // Set up material
+    glMaterialfv(GL_FRONT, GL_AMBIENT, glm::value_ptr(materialAmbient));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, glm::value_ptr(materialDiffuse));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, glm::value_ptr(materialSpecular));
+    glMaterialf(GL_FRONT, GL_SHININESS, materialShininess);
+
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+
+    if (!gEngine->init()) {
         delete gEngine;
         return EXIT_FAILURE;
     }
 
-    // Main loop
     gEngine->render();
-
-    // Clean up
-    if(mySphere != NULL) delete mySphere;
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-    glTranslatef(0.0f, 0.0f, -3.0f);
-    
-    mySphere->draw();
-}
-
-void initOGLFun()
-{
-    mySphere = new sgct_utils::SGCTSphere(1.0f, 32);
-    
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-    glEnable( GL_NORMALIZE );
-    glShadeModel( GL_SMOOTH );
-    glEnable( GL_LIGHTING );
-
-    //Set up light 0
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
-    //Set up material
-    glMaterialfv(GL_FRONT, GL_AMBIENT, materialAmbient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, materialDiffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, materialSpecular);
-    glMaterialf( GL_FRONT, GL_SHININESS, materialShininess);
-
-    //Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    sphere = nullptr;
+    exit(EXIT_SUCCESS);
 }

@@ -1,36 +1,13 @@
-#include "sgct.h"
+#include <sgct.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
+} // namespace
 
-void drawFun();
-void initOGLFun();
+using namespace sgct;
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
-
-    gEngine->setInitOGLFunction( initOGLFun );
-    gEngine->setDrawFunction( drawFun );
-
-    if( !gEngine->init() )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void drawFun()
-{
-    //enter ortho mode
+void drawFun() {
+    // enter ortho mode
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
@@ -42,34 +19,50 @@ void drawFun()
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
 
-    glColor3f(1.0f,1.0f,1.0f);
+    glColor3f(1.f, 1.f, 1.f);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("grid"));
+    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("grid"));
 
     glBegin(GL_QUADS);
-    glTexCoord2d(0.0, 0.0);
-    glVertex2d(0.0, 0.0);
+    glTexCoord2f(0.f, 0.f);
+    glVertex2f(0.f, 0.f);
 
-    glTexCoord2d(0.0, 1.0);
-    glVertex2d(0.0, 1.0);
+    glTexCoord2f(0.f, 1.f);
+    glVertex2f(0.f, 1.f);
 
-    glTexCoord2d(1.0, 1.0);
-    glVertex2d(1.0, 1.0);
+    glTexCoord2f(1.f, 1.f);
+    glVertex2f(1.f, 1.f);
 
-    glTexCoord2d(1.0, 0.0);
-    glVertex2d(1.0, 0.0);
+    glTexCoord2f(1.f, 0.f);
+    glVertex2f(1.f, 0.f);
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
 
     glPopAttrib();
 
-    //exit ortho mode
+    // exit ortho mode
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 }
 
-void initOGLFun()
-{
-    sgct::TextureManager::instance()->loadTexure("grid", "grid.png", true, 0);
+void initOGLFun() {
+    TextureManager::instance()->loadTexture("grid", "grid.png", true, 0);
+}
+
+int main(int argc, char* argv[]) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(initOGLFun);
+    gEngine->setDrawFunction(drawFun);
+
+    if (!gEngine->init()) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    gEngine->render();
+    delete gEngine;
+    exit(EXIT_SUCCESS);
 }

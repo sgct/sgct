@@ -8,7 +8,7 @@ namespace {
 using namespace sgct;
 
 void myDraw2DFun() {
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
         const float* axesPos = Engine::getJoystickAxes(SGCT_JOYSTICK_1, &numberOfAxes);
@@ -38,7 +38,7 @@ void myDraw2DFun() {
             "%s", joystickInfoStr.c_str()
         );
     }
-#endif
+#endif // SGCT_HAS_TEXT
 }
 
 int main(int argc, char* argv[]) {
@@ -55,13 +55,10 @@ int main(int argc, char* argv[]) {
         MessageHandler::instance()->print("Joystick 1 '%s' is present\n", joyStick1Name);
 
         int numberOfAxes = 0;
-        const float* axesPos = Engine::getJoystickAxes(SGCT_JOYSTICK_1, &numberOfAxes);
+        Engine::getJoystickAxes(SGCT_JOYSTICK_1, &numberOfAxes);
 
         int numberOfButtons = 0;
-        const unsigned char* buttons = Engine::getJoystickButtons(
-            SGCT_JOYSTICK_1,
-            &numberOfButtons
-        );
+        Engine::getJoystickButtons(SGCT_JOYSTICK_1, &numberOfButtons);
 
         MessageHandler::instance()->print(
             "Number of axes %d\nNumber of buttons %d\n", numberOfAxes, numberOfButtons

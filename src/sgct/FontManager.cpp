@@ -306,7 +306,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         shaderCreated = true;
     }
 
-    return std::move(font);
+    return font;
 }
 
 } // namespace sgct_text

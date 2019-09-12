@@ -76,7 +76,6 @@ function (set_compile_options target)
       "-Wstring-conversion"
       "-Wtautological-compare"
       "-Wthread-safety"
-      "-Wundef"
       "-Wundefined-reinterpret-cast"
       "-Wuninitialized"
       "-Wunneeded-internal-declaration"

@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <thread>
 
 namespace tinyxml2 { class XMLElement; }
 

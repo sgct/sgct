@@ -15,10 +15,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_text {
 
 Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
-    : mFTLibrary(lib)
-    , mFace(face)
-    , mName(std::move(name))
+    : mName(std::move(name))
     , mHeight(static_cast<float>(height))
+    , mFace(face)
+    , mFTLibrary(lib)
 {
     // setup geometry
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
@@ -303,7 +303,7 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
 
     // Allocate memory for the texture data
     pixels.resize(2 * width * height);
-    std::fill(pixels.begin(), pixels.end(), unsigned char(0));
+    std::fill(pixels.begin(), pixels.end(), static_cast<unsigned char>(0));
 
     // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
     // operator so that value which we use will be 0 if we are in the padding zone, and

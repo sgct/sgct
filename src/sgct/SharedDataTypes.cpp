@@ -20,8 +20,6 @@ template class SharedObject<uint32_t>;
 template class SharedObject<int16_t>;
 template class SharedObject<uint16_t>;
 template class SharedObject<int8_t>;
-template class SharedObject<uint8_t>;
-template class SharedObject<unsigned char>;
 template class SharedObject<bool>;
 template class SharedObject<std::string>;
 template class SharedObject<std::wstring>;

@@ -407,7 +407,7 @@ void Statistics::setLoopTime(float min, float max) {
 
 
 void Statistics::addSyncTime(float t) {
-    mDynamicVertexList.syncTime[StatsHistoryLength].y += t;
+    mDynamicVertexList.syncTime[StatsHistoryLength - 1].y += t;
     mAvgSyncTime += (t / static_cast<float>(StatsAverageLength));
 }
 

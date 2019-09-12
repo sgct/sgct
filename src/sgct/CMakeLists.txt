@@ -125,6 +125,7 @@ add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
 set_compile_options(sgct)
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/include)
 target_compile_definitions(sgct PRIVATE GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct
@@ -134,13 +135,13 @@ target_link_libraries(sgct
 
 if (SGCT_FREETYPE_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
-  target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/include/external/freetype)
+  target_include_directories(sgct SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/ext/include/external/freetype)
   target_link_libraries(sgct PRIVATE freetype)
 endif ()
 
 if (SGCT_SPOUT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
-  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/spout)
+  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/spout)
   target_link_libraries(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.lib)
 
   get_target_property(tmp sgct DYNAMIC_LIBS)
@@ -158,7 +159,7 @@ endif ()
 
 if (SGCT_OPENVR_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_OPENVR)
-  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
+  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
 endif ()
 
 find_package(OpenGL REQUIRED)
@@ -171,31 +172,31 @@ elseif (APPLE)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
-  target_link_libraries(calibrator PRIVATE
+  target_link_libraries(sgct PRIVATE
     ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
   )
 else() # Linux
   find_package(X11 REQUIRED)
   find_package(Threads REQUIRED)
 
-  target_link_libraries(calibrator PRIVATE
+  target_link_libraries(sgct PRIVATE
     ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
   )
 endif ()
 
-target_include_directories(sgct
-  PUBLIC
+target_include_directories(sgct SYSTEM PUBLIC
     ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
-  PRIVATE
-    ${PROJECT_BINARY_DIR}/src/deps/vrpn
-    ${PROJECT_SOURCE_DIR}/src/deps/vrpn
-    ${PROJECT_BINARY_DIR}/src/deps/lpng
-    ${PROJECT_SOURCE_DIR}/src/deps/lpng
-    ${PROJECT_SOURCE_DIR}/src/deps/zlib
-    ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
-    ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
-    ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
-    ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
-    ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
+)
+target_include_directories(sgct SYSTEM PRIVATE
+  ${PROJECT_BINARY_DIR}/src/deps/vrpn
+  ${PROJECT_SOURCE_DIR}/src/deps/vrpn
+  ${PROJECT_BINARY_DIR}/src/deps/lpng
+  ${PROJECT_SOURCE_DIR}/src/deps/lpng
+  ${PROJECT_SOURCE_DIR}/src/deps/zlib
+  ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
+  ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
+  ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
+  ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
+  ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
 )

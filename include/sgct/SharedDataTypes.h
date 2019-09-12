@@ -77,8 +77,6 @@ extern template class SharedObject<uint32_t>;
 extern template class SharedObject<int16_t>;
 extern template class SharedObject<uint16_t>;
 extern template class SharedObject<int8_t>;
-extern template class SharedObject<uint8_t>;
-extern template class SharedObject<unsigned char>;
 extern template class SharedObject<bool>;
 extern template class SharedObject<std::string>;
 extern template class SharedObject<std::wstring>;

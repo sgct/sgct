@@ -17,9 +17,8 @@ add_definitions(-DFT2_BUILD_LIBRARY)
 include_directories(
   "${PROJECT_SOURCE_DIR}/src/deps/freetype/include"
   "${PROJECT_SOURCE_DIR}/src/deps/zlib"
-  "${PROJECT_SOURCE_DIR}/include"
-  "${PROJECT_SOURCE_DIR}/include/external/freetype"
-  "${PROJECT_SOURCE_DIR}/include/external/freetype"
+  "${PROJECT_SOURCE_DIR}/ext/include"
+  "${PROJECT_SOURCE_DIR}/ext/include/external/freetype"
   "${PROJECT_BINARY_DIR}/src/deps/lpng/zlib") #needed for zconf
 
 # Create the configuration file

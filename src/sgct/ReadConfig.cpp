@@ -243,9 +243,6 @@ namespace {
         else if constexpr (std::is_same_v<T, double>) {
             err = e.QueryDoubleAttribute(name, &value);
         }
-        else {
-            static_assert(false, "Unhandled type");
-        }
 
         if (err == tinyxml2::XML_NO_ERROR) {
             return value;
@@ -1030,7 +1027,7 @@ namespace {
                 sgct::MessageHandler::Level::Error,
                 "ReadConfig: Error: Bad configuration path string\n"
             );
-            return false;
+            return std::string();
         }
         else {
             size_t appendPos = 0;
@@ -1051,7 +1048,7 @@ namespace {
                         "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
                         envVar.c_str()
                     );
-                    return false;
+                    return std::string();
                 }
 #else
                 char* fetchedEnvVar = getenv(envVar.c_str());

@@ -2896,7 +2896,7 @@ void Engine::parseArguments(std::vector<std::string>& arg) {
         MessageHandler::Level::Info,
         "Parsing arguments\n"
     );
-    int i = 0;
+    size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
             configFilename = arg[i + 1];
@@ -3459,7 +3459,7 @@ void Engine::setExternalControlBufferSize(unsigned int newSize) {
 void Engine::updateAAInfo(const SGCTWindow& window) {
     if (window.useFXAA()) {
         if (window.getNumberOfAASamples() > 1) {
-            mAAInfo = "FXAA+MSAAx" + window.getNumberOfAASamples();
+            mAAInfo = "FXAA+MSAAx" + std::to_string(window.getNumberOfAASamples());
         }
         else {
             mAAInfo = "FXAA";
@@ -3468,7 +3468,7 @@ void Engine::updateAAInfo(const SGCTWindow& window) {
     else {
         // no FXAA
         if (window.getNumberOfAASamples() > 1) {
-            mAAInfo = "MSAAx" + window.getNumberOfAASamples();
+            mAAInfo = "MSAAx" + std::to_string(window.getNumberOfAASamples());
         }
         else {
             mAAInfo = "none";

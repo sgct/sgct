@@ -26,7 +26,7 @@ namespace {
         const bool success = fopen_s(&cfgFile, cfgFilePath.c_str(), "r") == 0 && cfgFile;
 #else
         cfgFile = fopen(cfgFilePath.c_str(), "r");
-        const bool = cfgFile != nullptr;
+        const bool success = cfgFile != nullptr;
 #endif
         if (!success) {
             sgct::MessageHandler::instance()->print(

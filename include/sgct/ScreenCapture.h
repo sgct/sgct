@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 #include <glm/glm.hpp>
 
 namespace sgct_core {

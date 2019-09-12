@@ -193,9 +193,7 @@ private:
     // #sadface
     std::vector<std::unique_ptr<SGCTNode>> nodes;
 
-    int masterIndex = -1;
     int mThisNodeId = -1;
-    bool validCluster = false;
     bool mFirmFrameLockSync = false;
     bool mIgnoreSync = false;
     std::string mMasterAddress;

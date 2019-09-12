@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/OffScreenBuffer.h>
 #include <sgct/SGCTSettings.h>
 #include <algorithm>
+#include <unordered_map>
 
 namespace sgct_core {
 

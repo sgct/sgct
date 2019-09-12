@@ -102,7 +102,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
 #else
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
-        strftime(TimeBuffer, TIME_BUFFER_SIZE, "%X", timeInfoPtr);
+        strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 #endif
 
 #if (_MSC_VER >= 1400)

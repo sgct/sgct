@@ -29,7 +29,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
     constexpr const int MaxLineLength = 1024;
-    constexpr const int MaxXmlDepth = 16;
 
     bool readMeshBuffer(float* dest, unsigned int& idx, const unsigned char* src,
                         size_t srcSize_bytes, int readSize_bytes)
@@ -434,7 +433,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
                     buf.indices.resize(numberOfIndices);
                     std::fill(buf.indices.begin(), buf.indices.end(), 0);
                 }
-                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, 16, &tmpD) == 2) {
+                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
                     if (strcmp(tmpBuf, "LEFT") == 0) {
                         leftOrtho = tmpD;
                     }
@@ -713,7 +712,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
     );
 #else
     retval = fread(
-        texturedVertexList,
+        texturedVertexList.data(),
         sizeof(SCISSTexturedVertex),
         numberOfVertices,
         meshFile
@@ -768,7 +767,12 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
             meshFile
         );
 #else
-        retval = fread(mTempIndices, sizeof(unsigned int), numberOfIndices, meshFile);
+        retval = fread(
+            buf.indices.data(),
+            sizeof(unsigned int),
+            numberOfIndices,
+            meshFile
+        );
 #endif
         if (retval != numberOfIndices) {
             sgct::MessageHandler::instance()->print(
@@ -1195,7 +1199,6 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
 #endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
 
     CorrectionMeshVertex vertex;
-    SCISSTexturedVertex scissVertex;
 
     // init to max intensity (opaque white)
     vertex.r = 1.f;
@@ -1239,6 +1242,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
             outMeshFile << c << ";";
             outMeshFile << r << std::endl;
 
+            SCISSTexturedVertex scissVertex;
             scissVertex.x = x;
             scissVertex.y = 1.f - y;
             scissVertex.tx = u;
@@ -1942,7 +1946,6 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     std::vector<float> corrGridX(numCorrectionValues);
     std::vector<float> corrGridY(numCorrectionValues);
     float errorPos;
-    const int value32bit = 4;
 
     if (isReadingFile) {
         size_t ret = 0;

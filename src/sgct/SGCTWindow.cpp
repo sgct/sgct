@@ -275,7 +275,7 @@ void SGCTWindow::initContextSpecificOGL() {
     // must be uncompressed otherwise artefacts will occur in gradients
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
 
-    for (size_t j = 0; j < getNumberOfViewports(); j++) {
+    for (int j = 0; j < getNumberOfViewports(); j++) {
         sgct_core::Viewport& vp = getViewport(j);
         vp.loadData();
         if (vp.hasBlendMaskTexture() || vp.hasBlackLevelMaskTexture()) {
@@ -450,7 +450,7 @@ void SGCTWindow::updateResolutions() {
 
         // Set field of view of each of this window's viewports to match new
         // aspect ratio, adjusting only the horizontal (x) values.
-        for (std::size_t j = 0; j < getNumberOfViewports(); ++j) {
+        for (int j = 0; j < getNumberOfViewports(); ++j) {
             sgct_core::Viewport& vp = getViewport(j);
             vp.updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
             MessageHandler::instance()->print(
@@ -491,7 +491,7 @@ void SGCTWindow::updateResolutions() {
 void SGCTWindow::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values.
-    for (size_t j = 0; j < getNumberOfViewports(); ++j) {
+    for (int j = 0; j < getNumberOfViewports(); ++j) {
         sgct_core::Viewport& vp = getViewport(j);
         vp.setHorizontalFieldOfView(hFovDeg, mAspectRatio);
     }
@@ -725,7 +725,7 @@ void SGCTWindow::setCopyPreviousWindowToCurrentWindow(bool state) {
     }
 }
 
-bool SGCTWindow::openWindow(GLFWwindow* share, size_t lastWindowIdx) {
+bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
 
@@ -1264,42 +1264,36 @@ void SGCTWindow::loadShaders() {
 
     std::string stereoFragShader = [this, fixed]() {
         switch (mStereoMode) {
-        case StereoMode::AnaglyphRedCyan:
-            return fixed ?
-                shaders::AnaglyphRedCyanFrag :
-                shaders_modern::AnaglyphRedCyanFrag;
-            break;
-        case StereoMode::AnaglyphAmberBlue:
-            return fixed ?
-                shaders::AnaglyphAmberBlueFrag :
-                shaders_modern::AnaglyphAmberBlueFrag;
-            break;
-        case StereoMode::AnaglyphRedCyanWimmer:
-            return fixed ?
-                shaders::AnaglyphRedCyanWimmerFrag :
-                shaders_modern::AnaglyphRedCyanWimmerFrag;
-            break;
-        case StereoMode::Checkerboard:
-            return fixed ? shaders::CheckerBoardFrag : shaders_modern::CheckerBoardFrag;
-            break;
-        case StereoMode::CheckerboardInverted:
-            return fixed ?
-                shaders::CheckerBoardInvertedFrag :
-                shaders_modern::CheckerBoardInvertedFrag;
-            break;
-        case StereoMode::VerticalInterlaced:
-            return fixed ?
-                shaders::VerticalInterlacedFrag :
-                shaders_modern::VerticalInterlacedFrag;
-            break;
-        case StereoMode::VerticalInterlacedInverted:
-            return fixed ?
-                shaders::VerticalInterlacedInvertedFrag :
-                shaders_modern::VerticalInterlacedInvertedFrag;
-            break;
-        default:
-            return fixed ? shaders::DummyStereoFrag : shaders_modern::DummyStereoFrag;
-            break;
+            case StereoMode::AnaglyphRedCyan:
+                return fixed ?
+                    shaders::AnaglyphRedCyanFrag :
+                    shaders_modern::AnaglyphRedCyanFrag;
+            case StereoMode::AnaglyphAmberBlue:
+                return fixed ?
+                    shaders::AnaglyphAmberBlueFrag :
+                    shaders_modern::AnaglyphAmberBlueFrag;
+            case StereoMode::AnaglyphRedCyanWimmer:
+                return fixed ?
+                    shaders::AnaglyphRedCyanWimmerFrag :
+                    shaders_modern::AnaglyphRedCyanWimmerFrag;
+            case StereoMode::Checkerboard:
+                return fixed ?
+                    shaders::CheckerBoardFrag :
+                    shaders_modern::CheckerBoardFrag;
+            case StereoMode::CheckerboardInverted:
+                return fixed ?
+                    shaders::CheckerBoardInvertedFrag :
+                    shaders_modern::CheckerBoardInvertedFrag;
+            case StereoMode::VerticalInterlaced:
+                return fixed ?
+                    shaders::VerticalInterlacedFrag :
+                    shaders_modern::VerticalInterlacedFrag;
+            case StereoMode::VerticalInterlacedInverted:
+                return fixed ?
+                    shaders::VerticalInterlacedInvertedFrag :
+                    shaders_modern::VerticalInterlacedInvertedFrag;
+            default:
+                return fixed ? shaders::DummyStereoFrag : shaders_modern::DummyStereoFrag;
         }
     }();
 
@@ -1472,8 +1466,8 @@ glm::ivec4 SGCTWindow::getCurrentViewportPixelCoords() const {
     );
 }
 
-size_t SGCTWindow::getNumberOfViewports() const {
-    return mViewports.size();
+int SGCTWindow::getNumberOfViewports() const {
+    return static_cast<int>(mViewports.size());
 }
 
 void SGCTWindow::setNumberOfAASamples(int samples) {

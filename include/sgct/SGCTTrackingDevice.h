@@ -55,15 +55,15 @@ public:
     int getNumberOfAxes() const;
 
     /// \returns a digital value from array
-    bool getButton(size_t index) const;
+    bool getButton(int index) const;
     
     /// \returns a digital value from array
-    bool getButtonPrevious(size_t index) const;
+    bool getButtonPrevious(int index) const;
 
     /// \returns an analog value from array
-    double getAnalog(size_t index) const;
+    double getAnalog(int index) const;
     /// \returns an analog value from array
-    double getAnalogPrevious(size_t index) const;
+    double getAnalogPrevious(int index) const;
     
     bool isEnabled() const;
     bool hasSensor() const;

@@ -42,8 +42,8 @@ std::function<void(int, int, int)> gMouseButtonCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMousePosCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFnPtr = nullptr;
 std::function<void(int, const char**)> gDropCallbackFnPtr = nullptr;
-std::function<void(const sgct_core::Touch*)> gTouchCallbackFnPtr = nullptr;
-sgct_core::Touch gCurrentTouchPoints;
+//std::function<void(const sgct_core::Touch*)> gTouchCallbackFnPtr = nullptr;
+// sgct_core::Touch gCurrentTouchPoints;
 
 bool sRunUpdateFrameLockLoop = true;
 
@@ -116,25 +116,25 @@ namespace {
     }
 
 
-    void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
-        sgct::Engine& eng = *sgct::Engine::instance();
-        glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
+    // void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
+    //     sgct::Engine& eng = *sgct::Engine::instance();
+    //     glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
-        gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
+    //     gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
 
-        if (gTouchCallbackFnPtr && !gCurrentTouchPoints.getLatestTouchPoints().empty()) {
-            gTouchCallbackFnPtr(&gCurrentTouchPoints);
-        }
+    //     // if (gTouchCallbackFnPtr && !gCurrentTouchPoints.getLatestTouchPoints().empty()) {
+    //     //     gTouchCallbackFnPtr(&gCurrentTouchPoints);
+    //     // }
 
-        gCurrentTouchPoints.setLatestPointsHandled();
-    }
+    //     gCurrentTouchPoints.setLatestPointsHandled();
+    // }
 
     void outputHelpMessage() {
         fprintf(stderr, R"(
 Parameters:
 ------------------------------------
 -config <filename.xml>
-    Set xml confiuration file
+    Set XML confiuration file
 -logPath <filepath>
     Set log file path
 --help
@@ -296,9 +296,9 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
         if (gDropCallbackFnPtr) {
             glfwSetDropCallback(window, dropCallback);
         }
-        if (gTouchCallbackFnPtr) {
-            glfwSetTouchCallback(window, touchCallback);
-        }
+        // if (gTouchCallbackFnPtr) {
+        //     glfwSetTouchCallback(window, touchCallback);
+        // }
     }
 
     initOGL();
@@ -520,7 +520,7 @@ bool Engine::initWindows() {
     mStatistics = std::make_unique<sgct_core::Statistics>();
 
     GLFWwindow* share = nullptr;
-    size_t lastWindowIdx = mThisNode->getNumberOfWindows() - 1;
+    int lastWindowIdx = mThisNode->getNumberOfWindows() - 1;
     for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         if (i > 0) {
             share = mThisNode->getWindow(0).getWindowHandle();
@@ -742,7 +742,7 @@ void Engine::initOGL() {
     // link all users to their viewports
     for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& winPtr = mThisNode->getWindow(w);
-        for (unsigned int i = 0; i < winPtr.getNumberOfViewports(); i++) {
+        for (int i = 0; i < winPtr.getNumberOfViewports(); i++) {
             winPtr.getViewport(i).linkUserName();
         }
     }
@@ -942,7 +942,7 @@ void Engine::clearAllCallbacks() {
     gMousePosCallbackFnPtr = nullptr;
     gMouseScrollCallbackFnPtr = nullptr;
     gDropCallbackFnPtr = nullptr;
-    gTouchCallbackFnPtr = nullptr;
+    // gTouchCallbackFnPtr = nullptr;
 
     for (TimerInformation& ti : mTimers) {
         ti.mCallback = nullptr;
@@ -1200,7 +1200,7 @@ void Engine::render() {
             // Render Left/Mono non-linear projection viewports to cubemap
             mCurrentRenderTarget = RenderTarget::NonLinearBuffer;
 
-            for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
+            for (int j = 0; j < win.getNumberOfViewports(); j++) {
                 Viewport& vp = win.getViewport(j);
                 mCurrentViewportIndex.main = j;
                 if (!vp.hasSubViewports()) {
@@ -1252,7 +1252,7 @@ void Engine::render() {
 
             // Render right non-linear projection viewports to cubemap
             mCurrentRenderTarget = RenderTarget::NonLinearBuffer;
-            for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
+            for (int j = 0; j < win.getNumberOfViewports(); j++) {
                 mCurrentViewportIndex.main = j;
 
                 if (!win.getViewport(j).hasSubViewports()) {
@@ -1603,7 +1603,7 @@ void Engine::drawFixedPipeline() {
 }
 
 void Engine::drawOverlays() {
-    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
         getCurrentWindow().setCurrentViewport(i);
         const sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
         
@@ -1626,7 +1626,7 @@ void Engine::drawOverlays() {
 }
 
 void Engine::drawOverlaysFixedPipeline() {
-    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
         getCurrentWindow().setCurrentViewport(i);
         const sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
 
@@ -1756,7 +1756,7 @@ void Engine::renderFBOTexture() {
         glUniform1i(win.getStereoShaderLeftTexLoc(), 0);
         glUniform1i(win.getStereoShaderRightTexLoc(), 1);
 
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             if (useWarping) {
                win.getViewport(i).renderWarpMesh();
             }
@@ -1773,7 +1773,7 @@ void Engine::renderFBOTexture() {
         glUniform1i(mShaderLoc.monoTex, 0);
         maskShaderSet = true;
 
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             if (useWarping) {
                 win.getViewport(i).renderWarpMesh();
             }
@@ -1791,7 +1791,7 @@ void Engine::renderFBOTexture() {
             setAndClearBuffer(BufferMode::BackBufferBlack);
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
-            for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+            for (int i = 0; i < win.getNumberOfViewports(); i++) {
                 if (useWarping) {
                     win.getViewport(i).renderWarpMesh();
                 }
@@ -1818,7 +1818,7 @@ void Engine::renderFBOTexture() {
 
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
@@ -1827,7 +1827,7 @@ void Engine::renderFBOTexture() {
         }
 
         // render black level masks
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
@@ -1904,7 +1904,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
         glEnable(GL_TEXTURE_2D);
 
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             if (useWarping) {
                 win.getViewport(i).renderWarpMesh();
             }
@@ -1919,7 +1919,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
         glEnable(GL_TEXTURE_2D);
 
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             if (useWarping) {
                 win.getViewport(i).renderWarpMesh();
             }
@@ -1938,7 +1938,7 @@ void Engine::renderFBOTextureFixedPipeline() {
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
 
-            for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+            for (int i = 0; i < win.getNumberOfViewports(); i++) {
                 if (useWarping) {
                     win.getViewport(i).renderWarpMesh();
                 }
@@ -1965,7 +1965,7 @@ void Engine::renderFBOTextureFixedPipeline() {
 
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
@@ -1974,7 +1974,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         }
 
         // render black level masks
-        for (size_t i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             const sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
@@ -2002,7 +2002,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     SGCTWindow::StereoMode sm = getCurrentWindow().getStereoMode();
     
     // render all viewports for selected eye
-    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
         getCurrentWindow().setCurrentViewport(i);
         mCurrentViewportIndex.main = i;
         sgct_core::Viewport& vp = getCurrentWindow().getViewport(i);
@@ -2120,7 +2120,7 @@ void Engine::render2D() {
         return;
     }
 
-    for (size_t i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
+    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
         getCurrentWindow().setCurrentViewport(i);
         mCurrentViewportIndex.main = i;
             
@@ -2799,7 +2799,7 @@ void Engine::updateFrustums() {
 
     for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& win = mThisNode->getWindow(w);
-        for (unsigned int i = 0; i < win.getNumberOfViewports(); i++) {
+        for (int i = 0; i < win.getNumberOfViewports(); i++) {
             sgct_core::Viewport& vp = win.getViewport(i);
             if (vp.isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
@@ -3119,9 +3119,9 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
     gDropCallbackFnPtr = std::move(fn);
 }
 
-void Engine::setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn) {
-    gTouchCallbackFnPtr = std::move(fn);
-}
+// void Engine::setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn) {
+//     gTouchCallbackFnPtr = std::move(fn);
+// }
 
 void sgct::Engine::clearBuffer() {
     glm::vec4 color = Engine::instance()->getClearColor();
@@ -3299,7 +3299,7 @@ void Engine::setEyeSeparation(float eyeSeparation) {
     for (int w = 0; w < mThisNode->getNumberOfWindows(); w++) {
         SGCTWindow& window = mThisNode->getWindow(w);
 
-        for (unsigned int i = 0; i < window.getNumberOfViewports(); i++) {
+        for (int i = 0; i < window.getNumberOfViewports(); i++) {
             window.getViewport(i).getUser().setEyeSeparation(eyeSeparation);
         }
     }
@@ -3483,7 +3483,7 @@ void Engine::updateDrawBufferResolutions() {
         SGCTWindow& win = getWindow(i);
         
         // first add cubemap resolutions if any
-        for (size_t j = 0; j < win.getNumberOfViewports(); j++) {
+        for (int j = 0; j < win.getNumberOfViewports(); j++) {
             const sgct_core::Viewport& vp = win.getViewport(j);
             if (vp.hasSubViewports()) {
                 int cubeRes = vp.getNonLinearProjection()->getCubemapResolution();

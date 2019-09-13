@@ -252,7 +252,7 @@ bool Image::loadJPEG(std::string filename) {
 
     // Make a one-row-high sample array that will go away when done with image
     buffer = (*cinfo.mem->alloc_sarray)
-        ((j_common_ptr)&cinfo, JPOOL_IMAGE, static_cast<JDIMENSION>(row_stride), 1);
+        (reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, static_cast<JDIMENSION>(row_stride), 1);
 
     size_t r = mSizeY - 1;
     while (cinfo.output_scanline < cinfo.output_height) {

@@ -102,7 +102,7 @@ void SGCTTrackingDevice::setButtonVal(bool val, int index) {
 void SGCTTrackingDevice::setAnalogVal(const double* array, int size) {
     {
         std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
-        for (size_t i = 0; i < std::min(size, mNumberOfAxes); i++) {
+        for (int i = 0; i < std::min(size, mNumberOfAxes); i++) {
             mAxesPrevious[i] = mAxes[i];
             mAxes[i] = array[i];
         }
@@ -163,22 +163,22 @@ int SGCTTrackingDevice::getSensorId() {
     return mSensorId;
 }
 
-bool SGCTTrackingDevice::getButton(size_t index) const {
+bool SGCTTrackingDevice::getButton(int index) const {
     std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     return index < mNumberOfButtons ? mButtons[index] : false;;
 }
 
-bool SGCTTrackingDevice::getButtonPrevious(size_t index) const {
+bool SGCTTrackingDevice::getButtonPrevious(int index) const {
     std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     return index < mNumberOfButtons ? mButtonsPrevious[index] : false;;
 }
 
-double SGCTTrackingDevice::getAnalog(size_t index) const {
+double SGCTTrackingDevice::getAnalog(int index) const {
     std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     return index < mNumberOfAxes ? mAxes[index] : 0.0;;
 }
 
-double SGCTTrackingDevice::getAnalogPrevious(size_t index) const {
+double SGCTTrackingDevice::getAnalogPrevious(int index) const {
     std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     return index < mNumberOfAxes ? mAxesPrevious[index] : 0.0;;
 }

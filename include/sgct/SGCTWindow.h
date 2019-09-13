@@ -111,7 +111,7 @@ public:
      *
      * /returns True if window was created successfully.
      */
-    bool openWindow(GLFWwindow* share, size_t lastWindowIdx);
+    bool openWindow(GLFWwindow* share, int lastWindowIdx);
 
     /**
      * Set this window's OpenGL context or the shared context as current. This function
@@ -385,7 +385,7 @@ public:
     glm::ivec4 getCurrentViewportPixelCoords() const;
 
     /// \returns the viewport count for this window
-    size_t getNumberOfViewports() const;
+    int getNumberOfViewports() const;
     std::string getStereoModeStr() const;
 
     /// Enable alpha clear color and 4-component screenshots

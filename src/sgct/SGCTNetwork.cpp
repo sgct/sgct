@@ -7,10 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTNetwork.h>
 
-#if !(_MSC_VER >= 1400) //if not visual studio 2005 or later
-    #define _WIN32_WINNT 0x501
-#endif
-
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #define VC_EXTRALEAN

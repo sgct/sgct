@@ -13,7 +13,7 @@ function (set_compile_options target)
       "/std:c++17"
       "/permissive-"
       "/Zc:strictStrings-"    # Windows header don't adhere to this
-        "/Zc:__cplusplus" # Correctly set the __cplusplus macro
+      "/Zc:__cplusplus" # Correctly set the __cplusplus macro
     )
   elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
@@ -96,6 +96,8 @@ function (set_compile_options target)
       "-Wvla"
       "-Wzero-length-array"
       "-Wno-missing-braces"
+
+      "-Wno-unused-function"
     )
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(

@@ -85,7 +85,6 @@ private:
     std::string mMeshHint;
     bool mCorrectionMesh = false;
     bool mTracked = false;
-    bool mIsMeshStoredInFile = false;
     unsigned int mOverlayTextureIndex = 0;
     unsigned int mBlendMaskTextureIndex = 0;
     unsigned int mBlackLevelMaskTextureIndex = 0;

@@ -13,7 +13,6 @@ set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REV
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
 option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
@@ -25,9 +24,7 @@ endif ()
 
 add_subdirectory(src/sgct)
 
-if (NOT SGCT_NO_EXTERNAL_LIBRARIES)
-    add_subdirectory(src/deps)
-endif()
+add_subdirectory(src/deps)
 
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)

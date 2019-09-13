@@ -19,7 +19,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/vrpn/vrpn_Analog.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include <algorithm>
 
@@ -62,7 +61,7 @@ namespace {
     void VRPN_CALLBACK updateAnalog(void* userdata, const vrpn_ANALOGCB a) {
         using namespace sgct;
         SGCTTrackingDevice* tdPtr = reinterpret_cast<SGCTTrackingDevice*>(userdata);
-        tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
+        tdPtr->setAnalogVal(a.channel, static_cast<int>(a.num_channel));
     }
 
     void samplingLoop(void* arg) {
@@ -71,13 +70,13 @@ namespace {
 
         while (true) {
             double t = sgct::Engine::getTime();
-            for (size_t i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
+            for (int i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
                 sgct::SGCTTracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
                 }
-                for (size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
+                for (int j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
                     if (!trackerPtr->getDevice(j)->isEnabled()) {
                         continue;
                     }
@@ -182,7 +181,7 @@ void SGCTTrackingManager::startSampling() {
 
 void SGCTTrackingManager::updateTrackingDevices() {
     for (const std::unique_ptr<SGCTTracker>& tracker : mTrackers) {
-        for (size_t j = 0; j < tracker->getNumberOfDevices(); j++) {
+        for (int j = 0; j < tracker->getNumberOfDevices(); j++) {
             SGCTTrackingDevice* tdPtr = tracker->getDevice(j);
             if (tdPtr->isEnabled() && tdPtr == mHead && mHeadUser) {
                 mHeadUser->setTransform(tdPtr->getWorldTransform());

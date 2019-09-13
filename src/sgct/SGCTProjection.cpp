@@ -43,7 +43,6 @@ void SGCTProjection::calculateProjection(glm::vec3 base,
     // invert & transform
     const glm::mat3 invDCM = glm::inverse(DCM);
     const glm::vec3 viewPlaneLowerLeft = invDCM * lowerLeft;
-    const glm::vec3 viewPlaneUpperLeft = invDCM * upperLeft;
     const glm::vec3 viewPlaneUpperRight = invDCM * upperRight;
     const glm::vec3 eyePos = invDCM * base;
 

@@ -79,9 +79,8 @@ NetworkManager* NetworkManager::instance() {
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) 
-    : mMode(nm)
-    , mCompressionLevel(Z_BEST_SPEED)
-
+    : mCompressionLevel(Z_BEST_SPEED)
+    , mMode(nm)
 {
     mInstance = this;
 
@@ -438,7 +437,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     int messageLength = length;
 
     if (mCompress) {
-        length = compressBound(static_cast<uLong>(length));
+        length = static_cast<int>(compressBound(static_cast<uLong>(length)));
     }
     length += static_cast<int>(SGCTNetwork::HeaderSize);
 

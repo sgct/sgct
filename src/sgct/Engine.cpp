@@ -3119,9 +3119,9 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
     gDropCallbackFnPtr = std::move(fn);
 }
 
-// void Engine::setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn) {
-//     gTouchCallbackFnPtr = std::move(fn);
-// }
+ void Engine::setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn) {
+     gTouchCallbackFnPtr = std::move(fn);
+ }
 
 void sgct::Engine::clearBuffer() {
     glm::vec4 color = Engine::instance()->getClearColor();

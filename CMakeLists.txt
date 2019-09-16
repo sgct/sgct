@@ -15,15 +15,22 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
-option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
 option(SGCT_OPENVR_SUPPORT "SGCT OpenVR support" OFF)
 
 if (WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
 endif ()
 
-add_subdirectory(src/sgct)
+# Exceptions for external libraries
+option(SGCT_DEP_INCLUDE_GLEW "Include GLEW library" ON)
+option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
+option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
+option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
+option(SGCT_DEP_INCLUDE_JPEGTURBO "Include JpegTurbo library" ON)
+option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
+option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" ON)
 
+add_subdirectory(src/sgct)
 add_subdirectory(src/deps)
 
 if (SGCT_EXAMPLES)

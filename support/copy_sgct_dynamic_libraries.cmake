@@ -5,7 +5,10 @@
 function (copy_sgct_dynamic_libraries target)
   set(libs "")
   get_target_property(libs sgct DYNAMIC_LIBS)
-  foreach (i ${libs})
-    copy_files(${target} ${i})
-  endforeach ()
+  if (libs)
+    # libs will evaluate to false if no properties have been set
+    foreach (i ${libs})
+      copy_files(${target} ${i})
+    endforeach ()
+  endif ()
 endfunction()

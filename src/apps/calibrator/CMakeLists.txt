@@ -15,7 +15,7 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_mpcdi_example2.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_PlanarProjection_trackedAspectRatio.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_Projectionplane_trackedAspectRatio.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_Projectionplane_unTtrackedAspectRatio.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/run_Projectionplane_unTrackedAspectRatio.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/single_PlanarProjection_tracked.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_tracked.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_unTracked.xml"

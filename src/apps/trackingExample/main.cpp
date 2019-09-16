@@ -220,7 +220,7 @@ void drawFun() {
         }
     }
 
-#if INCLUDE_SGCT_TEXT
+#ifdef SGCT_HAS_TEXT
     // draw text
     const float textVerticalPos = static_cast<float>(
         gEngine->getCurrentWindow().getResolution().y
@@ -231,11 +231,11 @@ void drawFun() {
     sgct_text::print(
         sgct_text::FontManager::instance()->getFont("SGCTFont", fontSize),
         sgct_text::TextAlignMode::TopLeft,
-        120.0f,
+        120.f,
         textVerticalPos,
         sharedText.getVal().c_str()
     );
-#endif
+#endif // SGCT_HAS_TEXT
 }
 
 void encodeFun() {

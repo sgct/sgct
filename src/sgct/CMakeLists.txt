@@ -153,8 +153,6 @@ if (SGCT_SPOUT_SUPPORT)
     PROPERTIES DYNAMIC_LIBS
     "${tmp};${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.dll"
   )
-
-  # set(SGCT_DYNAMIC_LIBRARIES "${SGCT_DYNAMIC_LIBRARIES};${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.dll" PARENT_SCOPE)
 endif ()
 
 if (SGCT_OPENVR_SUPPORT)
@@ -188,7 +186,8 @@ endif ()
 target_include_directories(sgct SYSTEM PUBLIC
     ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
 )
-target_include_directories(sgct SYSTEM PRIVATE
+
+target_include_directories(sgct SYSTEM PUBLIC
   ${PROJECT_BINARY_DIR}/src/deps/vrpn
   ${PROJECT_SOURCE_DIR}/src/deps/vrpn
   ${PROJECT_BINARY_DIR}/src/deps/lpng

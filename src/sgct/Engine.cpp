@@ -42,8 +42,8 @@ std::function<void(int, int, int)> gMouseButtonCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMousePosCallbackFnPtr = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFnPtr = nullptr;
 std::function<void(int, const char**)> gDropCallbackFnPtr = nullptr;
-//std::function<void(const sgct_core::Touch*)> gTouchCallbackFnPtr = nullptr;
-// sgct_core::Touch gCurrentTouchPoints;
+std::function<void(const sgct_core::Touch*)> gTouchCallbackFnPtr = nullptr;
+sgct_core::Touch gCurrentTouchPoints;
 
 bool sRunUpdateFrameLockLoop = true;
 
@@ -116,18 +116,18 @@ namespace {
     }
 
 
-    // void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
-    //     sgct::Engine& eng = *sgct::Engine::instance();
-    //     glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
+    void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
+        sgct::Engine& eng = *sgct::Engine::instance();
+        glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
-    //     gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
+        gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
 
-    //     // if (gTouchCallbackFnPtr && !gCurrentTouchPoints.getLatestTouchPoints().empty()) {
-    //     //     gTouchCallbackFnPtr(&gCurrentTouchPoints);
-    //     // }
+        // if (gTouchCallbackFnPtr && !gCurrentTouchPoints.getLatestTouchPoints().empty()) {
+        //     gTouchCallbackFnPtr(&gCurrentTouchPoints);
+        // }
 
-    //     gCurrentTouchPoints.setLatestPointsHandled();
-    // }
+        gCurrentTouchPoints.setLatestPointsHandled();
+    }
 
     void outputHelpMessage() {
         fprintf(stderr, R"(
@@ -296,9 +296,9 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
         if (gDropCallbackFnPtr) {
             glfwSetDropCallback(window, dropCallback);
         }
-        // if (gTouchCallbackFnPtr) {
-        //     glfwSetTouchCallback(window, touchCallback);
-        // }
+        if (gTouchCallbackFnPtr) {
+            glfwSetTouchCallback(window, touchCallback);
+        }
     }
 
     initOGL();

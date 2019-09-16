@@ -616,8 +616,8 @@ void sgct::Engine::clearBuffer() {
     /// Drop files to any window. All windows are connected to this callback.
     void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
 
-    // void setTouchCallbackFunction(
-        // std::function<void(const sgct_core::Touch* touches)> fn);
+    void setTouchCallbackFunction(
+        std::function<void(const sgct_core::Touch* touches)> fn);
 
     /**
      *  This callback must be set before Engine::init is called. Parameters to the

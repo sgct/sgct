@@ -337,29 +337,29 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (!gEngine->isMaster() || action != SGCT_PRESS) {
+    if (!gEngine->isMaster() || action != action::Press) {
         return;
     }
     switch (key) {
-        case SGCT_KEY_S:
+        case key::S:
             stats.setVal(!stats.getVal());
             break;
-        case SGCT_KEY_I:
+        case key::I:
             info.setVal(!info.getVal());
             break;
-        case SGCT_KEY_W:
+        case key::W:
             wireframe.setVal(!wireframe.getVal());
             break;
-        case SGCT_KEY_F:
+        case key::F:
             wireframe.setVal(!wireframe.getVal());
             break;
-        case SGCT_KEY_1:
+        case key::Key1:
             incrIndex.setVal(1);
             break;
-        case SGCT_KEY_2:
+        case key::Key2:
             incrIndex.setVal(2);
             break;
-        case SGCT_KEY_LEFT:
+        case key::Left:
             if (numSyncedTex.getVal() > 0) {
                 if (texIndex.getVal() > incrIndex.getVal() - 1) {
                     texIndex.setVal(texIndex.getVal() - incrIndex.getVal());
@@ -369,7 +369,7 @@ void keyCallback(int key, int, int action, int) {
                 }
             }
             break;
-        case SGCT_KEY_RIGHT:
+        case key::Right:
             if (numSyncedTex.getVal() > 0) {
                 texIndex.setVal(
                     (texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal()

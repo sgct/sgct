@@ -228,29 +228,29 @@ void decodeFun() {
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-            case SGCT_KEY_UP:
-            case SGCT_KEY_W:
-                buttonForward = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::Up:
+            case key::W:
+                buttonForward = (action == action::Repeat || action == action::Press);
                 break;
-            case SGCT_KEY_DOWN:
-            case SGCT_KEY_S:
-                buttonBackward = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::Down:
+            case key::S:
+                buttonBackward = (action == action::Repeat || action == action::Press);
                 break;
-            case SGCT_KEY_LEFT:
-            case SGCT_KEY_A:
-                buttonLeft = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::Left:
+            case key::A:
+                buttonLeft = (action == action::Repeat || action == action::Press);
                 break;
-            case SGCT_KEY_RIGHT:
-            case SGCT_KEY_D:
-                buttonRight = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::Right:
+            case key::D:
+                buttonRight = (action == action::Repeat || action == action::Press);
                 break;
         }
     }
 }
 
 void mouseButtonCallback(int button, int action, int) {
-    if (gEngine->isMaster() && button == SGCT_MOUSE_BUTTON_LEFT) {
-        mouseLeftButton = (action == SGCT_PRESS);
+    if (gEngine->isMaster() && button == mouse::ButtonLeft) {
+        mouseLeftButton = (action == action::Press);
         double yPos;
         Engine::getMousePos(gEngine->getFocusedWindowIndex(), &mouseXPos[1], &yPos);
     }

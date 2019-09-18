@@ -27,6 +27,8 @@ namespace {
     sgct::SharedVector<float> extraData;
 } // namespace
 
+using namespace sgct;
+
 void myDraw2DFun() {
 #ifdef SGCT_HAS_TEXT
     sgct_text::print(
@@ -179,7 +181,7 @@ void drawFun() {
     wchar_t str6[] = L"बईबईसई"; // Hindi string
 
     sgct_text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
-    sgct_text::FontManager::instance()->setStrokeColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.5f));
+    sgct_text::FontManager::instance()->setStrokeColor(glm::vec4(1.f, 0.f, 0.f, 0.5f));
     
     // test
     glm::mat4 texMVP = glm::ortho(-1.f, 1.f, -1.f, 1.f);
@@ -335,17 +337,18 @@ void initOGLFun() {
     glDisable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
 
-    std::size_t numberOfActiveViewports = 0;
+    size_t numberOfActiveViewports = 0;
     sgct_core::SGCTNode* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
-    for(std::size_t i=0; i < thisNode->getNumberOfWindows(); i++)
-        for(std::size_t j=0; j < thisNode->getWindow(i).getNumberOfViewports(); j++)
+    for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
+        for (size_t j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
             if (thisNode->getWindow(i).getViewport(j).isEnabled()) {
                 numberOfActiveViewports++;
             }
+        }
+    }
 
     sgct::MessageHandler::instance()->print(
-        "Number of active viewports: %d\n",
-        numberOfActiveViewports
+        "Number of active viewports: %d\n", numberOfActiveViewports
     );
 }
 
@@ -360,26 +363,26 @@ void encodeFun() {
     flags = slowRendering.getVal()  ? flags | 64  : flags & ~64;  // bit 7
     flags = frametest.getVal()      ? flags | 128 : flags & ~128; // bit 8
 
-    sgct::SharedUChar sf(flags);
+    SharedUChar sf(flags);
 
-    sgct::SharedData::instance()->writeDouble(dt);
-    sgct::SharedData::instance()->writeDouble(currentTime);
-    sgct::SharedData::instance()->writeFloat(speed);
-    sgct::SharedData::instance()->writeUChar(sf);
-    sgct::SharedData::instance()->writeWString(sTimeOfDay);
+    SharedData::instance()->writeDouble(dt);
+    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeFloat(speed);
+    SharedData::instance()->writeUChar(sf);
+    SharedData::instance()->writeWString(sTimeOfDay);
 
     if (extraPackages.getVal()) {
-        sgct::SharedData::instance()->writeVector(extraData);
+        SharedData::instance()->writeVector(extraData);
     }
 }
 
 void decodeFun() {
-    sgct::SharedUChar sf;
-    sgct::SharedData::instance()->readDouble(dt);
-    sgct::SharedData::instance()->readDouble(currentTime);
-    sgct::SharedData::instance()->readFloat(speed);
-    sgct::SharedData::instance()->readUChar(sf);
-    sgct::SharedData::instance()->readWString(sTimeOfDay);
+    SharedUChar sf;
+    SharedData::instance()->readDouble(dt);
+    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readFloat(speed);
+    SharedData::instance()->readUChar(sf);
+    SharedData::instance()->readWString(sTimeOfDay);
 
     unsigned char flags = sf.getVal();
     showFPS.setVal(flags & 1);
@@ -392,7 +395,7 @@ void decodeFun() {
     frametest.setVal(flags & 128);
 
     if (extraPackages.getVal()) {
-        sgct::SharedData::instance()->readVector(extraData);
+        SharedData::instance()->readVector(extraData);
     }
 }
 
@@ -401,74 +404,73 @@ void keyCallback(int key, int, int action, int) {
         static bool mousePointer = true;
 
         switch (key) {
-        case SGCT_KEY_C:
-            if (action == SGCT_PRESS) {
-                static bool useCompress = false;
-                useCompress = !useCompress;
-                sgct::SharedData::instance()->setCompression(useCompress);
-            }
-            break;
-        case 'F':
-            if (action == SGCT_PRESS) {
-                frametest.setVal(!frametest.getVal());
-            }
-            break;
-        case 'I':
-            if (action == SGCT_PRESS) {
-                showFPS.setVal(!showFPS.getVal());
-            }
-            break;
-        case 'E':
-            if (action == SGCT_PRESS) {
-                extraPackages.setVal(!extraPackages.getVal());
-            }
-            break;
-        case 'B':
-            if (action == SGCT_PRESS) {
-                barrier.setVal(!barrier.getVal());
-            }
-            break;
-        case 'R':
-            if (action == SGCT_PRESS) {
-                resetCounter.setVal(!resetCounter.getVal());
-            }
-            break;
-        case 'S':
-            if (action == SGCT_PRESS) {
-                stats.setVal(!stats.getVal());
-            }
-            break;
-        case 'G':
-            if (action == SGCT_PRESS) {
-                gEngine->sendMessageToExternalControl("Testing!!\r\n");
-            }
-            break;
-        case 'M':
-            if (action == SGCT_PRESS) {
-                mousePointer = !mousePointer;
-
-                for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-                    sgct::Engine::setMouseCursorVisibility(i, mousePointer);
+            case key::C:
+                if (action == action::Press) {
+                    static bool useCompress = false;
+                    useCompress = !useCompress;
+                    SharedData::instance()->setCompression(useCompress);
                 }
-            }
-            break;
-        case SGCT_KEY_F9:
-            if (action == SGCT_PRESS) {
-                slowRendering.setVal(!slowRendering.getVal());
-            }
-            break;
-        case SGCT_KEY_F10:
-            if (action == SGCT_PRESS) {
-                takeScreenshot.setVal(true);
-            }
-            break;
-        case SGCT_KEY_UP:
-            speed.setVal(speed.getVal() * 1.1f);
-            break;
+                break;
+            case key::F:
+                if (action == action::Press) {
+                    frametest.setVal(!frametest.getVal());
+                }
+                break;
+            case key::I:
+                if (action == action::Press) {
+                    showFPS.setVal(!showFPS.getVal());
+                }
+                break;
+            case key::E:
+                if (action == action::Press) {
+                    extraPackages.setVal(!extraPackages.getVal());
+                }
+                break;
+            case key::B:
+                if (action == action::Press) {
+                    barrier.setVal(!barrier.getVal());
+                }
+                break;
+            case key::R:
+                if (action == action::Press) {
+                    resetCounter.setVal(!resetCounter.getVal());
+                }
+                break;
+            case key::S:
+                if (action == action::Press) {
+                    stats.setVal(!stats.getVal());
+                }
+                break;
+            case key::G:
+                if (action == action::Press) {
+                    gEngine->sendMessageToExternalControl("Testing!!\r\n");
+                }
+                break;
+            case key::M:
+                if (action == action::Press) {
+                    mousePointer = !mousePointer;
 
-        case SGCT_KEY_DOWN:
-            speed.setVal(speed.getVal() / 1.1f);
-            break;
+                    for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                        sgct::Engine::setMouseCursorVisibility(i, mousePointer);
+                    }
+                }
+                break;
+            case key::F9:
+                if (action == action::Press) {
+                    slowRendering.setVal(!slowRendering.getVal());
+                }
+                break;
+            case key::F10:
+                if (action == action::Press) {
+                    takeScreenshot.setVal(true);
+                }
+                break;
+            case key::Up:
+                speed.setVal(speed.getVal() * 1.1f);
+                break;
+            case key::Down:
+                speed.setVal(speed.getVal() / 1.1f);
+                break;
         }
     }
 }

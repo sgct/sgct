@@ -329,10 +329,10 @@ void decodeFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && action == action::Press) {
         switch (key) {
-            case 'P':
-            case SGCT_KEY_F10:
+            case key::P:
+            case key::F10:
                 takeScreenshot.setVal(true);
                 break;
         }

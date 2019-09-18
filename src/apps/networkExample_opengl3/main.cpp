@@ -316,7 +316,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && key == SGCT_KEY_SPACE && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && key == key::Space && action == action::Press) {
         sendTestMessage();
     }
 }

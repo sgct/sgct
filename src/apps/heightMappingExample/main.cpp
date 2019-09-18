@@ -197,55 +197,55 @@ void decodeFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && action == action::Press) {
         switch (key) {
-        case 'S':
-            stats.setVal(!stats.getVal());
-            break;
-        case 'I':
-            info.setVal(!info.getVal());
-            break;
-        case 'W':
-            wireframe.setVal(!wireframe.getVal());
-            break;
-        case 'Q':
-            gEngine->terminate();
-            break;
-        case 'T':
-            useTracking.setVal(!useTracking.getVal());
-            break;
-        case 'E':
-            sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
-                glm::translate(glm::dmat4(1.f), glm::dvec3(0.f, 0.f, 4.f))
-            );
-            break;
-        case SGCT_KEY_SPACE:
-            mPause = !mPause;
-            break;
-        case 'F':
-            for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-                gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
-            }
-            break;
-        case 'P':
-        case SGCT_KEY_F10:
+            case key::S:
+                stats.setVal(!stats.getVal());
+                break;
+            case key::I:
+                info.setVal(!info.getVal());
+                break;
+            case key::W:
+                wireframe.setVal(!wireframe.getVal());
+                break;
+            case key::Q:
+                gEngine->terminate();
+                break;
+            case key::T:
+                useTracking.setVal(!useTracking.getVal());
+                break;
+            case key::E:
+                sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                    glm::translate(glm::dmat4(1.f), glm::dvec3(0.f, 0.f, 4.f))
+                );
+                break;
+            case key::Space:
+                mPause = !mPause;
+                break;
+            case key::F:
+                for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                    gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
+                }
+                break;
+            case key::P:
+            case key::F10:
                 takeScreenshot.setVal(true);
-            break;
-        case 'R':
-            sgct_core::ClusterManager::instance()->getThisNode()->showAllWindows();
-            break;
-        case SGCT_KEY_LEFT:
-            if (static_cast<int>(stereoMode.getVal()) > 0) {
-                const int v = static_cast<int>(stereoMode.getVal()) - 1;
+                break;
+            case key::R:
+                sgct_core::ClusterManager::instance()->getThisNode()->showAllWindows();
+                break;
+            case key::Left:
+                if (static_cast<int>(stereoMode.getVal()) > 0) {
+                    const int v = static_cast<int>(stereoMode.getVal()) - 1;
+                    SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
+                    stereoMode.setVal(m);
+                }
+                break;
+            case key::Right:
+                const int v = static_cast<int>(stereoMode.getVal()) + 1;
                 SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
                 stereoMode.setVal(m);
-            }
-            break;
-        case SGCT_KEY_RIGHT:
-            const int v = static_cast<int>(stereoMode.getVal()) + 1;
-            SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
-            stereoMode.setVal(m);
-            break;
+                break;
         }
     }
 }

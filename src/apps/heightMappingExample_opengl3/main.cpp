@@ -287,48 +287,48 @@ void decodeFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && action == action::Press) {
         switch (key) {
-            case 'S':
+            case key::S:
                 stats.setVal(!stats.getVal());
                 break;
-            case 'I':
+            case key::I:
                 info.setVal(!info.getVal());
                 break;
-            case 'W':
+            case key::W:
                 wireframe.setVal(!wireframe.getVal());
                 break;
-            case 'Q':
+            case key::Q:
                 gEngine->terminate();
                 break;
-            case 'T':
+            case key::T:
                 useTracking.setVal(!useTracking.getVal());
                 break;
-            case 'E':
+            case key::E:
                 sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;
-            case SGCT_KEY_SPACE:
+            case key::Space:
                 mPause = !mPause;
                 break;
-            case 'F':
+            case key::F:
                 for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
                     gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
                 }
                 break;
-            case 'P':
-            case SGCT_KEY_F10:
+            case key::P:
+            case key::F10:
                 takeScreenshot.setVal(true);
                 break;
-            case SGCT_KEY_LEFT:
+            case key::Left:
                 if (static_cast<int>(stereoMode.getVal()) > 0) {
                     const int v = static_cast<int>(stereoMode.getVal()) - 1;
                     SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
                     stereoMode.setVal(m);
                 }
                 break;
-            case SGCT_KEY_RIGHT:
+            case key::Right:
                 const int v = static_cast<int>(stereoMode.getVal()) + 1;
                 SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
                 stereoMode.setVal(m);

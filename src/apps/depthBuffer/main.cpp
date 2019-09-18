@@ -267,65 +267,67 @@ void cleanUpFun() {
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-        case 'S':
-            if (action == SGCT_PRESS) {
-                stats.setVal(!stats.getVal());
-            }
-            break;
-        case 'I':
-            if (action == SGCT_PRESS) {
-                info.setVal(!info.getVal());
-            }
-            break;
-        case 'W':
-            if (action == SGCT_PRESS) {
-                wireframe.setVal(!wireframe.getVal());
-            }
-            break;
-        case 'Q':
-            if (action == SGCT_PRESS) {
-                gEngine->terminate();
-            }
-            break;
-        case 'T':
-            if (action == SGCT_PRESS) {
-                useTracking.setVal(!useTracking.getVal());
-            }
-            break;
-        case 'E':
-            if (action == SGCT_PRESS) {
-                glm::dmat4 xform = glm::translate(
-                    glm::dmat4(1.0),
-                    glm::dvec3(0.0, 0.0, 4.0)
-                );
-                sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
-                    xform
-                );
-            }
-            break;
-        case SGCT_KEY_SPACE:
-            if (action == SGCT_PRESS) {
-                mPause = !mPause;
-            }
-            break;
-        case 'F':
-            if (action == SGCT_PRESS) {
-                for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-                    gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
+            case key::S:
+                if (action == action::Press) {
+                    stats.setVal(!stats.getVal());
                 }
-            }
-            break;
-        case 'P':
-        case SGCT_KEY_F10:
-            if (action == SGCT_PRESS) {
-                takeScreenshot.setVal(true);
-            }
-            break;
-        case 'R':
-            if (action == SGCT_PRESS) {
-                reloadShaders.setVal(true);
-            }
-            break;
+                break;
+            case key::I:
+                if (action == action::Press) {
+                    info.setVal(!info.getVal());
+                }
+                break;
+            case key::W:
+                if (action == action::Press) {
+                    wireframe.setVal(!wireframe.getVal());
+                }
+                break;
+            case key::Q:
+                if (action == action::Press) {
+                    gEngine->terminate();
+                }
+                break;
+            case key::T:
+                if (action == action::Press) {
+                    useTracking.setVal(!useTracking.getVal());
+                }
+                break;
+            case key::E:
+                if (action == action::Press) {
+                    glm::dmat4 xform = glm::translate(
+                        glm::dmat4(1.0),
+                        glm::dvec3(0.0, 0.0, 4.0)
+                    );
+                    sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                        xform
+                    );
+                }
+                break;
+            case key::Space:
+                if (action == action::Press) {
+                    mPause = !mPause;
+                }
+                break;
+            case key::F:
+                if (action == action::Press) {
+                    for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                        gEngine->getWindow(i).setUseFXAA(
+                            !gEngine->getWindow(i).useFXAA()
+                        );
+                    }
+                }
+                break;
+            case key::P:
+            case key::F10:
+                if (action == action::Press) {
+                    takeScreenshot.setVal(true);
+                }
+                break;
+            case key::R:
+                if (action == action::Press) {
+                    reloadShaders.setVal(true);
+                }
+                break;
         }
     }
 }

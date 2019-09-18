@@ -129,9 +129,9 @@ void cleanUpFun() {
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-            case SGCT_KEY_P:
-            case SGCT_KEY_F10:
-                if (action == SGCT_PRESS) {
+            case key::P:
+            case key::F10:
+                if (action == action::Press) {
                     takeScreenshot.setVal(true);
                 }
                 break;

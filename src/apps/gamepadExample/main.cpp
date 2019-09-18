@@ -11,16 +11,16 @@ void myDraw2DFun() {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
-        const float* axesPos = Engine::getJoystickAxes(SGCT_JOYSTICK_1, &numberOfAxes);
+        const float* pos = Engine::getJoystickAxes(joystick::Joystick1, &numberOfAxes);
         std::string joystickInfoStr = "Axes: ";
 
         for (int i = 0; i < numberOfAxes; i++) {
-            joystickInfoStr += std::to_string(axesPos[i]) + ' ';
+            joystickInfoStr += std::to_string(pos[i]) + ' ';
         }
 
         int numberOfButtons = 0;
         const unsigned char* buttons = Engine::getJoystickButtons(
-            SGCT_JOYSTICK_1,
+            joystick::Joystick1,
             &numberOfButtons
         );
 
@@ -50,15 +50,15 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    joyStick1Name = Engine::getJoystickName(SGCT_JOYSTICK_1);
+    joyStick1Name = Engine::getJoystickName(joystick::Joystick1);
     if (joyStick1Name) {
         MessageHandler::instance()->print("Joystick 1 '%s' is present\n", joyStick1Name);
 
         int numberOfAxes = 0;
-        Engine::getJoystickAxes(SGCT_JOYSTICK_1, &numberOfAxes);
+        Engine::getJoystickAxes(joystick::Joystick1, &numberOfAxes);
 
         int numberOfButtons = 0;
-        Engine::getJoystickButtons(SGCT_JOYSTICK_1, &numberOfButtons);
+        Engine::getJoystickButtons(joystick::Joystick1, &numberOfButtons);
 
         MessageHandler::instance()->print(
             "Number of axes %d\nNumber of buttons %d\n", numberOfAxes, numberOfButtons

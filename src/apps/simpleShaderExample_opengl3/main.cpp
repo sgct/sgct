@@ -88,7 +88,7 @@ void postSyncPreDrawFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && key == SGCT_KEY_R && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && key == key::R && action == action::Press) {
         reloadShader.setVal(true);
     }
 }

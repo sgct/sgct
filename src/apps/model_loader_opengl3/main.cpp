@@ -235,14 +235,8 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster()) {
-        switch (key) {
-            case SGCT_KEY_R:
-                if (action == SGCT_PRESS) {
-                    reloadShader.setVal(true);
-                }
-                break;
-        }
+    if (gEngine->isMaster() && action == action::Press && key == key::R) {
+        reloadShader.setVal(true);
     }
 }
 

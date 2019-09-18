@@ -103,16 +103,16 @@ void myPostSyncPreDrawFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == SGCT_PRESS) {
+    if (gEngine->isMaster() && action == action::Press) {
         switch (key) {
-            case 'S':
+            case key::S:
                 stats = !stats;
                 break;
-            case 'I':
+            case key::I:
                 info = !info;
                 break;
-            case 'P':
-            case SGCT_KEY_F10:
+            case key::P:
+            case key::F10:
                 takeScreenshot = true;
                 break;
         }

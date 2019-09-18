@@ -167,13 +167,13 @@ void cleanUpFun() {
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-        case SGCT_KEY_S:
-            if (action == SGCT_PRESS) {
+        case key::S:
+            if (action == action::Press) {
                 stats.setVal(!stats.getVal());
             }
             break;
-        case SGCT_KEY_I:
-            if (action == SGCT_PRESS) {
+        case key::I:
+            if (action == action::Press) {
                 info.setVal(!info.getVal());
             }
             break;

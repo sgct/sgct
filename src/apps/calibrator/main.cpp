@@ -233,16 +233,16 @@ void decode()
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-            case SGCT_KEY_LEFT_CONTROL:
-            case SGCT_KEY_RIGHT_CONTROL:
-                ctrlPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::LeftControl:
+            case key::RightControl:
+                ctrlPressed = (action == action::Repeat || action == action::Press);
                 break;
-            case SGCT_KEY_LEFT_SHIFT:
-            case SGCT_KEY_RIGHT_SHIFT:
-                shiftPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
+            case key::LeftShift:
+            case key::RightShift:
+                shiftPressed = (action == action::Repeat || action == action::Press);
                 break;
-            case SGCT_KEY_LEFT:
-                if (action == SGCT_PRESS) {
+            case key::Left:
+                if (action == action::Press) {
                     if (displayState.getVal() > 0) {
                         displayState.setVal(displayState.getVal() - 1);
                     }
@@ -251,8 +251,8 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_RIGHT:
-                if (action == SGCT_PRESS) {
+            case key::Right:
+                if (action == action::Press) {
                     if (displayState.getVal() < lastState) {
                         displayState.setVal(displayState.getVal() + 1);
                     }
@@ -261,8 +261,8 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_DOWN:
-                if (action == SGCT_PRESS) {
+            case key::Down:
+                if (action == action::Press) {
                     if (colorState.getVal() > 0) {
                         colorState.setVal(colorState.getVal() - 1);
                     }
@@ -271,8 +271,8 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_UP:
-                if (action == SGCT_PRESS) {
+            case key::Up:
+                if (action == action::Press) {
                     if (colorState.getVal() < static_cast<int16_t>(colors.size() - 1)) {
                         colorState.setVal(colorState.getVal() + 1);
                     }
@@ -281,33 +281,33 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_B:
-                if (action == SGCT_PRESS) {
+            case key::B:
+                if (action == action::Press) {
                     showBlendZones.setVal(!showBlendZones.getVal());
                 }
                 break;
-            case SGCT_KEY_C:
-                if (action == SGCT_PRESS) {
+            case key::C:
+                if (action == action::Press) {
                     showChannelZones.setVal(!showChannelZones.getVal());
                 }
                 break;
-            case SGCT_KEY_G:
-                if (action == SGCT_PRESS) {
+            case key::G:
+                if (action == action::Press) {
                     showGeoCorrectionPattern.setVal(!showGeoCorrectionPattern.getVal());
                 }
                 break;
-            case SGCT_KEY_I:
-                if (action == SGCT_PRESS) {
+            case key::I:
+                if (action == action::Press) {
                     showId.setVal(showId.getVal());
                 }
                 break;
-            case SGCT_KEY_P:
-                if (action == SGCT_PRESS) {
+            case key::P:
+                if (action == action::Press) {
                     takeScreenShot.setVal(true);
                 }
                 break;
-            case SGCT_KEY_W:
-                if (action == SGCT_PRESS) {
+            case key::W:
+                if (action == action::Press) {
                     if (ctrlPressed) {
                         warping.setVal(!warping.getVal());
                     }
@@ -316,8 +316,8 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_SPACE:
-                if (action == SGCT_PRESS) {
+            case key::Space:
+                if (action == action::Press) {
                     textureIndex.setVal((textureIndex.getVal() + 1) % textures.size());
                 }
                 break;

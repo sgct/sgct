@@ -6,8 +6,12 @@ set_compile_options(stitcher)
 target_link_libraries(stitcher PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
+  "${CMAKE_CURRENT_SOURCE_DIR}/bottom.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/left.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/right.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_mono.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo.bat"
+  "${CMAKE_CURRENT_SOURCE_DIR}/top.png"
 )
 copy_files(stitcher ${files})
 copy_sgct_dynamic_libraries(stitcher)

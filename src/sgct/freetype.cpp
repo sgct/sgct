@@ -5,6 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
+#ifdef SGCT_HAS_TEXT
+
 #include <sgct/freetype.h>
 
 #include <sgct/engine.h>
@@ -578,3 +580,4 @@ void print3d(Font* font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 
 } // namespace sgct_text
 
+#endif // SGCT_HAS_TEXT

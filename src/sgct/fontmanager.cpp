@@ -5,6 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
+#ifdef SGCT_HAS_TEXT
+
 #include <sgct/fontmanager.h>
 
 #include <sgct/engine.h>
@@ -310,3 +312,5 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 }
 
 } // namespace sgct_text
+
+#endif // SGCT_HAS_TEXT

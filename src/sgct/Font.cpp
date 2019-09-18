@@ -5,6 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
+#ifdef SGCT_HAS_TEXT
+
 #include <sgct/Font.h>
 
 #include <sgct/Engine.h>
@@ -336,3 +338,5 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
 }
 
 } // namespace sgct_text
+
+#endif // SGCT_HAS_TEXT

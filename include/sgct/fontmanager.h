@@ -8,6 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__FONT_MANAGER__H__
 #define __SGCT__FONT_MANAGER__H__
 
+#ifdef SGCT_HAS_TEXT
+
 #include <sgct/shaderprogram.h>
 #include <glm/glm.hpp>
 #include <string>
@@ -182,5 +184,7 @@ private:
 };
 
 } // sgct
+
+#endif // SGCT_HAS_TEXT
 
 #endif // __SGCT__FONT_MANAGER__H__

@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
 #define __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
 
-#include <sgct/NonLinearProjection.h>
+#include <sgct/nonlinearprojection.h>
 
-#include <sgct/CorrectionMesh.h>
+#include <sgct/correctionmesh.h>
 #include <glm/glm.hpp>
 
 namespace sgct_core {

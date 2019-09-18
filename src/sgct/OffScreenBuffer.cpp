@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/OffScreenBuffer.h>
+#include <sgct/offscreenbuffer.h>
 
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
 
 namespace {
     void setDrawBuffers() {

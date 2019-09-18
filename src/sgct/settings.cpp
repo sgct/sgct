@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SGCTSettings.h>
+#include <sgct/settings.h>
 
-#include <sgct/MessageHandler.h>
-#include <sgct/ScreenCapture.h>
+#include <sgct/messagehandler.h>
+#include <sgct/screencapture.h>
 #include <tinyxml2.h>
 
 namespace sgct {

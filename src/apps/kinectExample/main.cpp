@@ -1,7 +1,7 @@
 #include <sgct.h>
-#include <sgct/SGCTTracker.h>
-#include <sgct/SGCTTrackingDevice.h>
-#include <sgct/SGCTTrackingManager.h>
+#include <sgct/tracker.h>
+#include <sgct/trackingdevice.h>
+#include <sgct/trackingmanager.h>
 
 namespace {
     sgct::Engine* gEngine;

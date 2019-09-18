@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__PROJECTION__H__
 #define __SGCT__PROJECTION__H__
 
-#include <sgct/Frustum.h>
+#include <sgct/frustum.h>
 #include <glm/glm.hpp>
 
 namespace sgct_core {

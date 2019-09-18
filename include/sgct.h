@@ -186,41 +186,33 @@ https://github.com/ValveSoftware/openvr/blob/master/LICENSE
     #endif
 #endif
 
-#include <sgct/SGCTConfig.h>
-#include <sgct/Engine.h>
-#include <sgct/SharedData.h>
-#include <sgct/TextureManager.h>
+#include <sgct/config.h>
+#include <sgct/engine.h>
+#include <sgct/shareddata.h>
+#include <sgct/texturemanager.h>
 #ifdef SGCT_HAS_TEXT
-    #include <sgct/FontManager.h>
+    #include <sgct/fontmanager.h>
     #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
-#include <sgct/MessageHandler.h>
-#include <sgct/ShaderManager.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTVersion.h>
+#include <sgct/messagehandler.h>
+#include <sgct/shadermanager.h>
+#include <sgct/settings.h>
+#include <sgct/version.h>
 #include <sgct/ogl_headers.h>
-
-#ifndef TINYXML_H
-    #ifndef SGCT_DONT_USE_EXTERNAL
-        #define TINYXML_H "external/tinyxml2.h"
-    #else
-        #define TINYXML_H "tinyxml2.h"
-    #endif
-#endif
 
 /// This namespace contains helper classes to draw simple geometry.
 namespace sgct_utils {}; // empty for doxygen documentation only
 
-#include <sgct/utils/SGCTBox.h>
-#include <sgct/utils/SGCTDome.h>
-#include <sgct/utils/SGCTDomeGrid.h>
-#include <sgct/utils/SGCTPlane.h>
-#include <sgct/utils/SGCTSphere.h>
+#include <sgct/utils/box.h>
+#include <sgct/utils/dome.h>
+#include <sgct/utils/domegrid.h>
+#include <sgct/utils/plane.h>
+#include <sgct/utils/sphere.h>
 
 /// This namespace contains various help classes and functions.
 namespace sgct_helpers {}; // empty for doxygen documentation only
-#include <sgct/helpers/SGCTStringFunctions.h>
-#include <sgct/helpers/SGCTVertexData.h>
+#include <sgct/helpers/stringfunctions.h>
+#include <sgct/helpers/vertexdata.h>
 
 // GLFW wrapping
 #define SGCT_RELEASE GLFW_RELEASE

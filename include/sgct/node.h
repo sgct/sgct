@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__NODE__H__
 #define __SGCT__NODE__H__
 
-#include <sgct/SGCTWindow.h>
+#include <sgct/window.h>
 #include <string>
 #include <vector>
 

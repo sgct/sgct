@@ -1,6 +1,6 @@
 #include <sgct.h>
-#include <sgct/SGCTUser.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/user.h>
+#include <sgct/window.h>
 #include <algorithm>
 #include <iostream>
 

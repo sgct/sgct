@@ -1,13 +1,13 @@
-#include "Dome.h"
+#include "dome.h"
 #include <sgct.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/Image.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SharedData.h>
-#include <sgct/SharedDataTypes.h>
-#include <sgct/TextureManager.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/image.h>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
+#include <sgct/shareddata.h>
+#include <sgct/shareddatatypes.h>
+#include <sgct/texturemanager.h>
 #include <memory>
 
 #ifdef SGCT_HAS_TEXT

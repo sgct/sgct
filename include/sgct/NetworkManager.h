@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__NETWORK_MANAGER__H__
 #define __SGCT__NETWORK_MANAGER__H__
 
-#include <sgct/SGCTNetwork.h>
+#include <sgct/network.h>
 #include <atomic>
 #include <string>
 #include <vector>

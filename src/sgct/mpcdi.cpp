@@ -5,11 +5,11 @@
  *      Author: Gene Payne
  */
 
-#include <sgct/SGCTMpcdi.h>
+#include <sgct/mpcdi.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/Viewport.h>
+#include <sgct/clustermanager.h>
+#include <sgct/messagehandler.h>
+#include <sgct/viewport.h>
 #include <algorithm>
 #include <sstream>
 #include "unzip.h"

@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPOUTOUTPUT_PROJECTION__H__
 #define __SGCT__SPOUTOUTPUT_PROJECTION__H__
 
-#include <sgct/NonLinearProjection.h>
+#include <sgct/nonlinearprojection.h>
 
-#include <sgct/OffScreenBuffer.h>
+#include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <memory>

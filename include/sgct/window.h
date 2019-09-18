@@ -8,10 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/PostFX.h>
-#include <sgct/ScreenCapture.h>
-#include <sgct/Viewport.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/postfx.h>
+#include <sgct/screencapture.h>
+#include <sgct/viewport.h>
 #include <glm/glm.hpp>
 #include <vector>
 

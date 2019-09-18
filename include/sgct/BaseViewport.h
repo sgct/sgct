@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__BASE_VIEWPORT__H__
 #define __SGCT__BASE_VIEWPORT__H__
 
-#include <sgct/Frustum.h>
-#include <sgct/SGCTProjection.h>
-#include <sgct/SGCTProjectionPlane.h>
+#include <sgct/frustum.h>
+#include <sgct/projection.h>
+#include <sgct/projectionplane.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>

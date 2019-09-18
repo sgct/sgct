@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__CLUSTER_MANAGER__H__
 #define __SGCT__CLUSTER_MANAGER__H__
 
-#include <sgct/SGCTNode.h>
-#include <sgct/SGCTTrackingManager.h>
-#include <sgct/NetworkManager.h>
+#include <sgct/networkmanager.h>
+#include <sgct/node.h>
+#include <sgct/trackingmanager.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>

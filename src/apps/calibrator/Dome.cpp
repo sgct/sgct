@@ -1,4 +1,4 @@
-#include "Dome.h"
+#include "dome.h"
 
 #include "sgct.h"
 

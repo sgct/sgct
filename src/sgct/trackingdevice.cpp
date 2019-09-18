@@ -5,13 +5,13 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/trackingdevice.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/SGCTTracker.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/messageHandler.h>
+#include <sgct/mutexmanager.h>
+#include <sgct/tracker.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 

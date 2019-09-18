@@ -5,17 +5,17 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SGCTWindow.h>
+#include <sgct/window.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/TextureManager.h>
-#include <sgct/Viewport.h>
-#include <sgct/shaders/SGCTInternalShaders.h>
-#include <sgct/shaders/SGCTInternalShaders_modern.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
+#include <sgct/texturemanager.h>
+#include <sgct/viewport.h>
+#include <sgct/shaders/internalshaders.h>
+#include <sgct/shaders/internalshaders_modern.h>
+#include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 

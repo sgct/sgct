@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__FISHEYE_PROJECTION__H__
 #define __SGCT__FISHEYE_PROJECTION__H__
 
-#include <sgct/NonLinearProjection.h>
+#include <sgct/nonlinearprojection.h>
 
 #include <glm/glm.hpp>
 

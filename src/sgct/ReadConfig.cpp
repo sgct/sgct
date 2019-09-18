@@ -5,18 +5,18 @@
  For conditions of distribution and use, see copyright notice in sgct.h
  *************************************************************************/
 
-#include <sgct/ReadConfig.h>
+#include <sgct/readconfig.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTMpcdi.h>
-#include <sgct/SGCTNode.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTTracker.h>
-#include <sgct/SGCTTrackingDevice.h>
-#include <sgct/SGCTUser.h>
+#include <sgct/clustermanager.h>
+#include <sgct/messagehandler.h>
+#include <sgct/mpcdi.h>
+#include <sgct/node.h>
+#include <sgct/settings.h>
+#include <sgct/tracker.h>
+#include <sgct/trackingDevice.h>
+#include <sgct/user.h>
 #include <sgct/Viewport.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/helpers/stringfunctions.h>
 #include <algorithm>
 #include <optional>
 #include <sstream>

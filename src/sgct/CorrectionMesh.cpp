@@ -5,15 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/CorrectionMesh.h>
+#include <sgct/correctionmesh.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTUser.h>
-#include <sgct/Viewport.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
+#include <sgct/user.h>
+#include <sgct/viewport.h>
+#include <sgct/helpers/stringfunctions.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -433,7 +433,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
                     buf.indices.resize(numberOfIndices);
                     std::fill(buf.indices.begin(), buf.indices.end(), 0);
                 }
-                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
+                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, 16, &tmpD) == 2) {
                     if (strcmp(tmpBuf, "LEFT") == 0) {
                         leftOrtho = tmpD;
                     }

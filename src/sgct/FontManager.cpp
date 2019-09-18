@@ -5,12 +5,12 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/FontManager.h>
+#include <sgct/fontmanager.h>
 
-#include <sgct/Engine.h>
-#include <sgct/Font.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/engine.h>
+#include <sgct/font.h>
+#include <sgct/messagehandler.h>
+#include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>

@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SGCTNetwork.h>
+#include <sgct/network.h>
 
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -31,12 +31,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #define SGCT_ERRNO errno
 #endif
 
-#include <sgct/Engine.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/NetworkManager.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/SharedData.h>
+#include <sgct/engine.h>
+#include <sgct/clustermanager.h>
+#include <sgct/messagehandler.h>
+#include <sgct/networkmanager.h>
+#include <sgct/mutexmanager.h>
+#include <sgct/shareddata.h>
 
 #include <zlib.h>
 #include <algorithm>

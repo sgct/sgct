@@ -1,6 +1,6 @@
 #include <sgct.h>
-#include <sgct/PostFX.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/postfx.h>
+#include <sgct/window.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

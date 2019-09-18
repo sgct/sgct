@@ -1,7 +1,7 @@
 #include <sgct.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/PostFX.h>
-#include <sgct/SGCTUser.h>
+#include <sgct/clustermanager.h>
+#include <sgct/postfx.h>
+#include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

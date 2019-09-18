@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TRACKER__H__
 #define __SGCT__TRACKER__H__
 
-#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/trackingdevice.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>

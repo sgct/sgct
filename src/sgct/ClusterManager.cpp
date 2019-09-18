@@ -5,10 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/ClusterManager.h>
+#include <sgct/clustermanager.h>
 
-#include <sgct/SGCTUser.h>
-
+#include <sgct/user.h>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>

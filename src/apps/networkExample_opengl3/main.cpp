@@ -1,6 +1,6 @@
 #include <sgct.h>
-#include <sgct/NetworkManager.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/networkmanager.h>
+#include <sgct/window.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string_view>

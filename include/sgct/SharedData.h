@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHARED_DATA__H__
 #define __SGCT__SHARED_DATA__H__
 
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/SGCTNetwork.h>
-#include <sgct/SharedDataTypes.h>
+#include <sgct/mutexmanager.h>
+#include <sgct/network.h>
+#include <sgct/shareddatatypes.h>
 #include <array>
 #include <string>
 #include <vector>

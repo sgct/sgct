@@ -1,7 +1,7 @@
 #include <sgct.h>
-#include <sgct/Image.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/SGCTUser.h>
+#include <sgct/image.h>
+#include <sgct/window.h>
+#include <sgct/user.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

@@ -5,16 +5,16 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SphericalMirrorProjection.h>
+#include <sgct/sphericalmirrorprojection.h>
 
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/Viewport.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
-#include <sgct/shaders/SGCTInternalSphericalProjectionShaders.h>
-#include <sgct/shaders/SGCTInternalSphericalProjectionShaders_modern.h>
+#include <sgct/engine.h>
+#include <sgct/messageHandler.h>
+#include <sgct/offScreenBuffer.h>
+#include <sgct/window.h>
+#include <sgct/viewport.h>
+#include <sgct/helpers/stringfunctions.h>
+#include <sgct/shaders/internalsphericalprojectionshaders.h>
+#include <sgct/shaders/internalsphericalprojectionshaders_modern.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

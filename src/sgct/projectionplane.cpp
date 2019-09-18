@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SGCTProjectionPlane.h>
+#include <sgct/projectionplane.h>
 
-#include <sgct/MessageHandler.h>
+#include <sgct/messagehandler.h>
 #include <tinyxml2.h>
 
 namespace sgct_core {

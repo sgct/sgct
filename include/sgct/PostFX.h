@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__POST_FX__H__
 #define __SGCT__POST_FX__H__
 
-#include <sgct/ShaderProgram.h>
+#include <sgct/shaderprogram.h>
 #include <glm/glm.hpp>
 
 namespace sgct {

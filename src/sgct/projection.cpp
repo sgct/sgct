@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SGCTProjection.h>
+#include <sgct/projection.h>
 
-#include <sgct/SGCTProjectionPlane.h>
+#include <sgct/projectionplane.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace sgct_core {

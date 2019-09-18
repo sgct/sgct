@@ -5,11 +5,11 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/SharedData.h>
+#include <sgct/shareddata.h>
 
-#include <sgct/Engine.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/MessageHandler.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/mutexmanager.h>
 #include <zlib.h>
 #include <string>
 

@@ -8,12 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
-#include <sgct/SGCTConfig.h>
-#include <sgct/ShaderProgram.h>
-#include <sgct/FisheyeProjection.h>
-#include <sgct/ScreenCapture.h>
-#include <sgct/SphericalMirrorProjection.h>
-#include <sgct/SpoutOutputProjection.h>
+#include <sgct/config.h>
+#include <sgct/shaderprogram.h>
+#include <sgct/fisheyeprojection.h>
+#include <sgct/screencapture.h>
+#include <sgct/sphericalmirrorprojection.h>
+#include <sgct/spoutoutputprojection.h>
 
 namespace sgct_core {
 class Image;

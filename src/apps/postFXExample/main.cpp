@@ -1,6 +1,6 @@
 #include <sgct.h>
-#include <sgct/PostFX.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/postfx.h>
+#include <sgct/window.h>
 
 namespace {
     sgct::Engine* gEngine;

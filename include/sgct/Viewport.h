@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__VIEWPORT__H__
 #define __SGCT__VIEWPORT__H__
 
-#include <sgct/BaseViewport.h>
+#include <sgct/baseviewport.h>
 
-#include <sgct/CorrectionMesh.h>
+#include <sgct/correctionmesh.h>
 #include <memory>
 #include <string>
 #include <vector>

@@ -5,18 +5,18 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/SpoutOutputProjection.h>
+#include <sgct/spoutoutputprojection.h>
 
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
-#include <sgct/shaders/SGCTInternalFisheyeShaders.h>
-#include <sgct/shaders/SGCTInternalFisheyeShaders_modern.h>
-#include <sgct/shaders/SGCTInternalFisheyeShaders_cubic.h>
-#include <sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/settings.h>
+#include <sgct/window.h>
+#include <sgct/helpers/stringfunctions.h>
+#include <sgct/shaders/internalfisheyeshaders.h>
+#include <sgct/shaders/internalfisheyeshaders_modern.h>
+#include <sgct/shaders/internalfisheyeshaders_cubic.h>
+#include <sgct/shaders/internalfisheyeshaders_modern_cubic.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

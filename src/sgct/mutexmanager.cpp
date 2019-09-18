@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/SGCTMutexManager.h>
+#include <sgct/mutexmanager.h>
 
 namespace sgct {
 

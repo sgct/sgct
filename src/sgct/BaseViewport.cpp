@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/BaseViewport.h>
+#include <sgct/baseviewport.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/SGCTUser.h>
+#include <sgct/clustermanager.h>
+#include <sgct/user.h>
 
 namespace sgct_core {
 

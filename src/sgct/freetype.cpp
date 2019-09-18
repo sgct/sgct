@@ -7,12 +7,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/freetype.h>
 
-#include <sgct/Engine.h>
-#include <sgct/Font.h>
-#include <sgct/FontManager.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/helpers/SGCTPortedFunctions.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/engine.h>
+#include <sgct/font.h>
+#include <sgct/fontmanager.h>
+#include <sgct/window.h>
+#include <sgct/helpers/portedfunctions.h>
+#include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <sstream>

@@ -5,30 +5,30 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/Engine.h>
+#include <sgct/engine.h>
 
 #ifdef SGCT_HAS_TEXT
-    #include <sgct/freetype.h>
-    #include <sgct/FontManager.h>
+#include <sgct/fontmanager.h>
+#include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
-#include <sgct/ClusterManager.h>
-#include <sgct/Font.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/ReadConfig.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTUser.h>
-#include <sgct/SGCTVersion.h>
-#include <sgct/ShaderManager.h>
-#include <sgct/SharedData.h>
-#include <sgct/Statistics.h>
-#include <sgct/TextureManager.h>
-#include <sgct/Touch.h>
-#include <sgct/Viewport.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
-#include <sgct/shaders/SGCTInternalShaders.h>
-#include <sgct/shaders/SGCTInternalShaders_modern.h>
+#include <sgct/clustermanager.h>
+#include <sgct/font.h>
+#include <sgct/messagehandler.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/readconfig.h>
+#include <sgct/mutexmanager.h>
+#include <sgct/settings.h>
+#include <sgct/user.h>
+#include <sgct/version.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/statistics.h>
+#include <sgct/texturemanager.h>
+#include <sgct/touch.h>
+#include <sgct/viewport.h>
+#include <sgct/helpers/stringfunctions.h>
+#include <sgct/shaders/internalshaders.h>
+#include <sgct/shaders/internalshaders_modern.h>
 #include <algorithm>
 #include <iostream>
 #include <sstream>

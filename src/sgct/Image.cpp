@@ -15,11 +15,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <jpeglib.h>
 #include <turbojpeg.h>
 
-#include <sgct/Image.h>
+#include <sgct/image.h>
 
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
 
 namespace {
     constexpr const int PngBytesToCheck = 8;

@@ -1,8 +1,8 @@
 #include <sgct.h>
-#include <sgct/SGCTTracker.h>
-#include <sgct/SGCTTrackingDevice.h>
-#include <sgct/SGCTTrackingManager.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/tracker.h>
+#include <sgct/trackingdevice.h>
+#include <sgct/trackingmanager.h>
+#include <sgct/window.h>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 

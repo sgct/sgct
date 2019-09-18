@@ -8,7 +8,7 @@
 #ifndef __SGCT__READ_CONFIG__H__
 #define __SGCT__READ_CONFIG__H__
 
-#include <sgct/SGCTWindow.h>
+#include <sgct/window.h>
 #include <glm/glm.hpp>
 #include <string>
 

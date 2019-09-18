@@ -5,12 +5,12 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <sgct/NonLinearProjection.h>
+#include <sgct/nonlinearprojection.h>
 
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/SGCTSettings.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/offscreenbuffer.h>
+#include <sgct/settings.h>
 #include <algorithm>
 #include <unordered_map>
 

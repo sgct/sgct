@@ -1,10 +1,10 @@
 ﻿#include <sgct.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/Font.h>
-#include <sgct/FontManager.h>
-#include <sgct/NetworkManager.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/font.h>
+#include <sgct/fontmanager.h>
+#include <sgct/networkmanager.h>
+#include <sgct/window.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {

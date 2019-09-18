@@ -8,7 +8,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
-#include <sgct/config.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/fisheyeprojection.h>
 #include <sgct/screencapture.h>

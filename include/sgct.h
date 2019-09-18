@@ -186,7 +186,6 @@ https://github.com/ValveSoftware/openvr/blob/master/LICENSE
     #endif
 #endif
 
-#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>

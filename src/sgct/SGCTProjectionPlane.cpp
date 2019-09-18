@@ -8,12 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTProjectionPlane.h>
 
 #include <sgct/MessageHandler.h>
-
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinyxml2.h"
-#else
 #include <tinyxml2.h>
-#endif
 
 namespace sgct_core {
 

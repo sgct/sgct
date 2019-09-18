@@ -14,13 +14,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <map>
 #include <unordered_map>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include <external/freetype/ftglyph.h>
-#include <external/freetype/ftstroke.h>
-#else
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
-#endif
 
 /**
  * \namespace sgct_text

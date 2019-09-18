@@ -21,12 +21,7 @@
 #include <optional>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
-
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include <external/tinyxml2.h>
-#else
 #include <tinyxml2.h>
-#endif
 
 namespace {
     constexpr const char* DefaultConfig = R"(

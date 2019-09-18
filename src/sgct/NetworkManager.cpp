@@ -22,11 +22,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <numeric>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/zlib.h"
-#else
 #include <zlib.h>
-#endif
 
 #ifdef WIN32
     #include <ws2tcpip.h>

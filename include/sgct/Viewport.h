@@ -16,11 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include <external/tinyxml2.h>
-#else
-    #include <tinyxml2.h>
-#endif
+#include <tinyxml2.h>
 
 namespace sgct_core {
 

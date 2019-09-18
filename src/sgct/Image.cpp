@@ -10,17 +10,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <fstream>
 #include <algorithm>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/png.h"
-#include "../include/external/pngpriv.h"
-#include "../include/external/jpeglib.h"
-#include "../include/external/turbojpeg.h"
-#else
 #include <png.h>
 #include <pngpriv.h>
 #include <jpeglib.h>
 #include <turbojpeg.h>
-#endif
 
 #include <sgct/Image.h>
 

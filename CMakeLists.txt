@@ -31,7 +31,7 @@ option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
 option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" ON)
 
 add_subdirectory(src/sgct)
-add_subdirectory(src/deps)
+add_subdirectory(ext)
 
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)

@@ -8,12 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__IMAGE__H__
 #define __SGCT__IMAGE__H__
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/pngconf.h"
-#else
 #include <pngconf.h>
-#endif
-
 #include <string>
 
 namespace sgct_core {

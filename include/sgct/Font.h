@@ -8,13 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__FREETYPE_FONT__H__
 #define __SGCT__FREETYPE_FONT__H__
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include <external/freetype/ftglyph.h>
-    #include <external/freetype/ftstroke.h>
-#else
-    #include <freetype/ftglyph.h>
-    #include <freetype/ftstroke.h>
-#endif
+#include <freetype/ftglyph.h>
+#include <freetype/ftstroke.h>
 
 #include <glm/glm.hpp>
 #include <string>

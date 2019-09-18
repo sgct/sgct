@@ -126,7 +126,7 @@ set_compile_options(sgct)
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/include)
-target_compile_definitions(sgct PRIVATE GLEW_STATIC GLEW_NO_GLU)
+target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct
   PRIVATE
@@ -135,14 +135,14 @@ target_link_libraries(sgct
 
 if (SGCT_FREETYPE_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
-  target_include_directories(sgct SYSTEM PRIVATE ${PROJECT_SOURCE_DIR}/ext/include/external/freetype)
-  target_link_libraries(sgct PRIVATE freetype)
+  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/freetype2/include)
+  target_link_libraries(sgct PUBLIC freetype)
 endif ()
 
 if (SGCT_SPOUT_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
-  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/spout)
-  target_link_libraries(sgct PRIVATE ${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.lib)
+  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout)
+  target_link_libraries(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
 
   get_target_property(tmp sgct DYNAMIC_LIBS)
   if (NOT tmp)
@@ -151,13 +151,13 @@ if (SGCT_SPOUT_SUPPORT)
 
   set_target_properties(sgct
     PROPERTIES DYNAMIC_LIBS
-    "${tmp};${PROJECT_SOURCE_DIR}/src/deps/spout/SpoutLibrary.dll"
+    "${tmp};${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.dll"
   )
 endif ()
 
 if (SGCT_OPENVR_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_OPENVR)
-  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/src/deps/openvr/headers)
+  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/openvr/headers)
 endif ()
 
 find_package(OpenGL REQUIRED)
@@ -184,18 +184,19 @@ else() # Linux
 endif ()
 
 target_include_directories(sgct SYSTEM PUBLIC
-    ${PROJECT_SOURCE_DIR}/src/deps/glfw/include
+    ${PROJECT_SOURCE_DIR}/ext/glfw/include
+    ${PROJECT_SOURCE_DIR}/ext/tinyxml2
 )
 
 target_include_directories(sgct SYSTEM PUBLIC
-  ${PROJECT_BINARY_DIR}/src/deps/vrpn
-  ${PROJECT_SOURCE_DIR}/src/deps/vrpn
-  ${PROJECT_BINARY_DIR}/src/deps/lpng
-  ${PROJECT_SOURCE_DIR}/src/deps/lpng
-  ${PROJECT_SOURCE_DIR}/src/deps/zlib
-  ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib
-  ${PROJECT_SOURCE_DIR}/src/deps/lpng/zlib
-  ${PROJECT_SOURCE_DIR}/src/deps/zlib/contrib/minizip
-  ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo
-  ${PROJECT_SOURCE_DIR}/src/deps/libjpeg-turbo
+  ${PROJECT_BINARY_DIR}/ext/vrpn
+  ${PROJECT_SOURCE_DIR}/ext/vrpn
+  ${PROJECT_BINARY_DIR}/ext/lpng
+  ${PROJECT_SOURCE_DIR}/ext/lpng
+  ${PROJECT_SOURCE_DIR}/ext/zlib
+  ${PROJECT_BINARY_DIR}/ext/lpng/zlib
+  ${PROJECT_SOURCE_DIR}/ext/lpng/zlib
+  ${PROJECT_SOURCE_DIR}/ext/zlib/contrib/minizip
+  ${PROJECT_BINARY_DIR}/ext/libjpeg-turbo
+  ${PROJECT_SOURCE_DIR}/ext/libjpeg-turbo
 )

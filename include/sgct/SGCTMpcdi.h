@@ -13,13 +13,9 @@
 #include <string>
 #include <vector>
 
-#include "external/unzip.h"
-#include "external/zip.h"
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include <external/tinyxml2.h>
-#else
-    #include <tinyxml2.h>
-#endif
+#include <tinyxml2.h>
+#include <unzip.h>
+#include <zip.h>
 
 namespace sgct { class SGCTWindow; }
 

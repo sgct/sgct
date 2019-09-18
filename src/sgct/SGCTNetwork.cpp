@@ -38,12 +38,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTMutexManager.h>
 #include <sgct/SharedData.h>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/zlib.h"
-#else
 #include <zlib.h>
-#endif
-
 #include <algorithm>
 
 namespace {

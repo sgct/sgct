@@ -11,9 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <unordered_map>
 
-namespace sgct_core {
-class Image;
-} // namespace sgct_core
+namespace sgct_core { class Image; }
 
 namespace sgct {
 

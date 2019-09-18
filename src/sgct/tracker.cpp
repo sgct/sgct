@@ -16,16 +16,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-SGCTTracker::SGCTTracker(std::string name) : mName(std::move(name)) {}
+Tracker::Tracker(std::string name) : mName(std::move(name)) {}
 
-void SGCTTracker::setEnabled(bool state) {
-    for (std::unique_ptr<SGCTTrackingDevice>& dev : mTrackingDevices) {
+void Tracker::setEnabled(bool state) {
+    for (std::unique_ptr<TrackingDevice>& dev : mTrackingDevices) {
         dev->setEnabled(state);
     }
 }
 
-void SGCTTracker::addDevice(std::string name, size_t index) {
-    mTrackingDevices.push_back(std::make_unique<SGCTTrackingDevice>(index, name));
+void Tracker::addDevice(std::string name, size_t index) {
+    mTrackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
@@ -33,19 +33,19 @@ void SGCTTracker::addDevice(std::string name, size_t index) {
     );
 }
 
-SGCTTrackingDevice* SGCTTracker::getLastDevice() const {
+TrackingDevice* Tracker::getLastDevice() const {
     return !mTrackingDevices.empty() ? mTrackingDevices.back().get() : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevice(size_t index) const {
+TrackingDevice* Tracker::getDevice(size_t index) const {
     return index < mTrackingDevices.size() ? mTrackingDevices[index].get() : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevice(const std::string& name) const {
+TrackingDevice* Tracker::getDevice(const std::string& name) const {
     auto it = std::find_if(
         mTrackingDevices.begin(),
         mTrackingDevices.end(),
-        [name](const std::unique_ptr<SGCTTrackingDevice>& dev) {
+        [name](const std::unique_ptr<TrackingDevice>& dev) {
             return dev->getName() == name;
         }
     );
@@ -57,11 +57,11 @@ SGCTTrackingDevice* SGCTTracker::getDevice(const std::string& name) const {
     }
 }
 
-SGCTTrackingDevice* SGCTTracker::getDeviceBySensorId(int id) const {
+TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
     auto it = std::find_if(
         mTrackingDevices.begin(),
         mTrackingDevices.end(),
-        [id](const std::unique_ptr<SGCTTrackingDevice>& dev) {
+        [id](const std::unique_ptr<TrackingDevice>& dev) {
             return dev->getSensorId() == id;
         }
     );
@@ -73,8 +73,8 @@ SGCTTrackingDevice* SGCTTracker::getDeviceBySensorId(int id) const {
     }
 }
 
-void SGCTTracker::setOrientation(glm::quat q) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void Tracker::setOrientation(glm::quat q) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
 
     // create inverse rotation matrix
     mOrientation = glm::inverse(glm::mat4_cast(q));
@@ -82,7 +82,7 @@ void SGCTTracker::setOrientation(glm::quat q) {
     calculateTransform();
 }
 
-void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
+void Tracker::setOrientation(float xRot, float yRot, float zRot) {
     // create rotation quaternion based on x, y, z rotations
     glm::quat rotQuat;
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
@@ -91,43 +91,43 @@ void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
     setOrientation(std::move(rotQuat));
 }
 
-void SGCTTracker::setOffset(glm::vec3 offset) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void Tracker::setOffset(glm::vec3 offset) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mOffset = std::move(offset);
     calculateTransform();
 }
 
-void SGCTTracker::setScale(double scaleVal) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void Tracker::setScale(double scaleVal) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     if (scaleVal > 0.0) {
         mScale = scaleVal;
     }
 }
 
-void SGCTTracker::setTransform(glm::mat4 mat) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void Tracker::setTransform(glm::mat4 mat) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mXform = std::move(mat);
 }
 
-glm::mat4 SGCTTracker::getTransform() const { 
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::mat4 Tracker::getTransform() const { 
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mXform;
 }
 
-double SGCTTracker::getScale() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double Tracker::getScale() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mScale;
 }
 
-int SGCTTracker::getNumberOfDevices() const {
+int Tracker::getNumberOfDevices() const {
     return static_cast<int>(mTrackingDevices.size());
 }
 
-const std::string& SGCTTracker::getName() const {
+const std::string& Tracker::getName() const {
     return mName;
 }
 
-void SGCTTracker::calculateTransform() {
+void Tracker::calculateTransform() {
     // create offset translation matrix
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), mOffset);
 

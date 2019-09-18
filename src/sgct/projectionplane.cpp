@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
+void ProjectionPlane::configure(tinyxml2::XMLElement* element,
                                     glm::vec3& initializedLowerLeftCorner,
                                     glm::vec3& initializedUpperLeftCorner,
                                     glm::vec3& initializedUpperRightCorner)
@@ -33,7 +33,7 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "SGCTProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
+                    "ProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
                     pos.x, pos.y, pos.z, i % 3
                 );
 
@@ -57,7 +57,7 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             else {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
-                    "SGCTProjectionPlane: Failed to parse coordinates from XML\n"
+                    "ProjectionPlane: Failed to parse coordinates from XML\n"
                 );
             }
         }
@@ -66,39 +66,39 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
     }
 }
 
-void SGCTProjectionPlane::reset() {
+void ProjectionPlane::reset() {
     mPlaneCoords.lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
     mPlaneCoords.upperLeft = glm::vec3(-1.f, 1.f, -2.f);
     mPlaneCoords.upperRight = glm::vec3(1.f, 1.f, -2.f);
 }
 
-void SGCTProjectionPlane::offset(const glm::vec3& p) {
+void ProjectionPlane::offset(const glm::vec3& p) {
     mPlaneCoords.lowerLeft += p;
     mPlaneCoords.upperLeft += p;
     mPlaneCoords.upperRight += p;
 }
 
-void SGCTProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
+void ProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
     mPlaneCoords.lowerLeft = std::move(coordinate);
 }
 
-void SGCTProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
+void ProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
     mPlaneCoords.upperLeft = std::move(coordinate);
 }
 
-void SGCTProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
+void ProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
     mPlaneCoords.upperRight = std::move(coordinate);
 }
 
-glm::vec3 SGCTProjectionPlane::getCoordinateLowerLeft() const {
+glm::vec3 ProjectionPlane::getCoordinateLowerLeft() const {
     return mPlaneCoords.lowerLeft;
 }
 
-glm::vec3 SGCTProjectionPlane::getCoordinateUpperLeft() const {
+glm::vec3 ProjectionPlane::getCoordinateUpperLeft() const {
     return mPlaneCoords.upperLeft;
 }
 
-glm::vec3 SGCTProjectionPlane::getCoordinateUpperRight() const {
+glm::vec3 ProjectionPlane::getCoordinateUpperRight() const {
     return mPlaneCoords.upperRight;
 }
 

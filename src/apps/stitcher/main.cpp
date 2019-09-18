@@ -42,7 +42,7 @@ namespace {
     float eyeSeparation = 0.065f;
     float domeDiameter = 14.8f;
 
-    //sgct_utils::SGCTDome * dome = NULL;
+    //sgct_utils::Dome * dome = NULL;
 
     //variables to share across cluster
     sgct::SharedBool takeScreenshot(false);
@@ -256,7 +256,7 @@ void myPostSyncPreDrawFun() {
 void preWinInitFun() {
     gEngine->getDefaultUser().setEyeSeparation(eyeSeparation);
     for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
-        SGCTWindow& win = gEngine->getWindow(i);
+        Window& win = gEngine->getWindow(i);
         gEngine->setScreenShotNumber(startFrame);
         win.setAlpha(alpha);
 
@@ -283,10 +283,10 @@ void preWinInitFun() {
         win.setFramebufferResolution(glm::ivec2(resolution, resolution));
         win.setUseFXAA(fxaa);
         if (stereo) {
-            win.setStereoMode(SGCTWindow::StereoMode::Dummy);
+            win.setStereoMode(Window::StereoMode::Dummy);
         }
         else {
-            win.setStereoMode(SGCTWindow::StereoMode::NoStereo);
+            win.setStereoMode(Window::StereoMode::NoStereo);
         }
     }
 }
@@ -488,49 +488,49 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "-format" && argc > (i + 1)) {
             std::string_view arg2 = argv[i + 1];
-            sgct::SGCTSettings::CaptureFormat f = [](std::string_view format) {
+            sgct::Settings::CaptureFormat f = [](std::string_view format) {
                 if (format == "png" || format == "PNG") {
-                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                    return sgct::Settings::CaptureFormat::PNG;
                 }
                 else if (format == "tga" || format == "TGA") {
-                    return sgct::SGCTSettings::CaptureFormat::TGA;
+                    return sgct::Settings::CaptureFormat::TGA;
                 }
                 else if (format == "jpg" || format == "JPG") {
-                    return sgct::SGCTSettings::CaptureFormat::JPG;
+                    return sgct::Settings::CaptureFormat::JPG;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
                         "Unknown capturing format. Using PNG\n"
                     );
-                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                    return sgct::Settings::CaptureFormat::PNG;
                 }
             } (arg2);
-            SGCTSettings::instance()->setCaptureFormat(f);
+            Settings::instance()->setCaptureFormat(f);
             sgct::MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
         }
         else if (arg == "-leftPath" && argc > (i + 1)) {
-            SGCTSettings::instance()->setCapturePath(
+            Settings::instance()->setCapturePath(
                 argv[i + 1],
-                SGCTSettings::CapturePath::Mono
+                Settings::CapturePath::Mono
             );
-            SGCTSettings::instance()->setCapturePath(
+            Settings::instance()->setCapturePath(
                 argv[i + 1],
-                SGCTSettings::CapturePath::LeftStereo
+                Settings::CapturePath::LeftStereo
             );
 
             MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
         }
         else if (arg == "-rightPath" && argc > (i + 1)) {
-            SGCTSettings::instance()->setCapturePath(
+            Settings::instance()->setCapturePath(
                 argv[i + 1],
-                SGCTSettings::CapturePath::RightStereo
+                Settings::CapturePath::RightStereo
             );
 
             MessageHandler::instance()->print("Right path set to %s\n", argv[i + 1]);
         }
         else if (arg == "-compression" && argc > (i + 1)) {
             int tmpi = atoi(argv[i + 1]);
-            SGCTSettings::instance()->setPNGCompressionLevel(tmpi);
+            Settings::instance()->setPNGCompressionLevel(tmpi);
 
             MessageHandler::instance()->print("Compression set to %d\n", tmpi);
         }

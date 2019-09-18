@@ -6,7 +6,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct_utils::Box> box;
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -103,9 +103,9 @@ void initOGLFun() {
         sizeX, sizeY, sizeC, path.c_str()
     );
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         2.f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
         );
 
     glCullFace(GL_BACK);
@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
     gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
-    sgct::SGCTSettings::instance()->setUseNormalTexture(true);
-    sgct::SGCTSettings::instance()->setUsePositionTexture(true);
+    sgct::Settings::instance()->setUseNormalTexture(true);
+    sgct::Settings::instance()->setUsePositionTexture(true);
 
     if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
         delete gEngine;

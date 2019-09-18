@@ -9,17 +9,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-SGCTMutexManager* SGCTMutexManager::mInstance = nullptr;
+MutexManager* MutexManager::mInstance = nullptr;
 
-SGCTMutexManager* SGCTMutexManager::instance() {
+MutexManager* MutexManager::instance() {
     if (mInstance == nullptr) {
-        mInstance = new SGCTMutexManager();
+        mInstance = new MutexManager();
     }
 
     return mInstance;
 }
 
-void SGCTMutexManager::destroy() {
+void MutexManager::destroy() {
     delete mInstance;
     mInstance = nullptr;
 }

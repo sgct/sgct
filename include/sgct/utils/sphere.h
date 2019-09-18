@@ -13,11 +13,11 @@ namespace sgct_utils {
 /**
  * This class creates and renders a textured sphere.
  */
-class SGCTSphere {
+class Sphere {
 public:
     /// This constructor requires a valid openGL contex
-    SGCTSphere(float radius, unsigned int segments);
-    ~SGCTSphere();
+    Sphere(float radius, unsigned int segments);
+    ~Sphere();
 
     /**
      * If openGL 3.3+ is used:

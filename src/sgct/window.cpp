@@ -41,7 +41,7 @@ constexpr const float QuadVerts[20] = {
 };
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -56,7 +56,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -71,7 +71,7 @@ void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void windowFocusCallback(GLFWwindow* window, int state) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -84,7 +84,7 @@ void windowFocusCallback(GLFWwindow* window, int state) {
 }
 
 void windowIconifyCallback(GLFWwindow* window, int state) {
-    sgct_core::SGCTNode* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -100,55 +100,55 @@ void windowIconifyCallback(GLFWwindow* window, int state) {
 
 namespace sgct {
 
-bool SGCTWindow::mUseSwapGroups = false;
-bool SGCTWindow::mBarrier = false;
-bool SGCTWindow::mSwapGroupMaster = false;
-GLFWwindow* SGCTWindow::mCurrentContextOwner = nullptr;
-GLFWwindow* SGCTWindow::mSharedHandle = nullptr;
+bool Window::mUseSwapGroups = false;
+bool Window::mBarrier = false;
+bool Window::mSwapGroupMaster = false;
+GLFWwindow* Window::mCurrentContextOwner = nullptr;
+GLFWwindow* Window::mSharedHandle = nullptr;
 
-SGCTWindow::SGCTWindow(int id)
+Window::Window(int id)
     : mId(id)
 {
-    mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
-    mNumberOfAASamples = SGCTSettings::instance()->getDefaultNumberOfAASamples();
+    mUseFXAA = Settings::instance()->getDefaultFXAAState();
+    mNumberOfAASamples = Settings::instance()->getDefaultNumberOfAASamples();
 
     // pointers
     mSharedHandle = nullptr;
 }
 
-void SGCTWindow::setName(std::string name) {
+void Window::setName(std::string name) {
     mName = std::move(name);
 }
 
-void SGCTWindow::setTags(std::vector<std::string> tags) {
+void Window::setTags(std::vector<std::string> tags) {
     mTags = std::move(tags);
 }
 
-const std::string& SGCTWindow::getName() const {
+const std::string& Window::getName() const {
     return mName;
 }
 
-const std::vector<std::string>& SGCTWindow::getTags() const {
+const std::vector<std::string>& Window::getTags() const {
     return mTags;
 }
 
-bool SGCTWindow::hasTag(const std::string& tag) const {
+bool Window::hasTag(const std::string& tag) const {
     return std::find(mTags.cbegin(), mTags.cend(), tag) != mTags.cend();
 }
 
-int SGCTWindow::getId() const {
+int Window::getId() const {
     return mId;
 }
 
-bool SGCTWindow::isFocused() const {
+bool Window::isFocused() const {
     return mFocused;
 }
 
-bool SGCTWindow::isIconified() const {
+bool Window::isIconified() const {
     return mIconified;
 }
 
-void SGCTWindow::close() {
+void Window::close() {
     makeOpenGLContextCurrent(Context::Shared);
 
     for (sgct::PostFX& pfx : mPostFXPasses) {
@@ -164,7 +164,7 @@ void SGCTWindow::close() {
     mScreenCaptureRight = nullptr;
 
     // delete FBO stuff
-    if (mFinalFBO != nullptr && SGCTSettings::instance()->useFBO()) {
+    if (mFinalFBO != nullptr && Settings::instance()->useFBO()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
             "Releasing OpenGL buffers for window %d...\n", mId
@@ -215,7 +215,7 @@ void SGCTWindow::close() {
     }
 }
 
-void SGCTWindow::init() {
+void Window::init() {
     if (!mFullScreen) {
         if (mSetWindowPos) {
             glfwSetWindowPos(mWindowHandle, mWindowPos.x, mWindowPos.y);
@@ -240,7 +240,7 @@ void SGCTWindow::init() {
     // initNvidiaSwapGroups();
 }
 
-void SGCTWindow::initOGL() {
+void Window::initOGL() {
     updateColorBufferData();
     
     createTextures();
@@ -269,7 +269,7 @@ void SGCTWindow::initOGL() {
     }
 }
 
-void SGCTWindow::initContextSpecificOGL() {
+void Window::initContextSpecificOGL() {
     makeOpenGLContextCurrent(Context::Window);
     TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
     // must be uncompressed otherwise artefacts will occur in gradients
@@ -287,7 +287,7 @@ void SGCTWindow::initContextSpecificOGL() {
     TextureManager::instance()->setCompression(cm);
 }
 
-unsigned int SGCTWindow::getFrameBufferTexture(unsigned int index) {
+unsigned int Window::getFrameBufferTexture(unsigned int index) {
     switch (index) {
         case Engine::LeftEye:
             if (mFrameBufferTextures.leftEye == 0) {
@@ -332,14 +332,14 @@ unsigned int SGCTWindow::getFrameBufferTexture(unsigned int index) {
         default:
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "SGCTWindow: Requested framebuffer texture index %d is out of bounds\n",
+                "Window: Requested framebuffer texture index %d is out of bounds\n",
                 index
             );
             return 0;
     }
 }
 
-void SGCTWindow::setVisibility(bool state) {
+void Window::setVisibility(bool state) {
     if (state != mVisible) {
         if (mWindowHandle) {
             if (state) {
@@ -353,37 +353,37 @@ void SGCTWindow::setVisibility(bool state) {
     }
 }
 
-void SGCTWindow::setRenderWhileHidden(bool state) {
+void Window::setRenderWhileHidden(bool state) {
     mRenderWhileHidden = state;
 }
 
-void SGCTWindow::setFocused(bool state) {
+void Window::setFocused(bool state) {
     mFocused = state;
 }
 
-void SGCTWindow::setIconified(bool state) {
+void Window::setIconified(bool state) {
     mIconified = state;
 }
 
-void SGCTWindow::setWindowTitle(const char* title) {
+void Window::setWindowTitle(const char* title) {
     glfwSetWindowTitle(mWindowHandle, title);
 }
 
-void SGCTWindow::setWindowResolution(glm::ivec2 resolution) {
+void Window::setWindowResolution(glm::ivec2 resolution) {
     // In case this callback gets triggered from elsewhere than sgct's glfwPollEvents, we
     // want to make sure the actual resizing is deferred to the end of the frame. This can
     // happen if some other library pulls events from the operating system for example by
     // calling nextEventMatchingMask (MacOS) or PeekMessageW (Windows). If we were to set
     // the actual mWindowRes directly, we may render half a frame with resolution and the
     // other half with resolution b, which is undefined behaviour. mHasNewPendingWindowRes
-    // is checked in SGCTWindow::updateResolution, which is called from SGCTEngine's
+    // is checked in Window::updateResolution, which is called from SGCTEngine's
     // render loop after glfwPollEvents.
 
     mHasPendingWindowRes = true;
     mPendingWindowRes = std::move(resolution);
 }
 
-void SGCTWindow::setFramebufferResolution(glm::ivec2 resolution) {
+void Window::setFramebufferResolution(glm::ivec2 resolution) {
     // Defer actual update of framebuffer resolution until next call to updateResolutions.
     // (Same reason as described for setWindowResolution above.)
     if (!mUseFixResolution) {
@@ -392,7 +392,7 @@ void SGCTWindow::setFramebufferResolution(glm::ivec2 resolution) {
     }
 }
 
-void SGCTWindow::swap(bool takeScreenshot) {
+void Window::swap(bool takeScreenshot) {
     if (!((mVisible || mRenderWhileHidden) && mAllowCapture)) {
         return;
     }
@@ -400,7 +400,7 @@ void SGCTWindow::swap(bool takeScreenshot) {
     makeOpenGLContextCurrent(Context::Window);
         
     if (takeScreenshot) {
-        if (SGCTSettings::instance()->getCaptureFromBackBuffer() && mDoubleBuffered) {
+        if (Settings::instance()->getCaptureFromBackBuffer() && mDoubleBuffered) {
             if (mScreenCaptureLeftOrMono != nullptr) {
                 mScreenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -424,7 +424,7 @@ void SGCTWindow::swap(bool takeScreenshot) {
                 mScreenCaptureLeftOrMono->saveScreenCapture(mFrameBufferTextures.leftEye);
             }
             if (mScreenCaptureRight && mStereoMode > StereoMode::NoStereo &&
-                mStereoMode < SGCTWindow::StereoMode::SideBySide)
+                mStereoMode < Window::StereoMode::SideBySide)
             {
                 mScreenCaptureRight->saveScreenCapture(mFrameBufferTextures.rightEye);
             }
@@ -442,7 +442,7 @@ void SGCTWindow::swap(bool takeScreenshot) {
     }
 }
 
-void SGCTWindow::updateResolutions() {
+void Window::updateResolutions() {
     if (mHasPendingWindowRes) {
         mWindowRes = mPendingWindowRes;
         float newAspectRatio =
@@ -455,7 +455,7 @@ void SGCTWindow::updateResolutions() {
             vp.updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
-                "SGCTWindow: update aspect ratio in viewport# %d (%f --> %f)\n",
+                "Window: update aspect ratio in viewport# %d (%f --> %f)\n",
                 j, mAspectRatio, newAspectRatio
             );
         }
@@ -468,7 +468,7 @@ void SGCTWindow::updateResolutions() {
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "SGCTWindow: Resolution changed to %dx%d in window %d\n",
+            "Window: Resolution changed to %dx%d in window %d\n",
             mWindowRes.x, mWindowRes.y, mId
         );
 
@@ -480,7 +480,7 @@ void SGCTWindow::updateResolutions() {
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "SGCTWindow: Framebuffer resolution changed to %dx%d for window %d\n",
+            "Window: Framebuffer resolution changed to %dx%d for window %d\n",
             mFramebufferRes.x, mFramebufferRes.y, mId
         );
 
@@ -488,7 +488,7 @@ void SGCTWindow::updateResolutions() {
     }
 }
 
-void SGCTWindow::setHorizFieldOfView(float hFovDeg) {
+void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
@@ -497,13 +497,13 @@ void SGCTWindow::setHorizFieldOfView(float hFovDeg) {
     }
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "SGCTWindow: Horizontal FOV changed to %f deg. in %d viewports for window %d "
+        "Window: Horizontal FOV changed to %f deg. in %d viewports for window %d "
         "using aspect ratio %f\n",
         hFovDeg, getNumberOfViewports(), mId, mAspectRatio
     );
 }
 
-void SGCTWindow::initWindowResolution(glm::ivec2 resolution) {
+void Window::initWindowResolution(glm::ivec2 resolution) {
     mWindowRes = resolution;
     mWindowResOld = mWindowRes;
     mAspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
@@ -514,7 +514,7 @@ void SGCTWindow::initWindowResolution(glm::ivec2 resolution) {
     }
 }
 
-bool SGCTWindow::update() {
+bool Window::update() {
     if (!mVisible || !isWindowResized()) {
         return false;
     }
@@ -524,7 +524,7 @@ bool SGCTWindow::update() {
 
     auto resizePBO = [this](sgct_core::ScreenCapture& sc) {
         const int nCaptureChannels = mAlpha ? 4 : 3;
-        if (SGCTSettings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
             const glm::ivec2 res = getResolution();
@@ -555,7 +555,7 @@ bool SGCTWindow::update() {
     return true;
 }
 
-void SGCTWindow::makeOpenGLContextCurrent(Context context) {
+void Window::makeOpenGLContextCurrent(Context context) {
     if (context == Context::Shared && mCurrentContextOwner != mSharedHandle) {
         glfwMakeContextCurrent(mSharedHandle);
         mCurrentContextOwner = mSharedHandle;
@@ -566,87 +566,87 @@ void SGCTWindow::makeOpenGLContextCurrent(Context context) {
     }
 }
 
-void SGCTWindow::restoreSharedContext() {
+void Window::restoreSharedContext() {
     glfwMakeContextCurrent(mSharedHandle);
 }
 
-bool SGCTWindow::isWindowResized() const {
+bool Window::isWindowResized() const {
     return (mWindowRes.x != mWindowResOld.x || mWindowRes.y != mWindowResOld.y);
 }
 
-bool SGCTWindow::isBarrierActive() {
+bool Window::isBarrierActive() {
     return mBarrier;
 }
 
-bool SGCTWindow::isUsingSwapGroups() {
+bool Window::isUsingSwapGroups() {
     return mUseSwapGroups;
 }
 
-bool SGCTWindow::isSwapGroupMaster() {
+bool Window::isSwapGroupMaster() {
     return mSwapGroupMaster;
 }
 
-bool SGCTWindow::isFullScreen() const {
+bool Window::isFullScreen() const {
     return mFullScreen;
 }
 
-bool SGCTWindow::isFloating() const {
+bool Window::isFloating() const {
     return mFloating;
 }
 
-bool SGCTWindow::isDoubleBuffered() const {
+bool Window::isDoubleBuffered() const {
     return mDoubleBuffered;
 }
 
-bool SGCTWindow::isVisible() const {
+bool Window::isVisible() const {
     return mVisible;
 }
 
-bool SGCTWindow::isRenderingWhileHidden() const {
+bool Window::isRenderingWhileHidden() const {
     return mRenderWhileHidden;
 }
 
-bool SGCTWindow::isFixResolution() const {
+bool Window::isFixResolution() const {
     return mUseFixResolution;
 }
 
-bool SGCTWindow::isWindowResolutionSet() const {
+bool Window::isWindowResolutionSet() const {
     return mIsWindowResSet;
 }
 
-bool SGCTWindow::isStereo() const {
+bool Window::isStereo() const {
     return mStereoMode != StereoMode::NoStereo;
 }
 
-void SGCTWindow::setWindowPosition(glm::ivec2 positions) {
+void Window::setWindowPosition(glm::ivec2 positions) {
     mWindowPos = std::move(positions);
     mSetWindowPos = true;
 }
 
-void SGCTWindow::setWindowMode(bool fullscreen) {
+void Window::setWindowMode(bool fullscreen) {
     mFullScreen = fullscreen;
 }
 
-void SGCTWindow::setFloating(bool floating) {
+void Window::setFloating(bool floating) {
     mFloating = floating;
 }
 
-void SGCTWindow::setDoubleBuffered(bool doubleBuffered) {
+void Window::setDoubleBuffered(bool doubleBuffered) {
     mDoubleBuffered = doubleBuffered;
 }
 
-void SGCTWindow::setWindowDecoration(bool state) {
+void Window::setWindowDecoration(bool state) {
     mDecorated = state;
 }
 
-void SGCTWindow::setFullScreenMonitorIndex(int index) {
+void Window::setFullScreenMonitorIndex(int index) {
     mMonitorIndex = index;
 }
 
-void SGCTWindow::setBarrier(bool state) {
+void Window::setBarrier(bool state) {
     if (mUseSwapGroups && state != mBarrier) {
         MessageHandler::instance()->print(
-            MessageHandler::Level::Info, "SGCTWindow: Enabling Nvidia swap barrier\n"
+            MessageHandler::Level::Info, "Window: Enabling Nvidia swap barrier\n"
         );
 
 #ifdef __WIN32__ //Windows uses wglew.h
@@ -659,18 +659,18 @@ void SGCTWindow::setBarrier(bool state) {
     }
 }
 
-void SGCTWindow::setFixResolution(bool state) {
+void Window::setFixResolution(bool state) {
     mUseFixResolution = state;
 }
 
-void SGCTWindow::setUsePostFX(bool state) {
+void Window::setUsePostFX(bool state) {
     mUsePostFX = state;
     if (!state) {
         mUseFXAA = false;
     }
 }
 
-void SGCTWindow::setUseFXAA(bool state) {
+void Window::setUseFXAA(bool state) {
     mUseFXAA = state;
     if (mUseFXAA) {
         mUsePostFX = true;
@@ -684,7 +684,7 @@ void SGCTWindow::setUseFXAA(bool state) {
     );
 }
 
-void SGCTWindow::setUseQuadbuffer(bool state) {
+void Window::setUseQuadbuffer(bool state) {
     mUseQuadBuffer = state;
     if (mUseQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GL_TRUE);
@@ -695,7 +695,7 @@ void SGCTWindow::setUseQuadbuffer(bool state) {
     }
 }
 
-void SGCTWindow::setCallDraw2DFunction(bool state) {
+void Window::setCallDraw2DFunction(bool state) {
     mCallDraw2DFunction = state;
     if (!mCallDraw2DFunction) {
         MessageHandler::instance()->print(
@@ -705,7 +705,7 @@ void SGCTWindow::setCallDraw2DFunction(bool state) {
     }
 }
 
-void SGCTWindow::setCallDraw3DFunction(bool state) {
+void Window::setCallDraw3DFunction(bool state) {
     mCallDraw3DFunction = state;
     if (!mCallDraw3DFunction) {
         MessageHandler::instance()->print(
@@ -715,7 +715,7 @@ void SGCTWindow::setCallDraw3DFunction(bool state) {
     }
 }
 
-void SGCTWindow::setCopyPreviousWindowToCurrentWindow(bool state) {
+void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
     mCopyPreviousWindowToCurrentWindow = state;
     if (mCopyPreviousWindowToCurrentWindow) {
         MessageHandler::instance()->print(
@@ -725,12 +725,12 @@ void SGCTWindow::setCopyPreviousWindowToCurrentWindow(bool state) {
     }
 }
 
-bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
+bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
-    if (antiAliasingSamples > 1 && !SGCTSettings::instance()->useFBO()) {
+    if (antiAliasingSamples > 1 && !Settings::instance()->useFBO()) {
         // if multisample is used
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples);
     }
@@ -751,7 +751,7 @@ bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
-        const int refreshRateHint = SGCTSettings::instance()->getRefreshRateHint();
+        const int refreshRateHint = Settings::instance()->getRefreshRateHint();
         if (refreshRateHint > 0) {
             glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
         }
@@ -764,7 +764,7 @@ bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
             if (mMonitorIndex >= count) {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
-                    "SGCTWindow(%d): Invalid monitor index (%d). "
+                    "Window(%d): Invalid monitor index (%d). "
                     "This computer has %d monitors.\n",
                     mId, mMonitorIndex, count);
             }
@@ -807,7 +807,7 @@ bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
     // Setting last window to the requested interval, which does mean all other
     // windows will respect the last window in the pipeline.
     if (getId() == lastWindowIdx) {
-        glfwSwapInterval(SGCTSettings::instance()->getSwapInterval());
+        glfwSwapInterval(Settings::instance()->getSwapInterval());
     }
     else {
         glfwSwapInterval(0);
@@ -829,7 +829,7 @@ bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
 
     glfwMakeContextCurrent(mSharedHandle);
 
-    if (SGCTSettings::instance()->useFBO()) {
+    if (Settings::instance()->useFBO()) {
         mScreenCaptureLeftOrMono = std::make_unique<sgct_core::ScreenCapture>();
 
         if (useRightEyeTexture()) {
@@ -842,12 +842,12 @@ bool SGCTWindow::openWindow(GLFWwindow* share, int lastWindowIdx) {
     return true;
 }
 
-void SGCTWindow::initNvidiaSwapGroups() {    
+void Window::initNvidiaSwapGroups() {    
 #ifdef __WIN32__ // Windows uses wglew.h
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "SGCTWindow: Joining Nvidia swap group\n"
+            "Window: Joining Nvidia swap group\n"
         );
 
         hDC = wglGetCurrentDC();
@@ -871,13 +871,13 @@ void SGCTWindow::initNvidiaSwapGroups() {
         // wglJoinSwapGroupNV fails.
         if (wglJoinSwapGroupNV(hDC, 1)) {
             MessageHandler::instance()->print(
-                MessageHandler::Level::Info, "SGCTWindow: Joining swapgroup 1 [ok]\n"
+                MessageHandler::Level::Info, "Window: Joining swapgroup 1 [ok]\n"
             );
             mUseSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::Level::Info, "SGCTWindow: Joining swapgroup 1 [failed]\n"
+                MessageHandler::Level::Info, "Window: Joining swapgroup 1 [failed]\n"
             );
             mUseSwapGroups = false;
         }
@@ -890,7 +890,7 @@ void SGCTWindow::initNvidiaSwapGroups() {
 
     if (glfwExtensionSupported("GLX_NV_swap_group")) {
         MessageHandler::instance()->print(
-            MessageHandler::Level::Info, "SGCTWindow: Joining Nvidia swap group\n"
+            MessageHandler::Level::Info, "Window: Joining Nvidia swap group\n"
         );
 
         hDC = glXGetCurrentDrawable();
@@ -908,13 +908,13 @@ void SGCTWindow::initNvidiaSwapGroups() {
 
         if (glXJoinSwapGroupNV(disp, hDC, 1)) {
             MessageHandler::instance()->print(
-                MessageHandler::Level::Info, "SGCTWindow: Joining swapgroup 1 [ok]\n"
+                MessageHandler::Level::Info, "Window: Joining swapgroup 1 [ok]\n"
             );
             mUseSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::Level::Info, "SGCTWindow: Joining swapgroup 1 [failed]\n"
+                MessageHandler::Level::Info, "Window: Joining swapgroup 1 [failed]\n"
             );
             mUseSwapGroups = false;
         }
@@ -926,23 +926,23 @@ void SGCTWindow::initNvidiaSwapGroups() {
 #endif
 }
 
-void SGCTWindow::initScreenCapture() {
+void Window::initScreenCapture() {
     auto initializeCapture = [this](sgct_core::ScreenCapture& sc) {
         // a workaround for devices that support pbos but not showing it, like OSX (Intel)
         if (Engine::instance()->isOGLPipelineFixed()) {
             sc.setUsePBO(
                 // if supported then use them
                 glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
-                SGCTSettings::instance()->getUsePBO()
+                Settings::instance()->getUsePBO()
             );
         }
         else {
             // in modern OpenGL pbos must be supported
-            sc.setUsePBO(SGCTSettings::instance()->getUsePBO());
+            sc.setUsePBO(Settings::instance()->getUsePBO());
         }
 
         const int nCaptureChannels = mAlpha ? 4 : 3;
-        if (SGCTSettings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
             const glm::ivec2 res = getResolution();
@@ -955,15 +955,15 @@ void SGCTWindow::initScreenCapture() {
             sc.initOrResize(res, nCaptureChannels, mBytesPerColor);
         }
 
-        SGCTSettings::CaptureFormat format = SGCTSettings::instance()->getCaptureFormat();
+        Settings::CaptureFormat format = Settings::instance()->getCaptureFormat();
         switch (format) {
-            case SGCTSettings::CaptureFormat::PNG:
+            case Settings::CaptureFormat::PNG:
                 sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::PNG);
                 break;
-            case SGCTSettings::CaptureFormat::TGA:
+            case Settings::CaptureFormat::TGA:
                 sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::TGA);
                 break;
-            case SGCTSettings::CaptureFormat::JPG:
+            case Settings::CaptureFormat::JPG:
                 sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::JPEG);
                 break;
         }
@@ -971,7 +971,7 @@ void SGCTWindow::initScreenCapture() {
         if (!Engine::checkForOGLErrors()) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "SGCTWindow %d: OpenGL error occured in screen capture init\n", mId
+                "Window %d: OpenGL error occured in screen capture init\n", mId
             );
         }
     };
@@ -994,7 +994,7 @@ void SGCTWindow::initScreenCapture() {
     }
 }
 
-unsigned int SGCTWindow::getSwapGroupFrameNumber() {
+unsigned int Window::getSwapGroupFrameNumber() {
     unsigned int frameNumber = 0;
 
     if (mBarrier) {
@@ -1013,7 +1013,7 @@ unsigned int SGCTWindow::getSwapGroupFrameNumber() {
     return frameNumber;
 }
 
-void SGCTWindow::resetSwapGroupFrameNumber() {
+void Window::resetSwapGroupFrameNumber() {
     if (mBarrier) {
 #ifdef __WIN32__
         bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
@@ -1043,9 +1043,9 @@ void SGCTWindow::resetSwapGroupFrameNumber() {
     }
 }
 
-void SGCTWindow::createTextures() {
+void Window::createTextures() {
     // no target textures needed if not using FBO
-    if (!SGCTSettings::instance()->useFBO()) {
+    if (!Settings::instance()->useFBO()) {
         return;
     }
 
@@ -1059,7 +1059,7 @@ void SGCTWindow::createTextures() {
     if (mFramebufferRes.x > maxTexSize || mFramebufferRes.y > maxTexSize) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "SGCTWindow %d: Requested framebuffer is to big (Max: %dx%d)\n",
+            "Window %d: Requested framebuffer is to big (Max: %dx%d)\n",
             mId, maxTexSize, maxTexSize
         );
         return;
@@ -1071,7 +1071,7 @@ void SGCTWindow::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(mFrameBufferTextures.rightEye, TextureType::Color);
     }
-    if (SGCTSettings::instance()->useDepthTexture()) {
+    if (Settings::instance()->useDepthTexture()) {
         generateTexture(mFrameBufferTextures.depth, TextureType::Depth);
     }
     if (!mPostFXPasses.empty()) {
@@ -1083,10 +1083,10 @@ void SGCTWindow::createTextures() {
     if (mUsePostFX) {
         generateTexture(mFrameBufferTextures.intermediate, TextureType::Color);
     }
-    if (SGCTSettings::instance()->useNormalTexture()) {
+    if (Settings::instance()->useNormalTexture()) {
         generateTexture(mFrameBufferTextures.normals, TextureType::Normal);
     }
-    if (SGCTSettings::instance()->usePositionTexture()) {
+    if (Settings::instance()->usePositionTexture()) {
         generateTexture(mFrameBufferTextures.positions, TextureType::Position);
     }
 
@@ -1108,7 +1108,7 @@ void SGCTWindow::createTextures() {
     }
 }
 
-void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type) {
+void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     // clean up if needed
     glDeleteTextures(1, &id);
     id = 0;
@@ -1124,7 +1124,7 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
 
     // Determine the internal texture format, the texture format, and the pixel type
     const auto [internalFormat, format, pType] =
-        [this](SGCTWindow::TextureType type) -> std::tuple<int, unsigned int, int> {
+        [this](Window::TextureType type) -> std::tuple<int, unsigned int, int> {
             switch (type) {
                 default:
                 case TextureType::Color:
@@ -1134,7 +1134,7 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
                 case TextureType::Normal:
                 case TextureType::Position:
                     return {
-                         SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),
+                         Settings::instance()->getBufferFloatPrecisionAsGLint(),
                          GL_RGB,
                          GL_FLOAT
                     };
@@ -1143,7 +1143,7 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
 
     const glm::ivec2 res = mFramebufferRes;
     const bool fixedPipeline = Engine::instance()->isOGLPipelineFixed();
-    const bool forceGlTex = SGCTSettings::instance()->getForceGlTexImage2D();
+    const bool forceGlTex = Settings::instance()->getForceGlTexImage2D();
     if (fixedPipeline || forceGlTex) {
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, res.x, res.y, 0, format, pType, 0);
     }
@@ -1163,8 +1163,8 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
 
-void SGCTWindow::createFBOs() {
-    if (!SGCTSettings::instance()->useFBO()) {
+void Window::createFBOs() {
+    if (!Settings::instance()->useFBO()) {
         // disable anaglyph & checkerboard stereo if FBOs are not used
         if (mStereoMode > StereoMode::Active) {
             mStereoMode = StereoMode::NoStereo;
@@ -1196,17 +1196,17 @@ void SGCTWindow::createFBOs() {
     }
 }
 
-void SGCTWindow::createVBOs() {
+void Window::createVBOs() {
     if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         MessageHandler::instance()->print(
-            MessageHandler::Level::Debug, "SGCTWindow: Generating VAO: %d\n", mVAO
+            MessageHandler::Level::Debug, "Window: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "SGCTWindow: Generating VBO: %d\n", mVBO
+        MessageHandler::Level::Debug, "Window: Generating VBO: %d\n", mVBO
     );
 
     if (!Engine::instance()->isOGLPipelineFixed()) {
@@ -1244,7 +1244,7 @@ void SGCTWindow::createVBOs() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void SGCTWindow::loadShaders() {
+void Window::loadShaders() {
     // load shaders
     if (mStereoMode <= StereoMode::Active || mStereoMode >= StereoMode::SideBySide) {
         return;
@@ -1340,49 +1340,49 @@ void SGCTWindow::loadShaders() {
     if (!Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "SGCTWindow %d: OpenGL error occured while loading shaders\n", mId
+            "Window %d: OpenGL error occured while loading shaders\n", mId
         );
     }
 }
 
-void SGCTWindow::bindVAO() const {
+void Window::bindVAO() const {
     glBindVertexArray(mVAO);
 }
 
-void SGCTWindow::bindVBO() const {
+void Window::bindVBO() const {
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 }
 
-void SGCTWindow::unbindVBO() const {
+void Window::unbindVBO() const {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void SGCTWindow::unbindVAO() const {
+void Window::unbindVAO() const {
     glBindVertexArray(0);
 }
 
-sgct_core::OffScreenBuffer* SGCTWindow::getFBO() const {
+sgct_core::OffScreenBuffer* Window::getFBO() const {
     return mFinalFBO.get();
 }
 
-GLFWmonitor* SGCTWindow::getMonitor() const {
+GLFWmonitor* Window::getMonitor() const {
     return mMonitor;
 }
 
-GLFWwindow* SGCTWindow::getWindowHandle() const {
+GLFWwindow* Window::getWindowHandle() const {
     return mWindowHandle;
 }
 
-glm::ivec2 SGCTWindow::getFinalFBODimensions() const {
+glm::ivec2 Window::getFinalFBODimensions() const {
     return mFramebufferRes;
 }
 
-void SGCTWindow::addPostFX(PostFX fx) {
+void Window::addPostFX(PostFX fx) {
     mPostFXPasses.push_back(std::move(fx));
 }
 
-void SGCTWindow::resizeFBOs() {
-    if (mUseFixResolution || !SGCTSettings::instance()->useFBO()) {
+void Window::resizeFBOs() {
+    if (mUseFixResolution || !Settings::instance()->useFBO()) {
         return;
     }
 
@@ -1411,7 +1411,7 @@ void SGCTWindow::resizeFBOs() {
     }
 }
 
-void SGCTWindow::destroyFBOs() {
+void Window::destroyFBOs() {
     glDeleteTextures(1, &mFrameBufferTextures.leftEye);
     mFrameBufferTextures.leftEye = 0;
     glDeleteTextures(1, &mFrameBufferTextures.rightEye);
@@ -1428,18 +1428,18 @@ void SGCTWindow::destroyFBOs() {
     mFrameBufferTextures.positions = 0;
 }
 
-SGCTWindow::StereoMode SGCTWindow::getStereoMode() const {
+Window::StereoMode Window::getStereoMode() const {
     return mStereoMode;
 }
 
-void SGCTWindow::addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr) {
+void Window::addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr) {
     mViewports.push_back(std::move(vpPtr));
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug, "Adding viewport (total %d)\n", mViewports.size()
     );
 }
 
-sgct_core::BaseViewport* SGCTWindow::getCurrentViewport() const {
+sgct_core::BaseViewport* Window::getCurrentViewport() const {
     if (mCurrentViewport == nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
@@ -1449,15 +1449,15 @@ sgct_core::BaseViewport* SGCTWindow::getCurrentViewport() const {
     return mCurrentViewport;
 }
 
-const sgct_core::Viewport& SGCTWindow::getViewport(size_t index) const {
+const sgct_core::Viewport& Window::getViewport(size_t index) const {
     return *mViewports[index];
 }
 
-sgct_core::Viewport& SGCTWindow::getViewport(size_t index) {
+sgct_core::Viewport& Window::getViewport(size_t index) {
     return *mViewports[index];
 }
 
-glm::ivec4 SGCTWindow::getCurrentViewportPixelCoords() const {
+glm::ivec4 Window::getCurrentViewportPixelCoords() const {
     return glm::ivec4(
         static_cast<int>(getCurrentViewport()->getPosition().x * mFramebufferRes.x),
         static_cast<int>(getCurrentViewport()->getPosition().y * mFramebufferRes.y),
@@ -1466,24 +1466,24 @@ glm::ivec4 SGCTWindow::getCurrentViewportPixelCoords() const {
     );
 }
 
-int SGCTWindow::getNumberOfViewports() const {
+int Window::getNumberOfViewports() const {
     return static_cast<int>(mViewports.size());
 }
 
-void SGCTWindow::setNumberOfAASamples(int samples) {
+void Window::setNumberOfAASamples(int samples) {
     mNumberOfAASamples = samples;
 }
 
-int SGCTWindow::getNumberOfAASamples() const {
+int Window::getNumberOfAASamples() const {
     return mNumberOfAASamples;
 }
 
-void SGCTWindow::setStereoMode(StereoMode sm) {
+void Window::setStereoMode(StereoMode sm) {
     mStereoMode = sm;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "SGCTWindow: Setting stereo mode to '%s' for window %d\n",
+        "Window: Setting stereo mode to '%s' for window %d\n",
         getStereoModeStr().c_str(), mId
     );
 
@@ -1492,7 +1492,7 @@ void SGCTWindow::setStereoMode(StereoMode sm) {
     }
 }
 
-sgct_core::ScreenCapture* SGCTWindow::getScreenCapturePointer(Eye eye) const {
+sgct_core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
         case Eye::MonoOrLeft:
             return mScreenCaptureLeftOrMono.get();
@@ -1503,15 +1503,15 @@ sgct_core::ScreenCapture* SGCTWindow::getScreenCapturePointer(Eye eye) const {
     }
 }
 
-void SGCTWindow::setCurrentViewport(size_t index) {
+void Window::setCurrentViewport(size_t index) {
     mCurrentViewport = mViewports[index].get();
 }
 
-void SGCTWindow::setCurrentViewport(sgct_core::BaseViewport* vp) {
+void Window::setCurrentViewport(sgct_core::BaseViewport* vp) {
     mCurrentViewport = vp;
 }
 
-std::string SGCTWindow::getStereoModeStr() const {
+std::string Window::getStereoModeStr() const {
     switch (mStereoMode) {
         case StereoMode::Active:
             return "active";
@@ -1544,7 +1544,7 @@ std::string SGCTWindow::getStereoModeStr() const {
     }
 }
 
-void SGCTWindow::updateTransferCurve() {
+void Window::updateTransferCurve() {
     if (!mMonitor) {
         return;
     }
@@ -1581,7 +1581,7 @@ void SGCTWindow::updateTransferCurve() {
     glfwSetGammaRamp(mMonitor, &ramp);
 }
 
-void SGCTWindow::updateColorBufferData() {
+void Window::updateColorBufferData() {
     mColorFormat = GL_BGRA;
     
     switch (mBufferColorBitDepth) {
@@ -1629,142 +1629,142 @@ void SGCTWindow::updateColorBufferData() {
     }
 }
 
-bool SGCTWindow::useRightEyeTexture() const {
+bool Window::useRightEyeTexture() const {
     return mStereoMode != StereoMode::NoStereo && mStereoMode < StereoMode::SideBySide;
 }
 
-void SGCTWindow::setAlpha(bool state) {
+void Window::setAlpha(bool state) {
     mAlpha = state;
 }
 
-bool SGCTWindow::getAlpha() const {
+bool Window::getAlpha() const {
     return mAlpha;
 }
 
-void SGCTWindow::setGamma(float gamma) {
+void Window::setGamma(float gamma) {
     mGamma = gamma;
     updateTransferCurve();
 }
 
-float SGCTWindow::getGamma() const {
+float Window::getGamma() const {
     return mGamma;
 }
 
-void SGCTWindow::setContrast(float contrast) {
+void Window::setContrast(float contrast) {
     mContrast = contrast;
     updateTransferCurve();
 }
 
-float SGCTWindow::getContrast() const {
+float Window::getContrast() const {
     return mContrast;
 }
 
-void SGCTWindow::setBrightness(float brightness) {
+void Window::setBrightness(float brightness) {
     mBrightness = brightness;
     updateTransferCurve();
 }
 
-void SGCTWindow::setColorBitDepth(ColorBitDepth cbd) {
+void Window::setColorBitDepth(ColorBitDepth cbd) {
     mBufferColorBitDepth = cbd;
 }
 
-SGCTWindow::ColorBitDepth SGCTWindow::getColorBitDepth() const {
+Window::ColorBitDepth Window::getColorBitDepth() const {
     return mBufferColorBitDepth;
 }
 
-void SGCTWindow::setPreferBGR(bool state) {
+void Window::setPreferBGR(bool state) {
     mPreferBGR = state;
 }
 
-void SGCTWindow::setAllowCapture(bool state) {
+void Window::setAllowCapture(bool state) {
     mAllowCapture = state;
 }
 
-bool SGCTWindow::isBGRPreferred() const {
+bool Window::isBGRPreferred() const {
     return mPreferBGR;
 }
 
-bool SGCTWindow::isCapturingAllowed() const {
+bool Window::isCapturingAllowed() const {
     return mAllowCapture;
 }
 
-float SGCTWindow::getBrightness() const {
+float Window::getBrightness() const {
     return mBrightness;
 }
 
-float SGCTWindow::getHorizFieldOfViewDegrees() const {
+float Window::getHorizFieldOfViewDegrees() const {
     return mViewports[0]->getHorizontalFieldOfViewDegrees();
 }
 
-PostFX& SGCTWindow::getPostFX(size_t index) {
+PostFX& Window::getPostFX(size_t index) {
     return mPostFXPasses[index];
 }
 
-size_t SGCTWindow::getNumberOfPostFXs() const {
+size_t Window::getNumberOfPostFXs() const {
     return mPostFXPasses.size();
 }
 
-glm::ivec2 SGCTWindow::getResolution() const {
+glm::ivec2 Window::getResolution() const {
     return mWindowRes;
 }
 
-glm::ivec2 SGCTWindow::getFramebufferResolution() const {
+glm::ivec2 Window::getFramebufferResolution() const {
     return mFramebufferRes;
 }
 
-glm::ivec2 SGCTWindow::getInitialResolution() const {
+glm::ivec2 Window::getInitialResolution() const {
     return mWindowInitialRes;
 }
 
-glm::vec2 SGCTWindow::getScale() const {
+glm::vec2 Window::getScale() const {
     return mScale;
 }
 
-float SGCTWindow::getAspectRatio() const {
+float Window::getAspectRatio() const {
     return mAspectRatio;
 }
 
-int SGCTWindow::getFramebufferBPCC() const {
+int Window::getFramebufferBPCC() const {
     return mBytesPerColor;
 }
 
-bool SGCTWindow::hasAnyMasks() const {
+bool Window::hasAnyMasks() const {
     return mHasAnyMasks;
 }
 
-bool SGCTWindow::useFXAA() const {
+bool Window::useFXAA() const {
     return mUseFXAA;
 }
 
-bool SGCTWindow::usePostFX() const {
+bool Window::usePostFX() const {
     return mUsePostFX;
 }
 
-void SGCTWindow::bindStereoShaderProgram() const {
+void Window::bindStereoShaderProgram() const {
     stereo.shader.bind();
 }
 
-int SGCTWindow::getStereoShaderMVPLoc() const {
+int Window::getStereoShaderMVPLoc() const {
     return stereo.mvpLoc;
 }
 
-int SGCTWindow::getStereoShaderLeftTexLoc() const {
+int Window::getStereoShaderLeftTexLoc() const {
     return stereo.leftTexLoc;
 }
 
-int SGCTWindow::getStereoShaderRightTexLoc() const {
+int Window::getStereoShaderRightTexLoc() const {
     return stereo.rightTexLoc;
 }
 
-bool SGCTWindow::getCallDraw2DFunction() const {
+bool Window::getCallDraw2DFunction() const {
     return mCallDraw2DFunction;
 }
 
-bool SGCTWindow::getCallDraw3DFunction() const {
+bool Window::getCallDraw3DFunction() const {
     return mCallDraw3DFunction;
 }
 
-bool SGCTWindow::getCopyPreviousWindowToCurrentWindow() const {
+bool Window::getCopyPreviousWindowToCurrentWindow() const {
     return mCopyPreviousWindowToCurrentWindow;
 }
 

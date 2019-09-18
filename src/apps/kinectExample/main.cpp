@@ -9,8 +9,8 @@ namespace {
     sgct::SharedDouble currentTime(0.0);
     sgct::SharedFloat sizeFactor(0.5f);
 
-    sgct::SGCTTrackingDevice* leftHand = nullptr;
-    sgct::SGCTTrackingDevice* rightHand = nullptr;
+    sgct::TrackingDevice* leftHand = nullptr;
+    sgct::TrackingDevice* rightHand = nullptr;
 
 } // namespace
 
@@ -22,7 +22,7 @@ void initOGLFun() {
     // connect only to VRPN on the master
     if (gEngine->isMaster()) {
         // get the tracking pointers
-        SGCTTracker* tracker = Engine::getTrackingManager().getTracker("Kinect0");
+        Tracker* tracker = Engine::getTrackingManager().getTracker("Kinect0");
         if (tracker) {
             leftHand = tracker->getDevice("Left Hand");
             rightHand = tracker->getDevice("Right Hand");

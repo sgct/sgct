@@ -139,7 +139,7 @@ private:
     std::vector<unsigned char> dataBlockToCompress;
     std::vector<unsigned char>* currentStorage;
     std::vector<unsigned char> mCompressedBuffer;
-    std::array<unsigned char, sgct_core::SGCTNetwork::HeaderSize> headerSpace;
+    std::array<unsigned char, sgct_core::Network::HeaderSize> headerSpace;
     unsigned int pos;
     int mCompressionLevel;
     float mCompressionRatio = 1.f;
@@ -150,17 +150,17 @@ template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
     T val = sobj.getVal();
     
-    std::unique_lock lk(SGCTMutexManager::instance()->mDataSyncMutex);
+    std::unique_lock lk(MutexManager::instance()->mDataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(T));
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T>& sobj) {
-    SGCTMutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->mDataSyncMutex.lock();
     T val = *reinterpret_cast<T*>(&dataBlock[pos]);
     pos += sizeof(T);
-    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->mDataSyncMutex.unlock();
 
     sobj.setVal(val);
 }
@@ -170,28 +170,28 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     std::vector<T> tmpVec = vector.getVal();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
-    SGCTMutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->mDataSyncMutex.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
-    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->mDataSyncMutex.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
-        SGCTMutexManager::instance()->mDataSyncMutex.lock();
+        MutexManager::instance()->mDataSyncMutex.lock();
         currentStorage->insert(currentStorage->end(), c, c + length);
-        SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+        MutexManager::instance()->mDataSyncMutex.unlock();
     }
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T>& vector) {
-    SGCTMutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->mDataSyncMutex.lock();
 
     uint32_t size = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
     pos += sizeof(uint32_t);
 
-    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->mDataSyncMutex.unlock();
 
     if (size == 0) {
         vector.clear();
@@ -202,12 +202,12 @@ void SharedData::readVector(SharedVector<T>& vector) {
     uint32_t totalSize = size * sizeof(T);
     //unsigned char* data = new unsigned char[totalSize];
 
-    SGCTMutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->mDataSyncMutex.lock();
 
     unsigned char* c = &dataBlock[pos];
     pos += totalSize;
 
-    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->mDataSyncMutex.unlock();
 
     //memcpy(data, c, totalSize);
 

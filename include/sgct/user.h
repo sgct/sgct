@@ -16,10 +16,10 @@ namespace sgct_core {
 /**
  * Helper class for setting user variables
  */
-class SGCTUser {
+class User {
 public:
     /// Default contructor
-    SGCTUser(std::string name);
+    User(std::string name);
 
     /// Sets user's head position
     void setPos(glm::vec3 pos);

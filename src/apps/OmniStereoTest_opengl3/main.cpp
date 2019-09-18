@@ -11,8 +11,8 @@ namespace {
 
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
-    std::unique_ptr<sgct_utils::SGCTDomeGrid> grid;
+    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct_utils::DomeGrid> grid;
     GLint matrixLoc = -1;
     GLint gridMatrixLoc = -1;
 
@@ -71,7 +71,7 @@ void initOmniStereo(bool mask) {
         );
     }
 
-    SGCTWindow& win = gEngine->getWindow(1);
+    Window& win = gEngine->getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
     MessageHandler::instance()->print(
@@ -214,7 +214,7 @@ void initOmniStereo(bool mask) {
                     };
 
 
-                    sgct_core::SGCTProjectionPlane projPlane;
+                    sgct_core::ProjectionPlane projPlane;
                   
                     const glm::vec2 ll = glm::vec2(0.f, 0.f);
                     projPlane.setCoordinateLowerLeft(convertCoords(ll));
@@ -242,7 +242,7 @@ void initOmniStereo(bool mask) {
                     const glm::vec3 tiltedEyePos = glm::mat3(tiltEyeMat) * rotatedEyePos;
 
                     // calc projection
-                    sgct_core::SGCTProjection proj;
+                    sgct_core::Projection proj;
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
@@ -299,7 +299,7 @@ void drawOmniStereo() {
 
     double t0 = gEngine->getTime();
 
-    SGCTWindow& win = gEngine->getWindow(1);
+    Window& win = gEngine->getWindow(1);
     glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
     ShaderManager::instance()->bindShaderProgram("xform");
@@ -382,11 +382,11 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
     TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         0.5f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
     );
-    grid = std::make_unique<sgct_utils::SGCTDomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
+    grid = std::make_unique<sgct_utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
 
     // Set up backface culling
     glCullFace(GL_BACK);
@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    SGCTSettings::instance()->setSwapInterval(0);
+    Settings::instance()->setSwapInterval(0);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);

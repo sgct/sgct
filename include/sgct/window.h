@@ -30,7 +30,7 @@ namespace sgct {
 /**
  * Helper class for window data. 
  */
-class SGCTWindow {
+class Window {
 public:    
     /// Different stereo modes used for rendering
     enum class StereoMode {
@@ -81,7 +81,7 @@ public:
     static bool isSwapGroupMaster();
     static unsigned int getSwapGroupFrameNumber();
 
-    explicit SGCTWindow(int id);
+    explicit Window(int id);
 
     void close();
     void init();

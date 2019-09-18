@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-SGCTBox::SGCTBox(float size, TextureMappingMode mode) {
+Box::Box(float size, TextureMappingMode mode) {
     createVBO(size, mode);
 
     if (!sgct::Engine::checkForOGLErrors()) {
@@ -25,7 +25,7 @@ SGCTBox::SGCTBox(float size, TextureMappingMode mode) {
     }
 }
 
-SGCTBox::~SGCTBox() {
+Box::~Box() {
     glDeleteBuffers(1, &mVBO);
     mVBO = 0;
 
@@ -33,7 +33,7 @@ SGCTBox::~SGCTBox() {
     mVAO = 0;
 }
 
-void SGCTBox::draw() {
+void Box::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
@@ -42,7 +42,7 @@ void SGCTBox::draw() {
     }
 }
 
-void SGCTBox::drawVBO() {
+void Box::drawVBO() {
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -58,7 +58,7 @@ void SGCTBox::drawVBO() {
     glPopClientAttrib();
 }
 
-void SGCTBox::drawVAO() {
+void Box::drawVAO() {
     glBindVertexArray( mVAO );
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -66,8 +66,8 @@ void SGCTBox::drawVAO() {
     glBindVertexArray(0);
 }
 
-void SGCTBox::createVBO(float size, TextureMappingMode tmm) {
-    std::vector<sgct_helpers::SGCTVertexData> v(36);
+void Box::createVBO(float size, TextureMappingMode tmm) {
+    std::vector<sgct_helpers::VertexData> v(36);
 
     if (tmm == TextureMappingMode::Regular) {
         // A (front/+z)
@@ -227,20 +227,20 @@ void SGCTBox::createVBO(float size, TextureMappingMode tmm) {
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "SGCTBox: Generating VAO: %d\n", mVAO
+            "Box: Generating VAO: %d\n", mVAO
         );
     }
     
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTBox: Generating VBO: %d\n", mVBO
+        "Box: Generating VBO: %d\n", mVBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        v.size() * sizeof(sgct_helpers::SGCTVertexData),
+        v.size() * sizeof(sgct_helpers::VertexData),
         v.data(),
         GL_STATIC_DRAW
     );
@@ -252,7 +252,7 @@ void SGCTBox::createVBO(float size, TextureMappingMode tmm) {
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
 
@@ -262,7 +262,7 @@ void SGCTBox::createVBO(float size, TextureMappingMode tmm) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
 
@@ -272,7 +272,7 @@ void SGCTBox::createVBO(float size, TextureMappingMode tmm) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(20)
         );
     }

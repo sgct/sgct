@@ -382,16 +382,16 @@ void SpoutOutputProjection::initShaders() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         fisheyeVertShader = sgct_core::shaders_fisheye::FisheyeVert;
 
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-            case sgct::SGCTSettings::DrawBufferType::Diffuse:
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+        if (sgct::Settings::instance()->useDepthTexture()) {
+            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+            case sgct::Settings::DrawBufferType::Diffuse:
+                case sgct::Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                case sgct::Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
                     break;
                 default:
@@ -401,28 +401,28 @@ void SpoutOutputProjection::initShaders() {
         }
         else  {
             // no depth
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::DrawBufferType::Diffuse:
+            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+                case sgct::Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_fisheye::FisheyeFrag;
                     break;
 
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                case sgct::Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
                     break;
 
-                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                case sgct::Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
                     break;
 
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
                     break;
             }
         }
 
         //depth correction shader only
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+        if (sgct::Settings::instance()->useDepthTexture()) {
             std::string depthCorrFrag = shaders_fisheye::BaseVert;
             std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
@@ -466,19 +466,19 @@ void SpoutOutputProjection::initShaders() {
         // modern pipeline
         fisheyeVertShader = shaders_modern_fisheye::FisheyeVert;
 
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::DrawBufferType::Diffuse:
+        if (sgct::Settings::instance()->useDepthTexture()) {
+            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+                case sgct::Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                case sgct::Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                case sgct::Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader =
                         shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
                     break;
@@ -486,25 +486,25 @@ void SpoutOutputProjection::initShaders() {
         }
         else {
             //no depth
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::DrawBufferType::Diffuse:
+            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+                case sgct::Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+                case sgct::Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+                case sgct::Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
                     break;
-                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
                     break;
             }
         }
 
         //depth correction shader only
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+        if (sgct::Settings::instance()->useDepthTexture()) {
             std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
             std::string depthCorrVert =
                 shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
@@ -670,7 +670,7 @@ void SpoutOutputProjection::initShaders() {
 
     sgct::ShaderProgram::unbind();
 
-    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+    if (sgct::Settings::instance()->useDepthTexture()) {
         mDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
         mDepthCorrectionShader.createAndLinkProgram();
         mDepthCorrectionShader.bind();
@@ -782,7 +782,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
-        SGCTProjection& proj = mSubViewports[face].getProjection(
+        Projection& proj = mSubViewports[face].getProjection(
             sgct::Engine::instance()->getCurrentFrustumMode()
         );
         glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
@@ -809,7 +809,7 @@ void SpoutOutputProjection::blitCubeFace(int face) {
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
-    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+    if (sgct::Settings::instance()->useDepthTexture()) {
         mCubeMapFbo->attachDepthTexture(mTextures.depthSwap);
         mCubeMapFbo->attachColorTexture(mTextures.colorSwap);
     }
@@ -817,7 +817,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, face);
     }
 
-    if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+    if (sgct::Settings::instance()->useNormalTexture()) {
         mCubeMapFbo->attachCubeMapTexture(
             mTextures.cubeMapNormals,
             face,
@@ -825,7 +825,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         );
     }
 
-    if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+    if (sgct::Settings::instance()->usePositionTexture()) {
         mCubeMapFbo->attachCubeMapTexture(
             mTextures.cubeMapPositions,
             face,
@@ -1066,7 +1066,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         }
 
         //re-calculate depth values from a cube to spherical model
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+        if (sgct::Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
@@ -1177,7 +1177,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+        if (sgct::Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 

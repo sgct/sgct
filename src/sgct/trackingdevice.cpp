@@ -17,21 +17,21 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-SGCTTrackingDevice::SGCTTrackingDevice(size_t parentIndex, std::string name)
+TrackingDevice::TrackingDevice(size_t parentIndex, std::string name)
     : mName(std::move(name))
     , mParentIndex(parentIndex)
 {}
 
-void SGCTTrackingDevice::setEnabled(bool state) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setEnabled(bool state) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mEnabled = state;
 }
 
-void SGCTTrackingDevice::setSensorId(int id) {
+void TrackingDevice::setSensorId(int id) {
     mSensorId = id;
 }
 
-void SGCTTrackingDevice::setNumberOfButtons(int numOfButtons) {
+void TrackingDevice::setNumberOfButtons(int numOfButtons) {
     mButtons.resize(numOfButtons, false);
     mButtonsPrevious.resize(numOfButtons, false);
     mButtonTime.resize(numOfButtons, 0.0);
@@ -39,20 +39,20 @@ void SGCTTrackingDevice::setNumberOfButtons(int numOfButtons) {
     mNumberOfButtons = numOfButtons;
 }
 
-void SGCTTrackingDevice::setNumberOfAxes(int numOfAxes) {
+void TrackingDevice::setNumberOfAxes(int numOfAxes) {
     mAxes.resize(numOfAxes, 0.0);
     mAxesPrevious.resize(numOfAxes, 0.0);
     mNumberOfAxes = numOfAxes;
 }
 
-void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
+void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     sgct_core::ClusterManager& cm = *sgct_core::ClusterManager::instance();
-    SGCTTracker* parent = cm.getTrackingManager().getTracker(mParentIndex);
+    Tracker* parent = cm.getTrackingManager().getTracker(mParentIndex);
 
     if (parent == nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "SGCTTrackingDevice: Error, can't get handle to tracker for device '%s'\n",
+            "TrackingDevice: Error, can't get handle to tracker for device '%s'\n",
             mName.c_str()
         );
         return;
@@ -69,7 +69,7 @@ void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     const glm::mat4 sensorRotMat(glm::mat4_cast(sensorRot));
 
     {
-        std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+        std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
 
         // swap
         mSensorRotationPrevious = std::move(mSensorRotation);
@@ -84,14 +84,14 @@ void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     setTrackerTimeStamp();
 }
 
-void SGCTTrackingDevice::setButtonVal(bool val, int index) {
+void TrackingDevice::setButtonVal(bool val, int index) {
     if (index >= mNumberOfButtons) {
         return;
     }
 
     {
-        std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
-        SGCTMutexManager::instance()->mTrackingMutex.lock();
+        std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
+        MutexManager::instance()->mTrackingMutex.lock();
         // swap
         mButtonsPrevious[index] = mButtons[index];
         mButtons[index] = val;
@@ -99,9 +99,9 @@ void SGCTTrackingDevice::setButtonVal(bool val, int index) {
     setButtonTimeStamp(index);
 }
 
-void SGCTTrackingDevice::setAnalogVal(const double* array, int size) {
+void TrackingDevice::setAnalogVal(const double* array, int size) {
     {
-        std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+        std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
         for (int i = 0; i < std::min(size, mNumberOfAxes); i++) {
             mAxesPrevious[i] = mAxes[i];
             mAxes[i] = array[i];
@@ -110,219 +110,219 @@ void SGCTTrackingDevice::setAnalogVal(const double* array, int size) {
     setAnalogTimeStamp();
 }
 
-void SGCTTrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
+void TrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
     // create rotation quaternion based on x, y, z rotations
     glm::quat rotQuat;
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.f, 0.f, 1.f));
 
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mOrientation = std::move(rotQuat);
     calculateTransform();
 }
 
-void SGCTTrackingDevice::setOrientation(glm::quat q) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setOrientation(glm::quat q) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mOrientation = std::move(q);
     calculateTransform();
 }
 
-void SGCTTrackingDevice::setOffset(glm::vec3 offset) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setOffset(glm::vec3 offset) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mOffset = std::move(offset);
     calculateTransform();
 }
 
-void SGCTTrackingDevice::setTransform(glm::mat4 mat) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setTransform(glm::mat4 mat) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mDeviceTransform = std::move(mat);
 }
 
-const std::string& SGCTTrackingDevice::getName() const {
+const std::string& TrackingDevice::getName() const {
     return mName;
 }
 
-int SGCTTrackingDevice::getNumberOfButtons() const {
+int TrackingDevice::getNumberOfButtons() const {
     return mNumberOfButtons;
 }
 
-int SGCTTrackingDevice::getNumberOfAxes() const {
+int TrackingDevice::getNumberOfAxes() const {
     return mNumberOfAxes;
 }
 
-void SGCTTrackingDevice::calculateTransform() {
+void TrackingDevice::calculateTransform() {
     // create offset translation matrix
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), mOffset);
     // calculate transform
     mDeviceTransform = transMat * glm::mat4_cast(mOrientation);
 }
 
-int SGCTTrackingDevice::getSensorId() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+int TrackingDevice::getSensorId() {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSensorId;
 }
 
-bool SGCTTrackingDevice::getButton(int index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+bool TrackingDevice::getButton(int index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return index < mNumberOfButtons ? mButtons[index] : false;;
 }
 
-bool SGCTTrackingDevice::getButtonPrevious(int index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+bool TrackingDevice::getButtonPrevious(int index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return index < mNumberOfButtons ? mButtonsPrevious[index] : false;;
 }
 
-double SGCTTrackingDevice::getAnalog(int index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getAnalog(int index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return index < mNumberOfAxes ? mAxes[index] : 0.0;;
 }
 
-double SGCTTrackingDevice::getAnalogPrevious(int index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getAnalogPrevious(int index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return index < mNumberOfAxes ? mAxesPrevious[index] : 0.0;;
 }
 
-glm::vec3 SGCTTrackingDevice::getPosition() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::vec3 TrackingDevice::getPosition() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::vec3(mWorldTransform[3]);
 }
 
-glm::vec3 SGCTTrackingDevice::getPreviousPosition() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::vec3 TrackingDevice::getPreviousPosition() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::vec3(mWorldTransformPrevious[3]);
 }
 
 
-glm::vec3 SGCTTrackingDevice::getEulerAngles() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::vec3 TrackingDevice::getEulerAngles() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::eulerAngles(glm::quat_cast(mWorldTransform));;
 }
 
-glm::vec3 SGCTTrackingDevice::getEulerAnglesPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::vec3 TrackingDevice::getEulerAnglesPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::eulerAngles(glm::quat_cast(mWorldTransformPrevious));;
 }
 
 
-glm::quat SGCTTrackingDevice::getRotation() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::quat TrackingDevice::getRotation() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::quat_cast(mWorldTransform);;
 }
 
-glm::quat SGCTTrackingDevice::getRotationPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::quat TrackingDevice::getRotationPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::quat_cast(mWorldTransformPrevious);;
 }
 
-glm::mat4 SGCTTrackingDevice::getWorldTransform() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::mat4 TrackingDevice::getWorldTransform() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mWorldTransform;
 }
 
-glm::mat4 SGCTTrackingDevice::getWorldTransformPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::mat4 TrackingDevice::getWorldTransformPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mWorldTransformPrevious;
 }
 
-glm::dquat SGCTTrackingDevice::getSensorRotation() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::dquat TrackingDevice::getSensorRotation() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSensorRotation;
 }
 
-glm::dquat SGCTTrackingDevice::getSensorRotationPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::dquat TrackingDevice::getSensorRotationPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSensorRotationPrevious;
 }
 
-glm::dvec3 SGCTTrackingDevice::getSensorPosition() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::dvec3 TrackingDevice::getSensorPosition() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSensorPos;
 }
 
-glm::dvec3 SGCTTrackingDevice::getSensorPositionPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+glm::dvec3 TrackingDevice::getSensorPositionPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSensorPosPrevious;
 }
 
-bool SGCTTrackingDevice::isEnabled() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+bool TrackingDevice::isEnabled() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mEnabled;
 }
 
-bool SGCTTrackingDevice::hasSensor() const {
+bool TrackingDevice::hasSensor() const {
     return mSensorId != -1;
 }
 
-bool SGCTTrackingDevice::hasButtons() const {
+bool TrackingDevice::hasButtons() const {
     return mNumberOfButtons > 0;
 }
 
-bool SGCTTrackingDevice::hasAnalogs() const {
+bool TrackingDevice::hasAnalogs() const {
     return mNumberOfAxes > 0;
 }
 
-void SGCTTrackingDevice::setTrackerTimeStamp() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setTrackerTimeStamp() {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mTrackerTimePrevious = mTrackerTime;
     mTrackerTime = Engine::getTime();
 }
 
-void SGCTTrackingDevice::setAnalogTimeStamp() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setAnalogTimeStamp() {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mAnalogTimePrevious = mAnalogTime;
     mAnalogTime = Engine::getTime();
 }
 
-void SGCTTrackingDevice::setButtonTimeStamp(size_t index) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+void TrackingDevice::setButtonTimeStamp(size_t index) {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mButtonTimePrevious[index] = mButtonTime[index];
     mButtonTime[index] = Engine::getTime();
 }
 
-double SGCTTrackingDevice::getTrackerTimeStamp() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getTrackerTimeStamp() {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mTrackerTime;
 }
 
-double SGCTTrackingDevice::getTrackerTimeStampPrevious() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getTrackerTimeStampPrevious() {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mTrackerTimePrevious;
 }
 
-double SGCTTrackingDevice::getAnalogTimeStamp() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getAnalogTimeStamp() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mAnalogTime;
 }
 
-double SGCTTrackingDevice::getAnalogTimeStampPrevious() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getAnalogTimeStampPrevious() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mAnalogTimePrevious;
 }
 
-double SGCTTrackingDevice::getButtonTimeStamp(size_t index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getButtonTimeStamp(size_t index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mButtonTime[index];
 }
 
-double SGCTTrackingDevice::getButtonTimeStampPrevious(size_t index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getButtonTimeStampPrevious(size_t index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mButtonTimePrevious[index];
 }
 
 
-double SGCTTrackingDevice::getTrackerDeltaTime() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getTrackerDeltaTime() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mTrackerTime - mTrackerTimePrevious;
 }
 
-double SGCTTrackingDevice::getAnalogDeltaTime() const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getAnalogDeltaTime() const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mAnalogTime - mAnalogTimePrevious;
 }
 
-double SGCTTrackingDevice::getButtonDeltaTime(size_t index) const {
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+double TrackingDevice::getButtonDeltaTime(size_t index) const {
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mButtonTime[index] - mButtonTimePrevious[index];;
 }
 

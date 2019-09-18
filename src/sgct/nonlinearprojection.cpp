@@ -142,7 +142,7 @@ void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::FrustumMode fm) {
     mPreferedMonoFrustumMode = fm;
 }
 
-void NonLinearProjection::setUser(SGCTUser& user) {
+void NonLinearProjection::setUser(User& user) {
     for (int i = 0; i < 6; ++i) {
         mSubViewports[i].setUser(user);
     }
@@ -187,7 +187,7 @@ void NonLinearProjection::initTextures() {
         );
     }
     
-    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+    if (sgct::Settings::instance()->useDepthTexture()) {
         generateCubeMap(
             mTextures.cubeMapDepth,
             GL_DEPTH_COMPONENT32,
@@ -253,10 +253,10 @@ void NonLinearProjection::initTextures() {
         }
     }
 
-    if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+    if (sgct::Settings::instance()->useNormalTexture()) {
         generateCubeMap(
             mTextures.cubeMapNormals,
-            sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),
+            sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
             GL_BGR,
             GL_FLOAT
         );
@@ -277,10 +277,10 @@ void NonLinearProjection::initTextures() {
         }
     }
 
-    if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+    if (sgct::Settings::instance()->usePositionTexture()) {
         generateCubeMap(
             mTextures.cubeMapPositions,
-            sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),
+            sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
             GL_BGR,
             GL_FLOAT
         );
@@ -413,7 +413,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFor
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     if (sgct::Engine::instance()->isOGLPipelineFixed() ||
-        sgct::SGCTSettings::instance()->getForceGlTexImage2D())
+        sgct::Settings::instance()->getForceGlTexImage2D())
     {
         for (int side = 0; side < 6; ++side) {
             glTexImage2D(
@@ -491,7 +491,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     if (sgct::Engine::instance()->isOGLPipelineFixed() ||
-        sgct::SGCTSettings::instance()->getForceGlTexImage2D())
+        sgct::Settings::instance()->getForceGlTexImage2D())
     {
         glTexImage2D(
             GL_TEXTURE_2D,

@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-SGCTPlane::SGCTPlane(float width, float height) {
+Plane::Plane(float width, float height) {
     createVBO(width, height);
 
     if (!sgct::Engine::checkForOGLErrors()) {
@@ -25,7 +25,7 @@ SGCTPlane::SGCTPlane(float width, float height) {
     }
 }
 
-SGCTPlane::~SGCTPlane() {
+Plane::~Plane() {
     glDeleteBuffers(1, &mVBO);
     mVBO = 0;
 
@@ -33,7 +33,7 @@ SGCTPlane::~SGCTPlane() {
     mVAO = 0;
 }
 
-void SGCTPlane::draw() {
+void Plane::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
@@ -42,7 +42,7 @@ void SGCTPlane::draw() {
     }
 }
 
-void SGCTPlane::drawVBO() {
+void Plane::drawVBO() {
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -58,14 +58,14 @@ void SGCTPlane::drawVBO() {
     glPopClientAttrib();
 }
 
-void SGCTPlane::drawVAO() {
+void Plane::drawVAO() {
     glBindVertexArray(mVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
 
-void SGCTPlane::createVBO(float width, float height) {
-    std::array<sgct_helpers::SGCTVertexData, 4> verts;
+void Plane::createVBO(float width, float height) {
+    std::array<sgct_helpers::VertexData, 4> verts;
     verts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
     verts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
     verts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
@@ -80,19 +80,19 @@ void SGCTPlane::createVBO(float width, float height) {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug, "SGCTPlane: Generating VAO: %d\n", mVAO
+            sgct::MessageHandler::Level::Debug, "Plane: Generating VAO: %d\n", mVAO
         );
     }
     
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug, "SGCTPlane: Generating VBO: %d\n", mVBO
+        sgct::MessageHandler::Level::Debug, "Plane: Generating VBO: %d\n", mVBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        4 * sizeof(sgct_helpers::SGCTVertexData),
+        4 * sizeof(sgct_helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
@@ -104,7 +104,7 @@ void SGCTPlane::createVBO(float width, float height) {
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -113,7 +113,7 @@ void SGCTPlane::createVBO(float width, float height) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -122,7 +122,7 @@ void SGCTPlane::createVBO(float width, float height) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(20)
         );
     }

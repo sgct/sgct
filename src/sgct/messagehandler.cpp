@@ -38,10 +38,10 @@ MessageHandler::MessageHandler() {
     mParseBuffer.resize(mMaxMessageSize);
     mCombinedBuffer.resize(mCombinedMessageSize);
     headerSpace.resize(
-        sgct_core::SGCTNetwork::HeaderSize,
-        sgct_core::SGCTNetwork::DefaultId
+        sgct_core::Network::HeaderSize,
+        sgct_core::Network::DefaultId
     );
-    headerSpace[0] = sgct_core::SGCTNetwork::DataId;
+    headerSpace[0] = sgct_core::Network::DataId;
     mBuffer.insert(mBuffer.begin(), headerSpace.begin(), headerSpace.end());
 
 #ifdef __SGCT_DEBUG__
@@ -54,7 +54,7 @@ MessageHandler::MessageHandler() {
 }
 
 void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
-    std::unique_lock lock(SGCTMutexManager::instance()->mDataSyncMutex);
+    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
     mRecBuffer = std::move(receivedData);
     mRecBuffer.push_back('\0');
     print("\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
@@ -62,7 +62,7 @@ void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
 
 void MessageHandler::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
-    std::unique_lock lock(SGCTMutexManager::instance()->mConsoleMutex);
+    std::unique_lock lock(MutexManager::instance()->mConsoleMutex);
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > mMaxMessageSize) {
@@ -220,7 +220,7 @@ void MessageHandler::print(Level nl, const char* fmt, ...) {
 }
 
 void MessageHandler::clearBuffer() {
-    std::unique_lock lock(SGCTMutexManager::instance()->mDataSyncMutex);
+    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
     mBuffer.clear();
 }
 

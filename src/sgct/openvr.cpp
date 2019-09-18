@@ -194,7 +194,7 @@ bool isHMDActive() {
 }
 
 // Assuming side-by-side stereo, i.e. one FBO, one texture for both eyes
-void copyWindowToHMD(SGCTWindow* win) {
+void copyWindowToHMD(Window* win) {
     if (!isHMDActive()) {
         return;
     }

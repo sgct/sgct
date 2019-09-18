@@ -1,5 +1,5 @@
 /*
- * SGCTMpcdi.cpp
+ * Mpcdi.cpp
  *
  *  Created on: Jul 3, 2017
  *      Author: Gene Payne
@@ -88,8 +88,8 @@ namespace {
 
 namespace sgct_core {
 
-bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
-                                   sgct::SGCTWindow& window)
+bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
+                                   sgct::Window& window)
 {
     FILE* cfgFile = nullptr;
     unzFile zipfile;
@@ -172,7 +172,7 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
     return parseSuccess;
 }
 
-bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
+bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
                                const std::string& filename, unzFile zipfile,
                                const unz_file_info& fileInfo)
 {
@@ -209,7 +209,7 @@ bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     return true;
 }
 
-bool SGCTMpcdi::readAndParseString(SGCTNode& node, sgct::SGCTWindow& win) {
+bool Mpcdi::readAndParseString(Node& node, sgct::Window& win) {
     if (mXmlFileContents.buffer.empty()) {
         return false;
     }
@@ -248,8 +248,8 @@ bool SGCTMpcdi::readAndParseString(SGCTNode& node, sgct::SGCTWindow& win) {
     }
 }
 
-bool SGCTMpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
-                                  sgct::SGCTWindow& win)
+bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
+                                  sgct::Window& win)
 {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
     if (XMLroot == nullptr) {
@@ -323,8 +323,8 @@ bool SGCTMpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
     return true;
 }
 
-bool SGCTMpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& node,
-                                    sgct::SGCTWindow& win, MpcdiFoundItems& parsedItems)
+bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node,
+                                    sgct::Window& win, MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveDisplayElem) {
         sgct::MessageHandler::instance()->print(
@@ -351,7 +351,7 @@ bool SGCTMpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& nod
     return true;
 }
 
-bool SGCTMpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindow& win) {
+bool Mpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win) {
     std::string fileRegion;
 
     tinyxml2::XMLElement* child = element->FirstChildElement();
@@ -387,8 +387,8 @@ bool SGCTMpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindo
     return true;
 }
 
-bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
-                                        sgct::SGCTWindow& win,
+bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
+                                        sgct::Window& win,
                                         std::string filesetRegionId)
 {
     std::unique_ptr<MpcdiWarp> warp = std::make_unique<MpcdiWarp>();
@@ -448,7 +448,7 @@ bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
     return true;
 }
 
-bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
                                    MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveBufferElem) {
@@ -497,7 +497,7 @@ bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWind
     return true;
 }
 
-bool SGCTMpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
                                    MpcdiFoundItems& parsedItems)
 {
     // Require an 'id' attribute for each region. These will be compared later to the

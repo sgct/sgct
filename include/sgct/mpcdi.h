@@ -1,5 +1,5 @@
 /*
- * SGCTMpcdi.h
+ * Mpcdi.h
  *
  *  Created on: Jul 3, 2017
  *      Author: Gene Payne
@@ -17,16 +17,16 @@
 #include <unzip.h>
 #include <zip.h>
 
-namespace sgct { class SGCTWindow; }
+namespace sgct { class Window; }
 
 namespace sgct_core {
 
-class SGCTNode;
+class Node;
 
-class SGCTMpcdi {
+class Mpcdi {
 public:
-    bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
-        sgct::SGCTWindow& window);
+    bool parseConfiguration(const std::string& filenameMpcdi, Node& node,
+        sgct::Window& window);
 
 private:
     struct MpcdiFoundItems {
@@ -42,18 +42,18 @@ private:
         bool haveFoundInterpolation = false;
     };
 
-    bool readAndParseString(SGCTNode& node, sgct::SGCTWindow& win);
-    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
-        sgct::SGCTWindow& win);
-    bool readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& node,
-        sgct::SGCTWindow& win, MpcdiFoundItems& parsedItems);
-    bool readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindow& win);
-    bool readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+    bool readAndParseString(Node& node, sgct::Window& win);
+    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
+        sgct::Window& win);
+    bool readAndParseDisplay(tinyxml2::XMLElement* element, Node& node,
+        sgct::Window& win, MpcdiFoundItems& parsedItems);
+    bool readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win);
+    bool readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
         MpcdiFoundItems& parsedItems);
-    bool readAndParseRegion(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+    bool readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
         MpcdiFoundItems& parsedItems);
     bool readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
-        sgct::SGCTWindow& win, std::string filesetRegionId);
+        sgct::Window& win, std::string filesetRegionId);
 
     struct SubFile {
         bool isFound = false;

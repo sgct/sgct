@@ -326,7 +326,7 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
     
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -495,7 +495,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& meshPath,
         numOfVerticesRead, numOfFacesRead
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -908,7 +908,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& meshPath, Viewport& pa
         numberOfVertices, numberOfIndices
     );
     
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -1317,7 +1317,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& meshPath,
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -1544,7 +1544,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -1704,7 +1704,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -1803,7 +1803,7 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -2087,7 +2087,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
     );
 
-    if (sgct::SGCTSettings::instance()->getExportWarpingMeshes()) {
+    if (sgct::Settings::instance()->getExportWarpingMeshes()) {
         const size_t found = meshPath.find_last_of(".");
         if (found != std::string::npos) {
             std::string filename = meshPath.substr(0, found) + "_export.obj";
@@ -2391,7 +2391,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
 }
 
 void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
-    if (sgct::SGCTSettings::instance()->getShowWarpingWireframe()) {
+    if (sgct::Settings::instance()->getShowWarpingWireframe()) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
@@ -2455,7 +2455,7 @@ void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
         glCallList(mt.mVertexMeshData);
     }
 
-    if (sgct::SGCTSettings::instance()->getShowWarpingWireframe()) {
+    if (sgct::Settings::instance()->getShowWarpingWireframe()) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 }

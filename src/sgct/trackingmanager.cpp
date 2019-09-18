@@ -37,8 +37,8 @@ namespace {
             return;
         }
 
-        SGCTTracker* trackerPtr = reinterpret_cast<SGCTTracker*>(userdata);
-        SGCTTrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
+        Tracker* trackerPtr = reinterpret_cast<Tracker*>(userdata);
+        TrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
 
         if (devicePtr == nullptr) {
             return;
@@ -53,25 +53,25 @@ namespace {
 
     void VRPN_CALLBACK updateButton(void* userdata, const vrpn_BUTTONCB b) {
         using namespace sgct;
-        SGCTTrackingDevice* devicePtr = reinterpret_cast<SGCTTrackingDevice*>(userdata);
+        TrackingDevice* devicePtr = reinterpret_cast<TrackingDevice*>(userdata);
 
         devicePtr->setButtonVal(b.state != 0, b.button);
     }
 
     void VRPN_CALLBACK updateAnalog(void* userdata, const vrpn_ANALOGCB a) {
         using namespace sgct;
-        SGCTTrackingDevice* tdPtr = reinterpret_cast<SGCTTrackingDevice*>(userdata);
+        TrackingDevice* tdPtr = reinterpret_cast<TrackingDevice*>(userdata);
         tdPtr->setAnalogVal(a.channel, static_cast<int>(a.num_channel));
     }
 
     void samplingLoop(void* arg) {
         using namespace sgct;
-        SGCTTrackingManager* tmPtr = reinterpret_cast<SGCTTrackingManager*>(arg);
+        TrackingManager* tmPtr = reinterpret_cast<TrackingManager*>(arg);
 
         while (true) {
             double t = sgct::Engine::getTime();
             for (int i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
-                sgct::SGCTTracker* trackerPtr = tmPtr->getTracker(i);
+                sgct::Tracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
@@ -112,7 +112,7 @@ namespace {
 
 namespace sgct {
 
-SGCTTrackingManager::~SGCTTrackingManager() {
+TrackingManager::~TrackingManager() {
     MessageHandler::instance()->print(
         MessageHandler::Level::Info, "Disconnecting VRPN\n"
     );
@@ -121,7 +121,7 @@ SGCTTrackingManager::~SGCTTrackingManager() {
     fprintf(stderr, "Destructing, setting running to false\n");
 #endif
     {
-        std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+        std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
         mRunning = false;
     }
 
@@ -138,15 +138,15 @@ SGCTTrackingManager::~SGCTTrackingManager() {
 }
 
 
-bool SGCTTrackingManager::isRunning() const {
+bool TrackingManager::isRunning() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mRunning;
 }
 
-void SGCTTrackingManager::startSampling() {
+void TrackingManager::startSampling() {
     if (mTrackers.empty()) {
         return;
     }
@@ -160,7 +160,7 @@ void SGCTTrackingManager::startSampling() {
         
     // link the head tracker
     const std::string& trackerName = mHeadUser->getHeadTrackerName();
-    SGCTTracker* trackerPtr = getTracker(trackerName);
+    Tracker* trackerPtr = getTracker(trackerName);
 
     const std::string& deviceName = mHeadUser->getHeadTrackerDeviceName();
     if (trackerPtr) {
@@ -179,10 +179,10 @@ void SGCTTrackingManager::startSampling() {
     mSamplingThread = std::make_unique<std::thread>(samplingLoop, this);
 }
 
-void SGCTTrackingManager::updateTrackingDevices() {
-    for (const std::unique_ptr<SGCTTracker>& tracker : mTrackers) {
+void TrackingManager::updateTrackingDevices() {
+    for (const std::unique_ptr<Tracker>& tracker : mTrackers) {
         for (int j = 0; j < tracker->getNumberOfDevices(); j++) {
-            SGCTTrackingDevice* tdPtr = tracker->getDevice(j);
+            TrackingDevice* tdPtr = tracker->getDevice(j);
             if (tdPtr->isEnabled() && tdPtr == mHead && mHeadUser) {
                 mHeadUser->setTransform(tdPtr->getWorldTransform());
             }
@@ -190,9 +190,9 @@ void SGCTTrackingManager::updateTrackingDevices() {
     }
 }
 
-void SGCTTrackingManager::addTracker(std::string name) {
+void TrackingManager::addTracker(std::string name) {
     if (!getTracker(name)) {
-        mTrackers.push_back(std::make_unique<SGCTTracker>(name));
+        mTrackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.push_back(std::vector<VRPNPointer>());
 
         MessageHandler::instance()->print(
@@ -208,14 +208,14 @@ void SGCTTrackingManager::addTracker(std::string name) {
     }
 }
 
-void SGCTTrackingManager::addDeviceToCurrentTracker(std::string name) {
+void TrackingManager::addDeviceToCurrentTracker(std::string name) {
     mNumberOfDevices++;
 
     mTrackers.back()->addDevice(std::move(name), mTrackers.size() - 1);
     gTrackers.back().push_back(VRPNPointer());
 }
 
-void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) {
+void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
@@ -223,7 +223,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) 
     std::pair<std::set<std::string>::iterator, bool> retVal = mAddresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (devicePtr) {
         devicePtr->setSensorId(id);
@@ -248,13 +248,13 @@ void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) 
     }
 }
 
-void SGCTTrackingManager::addButtonsToCurrentDevice(std::string address, int nButtons) {
+void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButtons) {
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
@@ -275,13 +275,13 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(std::string address, int nBu
     }
 }
 
-void SGCTTrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) {
+void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) {
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    SGCTTrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
 
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
         MessageHandler::instance()->print(
@@ -303,31 +303,31 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(std::string address, int nAx
     }
 }
 
-int SGCTTrackingManager::getNumberOfTrackers() const {
+int TrackingManager::getNumberOfTrackers() const {
     return static_cast<int>(mTrackers.size());
 }
 
-int SGCTTrackingManager::getNumberOfDevices() const {
+int TrackingManager::getNumberOfDevices() const {
     return mNumberOfDevices;
 }
 
-SGCTTrackingDevice* SGCTTrackingManager::getHeadDevice() const {
+TrackingDevice* TrackingManager::getHeadDevice() const {
     return mHead;
 }
 
-SGCTTracker* SGCTTrackingManager::getLastTracker() const {
+Tracker* TrackingManager::getLastTracker() const {
     return !mTrackers.empty() ? mTrackers.back().get() : nullptr;
 }
 
-SGCTTracker* SGCTTrackingManager::getTracker(size_t index) const {
+Tracker* TrackingManager::getTracker(size_t index) const {
     return index < mTrackers.size() ? mTrackers[index].get() : nullptr;
 }
 
-SGCTTracker* SGCTTrackingManager::getTracker(const std::string& name) const {
+Tracker* TrackingManager::getTracker(const std::string& name) const {
     auto it = std::find_if(
         mTrackers.cbegin(),
         mTrackers.cend(),
-        [name](const std::unique_ptr<SGCTTracker>& tracker) {
+        [name](const std::unique_ptr<Tracker>& tracker) {
             return tracker->getName() == name;
         }
     );
@@ -339,25 +339,25 @@ SGCTTracker* SGCTTrackingManager::getTracker(const std::string& name) const {
     }
 }
 
-void SGCTTrackingManager::setEnabled(bool state) {
-    for (std::unique_ptr<SGCTTracker>& tracker : mTrackers) {
+void TrackingManager::setEnabled(bool state) {
+    for (std::unique_ptr<Tracker>& tracker : mTrackers) {
         tracker->setEnabled(state);
     }
 }
 
-void SGCTTrackingManager::setSamplingTime(double t) {
+void TrackingManager::setSamplingTime(double t) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     mSamplingTime = t;
 }
 
-double SGCTTrackingManager::getSamplingTime() const {
+double TrackingManager::getSamplingTime() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return mSamplingTime;
 }
 

@@ -16,12 +16,12 @@ namespace sgct_utils {
 /*!
     Helper class to render a dome grid
 */
-class SGCTDome {
+class Dome {
 public:
     /// This constructor requires a valid OpenGL contex
-    SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
+    Dome(float radius, float FOV, unsigned int azimuthSteps,
         unsigned int elevationSteps);
-    ~SGCTDome();
+    ~Dome();
 
     /**
      * If openGL 3.3+ is used:

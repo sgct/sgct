@@ -4,7 +4,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct_utils::Box> box;
 
     bool info = false;
     bool stats = false;
@@ -81,9 +81,9 @@ void initOGLFun() {
     TextureManager::instance()->loadTexture("bottom", "grid_bottom.png", true, 4);
 
     TextureManager::instance()->loadTexture("box", "box.png", true, 4);
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         0.5f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
     );
 
     glEnable(GL_DEPTH_TEST);
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     gEngine = new sgct::Engine(arg);
 
-    sgct_core::SGCTNode* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
     if (thisNode) {
         for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
             thisNode->getWindow(i).setAlpha(true);

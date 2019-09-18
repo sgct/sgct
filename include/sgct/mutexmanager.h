@@ -15,11 +15,11 @@ namespace sgct {
 /**
  * This singleton class manages SGCTs mutexes
  */
-struct SGCTMutexManager {
-    /// Get the SGCTSettings instance
-    static SGCTMutexManager* instance();
+struct MutexManager {
+    /// Get the Settings instance
+    static MutexManager* instance();
 
-    /// Destroy the SGCTSettings instance
+    /// Destroy the Settings instance
     static void destroy();
 
     std::mutex mDataSyncMutex;
@@ -29,10 +29,10 @@ struct SGCTMutexManager {
     std::mutex mTransferMutex;
 
 private:
-    SGCTMutexManager() = default;
-    ~SGCTMutexManager() = default;
+    MutexManager() = default;
+    ~MutexManager() = default;
 
-    static SGCTMutexManager* mInstance;
+    static MutexManager* mInstance;
 };
 
 } // namespace sgct

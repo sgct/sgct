@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
+DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments,
                            unsigned int rings, unsigned int resolution)
     : mResolution(resolution)
     , mRings(rings)
@@ -40,7 +40,7 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
     }
 }
 
-SGCTDomeGrid::~SGCTDomeGrid() {
+DomeGrid::~DomeGrid() {
     glDeleteBuffers(1, &mVBO);
     mVBO = 0;
 
@@ -48,7 +48,7 @@ SGCTDomeGrid::~SGCTDomeGrid() {
     mVAO = 0;
 }
 
-void SGCTDomeGrid::draw() {
+void DomeGrid::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
@@ -57,7 +57,7 @@ void SGCTDomeGrid::draw() {
     }
 }
 
-void SGCTDomeGrid::drawVBO() {
+void DomeGrid::drawVBO() {
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -80,7 +80,7 @@ void SGCTDomeGrid::drawVBO() {
     glPopClientAttrib();
 }
 
-void SGCTDomeGrid::drawVAO() {
+void DomeGrid::drawVAO() {
     glBindVertexArray(mVAO);
 
     for (unsigned int r = 0; r < mRings; r++) {
@@ -97,7 +97,7 @@ void SGCTDomeGrid::drawVAO() {
     glBindVertexArray(0);
 }
 
-void SGCTDomeGrid::createVBO(float radius, float FOV) {
+void DomeGrid::createVBO(float radius, float FOV) {
     const unsigned int numberOfVertices = (mSegments * ((mResolution / 4) + 1) +
                                            mRings * mResolution) * 6;
     std::vector<float> verts(numberOfVertices, 0.f);
@@ -144,14 +144,14 @@ void SGCTDomeGrid::createVBO(float radius, float FOV) {
         glEnableVertexAttribArray(0);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "SGCTDomeGrid: Generating VAO: %d\n", mVAO
+            "DomeGrid: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTDomeGrid: Generating VBO: %d\n", mVBO
+        "DomeGrid: Generating VBO: %d\n", mVBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);

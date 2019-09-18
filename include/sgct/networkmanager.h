@@ -51,10 +51,10 @@ public:
     bool isComputerServer();
     bool isRunning();
     bool areAllNodesConnected();
-    SGCTNetwork* getExternalControlPtr();
+    Network* getExternalControlPtr();
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, size_t nodeIndex);
-    void transferData(const void* data, int length, int packageId, SGCTNetwork* connection);
+    void transferData(const void* data, int length, int packageId, Network* connection);
 
     /**
      * Compression levels 1-9.
@@ -71,28 +71,28 @@ public:
     int getConnectionsCount();
     int getSyncConnectionsCount();
     int getDataTransferConnectionsCount();
-    const SGCTNetwork& getConnectionByIndex(unsigned int index) const;
-    SGCTNetwork* getSyncConnectionByIndex(unsigned int index) const;
+    const Network& getConnectionByIndex(unsigned int index) const;
+    Network* getSyncConnectionByIndex(unsigned int index) const;
     const std::vector<std::string>& getLocalAddresses() const;
 
 private:
     bool addConnection(const std::string& port, const std::string& address,
-        SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::ConnectionTypes::SyncConnection);
+        Network::ConnectionTypes connectionType = Network::ConnectionTypes::SyncConnection);
     void initAPI();
     void getHostInfo();
-    void updateConnectionStatus(SGCTNetwork* connection);
+    void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
     bool prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
         int packageId);
 
     static NetworkManager* mInstance;
 
-    // This could be a std::vector<SGCTNetwork>, but SGCTNetwork is not move-constructible
+    // This could be a std::vector<Network>, but Network is not move-constructible
     // because of the std::condition_variable in it
-    std::vector<std::unique_ptr<SGCTNetwork>> mNetworkConnections;
-    std::vector<SGCTNetwork*> mSyncConnections;
-    std::vector<SGCTNetwork*> mDataTransferConnections;
-    SGCTNetwork* mExternalControlConnection = nullptr;
+    std::vector<std::unique_ptr<Network>> mNetworkConnections;
+    std::vector<Network*> mSyncConnections;
+    std::vector<Network*> mDataTransferConnections;
+    Network* mExternalControlConnection = nullptr;
 
     std::string mHostName; // stores this computers hostname
     std::vector<std::string> mDNSNames;

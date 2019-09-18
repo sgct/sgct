@@ -13,22 +13,22 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-SGCTSettings* SGCTSettings::mInstance = nullptr;
+Settings* Settings::mInstance = nullptr;
 
-SGCTSettings* SGCTSettings::instance() {
+Settings* Settings::instance() {
     if (mInstance == nullptr) {
-        mInstance = new SGCTSettings();
+        mInstance = new Settings();
     }
 
     return mInstance;
 }
 
-void SGCTSettings::destroy() {
+void Settings::destroy() {
     delete mInstance;
     mInstance = nullptr;
 }
 
-void SGCTSettings::configure(tinyxml2::XMLElement* element) {
+void Settings::configure(tinyxml2::XMLElement* element) {
     using namespace tinyxml2;
 
     const char* val;
@@ -197,95 +197,95 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
     }
 }
 
-void SGCTSettings::setSwapInterval(int val) {
+void Settings::setSwapInterval(int val) {
     mSwapInterval = val;
 }
 
-int SGCTSettings::getSwapInterval() const {
+int Settings::getSwapInterval() const {
     return mSwapInterval;
 }
 
-void SGCTSettings::setRefreshRateHint(int freq) {
+void Settings::setRefreshRateHint(int freq) {
     mRefreshRate = freq;
 }
 
-int SGCTSettings::getRefreshRateHint() const {
+int Settings::getRefreshRateHint() const {
     return mRefreshRate;
 }
 
-void SGCTSettings::setUseDepthTexture(bool state) {
+void Settings::setUseDepthTexture(bool state) {
     mUseDepthTexture = state;
 }
 
-void SGCTSettings::setUseNormalTexture(bool state) {
+void Settings::setUseNormalTexture(bool state) {
     mUseNormalTexture = state;
 }
 
-void SGCTSettings::setUsePositionTexture(bool state) {
+void Settings::setUsePositionTexture(bool state) {
     mUsePositionTexture = state;
 }
 
-void SGCTSettings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
+void Settings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
     mCurrentBufferFloatPrecision = bfp;
 }
 
-void SGCTSettings::setUseFBO(bool state) {
+void Settings::setUseFBO(bool state) {
     mUseFBO = state;
 }
 
-void SGCTSettings::setNumberOfCaptureThreads(int count) {
+void Settings::setNumberOfCaptureThreads(int count) {
     mNumberOfCaptureThreads = count;
 }
 
-void SGCTSettings::setPNGCompressionLevel(int level) {
+void Settings::setPNGCompressionLevel(int level) {
     mPNGCompressionLevel = level;
 }
 
-void SGCTSettings::setJPEGQuality(int quality) {
+void Settings::setJPEGQuality(int quality) {
     mJPEGQuality = quality;
 }
 
-int SGCTSettings::getPNGCompressionLevel() { 
+int Settings::getPNGCompressionLevel() { 
     return mPNGCompressionLevel;
 }
 
-int SGCTSettings::getJPEGQuality() {
+int Settings::getJPEGQuality() {
     return mJPEGQuality;
 }
 
-bool SGCTSettings::useDepthTexture() const {
+bool Settings::useDepthTexture() const {
     return mUseDepthTexture;
 }
 
-bool SGCTSettings::useNormalTexture() const {
+bool Settings::useNormalTexture() const {
     return mUseNormalTexture;
 }
 
-bool SGCTSettings::usePositionTexture() const {
+bool Settings::usePositionTexture() const {
     return mUsePositionTexture;
 }
 
-bool SGCTSettings::useFBO() const {
+bool Settings::useFBO() const {
     return mUseFBO;
 }
 
-int SGCTSettings::getNumberOfCaptureThreads() const {
+int Settings::getNumberOfCaptureThreads() const {
     return mNumberOfCaptureThreads;
 }
 
-glm::vec2 SGCTSettings::getOSDTextOffset() const {
+glm::vec2 Settings::getOSDTextOffset() const {
     return mOSDTextOffset;
 }
 
-float SGCTSettings::getFXAASubPixTrim() const {
+float Settings::getFXAASubPixTrim() const {
     return mFXAASubPixTrim;
 }
 
-float SGCTSettings::getFXAASubPixOffset() const {
+float Settings::getFXAASubPixOffset() const {
     return mFXAASubPixOffset;
 }
 
-SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() const {
+Settings::DrawBufferType Settings::getCurrentDrawBufferType() const {
     if (mUsePositionTexture) {
         if (mUseNormalTexture) {
             return DrawBufferType::DiffuseNormalPosition;
@@ -304,7 +304,7 @@ SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() const {
     }
 }
 
-void SGCTSettings::setCapturePath(std::string path, CapturePath cpi) {
+void Settings::setCapturePath(std::string path, CapturePath cpi) {
     switch (cpi) {
         case CapturePath::Mono:
             mCapturePath.mono = std::move(path);
@@ -318,11 +318,11 @@ void SGCTSettings::setCapturePath(std::string path, CapturePath cpi) {
     }
 }
 
-void SGCTSettings::setCaptureFormat(CaptureFormat format) {
+void Settings::setCaptureFormat(CaptureFormat format) {
     mCaptureFormat = format;
 }
 
-const std::string& SGCTSettings::getCapturePath(CapturePath cpi) const {
+const std::string& Settings::getCapturePath(CapturePath cpi) const {
     switch (cpi) {
         default:
         case CapturePath::Mono:
@@ -334,35 +334,35 @@ const std::string& SGCTSettings::getCapturePath(CapturePath cpi) const {
     }
 }
 
-SGCTSettings::CaptureFormat SGCTSettings::getCaptureFormat() {
+Settings::CaptureFormat Settings::getCaptureFormat() {
     return mCaptureFormat;
 }
 
-void SGCTSettings::setFXAASubPixTrim(float val) {
+void Settings::setFXAASubPixTrim(float val) {
     mFXAASubPixTrim = val;
 }
 
-void SGCTSettings::setFXAASubPixOffset(float val) {
+void Settings::setFXAASubPixOffset(float val) {
     mFXAASubPixOffset = val;
 }
 
-void SGCTSettings::setOSDTextOffset(glm::vec2 val) {
+void Settings::setOSDTextOffset(glm::vec2 val) {
     mOSDTextOffset = std::move(val);
 }
 
-void SGCTSettings::setOSDTextFontSize(unsigned int size) {
+void Settings::setOSDTextFontSize(unsigned int size) {
     mFontSize = size;
 }
 
-void SGCTSettings::setOSDTextFontName(std::string name) {
+void Settings::setOSDTextFontName(std::string name) {
     mFontName = std::move(name);
 }
 
-void SGCTSettings::setOSDTextFontPath(std::string path) {
+void Settings::setOSDTextFontPath(std::string path) {
     mFontPath = std::move(path);
 }
 
-void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
+void Settings::setDefaultNumberOfAASamples(int samples) {
     if ((samples != 0) && ((samples & (samples - 1)) == 0)) {
         // if power of two
         mDefaultNumberOfAASamples = samples;
@@ -370,103 +370,103 @@ void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
-            "SGCTSettings: Number of default MSAA samples must be a power of two\n",
+            "Settings: Number of default MSAA samples must be a power of two\n",
             samples
         );
     }
 }
 
-void SGCTSettings::setDefaultFXAAState(bool state) {
+void Settings::setDefaultFXAAState(bool state) {
     mDefaultFXAA = state;
 }
 
-void SGCTSettings::setForceGlTexImage2D(bool state) {
+void Settings::setForceGlTexImage2D(bool state) {
     mForceGlTexImage2D = state;
 }
 
-bool SGCTSettings::getForceGlTexImage2D() const {
+bool Settings::getForceGlTexImage2D() const {
     return mForceGlTexImage2D;
 }
 
-void SGCTSettings::setUsePBO(bool state) {
+void Settings::setUsePBO(bool state) {
     mUsePBO = state;
 }
 
-bool SGCTSettings::getUsePBO() const {
+bool Settings::getUsePBO() const {
     return mUsePBO;
 }
 
-void SGCTSettings::setUseRLE(bool state) {
+void Settings::setUseRLE(bool state) {
     mUseRLE = state;
 }
 
-void SGCTSettings::setUseWarping(bool state) {
+void Settings::setUseWarping(bool state) {
     mUseWarping = state;
 }
 
-void SGCTSettings::setShowWarpingWireframe(bool state) {
+void Settings::setShowWarpingWireframe(bool state) {
     mShowWarpingWireframe = state;
 }
 
-void SGCTSettings::setCaptureFromBackBuffer(bool state) {
+void Settings::setCaptureFromBackBuffer(bool state) {
     mCaptureBackBuffer = state;
 }
 
-void SGCTSettings::setExportWarpingMeshes(bool state) {
+void Settings::setExportWarpingMeshes(bool state) {
     mExportWarpingMeshes = state;
 }
 
-bool SGCTSettings::getUseRLE() {
+bool Settings::getUseRLE() {
     return mUseRLE;
 }
 
-bool SGCTSettings::getTryMaintainAspectRatio() const {
+bool Settings::getTryMaintainAspectRatio() const {
     return mTryMaintainAspectRatio;
 }
 
-bool SGCTSettings::getExportWarpingMeshes() const {
+bool Settings::getExportWarpingMeshes() const {
     return mExportWarpingMeshes;
 }
 
-bool SGCTSettings::getUseWarping() const {
+bool Settings::getUseWarping() const {
     return mUseWarping;
 }
 
-bool SGCTSettings::getShowWarpingWireframe() const {
+bool Settings::getShowWarpingWireframe() const {
     return mShowWarpingWireframe;
 }
 
-bool SGCTSettings::getCaptureFromBackBuffer() const {
+bool Settings::getCaptureFromBackBuffer() const {
     return mCaptureBackBuffer;
 }
 
-void SGCTSettings::setTryMaintainAspectRatio(bool state) {
+void Settings::setTryMaintainAspectRatio(bool state) {
     mTryMaintainAspectRatio = state;
 }
 
-unsigned int SGCTSettings::getOSDTextFontSize() const {
+unsigned int Settings::getOSDTextFontSize() const {
     return mFontSize;
 }
 
-const std::string& SGCTSettings::getOSDTextFontName() const {
+const std::string& Settings::getOSDTextFontName() const {
     return mFontName;
 }
 
-const std::string& SGCTSettings::getOSDTextFontPath() const {
+const std::string& Settings::getOSDTextFontPath() const {
     return mFontPath;
 }
 
-int SGCTSettings::getBufferFloatPrecisionAsGLint() const {
+int Settings::getBufferFloatPrecisionAsGLint() const {
     return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float_16Bit ?
         GL_RGB16F :
         GL_RGB32F;
 }
 
-int SGCTSettings::getDefaultNumberOfAASamples() const {
+int Settings::getDefaultNumberOfAASamples() const {
     return mDefaultNumberOfAASamples;
 }
 
-bool SGCTSettings::getDefaultFXAAState() const {
+bool Settings::getDefaultFXAAState() const {
     return mDefaultFXAA;
 }
 

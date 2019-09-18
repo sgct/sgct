@@ -13,14 +13,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-class SGCTProjectionPlane;
+class ProjectionPlane;
 
 /**
  * This class holds and manages 3D projections
  */
-class SGCTProjection {
+class Projection {
 public:
-    void calculateProjection(glm::vec3 base, const SGCTProjectionPlane& projectionPlane,
+    void calculateProjection(glm::vec3 base, const ProjectionPlane& projectionPlane,
         float nearClippingPlane, float farClippingPlane,
         glm::vec3 viewOffset = glm::vec3(0.f));
 

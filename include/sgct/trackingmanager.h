@@ -14,18 +14,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <thread>
 #include <vector>
 
-namespace sgct_core { class SGCTUser; }
+namespace sgct_core { class User; }
 
 namespace sgct {
 
-class SGCTTrackingDevice;
+class TrackingDevice;
 
 /**
  * Class that manages tracking systems
  */
-class SGCTTrackingManager {
+class TrackingManager {
 public:
-    ~SGCTTrackingManager();
+    ~TrackingManager();
     
     void startSampling();
 
@@ -42,11 +42,11 @@ public:
     
     int getNumberOfTrackers() const;
     int getNumberOfDevices() const;
-    SGCTTrackingDevice* getHeadDevice() const;
+    TrackingDevice* getHeadDevice() const;
 
-    SGCTTracker* getLastTracker() const;
-    SGCTTracker* getTracker(size_t index) const;
-    SGCTTracker* getTracker(const std::string& name) const;
+    Tracker* getLastTracker() const;
+    Tracker* getTracker(size_t index) const;
+    Tracker* getTracker(const std::string& name) const;
 
     void setEnabled(bool state);
     void setSamplingTime(double t);
@@ -56,13 +56,13 @@ public:
 
 private:
     std::unique_ptr<std::thread> mSamplingThread;
-    std::vector<std::unique_ptr<SGCTTracker>> mTrackers;
+    std::vector<std::unique_ptr<Tracker>> mTrackers;
     std::set<std::string> mAddresses;
     double mSamplingTime = 0.0;
     bool mRunning = true;
 
-    sgct_core::SGCTUser* mHeadUser = nullptr;
-    SGCTTrackingDevice* mHead = nullptr;
+    sgct_core::User* mHeadUser = nullptr;
+    TrackingDevice* mHead = nullptr;
     int mNumberOfDevices = 0;
 };
 

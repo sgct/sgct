@@ -18,7 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Frustum.h>
 #include <openvr.h>
 
-class SGCTWindow;
+class Window;
 
 namespace sgct::openvr {
     /// Init OpenVR
@@ -29,7 +29,7 @@ namespace sgct::openvr {
 
     bool isHMDActive();
 
-    void copyWindowToHMD(SGCTWindow* win);
+    void copyWindowToHMD(Window* win);
 
     glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::FrustumMode nEye);
 

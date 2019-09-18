@@ -14,12 +14,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
+Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
                    unsigned int elevationSteps)
     : mElevationSteps(elevationSteps)
     , mAzimuthSteps(azimuthSteps)
 {
-    std::vector<sgct_helpers::SGCTVertexData> vertices;
+    std::vector<sgct_helpers::VertexData> vertices;
 
     // must be four or higher
     if (mAzimuthSteps < 4) {
@@ -50,7 +50,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
     }
 }
 
-SGCTDome::~SGCTDome() {
+Dome::~Dome() {
     glDeleteBuffers(1, &mVBO);
     mVBO = 0;
     glDeleteBuffers(1, &mIBO);
@@ -59,7 +59,7 @@ SGCTDome::~SGCTDome() {
     mVAO = 0;
 }
 
-void SGCTDome::draw() {
+void Dome::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
@@ -68,7 +68,7 @@ void SGCTDome::draw() {
     }
 }
 
-void SGCTDome::drawVBO() {
+void Dome::drawVBO() {
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -106,7 +106,7 @@ void SGCTDome::drawVBO() {
     glPopClientAttrib();
 }
 
-void SGCTDome::drawVAO() {
+void Dome::drawVAO() {
     glBindVertexArray(mVAO);
 
     for (int i = 0; i < mElevationSteps - 1; i++) {
@@ -132,10 +132,10 @@ void SGCTDome::drawVAO() {
     glBindVertexArray(0);
 }
 
-void SGCTDome::createVBO(float radius, float FOV) {
+void Dome::createVBO(float radius, float FOV) {
     const float lift = (180.f - FOV) / 2.f;
 
-    std::vector<sgct_helpers::SGCTVertexData> verts;
+    std::vector<sgct_helpers::VertexData> verts;
     std::vector<unsigned int> indices;
 
     for (int a = 0; a < mAzimuthSteps; a++) {
@@ -222,20 +222,20 @@ void SGCTDome::createVBO(float radius, float FOV) {
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "SGCTDome: Generating VAO: %d\n", mVAO
+            "Dome: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(2, &mVBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTDome: Generating VBOs: %d %d\n", mVBO, mIBO
+        "Dome: Generating VBOs: %d %d\n", mVBO, mIBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        static_cast<int>(verts.size()) * sizeof(sgct_helpers::SGCTVertexData),
+        static_cast<int>(verts.size()) * sizeof(sgct_helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
@@ -247,7 +247,7 @@ void SGCTDome::createVBO(float radius, float FOV) {
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -256,7 +256,7 @@ void SGCTDome::createVBO(float radius, float FOV) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -265,7 +265,7 @@ void SGCTDome::createVBO(float radius, float FOV) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(20)
         );
     }

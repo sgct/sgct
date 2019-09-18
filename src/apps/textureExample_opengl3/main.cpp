@@ -5,7 +5,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct_utils::Box> box;
     GLint matrixLoc = -1;
 
     sgct::SharedDouble currentTime(0.0);
@@ -59,9 +59,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         2.f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
     );
 
     glCullFace(GL_BACK);

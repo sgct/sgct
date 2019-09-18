@@ -168,7 +168,7 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
     }
 }
 
-// @TODO(abock)  The function signature needs to be cleaned up during a pass of SGCTMpcdi
+// @TODO(abock)  The function signature needs to be cleaned up during a pass of Mpcdi
 //               file.  It's not clear what is happening with the double pointers here and
 //               which assignments are actually used
 void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int winResY) {

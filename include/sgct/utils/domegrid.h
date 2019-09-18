@@ -13,12 +13,12 @@ namespace sgct_utils {
 /**
  * Helper class to render a dome grid
  */
-class SGCTDomeGrid {
+class DomeGrid {
 public:
     /// This constructor requires a valid OpenGL contex
-    SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
+    DomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
         unsigned int resolution = 128);
-    ~SGCTDomeGrid();
+    ~DomeGrid();
 
     /// If openGL 3.3+ is used layout 0 contains vertex positions (vec3).
     void draw();

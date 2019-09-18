@@ -37,7 +37,7 @@ namespace {
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
-    std::unique_ptr<sgct_utils::SGCTDome> dome;
+    std::unique_ptr<sgct_utils::Dome> dome;
     GLint matrixLoc = -1;
 
     sgct::SharedDouble currentTime(0.0);
@@ -281,7 +281,7 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    dome = std::make_unique<sgct_utils::SGCTDome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<sgct_utils::Dome>(7.4f, 180.f, 256, 128);
 
     // Set up backface culling
     glCullFace(GL_BACK);

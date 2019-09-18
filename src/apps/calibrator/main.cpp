@@ -111,7 +111,7 @@ void draw() {
 
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
-        sgct::SGCTWindow& win = gEngine->getCurrentWindow();
+        sgct::Window& win = gEngine->getCurrentWindow();
         sgct_core::BaseViewport* vp = win.getCurrentViewport();
         const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
         const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
@@ -200,7 +200,7 @@ void postSync() {
     }
     
     gEngine->setWireframe(wireframe.getVal());
-    sgct::SGCTSettings::instance()->setUseWarping(warping.getVal());
+    sgct::Settings::instance()->setUseWarping(warping.getVal());
 }
 
 void encode() {
@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
         );
     }
 
-    SGCTSettings::instance()->setCaptureFromBackBuffer(true);
+    Settings::instance()->setCaptureFromBackBuffer(true);
 
     // Bind your functions
     gEngine->setDrawFunction(draw);

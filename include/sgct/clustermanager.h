@@ -22,7 +22,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
  */
 namespace sgct_core {
 
-class SGCTUser;
+class User;
 
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
@@ -43,10 +43,10 @@ public:
     };
 
     /// Add a cluster node to the manager's vector.
-    void addNode(std::unique_ptr<SGCTNode> node);
+    void addNode(std::unique_ptr<Node> node);
 
     /// Add a user ptr.
-    void addUser(std::unique_ptr<SGCTUser> userPtr);
+    void addUser(std::unique_ptr<User> userPtr);
 
     /**
      * Get a pointer to a specific node.
@@ -55,7 +55,7 @@ public:
      *
      * \return the pointer to the requested node or nullptr if not found
      */
-    SGCTNode* getNode(size_t index);
+    Node* getNode(size_t index);
 
     /**
      * Get a pointer to a specific node.
@@ -64,19 +64,19 @@ public:
      *
      * \return the pointer to the requested node or nullptr if not found
      */
-    SGCTNode* getNode(const std::string& name);
+    Node* getNode(const std::string& name);
 
     /// \return a pointer to the node that this application is running on
-    SGCTNode* getThisNode();
+    Node* getThisNode();
 
     /// \return the pointer to the default user
-    SGCTUser& getDefaultUser();
+    User& getDefaultUser();
 
     /// \return the pointer to a named user. nullptr is returned if no user is found.
-    SGCTUser* getUser(const std::string& name);
+    User* getUser(const std::string& name);
 
     /// \return the pointer to the tracked user. Returns nullptr if no user is tracked.
-    SGCTUser* getTrackedUser();
+    User* getTrackedUser();
 
     /// \return the current network mode
     NetworkManager::NetworkMode getNetworkMode() const;
@@ -174,7 +174,7 @@ public:
     MeshImplementation getMeshImplementation() const;
 
     /// \returns the pointer to the tracking manager
-    sgct::SGCTTrackingManager& getTrackingManager();
+    sgct::TrackingManager& getTrackingManager();
 
 private:
     ClusterManager();
@@ -187,11 +187,11 @@ private:
 
     static ClusterManager* mInstance;
 
-    // @TODO (abock 2019-09-02): I tried changing this to a std::vector<SGCTNode>, but
+    // @TODO (abock 2019-09-02): I tried changing this to a std::vector<Node>, but
     // this class is handing out pointers to external classes left and right, so we can't
     // have a datastructure that will willynilly move its contents around in memory.
     // #sadface
-    std::vector<std::unique_ptr<SGCTNode>> nodes;
+    std::vector<std::unique_ptr<Node>> nodes;
 
     int mThisNodeId = -1;
     bool mFirmFrameLockSync = false;
@@ -201,8 +201,8 @@ private:
     bool mUseASCIIForExternalControl = true;
 
     // @TODO (abock, 2019-09-02): See nodes
-    std::vector<std::unique_ptr<SGCTUser>> mUsers;
-    sgct::SGCTTrackingManager mTrackingManager;
+    std::vector<std::unique_ptr<User>> mUsers;
+    sgct::TrackingManager mTrackingManager;
 
     glm::mat4 mSceneTransform = glm::mat4(1.f);
     glm::mat4 mSceneScale = glm::mat4(1.f);

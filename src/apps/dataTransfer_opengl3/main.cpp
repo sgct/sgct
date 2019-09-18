@@ -32,7 +32,7 @@ namespace {
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct_utils::Box> box;
     GLint matrixLoc = -1;
 
     // variables to share across cluster
@@ -110,9 +110,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         2.f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
     );
 
     // Set up backface culling

@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__BOX__H__
 #define __SGCT__BOX__H__
 
-namespace sgct_helpers { struct SGCTVertexData; }
+namespace sgct_helpers { struct VertexData; }
 
 /**
  * \namespace sgct_utils
@@ -19,13 +19,13 @@ namespace sgct_utils {
 /**
  * This class creates and renders a textured box.
  */
-class SGCTBox {
+class Box {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
     /// This constructor requires a valid openGL context
-    SGCTBox(float size, TextureMappingMode mode = TextureMappingMode::Regular);
-    ~SGCTBox();
+    Box(float size, TextureMappingMode mode = TextureMappingMode::Regular);
+    ~Box();
 
     /**
      * If openGL 3.3+ is used:

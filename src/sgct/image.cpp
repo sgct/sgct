@@ -1018,7 +1018,7 @@ bool Image::savePNG(int compressionLevel) {
     // png_set_compression_mem_level(png_ptr, MAX_MEM_LEVEL);
     // png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
     
-    sgct::SGCTSettings::instance()->getUseRLE() ? 
+    sgct::Settings::instance()->getUseRLE() ? 
         png_set_compression_strategy(png_ptr, Z_RLE) :
         png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
     
@@ -1276,7 +1276,7 @@ bool Image::saveTGA() {
     unsigned char data_type;
     switch (mChannels) {
         default:
-            data_type = sgct::SGCTSettings::instance()->getUseRLE() ? 10 : 2;
+            data_type = sgct::Settings::instance()->getUseRLE() ? 10 : 2;
             //data_type = 2;//uncompressed RGB
             //data_type = 10;//RLE compressed RGB
             break;

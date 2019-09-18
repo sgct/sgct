@@ -44,7 +44,7 @@ namespace {
     sgct::SharedBool stats(false);
     sgct::SharedBool takeScreenshot(false);
     sgct::SharedBool useTracking(false);
-    sgct::SharedObject<sgct::SGCTWindow::StereoMode> stereoMode;
+    sgct::SharedObject<sgct::Window::StereoMode> stereoMode;
 
     struct Geometry {
         std::vector<float> vertPos;
@@ -324,13 +324,13 @@ void keyCallback(int key, int, int action, int) {
             case key::Left:
                 if (static_cast<int>(stereoMode.getVal()) > 0) {
                     const int v = static_cast<int>(stereoMode.getVal()) - 1;
-                    SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
+                    Window::StereoMode m = static_cast<Window::StereoMode>(v);
                     stereoMode.setVal(m);
                 }
                 break;
             case key::Right:
                 const int v = static_cast<int>(stereoMode.getVal()) + 1;
-                SGCTWindow::StereoMode m = static_cast<SGCTWindow::StereoMode>(v);
+                Window::StereoMode m = static_cast<Window::StereoMode>(v);
                 stereoMode.setVal(m);
                 break;
         }

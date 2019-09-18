@@ -17,7 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 class Image;
 class NetworkManager;
-class SGCTNode;
+class Node;
 class ReadConfig;
 class Statistics;
 class Touch;
@@ -30,8 +30,8 @@ class Touch;
 namespace sgct {
 
 class PostFX;
-class SGCTTrackingManager;
-class SGCTWindow;
+class TrackingManager;
+class Window;
 
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
@@ -251,19 +251,19 @@ public:
 
     /**
      * \return the active depth texture if depth texture rendering is enabled through
-     * SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     * Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentDepthTexture() const;
 
     /**
      * \return the active normal texture if normal texture rendering is enabled through
-     * SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     * Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentNormalTexture() const;
 
     /**
      * \return the active position texture if position texture rendering is enabled
-     * through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+     * through Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentPositionTexture() const;
 
@@ -718,14 +718,14 @@ void sgct::Engine::clearBuffer() {
     void setExternalControlBufferSize(unsigned int newSize);
 
     /**
-     * Don't use this. This function is called from SGCTNetwork and will invoke the
+     * Don't use this. This function is called from Network and will invoke the
      * external network callback when messages are received.
      */
     void invokeDecodeCallbackForExternalControl(const char* receivedData,
         int receivedLength, int clientId);
 
     /**
-     *  Don't use this. This function is called from SGCTNetwork and will invoke the
+     *  Don't use this. This function is called from Network and will invoke the
      * external network update callback when connection is connected/disconnected.
      */
     void invokeUpdateCallbackForExternalControl(bool connected);
@@ -761,20 +761,20 @@ void sgct::Engine::clearBuffer() {
         size_t nodeIndex);
 
     /**
-     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * Don't use this. This function is called from Network and will invoke the data
      * transfer callback when messages are received.
      */
     void invokeDecodeCallbackForDataTransfer(void* receivedData, int receivedLength,
         int packageId, int clientId);
 
     /**
-     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * Don't use this. This function is called from Network and will invoke the data
      * transfer callback when connection is connected/disconnected.
      */
     void invokeUpdateCallbackForDataTransfer(bool connected, int clientId);
 
     /**
-     * Don't use this. This function is called from SGCTNetwork and will invoke the data
+     * Don't use this. This function is called from Network and will invoke the data
      * transfer callback when data is successfully sent.
      */
     void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId);
@@ -869,25 +869,25 @@ void sgct::Engine::clearBuffer() {
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
     /// Returns a pointer to this node (running on this computer).
-    const sgct_core::SGCTNode* getThisNode() const;
+    const sgct_core::Node* getThisNode() const;
 
     /// Returns a pointer to a specified window by index on this node.
-    SGCTWindow& getWindow(int index) const;
+    Window& getWindow(int index) const;
 
     /// Returns the number of windows for this node.
     size_t getNumberOfWindows() const;
 
     /// Returns a pointer to the current window that is beeing rendered
-    SGCTWindow& getCurrentWindow() const;
+    Window& getCurrentWindow() const;
 
     /// Returns an index to the current window that is beeing rendered
     int getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
-    static sgct_core::SGCTUser& getDefaultUser();
+    static sgct_core::User& getDefaultUser();
 
     /// Returns a pointer to the tracking manager pointer
-    static SGCTTrackingManager& getTrackingManager();
+    static TrackingManager& getTrackingManager();
 
     /**
      * This functions checks for OpenGL errors and prints them using the MessageHandler
@@ -1078,7 +1078,7 @@ private:
      * This function updates the Anti-Aliasing (AA) settings. This function is called once
      * per second.
      */
-    void updateAAInfo(const SGCTWindow& window);
+    void updateAAInfo(const Window& window);
 
     void updateDrawBufferResolutions();
 
@@ -1243,7 +1243,7 @@ private:
 
     std::unique_ptr<sgct_core::NetworkManager> mNetworkConnections;
     std::unique_ptr<sgct_core::Statistics> mStatistics;
-    sgct_core::SGCTNode* mThisNode = nullptr;
+    sgct_core::Node* mThisNode = nullptr;
 
     std::unique_ptr<std::thread> mThreadPtr;
 

@@ -316,7 +316,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
 
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
-        SGCTProjection& proj = mSubViewports[face].getProjection(
+        Projection& proj = mSubViewports[face].getProjection(
             sgct::Engine::instance()->getCurrentFrustumMode()
         );
         glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
@@ -348,7 +348,7 @@ void SphericalMirrorProjection::attachTextures(unsigned int texture) {
 void SphericalMirrorProjection::renderInternal() {
     sgct::Engine::instance()->enterCurrentViewport();
 
-    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& winPtr = sgct::Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -405,7 +405,7 @@ void SphericalMirrorProjection::renderInternal() {
 void SphericalMirrorProjection::renderInternalFixedPipeline() {
     sgct::Engine::mInstance->enterCurrentViewport();
 
-    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& winPtr = sgct::Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
     
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);

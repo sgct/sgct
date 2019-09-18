@@ -15,7 +15,7 @@ namespace {
     };
 
     std::vector<FramebufferData> buffers;
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct_utils::Box> box;
 
     //variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -243,9 +243,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
+    box = std::make_unique<sgct_utils::Box>(
         1.f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
+        sgct_utils::Box::TextureMappingMode::Regular
     );
 
     // set up shader

@@ -18,10 +18,10 @@ namespace sgct {
 /*!
 Helper class that holds tracking device/sensor data
 */
-class SGCTTrackingDevice {
+class TrackingDevice {
 public:
     /// Constructor
-    SGCTTrackingDevice(size_t parentIndex, std::string name);
+    TrackingDevice(size_t parentIndex, std::string name);
     
     /// Set if this device is enabled or not
     void setEnabled(bool state);
@@ -129,7 +129,7 @@ private:
 
     bool mEnabled = true;
     std::string mName;
-    size_t mParentIndex; //the index of parent SGCTTracker
+    size_t mParentIndex; //the index of parent Tracker
     int mNumberOfButtons = 0;
     int mNumberOfAxes = 0;
     int mSensorId = -1;

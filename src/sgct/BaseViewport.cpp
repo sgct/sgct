@@ -52,11 +52,11 @@ const glm::vec2& BaseViewport::getSize() const {
     return mSize;
 }
 
-void BaseViewport::setUser(SGCTUser& user) {
+void BaseViewport::setUser(User& user) {
     mUser = user;
 }
 
-SGCTUser& BaseViewport::getUser() const {
+User& BaseViewport::getUser() const {
     return mUser;
 }
 
@@ -64,7 +64,7 @@ Frustum::FrustumMode BaseViewport::getEye() const {
     return mEye;
 }
 
-SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
+Projection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
     switch (frustumMode) {
         default:
         case Frustum::FrustumMode::MonoEye:
@@ -76,7 +76,7 @@ SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
     }
 }
 
-const SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) const
+const Projection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) const
 {
     switch (frustumMode) {
         default:
@@ -89,11 +89,11 @@ const SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMo
     }
 }
 
-SGCTProjection& BaseViewport::getProjection() {
+Projection& BaseViewport::getProjection() {
     return getProjection(mEye);
 }
 
-SGCTProjectionPlane& BaseViewport::getProjectionPlane() {
+ProjectionPlane& BaseViewport::getProjectionPlane() {
     return mProjectionPlane;
 }
 
@@ -115,7 +115,7 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
-    SGCTUser* user = ClusterManager::instance()->getUser(mUserName);
+    User* user = ClusterManager::instance()->getUser(mUserName);
     if (user) {
         mUser = *user;
     }

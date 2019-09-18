@@ -18,17 +18,17 @@ namespace sgct {
 /**
  * Class that manages a tracking system's properties and devices/sensors
  */
-class SGCTTracker {
+class Tracker {
 public:
-    explicit SGCTTracker(std::string name);
+    explicit Tracker(std::string name);
 
     void setEnabled(bool state);
     void addDevice(std::string name, size_t index);
 
-    SGCTTrackingDevice* getLastDevice() const;
-    SGCTTrackingDevice* getDevice(size_t index) const;
-    SGCTTrackingDevice* getDevice(const std::string& name) const;
-    SGCTTrackingDevice* getDeviceBySensorId(int id) const;
+    TrackingDevice* getLastDevice() const;
+    TrackingDevice* getDevice(size_t index) const;
+    TrackingDevice* getDevice(const std::string& name) const;
+    TrackingDevice* getDeviceBySensorId(int id) const;
 
     /// Set the orientation as quaternion
     void setOrientation(glm::quat q);
@@ -52,7 +52,7 @@ public:
 private:
     void calculateTransform();
 
-    std::vector<std::unique_ptr<SGCTTrackingDevice>> mTrackingDevices;
+    std::vector<std::unique_ptr<TrackingDevice>> mTrackingDevices;
     std::string mName;
 
     double mScale = 1.0;

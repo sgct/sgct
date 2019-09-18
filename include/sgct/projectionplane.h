@@ -17,7 +17,7 @@ namespace sgct_core {
 /**
  * This class holds and manages the 3D projection plane
  */
-class SGCTProjectionPlane {
+class ProjectionPlane {
 public:
     void configure(tinyxml2::XMLElement* element, glm::vec3& initializedLowerLeftCorner,
         glm::vec3& initializedUpperLeftCorner, glm::vec3& initializedUpperRightCorner);

@@ -44,7 +44,7 @@ namespace {
 namespace sgct_core {
 
 ScreenCapture::ScreenCapture()
-    : mNumberOfThreads(sgct::SGCTSettings::instance()->getNumberOfCaptureThreads())
+    : mNumberOfThreads(sgct::Settings::instance()->getNumberOfCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
@@ -295,8 +295,8 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     bool useDefaultSettings = mPath.empty() && mBaseName.empty();
     if (useDefaultSettings) {
         std::string tmpPath;
-        using Settings = sgct::SGCTSettings;
-        using CapturePath = sgct::SGCTSettings::CapturePath;
+        using Settings = sgct::Settings;
+        using CapturePath = sgct::Settings::CapturePath;
         switch (mEyeIndex) {
             case EyeIndex::Mono:
             default:
@@ -312,7 +312,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 break;
         }
         filename = tmpPath;
-        sgct::SGCTWindow& win = sgct::Engine::instance()->getWindow(mWindowIndex);
+        sgct::Window& win = sgct::Engine::instance()->getWindow(mWindowIndex);
         
         if (win.getName().empty()) {
             filename += "_win" + std::to_string(mWindowIndex);
@@ -391,7 +391,7 @@ void ScreenCapture::updateDownloadFormat() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
-    sgct::SGCTWindow& win = sgct::Engine::instance()->getWindow(mWindowIndex);
+    sgct::Window& win = sgct::Engine::instance()->getWindow(mWindowIndex);
     
     if (CapSrc == CaptureSource::Texture) {
         if (mResolution != win.getFramebufferResolution()) {

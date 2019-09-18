@@ -12,24 +12,24 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-SGCTUser::SGCTUser(std::string name) : mName(std::move(name)) {}
+User::User(std::string name) : mName(std::move(name)) {}
 
-void SGCTUser::setPos(glm::vec3 pos) {
+void User::setPos(glm::vec3 pos) {
     mPosMono = std::move(pos);
     updateEyeSeparation();
 }
 
-void SGCTUser::setHeadTracker(std::string trackerName, std::string deviceName) {
+void User::setHeadTracker(std::string trackerName, std::string deviceName) {
     mHeadTrackerName = std::move(trackerName);
     mHeadTrackerDeviceName = std::move(deviceName);
 }
 
-void SGCTUser::setTransform(glm::mat4 transform) {
+void User::setTransform(glm::mat4 transform) {
     mTransform = std::move(transform);
     updateEyeTransform();
 }
 
-void SGCTUser::setOrientation(float xRot, float yRot, float zRot) {
+void User::setOrientation(float xRot, float yRot, float zRot) {
     // create offset translation matrix
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), mPosMono);
     
@@ -38,7 +38,7 @@ void SGCTUser::setOrientation(float xRot, float yRot, float zRot) {
     updateEyeTransform();
 }
 
-void SGCTUser::setOrientation(glm::quat q) {
+void User::setOrientation(glm::quat q) {
     // create offset translation matrix
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), mPosMono);
 
@@ -46,18 +46,18 @@ void SGCTUser::setOrientation(glm::quat q) {
     updateEyeTransform();
 }
 
-void SGCTUser::setEyeSeparation(float eyeSeparation) {
+void User::setEyeSeparation(float eyeSeparation) {
     mEyeSeparation = eyeSeparation;
     updateEyeSeparation();
 }
 
-void SGCTUser::updateEyeSeparation() {
+void User::updateEyeSeparation() {
     glm::vec3 eyeOffsetVec(mEyeSeparation / 2.f, 0.f, 0.f);
     mPosLeftEye = mPosMono - eyeOffsetVec;
     mPosRightEye = mPosMono + eyeOffsetVec;
 }
 
-void SGCTUser::updateEyeTransform() {
+void User::updateEyeTransform() {
     glm::vec4 eyeOffsetVec(mEyeSeparation / 2.f, 0.f, 0.f, 0.f);
     
     glm::vec4 posMono = glm::vec4(0.f, 0.f, 0.f, 1.f);
@@ -69,35 +69,35 @@ void SGCTUser::updateEyeTransform() {
     mPosRightEye = glm::vec3(mTransform * posRight);
 }
 
-const glm::vec3& SGCTUser::getPosMono() const {
+const glm::vec3& User::getPosMono() const {
     return mPosMono;
 }
 
-const glm::vec3& SGCTUser::getPosLeftEye() const {
+const glm::vec3& User::getPosLeftEye() const {
     return mPosLeftEye;
 }
 
-const glm::vec3& SGCTUser::getPosRightEye() const {
+const glm::vec3& User::getPosRightEye() const {
     return mPosRightEye;
 }
 
-float SGCTUser::getEyeSeparation() const {
+float User::getEyeSeparation() const {
     return mEyeSeparation;
 }
 
-const std::string& SGCTUser::getHeadTrackerName() const {
+const std::string& User::getHeadTrackerName() const {
     return mHeadTrackerName;
 }
 
-const std::string& SGCTUser::getHeadTrackerDeviceName() const {
+const std::string& User::getHeadTrackerDeviceName() const {
     return mHeadTrackerDeviceName;
 }
 
-const std::string& SGCTUser::getName() const {
+const std::string& User::getName() const {
     return mName;
 }
 
-bool SGCTUser::isTracked() const {    
+bool User::isTracked() const {    
     return !(mHeadTrackerDeviceName.empty() || mHeadTrackerName.empty());
 }
 

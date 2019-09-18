@@ -47,7 +47,7 @@ namespace {
     </Cluster>
     )";
 
-    sgct::SGCTWindow::StereoMode getStereoType(std::string type) {
+    sgct::Window::StereoMode getStereoType(std::string type) {
         std::transform(
             type.begin(),
             type.end(),
@@ -56,52 +56,52 @@ namespace {
         );
 
         if (type == "none" || type == "no_stereo") {
-            return sgct::SGCTWindow::StereoMode::NoStereo;
+            return sgct::Window::StereoMode::NoStereo;
         }
         else if (type == "active" || type == "quadbuffer") {
-            return sgct::SGCTWindow::StereoMode::Active;
+            return sgct::Window::StereoMode::Active;
         }
         else if (type == "checkerboard") {
-            return sgct::SGCTWindow::StereoMode::Checkerboard;
+            return sgct::Window::StereoMode::Checkerboard;
         }
         else if (type == "checkerboard_inverted") {
-            return sgct::SGCTWindow::StereoMode::CheckerboardInverted;
+            return sgct::Window::StereoMode::CheckerboardInverted;
         }
         else if (type == "anaglyph_red_cyan") {
-            return sgct::SGCTWindow::StereoMode::AnaglyphRedCyan;
+            return sgct::Window::StereoMode::AnaglyphRedCyan;
         }
         else if (type == "anaglyph_amber_blue") {
-            return sgct::SGCTWindow::StereoMode::AnaglyphAmberBlue;
+            return sgct::Window::StereoMode::AnaglyphAmberBlue;
         }
         else if (type == "anaglyph_wimmer") {
-            return sgct::SGCTWindow::StereoMode::AnaglyphRedCyanWimmer;
+            return sgct::Window::StereoMode::AnaglyphRedCyanWimmer;
         }
         else if (type == "vertical_interlaced") {
-            return sgct::SGCTWindow::StereoMode::VerticalInterlaced;
+            return sgct::Window::StereoMode::VerticalInterlaced;
         }
         else if (type == "vertical_interlaced_inverted") {
-            return sgct::SGCTWindow::StereoMode::VerticalInterlacedInverted;
+            return sgct::Window::StereoMode::VerticalInterlacedInverted;
         }
         else if (type == "test" || type == "dummy") {
-            return sgct::SGCTWindow::StereoMode::Dummy;
+            return sgct::Window::StereoMode::Dummy;
         }
         else if (type == "side_by_side") {
-            return sgct::SGCTWindow::StereoMode::SideBySide;
+            return sgct::Window::StereoMode::SideBySide;
         }
         else if (type == "side_by_side_inverted") {
-            return sgct::SGCTWindow::StereoMode::SideBySideInverted;
+            return sgct::Window::StereoMode::SideBySideInverted;
         }
         else if (type == "top_bottom") {
-            return sgct::SGCTWindow::StereoMode::TopBottom;
+            return sgct::Window::StereoMode::TopBottom;
         }
         else if (type == "top_bottom_inverted") {
-            return sgct::SGCTWindow::StereoMode::TopBottomInverted;
+            return sgct::Window::StereoMode::TopBottomInverted;
         }
 
-        return sgct::SGCTWindow::StereoMode::NoStereo;
+        return sgct::Window::StereoMode::NoStereo;
     }
 
-    sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type) {
+    sgct::Window::ColorBitDepth getBufferColorBitDepth(std::string type) {
         std::transform(
             type.begin(),
             type.end(),
@@ -110,34 +110,34 @@ namespace {
         );
 
         if (type == "8") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth8;
+            return sgct::Window::ColorBitDepth::Depth8;
         }
         else if (type == "16") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth16;
+            return sgct::Window::ColorBitDepth::Depth16;
         }
 
         else if (type == "16f") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth16Float;
+            return sgct::Window::ColorBitDepth::Depth16Float;
         }
         else if (type == "32f") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth32Float;
+            return sgct::Window::ColorBitDepth::Depth32Float;
         }
 
         else if (type == "16i") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth16Int;
+            return sgct::Window::ColorBitDepth::Depth16Int;
         }
         else if (type == "32i") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth32Int;
+            return sgct::Window::ColorBitDepth::Depth32Int;
         }
 
         else if (type == "16ui") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth16UInt;
+            return sgct::Window::ColorBitDepth::Depth16UInt;
         }
         else if (type == "32ui") {
-            return sgct::SGCTWindow::ColorBitDepth::Depth32UInt;
+            return sgct::Window::ColorBitDepth::Depth32UInt;
         }
 
-        return sgct::SGCTWindow::ColorBitDepth::Depth8;
+        return sgct::Window::ColorBitDepth::Depth8;
     }
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
@@ -304,12 +304,12 @@ namespace {
     }
 
     void parseWindow(tinyxml2::XMLElement* element, std::string xmlFileName,
-                     sgct_core::SGCTNode& node)
+                     sgct_core::Node& node)
     {
         using namespace sgct_core;
         using namespace tinyxml2;
 
-        sgct::SGCTWindow win = sgct::SGCTWindow(node.getNumberOfWindows());
+        sgct::Window win = sgct::Window(node.getNumberOfWindows());
 
         if (element->Attribute("name")) {
             win.setName(element->Attribute("name"));
@@ -448,7 +448,7 @@ namespace {
             }
             path += element->Attribute("mpcdi");
             std::replace(path.begin(), path.end(), '\\', '/');
-            sgct_core::SGCTMpcdi().parseConfiguration(path, node, win);
+            sgct_core::Mpcdi().parseConfiguration(path, node, win);
         }
 
         XMLElement* child = element->FirstChildElement();
@@ -456,7 +456,7 @@ namespace {
             std::string_view childVal = child->Value();
 
             if (childVal == "Stereo") {
-                sgct::SGCTWindow::StereoMode v = getStereoType(child->Attribute("type"));
+                sgct::Window::StereoMode v = getStereoType(child->Attribute("type"));
                 win.setStereoMode(v);
             }
             else if (childVal == "Pos") {
@@ -510,7 +510,7 @@ namespace {
         using namespace sgct_core;
         using namespace tinyxml2;
 
-        std::unique_ptr<SGCTNode> node = std::make_unique<SGCTNode>();
+        std::unique_ptr<Node> node = std::make_unique<Node>();
 
         if (element->Attribute("address")) {
             node->setAddress(element->Attribute("address"));
@@ -551,10 +551,10 @@ namespace {
         using namespace sgct_core;
         using namespace tinyxml2;
 
-        SGCTUser* usrPtr;
+        User* usrPtr;
         if (element->Attribute("name")) {
             std::string name = element->Attribute("name");
-            std::unique_ptr<SGCTUser> usr = std::make_unique<SGCTUser>(std::move(name));
+            std::unique_ptr<User> usr = std::make_unique<User>(std::move(name));
             usrPtr = usr.get();
             ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->print(
@@ -646,53 +646,53 @@ namespace {
 
     void parseCapture(tinyxml2::XMLElement* element) {
         if (element->Attribute("path")) {
-            using CPI = sgct::SGCTSettings::CapturePath;
+            using CPI = sgct::Settings::CapturePath;
 
             const char* p = element->Attribute("path");
-            sgct::SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
-            sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
-            sgct::SGCTSettings::instance()->setCapturePath(p, CPI::RightStereo);
+            sgct::Settings::instance()->setCapturePath(p, CPI::Mono);
+            sgct::Settings::instance()->setCapturePath(p, CPI::LeftStereo);
+            sgct::Settings::instance()->setCapturePath(p, CPI::RightStereo);
         }
         if (element->Attribute("monoPath")) {
-            using CPI = sgct::SGCTSettings::CapturePath;
+            using CPI = sgct::Settings::CapturePath;
 
             const char* p = element->Attribute("monoPath");
-            sgct::SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
+            sgct::Settings::instance()->setCapturePath(p, CPI::Mono);
         }
         if (element->Attribute("leftPath")) {
-            using CPI = sgct::SGCTSettings::CapturePath;
+            using CPI = sgct::Settings::CapturePath;
 
             const char* p = element->Attribute("leftPath");
-            sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
+            sgct::Settings::instance()->setCapturePath(p, CPI::LeftStereo);
         }
         if (element->Attribute("rightPath")) {
-            using CPI = sgct::SGCTSettings::CapturePath;
+            using CPI = sgct::Settings::CapturePath;
 
             const char* rPath = element->Attribute("rightPath");
-            sgct::SGCTSettings::instance()->setCapturePath(rPath, CPI::RightStereo);
+            sgct::Settings::instance()->setCapturePath(rPath, CPI::RightStereo);
         }
 
         if (element->Attribute("format")) {
             std::string_view format = element->Attribute("format");
-            sgct::SGCTSettings::CaptureFormat f = [](std::string_view format) {
+            sgct::Settings::CaptureFormat f = [](std::string_view format) {
                 if (format == "png" || format == "PNG") {
-                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                    return sgct::Settings::CaptureFormat::PNG;
                 }
                 else if (format == "tga" || format == "TGA") {
-                    return sgct::SGCTSettings::CaptureFormat::TGA;
+                    return sgct::Settings::CaptureFormat::TGA;
                 }
                 else if (format == "jpg" || format == "JPG") {
-                    return sgct::SGCTSettings::CaptureFormat::JPG;
+                    return sgct::Settings::CaptureFormat::JPG;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Warning,
                         "ReadConfig: Unknown capturing format. Using PNG\n"
                     );
-                    return sgct::SGCTSettings::CaptureFormat::PNG;
+                    return sgct::Settings::CaptureFormat::PNG;
                 }
             } (format);
-            sgct::SGCTSettings::instance()->setCaptureFormat(f);
+            sgct::Settings::instance()->setCaptureFormat(f);
         }
     }
 
@@ -742,9 +742,9 @@ namespace {
             else if (childVal == "Offset") {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    sgct::TrackingDevice& device = *tr.getLastDevice();
                     device.setOffset(std::move(*offset));
                 }
                 else {
@@ -755,9 +755,9 @@ namespace {
                 }
             }
             else if (childVal == "Orientation") {
-                sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                sgct::SGCTTracker& tr = *m.getLastTracker();
-                sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                sgct::TrackingManager& m = cm.getTrackingManager();
+                sgct::Tracker& tr = *m.getLastTracker();
+                sgct::TrackingDevice& device = *tr.getLastDevice();
                 device.setOrientation(
                     sgct_core::readconfig::parseOrientationNode(child)
                 );
@@ -766,9 +766,9 @@ namespace {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
 
                 if (quat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    sgct::TrackingDevice& device = *tr.getLastDevice();
                     device.setOrientation(std::move(*quat));
                 }
                 else {
@@ -786,9 +786,9 @@ namespace {
 
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    sgct::TrackingDevice& device = *tr.getLastDevice();
 
                     if (transpose) {
                         device.setTransform(glm::transpose(*mat));
@@ -825,9 +825,9 @@ namespace {
             else if (childVal == "Offset") {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
                 if (offset) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    sgct::TrackingDevice& device = *tr.getLastDevice();
                     device.setOffset(std::move(*offset));
                 }
                 else {
@@ -838,9 +838,9 @@ namespace {
                 }
             }
             else if (childVal == "Orientation") {
-                sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                sgct::SGCTTracker& tr = *m.getLastTracker();
-                sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                sgct::TrackingManager& m = cm.getTrackingManager();
+                sgct::Tracker& tr = *m.getLastTracker();
+                sgct::TrackingDevice& device = *tr.getLastDevice();
                 device.setOrientation(
                     sgct_core::readconfig::parseOrientationNode(child)
                 );
@@ -848,9 +848,9 @@ namespace {
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
                 if (quat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
-                    sgct::SGCTTrackingDevice& device = *tr.getLastDevice();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    sgct::TrackingDevice& device = *tr.getLastDevice();
                     device.setOrientation(std::move(*quat));
                 }
                 else {
@@ -863,8 +863,8 @@ namespace {
             else if (childVal == "Scale") {
                 std::optional<double> value = parseValue<double>(*child, "value");
                 if (value) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
                     tr.setScale(*value);
                 }
                 else {
@@ -882,8 +882,8 @@ namespace {
 
                 std::optional<glm::mat4> mat = parseValueMat4(*child);
                 if (mat) {
-                    sgct::SGCTTrackingManager& m = cm.getTrackingManager();
-                    sgct::SGCTTracker& tr = *m.getLastTracker();
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
 
                     if (transpose) {
                         tr.setTransform(glm::transpose(std::move(*mat)));
@@ -952,7 +952,7 @@ namespace {
                 parseUser(element);
             }
             else if (val == "Settings") {
-                sgct::SGCTSettings::instance()->configure(element);
+                sgct::Settings::instance()->configure(element);
             }
             else if (val == "Capture") {
                 parseCapture(element);

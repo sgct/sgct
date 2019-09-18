@@ -12,8 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-void SGCTProjection::calculateProjection(glm::vec3 base,
-                                         const SGCTProjectionPlane& projectionPlane,
+void Projection::calculateProjection(glm::vec3 base,
+                                         const ProjectionPlane& projectionPlane,
                                          float nearClippingPlane,
                                          float farClippingPlane, glm::vec3 offset)
 {
@@ -71,19 +71,19 @@ void SGCTProjection::calculateProjection(glm::vec3 base,
     mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
 }
 
-Frustum& SGCTProjection::getFrustum() {
+Frustum& Projection::getFrustum() {
     return mFrustum;
 }
 
-const glm::mat4& SGCTProjection::getViewProjectionMatrix() const {
+const glm::mat4& Projection::getViewProjectionMatrix() const {
     return mViewProjectionMatrix;
 }
 
-const glm::mat4& SGCTProjection::getViewMatrix() const {
+const glm::mat4& Projection::getViewMatrix() const {
     return mViewMatrix;
 }
 
-const glm::mat4& SGCTProjection::getProjectionMatrix() const {
+const glm::mat4& Projection::getProjectionMatrix() const {
     return mProjectionMatrix;
 }
 

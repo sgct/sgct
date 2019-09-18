@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-SGCTSphere::SGCTSphere(float radius, unsigned int segments) {
+Sphere::Sphere(float radius, unsigned int segments) {
     createVBO(radius, segments);
 
     if (!sgct::Engine::checkForOGLErrors()) {
@@ -26,7 +26,7 @@ SGCTSphere::SGCTSphere(float radius, unsigned int segments) {
     }
 }
 
-SGCTSphere::~SGCTSphere() {
+Sphere::~Sphere() {
     glDeleteBuffers(1, &mVBO);
     mVBO = 0;
 
@@ -37,7 +37,7 @@ SGCTSphere::~SGCTSphere() {
     mVAO = 0;
 }
 
-void SGCTSphere::draw() {
+void Sphere::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
@@ -46,7 +46,7 @@ void SGCTSphere::draw() {
     }
 }
 
-void SGCTSphere::drawVBO() {
+void Sphere::drawVBO() {
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -64,19 +64,19 @@ void SGCTSphere::drawVBO() {
     glPopClientAttrib();
 }
 
-void SGCTSphere::drawVAO() {
+void Sphere::drawVAO() {
     glBindVertexArray(mVAO);
     glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
-void SGCTSphere::createVBO(float radius, unsigned int segments) {
+void Sphere::createVBO(float radius, unsigned int segments) {
     unsigned int vsegs = std::max<unsigned int>(segments, 2);
     unsigned int hsegs = vsegs * 2;
     mNumberOfVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
     mNumberOfFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
 
-    std::vector<sgct_helpers::SGCTVertexData> verts(mNumberOfVertices);
+    std::vector<sgct_helpers::VertexData> verts(mNumberOfVertices);
 
     // First vertex: top pole (+y is "up" in object local coords)
     verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
@@ -149,7 +149,7 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug, "SGCTSphere: Generating VAO: %d\n", mVAO
+            sgct::MessageHandler::Level::Debug, "Sphere: Generating VAO: %d\n", mVAO
         );
     }
 
@@ -157,13 +157,13 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
     glGenBuffers(1, &mIBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTSphere: Generating VBOs: %d %d\n", mVBO, mIBO
+        "Sphere: Generating VBOs: %d %d\n", mVBO, mIBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData),
+        mNumberOfVertices * sizeof(sgct_helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
@@ -175,7 +175,7 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -184,7 +184,7 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -193,7 +193,7 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::SGCTVertexData),
+            sizeof(sgct_helpers::VertexData),
             reinterpret_cast<void*>(20)
         ); 
     }

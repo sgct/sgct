@@ -21,7 +21,7 @@ namespace sgct {
 /**
  * This singleton class will hold global SGCT settings.
  */
-class SGCTSettings {
+class Settings {
 public:
     enum class CapturePath {
         Mono = 0,
@@ -46,10 +46,10 @@ public:
         Float_32Bit
     };
 
-    /// Get the SGCTSettings instance
-    static SGCTSettings* instance();
+    /// Get the Settings instance
+    static Settings* instance();
 
-    /// Destroy the SGCTSettings instance
+    /// Destroy the Settings instance
     static void destroy();
 
     void configure(tinyxml2::XMLElement* element);
@@ -293,9 +293,9 @@ public:
     DrawBufferType getCurrentDrawBufferType() const;
 
 private:
-    SGCTSettings() = default;
+    Settings() = default;
 
-    static SGCTSettings* mInstance;
+    static Settings* mInstance;
 
     std::atomic<CaptureFormat> mCaptureFormat = CaptureFormat::PNG;
     int mSwapInterval = 1;

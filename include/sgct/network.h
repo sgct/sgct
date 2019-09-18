@@ -28,9 +28,9 @@ using _ssize_t = int;
 namespace sgct_core {
 
 /**
- * SGCTNetwork manages peer-to-peer tcp connections.
+ * Network manages peer-to-peer tcp connections.
  */
-class SGCTNetwork {
+class Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
     enum PackageHeaderId {
@@ -51,8 +51,8 @@ public:
 
     static const size_t HeaderSize = 13;
 
-    SGCTNetwork();
-    ~SGCTNetwork();
+    Network();
+    ~Network();
 
     /**
      * Inits this network connection.
@@ -72,7 +72,7 @@ public:
 
     void setDecodeFunction(std::function<void(const char*, int, int)> callback);
     void setPackageDecodeFunction(std::function<void(void*, int, int, int)> callback);
-    void setUpdateFunction(std::function<void(SGCTNetwork *)> callback);
+    void setUpdateFunction(std::function<void(Network *)> callback);
     void setConnectedFunction(std::function<void (void)> callback);
     void setAcknowledgeFunction(std::function<void(int, int)> callback);
     
@@ -131,7 +131,7 @@ public:
 
     std::function<void(const char*, int, int)> mDecoderCallbackFn;
     std::function<void(void*, int, int, int)> mPackageDecoderCallbackFn;
-    std::function<void(SGCTNetwork *)> mUpdateCallbackFn;
+    std::function<void(Network *)> mUpdateCallbackFn;
     std::function<void(void)> mConnectedCallbackFn;
     std::function<void(int, int)> mAcknowledgeCallbackFn;
 

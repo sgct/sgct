@@ -85,11 +85,11 @@ void initOGLFun() {
     size_t index = 0;
         
     for (size_t i = 0; i < Engine::getTrackingManager().getNumberOfTrackers(); i++) {
-        sgct::SGCTTracker* trackerPtr = sgct::Engine::getTrackingManager().getTracker(i);
+        sgct::Tracker* trackerPtr = sgct::Engine::getTrackingManager().getTracker(i);
             
         // init the shared vector with identity matrixes
         for (size_t j= 0; j < trackerPtr->getNumberOfDevices(); j++) {
-            sgct::SGCTTrackingDevice* devicePtr = trackerPtr->getDevice(j);
+            sgct::TrackingDevice* devicePtr = trackerPtr->getDevice(j);
             
             if (devicePtr->hasSensor()) {
                 sharedTransforms.addVal(glm::mat4(1.f));
@@ -128,11 +128,11 @@ void preSyncFun() {
         
     // Loop through trackers (like intersense IS-900, Microsoft Kinect, PhaseSpace etc.)
     for (size_t i = 0; i < Engine::getTrackingManager().getNumberOfTrackers(); i++) {
-        sgct::SGCTTracker* trackerPtr = Engine::getTrackingManager().getTracker(i);
+        sgct::Tracker* trackerPtr = Engine::getTrackingManager().getTracker(i);
         
         // Loop trough all tracking devices (like headtracker, wand, stylus etc.)
         for (size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
-            sgct::SGCTTrackingDevice* devicePtr = trackerPtr->getDevice(j);
+            sgct::TrackingDevice* devicePtr = trackerPtr->getDevice(j);
                 
             ss << "Device " << i << '-' << j << ": " << devicePtr->getName() << '\n';
                 

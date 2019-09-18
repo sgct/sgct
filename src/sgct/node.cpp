@@ -12,27 +12,27 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-void SGCTNode::addWindow(sgct::SGCTWindow window) {
+void Node::addWindow(sgct::Window window) {
     mWindows.emplace_back(std::move(window));
 }
 
 // @TODO (abock, 2019-08-29): I think this state of 'current window index' can probably go
 // away. It seems like an extra state machine that is not worth carrying around for the
 // few use cases that it has
-void SGCTNode::setCurrentWindowIndex(int index) {
+void Node::setCurrentWindowIndex(int index) {
     mCurrentWindowIndex = index;
 }
 
-void SGCTNode::setUseSwapGroups(bool state) {
+void Node::setUseSwapGroups(bool state) {
     mUseSwapGroups = state;
 }
 
-bool SGCTNode::getKeyPressed(int key) {
+bool Node::getKeyPressed(int key) {
     if (key == GLFW_KEY_UNKNOWN) {
         return false;
     }
 
-    for (const sgct::SGCTWindow& window : mWindows) {
+    for (const sgct::Window& window : mWindows) {
         if (glfwGetKey(window.getWindowHandle(), key)) {
             return true;
         }
@@ -40,24 +40,24 @@ bool SGCTNode::getKeyPressed(int key) {
     return false;
 }
 
-int SGCTNode::getNumberOfWindows() {
+int Node::getNumberOfWindows() {
     return static_cast<int>(mWindows.size());
 }
 
-sgct::SGCTWindow& SGCTNode::getWindow(int index) {
+sgct::Window& Node::getWindow(int index) {
     return mWindows[index];
 }
 
-sgct::SGCTWindow& SGCTNode::getCurrentWindow() {
+sgct::Window& Node::getCurrentWindow() {
     return mWindows[mCurrentWindowIndex];
 }
 
-int SGCTNode::getCurrentWindowIndex() {
+int Node::getCurrentWindowIndex() {
     return mCurrentWindowIndex;
 }
 
-bool SGCTNode::shouldAllWindowsClose() {
-    for (sgct::SGCTWindow& window : mWindows) {
+bool Node::shouldAllWindowsClose() {
+    for (sgct::Window& window : mWindows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {
             window.setVisibility(false);
             glfwSetWindowShouldClose(window.getWindowHandle(), 0);
@@ -65,7 +65,7 @@ bool SGCTNode::shouldAllWindowsClose() {
     }
 
     size_t counter = 0;
-    for (const sgct::SGCTWindow& window : mWindows) {
+    for (const sgct::Window& window : mWindows) {
         if (!(window.isVisible() || window.isRenderingWhileHidden())) {
             counter++;
         }
@@ -74,23 +74,23 @@ bool SGCTNode::shouldAllWindowsClose() {
     return counter == mWindows.size();
 }
 
-void SGCTNode::showAllWindows() {
-    for (sgct::SGCTWindow& window : mWindows) {
+void Node::showAllWindows() {
+    for (sgct::Window& window : mWindows) {
         window.setVisibility(true);
     }
 }
 
-void SGCTNode::hideAllWindows() {
-    for (sgct::SGCTWindow& window : mWindows) {
+void Node::hideAllWindows() {
+    for (sgct::Window& window : mWindows) {
         window.setVisibility(false);
     }
 }
 
-bool SGCTNode::isUsingSwapGroups() const {
+bool Node::isUsingSwapGroups() const {
     return mUseSwapGroups;
 }
 
-void SGCTNode::setAddress(std::string address) {
+void Node::setAddress(std::string address) {
     std::transform(
         address.begin(),
         address.end(),
@@ -101,45 +101,45 @@ void SGCTNode::setAddress(std::string address) {
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTNode: Setting address to %s\n", mAddress.c_str()
+        "Node: Setting address to %s\n", mAddress.c_str()
     );
 }
 
-void SGCTNode::setSyncPort(std::string port) {
+void Node::setSyncPort(std::string port) {
     mSyncPort = std::move(port);
     
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTNode: Setting sync port to %s\n", mSyncPort.c_str()
+        "Node: Setting sync port to %s\n", mSyncPort.c_str()
     );
 }
 
-void SGCTNode::setDataTransferPort(std::string port) {
+void Node::setDataTransferPort(std::string port) {
     mDataTransferPort = std::move(port);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTNode: Setting data transfer port to %s\n", mDataTransferPort.c_str()
+        "Node: Setting data transfer port to %s\n", mDataTransferPort.c_str()
     );
 }
 
-void SGCTNode::setName(std::string name) {
+void Node::setName(std::string name) {
     mName = std::move(name);
 }
 
-const std::string& SGCTNode::getAddress() const {
+const std::string& Node::getAddress() const {
     return mAddress;
 }
 
-const std::string& SGCTNode::getSyncPort() const {
+const std::string& Node::getSyncPort() const {
     return mSyncPort;
 }
 
-const std::string& SGCTNode::getDataTransferPort() const {
+const std::string& Node::getDataTransferPort() const {
     return mDataTransferPort;
 }
 
-const std::string& SGCTNode::getName() const {
+const std::string& Node::getName() const {
     return mName;
 }
 

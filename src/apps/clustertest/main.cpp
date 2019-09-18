@@ -313,9 +313,9 @@ void postSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(showFPS.getVal());
 
     // barrier is set by swap group not window both windows has the same HDC
-    sgct::SGCTWindow::setBarrier(barrier.getVal());
+    sgct::Window::setBarrier(barrier.getVal());
     if (resetCounter.getVal()) {
-        sgct::SGCTWindow::resetSwapGroupFrameNumber();
+        sgct::Window::resetSwapGroupFrameNumber();
     }
     gEngine->setStatsGraphVisibility(stats.getVal());
 
@@ -338,7 +338,7 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    sgct_core::SGCTNode* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct_core::Node* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
     for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
         for (size_t j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
             if (thisNode->getWindow(i).getViewport(j).isEnabled()) {

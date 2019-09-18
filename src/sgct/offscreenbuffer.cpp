@@ -12,27 +12,27 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
     void setDrawBuffers() {
-        switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-            case sgct::SGCTSettings::DrawBufferType::Diffuse:
+        switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+            case sgct::Settings::DrawBufferType::Diffuse:
             default:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
                 glDrawBuffers(1, buffers);
                 break;
             }
-            case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
+            case sgct::Settings::DrawBufferType::DiffuseNormal:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
                 glDrawBuffers(2, buffers);
                 break;
             }
-            case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
+            case sgct::Settings::DrawBufferType::DiffusePosition:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
                 glDrawBuffers(2, buffers);
                 break;
             }
-            case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
+            case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
             {
                 GLenum buffers[] = {
                     GL_COLOR_ATTACHMENT0,
@@ -54,7 +54,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glGenRenderbuffers(1, &mDepthBuffer);
 
     mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && sgct::SGCTSettings::instance()->useFBO());
+    mIsMultiSampled = (samples > 1 && sgct::Settings::instance()->useFBO());
 
     // create a multisampled buffer
     if (mIsMultiSampled) {
@@ -80,12 +80,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         glGenRenderbuffers(1, &mColorBuffer);
 
         // generate render buffer for intermediate normal storage
-        if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+        if (sgct::Settings::instance()->useNormalTexture()) {
             glGenRenderbuffers(1, &mNormalBuffer);
         }
 
         // generate render buffer for intermediate position storage
-        if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+        if (sgct::Settings::instance()->usePositionTexture()) {
             glGenRenderbuffers(1, &mPositionBuffer);
         }
         
@@ -102,23 +102,23 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             height
         );
 
-        if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+        if (sgct::Settings::instance()->useNormalTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, mNormalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),
+                sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
                 width,
                 height
             );
         }
 
-        if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+        if (sgct::Settings::instance()->usePositionTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, mPositionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),
+                sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
                 width,
                 height
             );
@@ -151,7 +151,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             GL_RENDERBUFFER,
             mColorBuffer
         );
-        if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+        if (sgct::Settings::instance()->useNormalTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
@@ -159,7 +159,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
                 mNormalBuffer
             );
         }
-        if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+        if (sgct::Settings::instance()->usePositionTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
@@ -201,7 +201,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && sgct::SGCTSettings::instance()->useFBO());
+    mIsMultiSampled = (samples > 1 && sgct::Settings::instance()->useFBO());
 
     // delete all
     glDeleteFramebuffers(1, &mFrameBuffer);
@@ -296,7 +296,7 @@ void OffScreenBuffer::blit() {
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+    if (sgct::Settings::instance()->useDepthTexture()) {
         glBlitFramebuffer(
             0, 0, mSize.x, mSize.y,
             0, 0, mSize.x, mSize.y,
@@ -311,7 +311,7 @@ void OffScreenBuffer::blit() {
         );
     }
 
-    if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+    if (sgct::Settings::instance()->useNormalTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT1);
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
@@ -322,7 +322,7 @@ void OffScreenBuffer::blit() {
         );
     }
 
-    if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+    if (sgct::Settings::instance()->usePositionTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT2);
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 
@@ -342,10 +342,10 @@ void OffScreenBuffer::destroy() {
         glDeleteFramebuffers(1, &mMultiSampledFrameBuffer);
         glDeleteRenderbuffers(1, &mColorBuffer);
 
-        if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+        if (sgct::Settings::instance()->useNormalTexture()) {
             glDeleteRenderbuffers(1, &mNormalBuffer);
         }
-        if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+        if (sgct::Settings::instance()->usePositionTexture()) {
             glDeleteRenderbuffers(1, &mPositionBuffer);
         }
     }

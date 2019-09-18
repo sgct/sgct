@@ -109,7 +109,7 @@ const std::string& PostFX::getName() const {
 }
 
 void PostFX::internalRender() {
-    SGCTWindow& win =
+    Window& win =
         sgct_core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO
@@ -138,7 +138,7 @@ void PostFX::internalRender() {
 }
 
 void PostFX::internalRenderFixedPipeline() {
-    SGCTWindow& win =
+    Window& win =
         sgct_core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO

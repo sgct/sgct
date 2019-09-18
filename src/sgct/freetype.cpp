@@ -20,7 +20,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace {
 
 void setupViewport() {
-    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& cWin = sgct::Engine::instance()->getCurrentWindow();
 
     glm::ivec2 position = glm::ivec2(
         cWin.getCurrentViewport()->getPosition() *
@@ -31,25 +31,25 @@ void setupViewport() {
         glm::vec2(cWin.getFramebufferResolution())
     );
 
-    sgct::SGCTWindow::StereoMode sm = cWin.getStereoMode();
-    if (sm >= sgct::SGCTWindow::StereoMode::SideBySide) {
+    sgct::Window::StereoMode sm = cWin.getStereoMode();
+    if (sm >= sgct::Window::StereoMode::SideBySide) {
         if (sgct::Engine::instance()->getCurrentFrustumMode() ==
             sgct_core::Frustum::StereoLeftEye)
         {
             switch (sm) {
-                case sgct::SGCTWindow::StereoMode::SideBySide:
+                case sgct::Window::StereoMode::SideBySide:
                     position.x /= 2;
                     size.x /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::SideBySideInverted:
+                case sgct::Window::StereoMode::SideBySideInverted:
                     position.x = (position.x / 2) + (size.x / 2);
                     size.x /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::TopBottom:
+                case sgct::Window::StereoMode::TopBottom:
                     position.y = (position.y / 2) + (size.y / 2);
                     size.y /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::TopBottomInverted:
+                case sgct::Window::StereoMode::TopBottomInverted:
                     position.y /= 2;
                     size.y /= 2;
                     break;
@@ -59,19 +59,19 @@ void setupViewport() {
         }
         else {
             switch (sm) {
-                case sgct::SGCTWindow::StereoMode::SideBySide:
+                case sgct::Window::StereoMode::SideBySide:
                     position.x = (position.x / 2) + (size.x / 2);
                     size.x /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::SideBySideInverted:
+                case sgct::Window::StereoMode::SideBySideInverted:
                     position.x /= 2;
                     size.x /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::TopBottom:
+                case sgct::Window::StereoMode::TopBottom:
                     position.y /= 2;
                     size.y /= 2;
                     break;
-                case sgct::SGCTWindow::StereoMode::TopBottomInverted:
+                case sgct::Window::StereoMode::TopBottomInverted:
                     position.y = (position.y / 2) + (size.y / 2);
                     size.y /= 2;
                     break;
@@ -86,7 +86,7 @@ void setupViewport() {
 
 glm::mat4 setupOrthoMat() {
     glm::mat4 orthoMat;
-    sgct::SGCTWindow& win = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& win = sgct::Engine::instance()->getCurrentWindow();
 
     glm::ivec2 res = win.getResolution();
     glm::vec2 size = win.getCurrentViewport()->getSize();

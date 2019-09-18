@@ -71,7 +71,7 @@ namespace {
     }
 
     bool parseDisconnectPackage(char* headerPtr) {
-        return (headerPtr[0] == sgct_core::SGCTNetwork::DisconnectId &&
+        return (headerPtr[0] == sgct_core::Network::DisconnectId &&
                 headerPtr[1] == 24 && headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
                 headerPtr[4] == 27 && headerPtr[5] == '\r' &&
                 headerPtr[6] == '\n' && headerPtr[7] == '\0');
@@ -80,7 +80,7 @@ namespace {
 
 namespace sgct_core {
 
-SGCTNetwork::SGCTNetwork()
+Network::Network()
     : mSocket(INVALID_SOCKET)
     , mListenSocket(INVALID_SOCKET)
 {
@@ -89,11 +89,11 @@ SGCTNetwork::SGCTNetwork()
     id++;
 }
 
-SGCTNetwork::~SGCTNetwork() {
+Network::~Network() {
     closeNetwork(false);
 }
 
-void SGCTNetwork::init(std::string port, std::string address, bool isServer,
+void Network::init(std::string port, std::string address, bool isServer,
                        ConnectionTypes connectionType)
 {
     mServer = isServer;
@@ -202,7 +202,7 @@ void SGCTNetwork::init(std::string port, std::string address, bool isServer,
     mMainThread = std::make_unique<std::thread>([this]() { connectionHandler(); });
 }
 
-void SGCTNetwork::connectionHandler() {
+void Network::connectionHandler() {
     if (mServer) {
         while (!isTerminated()) {
             if (!mConnected) {
@@ -243,15 +243,15 @@ void SGCTNetwork::connectionHandler() {
     );
 }
 
-const std::string& SGCTNetwork::getPort() const {
+const std::string& Network::getPort() const {
     return mPort;
 }
 
-const std::string& SGCTNetwork::getAddress() const {
+const std::string& Network::getAddress() const {
     return mAddress;
 }
 
-std::string SGCTNetwork::getTypeStr(ConnectionTypes ct) {
+std::string Network::getTypeStr(ConnectionTypes ct) {
     switch (ct) {
         case ConnectionTypes::SyncConnection:
         default:
@@ -265,7 +265,7 @@ std::string SGCTNetwork::getTypeStr(ConnectionTypes ct) {
     }
 }
 
-void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
+void Network::setOptions(SGCT_SOCKET* socketPtr) {
     if (socketPtr == nullptr) {
         return;
     }
@@ -284,7 +284,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
         if (iResult != NO_ERROR) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "SGCTNetwork: Failed to set no delay with error: %d\n"
+                "Network: Failed to set no delay with error: %d\n"
                 "This will reduce cluster performance", SGCT_ERRNO
             );
         }
@@ -292,7 +292,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
-            "SGCTNetwork: Enabling Nagle's Algorithm for connection %d\n", mId
+            "Network: Enabling Nagle's Algorithm for connection %d\n", mId
         );
     }
 
@@ -316,13 +316,13 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
     if (sockoptRes == SOCKET_ERROR) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "SGCTNetwork: Failed to set reuse address with error: %d\n", SGCT_ERRNO
+            "Network: Failed to set reuse address with error: %d\n", SGCT_ERRNO
         );
     }
 
     // The default buffer value is 8k (8192 bytes) which is good for external control
     // but might be a bit to big for sync data.
-    if (getType() == sgct_core::SGCTNetwork::ConnectionTypes::SyncConnection) {
+    if (getType() == sgct_core::Network::ConnectionTypes::SyncConnection) {
         int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
             *socketPtr,
@@ -334,7 +334,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
         if (iResult == SOCKET_ERROR) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "SGCTNetwork: Failed to set send buffer size to %d with error: %d\n",
+                "Network: Failed to set send buffer size to %d with error: %d\n",
                 bufferSize, SGCT_ERRNO
             );
         }
@@ -348,7 +348,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
         if (iResult == SOCKET_ERROR) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n",
+                "Network: Failed to set receive buffer size to %d with error: %d\n",
                 bufferSize, SGCT_ERRNO
             );
         }
@@ -366,13 +366,13 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
         if (iResult == SOCKET_ERROR) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Warning,
-                "SGCTNetwork: Failed to set keep alive with error: %d\n", SGCT_ERRNO
+                "Network: Failed to set keep alive with error: %d\n", SGCT_ERRNO
             );
         }
     }
 }
 
-void SGCTNetwork::closeSocket(SGCT_SOCKET lSocket) {
+void Network::closeSocket(SGCT_SOCKET lSocket) {
     if (lSocket == INVALID_SOCKET) {
         return;
     }
@@ -406,14 +406,14 @@ void SGCTNetwork::closeSocket(SGCT_SOCKET lSocket) {
 #endif
 }
 
-void SGCTNetwork::setBufferSize(uint32_t newSize) {
+void Network::setBufferSize(uint32_t newSize) {
     mRequestedSize = newSize;
 }
 
-int SGCTNetwork::iterateFrameCounter() {
+int Network::iterateFrameCounter() {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "SGCTNetwork::iterateFrameCounter\n"
+        sgct::MessageHandler::Level::Info, "Network::iterateFrameCounter\n"
     );
 #endif
 
@@ -443,10 +443,10 @@ int SGCTNetwork::iterateFrameCounter() {
     return mSendFrameCurrent;
 }
 
-void SGCTNetwork::pushClientMessage() {
+void Network::pushClientMessage() {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "SGCTNetwork::pushClientMessage\n"
+        sgct::MessageHandler::Level::Info, "Network::pushClientMessage\n"
     );
 #endif
 
@@ -456,7 +456,7 @@ void SGCTNetwork::pushClientMessage() {
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
     if (sgct::MessageHandler::instance()->getDataSize() > HeaderSize) {
-        sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
+        sgct::MutexManager::instance()->mDataSyncMutex.lock();
 
         // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
         // though it has nothing to do with the messaging?
@@ -464,7 +464,7 @@ void SGCTNetwork::pushClientMessage() {
         // Don't remove this pointer, somehow the send function doesn't
         // work during the first call without setting the pointer first!!!
         char* messageToSend = sgct::MessageHandler::instance()->getMessage();
-        messageToSend[0] = SGCTNetwork::DataId;
+        messageToSend[0] = Network::DataId;
         messageToSend[1] = p[0];
         messageToSend[2] = p[1];
         messageToSend[3] = p[2];
@@ -492,13 +492,13 @@ void SGCTNetwork::pushClientMessage() {
             static_cast<int>(messageSize)
         );
 
-        sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
+        sgct::MutexManager::instance()->mDataSyncMutex.unlock();
 
         sgct::MessageHandler::instance()->clearBuffer();
     }
     else {
         char tmpca[HeaderSize];
-        tmpca[0] = SGCTNetwork::DataId;
+        tmpca[0] = Network::DataId;
         tmpca[1] = p[0];
         tmpca[2] = p[1];
         tmpca[3] = p[2];
@@ -520,40 +520,40 @@ void SGCTNetwork::pushClientMessage() {
     }
 }
 
-void SGCTNetwork::enableNaglesAlgorithmInDataTransfer() {
+void Network::enableNaglesAlgorithmInDataTransfer() {
     mUseNaglesAlgorithmInTransfer = true;
 }
 
-int SGCTNetwork::getSendFrameCurrent() const {
+int Network::getSendFrameCurrent() const {
     return mSendFrameCurrent;
 }
 
-int SGCTNetwork::getSendFramePrevious() const {
+int Network::getSendFramePrevious() const {
     return mSendFramePrevious;
 }
 
-int SGCTNetwork::getRecvFrameCurrent() const {
+int Network::getRecvFrameCurrent() const {
     return mRecvFrameCurrent;
 }
 
-int SGCTNetwork::getRecvFramePrevious() const {
+int Network::getRecvFramePrevious() const {
     return mRecvFramePrevious;
 }
 
-double SGCTNetwork::getLoopTime() const {
+double Network::getLoopTime() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Info, "SGCTNetwork::getLoopTime\n"
+        sgct::MessageHandler::Info, "Network::getLoopTime\n"
     );
 #endif
     std::unique_lock lock(mConnectionMutex);
     return mTimeStampTotal;
 }
 
-bool SGCTNetwork::isUpdated() const {
+bool Network::isUpdated() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "SGCTNetwork::isUpdated\n"
+        sgct::MessageHandler::Level::Info, "Network::isUpdated\n"
     );
 #endif
 
@@ -576,33 +576,33 @@ bool SGCTNetwork::isUpdated() const {
     return (state && mConnected);
 }
 
-void SGCTNetwork::setDecodeFunction(std::function<void(const char*, int, int)> callback) {
+void Network::setDecodeFunction(std::function<void(const char*, int, int)> callback) {
     mDecoderCallbackFn = std::move(callback);
 }
 
-void SGCTNetwork::setPackageDecodeFunction(
+void Network::setPackageDecodeFunction(
                                        std::function<void(void*, int, int, int)> callback)
 {
     mPackageDecoderCallbackFn = std::move(callback);
 }
 
-void SGCTNetwork::setUpdateFunction(std::function<void(SGCTNetwork*)> callback) {
+void Network::setUpdateFunction(std::function<void(Network*)> callback) {
     mUpdateCallbackFn = std::move(callback);
 }
 
-void SGCTNetwork::setConnectedFunction(std::function<void(void)> callback) {
+void Network::setConnectedFunction(std::function<void(void)> callback) {
     mConnectedCallbackFn = std::move(callback);
 }
 
-void SGCTNetwork::setAcknowledgeFunction(std::function<void(int, int)> callback) {
+void Network::setAcknowledgeFunction(std::function<void(int, int)> callback) {
     mAcknowledgeCallbackFn = std::move(callback);
 }
 
-void SGCTNetwork::setConnectedStatus(bool state) {
+void Network::setConnectedStatus(bool state) {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::Level::Info,
-        "SGCTNetwork::setConnectedStatus = %s at syncframe %d\n",
+        "Network::setConnectedStatus = %s at syncframe %d\n",
         state ? "true" : "false", getSendFrame()
     );
 #endif
@@ -611,15 +611,15 @@ void SGCTNetwork::setConnectedStatus(bool state) {
     mConnected = state;
 }
 
-bool SGCTNetwork::isConnected() const {
+bool Network::isConnected() const {
     return mConnected;
 }
 
-SGCTNetwork::ConnectionTypes SGCTNetwork::getType() const {
+Network::ConnectionTypes Network::getType() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::Level::Info,
-        "SGCTNetwork::getTypeOfServer\n"
+        "Network::getTypeOfServer\n"
     );
 #endif
 
@@ -627,22 +627,22 @@ SGCTNetwork::ConnectionTypes SGCTNetwork::getType() const {
     return mConnectionType;
 }
 
-int SGCTNetwork::getId() const {
+int Network::getId() const {
     return mId;
 }
 
-bool SGCTNetwork::isServer() const {
+bool Network::isServer() const {
     return mServer;
 }
 
-bool SGCTNetwork::isTerminated() const {
+bool Network::isTerminated() const {
     return mTerminate;
 }
 
-void SGCTNetwork::setRecvFrame(int i) {
+void Network::setRecvFrame(int i) {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "SGCTNetwork::setRecvFrame\n"
+        sgct::MessageHandler::Level::Info, "Network::setRecvFrame\n"
     );
 #endif
     
@@ -654,11 +654,11 @@ void SGCTNetwork::setRecvFrame(int i) {
     mTimeStampTotal = sgct::Engine::getTime() - mTimeStampSend;
 }
 
-int SGCTNetwork::getLastError() {
+int Network::getLastError() {
     return SGCT_ERRNO;
 }
 
-_ssize_t SGCTNetwork::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length,
+_ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length,
                                   int flags)
 {
     _ssize_t iResult = 0;
@@ -703,7 +703,7 @@ _ssize_t SGCTNetwork::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length
 }
 
 
-void SGCTNetwork::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
+void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
                                uint32_t& currSize)
 {
     // grow only
@@ -716,7 +716,7 @@ void SGCTNetwork::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
     currSize = reqSize;
 }
 
-int SGCTNetwork::readSyncMessage(char* header, int32_t& syncFrameNumber,
+int Network::readSyncMessage(char* header, int32_t& syncFrameNumber,
                                  uint32_t& dataSize, uint32_t & uncompressedDataSize)
 {
     int iResult = receiveData(mSocket, header, static_cast<int>(HeaderSize), 0);
@@ -782,7 +782,7 @@ int SGCTNetwork::readSyncMessage(char* header, int32_t& syncFrameNumber,
     return iResult;
 }
 
-int SGCTNetwork::readDataTransferMessage(char* header, int32_t& packageId,
+int Network::readDataTransferMessage(char* header, int32_t& packageId,
                                          uint32_t& dataSize,
                                          uint32_t& uncompressedDataSize)
 {
@@ -841,7 +841,7 @@ int SGCTNetwork::readDataTransferMessage(char* header, int32_t& packageId,
     return iResult;
 }
 
-int SGCTNetwork::readExternalMessage() {
+int Network::readExternalMessage() {
     // do a normal read
     int iResult = recv(mSocket, mRecvBuf.data(), mBufferSize, 0);
 
@@ -865,7 +865,7 @@ int SGCTNetwork::readExternalMessage() {
     return iResult;
 }
 
-void SGCTNetwork::communicationHandler() {
+void Network::communicationHandler() {
     // exit if terminating
     if (isTerminated()) {
         return;
@@ -1314,7 +1314,7 @@ void SGCTNetwork::communicationHandler() {
     );
 }
 
-void SGCTNetwork::sendData(const void* data, int length) {
+void Network::sendData(const void* data, int length) {
 #ifdef __SGCT_NETWORK_DEBUG__
     for (int i = 0; i < length; i++) {
         fprintf(stderr, "%u ", (reinterpret_cast<const char*>(data)[i]));
@@ -1344,7 +1344,7 @@ void SGCTNetwork::sendData(const void* data, int length) {
     }
 }
 
-void SGCTNetwork::closeNetwork(bool forced) {
+void Network::closeNetwork(bool forced) {
     mDecoderCallbackFn = nullptr;
     mUpdateCallbackFn = nullptr;
     mConnectedCallbackFn = nullptr;
@@ -1376,7 +1376,7 @@ void SGCTNetwork::closeNetwork(bool forced) {
     );
 }
 
-void SGCTNetwork::initShutdown() {
+void Network::initShutdown() {
     if (mConnected) {
         char gameOver[9];
         gameOver[0] = DisconnectId;

@@ -17,7 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-class SGCTUser;
+class User;
 
 /**
  * This class holds and manages viewportdata and calculates frustums
@@ -32,7 +32,7 @@ public:
     void setPos(glm::vec2 position);
     void setSize(glm::vec2 size);
     void setEnabled(bool state);
-    void setUser(SGCTUser& user);
+    void setUser(User& user);
     void setUserName(std::string userName);
     void setEye(Frustum::FrustumMode eye);
     
@@ -41,12 +41,12 @@ public:
     const glm::vec2& getSize() const;
     float getHorizontalFieldOfViewDegrees() const;
     
-    SGCTUser& getUser() const;
+    User& getUser() const;
     Frustum::FrustumMode getEye() const;
-    SGCTProjection& getProjection(Frustum::FrustumMode frustumMode);
-    const SGCTProjection& getProjection(Frustum::FrustumMode frustumMode) const;
-    SGCTProjection& getProjection();
-    SGCTProjectionPlane& getProjectionPlane();
+    Projection& getProjection(Frustum::FrustumMode frustumMode);
+    const Projection& getProjection(Frustum::FrustumMode frustumMode) const;
+    Projection& getProjection();
+    ProjectionPlane& getProjectionPlane();
     glm::quat getRotation() const;
     glm::vec4 getFOV() const;
     float getDistance() const;
@@ -69,15 +69,15 @@ public:
 
 protected:
     struct {
-        SGCTProjection mono;
-        SGCTProjection stereoLeft;
-        SGCTProjection stereoRight;
+        Projection mono;
+        Projection stereoLeft;
+        Projection stereoRight;
     } mProjections;
     
-    SGCTProjectionPlane mProjectionPlane;
+    ProjectionPlane mProjectionPlane;
     Frustum::FrustumMode mEye = Frustum::MonoEye;
 
-    SGCTUser& mUser;
+    User& mUser;
     std::string mName = "NoName";
     std::string mUserName;
     bool mEnabled = true;

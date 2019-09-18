@@ -42,7 +42,7 @@ namespace {
 using namespace sgct;
 
 #ifdef Test
-sgct_utils::SGCTSphere * sphere = NULL;
+sgct_utils::Sphere * sphere = NULL;
 #endif
 
 void updatePass() {
@@ -230,7 +230,7 @@ void initOGLFun() {
     setupPostFXs();
 
 #ifdef Test
-    sphere = new sgct_utils::SGCTSphere(2.0f, 512);
+    sphere = new sgct_utils::Sphere(2.0f, 512);
     gEngine->setNearAndFarClippingPlanes(1.0f, 3.0f);
 #else
     gEngine->setNearAndFarClippingPlanes(0.1f, 5.0f);
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
-    SGCTSettings::instance()->setUseDepthTexture(true);
+    Settings::instance()->setUseDepthTexture(true);
 
     if (!gEngine->init()) {
         delete gEngine;

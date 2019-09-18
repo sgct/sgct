@@ -193,7 +193,6 @@ glm::vec3 TrackingDevice::getPreviousPosition() const {
     return glm::vec3(mWorldTransformPrevious[3]);
 }
 
-
 glm::vec3 TrackingDevice::getEulerAngles() const {
     std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::eulerAngles(glm::quat_cast(mWorldTransform));;
@@ -203,7 +202,6 @@ glm::vec3 TrackingDevice::getEulerAnglesPrevious() const {
     std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
     return glm::eulerAngles(glm::quat_cast(mWorldTransformPrevious));;
 }
-
 
 glm::quat TrackingDevice::getRotation() const {
     std::unique_lock lock(MutexManager::instance()->mTrackingMutex);

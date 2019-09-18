@@ -157,7 +157,7 @@ void connect() {
             port,
             address,
             isServer,
-            sgct_core::Network::ConnectionTypes::DataTransfer
+            sgct_core::Network::ConnectionType::DataTransfer
         );
     }
     catch (const std::runtime_error& err) {

@@ -42,8 +42,8 @@ public:
         DiffuseNormalPosition
     };
     enum class BufferFloatPrecision {
-        Float_16Bit = 0,
-        Float_32Bit
+        Float16Bit = 0,
+        Float32Bit
     };
 
     /// Get the Settings instance
@@ -341,7 +341,7 @@ private:
     std::string mFontPath;
     unsigned int mFontSize = 10;
 
-    BufferFloatPrecision mCurrentBufferFloatPrecision = BufferFloatPrecision::Float_16Bit;
+    BufferFloatPrecision mCurrentBufferFloatPrecision = BufferFloatPrecision::Float16Bit;
 };
 
 } // namespace sgct

@@ -42,7 +42,7 @@ public:
         CompressedDataId = 21
     };
 
-    enum class ConnectionTypes {
+    enum class ConnectionType {
         SyncConnection = 0,
         ExternalASCIIConnection,
         ExternalRawConnection,
@@ -66,7 +66,7 @@ public:
                        cluster
      */
     void init(std::string port, std::string address, bool isServer,
-        ConnectionTypes serverType);
+        ConnectionType serverType);
     void closeNetwork(bool forced);
     void initShutdown();
 
@@ -81,7 +81,7 @@ public:
     void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
 
-    ConnectionTypes getType() const;
+    ConnectionType getType() const;
     int getId() const;
     bool isServer() const;
     bool isConnected() const;
@@ -127,11 +127,11 @@ public:
     const std::string& getAddress() const;
 
     /// \return the connection type as string
-    static std::string getTypeStr(ConnectionTypes ct);
+    static std::string getTypeStr(ConnectionType ct);
 
     std::function<void(const char*, int, int)> mDecoderCallbackFn;
     std::function<void(void*, int, int, int)> mPackageDecoderCallbackFn;
-    std::function<void(Network *)> mUpdateCallbackFn;
+    std::function<void(Network*)> mUpdateCallbackFn;
     std::function<void(void)> mConnectedCallbackFn;
     std::function<void(int, int)> mAcknowledgeCallbackFn;
 
@@ -152,7 +152,7 @@ private:
     SGCT_SOCKET mSocket;
     SGCT_SOCKET mListenSocket;
 
-    ConnectionTypes mConnectionType = ConnectionTypes::SyncConnection;
+    ConnectionType mConnectionType = ConnectionType::SyncConnection;
     std::atomic_bool mServer;
     std::atomic_bool mConnected = false;
     std::atomic_bool mUpdated = false;

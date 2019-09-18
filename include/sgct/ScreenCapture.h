@@ -33,12 +33,14 @@ public:
         TGA,
         JPEG
     };
+
     enum class CaptureSource {
         Texture = 0,
         BackBuffer,
         LeftBackBuffer,
         RightBackBuffer
     };
+
     enum class EyeIndex {
         Mono = 0,
         StereoLeft,

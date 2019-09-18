@@ -26,6 +26,8 @@ public:
     void setFrameTime(float t);
     void setDrawTime(float t);
     void setSyncTime(float t);
+
+    /// Set the minimum and maximum time it takes for a sync message from send to receive
     void setLoopTime(float min, float max);
     void addSyncTime(float t);
     void update();

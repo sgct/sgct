@@ -34,7 +34,7 @@ public:
     void setEnabled(bool state);
     void setUser(User& user);
     void setUserName(std::string userName);
-    void setEye(Frustum::FrustumMode eye);
+    void setEye(Frustum::Mode eye);
     
     const std::string& getName() const;
     const glm::vec2& getPosition() const;
@@ -42,9 +42,9 @@ public:
     float getHorizontalFieldOfViewDegrees() const;
     
     User& getUser() const;
-    Frustum::FrustumMode getEye() const;
-    Projection& getProjection(Frustum::FrustumMode frustumMode);
-    const Projection& getProjection(Frustum::FrustumMode frustumMode) const;
+    Frustum::Mode getEye() const;
+    Projection& getProjection(Frustum::Mode frustumMode);
+    const Projection& getProjection(Frustum::Mode frustumMode) const;
     Projection& getProjection();
     ProjectionPlane& getProjectionPlane();
     glm::quat getRotation() const;
@@ -54,12 +54,10 @@ public:
     bool isEnabled() const;
     void linkUserName();
 
-    void calculateFrustum(Frustum::FrustumMode frustumMode,
-        float nearClippingPlane, float farClippingPlane);
+    void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
 
     /// Make projection symmetric relative to user
-    void calculateNonLinearFrustum(Frustum::FrustumMode frustumMode,
-        float nearClippingPlane, float farClippingPlane);
+    void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
     void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 lowerLeft,
@@ -75,7 +73,7 @@ protected:
     } mProjections;
     
     ProjectionPlane mProjectionPlane;
-    Frustum::FrustumMode mEye = Frustum::MonoEye;
+    Frustum::Mode mEye = Frustum::MonoEye;
 
     User& mUser;
     std::string mName = "NoName";

@@ -28,24 +28,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 
 void FisheyeProjection::update(glm::vec2 size) {
-    // create proxy geometry
-    //float leftcrop = mCropFactor.left;
-    //float rightcrop = mCropFactor.right;
-    //float bottomcrop = mCropFactor.bottom;
-    //float topcrop = mCropFactor.top;
-
-    float cropAspect = ((1.f - 2.f * mCropFactor.bottom) + (1.f - 2.f * mCropFactor.top)) /
-                       ((1.f - 2.f * mCropFactor.left) + (1.f - 2.f * mCropFactor.right));
+    float cropAspect =
+        ((1.f - 2.f * mCropFactor.bottom) + (1.f - 2.f * mCropFactor.top)) /
+        ((1.f - 2.f * mCropFactor.left) + (1.f - 2.f * mCropFactor.right));
 
     float x = 1.f;
     float y = 1.f;
 
-    float frameBufferAspect = mIgnoreAspectRatio ? 1.f : size.x / size.y;
+    float frameBufferAspect = mIgnoreAspectRatio ? 1.f : (size.x / size.y);
 
     if (sgct::Settings::instance()->getTryMaintainAspectRatio()) {
         float aspect = frameBufferAspect * cropAspect;
-        if (aspect >= 1.0f) {
-            x = 1.0f / aspect;
+        if (aspect >= 1.f) {
+            x = 1.f / aspect;
         }
         else {
             y = aspect;
@@ -190,9 +185,9 @@ void FisheyeProjection::initViewports() {
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
     // 250.5287794 degree FOV covers exactly five sides of a cube, larger FOV needs six
-    const float fiveFaceLimit = 2.f * glm::degrees(acosf(-1.f / sqrtf(3.f)));
+    const float fiveFaceLimit = 2.f * glm::degrees(acos(-1.f / sqrt(3.f)));
     // 109.4712206 degree FOV is needed to cover the entire top face
-    const float topFaceLimit = 2.f * glm::degrees(acosf(1.f / sqrtf(3.f)));
+    const float topFaceLimit = 2.f * glm::degrees(acos(1.f / sqrt(3.f)));
 
 
     // four faces doesn't cover more than 180 degrees
@@ -1233,7 +1228,7 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     glPopAttrib();
 }
 
-void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
+void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
     auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
         *subViewPortIndex = idx;
 
@@ -1347,7 +1342,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
         // re-calculate depth values from a cube to spherical model
         if (sgct::Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
+            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
             mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
             mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
@@ -1369,7 +1364,10 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             mDepthCorrectionShader.bind();
             glUniform1i(mShaderLoc.swapColorLoc, 0);
             glUniform1i(mShaderLoc.swapDepthLoc, 1);
-            glUniform1f(mShaderLoc.swapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);
+            glUniform1f(
+                mShaderLoc.swapNearLoc,
+                sgct::Engine::mInstance->mNearClippingPlaneDist
+            );
             glUniform1f(
                 mShaderLoc.swapFarLoc,
                 sgct::Engine::mInstance->mFarClippingPlaneDist
@@ -1400,20 +1398,10 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(
-                2,
-                GL_FLOAT,
-                5 * sizeof(float),
-                reinterpret_cast<void*>(0)
-            );
+            glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
 
             glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(
-                3,
-                GL_FLOAT,
-                5 * sizeof(float),
-                reinterpret_cast<void*>(8)
-            );
+            glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             sgct::Engine::mInstance->getCurrentWindow().unbindVBO();
             glPopClientAttrib();

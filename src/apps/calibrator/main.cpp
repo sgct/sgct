@@ -126,7 +126,7 @@ void draw() {
         );
 
         sgct_text::print(
-            f1,
+            *f1,
             sgct_text::TextAlignMode::TopLeft,
             offset,
             h / 2.f - s1,
@@ -141,7 +141,7 @@ void draw() {
             static_cast<unsigned int>(s2)
         );
         sgct_text::print(
-            f2,
+            *f2,
             sgct_text::TextAlignMode::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,

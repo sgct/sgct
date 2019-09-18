@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
-    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.f);
+    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.f));
 
     if (!gEngine->init()) {
         delete gEngine;

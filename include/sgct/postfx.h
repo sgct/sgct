@@ -21,8 +21,7 @@ public:
     /// \returns true if shader and output/target texture created successfully
     bool init(std::string name, const std::string& vertShaderSrc,
         const std::string& fragShaderSrc,
-        ShaderProgram::ShaderSourceType srcType =
-            ShaderProgram::ShaderSourceType::File);
+        ShaderProgram::ShaderSourceType srcType = ShaderProgram::ShaderSourceType::File);
     void destroy();
 
     /// Render this pass

@@ -103,41 +103,41 @@ void Statistics::initVBO(bool fixedPipeline) {
     mFixedPipeline = fixedPipeline;
 
     // STATIC BACKGROUND QUAD
-    mStaticVerts.push_back(0.f); //x0
-    mStaticVerts.push_back(0.f); //y0
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
-    mStaticVerts.push_back(0.f); //y1
-    mStaticVerts.push_back(0.f); //x2
-    mStaticVerts.push_back(1.f / 30.f); //y2
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x3
-    mStaticVerts.push_back(1.f / 30.f); //y3;
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(1.f / 30.f);
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    mStaticVerts.push_back(1.f / 30.f);
     
     // STATIC 1 ms LINES
     mNumberOfLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
-        mStaticVerts.push_back(0.f); //x0
-        mStaticVerts.push_back(f); //y0
-        mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
-        mStaticVerts.push_back(f); //y1
+        mStaticVerts.push_back(0.f);
+        mStaticVerts.push_back(f);
+        mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+        mStaticVerts.push_back(f);
 
         mNumberOfLines++;
     }
 
     // STATIC 0, 30 & 60 FPS LINES
-    mStaticVerts.push_back(0.f); //x0
-    mStaticVerts.push_back(0.f); //y0
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //0x1
-    mStaticVerts.push_back(0.f); //y1
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    mStaticVerts.push_back(0.f);
 
-    mStaticVerts.push_back(0.f); //x0
-    mStaticVerts.push_back(1.f / 30.f); //y0
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
-    mStaticVerts.push_back(1.f / 30.f); //y1
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(1.f / 30.f);
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    mStaticVerts.push_back(1.f / 30.f);
 
-    mStaticVerts.push_back(0.f); //x0
-    mStaticVerts.push_back(1.f / 60.f); //y0
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
-    mStaticVerts.push_back(1.f / 60.f); //y1
+    mStaticVerts.push_back(0.f);
+    mStaticVerts.push_back(1.f / 60.f);
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    mStaticVerts.push_back(1.f / 60.f);
 
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
@@ -195,7 +195,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             );
     
             if (!mFixedPipeline) {
-                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
             }
         }
 
@@ -221,23 +221,23 @@ void Statistics::initVBO(bool fixedPipeline) {
 
         mShader.setName("StatsShader");
         
-        std::string vert_shader = Stats_Vert_Shader_Legacy;
-        std::string frag_shader = Stats_Frag_Shader_Legacy;
+        std::string vertShader = Stats_Vert_Shader_Legacy;
+        std::string fragShader = Stats_Frag_Shader_Legacy;
 
         //replace glsl version
         sgct_helpers::findAndReplace(
-            vert_shader,
+            vertShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
         sgct_helpers::findAndReplace(
-            frag_shader,
+            fragShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
         
         bool vert = mShader.addShaderSrc(
-            vert_shader,
+            vertShader,
             GL_VERTEX_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
@@ -248,7 +248,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             );
         }
         bool frag = mShader.addShaderSrc(
-            frag_shader,
+            fragShader,
             GL_FRAGMENT_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
@@ -271,23 +271,23 @@ void Statistics::initVBO(bool fixedPipeline) {
 
         mShader.setName("StatsShader");
 
-        std::string vert_shader = Stats_Vert_Shader;
-        std::string frag_shader = Stats_Frag_Shader;
+        std::string vertShader = Stats_Vert_Shader;
+        std::string fragShader = Stats_Frag_Shader;
 
         //replace glsl version
         sgct_helpers::findAndReplace(
-            vert_shader,
+            vertShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
         sgct_helpers::findAndReplace(
-            frag_shader,
+            fragShader,
             "**glsl_version**",
             sgct::Engine::instance()->getGLSLVersion()
         );
 
         bool vert = mShader.addShaderSrc(
-            vert_shader,
+            vertShader,
             GL_VERTEX_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
@@ -298,7 +298,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             );
         }
         bool frag = mShader.addShaderSrc(
-            frag_shader,
+            fragShader,
             GL_FRAGMENT_SHADER,
             sgct::ShaderProgram::ShaderSourceType::String
         );
@@ -386,9 +386,6 @@ void Statistics::setSyncTime(float t) {
     mAvgSyncTime /= static_cast<float>(StatsAverageLength);
 }
 
-/*!
-    Set the minimum and maximum time it takes for a sync message from send to receive
-*/
 void Statistics::setLoopTime(float min, float max) {
     std::rotate(
         std::rbegin(mDynamicVertexList.loopTimeMax),
@@ -404,7 +401,6 @@ void Statistics::setLoopTime(float min, float max) {
     );
     mDynamicVertexList.loopTimeMin[0].y = min;
 }
-
 
 void Statistics::addSyncTime(float t) {
     mDynamicVertexList.syncTime[StatsHistoryLength - 1].y += t;
@@ -422,8 +418,6 @@ void Statistics::update() {
     glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
     size_t size = StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs;
 
-    //glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
-    
     GLvoid* positionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
     if (positionBuffer) {
@@ -438,12 +432,12 @@ void Statistics::draw(float lineWidth) {
     mShader.bind();
 
     if (mFixedPipeline) {
-        //enter ortho mode
+        // enter ortho mode
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glPushMatrix();
         
-        double size = static_cast<double>(StatsHistoryLength);
+        const double size = static_cast<double>(StatsHistoryLength);
         glOrtho(0.0, size, 0.0, size, -1.0, 1.0);
 
         glMatrixMode(GL_MODELVIEW);
@@ -468,15 +462,15 @@ void Statistics::draw(float lineWidth) {
             glBindBuffer(GL_ARRAY_BUFFER, mStaticVBO);
             glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
-            //draw background (1024x1024 canvas)
+            // draw background (1024x1024 canvas)
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-            //1 ms lines
+            // 1 ms lines
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
             glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
 
-            //zero line, 60hz & 30hz
+            // zero line, 60hz & 30hz
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
             glDrawArrays(GL_LINES, 4+mNumberOfLines * 2, 6);
 
@@ -499,13 +493,13 @@ void Statistics::draw(float lineWidth) {
             glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMin));
             glDrawArrays(GL_LINE_STRIP, 4 * StatsHistoryLength, StatsHistoryLength);
 
-            //unbind
+            // unbind
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glPopClientAttrib();
         }
         else {
-            //old-school rendering for OSG compability
-            //draw background (1024x1024 canvas)
+            // old-school rendering for OSG compability
+            // draw background (1024x1024 canvas)
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
             glBegin(GL_TRIANGLE_STRIP);
             glVertex2f(mStaticVerts[0], mStaticVerts[1]);
@@ -514,7 +508,7 @@ void Statistics::draw(float lineWidth) {
             glVertex2f(mStaticVerts[6], mStaticVerts[7]);
             glEnd();
 
-            //1 ms lines
+            // 1 ms lines
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
             glBegin(GL_LINES);
             for (int i = 0; i < mNumberOfLines * 4; i += 4) {
@@ -523,7 +517,7 @@ void Statistics::draw(float lineWidth) {
             }
             glEnd();
 
-            //zero line, 60hz & 30hz
+            // zero line, 60hz & 30hz
             int offset = mNumberOfLines * 4 + 8;
             glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
             glBegin(GL_LINES);
@@ -595,7 +589,7 @@ void Statistics::draw(float lineWidth) {
 
         glPopAttrib();
 
-        //exit ortho mode
+        // exit ortho mode
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
     }
@@ -614,15 +608,15 @@ void Statistics::draw(float lineWidth) {
         
         glBindVertexArray(mStaticVAO);
 
-        //draw background (1024x1024 canvas)
+        // draw background (1024x1024 canvas)
         glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        //1 ms lines
+        // 1 ms lines
         glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
         glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
         
-        //zero line, 60hz & 30hz
+        // zero line, 60hz & 30hz
         glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
         glDrawArrays(GL_LINES, 4 + mNumberOfLines * 2, 6);
         
@@ -648,7 +642,6 @@ void Statistics::draw(float lineWidth) {
         glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMin));
         glDrawArrays(GL_LINE_STRIP, 4 * StatsHistoryLength, StatsHistoryLength);
 
-        //unbind
         glBindVertexArray(0);
     }
 

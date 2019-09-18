@@ -7,25 +7,23 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/engine.h>
 
-#ifdef SGCT_HAS_TEXT
-#include <sgct/fontmanager.h>
-#include <sgct/freetype.h>
-#endif // SGCT_HAS_TEXT
 #include <sgct/clustermanager.h>
 #include <sgct/font.h>
+#include <sgct/fontmanager.h>
+#include <sgct/freetype.h>
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/readconfig.h>
 #include <sgct/mutexmanager.h>
 #include <sgct/settings.h>
-#include <sgct/user.h>
-#include <sgct/version.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statistics.h>
 #include <sgct/texturemanager.h>
-#include <sgct/touch.h>
+#include <sgct/user.h>
+#include <sgct/version.h>
 #include <sgct/viewport.h>
+#include <sgct/touch.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalshaders.h>
 #include <sgct/shaders/internalshaders_modern.h>
@@ -121,11 +119,6 @@ namespace {
         glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
         gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
-
-        // if (gTouchCallbackFnPtr && !gCurrentTouchPoints.getLatestTouchPoints().empty()) {
-        //     gTouchCallbackFnPtr(&gCurrentTouchPoints);
-        // }
-
         gCurrentTouchPoints.setLatestPointsHandled();
     }
 
@@ -622,24 +615,16 @@ void Engine::initOGL() {
     }
 
     // Get OpenGL version
-    int mOpenGL_Version[3];
-    mOpenGL_Version[0] = glfwGetWindowAttrib(
-        getCurrentWindow().getWindowHandle(),
-        GLFW_CONTEXT_VERSION_MAJOR
-    );
-    mOpenGL_Version[1] = glfwGetWindowAttrib(
-        getCurrentWindow().getWindowHandle(),
-        GLFW_CONTEXT_VERSION_MINOR
-    );
-    mOpenGL_Version[2] = glfwGetWindowAttrib(
-        getCurrentWindow().getWindowHandle(),
-        GLFW_CONTEXT_REVISION
-    );
+    int version[3];
+    GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
+    version[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
+    version[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
+    version[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::VersionInfo,
         "OpenGL version %d.%d.%d %s\n",
-        mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
+        version[0], version[1], version[2],
         mFixedOGLPipeline ? "comp. profile" : "core profile"
     );
 
@@ -653,9 +638,7 @@ void Engine::initOGL() {
         "Renderer: %s\n", glGetString(GL_RENDERER)
     );
 
-    if (!glfwExtensionSupported("GL_EXT_framebuffer_object") &&
-        mOpenGL_Version[0] < 2)
-    {
+    if (!glfwExtensionSupported("GL_EXT_framebuffer_object") && version[0] < 2) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Warning! Frame buffer objects are not supported! "
@@ -663,8 +646,7 @@ void Engine::initOGL() {
         );
         Settings::instance()->setUseFBO(false);
     }
-    else if (!glfwExtensionSupported("GL_EXT_framebuffer_multisample") &&
-        mOpenGL_Version[0] < 2)
+    else if (!glfwExtensionSupported("GL_EXT_framebuffer_multisample") && version[0] < 2)
     {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -721,7 +703,7 @@ void Engine::initOGL() {
                 invokeScreenShotCallback(img, size, idx, type);
             };
             
-            sgct::Window& win = getCurrentWindow();
+            Window& win = getCurrentWindow();
             // left channel (Mono and Stereo_Left)
             sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
                 Window::Eye::MonoOrLeft
@@ -778,7 +760,7 @@ void Engine::initOGL() {
             );
         }
     }
-#endif
+#endif // SGCT_HAS_TEXT
 
     // init swap barrier is swap groups are active
     Window::setBarrier(true);
@@ -806,9 +788,7 @@ void Engine::clean() {
 
     if (mCleanUpFnPtr) {
         if (mThisNode && mThisNode->getNumberOfWindows() > 0) {
-            mThisNode->getWindow(0).makeOpenGLContextCurrent(
-                Window::Context::Shared
-            );
+            mThisNode->getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
         }
         mCleanUpFnPtr();
     }
@@ -942,7 +922,6 @@ void Engine::clearAllCallbacks() {
     gMousePosCallbackFnPtr = nullptr;
     gMouseScrollCallbackFnPtr = nullptr;
     gDropCallbackFnPtr = nullptr;
-    // gTouchCallbackFnPtr = nullptr;
 
     for (TimerInformation& ti : mTimers) {
         ti.mCallback = nullptr;
@@ -1053,8 +1032,7 @@ bool Engine::frameLockPostStage() {
         // more than a second
 
         for (int i = 0; i < mNetworkConnections->getSyncConnectionsCount(); i++) {
-            const sgct_core::Network& conn =
-                mNetworkConnections->getConnectionByIndex(i);
+            const sgct_core::Network& conn = mNetworkConnections->getConnectionByIndex(i);
 
             if (mPrintSyncMessage && !conn.isUpdated()) {
                 MessageHandler::instance()->print(
@@ -1396,7 +1374,7 @@ void Engine::renderDisplayInfo() {
                         Settings::instance()->getOSDTextOffset();
         
         sgct_text::print(
-            font,
+            *font,
             sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 6.f + pos.y,
@@ -1407,7 +1385,7 @@ void Engine::renderDisplayInfo() {
         );
 
         sgct_text::print(
-            font,
+            *font,
             sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 5.f + pos.y,
@@ -1418,7 +1396,7 @@ void Engine::renderDisplayInfo() {
         );
 
         sgct_text::print(
-            font,
+            *font,
             sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 4.f + pos.y,
@@ -1429,7 +1407,7 @@ void Engine::renderDisplayInfo() {
 
         if (isMaster()) {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 3.f + pos.y,
@@ -1442,7 +1420,7 @@ void Engine::renderDisplayInfo() {
         }
         else {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 3.f + pos.y,
@@ -1455,7 +1433,7 @@ void Engine::renderDisplayInfo() {
         bool usingSwapGroups = getCurrentWindow().isUsingSwapGroups();
         if (usingSwapGroups) {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 2.f + pos.y,
@@ -1469,7 +1447,7 @@ void Engine::renderDisplayInfo() {
         }
         else {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 2.f + pos.y,
@@ -1479,7 +1457,7 @@ void Engine::renderDisplayInfo() {
         }
 
         sgct_text::print(
-            font,
+            *font,
             sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 1.f + pos.y,
@@ -1490,7 +1468,7 @@ void Engine::renderDisplayInfo() {
         );
 
         sgct_text::print(
-            font,
+            *font,
             sgct_text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 0.f + pos.y,
@@ -1502,7 +1480,7 @@ void Engine::renderDisplayInfo() {
         // if active stereoscopic rendering
         if (mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye) {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 8.f + pos.y,
@@ -1513,7 +1491,7 @@ void Engine::renderDisplayInfo() {
         }
         else if (mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye) {
             sgct_text::print(
-                font,
+                *font,
                 sgct_text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 8.f + pos.y,
@@ -1884,13 +1862,7 @@ void Engine::renderFBOTextureFixedPipeline() {
     Window::StereoMode sm = win.getStereoMode();
 
     const bool useWarping = Settings::instance()->getUseWarping();
-    //sgct_core::CorrectionMesh::MeshType mt =  ?
-    //    sgct_core::CorrectionMesh::WARP_MESH :
-    //    sgct_core::CorrectionMesh::QUAD_MESH;
-
-    if (sm > Window::StereoMode::Active &&
-        sm < Window::StereoMode::SideBySide)
-    {
+    if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         win.bindStereoShaderProgram();
 
         glUniform1i(win.getStereoShaderLeftTexLoc(), 0);
@@ -2078,7 +2050,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     {
         if (getCurrentWindow().usePostFX()) {
             // blit buffers
-            updateRenderingTargets(ti); //only used if multisampled FBOs
+            updateRenderingTargets(ti); // only used if multisampled FBOs
 
             mInternalRenderPostFXFn(ti);
 
@@ -2138,8 +2110,7 @@ void Engine::render2D() {
         // The text renderer enters automatically the correct viewport
         if (mShowInfo) {
             // choose specified eye from config
-            if (getCurrentWindow().getStereoMode() == Window::StereoMode::NoStereo)
-            {
+            if (getCurrentWindow().getStereoMode() == Window::StereoMode::NoStereo) {
                 mCurrentFrustumMode = getCurrentWindow().getCurrentViewport()->getEye();
             }
             renderDisplayInfo();
@@ -2459,10 +2430,7 @@ void Engine::loadShaders() {
     glUniform1f(mShaderLoc.fxaaSubPixTrim, Settings::instance()->getFXAASubPixTrim());
 
     mShaderLoc.fxaaSubPixOffset = mShader.fxaa.getUniformLocation("FXAA_SUBPIX_OFFSET");
-    glUniform1f(
-        mShaderLoc.fxaaSubPixOffset,
-        Settings::instance()->getFXAASubPixOffset()
-    );
+    glUniform1f(mShaderLoc.fxaaSubPixOffset, Settings::instance()->getFXAASubPixOffset());
 
     mShaderLoc.fxaaTexture = mShader.fxaa.getUniformLocation("tex");
     glUniform1i(mShaderLoc.fxaaTexture, 0);
@@ -2636,7 +2604,7 @@ bool Engine::isRenderingOffScreen() const {
     return mRenderingOffScreen;
 }
 
-sgct_core::Frustum::FrustumMode Engine::getCurrentFrustumMode() const {
+sgct_core::Frustum::Mode Engine::getCurrentFrustumMode() const {
     return mCurrentFrustumMode;
 }
 
@@ -2850,7 +2818,7 @@ void Engine::updateFrustums() {
 }
 
 void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
-                                              sgct_core::Frustum::FrustumMode frustumMode)
+                                                            sgct_core::Frustum::Mode mode)
 {
     // Check that we have a previous window
     if (getCurrentWindowIndex() < 1) {
@@ -2881,7 +2849,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
     glUniform1i(mShaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(frustumMode));
+    glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(mode));
 
     getCurrentWindow().bindVAO();
 
@@ -2892,10 +2860,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(
 }
 
 void Engine::parseArguments(std::vector<std::string>& arg) {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
-        "Parsing arguments\n"
-    );
+    MessageHandler::instance()->print(MessageHandler::Level::Info, "Parsing arguments\n");
     size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
@@ -3021,59 +2986,51 @@ void Engine::parseArguments(std::vector<std::string>& arg) {
     MessageHandler::instance()->print(MessageHandler::Level::Info, "Done\n");
 }
 
-void Engine::setDrawFunction(std::function<void(void)> fn) {
+void Engine::setDrawFunction(std::function<void()> fn) {
     mDrawFnPtr = std::move(fn);
 }
 
-void Engine::setDraw2DFunction(std::function<void(void)> fn) {
+void Engine::setDraw2DFunction(std::function<void()> fn) {
     mDraw2DFnPtr = std::move(fn);
 }
 
-void Engine::setPreSyncFunction(std::function<void(void)> fn) {
+void Engine::setPreSyncFunction(std::function<void()> fn) {
     mPreSyncFnPtr = std::move(fn);
 }
 
-void Engine::setPostSyncPreDrawFunction(std::function<void(void)> fn) {
+void Engine::setPostSyncPreDrawFunction(std::function<void()> fn) {
     mPostSyncPreDrawFnPtr = std::move(fn);
 }
 
-void Engine::setPostDrawFunction(std::function<void(void)> fn) {
+void Engine::setPostDrawFunction(std::function<void()> fn) {
     mPostDrawFnPtr = std::move(fn);
 }
 
-void Engine::setInitOGLFunction(std::function<void(void)> fn) {
+void Engine::setInitOGLFunction(std::function<void()> fn) {
     mInitOGLFnPtr = std::move(fn);
 }
 
-void Engine::setPreWindowFunction(std::function<void(void)> fn) {
+void Engine::setPreWindowFunction(std::function<void()> fn) {
     mPreWindowFnPtr = std::move(fn);
 }
 
-void Engine::setClearBufferFunction(std::function<void(void)> fn) {
+void Engine::setClearBufferFunction(std::function<void()> fn) {
     mClearBufferFnPtr = std::move(fn);
 }
 
-void Engine::setCleanUpFunction(void(*fnPtr)(void)) {
-    mCleanUpFnPtr = fnPtr;
-}
-
-void Engine::setCleanUpFunction(std::function<void(void)> fn) {
+void Engine::setCleanUpFunction(std::function<void()> fn) {
     mCleanUpFnPtr = std::move(fn);
 }
 
-void Engine::setExternalControlCallback(std::function<void(const char *, int)> fn) {
+void Engine::setExternalControlCallback(std::function<void(const char*, int)> fn) {
     mExternalDecodeCallbackFnPtr = std::move(fn);
-}
-
-void Engine::setExternalControlStatusCallback(void(*fnPtr)(bool)) {
-    mExternalStatusCallbackFnPtr = fnPtr;
 }
 
 void Engine::setExternalControlStatusCallback(std::function<void(bool)> fn) {
     mExternalStatusCallbackFnPtr = std::move(fn);
 }
 
-void Engine::setDataTransferCallback(std::function<void(void *, int, int, int)> fn) {
+void Engine::setDataTransferCallback(std::function<void(void*, int, int, int)> fn) {
     mDataTransferDecodeCallbackFnPtr = std::move(fn);
 }
 
@@ -3126,12 +3083,8 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
 void sgct::Engine::clearBuffer() {
     glm::vec4 color = Engine::instance()->getClearColor();
 
-    glClearColor(
-        color.r,
-        color.g,
-        color.b,
-        instance()->getCurrentWindow().getAlpha() ? 0.f : color.a
-    );
+    const float alpha = instance()->getCurrentWindow().getAlpha() ? 0.f : color.a;
+    glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -3289,9 +3242,9 @@ float Engine::getFarClippingPlane() const {
     return mFarClippingPlaneDist;
 }
 
-void Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane) {
-    mNearClippingPlaneDist = nearClippingPlane;
-    mFarClippingPlaneDist = farClippingPlane;
+void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
+    mNearClippingPlaneDist = nearClip;
+    mFarClippingPlaneDist = farClip;
     updateFrustums();
 }
 
@@ -3306,8 +3259,8 @@ void Engine::setEyeSeparation(float eyeSeparation) {
     updateFrustums();
 }
 
-void Engine::setClearColor(float red, float green, float blue, float alpha) {
-    mClearColor = glm::vec4(red, green, blue, alpha);
+void Engine::setClearColor(glm::vec4 color) {
+    mClearColor = std::move(color);
 }
 
 void Engine::setExitKey(int key) {
@@ -3561,11 +3514,11 @@ TrackingManager& Engine::getTrackingManager() {
     return sgct_core::ClusterManager::instance()->getTrackingManager();
 }
 
-size_t Engine::createTimer(double millisec, void(*fnPtr)(size_t)) {
+int Engine::createTimer(double millisec, std::function<void(int)> fn) {
     if (isMaster()) {
         // construct the timer object
         TimerInformation timer;
-        timer.mCallback = fnPtr;
+        timer.mCallback = std::move(fn);
         // we want to present timers in millisec, but glfwGetTime uses seconds
         timer.mInterval = millisec / 1000.0; 
         timer.mId = mTimerID++;  // use and post-increase
@@ -3574,11 +3527,11 @@ size_t Engine::createTimer(double millisec, void(*fnPtr)(size_t)) {
         return timer.mId;
     }
     else {
-        return std::numeric_limits<size_t>::max();
+        return std::numeric_limits<int>::max();
     }
 }
 
-void Engine::stopTimer(size_t id) {
+void Engine::stopTimer(int id) {
     if (isMaster()) {
         // iterate over all timers and search for the id
         for (size_t i = 0; i < mTimers.size(); ++i) {
@@ -3633,7 +3586,8 @@ Engine::RenderTarget Engine::getCurrentRenderTarget() const {
 }
 
 sgct_core::OffScreenBuffer* Engine::getCurrentFBO() const {
-    // Potentially unused; also affects 'getOffScreenBuffer in NonLinearProjection---abock
+    // @TODO (abock, 2019-09-18); Potentially unused; also affects 'getOffScreenBuffer' in
+    // NonLinearProjection
     return mCurrentOffScreenBuffer;
 }
 

@@ -30,7 +30,7 @@ void myDraw2DFun() {
         }
 
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 12),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 12),
             sgct_text::TextAlignMode::TopLeft,
             18,
             32,

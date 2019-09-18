@@ -159,7 +159,7 @@ bool NetworkManager::init() {
     if (ClusterManager::instance()->getNumberOfNodes() > 1) {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < mNetworkConnections.size(); i++) {
-            const std::string port = mNetworkConnections[i]->getPort();
+            const std::string& port = mNetworkConnections[i]->getPort();
             if (port == cm.getThisNode()->getSyncPort() ||
                 port == cm.getThisNode()->getDataTransferPort() ||
                 port == cm.getExternalControlPort())
@@ -199,12 +199,13 @@ bool NetworkManager::init() {
             bool addTransferPort = addConnection(
                 cm.getThisNode()->getDataTransferPort(),
                 remoteAddress,
-                Network::ConnectionTypes::DataTransfer
+                Network::ConnectionType::DataTransfer
             );
             if (addTransferPort) {
                 mNetworkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
-                        sgct::Engine::instance()->invokeDecodeCallbackForDataTransfer(
+                    using sgct::Engine;
+                    Engine::instance()->invokeDecodeCallbackForDataTransfer(
                             data,
                             length,
                             packageId,
@@ -216,7 +217,8 @@ bool NetworkManager::init() {
                 // acknowledge callback
                 mNetworkConnections.back()->setAcknowledgeFunction(
                     [](int packageId, int clientId) {
-                        sgct::Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                        using sgct::Engine;
+                        Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
                             clientId
                         );
@@ -256,7 +258,7 @@ bool NetworkManager::init() {
                 bool addTransferPort = addConnection(
                     cm.getNode(i)->getDataTransferPort(),
                     remoteAddress,
-                    Network::ConnectionTypes::DataTransfer
+                    Network::ConnectionType::DataTransfer
                 );
                 if (addTransferPort) {
                     mNetworkConnections.back()->setPackageDecodeFunction(
@@ -273,11 +275,11 @@ bool NetworkManager::init() {
                     // acknowledge callback
                     mNetworkConnections.back()->setAcknowledgeFunction(
                         [](int packageId, int clientId) {
-                            sgct::Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                            using sgct::Engine;
+                            Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
                                 clientId
                             );
-
                         }
                     );
                 }
@@ -291,8 +293,8 @@ bool NetworkManager::init() {
             cm.getExternalControlPort(),
             "127.0.0.1",
             cm.getUseASCIIForExternalControl() ?
-                Network::ConnectionTypes::ExternalASCIIConnection :
-                Network::ConnectionTypes::ExternalRawConnection
+                Network::ConnectionType::ExternalASCIIConnection :
+                Network::ConnectionType::ExternalRawConnection
         );
         if (addExternalPort) {
             mNetworkConnections.back()->setDecodeFunction(
@@ -442,7 +444,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     buffer[0] = static_cast<char>(
         mCompress ? Network::CompressedDataId : Network::DataId
     );
-    std::memcpy(buffer.data() + 1, &packageId, sizeof(int));
+    memcpy(buffer.data() + 1, &packageId, sizeof(int));
 
     if (mCompress) {
         char* compDataPtr = buffer.data() + Network::HeaderSize;
@@ -588,10 +590,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         numberOfConnectionsCounter++;
-        if (conn->getType() == Network::ConnectionTypes::SyncConnection) {
+        if (conn->getType() == Network::ConnectionType::SyncConnection) {
             numberOfConnectedSyncNodesCounter++;
         }
-        else if (conn->getType() == Network::ConnectionTypes::DataTransfer) {
+        else if (conn->getType() == Network::ConnectionType::DataTransfer) {
             numberOfConnectedDataTransferNodesCounter++;
         }
     }
@@ -665,9 +667,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // Check if any external connection
-        if (connection->getType() ==
-                Network::ConnectionTypes::ExternalASCIIConnection)
-        {
+        if (connection->getType() == Network::ConnectionType::ExternalASCIIConnection) {
             bool externalControlConnectionStatus = connection->isConnected();
             std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
@@ -675,8 +675,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 externalControlConnectionStatus
             );
         }
-        else if (connection->getType() ==
-                Network::ConnectionTypes::ExternalRawConnection)
+        else if (connection->getType() == Network::ConnectionType::ExternalRawConnection)
         {
             bool externalControlConnectionStatus = connection->isConnected();
             sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(
@@ -690,7 +689,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
 
-    if (connection->getType() == Network::ConnectionTypes::DataTransfer) {
+    if (connection->getType() == Network::ConnectionType::DataTransfer) {
         const bool dataTransferConnectionStatus = connection->isConnected();
         sgct::Engine::instance()->invokeUpdateCallbackForDataTransfer(
             dataTransferConnectionStatus,
@@ -707,7 +706,7 @@ void NetworkManager::setAllNodesConnected() {
 
     if (!mIsServer) {
         unsigned int totalNumberOfTransferConnections =
-            static_cast<unsigned int>( mDataTransferConnections.size());
+            static_cast<unsigned int>(mDataTransferConnections.size());
         mAllNodesConnected = (mNumberOfActiveSyncConnections == 1) &&
             (mNumberOfActiveDataTransferConnections == totalNumberOfTransferConnections);
     }
@@ -746,7 +745,7 @@ void NetworkManager::close() {
 }
 
 bool NetworkManager::addConnection(const std::string& port, const std::string& address,
-                                   Network::ConnectionTypes connectionType)
+                                   Network::ConnectionType connectionType)
 {
     if (port.empty()) {
         sgct::MessageHandler::instance()->print(
@@ -783,8 +782,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
     catch (const std::runtime_error& e) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "NetworkManager: Network error: %s\n",
-            e.what()
+            "NetworkManager: Network error: %s\n", e.what()
         );
         return false;
     }
@@ -794,8 +792,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         //                      to remove it yet
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "NetworkManager: Network error: %s\n",
-            err
+            "NetworkManager: Network error: %s\n", err
         );
         return false;
     }
@@ -807,10 +804,10 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
 
     for (std::unique_ptr<Network>& connection : mNetworkConnections) {
         switch (connection->getType()) {
-            case Network::ConnectionTypes::SyncConnection:
+            case Network::ConnectionType::SyncConnection:
                 mSyncConnections.push_back(connection.get());
                 break;
-            case Network::ConnectionTypes::DataTransfer:
+            case Network::ConnectionType::DataTransfer:
                 mDataTransferConnections.push_back(connection.get());
                 break;
             default:
@@ -829,7 +826,7 @@ void NetworkManager::initAPI() {
     WSADATA wsaData;
     int error = WSAStartup(version, &wsaData);
 
-    if (error != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2 ) {
+    if (error != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
         // incorrect WinSock version
         WSACleanup();
         throw std::runtime_error("Winsock 2.2 startup failed");

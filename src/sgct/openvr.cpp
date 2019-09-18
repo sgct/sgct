@@ -256,7 +256,7 @@ void copyWindowToHMD(Window* win) {
     vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 }
 
-glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::FrustumMode nEye) {
+glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::Mode nEye) {
     if (nEye == sgct_core::Frustum::StereoLeftEye) {
         return eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
     }

@@ -88,7 +88,7 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         const float eyeSep = gEngine->getDefaultUser().getEyeSeparation();
 
-        sgct_core::Frustum::FrustumMode fm;
+        sgct_core::Frustum::Mode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
@@ -306,7 +306,7 @@ void drawOmniStereo() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    sgct_core::Frustum::FrustumMode fm = gEngine->getCurrentFrustumMode();
+    sgct_core::Frustum::Mode fm = gEngine->getCurrentFrustumMode();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {

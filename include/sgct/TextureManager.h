@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <string>
 #include <unordered_map>
+#include <glm/glm.hpp>
 
 namespace sgct_core { class Image; }
 
@@ -23,7 +24,8 @@ class TextureManager {
 public:
     /**
      * The compression mode modes. For more info about texute compression look here:
-     * <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">S3 Texture compression</a>
+     * <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">
+     * S3 Texture compression</a>
      */
     enum class CompressionMode {
         None = 0,
@@ -52,7 +54,8 @@ public:
      * Get the dimensions of a texture by name. If not found all variables will be set to
      * -1.
      */
-    void getDimensions(const std::string& name, int& width, int& height, int& channels) const;
+    void getDimensions(const std::string& name, int& width, int& height,
+        int& channels) const;
 
     /// Sets if a single channel texture should be interpreted as alpha or luminance.
     void setAlphaModeForSingleChannelTextures(bool alpha);
@@ -64,7 +67,8 @@ public:
      * Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables
      * anisotropic filtering. This filtering mode can slow down performace. For more info
      * look at:
-     * <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">Anisotropic filtering</a>
+     * <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">
+     * Anisotropic filtering</a>
      */
     void setAnisotropicFilterSize(float fval);
 
@@ -163,10 +167,7 @@ private:
     bool mInterpolate = true;
     std::unordered_map<std::string, TextureData> mTextures;
     int mMipmapLevels = 8;
-    struct {
-        int s;
-        int t;
-    } mWarpMode;
+    glm::ivec2 mWarpMode;
 };
 
 } // namespace sgct_core

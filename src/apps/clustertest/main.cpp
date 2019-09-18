@@ -32,7 +32,7 @@ using namespace sgct;
 void myDraw2DFun() {
 #ifdef SGCT_HAS_TEXT
     sgct_text::print(
-        sgct_text::FontManager::instance()->getFont("SGCTFont", 24),
+        *sgct_text::FontManager::instance()->getFont("SGCTFont", 24),
         sgct_text::TextAlignMode::TopLeft,
         50,
         700, 
@@ -40,7 +40,7 @@ void myDraw2DFun() {
         "Focused: %s", gEngine->getCurrentWindow().isFocused() ? "true" : "false"
     );
     sgct_text::print(
-        sgct_text::FontManager::instance()->getFont("SGCTFont", 24),
+        *sgct_text::FontManager::instance()->getFont("SGCTFont", 24),
         sgct_text::TextAlignMode::TopLeft,
         100,
         500,
@@ -51,7 +51,7 @@ void myDraw2DFun() {
         float xPos =
             gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f - 150.f;
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 16),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 16),
             sgct_text::TextAlignMode::TopLeft,
             xPos,
             150.f,
@@ -74,27 +74,27 @@ void drawFun() {
             // even
             if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
-                gEngine->setClearColor(0.f, 0.f, 1.f, 1.f);
+                gEngine->setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
             }
             else {
                 // right -> blue
-                gEngine->setClearColor(1.f, 0.f, 0.f, 1.f);
+                gEngine->setClearColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
             }
         }
         else {
             // odd
             if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye) {
                 // left eye or mono since clear color is one step behind
-                gEngine->setClearColor(0.5f, 0.5f, 0.5f, 1.f);
+                gEngine->setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
             }
             else {
                 //right
-                gEngine->setClearColor(0.f, 1.f, 0.f, 1.f);
+                gEngine->setClearColor(glm::vec4(0.f, 1.f, 0.f, 1.f));
             }
         }
     }
     else {
-        gEngine->setClearColor(0.f, 0.f, 0.f, 0.f);
+        gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
 
     glPushMatrix();
@@ -146,7 +146,7 @@ void drawFun() {
     glColor3f(1.f, 1.f, 0.f);
     if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye) {
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct_text::TextAlignMode::TopRight,
             xPos,
             200,
@@ -155,7 +155,7 @@ void drawFun() {
     }
     else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye) {
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct_text::TextAlignMode::TopLeft,
             xPos,
             150,
@@ -164,7 +164,7 @@ void drawFun() {
     }
     else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye) {
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct_text::TextAlignMode::TopLeft,
             xPos,
             200,
@@ -193,7 +193,7 @@ void drawFun() {
     );
 
     sgct_text::print(
-        sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
+        *sgct_text::FontManager::instance()->getFont("SGCTFont", 32),
         sgct_text::TextAlignMode::TopRight,
         500,
         500,
@@ -203,7 +203,7 @@ void drawFun() {
 
     if (gEngine->getCurrentWindow().isUsingSwapGroups()) {
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
             sgct_text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
@@ -211,7 +211,7 @@ void drawFun() {
         );
 
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
             sgct_text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             500,
@@ -220,7 +220,7 @@ void drawFun() {
 
         if (gEngine->getCurrentWindow().isBarrierActive()) {
             sgct_text::print(
-                sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+                *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
                 sgct_text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
@@ -229,7 +229,7 @@ void drawFun() {
         }
         else {
             sgct_text::print(
-                sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+                *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
                 sgct_text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
@@ -239,7 +239,7 @@ void drawFun() {
 
         if (gEngine->getCurrentWindow().isSwapGroupMaster()) {
             sgct_text::print(
-                sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+                *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
                 sgct_text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
@@ -248,7 +248,7 @@ void drawFun() {
         }
         else {
             sgct_text::print(
-                sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+                *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
                 sgct_text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
@@ -258,14 +258,14 @@ void drawFun() {
 
         unsigned int iFrame = gEngine->getCurrentWindow().getSwapGroupFrameNumber();
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
             sgct_text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             300,
             "Nvidia frame counter: %u", iFrame
         );
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
             sgct_text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             250,
@@ -274,7 +274,7 @@ void drawFun() {
     }
     else {
         sgct_text::print(
-            sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
+            *sgct_text::FontManager::instance()->getFont("SGCTFont", 18),
             sgct_text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
@@ -491,7 +491,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     gEngine = new sgct::Engine(arg);
 
-    gEngine->setClearColor(0.f, 0.f, 0.f, 0.f);
+    gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setExternalControlCallback(externalControlCallback);
     gEngine->setKeyboardCallbackFunction(keyCallback);

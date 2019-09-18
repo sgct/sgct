@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-// png.h needs all of this included before it's include.. sigh
+// png.h needs all of this included before its own include.. sigh
 #include <stdio.h>
 #include <fstream>
 #include <algorithm>
@@ -244,8 +244,12 @@ bool Image::loadJPEG(std::string filename) {
     }
 
     // Make a one-row-high sample array that will go away when done with image
-    buffer = (*cinfo.mem->alloc_sarray)
-        (reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, static_cast<JDIMENSION>(row_stride), 1);
+    buffer = (*cinfo.mem->alloc_sarray)(
+        reinterpret_cast<j_common_ptr>(&cinfo),
+        JPOOL_IMAGE,
+        static_cast<JDIMENSION>(row_stride),
+        1
+    );
 
     size_t r = mSizeY - 1;
     while (cinfo.output_scanline < cinfo.output_height) {
@@ -302,7 +306,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     }
     
     int pixelformat = 0;
-    switch(jpegsubsamp) {
+    switch (jpegsubsamp) {
         case TJSAMP_444:
         case TJSAMP_422:
         case TJSAMP_420:

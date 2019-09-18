@@ -144,11 +144,11 @@ void Dome::createVBO(float radius, float FOV) {
         );
 
         const float elevation = glm::radians(lift);
-        const float x = cosf(elevation) * sinf(azimuth);
+        const float x = cos(elevation) * sin(azimuth);
         const float y = sin(elevation);
-        const float z = -cosf(elevation) * cosf(azimuth);
-        const float s =  sinf(azimuth) * 0.5f + 0.5f;
-        const float t = -cosf(azimuth) * 0.5f + 0.5f;
+        const float z = -cos(elevation) * cos(azimuth);
+        const float s =  sin(azimuth) * 0.5f + 0.5f;
+        const float t = -cos(azimuth) * 0.5f + 0.5f;
 
         verts.push_back({
             s, t,
@@ -169,8 +169,8 @@ void Dome::createVBO(float radius, float FOV) {
                 static_cast<float>(a * 360.f) / static_cast<float>(mAzimuthSteps)
             );
 
-            const float x = cosf(elevation) * sinf(azimuth);
-            const float z = -cosf(elevation) * cosf(azimuth);
+            const float x = cos(elevation) * sin(azimuth);
+            const float z = -cos(elevation) * cos(azimuth);
 
             float s = (static_cast<float>(mElevationSteps - e) /
                        static_cast<float>(mElevationSteps)) * sin(azimuth);
@@ -198,7 +198,7 @@ void Dome::createVBO(float radius, float FOV) {
     const int e = mElevationSteps;
     const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
     const float elevation = glm::radians(lift + de * (90.f - lift));
-    const float y = sinf(elevation);
+    const float y = sin(elevation);
     verts.push_back({
         0.5f, 0.5f,
         0.f, 1.f, 0.f,

@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/messagehandler.h>
 #include <sgct/settings.h>
+#include <algorithm>
 
 namespace {
     void setDrawBuffers() {
@@ -60,17 +61,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     if (mIsMultiSampled) {
         GLint MaxSamples;
         glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
-        if (samples > MaxSamples) {
-            samples = MaxSamples;
-        }
+        samples = std::max(samples, MaxSamples);
         if (MaxSamples < 2) {
             samples = 0;
         }
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Max samples supported: %d\n",
-            MaxSamples
+            "Max samples supported: %d\n", MaxSamples
         );
 
         // generate the multisample buffer
@@ -195,15 +193,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             width, height, mFrameBuffer, mDepthBuffer
         );
     }
-
-    //sgct::MessageHandler::instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
 }
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     mSize = glm::ivec2(width, height);
     mIsMultiSampled = (samples > 1 && sgct::Settings::instance()->useFBO());
 
-    // delete all
     glDeleteFramebuffers(1, &mFrameBuffer);
     glDeleteRenderbuffers(1, &mDepthBuffer);
     glDeleteFramebuffers(1, &mMultiSampledFrameBuffer);

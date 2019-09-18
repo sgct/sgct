@@ -130,7 +130,7 @@ void decodeFun()
 private:
     SharedData();
 
-    //function pointers
+    // function pointers
     void (*mEncodeFn)() = nullptr;
     void (*mDecodeFn)() = nullptr;
 

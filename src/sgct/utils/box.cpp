@@ -62,7 +62,7 @@ void Box::drawVAO() {
     glBindVertexArray( mVAO );
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    //unbind
+    // unbind
     glBindVertexArray(0);
 }
 

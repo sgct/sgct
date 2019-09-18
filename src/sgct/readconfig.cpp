@@ -646,30 +646,27 @@ namespace {
 
     void parseCapture(tinyxml2::XMLElement* element) {
         if (element->Attribute("path")) {
-            using CPI = sgct::Settings::CapturePath;
 
             const char* p = element->Attribute("path");
-            sgct::Settings::instance()->setCapturePath(p, CPI::Mono);
-            sgct::Settings::instance()->setCapturePath(p, CPI::LeftStereo);
-            sgct::Settings::instance()->setCapturePath(p, CPI::RightStereo);
+            using sgct::Settings;
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::Mono);
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::LeftStereo);
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::RightStereo);
         }
         if (element->Attribute("monoPath")) {
-            using CPI = sgct::Settings::CapturePath;
-
             const char* p = element->Attribute("monoPath");
-            sgct::Settings::instance()->setCapturePath(p, CPI::Mono);
+            using sgct::Settings;
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::Mono);
         }
         if (element->Attribute("leftPath")) {
-            using CPI = sgct::Settings::CapturePath;
-
             const char* p = element->Attribute("leftPath");
-            sgct::Settings::instance()->setCapturePath(p, CPI::LeftStereo);
+            using sgct::Settings;
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::LeftStereo);
         }
         if (element->Attribute("rightPath")) {
-            using CPI = sgct::Settings::CapturePath;
-
-            const char* rPath = element->Attribute("rightPath");
-            sgct::Settings::instance()->setCapturePath(rPath, CPI::RightStereo);
+            const char* p = element->Attribute("rightPath");
+            using sgct::Settings;
+            Settings::instance()->setCapturePath(p, Settings::CapturePath::RightStereo);
         }
 
         if (element->Attribute("format")) {
@@ -758,9 +755,7 @@ namespace {
                 sgct::TrackingManager& m = cm.getTrackingManager();
                 sgct::Tracker& tr = *m.getLastTracker();
                 sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(
-                    sgct_core::readconfig::parseOrientationNode(child)
-                );
+                device.setOrientation(sgct_core::readconfig::parseOrientationNode(child));
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -841,9 +836,7 @@ namespace {
                 sgct::TrackingManager& m = cm.getTrackingManager();
                 sgct::Tracker& tr = *m.getLastTracker();
                 sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(
-                    sgct_core::readconfig::parseOrientationNode(child)
-                );
+                device.setOrientation(sgct_core::readconfig::parseOrientationNode(child));
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -981,12 +974,10 @@ namespace {
     }
 
     void readAndParseXMLString() {
+        using namespace tinyxml2;
         tinyxml2::XMLDocument xmlDoc;
-        bool s = xmlDoc.Parse(
-            DefaultConfig,
-            strlen(DefaultConfig)
-        ) == tinyxml2::XML_NO_ERROR;
-        assert(s);
+        XMLError err = xmlDoc.Parse(DefaultConfig, strlen(DefaultConfig));
+        assert(err == tinyxml2::XML_NO_ERROR);
         readAndParseXML(xmlDoc, "");
     }
 

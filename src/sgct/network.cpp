@@ -94,11 +94,11 @@ Network::~Network() {
 }
 
 void Network::init(std::string port, std::string address, bool isServer,
-                       ConnectionTypes connectionType)
+                   ConnectionType type)
 {
     mServer = isServer;
-    mConnectionType = connectionType;
-    if (mConnectionType == ConnectionTypes::SyncConnection) {
+    mConnectionType = type;
+    if (mConnectionType == ConnectionType::SyncConnection) {
         mBufferSize = static_cast<uint32_t>(
             sgct::SharedData::instance()->getBufferSize()
         );
@@ -220,15 +220,15 @@ void Network::connectionHandler() {
 
             //wait for signal until next iteration in loop
             if (!isTerminated()) {
-                #ifdef __SGCT_MUTEX_DEBUG__
+#ifdef __SGCT_MUTEX_DEBUG__
                     fprintf(stderr, "Locking mutex for connection %d\n", mId);
-                #endif
+#endif
 
                 std::unique_lock lk(mConnectionMutex);
                 mStartConnectionCond.wait(lk);
-                #ifdef __SGCT_MUTEX_DEBUG__
+#ifdef __SGCT_MUTEX_DEBUG__
                     fprintf(stderr, "Mutex for connection %d is unlocked\n", mId);
-                #endif
+#endif
             }
         }
     }
@@ -251,16 +251,16 @@ const std::string& Network::getAddress() const {
     return mAddress;
 }
 
-std::string Network::getTypeStr(ConnectionTypes ct) {
+std::string Network::getTypeStr(ConnectionType ct) {
     switch (ct) {
-        case ConnectionTypes::SyncConnection:
+        case ConnectionType::SyncConnection:
         default:
             return "sync";
-        case ConnectionTypes::ExternalASCIIConnection:
+        case ConnectionType::ExternalASCIIConnection:
             return "external ASCII control";
-        case ConnectionTypes::ExternalRawConnection:
+        case ConnectionType::ExternalRawConnection:
             return "external binary control";
-        case ConnectionTypes::DataTransfer:
+        case ConnectionType::DataTransfer:
             return "data transfer";
     }
 }
@@ -271,7 +271,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
     }
     int flag = 1;
 
-    if (!(getType() == ConnectionTypes::DataTransfer && mUseNaglesAlgorithmInTransfer)) {
+    if (!(getType() == ConnectionType::DataTransfer && mUseNaglesAlgorithmInTransfer)) {
         // intset no delay, disable nagle's algorithm
         int iResult = setsockopt(
             *socketPtr,    // socket affected
@@ -322,7 +322,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
 
     // The default buffer value is 8k (8192 bytes) which is good for external control
     // but might be a bit to big for sync data.
-    if (getType() == sgct_core::Network::ConnectionTypes::SyncConnection) {
+    if (getType() == sgct_core::Network::ConnectionType::SyncConnection) {
         int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
             *socketPtr,
@@ -576,26 +576,24 @@ bool Network::isUpdated() const {
     return (state && mConnected);
 }
 
-void Network::setDecodeFunction(std::function<void(const char*, int, int)> callback) {
-    mDecoderCallbackFn = std::move(callback);
+void Network::setDecodeFunction(std::function<void(const char*, int, int)> fn) {
+    mDecoderCallbackFn = std::move(fn);
 }
 
-void Network::setPackageDecodeFunction(
-                                       std::function<void(void*, int, int, int)> callback)
-{
-    mPackageDecoderCallbackFn = std::move(callback);
+void Network::setPackageDecodeFunction(std::function<void(void*, int, int, int)> fn) {
+    mPackageDecoderCallbackFn = std::move(fn);
 }
 
-void Network::setUpdateFunction(std::function<void(Network*)> callback) {
-    mUpdateCallbackFn = std::move(callback);
+void Network::setUpdateFunction(std::function<void(Network*)> fn) {
+    mUpdateCallbackFn = std::move(fn);
 }
 
-void Network::setConnectedFunction(std::function<void(void)> callback) {
-    mConnectedCallbackFn = std::move(callback);
+void Network::setConnectedFunction(std::function<void(void)> fn) {
+    mConnectedCallbackFn = std::move(fn);
 }
 
-void Network::setAcknowledgeFunction(std::function<void(int, int)> callback) {
-    mAcknowledgeCallbackFn = std::move(callback);
+void Network::setAcknowledgeFunction(std::function<void(int, int)> fn) {
+    mAcknowledgeCallbackFn = std::move(fn);
 }
 
 void Network::setConnectedStatus(bool state) {
@@ -615,7 +613,7 @@ bool Network::isConnected() const {
     return mConnected;
 }
 
-Network::ConnectionTypes Network::getType() const {
+Network::ConnectionType Network::getType() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::Level::Info,
@@ -658,9 +656,7 @@ int Network::getLastError() {
     return SGCT_ERRNO;
 }
 
-_ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length,
-                                  int flags)
-{
+_ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
     _ssize_t iResult = 0;
     int attempts = 1;
 
@@ -704,7 +700,7 @@ _ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length,
 
 
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
-                               uint32_t& currSize)
+                           uint32_t& currSize)
 {
     // grow only
     if (reqSize <= currSize) {
@@ -716,8 +712,8 @@ void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
     currSize = reqSize;
 }
 
-int Network::readSyncMessage(char* header, int32_t& syncFrameNumber,
-                                 uint32_t& dataSize, uint32_t & uncompressedDataSize)
+int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
+                             uint32_t& uncompressedDataSize)
 {
     int iResult = receiveData(mSocket, header, static_cast<int>(HeaderSize), 0);
 
@@ -782,9 +778,8 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber,
     return iResult;
 }
 
-int Network::readDataTransferMessage(char* header, int32_t& packageId,
-                                         uint32_t& dataSize,
-                                         uint32_t& uncompressedDataSize)
+int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
+                                     uint32_t& uncompressedDataSize)
 {
     int iResult = receiveData(mSocket, header, static_cast<int>(HeaderSize), 0);
 
@@ -933,7 +928,7 @@ void Network::communicationHandler() {
     _ssize_t iResult = 0;
     do {
         // resize buffer request
-        if (getType() != ConnectionTypes::DataTransfer && mRequestedSize > mBufferSize) {
+        if (getType() != ConnectionType::DataTransfer && mRequestedSize > mBufferSize) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
                 "Re-sizing tcp buffer size from %d to %d",
@@ -959,7 +954,7 @@ void Network::communicationHandler() {
         
         mHeaderId = DefaultId;
 
-        if (getType() == ConnectionTypes::SyncConnection) {
+        if (getType() == ConnectionType::SyncConnection) {
             iResult = readSyncMessage(
                 RecvHeader,
                 syncFrameNumber,
@@ -967,7 +962,7 @@ void Network::communicationHandler() {
                 uncompressedDataSize
             );
         }
-        else if (getType() == ConnectionTypes::DataTransfer) {
+        else if (getType() == ConnectionType::DataTransfer) {
             iResult = readDataTransferMessage(
                 RecvHeader,
                 packageId,
@@ -981,7 +976,7 @@ void Network::communicationHandler() {
 
         // if data was read successfully, then decode it
         if (iResult > 0) {
-            if (getType() == ConnectionTypes::SyncConnection) {
+            if (getType() == ConnectionType::SyncConnection) {
                 // handle sync disconnect
                 if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);
@@ -1062,7 +1057,7 @@ void Network::communicationHandler() {
                 }
             }
             // handle external ascii communication
-            else if (getType() == ConnectionTypes::ExternalASCIIConnection) {
+            else if (getType() == ConnectionType::ExternalASCIIConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(
                     sgct::MessageHandler::Level::Info,
@@ -1128,7 +1123,7 @@ void Network::communicationHandler() {
 #endif
             }
             // handle external raw/binary communication
-            else if (getType() == ConnectionTypes::ExternalRawConnection) {
+            else if (getType() == ConnectionType::ExternalRawConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(
                     sgct::MessageHandler::Level::Info,
@@ -1146,7 +1141,7 @@ void Network::communicationHandler() {
 #endif
             }
             // handle data transfer communication
-            else if (getType() == ConnectionTypes::DataTransfer) {
+            else if (getType() == ConnectionType::DataTransfer) {
                 // Disconnect if requested
                 if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);

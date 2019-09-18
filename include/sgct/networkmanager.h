@@ -77,7 +77,7 @@ public:
 
 private:
     bool addConnection(const std::string& port, const std::string& address,
-        Network::ConnectionTypes connectionType = Network::ConnectionTypes::SyncConnection);
+        Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void initAPI();
     void getHostInfo();
     void updateConnectionStatus(Network* connection);

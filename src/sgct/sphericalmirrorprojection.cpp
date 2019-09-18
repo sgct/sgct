@@ -138,25 +138,51 @@ void SphericalMirrorProjection::initViewports() {
         glm::mat4 rotMat(1.f);
 
         switch (static_cast<CubeFaces>(i)) {
-            case CubeFaces::PosX: //+X face, right
-                rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
+            case CubeFaces::PosX:
+                // +X face, right
+                rotMat = glm::rotate(
+                    tiltMat,
+                    glm::radians(-90.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
                 break;
-            case CubeFaces::NegX: //-X face, left
-                rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+            case CubeFaces::NegX:
+                // -X face, left
+                rotMat = glm::rotate(
+                    tiltMat,
+                    glm::radians(90.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
                 break;
-            case CubeFaces::PosY: //+Y face, bottom
+            case CubeFaces::PosY:
+                // +Y face, bottom
                 mSubViewports[i].setEnabled(false);
-                rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+                rotMat = glm::rotate(
+                    tiltMat,
+                    glm::radians(-90.f),
+                    glm::vec3(1.f, 0.f, 0.f)
+                );
                 break;
-            case CubeFaces::NegY: //-Y face, top
-                rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
+            case CubeFaces::NegY:
+                // -Y face, top
+                rotMat = glm::rotate(
+                    tiltMat,
+                    glm::radians(90.f),
+                    glm::vec3(1.f, 0.f, 0.f)
+                );
                 break;
-            case CubeFaces::PosZ: //+Z face, front
+            case CubeFaces::PosZ:
+                // +Z face, front
                 rotMat = tiltMat;
                 break;
-            case CubeFaces::NegZ: //-Z face, back
+            case CubeFaces::NegZ:
+                // -Z face, back
                 mSubViewports[i].setEnabled(false);
-                rotMat = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
+                rotMat = glm::rotate(
+                    tiltMat,
+                    glm::radians(180.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
                 break;
         }
 
@@ -266,45 +292,45 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     switch (face) {
         case 0:
             color[0] = 0.5f;
-            color[1] = 0.0f;
-            color[2] = 0.0f;
-            color[3] = 1.0f;
+            color[1] = 0.f;
+            color[2] = 0.f;
+            color[3] = 1.f;
             break;
         case 1:
             color[0] = 0.5f;
             color[1] = 0.5f;
-            color[2] = 0.0f;
-            color[3] = 1.0f;
+            color[2] = 0.f;
+            color[3] = 1.f;
             break;
         case 2:
-            color[0] = 0.0f;
+            color[0] = 0.f;
             color[1] = 0.5f;
-            color[2] = 0.0f;
-            color[3] = 1.0f;
+            color[2] = 0.f;
+            color[3] = 1.f;
             break;
         case 3:
-            color[0] = 0.0f;
+            color[0] = 0.f;
             color[1] = 0.5f;
             color[2] = 0.5f;
-            color[3] = 1.0f;
+            color[3] = 1.f;
             break;
         case 4:
-            color[0] = 0.0f;
-            color[1] = 0.0f;
+            color[0] = 0.f;
+            color[1] = 0.f;
             color[2] = 0.5f;
-            color[3] = 1.0f;
+            color[3] = 1.f;
             break;
         case 5:
             color[0] = 0.5f;
-            color[1] = 0.0f;
+            color[1] = 0.f;
             color[2] = 0.5f;
-            color[3] = 1.0f;
+            color[3] = 1.f;
             break;
     }
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (sgct::Engine::mInstance->mClearBufferFnPtr != nullptr) {
+    if (sgct::Engine::mInstance->mClearBufferFnPtr) {
         sgct::Engine::mInstance->mClearBufferFnPtr();
     }
     else {
@@ -352,7 +378,6 @@ void SphericalMirrorProjection::renderInternal() {
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
-
     glm::mat4 MVP = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
@@ -360,11 +385,11 @@ void SphericalMirrorProjection::renderInternal() {
 
     mShader.bind();
 
-    //if for some reson the active texture has been reset
+    // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
     
     glDisable(GL_CULL_FACE);
-    bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+    const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -376,7 +401,7 @@ void SphericalMirrorProjection::renderInternal() {
     glDepthFunc(GL_ALWAYS);
 
     glUniform1i(mTexLoc, 0);
-    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
 
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceFront);
     mMeshes.bottom.renderWarpMesh();
@@ -429,7 +454,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glLoadIdentity();
 
     glDisable(GL_CULL_FACE);
-    bool alpha = winPtr.getAlpha();
+    const bool alpha = winPtr.getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

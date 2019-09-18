@@ -83,9 +83,8 @@ NonLinearProjection::~NonLinearProjection() {
     mDepthCorrectionShader.deleteProgram();
 }
 
-void NonLinearProjection::init(int internalTextureFormat,
-                               unsigned int textureFormat, unsigned int textureType,
-                               int samples)
+void NonLinearProjection::init(int internalTextureFormat, unsigned int textureFormat,
+                               unsigned int textureType, int samples)
 {
     mTexInternalFormat = internalTextureFormat;
     mTexFormat = textureFormat;
@@ -99,17 +98,12 @@ void NonLinearProjection::init(int internalTextureFormat,
     initShaders();
 }
 
-void NonLinearProjection::updateFrustums(const Frustum::FrustumMode& frustumMode,
-                                         float nearClipPlane,
-                                         float farClipPlane)
+void NonLinearProjection::updateFrustums(const Frustum::Mode& mode, float nearClip,
+                                         float farClip)
 {
     for (int side = 0; side < 6; side++) {
         if (mSubViewports[side].isEnabled()) {
-            mSubViewports[side].calculateNonLinearFrustum(
-                frustumMode,
-                nearClipPlane,
-                farClipPlane
-            );
+            mSubViewports[side].calculateNonLinearFrustum(mode, nearClip, farClip);
         }
     }
 }
@@ -138,7 +132,7 @@ void NonLinearProjection::setAlpha(float alpha) {
     mClearColor.a = alpha;
 }
 
-void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::FrustumMode fm) {
+void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::Mode fm) {
     mPreferedMonoFrustumMode = fm;
 }
 
@@ -328,22 +322,21 @@ void NonLinearProjection::initFBO() {
 }
 
 void NonLinearProjection::initVBO() {
-    mVerts.resize(20, 0.f);
+    mVerts.resize(20);
+    std::fill(mVerts.begin(), mVerts.end(), 0.f);
     
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "NonLinearProjection: Generating VAO: %d\n",
-            mVAO
+            "NonLinearProjection: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "NonLinearProjection: Generating VBO: %d\n",
-        mVBO
+        "NonLinearProjection: Generating VBO: %d\n", mVBO
     );
     
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
@@ -355,28 +348,26 @@ void NonLinearProjection::initVBO() {
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(
-            0,                  // attribute 0. No particular reason for 0, but must
-                                // match the layout in the shader.
-            2,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            5 * sizeof(float),    // stride
-            reinterpret_cast<void*>(0) // array buffer offset
+            0,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            5 * sizeof(float),
+            reinterpret_cast<void*>(0)
         );
 
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(
-            1,                  // attribute 1. No particular reason for 1, but
-                                // must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            5 * sizeof(float),    // stride
-            reinterpret_cast<void*>(8) // array buffer offset
+            1,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            5 * sizeof(float),
+            reinterpret_cast<void*>(8)
         );
     }
 
-    //unbind
+    // unbind
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
@@ -397,18 +388,15 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFor
         mCubemapResolution = MaxCubeMapRes;
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "NonLinearProjection: Cubemap size set to max size: %d\n",
-            MaxCubeMapRes
+            "NonLinearProjection: Cubemap size set to max size: %d\n", MaxCubeMapRes
         );
     }
 
-    //set up texture target
+    // set up texture target
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
-    //---------------------
     // Disable mipmaps
-    //---------------------
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
@@ -442,8 +430,6 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFor
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -480,13 +466,11 @@ void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
         );
     }
 
-    //set up texture target
+    // set up texture target
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    //---------------------
     // Disable mipmaps
-    //---------------------
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
@@ -517,9 +501,6 @@ void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }

@@ -88,7 +88,7 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void)) {
     mDecodeFn = fnPtr;
 }
 
-void SharedData::decode(const char* receivedData, int receivedlength, int) {
+void SharedData::decode(const char* receivedData, int receivedLength, int) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
         MessageHandler::Level::NotifyAll,
@@ -101,10 +101,10 @@ void SharedData::decode(const char* receivedData, int receivedlength, int) {
     pos = 0;
     dataBlock.clear();
 
-    if (receivedlength > static_cast<int>(dataBlock.capacity())) {
-        dataBlock.reserve(receivedlength);
+    if (receivedLength > static_cast<int>(dataBlock.capacity())) {
+        dataBlock.reserve(receivedLength);
     }
-    dataBlock.insert(dataBlock.end(), receivedData, receivedData + receivedlength);
+    dataBlock.insert(dataBlock.end(), receivedData, receivedData + receivedLength);
 
     MutexManager::instance()->mDataSyncMutex.unlock();
 
@@ -116,8 +116,7 @@ void SharedData::decode(const char* receivedData, int receivedlength, int) {
 void SharedData::encode() {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::NOTIFY_ALL,
-        "SharedData::encode\n"
+        sgct::MessageHandler::LeveL::NotifyAll, "SharedData::encode\n"
     );
 #endif
     MutexManager::instance()->mDataSyncMutex.lock();
@@ -140,11 +139,14 @@ void SharedData::encode() {
 
     MutexManager::instance()->mDataSyncMutex.unlock();
 
-    if (mEncodeFn != nullptr) {
+    if (mEncodeFn) {
         mEncodeFn();
     }
 
     if (mUseCompression && !dataBlockToCompress.empty()) {
+        // (abock, 2019-09-18); I was thinking of replacing this with a std::unique_lock
+        // but the mDataSyncMutex lock is unlocked further down *before* sending a message
+        // to the MessageHandler which uses the mDataSyncMutex internally.
         MutexManager::instance()->mDataSyncMutex.lock();
 
         // re-allocate if needed use a compression buffer twice as large to fit huffman
@@ -216,7 +218,7 @@ size_t SharedData::getBufferSize() {
 void SharedData::writeFloat(const SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__    
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeFloat\nFloat = %f", sf->getVal()
     );
 #endif
@@ -231,7 +233,7 @@ void SharedData::writeFloat(const SharedFloat& sf) {
 void SharedData::writeDouble(const SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeDouble\nDouble = %f\n", sd->getVal()
     );
 #endif
@@ -246,7 +248,7 @@ void SharedData::writeDouble(const SharedDouble& sd) {
 void SharedData::writeInt64(const SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeInt64\nInt = %ld\n", si->getVal()
     );
 #endif
@@ -261,7 +263,7 @@ void SharedData::writeInt64(const SharedInt64& si) {
 void SharedData::writeInt32(const SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeInt32\nInt = %d\n", si->getVal()
     );
 #endif
@@ -276,7 +278,7 @@ void SharedData::writeInt32(const SharedInt32& si) {
 void SharedData::writeInt16(const SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeInt16\nInt = %d\n", si->getVal()
     );
 #endif
@@ -291,7 +293,7 @@ void SharedData::writeInt16(const SharedInt16& si) {
 void SharedData::writeInt8(const SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeInt8\nInt = %d\n", si->getVal()
     );
 #endif
@@ -306,7 +308,7 @@ void SharedData::writeInt8(const SharedInt8& si) {
 void SharedData::writeUInt64(const SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeUInt64\nUInt = %lu\n", si->getVal()
     );
 #endif
@@ -321,7 +323,7 @@ void SharedData::writeUInt64(const SharedUInt64& si) {
 void SharedData::writeUInt32(const SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeUInt32\nUInt = %u\n", si->getVal()
     );
 #endif
@@ -336,7 +338,7 @@ void SharedData::writeUInt32(const SharedUInt32& si) {
 void SharedData::writeUInt16(const SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeUInt16\nUInt = %u\n", si->getVal()
     );
 #endif
@@ -352,7 +354,7 @@ void SharedData::writeUInt8(const SharedUInt8& si)
 {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeUInt8\nUInt = %u\n", si->getVal()
     );
 #endif
@@ -367,7 +369,7 @@ void SharedData::writeUInt8(const SharedUInt8& si)
 void SharedData::writeUChar(const SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeUChar\n"
     );
 #endif
@@ -381,26 +383,21 @@ void SharedData::writeUChar(const SharedUChar& suc) {
 void SharedData::writeBool(const SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeBool\n"
     );
 #endif
     
     bool val = sb.getVal();
     MutexManager::instance()->mDataSyncMutex.lock();
-    if (val) {
-        currentStorage->push_back(1);
-    }
-    else {
-        currentStorage->push_back(0);
-    }
+    currentStorage->push_back(val ? 1 : 0);
     MutexManager::instance()->mDataSyncMutex.unlock();
 }
 
 void SharedData::writeString(const SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeString\n"
     );
 #endif
@@ -419,7 +416,7 @@ void SharedData::writeString(const SharedString& ss) {
 void SharedData::writeWString(const SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::writeWString\n"
     );
 #endif
@@ -439,7 +436,7 @@ void SharedData::writeWString(const SharedWString& ss) {
 void SharedData::readFloat(SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readFloat\n"
     );
 #endif
@@ -451,7 +448,7 @@ void SharedData::readFloat(SharedFloat& sf) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Float = %f\n", val
     );
 #endif
@@ -462,7 +459,7 @@ void SharedData::readFloat(SharedFloat& sf) {
 void SharedData::readDouble(SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readDouble\n"
     );
 #endif
@@ -473,7 +470,7 @@ void SharedData::readDouble(SharedDouble& sd) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Double = %lf\n", val
     );
 #endif
@@ -484,7 +481,7 @@ void SharedData::readDouble(SharedDouble& sd) {
 void SharedData::readInt64(SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readInt64\n"
     );
 #endif
@@ -495,7 +492,7 @@ void SharedData::readInt64(SharedInt64& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Int64 = %ld\n", val
     );
 #endif
@@ -506,7 +503,7 @@ void SharedData::readInt64(SharedInt64& si) {
 void SharedData::readInt32(SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readInt32\n"
     );
 #endif
@@ -517,7 +514,7 @@ void SharedData::readInt32(SharedInt32& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Int32 = %d\n", val
     );
 #endif
@@ -528,7 +525,7 @@ void SharedData::readInt32(SharedInt32& si) {
 void SharedData::readInt16(SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readInt16\n"
     );
 #endif
@@ -539,7 +536,7 @@ void SharedData::readInt16(SharedInt16& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Int16 = %d\n", val
     );
 #endif
@@ -550,7 +547,7 @@ void SharedData::readInt16(SharedInt16& si) {
 void SharedData::readInt8(SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readInt8\n"
     );
 #endif
@@ -561,7 +558,7 @@ void SharedData::readInt8(SharedInt8& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Int8 = %d\n", val
     );
 #endif
@@ -572,7 +569,7 @@ void SharedData::readInt8(SharedInt8& si) {
 void SharedData::readUInt64(SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readUInt64\n"
     );
 #endif
@@ -583,7 +580,7 @@ void SharedData::readUInt64(SharedUInt64& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "UInt64 = %lu\n", val
     );
 #endif
@@ -594,7 +591,7 @@ void SharedData::readUInt64(SharedUInt64& si) {
 void SharedData::readUInt32(SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readUInt32\n"
     );
 #endif
@@ -605,7 +602,7 @@ void SharedData::readUInt32(SharedUInt32& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "UInt32 = %u\n", val
     );
 #endif
@@ -616,7 +613,7 @@ void SharedData::readUInt32(SharedUInt32& si) {
 void SharedData::readUInt16(SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readUInt16\n"
     );
 #endif
@@ -627,7 +624,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "UInt16 = %u\n", val
     );
 #endif
@@ -638,7 +635,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
 void SharedData::readUInt8(SharedUInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readUInt8\n"
     );
 #endif
@@ -649,7 +646,7 @@ void SharedData::readUInt8(SharedUInt8& si) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "UInt8 = %u\n", val
     );
 #endif
@@ -660,7 +657,7 @@ void SharedData::readUInt8(SharedUInt8& si) {
 void SharedData::readUChar(SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readUChar\n"
     );
 #endif
@@ -671,7 +668,7 @@ void SharedData::readUChar(SharedUChar& suc) {
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "UChar = %d\n", c
     );
 #endif
@@ -681,7 +678,7 @@ void SharedData::readUChar(SharedUChar& suc) {
 void SharedData::readBool(SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readBool\n"
     );
 #endif
@@ -691,7 +688,7 @@ void SharedData::readBool(SharedBool& sb) {
     MutexManager::instance()->mDataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(MessageHandler::NOTIFY_INFO, "Bool = %d\n", b);
+    MessageHandler::instance()->printDebug(MessageHandler::Level::Info, "Bool = %d\n", b);
 #endif
     sb.setVal(b);
 }
@@ -699,7 +696,7 @@ void SharedData::readBool(SharedBool& sb) {
 void SharedData::readString(SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readString\n"
     );
 #endif
@@ -719,7 +716,7 @@ void SharedData::readString(SharedString& ss) {
     
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "String = '%s'\n", stringData
     );
 #endif
@@ -730,7 +727,7 @@ void SharedData::readString(SharedString& ss) {
 void SharedData::readWString(SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "SharedData::readWString\n"
     );
 #endif

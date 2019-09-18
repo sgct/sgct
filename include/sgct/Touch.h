@@ -65,7 +65,6 @@ private:
 
 std::string getTouchPointInfo(const Touch::TouchPoint& tp);
 
-
 } // sgct_core
 
 #endif // __SGCT__TOUCH__H__

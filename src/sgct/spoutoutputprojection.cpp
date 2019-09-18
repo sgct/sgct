@@ -116,18 +116,15 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
     }
 }
 
-
 void SpoutOutputProjection::setSpoutChannels(bool channels[NFaces]) {
     for (size_t i = 0; i < NFaces; i++) {
         mSpout[i].enabled = channels[i];
     }
 }
 
-
 void SpoutOutputProjection::setSpoutMappingName(std::string name) {
     mappingName = std::move(name);
 }
-
 
 void SpoutOutputProjection::setSpoutMapping(Mapping type) {
     mappingType = type;
@@ -295,6 +292,9 @@ void SpoutOutputProjection::initViewports() {
         glm::vec3(0.f, 0.f, 1.f)
     );
 
+    // @TODO (abock, 2019-09-18); This solution is kind of ugly, but I didn't have it in
+    // me to change it yet.  Using the enum in the switch in the for loop is not very nice
+    // and probably should be replaced with a proper function to be called
     // add viewports
     for (int i = 0; i < 6; i++) {
         mSubViewports[i].setName("SpoutOutput " + std::to_string(i));
@@ -991,7 +991,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         }
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-        //make sure that VBO:s are unbinded, to not mess up the vertex array
+        // make sure that VBOs are unbound, to not mess up the vertex array
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);
         glClientActiveTexture(GL_TEXTURE0);
 
@@ -1051,7 +1051,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             continue;
         }
 
-        //bind & attach buffer
+        // bind & attach buffer
         mCubeMapFbo->bind();
         if (!mCubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
@@ -1060,12 +1060,12 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
-        //blit MSAA fbo to texture
+        // blit MSAA fbo to texture
         if (mCubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
-        //re-calculate depth values from a cube to spherical model
+        // re-calculate depth values from a cube to spherical model
         if (sgct::Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
@@ -1080,7 +1080,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             sgct::Engine::mInstance->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+            const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1098,18 +1098,16 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
-            sgct::Engine* engine = sgct::Engine::instance();
-
-            //bind shader
+            // bind shader
             mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, engine->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, engine->mFarClippingPlaneDist);
+            glUniform1f(mSwapNearLoc, sgct::Engine::instance()->mNearClippingPlaneDist);
+            glUniform1f(mSwapFarLoc, sgct::Engine::instance()->mFarClippingPlaneDist);
 
-            engine->getCurrentWindow().bindVAO();
+            sgct::Engine::instance()->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            engine->getCurrentWindow().unbindVAO();
+            sgct::Engine::instance()->getCurrentWindow().unbindVAO();
 
             // unbind shader
             sgct::ShaderProgram::unbind();
@@ -1123,7 +1121,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             // restore depth func
             glDepthFunc(GL_LESS);
             glDisable(GL_SCISSOR_TEST);
-        } // end if depthmap
+        }
 
         if (mappingType == Mapping::Cubemap) {
             mCubeMapFbo->unBind();
@@ -1162,7 +1160,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             continue;
         }
 
-        //bind & attach buffer
+        // bind & attach buffer
         mCubeMapFbo->bind();
         if (!mCubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
@@ -1171,7 +1169,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
-        //blit MSAA fbo to texture
+        // blit MSAA fbo to texture
         if (mCubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
@@ -1190,7 +1188,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glEnable(GL_SCISSOR_TEST);
 
-            sgct::Engine::mInstance->mClearBufferFnPtr();
+            sgct::Engine::instance()->mClearBufferFnPtr();
 
             glActiveTexture(GL_TEXTURE0);
             glMatrixMode(GL_TEXTURE);
@@ -1202,11 +1200,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, sgct::Engine::mInstance->mFarClippingPlaneDist);
+            glUniform1f(mSwapNearLoc, sgct::Engine::instance()->mNearClippingPlaneDist);
+            glUniform1f(mSwapFarLoc, sgct::Engine::instance()->mFarClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+            bool alpha = sgct::Engine::instance()->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1226,7 +1224,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            sgct::Engine::mInstance->getCurrentWindow().bindVBO();
+            sgct::Engine::instance()->getCurrentWindow().bindVBO();
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1235,7 +1233,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::mInstance->getCurrentWindow().unbindVBO();
+            sgct::Engine::instance()->getCurrentWindow().unbindVBO();
             glPopClientAttrib();
 
             // unbind shader

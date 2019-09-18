@@ -53,7 +53,7 @@ public:
     virtual void renderCubemap(size_t* subViewPortIndex) = 0;
     virtual void update(glm::vec2 size) = 0;
 
-    void updateFrustums(const Frustum::FrustumMode& frustumMode, float nearClipPlane,
+    void updateFrustums(const Frustum::Mode& frustumMode, float nearClipPlane,
         float farClipPlane);
     
     /**
@@ -96,7 +96,7 @@ public:
      *
      * \param fm the prefered mono frustum mode
      */
-    void setPreferedMonoFrustumMode(Frustum::FrustumMode fm);
+    void setPreferedMonoFrustumMode(Frustum::Mode fm);
 
     void setUser(User& user);
 
@@ -145,7 +145,7 @@ protected:
     std::vector<float> mVerts;
 
     InterpolationMode mInterpolationMode = InterpolationMode::Linear;
-    Frustum::FrustumMode mPreferedMonoFrustumMode = Frustum::MonoEye;
+    Frustum::Mode mPreferedMonoFrustumMode = Frustum::MonoEye;
 
     int mCubemapResolution = 512;
     glm::vec4 mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);

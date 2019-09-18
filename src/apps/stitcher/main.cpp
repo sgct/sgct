@@ -543,7 +543,7 @@ int main(int argc, char* argv[]) {
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setPreWindowFunction(preWinInitFun);
 
-    gEngine->setClearColor(0.f, 0.f, 0.f, 1.f);
+    gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
     if (!gEngine->init()) {
         delete gEngine;

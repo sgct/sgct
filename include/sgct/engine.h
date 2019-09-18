@@ -217,12 +217,9 @@ public:
     /**
      * Set the clear color (background color).
      *
-     * \param red the red color component
-     * \param green the green color component
-     * \param blue the blue color component
-     * \param alpha the alpha color component
+     * \param color the clear color
      */
-    void setClearColor(float red, float green, float blue, float alpha);
+    void setClearColor(glm::vec4 color);
 
     /**
      * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
@@ -323,19 +320,14 @@ public:
      *
      * \return Handle/id to the created timer
      */
-    size_t createTimer(double millisec, void(*fnPtr)(size_t));
+    int createTimer(double millisec, std::function<void(int)> fn);
 
     /**
      * Stops the specified timer.
      *
      * \param id/handle to a timer
      */
-    void stopTimer(size_t id);
-
-    void setCleanUpFunction(void(*fnPtr)(void));
-    
-    // arguments: bool connected
-    void setExternalControlStatusCallback(void(*fnPtr)(bool));
+    void stopTimer(int id);
 
     /**
      * This function sets the initOGL callback. The Engine will then use the callback only
@@ -353,7 +345,7 @@ public:
      *
      * \param fn is the std function of a pre window creation callback
      */
-    void setPreWindowFunction(std::function<void(void)> fn);
+    void setPreWindowFunction(std::function<void()> fn);
 
     /**
      * This function sets the pre-sync callback. The Engine will then use the callback
@@ -361,7 +353,7 @@ public:
      *
      * \param fn is the function pointer to a pre-sync callback
      */
-    void setPreSyncFunction(std::function<void(void)> fn);
+    void setPreSyncFunction(std::function<void()> fn);
 
     /**
      * This function sets the post-sync-pre-draw callback. The Engine will then use the
@@ -372,7 +364,7 @@ public:
      *
      * \param fn is the std function of a post-sync-pre-draw callback
      */
-    void setPostSyncPreDrawFunction(std::function<void(void)> fn);
+    void setPostSyncPreDrawFunction(std::function<void()> fn);
 
     /**
      * This function sets the clear buffer callback which will override the default clear
@@ -389,7 +381,7 @@ void sgct::Engine::clearBuffer() {
 }
 \endcode
      */
-    void setClearBufferFunction(std::function<void(void)> fn);
+    void setClearBufferFunction(std::function<void()> fn);
 
     /**
      * This function sets the draw callback. It's possible to have several draw functions
@@ -400,7 +392,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \param fn is the std function to a draw callback
      */
-    void setDrawFunction(std::function<void(void)> fn);
+    void setDrawFunction(std::function<void()> fn);
 
     /**
      * This function sets the draw 2D callback. This callback will be called after
@@ -409,7 +401,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \param fn is the function pointer to a draw 2D callback
      */
-    void setDraw2DFunction(std::function<void(void)> fn);
+    void setDraw2DFunction(std::function<void()> fn);
 
     /**
      * This function sets the post-draw callback. The Engine will then use the callback
@@ -419,7 +411,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \param fn is the std function of a post-draw callback
      */
-    void setPostDrawFunction(std::function<void(void)> fn);
+    void setPostDrawFunction(std::function<void()> fn);
 
     /**
      * This function sets the clean up callback which will be called in the Engine
@@ -428,7 +420,7 @@ void sgct::Engine::clearBuffer() {
      *
      * \param fn is the std function pointer of a clean up function callback
      */
-    void setCleanUpFunction(std::function<void(void)> fn);
+    void setCleanUpFunction(std::function<void()> fn);
 
     /**
      * This function sets the keyboard callback (GLFW wrapper) where the four parameters
@@ -916,7 +908,7 @@ void sgct::Engine::clearBuffer() {
      *   - Stereo Left
      *   - Stereo Right
      */
-    sgct_core::Frustum::FrustumMode getCurrentFrustumMode() const;
+    sgct_core::Frustum::Mode getCurrentFrustumMode() const;
 
     /**
      * Returns the active projection matrix (only valid inside in the draw callback
@@ -1166,7 +1158,7 @@ private:
      * it exists) into this window
      */
     void copyPreviousWindowViewportToCurrentWindowViewport(
-        sgct_core::Frustum::FrustumMode frustumMode);
+        sgct_core::Frustum::Mode frustumMode);
 
     static void clearBuffer();
 
@@ -1201,7 +1193,7 @@ private:
     float mFarClippingPlaneDist = 100.f;
     glm::vec4 mClearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    sgct_core::Frustum::FrustumMode mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
+    sgct_core::Frustum::Mode mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
     glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> mDrawBufferResolutions;
     size_t mCurrentDrawBufferIndex = 0;
@@ -1257,16 +1249,16 @@ private:
     unsigned int mShotCounter = 0;
 
     struct TimerInformation {
-        size_t mId;
+        int mId;
         double mLastFired;
         double mInterval;
-        std::function<void(size_t)> mCallback;
+        std::function<void(int)> mCallback;
     };
 
     /// stores all active timers
     std::vector<TimerInformation> mTimers;
     /// the timer created next will use this ID
-    size_t mTimerID = 0;
+    int mTimerID = 0;
 
     RunMode mRunMode = RunMode::Default_Mode;
     std::string mGLSLVersion;

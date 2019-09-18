@@ -31,45 +31,43 @@ void Settings::destroy() {
 void Settings::configure(tinyxml2::XMLElement* element) {
     using namespace tinyxml2;
 
-    const char* val;
     XMLElement* elem = element->FirstChildElement();
-
     while (elem) {
-        val = elem->Value();
+        std::string_view val = elem->Value();
 
-        if (strcmp("DepthBufferTexture", val) == 0) {
+        if (val == "DepthBufferTexture") {
             if (elem->Attribute("value")) {
                 setUseDepthTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
-        else if (strcmp("NormalTexture", val) == 0) {
+        else if (val == "NormalTexture") {
             if (elem->Attribute("value")) {
                 setUseNormalTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
-        else if (strcmp("PositionTexture", val) == 0) {
+        else if (val == "PositionTexture") {
             if (elem->Attribute("value")) {
                 setUsePositionTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
-        else if (strcmp("PBO", val) == 0) {
+        else if (val == "PBO") {
             if (elem->Attribute("value")) {
                 setUsePBO(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
-        else if (strcmp("Precision", val) == 0) {
+        else if (val == "Precision") {
             int fprec = 0;
             if (elem->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
                 if (fprec == 16) {
-                    setBufferFloatPrecision(BufferFloatPrecision::Float_16Bit);
+                    setBufferFloatPrecision(BufferFloatPrecision::Float16Bit);
                 }
                 else if (fprec == 32) {
-                    setBufferFloatPrecision(BufferFloatPrecision::Float_32Bit);
+                    setBufferFloatPrecision(BufferFloatPrecision::Float32Bit);
                 }
                 else {
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Warning,
-                        "ReadConfig: Invalid precition value (%d)! Must be 16 or 32\n",
+                        "ReadConfig: Invalid precision value (%d)! Must be 16 or 32\n",
                         fprec
                     );
                 }
@@ -77,11 +75,11 @@ void Settings::configure(tinyxml2::XMLElement* element) {
             else {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Warning,
-                    "ReadConfig: Invalid precition value! Must be 16 or 32\n"
+                    "ReadConfig: Invalid precision value! Must be 16 or 32\n"
                 );
             }
         }
-        else if (strcmp("Display", val) == 0) {
+        else if (val == "Display") {
             int interval = 0;
             if (elem->QueryIntAttribute("swapInterval", &interval) == XML_NO_ERROR) {
                 setSwapInterval(interval);
@@ -106,15 +104,15 @@ void Settings::configure(tinyxml2::XMLElement* element) {
             }
 
             const char* exportMeshes = elem->Attribute("exportWarpingMeshes");
-            if (exportMeshes != nullptr) {
+            if (exportMeshes) {
                 setExportWarpingMeshes(strcmp(exportMeshes, "true") == 0);
             }
         }
-        else if (strcmp("OSDText", val) == 0) {
+        else if (val == "OSDText") {
             float x = 0.f;
             float y = 0.f;
 
-            if (elem->Attribute("name") != nullptr) {
+            if (elem->Attribute("name")) {
                 setOSDTextFontName(elem->Attribute("name"));
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
@@ -122,7 +120,7 @@ void Settings::configure(tinyxml2::XMLElement* element) {
                 );
             }
 
-            if (elem->Attribute("path") != nullptr) {
+            if (elem->Attribute("path")) {
                 setOSDTextFontPath(elem->Attribute("path"));
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
@@ -130,14 +128,14 @@ void Settings::configure(tinyxml2::XMLElement* element) {
                 );
             }
 
-            if (elem->Attribute("size") != nullptr) {
-                unsigned int tmpi;
-                XMLError err = elem->QueryUnsignedAttribute("size", &tmpi);
-                if (err == tinyxml2::XML_NO_ERROR && tmpi > 0) {
-                    setOSDTextFontSize(tmpi);
+            if (elem->Attribute("size")) {
+                unsigned int size;
+                XMLError err = elem->QueryUnsignedAttribute("size", &size);
+                if (err == tinyxml2::XML_NO_ERROR) {
+                    setOSDTextFontSize(size);
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Debug,
-                        "ReadConfig: Setting font size to %u\n", tmpi
+                        "ReadConfig: Setting font size to %u\n", size
                     );
                 }
                 else {
@@ -164,7 +162,7 @@ void Settings::configure(tinyxml2::XMLElement* element) {
                 );
             }
         }
-        else if (strcmp("FXAA", val) == 0) {
+        else if (val == "FXAA") {
             float offset = 0.f;
             if (elem->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR) {
                 setFXAASubPixOffset(offset);
@@ -180,7 +178,7 @@ void Settings::configure(tinyxml2::XMLElement* element) {
                     setFXAASubPixTrim(1.f / trim);
                     MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Debug,
-                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f / trim
+                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.f / trim
                     );
                 }
                 else {
@@ -457,7 +455,7 @@ const std::string& Settings::getOSDTextFontPath() const {
 }
 
 int Settings::getBufferFloatPrecisionAsGLint() const {
-    return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float_16Bit ?
+    return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float16Bit ?
         GL_RGB16F :
         GL_RGB32F;
 }

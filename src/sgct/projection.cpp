@@ -13,9 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 
 void Projection::calculateProjection(glm::vec3 base,
-                                         const ProjectionPlane& projectionPlane,
-                                         float nearClippingPlane,
-                                         float farClippingPlane, glm::vec3 offset)
+                                     const ProjectionPlane& projectionPlane,
+                                     float nearClip, float farClip, glm::vec3 offset)
 {
     const glm::vec3 lowerLeft = projectionPlane.getCoordinateLowerLeft();
     const glm::vec3 upperLeft = projectionPlane.getCoordinateUpperLeft();
@@ -47,14 +46,14 @@ void Projection::calculateProjection(glm::vec3 base,
     const glm::vec3 eyePos = invDCM * base;
 
     // nearFactor = near clipping plane / focus plane dist
-    const float nearF = abs(nearClippingPlane / (viewPlaneLowerLeft.z - eyePos.z));
+    const float nearF = abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
 
     mFrustum.left = (viewPlaneLowerLeft.x - eyePos.x) * nearF;
     mFrustum.right = (viewPlaneUpperRight.x - eyePos.x) * nearF;
     mFrustum.bottom = (viewPlaneLowerLeft.y - eyePos.y) * nearF;
     mFrustum.top = (viewPlaneUpperRight.y - eyePos.y) * nearF;
-    mFrustum.nearPlane = nearClippingPlane;
-    mFrustum.farPlane = farClippingPlane;
+    mFrustum.nearPlane = nearClip;
+    mFrustum.farPlane = farClip;
 
     mViewMatrix = glm::mat4(invDCM) * glm::translate(glm::mat4(1.f), -(base + offset));
 

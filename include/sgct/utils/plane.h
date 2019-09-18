@@ -8,13 +8,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__PLANE__H__
 #define __SGCT__PLANE__H__
 
-/*! \namespace sgct_utils
-\brief SGCT utils namespace contains basic utilities for geometry rendering
+/**
+ * \namespace sgct_utils
+ * \brief SGCT utils namespace contains basic utilities for geometry rendering
 */
 namespace sgct_utils {
 
-/*!
-    This class creates and renders a textured box.
+/**
+ * This class creates and renders a textured box.
 */
 class Plane {
 public:

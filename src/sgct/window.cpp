@@ -528,7 +528,7 @@ bool Window::update() {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
             const glm::ivec2 res = getResolution();
-            sc.initOrResize(res, nCaptureChannels, 1 );
+            sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)

@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
     gEngine->setTouchCallbackFunction(touchCallback);
-    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.f));
     gEngine->setCleanUpFunction(cleanUpFun);
 
     if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {

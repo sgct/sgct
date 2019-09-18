@@ -85,25 +85,26 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     verts[mNumberOfVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
 
     // All other vertices:
-    // vsegs-1 latitude rings of hsegs+1 vertices each (duplicates at texture seam s=0 / s=1)
+    // vsegs-1 latitude rings of hsegs+1 vertices each
+    // (duplicates at texture seam s=0 / s=1)
     for (unsigned int j = 0; j < vsegs - 1; j++) {
         // vsegs-1 latitude rings of vertices
         const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs)) *
-            glm::pi<double>();
+                              glm::pi<double>();
         const float y = static_cast<float>(cos(theta));
         const float R = static_cast<float>(sin(theta));
 
         for (unsigned int i = 0; i <= hsegs; i++) {
             // hsegs+1 vertices in each ring (duplicate for texcoords)
             const double phi = (static_cast<double>(i) / static_cast<double>(hsegs)) *
-                glm::two_pi<double>();
+                                glm::two_pi<double>();
             const float x = R * static_cast<float>(cos(phi));
             const float z = R * static_cast<float>(sin(phi));
 
             verts[1 + j * (hsegs + 1) + i] = {
-                static_cast<float>(i) / static_cast<float>(hsegs), //s
-                1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), //t
-                x, y, z, //normals
+                static_cast<float>(i) / static_cast<float>(hsegs), // s
+                1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), // t
+                x, y, z, // normals
                 radius * x,
                 radius * y,
                 radius * z

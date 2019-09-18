@@ -76,7 +76,6 @@ void TextureManager::setOverWriteMode(bool mode) {
 }
 
 void TextureManager::setAnisotropicFilterSize(float fval) {
-    //get max
     float maximumAnistropy;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAnistropy);
 
@@ -87,8 +86,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and "
-            "min values for your hardware is %.1f and 1.0\n",
-            maximumAnistropy
+            "min values for your hardware is %.1f and 1.0\n", maximumAnistropy
         );
     }
 }
@@ -120,7 +118,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
     
     std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
-    //load image
+    // load image
     sgct_core::Image img;
     if (!img.load(filename)) {
         if (reload) {
@@ -202,7 +200,7 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
         );
     }
     else {
-        //image data not valid
+        // image data not valid
         return false;
     }
 
@@ -222,7 +220,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
         texID = 0;
     }
     
-    //load image
+    // load image
     sgct_core::Image img;
     if (!img.load(filename)) {
         return false;
@@ -290,10 +288,10 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
 
     bool isBGR = imgPtr.getPreferBGRImport();
 
-    //if three channels
+    // if three channels
     int textureType = isBGR ? GL_BGR : GL_RGB;
 
-    //if OpenGL 1-2
+    // if OpenGL 1-2
     if (Engine::instance()->isOGLPipelineFixed()) {
         if (imgPtr.getChannels() == 4) {
             textureType = isBGR ? GL_BGRA : GL_RGBA;
@@ -306,7 +304,7 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
         }
     }
     else {
-        //OpenGL 3+
+        // OpenGL 3+
         if (imgPtr.getChannels() == 4) {
             textureType = isBGR ? GL_BGRA : GL_RGBA;
         }

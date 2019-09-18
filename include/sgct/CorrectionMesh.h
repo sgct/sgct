@@ -22,7 +22,7 @@ class Viewport;
  */
 class CorrectionMesh {
 public:
-    enum class MeshHint {
+    enum class Hint {
         None = 0,
         DomeProjection,
         Scaleable,
@@ -44,8 +44,7 @@ public:
      *
      * \return true if mesh found and loaded successfully
      */
-    bool readAndGenerateMesh(std::string meshPath, Viewport& parent,
-        MeshHint hint = MeshHint::None);
+    bool readAndGenerateMesh(std::string path, Viewport& parent,Hint hint = Hint::None);
 
     /// Render the final mesh where for mapping the frame buffer to the screen.
     void renderQuadMesh() const;
@@ -57,10 +56,10 @@ public:
     void renderMaskMesh() const;
 
     /// Parse hint from string to enum.
-    static MeshHint parseHint(const std::string& hintStr);
+    static Hint parseHint(const std::string& hintStr);
         
 private:
-    enum class MeshFormat {
+    enum class Format {
         None,
         DomeProjection,
         Scaleable,
@@ -94,7 +93,7 @@ private:
         std::vector<unsigned int> indices;
     };
 
-    Buffer setupSimpleMesh(CorrectionMeshGeometry& geomPtr, const Viewport& parent);
+    Buffer setupSimpleMesh(CorrectionMeshGeometry& geom, const Viewport& parent);
     Buffer setupMaskMesh(const Viewport& parent, bool flipX, bool flipY);
     bool generateDomeProjectionMesh(const std::string& meshPath, const Viewport& parent);
     bool generateScalableMesh(const std::string& meshPath, const Viewport& parent);
@@ -106,7 +105,7 @@ private:
 
     bool generatePaulBourkeMesh(const std::string& meshPath, const Viewport& parent);
 
-    void createMesh(CorrectionMeshGeometry& geomPtr,
+    void createMesh(CorrectionMeshGeometry& geom,
         const std::vector<CorrectionMeshVertex>& vertices,
         const std::vector<unsigned int>& indices);
 

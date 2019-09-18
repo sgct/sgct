@@ -14,8 +14,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils {
 
-DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments,
-                           unsigned int rings, unsigned int resolution)
+DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
+                   unsigned int resolution)
     : mResolution(resolution)
     , mRings(rings)
     , mSegments(segments)
@@ -113,9 +113,9 @@ void DomeGrid::createVBO(float radius, float FOV) {
             const float theta = glm::two_pi<float>() *
                 (static_cast<float>(i) / static_cast<float>(mResolution));
 
-            verts[pos] = radius * sinf(elevationAngle) * cosf(theta);
-            verts[pos + 1] = radius * cosf(elevationAngle);
-            verts[pos + 2] = radius * sinf(elevationAngle) * sinf(theta);
+            verts[pos] = radius * sin(elevationAngle) * cos(theta);
+            verts[pos + 1] = radius * cos(elevationAngle);
+            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
             pos += 3;
         }
     }
@@ -129,9 +129,9 @@ void DomeGrid::createVBO(float radius, float FOV) {
             const float elevationAngle = glm::radians<float>(FOV / 2.f) *
                 (static_cast<float>(i) / static_cast<float>(mResolution / 4));
 
-            verts[pos] = radius * sinf(elevationAngle) * cosf(theta);
-            verts[pos + 1] = radius * cosf(elevationAngle);
-            verts[pos + 2] = radius * sinf(elevationAngle) * sinf(theta);
+            verts[pos] = radius * sin(elevationAngle) * cos(theta);
+            verts[pos + 1] = radius * cos(elevationAngle);
+            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
             pos += 3;
         }
     }
@@ -163,14 +163,7 @@ void DomeGrid::createVBO(float radius, float FOV) {
     );
 
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            nullptr
-        );
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     }
 
     // unbind

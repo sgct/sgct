@@ -57,8 +57,7 @@ public:
      */
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
         const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType =
-            ShaderProgram::ShaderSourceType::File);
+        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -78,8 +77,7 @@ public:
      */
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
         const std::string& vertexSrc, const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType =
-            ShaderProgram::ShaderSourceType::File);
+        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -100,8 +98,7 @@ public:
      */
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
         const std::string& fragmentSrc, const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType =
-            ShaderProgram::ShaderSourceType::File);
+        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -124,8 +121,7 @@ public:
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
         const std::string& vertexSrc, const std::string& fragmentSrc,
         const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType =
-            ShaderProgram::ShaderSourceType::File);
+        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
 
     /**
      * Reloads a shader program from the manager for the current bin.
@@ -164,7 +160,7 @@ public:
      */
     bool bindShaderProgram(const ShaderProgram& shaderProgram) const;
     
-    /// Unbind/unset/diable current shader program in the rendering pipeline.
+    /// Unbind/unset/disable current shader program in the rendering pipeline.
     void unBindShaderProgram();
 
     /**

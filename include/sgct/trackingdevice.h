@@ -15,8 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-/*!
-Helper class that holds tracking device/sensor data
+/**
+ * Helper class that holds tracking device/sensor data
 */
 class TrackingDevice {
 public:
@@ -54,15 +54,16 @@ public:
     int getNumberOfButtons() const;
     int getNumberOfAxes() const;
 
-    /// \returns a digital value from array
+    /// \return a digital value from array
     bool getButton(int index) const;
     
-    /// \returns a digital value from array
+    /// \return a digital value from array
     bool getButtonPrevious(int index) const;
 
-    /// \returns an analog value from array
+    /// \return an analog value from array
     double getAnalog(int index) const;
-    /// \returns an analog value from array
+
+    /// \return an analog value from array
     double getAnalogPrevious(int index) const;
     
     bool isEnabled() const;
@@ -70,43 +71,43 @@ public:
     bool hasButtons() const;
     bool hasAnalogs() const;
 
-    /// \returns the id of this device/sensor
+    /// \return the id of this device/sensor
     int getSensorId();
 
-    /// \returns the sensor's position in world coordinates
+    /// \return the sensor's position in world coordinates
     glm::vec3 getPosition() const;
 
-    /// \returns the sensor's position in world coordinates
+    /// \return the sensor's position in world coordinates
     glm::vec3 getPreviousPosition() const;
 
-    /// \returns the sensor's rotation as as euler angles in world coordinates
+    /// \return the sensor's rotation as as euler angles in world coordinates
     glm::vec3 getEulerAngles() const;
 
-    /// \returns the sensor's rotation as as euler angles in world coordinates
+    /// \return the sensor's rotation as as euler angles in world coordinates
     glm::vec3 getEulerAnglesPrevious() const;
 
-    /// \returns the sensor's rotation as a quaternion in world coordinates
+    /// \return the sensor's rotation as a quaternion in world coordinates
     glm::quat getRotation() const;
 
-    /// \returns the sensor's rotation as a quaternion in world coordinates
+    /// \return the sensor's rotation as a quaternion in world coordinates
     glm::quat getRotationPrevious() const;
 
-    /// \returns the sensor's transform matrix in world coordinates
+    /// \return the sensor's transform matrix in world coordinates
     glm::mat4 getWorldTransform() const;
 
-    /// \returns the sensor's transform matrix in world coordinates
+    /// \return the sensor's transform matrix in world coordinates
     glm::mat4 getWorldTransformPrevious() const;
 
-    /// \returns the raw sensor rotation quaternion
+    /// \return the raw sensor rotation quaternion
     glm::dquat getSensorRotation() const;
 
-    /// \returns the raw sensor rotation quaternion
+    /// \return the raw sensor rotation quaternion
     glm::dquat getSensorRotationPrevious() const;
 
-    /// \returns the raw sensor position vector
+    /// \return the raw sensor position vector
     glm::dvec3 getSensorPosition() const;
 
-    /// \returns the raw sensor position vector
+    /// \return the raw sensor position vector
     glm::dvec3 getSensorPositionPrevious() const;
 
     double getTrackerTimeStamp();

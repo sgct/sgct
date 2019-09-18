@@ -13,13 +13,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 
 namespace sgct_core {
+
 /*!
 This class manages and renders non linear fisheye projections
 */
 class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
-    //enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
     /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;
@@ -121,7 +121,7 @@ private:
 
     FisheyeMethod mMethod = FisheyeMethod::FourFaceCube;
 
-    //shader locations
+    // shader locations
     struct {
         int cubemapLoc = -1;
         int depthCubemapLoc = -1;

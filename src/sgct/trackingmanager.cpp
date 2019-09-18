@@ -297,8 +297,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Tracking: Failed to connect to analogs '%s'\n",
-            address.c_str()
+            "Tracking: Failed to connect to analogs '%s'\n", address.c_str()
         );
     }
 }

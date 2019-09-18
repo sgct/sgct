@@ -64,6 +64,8 @@ Node* ClusterManager::getThisNode() {
 }
 
 User& ClusterManager::getDefaultUser() {
+    // This object is guaranteed to exist as we add it in the constructor and it is not
+    // possible to clear the mUsers list
     return *mUsers[0];
 }
 

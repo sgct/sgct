@@ -229,7 +229,7 @@ void drawFun() {
     
     glColor3f(1.f, 1.f, 1.f);
     sgct_text::print(
-        sgct_text::FontManager::instance()->getFont("SGCTFont", fontSize),
+        *sgct_text::FontManager::instance()->getFont("SGCTFont", fontSize),
         sgct_text::TextAlignMode::TopLeft,
         120.f,
         textVerticalPos,

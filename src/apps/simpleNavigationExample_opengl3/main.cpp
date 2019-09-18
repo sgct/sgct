@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
-    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     gEngine->setCleanUpFunction(cleanUpFun);
 
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {

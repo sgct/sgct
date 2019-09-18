@@ -8,8 +8,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__BOX__H__
 #define __SGCT__BOX__H__
 
-namespace sgct_helpers { struct VertexData; }
-
 /**
  * \namespace sgct_utils
  * \brief SGCT utils namespace contains basic utilities for geometry rendering

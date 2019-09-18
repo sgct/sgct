@@ -13,18 +13,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 
 void ProjectionPlane::configure(tinyxml2::XMLElement* element,
-                                    glm::vec3& initializedLowerLeftCorner,
-                                    glm::vec3& initializedUpperLeftCorner,
-                                    glm::vec3& initializedUpperRightCorner)
+                                glm::vec3& initializedLowerLeftCorner,
+                                glm::vec3& initializedUpperLeftCorner,
+                                glm::vec3& initializedUpperRightCorner)
 {
     using namespace tinyxml2;
     size_t i = 0;
 
     tinyxml2::XMLElement* elem = element->FirstChildElement();
     while (elem) {
-        const char* val = elem->Value();
+        std::string_view val = elem->Value();
 
-        if (strcmp("Pos", val) == 0) {
+        if (val == "Pos") {
             glm::vec3 pos;
 
             if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&

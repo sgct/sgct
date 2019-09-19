@@ -1,4 +1,4 @@
-#include "Capture.hpp"
+#include "capture.h"
 #include <sgct.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/Image.h>
@@ -614,21 +614,21 @@ void initOGLFun() {
     sm.addShaderProgram("xform", "xform.vert", "xform.frag");
     sm.bindShaderProgram("xform");
 
-    matrixLoc = sm.getShaderProgram("xform").getUniformLocation("MVP");
+    matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
     uvScaleLoc = sm.getShaderProgram("xform").getUniformLocation("scaleUV");
     uvOffsetLoc = sm.getShaderProgram("xform").getUniformLocation("offsetUV");
-    GLint textureLocation = sm.getShaderProgram("xform").getUniformLocation("Tex");
+    GLint textureLocation = sm.getShaderProgram("xform").getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
     sm.unBindShaderProgram();
 
     sm.addShaderProgram("chromakey", "xform.vert", "chromakey.frag");
     sm.bindShaderProgram("chromakey");
 
-    chromaKeyMatrixLoc = sm.getShaderProgram("chromakey").getUniformLocation("MVP");
+    chromaKeyMatrixLoc = sm.getShaderProgram("chromakey").getUniformLocation("mvp");
     chromaKeyUvScaleLoc = sm.getShaderProgram("chromakey").getUniformLocation("scaleUV");
     chromaKeyUvOffsetLoc = sm.getShaderProgram("chromakey").getUniformLocation("offsetUV");
     chromaKeyColorLoc = sm.getShaderProgram("chromakey").getUniformLocation("chromaKeyColor");
-    GLint textureLocationCk = sm.getShaderProgram("chromakey").getUniformLocation("Tex");
+    GLint textureLocationCk = sm.getShaderProgram("chromakey").getUniformLocation("tex");
     glUniform1i(textureLocationCk, 0);
 
     sm.unBindShaderProgram();

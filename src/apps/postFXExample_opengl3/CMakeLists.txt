@@ -13,9 +13,10 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/glow.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/SimpleFragmentShader.fragmentshader"
-  "${CMAKE_CURRENT_SOURCE_DIR}/SimpleVertexShader.vertexshader"
+  "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
+  "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/threshold.frag"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(postFXExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(postFXExample_opengl3)

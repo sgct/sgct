@@ -1,9 +1,8 @@
 #version 120
 
-uniform sampler2D Tex;
-uniform sampler2D TexOrig;
+uniform sampler2D tex;
+uniform sampler2D texOrig;
 
-void main()
-{
-	gl_FragColor = clamp( texture2D(Tex,  gl_TexCoord[0].st) + texture2D(TexOrig, gl_TexCoord[0].st), 0.0, 1.0 );
+void main() {
+  gl_FragColor = clamp(texture2D(tex, gl_TexCoord[0].st) + texture2D(texOrig, gl_TexCoord[0].st), 0.0, 1.0 );
 }

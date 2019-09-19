@@ -83,14 +83,14 @@ void initOGLFun() {
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
 
     textureID = prg.getUniformLocation("tDiffuse");
-    worldMatrixTransposeId = prg.getUniformLocation("WorldMatrixTranspose");
-    mvpMatrixId = prg.getUniformLocation("MVPMatrix");
-    normalMatrixId = prg.getUniformLocation("NormalMatrix");
+    worldMatrixTransposeId = prg.getUniformLocation("worldMatrixTranspose");
+    mvpMatrixId = prg.getUniformLocation("mvpMatrix");
+    normalMatrixId = prg.getUniformLocation("normalMatrix");
 
     ShaderManager::instance()->unBindShaderProgram();
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     // test
     int sizeX;

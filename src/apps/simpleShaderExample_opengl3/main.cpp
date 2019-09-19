@@ -40,8 +40,8 @@ void initFun() {
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
  
-    matrixLoc = prog.getUniformLocation("MVP");
-    timeLoc = prog.getUniformLocation("curr_time");
+    matrixLoc = prog.getUniformLocation("mvp");
+    timeLoc = prog.getUniformLocation("currTime");
  
     ShaderManager::instance()->unBindShaderProgram();
 }
@@ -81,8 +81,8 @@ void postSyncPreDrawFun() {
 
         ShaderManager::instance()->bindShaderProgram("xform");
         const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
-        timeLoc = prog.getUniformLocation("curr_time");
-        matrixLoc = prog.getUniformLocation("MVP");
+        timeLoc = prog.getUniformLocation("currTime");
+        matrixLoc = prog.getUniformLocation("mvp");
         sgct::ShaderManager::instance()->unBindShaderProgram();
     }
 }

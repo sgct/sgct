@@ -147,8 +147,8 @@ void myInitOGLFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("MVP");
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("Tex");
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("mvp");
+    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("tex");
     glUniform1i(Tex_Loc, 0);
 
     sgct::ShaderManager::instance()->unBindShaderProgram();

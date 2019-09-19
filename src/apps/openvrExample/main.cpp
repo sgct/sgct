@@ -147,7 +147,7 @@ void myInitOGLFun()
         "gridShader.vert",
         "gridShader.frag");
     sgct::ShaderManager::instance()->bindShaderProgram("gridShader");
-    Matrix_Locs[GRID] = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("MVP");
+    Matrix_Locs[GRID] = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("mvp");
     linecolor_loc = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("linecolor");
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -155,7 +155,7 @@ void myInitOGLFun()
         "pyramidShader.vert",
         "pyramidShader.frag");
     sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
-    Matrix_Locs[PYRAMID] = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("MVP");
+    Matrix_Locs[PYRAMID] = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("mvp");
     alpha_Loc = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("alpha");
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }

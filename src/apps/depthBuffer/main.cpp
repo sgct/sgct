@@ -1,3 +1,4 @@
+
 #include <sgct.h>
 #include <sgct/clustermanager.h>
 #include <sgct/postfx.h>
@@ -195,13 +196,13 @@ void initOGLFun() {
 
     TextureManager::instance()->loadTexture(
         "heightmap",
-        "../SharedResources/heightmap.png",
+        "heightmap.png",
         true,
         0
     );
     TextureManager::instance()->loadTexture(
         "normalmap",
-        "../SharedResources/normalmap.png",
+        "normalmap.png",
         true,
         0
     );
@@ -221,7 +222,7 @@ void initOGLFun() {
     currTimeLoc = -1;
     textureLocations[0] = heightMapProg.getUniformLocation("hTex");
     textureLocations[1] = heightMapProg.getUniformLocation("nTex");
-    currTimeLoc = heightMapProg.getUniformLocation("curr_time");
+    currTimeLoc = heightMapProg.getUniformLocation("currTime");
 
     glUniform1i(textureLocations[0], 0);
     glUniform1i(textureLocations[1], 1);

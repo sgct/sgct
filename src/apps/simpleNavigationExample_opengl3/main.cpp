@@ -246,7 +246,7 @@ void initOGLFun() {
     );
     ShaderManager::instance()->bindShaderProgram("gridShader");
     const ShaderProgram& gProg= ShaderManager::instance()->getShaderProgram("gridShader");
-    grid.matrixLocation = gProg.getUniformLocation("MVP");
+    grid.matrixLocation = gProg.getUniformLocation("mvp");
     ShaderManager::instance()->unBindShaderProgram();
 
     ShaderManager::instance()->addShaderProgram(
@@ -257,7 +257,7 @@ void initOGLFun() {
     ShaderManager::instance()->bindShaderProgram("pyramidShader");
     const ShaderProgram& pyramidProg =
         ShaderManager::instance()->getShaderProgram("pyramidShader");
-    pyramid.matrixLocation = pyramidProg.getUniformLocation("MVP");
+    pyramid.matrixLocation = pyramidProg.getUniformLocation("mvp");
     alphaLocation = pyramidProg.getUniformLocation("alpha");
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }

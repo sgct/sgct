@@ -1,5 +1,5 @@
 #include "sgct.h"
-#include "FMOD_Audio.h"
+#include "fmod_audio.h"
 
 sgct::Engine * gEngine;
 
@@ -113,7 +113,7 @@ void myInitFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "mvp" );
  
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }

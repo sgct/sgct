@@ -265,7 +265,7 @@ void preSyncFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         2.f,
@@ -281,8 +281,8 @@ void initOGLFun() {
     sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
     const ShaderProgram& prg = sgct::ShaderManager::instance()->getShaderProgram("xform");
-    matrixLoc = prg.getUniformLocation("MVP");
-    GLint TexLoc = prg.getUniformLocation("Tex");
+    matrixLoc = prg.getUniformLocation("mvp");
+    GLint TexLoc = prg.getUniformLocation("tex");
     glUniform1i(TexLoc, 0 );
 
     sgct::ShaderManager::instance()->unBindShaderProgram();

@@ -61,8 +61,8 @@ void setupPostFXs() {
         fx.setUpdateUniformsFunction(updatePass1);
         ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass1 = sp.getUniformLocation("Tex");
-        originalTextureLocation = sp.getUniformLocation("TexOrig");
+        postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
+        originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
         gEngine->addPostFX(std::move(fx));
     }
@@ -73,8 +73,8 @@ void setupPostFXs() {
         fx.setUpdateUniformsFunction(updatePass2);
         ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass2 = sp.getUniformLocation("Tex");
-        sizeLocation.pass2 = sp.getUniformLocation("Size");
+        postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
+        sizeLocation.pass2 = sp.getUniformLocation("size");
         sp.unbind();
         gEngine->addPostFX(std::move(fx));
     }
@@ -85,8 +85,8 @@ void setupPostFXs() {
         fx.setUpdateUniformsFunction(updatePass3);
         ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass3 = sp.getUniformLocation("Tex");
-        sizeLocation.pass3 = sp.getUniformLocation("Size");
+        postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
+        sizeLocation.pass3 = sp.getUniformLocation("size");
         sp.unbind();
         gEngine->addPostFX(std::move(fx));
     }
@@ -97,8 +97,8 @@ void setupPostFXs() {
         fx.setUpdateUniformsFunction(updatePass4);
         ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass4 = sp.getUniformLocation("Tex");
-        originalTextureLocation = sp.getUniformLocation("TexOrig");
+        postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
+        originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
         gEngine->addPostFX(std::move(fx));
     }
@@ -152,7 +152,7 @@ void preSyncFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         2.f,
@@ -162,17 +162,12 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        "SimpleVertexShader.vertexshader",
-        "SimpleFragmentShader.fragmentshader"
-    );
-
+    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
     ShaderManager::instance()->bindShaderProgram("xform");
 
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
-    matrixLoc = prog.getUniformLocation("MVP");
-    GLint textureLocation = prog.getUniformLocation("Tex");
+    matrixLoc = prog.getUniformLocation("mvp");
+    GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
 
     sgct::ShaderManager::instance()->unBindShaderProgram();

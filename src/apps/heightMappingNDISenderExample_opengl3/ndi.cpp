@@ -6,7 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "sgct.h"
-#include "NDI.h"
+#include "ndi.h"
 #include <future>
 
 NDISender::NDISender()

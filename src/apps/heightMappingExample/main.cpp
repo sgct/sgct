@@ -86,7 +86,7 @@ void drawFun() {
     glEnable(GL_TEXTURE_2D);
 
     // set current shader program
-    sgct::ShaderManager::instance()->bindShaderProgram( "Heightmap" );
+    sgct::ShaderManager::instance()->bindShaderProgram("Heightmap");
     glUniform1f(currTimeLoc, static_cast<float>(currentTime.getVal()));
 
     glLineWidth(2.0); // for wireframe
@@ -145,18 +145,8 @@ void initOGLFun() {
     drawTerrainGrid(1.f, 1.f, 256, 256);
     glEndList();
 
-    TextureManager::instance()->loadTexture(
-        "heightmap",
-        "../SharedResources/heightmap.png",
-        true,
-        0
-    );
-    TextureManager::instance()->loadTexture(
-        "normalmap",
-        "../SharedResources/normalmap.png",
-        true,
-        0
-    );
+    TextureManager::instance()->loadTexture("heightmap", "heightmap.png", true, 0);
+    TextureManager::instance()->loadTexture("normalmap", "normalmap.png", true, 0);
 
     ShaderManager::instance()->addShaderProgram(
         "Heightmap",
@@ -169,7 +159,7 @@ void initOGLFun() {
 
     textureLocations[0] = prog.getUniformLocation("hTex");
     textureLocations[1] = prog.getUniformLocation("nTex");
-    currTimeLoc = prog.getUniformLocation("curr_time");
+    currTimeLoc = prog.getUniformLocation("currTime");
 
     glUniform1i(textureLocations[0], 0);
     glUniform1i(textureLocations[1], 1);

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(calibrator main.cpp Dome.h Dome.cpp)
+add_executable(calibrator main.cpp dome.h dome.cpp)
 set_compile_options(calibrator)
 target_link_libraries(calibrator PRIVATE sgct)
 

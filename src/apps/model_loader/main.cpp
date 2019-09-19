@@ -1,5 +1,5 @@
 #include <sgct.h>
-#include "objloader.hpp"
+#include "objloader.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -154,13 +154,9 @@ void initOGLFun() {
     TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
     TextureManager::instance()->setAnisotropicFilterSize(4.0f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture(
-        "box",
-        "../SharedResources/box.png",
-        true
-    );
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    loadModel("../SharedResources/box.obj");
+    loadModel("box.obj");
     
     glEnable( GL_TEXTURE_2D );
     glDisable(GL_LIGHTING);

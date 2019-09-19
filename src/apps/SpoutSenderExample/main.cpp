@@ -159,8 +159,8 @@ void initOGLFun() {
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
 
-    matrixLoc = prog.getUniformLocation("MVP");
-    GLint textureLocation = prog.getUniformLocation("Tex");
+    matrixLoc = prog.getUniformLocation("mvp");
+    GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
 
     ShaderManager::instance()->unBindShaderProgram();

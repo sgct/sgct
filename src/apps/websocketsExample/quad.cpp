@@ -1,4 +1,4 @@
-#include "Quad.hpp"
+#include "quad.h"
 #include "sgct.h"
 
 Quad::Quad()

@@ -10,6 +10,7 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(renderToTexture ${files})
 copy_sgct_dynamic_libraries(renderToTexture)

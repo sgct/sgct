@@ -1,7 +1,7 @@
 #include "sgct.h"
-#include "Webserver.hpp"
-#include "UserData.hpp"
-#include "Quad.hpp"
+#include "webserver.h"
+#include "userdata.h"
+#include "quad.h"
 
 #define MAX_WEB_USERS 256
 

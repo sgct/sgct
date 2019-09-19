@@ -114,25 +114,25 @@ void createPyramid(float width) {
 
     // enhance the pyramids with lines in the edges
     // -x
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
-    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, width / 2.f });
     // +x
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
-    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
     // -z
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, -width / 2.0f });
-    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, -width / 2.0f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, -width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, -width / 2.f });
     // +z
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
-    vertData.push_back(Vertex{ -width / 2.0f, 0.0f, width / 2.0f });
-    vertData.push_back(Vertex{ 0.0f, 2.0f, 0.0f });
-    vertData.push_back(Vertex{ width / 2.0f, 0.0f, width / 2.0f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ -width / 2.f, 0.f, width / 2.f });
+    vertData.push_back(Vertex{ 0.f, 2.f, 0.f });
+    vertData.push_back(Vertex{ width / 2.f, 0.f, width / 2.f });
 
     // triangles
     // -x
@@ -246,12 +246,12 @@ void initOGLFun() {
     ShaderManager& sm = *ShaderManager::instance();
     sm.addShaderProgram("gridShader", "gridShader.vert", "gridShader.frag");
     sm.bindShaderProgram("gridShader");
-    grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("MVP");
+    grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("mvp");
     sm.unBindShaderProgram();
 
     sm.addShaderProgram("pyramidShader", "pyramidShader.vert", "pyramidShader.frag");
     sm.bindShaderProgram("pyramidShader");
-    pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("MVP");
+    pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("mvp");
     alphaLocation = sm.getShaderProgram("pyramidShader").getUniformLocation("alpha");
     sm.unBindShaderProgram();
 }

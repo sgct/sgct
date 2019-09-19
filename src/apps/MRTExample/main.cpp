@@ -61,22 +61,18 @@ void initOGLFun() {
 
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
     textureID = prg.getUniformLocation("tDiffuse");
-    worldMatrixTransposeId = prg.getUniformLocation("WorldMatrixTranspose");
+    worldMatrixTransposeId = prg.getUniformLocation("worldMatrixTranspose");
 
     ShaderManager::instance()->unBindShaderProgram();
     
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture(
-        "box",
-        "../SharedResources/box.png",
-        true
-    );
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         2.f,
         sgct_utils::Box::TextureMappingMode::Regular
-        );
+    );
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);

@@ -11,6 +11,7 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/mrt.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(MRTExample ${files})
 copy_sgct_dynamic_libraries(MRTExample)

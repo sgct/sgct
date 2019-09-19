@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(heightMappingNDISenderExample_opengl3 main.cpp NDI.h NDI.cpp)
+add_executable(heightMappingNDISenderExample_opengl3 main.cpp ndi.h ndi.cpp)
 set_compile_options(heightMappingNDISenderExample_opengl3)
 target_link_libraries(heightMappingNDISenderExample_opengl3 PRIVATE sgct)
 

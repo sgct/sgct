@@ -193,18 +193,8 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
     glDepthFunc(GL_LESS);
 
-    TextureManager::instance()->loadTexture(
-        "heightmap",
-        "../SharedResources/heightmap.png",
-        true,
-        0
-    );
-    TextureManager::instance()->loadTexture(
-        "normalmap",
-        "../SharedResources/normalmap.png",
-        true,
-        0
-    );
+    TextureManager::instance()->loadTexture("heightmap", "heightmap.png", true, 0);
+    TextureManager::instance()->loadTexture("normalmap", "normalmap.png", true, 0);
 
     // setup shader
     ShaderManager::instance()->addShaderProgram(
@@ -217,15 +207,15 @@ void initOGLFun() {
     mSp.bind();
     heightTextureLoc = mSp.getUniformLocation("hTex");
     normalTextureLoc = mSp.getUniformLocation("nTex");
-    currTimeLoc = mSp.getUniformLocation("curr_time");
-    MVPLoc = mSp.getUniformLocation("MVP");
-    MVLoc = mSp.getUniformLocation("MV");
-    MVLightLoc = mSp.getUniformLocation("MV_light");
+    currTimeLoc = mSp.getUniformLocation("currTime");
+    MVPLoc = mSp.getUniformLocation("mvp");
+    MVLoc = mSp.getUniformLocation("mv");
+    MVLightLoc = mSp.getUniformLocation("mvLight");
     NMLoc = mSp.getUniformLocation("normalMatrix");
     lightPosLoc = mSp.getUniformLocation("lightPos");
-    lightAmbLoc = mSp.getUniformLocation("light_ambient");
-    lightDifLoc = mSp.getUniformLocation("light_diffuse");
-    lightSpeLoc = mSp.getUniformLocation("light_specular");
+    lightAmbLoc = mSp.getUniformLocation("lightAmbient");
+    lightDifLoc = mSp.getUniformLocation("lightDiffuse");
+    lightSpeLoc = mSp.getUniformLocation("lightSpecular");
     glUniform1i(heightTextureLoc, 0);
     glUniform1i(normalTextureLoc, 1);
     glUniform4fv(lightPosLoc, 1, glm::value_ptr(lightPosition));
@@ -234,7 +224,7 @@ void initOGLFun() {
     glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
     ShaderManager::instance()->unBindShaderProgram();
 
-    Geometry geometry = generateTerrainGrid(1.0f, 1.0f, GridSize, GridSize);
+    Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);
 
     glGenVertexArrays(1, &vertexArray);
     glBindVertexArray(vertexArray);

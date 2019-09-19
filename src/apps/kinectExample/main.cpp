@@ -11,7 +11,6 @@ namespace {
 
     sgct::TrackingDevice* leftHand = nullptr;
     sgct::TrackingDevice* rightHand = nullptr;
-
 } // namespace
 
 using namespace sgct;

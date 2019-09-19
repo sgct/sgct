@@ -1,1 +1,0 @@
-clustertest.exe -config ../../config/single.xml

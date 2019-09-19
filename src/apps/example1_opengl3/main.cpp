@@ -53,26 +53,21 @@ void initFun() {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        "SimpleVertexShader.vertexshader",
-        "SimpleFragmentShader.fragmentshader"
-    );
-
+    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
     ShaderManager::instance()->bindShaderProgram("xform");
  
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
-    matrixLoc = prg.getUniformLocation("MVP");
+    matrixLoc = prg.getUniformLocation("mvp");
  
     ShaderManager::instance()->unBindShaderProgram();
 }
 
 void drawFun() {
-    float speed = 0.8f;
+    constexpr const float Speed = 0.8f;
 
     glm::mat4 scene = glm::rotate(
         glm::mat4(1.f),
-        static_cast<float>(currentTime.getVal()) * speed,
+        static_cast<float>(currentTime.getVal()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
@@ -87,23 +82,23 @@ void drawFun() {
 
     // unbind
     glBindVertexArray(0);
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
 void preSyncFun() {
     // set the time only on the master
     if (gEngine->isMaster()) {
         // get the time in seconds
-        currentTime.setVal(sgct::Engine::getTime());
+        currentTime.setVal(Engine::getTime());
     }
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeDouble(currentTime);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -114,18 +109,18 @@ void cleanUpFun() {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    gEngine = new Engine(arg);
 
     // Bind your functions
     gEngine->setInitOGLFunction(initFun);
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setCleanUpFunction(cleanUpFun);
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
-    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

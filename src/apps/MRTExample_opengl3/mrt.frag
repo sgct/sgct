@@ -6,13 +6,12 @@ layout(location = 2) out vec3 position;
 
 uniform sampler2D tDiffuse;
 
-in vec2 UV;
-in vec3 N;
-in vec4 P;
+in vec2 uv;
+in vec3 n;
+in vec4 p;
 
-void main()
-{
-	diffuse = texture(tDiffuse, UV.st);
-	normal = N;
-	position = P.xyz;
+void main() {
+  diffuse = texture(tDiffuse, uv);
+  normal = n;
+  position = p.xyz;
 }

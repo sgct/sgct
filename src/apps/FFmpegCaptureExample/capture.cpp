@@ -1,4 +1,4 @@
-#include "Capture.hpp"
+#include "capture.h"
 #include <sgct.h>
 
 extern "C"

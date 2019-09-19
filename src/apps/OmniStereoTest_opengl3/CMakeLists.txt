@@ -15,6 +15,7 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/test.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/turnmap.jpg"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(OmniStereoTest_opengl3 ${files})
 copy_sgct_dynamic_libraries(OmniStereoTest_opengl3)

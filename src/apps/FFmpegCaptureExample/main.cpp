@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sgct.h>
-#include "Capture.hpp"
+#include "capture.h"
 
-sgct::Engine * gEngine;
-Capture * gCapture = NULL;
+namespace {
+    sgct::Engine* gEngine;
+    Capture* gCapture = nullptr;
+} // namespace
 
 //sgct callbacks
 void myDraw3DFun();
@@ -16,10 +18,10 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 void myKeyCallback(int key, int action);
-void myContextCreationCallback(GLFWwindow * win);
+void myContextCreationCallback(GLFWwindow* win);
 
 //other callbacks
-void uploadData(uint8_t ** data, int width, int height);
+void uploadData(uint8_t** data, int width, int height);
 
 //functions
 void parseArguments(int& argc, char**& argv);
@@ -248,10 +250,10 @@ void myInitOGLFun()
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "mvp" );
     ScaleUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("scaleUV");
     OffsetUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("offsetUV");
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "tex" );
     glUniform1i( Tex_Loc, 0 );
 
     sgct::ShaderManager::instance()->unBindShaderProgram();

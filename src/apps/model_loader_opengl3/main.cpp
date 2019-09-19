@@ -1,5 +1,5 @@
 #include <sgct.h>
-#include "objloader.hpp"
+#include "objloader.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -169,9 +169,9 @@ void postSyncPreDrawFun() {
     // reset locations
     sp.bind();
 
-    MVPLoc = sp.getUniformLocation("MVP");
-    NMLoc = sp.getUniformLocation("NM");
-    GLint Tex_Loc = sp.getUniformLocation("Tex");
+    MVPLoc = sp.getUniformLocation("mvp");
+    NMLoc = sp.getUniformLocation("nm");
+    GLint Tex_Loc = sp.getUniformLocation("tex");
     glUniform1i(Tex_Loc, 0);
 
     sp.unbind();
@@ -182,13 +182,9 @@ void initOGLFun() {
     TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
     TextureManager::instance()->setAnisotropicFilterSize(4.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture(
-        "box",
-        "../SharedResources/box.png",
-        true
-    );
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    loadModel("../SharedResources/box.obj");
+    loadModel("box.obj");
     
     // Set up backface culling
     glCullFace(GL_BACK);
@@ -200,9 +196,9 @@ void initOGLFun() {
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
 
-    MVPLoc = prog.getUniformLocation("MVP");
-    NMLoc = prog.getUniformLocation("NM");
-    GLint textureLocation = prog.getUniformLocation("Tex");
+    MVPLoc = prog.getUniformLocation("mvp");
+    NMLoc = prog.getUniformLocation("nm");
+    GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
 
     ShaderManager::instance()->unBindShaderProgram();

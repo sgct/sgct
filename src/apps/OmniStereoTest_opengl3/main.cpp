@@ -380,7 +380,7 @@ void postDrawFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         0.5f,
@@ -395,12 +395,12 @@ void initOGLFun() {
     ShaderManager& sm = *ShaderManager::instance();
     sm.addShaderProgram("grid", "grid.vert", "grid.frag");
     sm.bindShaderProgram("grid");
-    gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("MVP");
+    gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
 
     sm.addShaderProgram("xform", "base.vert", "base.frag");
     sm.bindShaderProgram("xform");
-    matrixLoc = sm.getShaderProgram("xform").getUniformLocation("MVP");
-    GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("Tex");
+    matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
+    GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("tex");
     glUniform1i(textureLoc, 0);
 
     sm.unBindShaderProgram();

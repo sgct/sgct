@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include "sgct.h"
-#include "NDI.h"
+#include "ndi.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
 #define GRID_SIZE 256
@@ -192,15 +192,15 @@ void myInitOGLFun()
     mSp.bind();
     myTextureLocations[0]    = mSp.getUniformLocation( "hTex" );
     myTextureLocations[1]    = mSp.getUniformLocation( "nTex" );
-    curr_timeLoc            = mSp.getUniformLocation( "curr_time" );
-    MVP_Loc                    = mSp.getUniformLocation( "MVP" );
-    MV_Loc                    = mSp.getUniformLocation( "MV" );
-    MVLight_Loc                = mSp.getUniformLocation( "MV_light" );
+    curr_timeLoc            = mSp.getUniformLocation( "currTime" );
+    MVP_Loc                    = mSp.getUniformLocation( "mvp" );
+    MV_Loc                    = mSp.getUniformLocation( "mv" );
+    MVLight_Loc                = mSp.getUniformLocation( "mvLight" );
     NM_Loc                    = mSp.getUniformLocation( "normalMatrix" );
     lightPos_Loc            = mSp.getUniformLocation( "lightPos" );
-    lightAmb_Loc            = mSp.getUniformLocation( "light_ambient" );
-    lightDif_Loc            = mSp.getUniformLocation( "light_diffuse" );
-    lightSpe_Loc            = mSp.getUniformLocation( "light_specular" );
+    lightAmb_Loc            = mSp.getUniformLocation( "lightAmbient" );
+    lightDif_Loc            = mSp.getUniformLocation( "lightDiffuse" );
+    lightSpe_Loc            = mSp.getUniformLocation( "lightSpecular" );
     glUniform1i( myTextureLocations[0], 0 );
     glUniform1i( myTextureLocations[1], 1 );
     glUniform4f( lightPos_Loc, lightPosition.x, lightPosition.y, lightPosition.z, 1.0f );

@@ -241,7 +241,7 @@ void postSyncPreDrawFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         1.f,

@@ -1,5 +1,5 @@
 #include "fmod_errors.h"
-#include "FMOD_Audio.h"
+#include "fmod_audio.h"
 
 #define USE_FMOD_EX 1
 #define USE_FMOD_HARDWARE 0

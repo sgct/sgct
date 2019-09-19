@@ -32,7 +32,7 @@ void initOGLFun() {
     sm.addShaderProgram("SimpleColor", "simple.vert", "simple.frag");
     sm.bindShaderProgram("SimpleColor");
 
-    timeLoc = sm.getShaderProgram("SimpleColor").getUniformLocation("curr_time");
+    timeLoc = sm.getShaderProgram("SimpleColor").getUniformLocation("currTime");
 
     ShaderManager::instance()->unBindShaderProgram();
 }
@@ -62,7 +62,7 @@ void postSyncPreDrawFun() {
         sp.reload();
 
         sm.bindShaderProgram("SimpleColor");
-        timeLoc = sm.getShaderProgram( "SimpleColor").getUniformLocation("curr_time");
+        timeLoc = sm.getShaderProgram("SimpleColor").getUniformLocation("currTime");
         sgct::ShaderManager::instance()->unBindShaderProgram();
     }
 }

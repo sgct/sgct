@@ -108,7 +108,7 @@ void postSyncPreDrawFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+    TextureManager::instance()->loadTexture("box", "box.png", true);
 
     box = std::make_unique<sgct_utils::Box>(
         2.f,
@@ -123,9 +123,9 @@ void initOGLFun() {
     SM::instance()->addShaderProgram("xform", "xform.vert", "xform.frag");
     SM::instance()->bindShaderProgram("xform");
 
-    matrixLoc = SM::instance()->getShaderProgram("xform").getUniformLocation("MVP");
+    matrixLoc = SM::instance()->getShaderProgram("xform").getUniformLocation("mvp");
     glUniform1i(
-        SM::instance()->getShaderProgram("xform").getUniformLocation("Tex"),
+        SM::instance()->getShaderProgram("xform").getUniformLocation("tex"),
         0
     );
 

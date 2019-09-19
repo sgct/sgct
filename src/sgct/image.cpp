@@ -12,8 +12,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <png.h>
 #include <pngpriv.h>
+
+#ifdef SGCT_HAS_TURBOJPEG
 #include <jpeglib.h>
 #include <turbojpeg.h>
+#endif // SGCT_HAS_TURBOJPEG
 
 #include <sgct/image.h>
 
@@ -30,6 +33,7 @@ namespace {
         unsigned char* data;
     };
 
+#ifdef SGCT_HAS_TURBOJPEG
     //---------------- JPEG helpers -----------------
     struct my_error_mgr {
         struct jpeg_error_mgr pub; // "public" fields
@@ -48,6 +52,8 @@ namespace {
         // Return control to the setjmp point
         longjmp(myerr->setjmp_buffer, 1);
     }
+
+#endif // SGCT_HAS_TURBOJPEG
 
     void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length) {
         if (length <= 0) {
@@ -171,6 +177,7 @@ bool Image::load(std::string filename) {
 }
 
 bool Image::loadJPEG(std::string filename) {
+#ifdef SGCT_HAS_TURBOJPEG
     if (filename.empty()) {
         // one char + dot and suffix and is 5 char
         return false;
@@ -269,9 +276,18 @@ bool Image::loadJPEG(std::string filename) {
     );
 
     return true;
+#else
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::Level::Error,
+        "SGCT was compiled without support for TurbJPEG, which prevents loading of %s",
+        mFilename.c_str()
+    );
+    return false;
+#endif // SGCT_HAS_TURBOJPEG
 }
 
 bool Image::loadJPEG(unsigned char* data, size_t len) {
+#ifdef SGCT_HAS_TURBOJPEG
     if (data == nullptr || len <= 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -375,6 +391,14 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     
     tjDestroy(turbo_jpeg_handle);
     return true;
+#else
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::Level::Error,
+        "SGCT was compiled without support for TurbJPEG, which prevents loading of %s",
+        mFilename.c_str()
+    );
+    return false;
+#endif //SGCT_HAS_TURBOJPEG
 }
 
 bool Image::loadPNG(std::string filename) {
@@ -1118,6 +1142,7 @@ bool Image::savePNG(int compressionLevel) {
 }
 
 bool Image::saveJPEG(int quality) {
+#ifdef SGCT_HAS_TURBOJPEG
     if (mData == nullptr) {
         return false;
     }
@@ -1216,6 +1241,14 @@ bool Image::saveJPEG(int quality) {
         (sgct::Engine::getTime() - t0) * 1000.0
     );
     return true;
+#else
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::Level::Error,
+        "SGCT was compiled without support for TurbJPEG, which prevents saving of %s",
+        mFilename.c_str()
+    );
+    return false;
+#endif
 }
 
 bool Image::saveTGA() {

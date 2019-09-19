@@ -15,7 +15,7 @@ namespace sgct {
     constexpr const int VersionMinor = @SGCT_VERSION_MINOR@;
     constexpr const int VersionRevision = @SGCT_VERSION_REVISION@;
 
-    std::string getSGCTVersion();
+    std::string getVersion();
 }
 
 #endif // __SGCT__VERSION__H__

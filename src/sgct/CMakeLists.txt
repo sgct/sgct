@@ -123,10 +123,37 @@ target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/include)
 target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
 
-target_link_libraries(sgct
-  PRIVATE
-    glew glfw png16_static turbojpeg-static tinyxml2static zlibstatic miniziplibstatic vrpn
-)
+target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
+
+if (SGCT_DEP_INCLUDE_GLEW)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLEW)
+  target_link_libraries(sgct PRIVATE glew)
+endif ()
+
+if (SGCT_DEP_INCLUDE_GLFW)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)
+  target_link_libraries(sgct PRIVATE glfw)
+endif ()
+
+if (SGCT_DEP_INCLUDE_LIBPNG)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_LIBPNG)
+  target_link_libraries(sgct PRIVATE png16_static)
+endif ()
+
+if (SGCT_DEP_INCLUDE_TURBOJPEG)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_TURBOJPEG)
+  target_link_libraries(sgct PRIVATE turbojpeg-static)
+endif ()
+
+if (SGCT_DEP_INCLUDE_TINYXML)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_TINYXML)
+  target_link_libraries(sgct PRIVATE tinyxml2static)
+endif ()
+
+if (SGCT_DEP_INCLUDE_VRPN)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_VRPN)
+  target_link_libraries(sgct PRIVATE vrpn)
+endif ()
 
 if (SGCT_FREETYPE_SUPPORT)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)

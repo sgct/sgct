@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/SGCTVersion.h>
+#include <sgct/version.h>
 
 namespace sgct {
 

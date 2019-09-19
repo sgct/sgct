@@ -40,7 +40,7 @@ namespace {
     }
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 Viewport::Viewport() : Viewport(0.f, 0.f, 0.f, 0.f) {}
 
@@ -122,8 +122,8 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
                 setPos(std::move(position));
             }
             else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Viewport: Failed to parse position from XML\n"
                 );
             }
@@ -136,8 +136,8 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
                 setSize(std::move(size));
             }
             else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Viewport: Failed to parse size from XML!\n"
                 );
             }
@@ -182,8 +182,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         setPos(std::move(vpPosition));
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Viewport: Failed to parse position from XML\n"
         );
     }
@@ -195,8 +195,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         setSize(std::move(vpSize));
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Viewport: Failed to parse size from XML\n"
         );
     }
@@ -211,8 +211,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         if (expectedResolutionX != vpResolution.x ||
             expectedResolutionY != vpResolution.y)
         {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Warning,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Warning,
                 "Viewport: MPCDI region expected resolution does not match window\n"
             );
         }
@@ -220,8 +220,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
         // @TODO:  Do something with the resolution
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Viewport: Failed to parse resolution from XML\n"
         );
     }
@@ -284,15 +284,15 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
                 !pitch.has_value() || !roll.has_value();
 
             if (hasMissingField) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Viewport: Failed to parse mpcdi projection FOV from XML\n"
                 );
                 return;
             }
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
                 *down, *left, *right, *up, *yaw, *pitch, *roll
             );
@@ -328,8 +328,8 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
             {
                 validFOV = true;
 
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Debug,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Debug,
                     "Viewport: Adding planar projection left=%f right=%f up=%f down=%f\n",
                     left, right, up, down
                 );
@@ -339,8 +339,8 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
                 float tanBottom = tan(glm::radians(down));
                 float tanTop = tan(glm::radians(up));
 
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Debug,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Debug,
                     "Tan angles: tanLeft=%f tanRight=%f tanBottom=%f tanTop=%f\n "
                     "width=%f\n height=%f\n",
                     tanLeft, tanRight, tanBottom, tanTop, tanRight + tanLeft,
@@ -348,8 +348,8 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
                 );
             }
             else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Viewport: Failed to parse planar projection FOV from XML\n"
                 );
             }
@@ -411,8 +411,8 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     float tilt;
     if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         fishProj->setTilt(tilt);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ReadConfig: Setting fisheye tilt to %f degrees\n", tilt
         );
     }
@@ -420,8 +420,8 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     float diameter;
     if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
         fishProj->setDomeDiameter(diameter);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ReadConfig: Setting fisheye diameter to %f meters\n", diameter
         );
     }
@@ -470,8 +470,8 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
 void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 #ifndef SGCT_HAS_SPOUT
     (void)element;
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Warning,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Warning,
         "ReadConfig: Spout library not added to SGCT\n"
     );
     return;
@@ -567,8 +567,8 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     float tilt;
     if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         sphericalMirrorProj->setTilt(tilt);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ReadConfig: Setting spherical mirror tilt to %f degrees\n", tilt
         );
     }
@@ -648,13 +648,13 @@ void Viewport::setTracked(bool state) {
 }
 
 void Viewport::loadData() {
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Viewport: loading GPU data for '%s'\n", mName.c_str()
     );
         
     if (!mOverlayFilename.empty()) {
-        sgct::TextureManager::instance()->loadUnManagedTexture(
+        TextureManager::instance()->loadUnManagedTexture(
             mOverlayTextureIndex,
             mOverlayFilename,
             true,
@@ -663,7 +663,7 @@ void Viewport::loadData() {
     }
 
     if (!mBlendMaskFilename.empty()) {
-        sgct::TextureManager::instance()->loadUnManagedTexture(
+        TextureManager::instance()->loadUnManagedTexture(
             mBlendMaskTextureIndex,
             mBlendMaskFilename,
             true,
@@ -672,7 +672,7 @@ void Viewport::loadData() {
     }
 
     if (!mBlackLevelMaskFilename.empty()) {
-        sgct::TextureManager::instance()->loadUnManagedTexture(
+        TextureManager::instance()->loadUnManagedTexture(
             mBlackLevelMaskTextureIndex,
             mBlackLevelMaskFilename,
             true,
@@ -763,4 +763,4 @@ const std::vector<unsigned char>& Viewport::mpcdiWarpMesh() const {
     return mMpcdiWarpMesh;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

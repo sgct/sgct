@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
 #define __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
 
-namespace sgct_core::shaders_fisheye_cubic {
+namespace sgct::core::shaders_fisheye_cubic {
 /*
     All shaders are in GLSL 1.2 for compability with Mac OS X
 */
@@ -607,6 +607,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
     }
 )";
 
-} // sgct_core::shaders_fisheye_cubic
+} // sgct::core::shaders_fisheye_cubic
 
 #endif // __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__

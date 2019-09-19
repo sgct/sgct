@@ -17,7 +17,7 @@ namespace {
     std::mutex mutex;
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
-    std::unique_ptr<sgct_core::Image> transImg;
+    std::unique_ptr<sgct::core::Image> transImg;
 
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
@@ -32,7 +32,7 @@ namespace {
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
-    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
     // variables to share across cluster
@@ -110,9 +110,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         2.f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
     );
 
     // Set up backface culling
@@ -184,7 +184,7 @@ void keyCallback(int key, int, int action, int) {
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(mutex);
 
-    transImg = std::make_unique<sgct_core::Image>();
+    transImg = std::make_unique<sgct::core::Image>();
 
     char type = static_cast<char>(data[0]);
     assert(type == 0 || type == 1);
@@ -357,7 +357,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (sgct::core::ClusterManager::instance()->getNumberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -413,7 +413,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == currentPackage.getVal()) {
         counter++;
-        if (counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
+        if (counter == (sgct::core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             

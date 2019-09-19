@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <GLFW/glfw3.h>
 #include <algorithm>
 
-namespace sgct_core {
+namespace sgct::core {
 
 std::string getTouchPointInfo(const Touch::TouchPoint& tp) {
     std::string result = "id(" + std::to_string(tp.id) + "),";
@@ -193,4 +193,4 @@ bool Touch::areAllPointsStationary() const {
     return mAllPointsStationary;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

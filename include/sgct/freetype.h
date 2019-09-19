@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <wchar.h>
 
-namespace sgct_text {
+namespace sgct::text {
 
 class Font;
 
@@ -33,6 +33,6 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
     const wchar_t* format, ...);
 
-} // namespace sgct_text
+} // namespace sgct::text
 
 #endif // __SGCT__FREE_TYPE__H__

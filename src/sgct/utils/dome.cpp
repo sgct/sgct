@@ -12,19 +12,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ogl_headers.h>
 #include <glm/gtc/constants.hpp>
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
                    unsigned int elevationSteps)
     : mElevationSteps(elevationSteps)
     , mAzimuthSteps(azimuthSteps)
 {
-    std::vector<sgct_helpers::VertexData> vertices;
+    std::vector<helpers::VertexData> vertices;
 
     // must be four or higher
     if (mAzimuthSteps < 4) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Warning: Dome geometry azimuth steps must be exceed 4\n"
         );
         mAzimuthSteps = 4;
@@ -32,8 +32,8 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
 
     // must be four or higher
     if (mElevationSteps < 4)  {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Warning: Dome geometry elevation steps must be exceed 4\n"
         );
         mElevationSteps = 4;
@@ -42,9 +42,9 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
 
     createVBO(radius, FOV);
 
-    if (!sgct::Engine::checkForOGLErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+    if (!Engine::checkForOGLErrors()) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error\n"
         );
     }
@@ -60,7 +60,7 @@ Dome::~Dome() {
 }
 
 void Dome::draw() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
     else {
@@ -135,7 +135,7 @@ void Dome::drawVAO() {
 void Dome::createVBO(float radius, float FOV) {
     const float lift = (180.f - FOV) / 2.f;
 
-    std::vector<sgct_helpers::VertexData> verts;
+    std::vector<helpers::VertexData> verts;
     std::vector<unsigned int> indices;
 
     for (int a = 0; a < mAzimuthSteps; a++) {
@@ -213,41 +213,41 @@ void Dome::createVBO(float radius, float FOV) {
     indices.push_back(numVerts + mAzimuthSteps - 1);
 
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Dome: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(2, &mVBO);
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Dome: Generating VBOs: %d %d\n", mVBO, mIBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        static_cast<int>(verts.size()) * sizeof(sgct_helpers::VertexData),
+        static_cast<int>(verts.size()) * sizeof(helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         // texcoords
         glVertexAttribPointer(
             0,
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -256,7 +256,7 @@ void Dome::createVBO(float radius, float FOV) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -265,7 +265,7 @@ void Dome::createVBO(float radius, float FOV) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(20)
         );
     }
@@ -278,7 +278,7 @@ void Dome::createVBO(float radius, float FOV) {
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
 
@@ -286,4 +286,4 @@ void Dome::createVBO(float radius, float FOV) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-} // namespace sgct_utils
+} // namespace sgct::utils

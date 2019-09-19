@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__INTERNAL_SHADERS_MODERN__H__
 #define __SGCT__INTERNAL_SHADERS_MODERN__H__
 
-namespace sgct_core::shaders_modern {
+namespace sgct::core::shaders_modern {
 /*
     Contains GLSL 3.3+ shaders
 */
@@ -451,6 +451,6 @@ constexpr const char* FXAAFrag = R"(
     }
 )";
 
-} // namespace sgct_core::shaders_modern
+} // namespace sgct::core::shaders_modern
 
 #endif // __SGCT__INTERNAL_SHADERS_MODERN__H__

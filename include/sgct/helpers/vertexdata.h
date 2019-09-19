@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__VERTEX_DATA__H__
 #define __SGCT__VERTEX_DATA__H__
 
-namespace sgct_helpers {
+namespace sgct::helpers {
 
 /**
  * This class stores a vertex which are used to generate vertex buffer objects (VBOs)
@@ -24,6 +24,6 @@ struct VertexData {
     float z = 0.f;  // size=12 ; total size=32 = power of two
 };
 
-} // namespace sgct_helpers
+} // namespace sgct::helpers
 
 #endif // __SGCT__VERTEX_DATA__H__

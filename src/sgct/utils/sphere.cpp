@@ -14,14 +14,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 Sphere::Sphere(float radius, unsigned int segments) {
     createVBO(radius, segments);
 
-    if (!sgct::Engine::checkForOGLErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error, "SGCT Utils: Sphere creation error\n"
+    if (!Engine::checkForOGLErrors()) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "SGCT Utils: Sphere creation error\n"
         );
     }
 }
@@ -76,7 +77,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     mNumberOfVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
     mNumberOfFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
 
-    std::vector<sgct_helpers::VertexData> verts(mNumberOfVertices);
+    std::vector<helpers::VertexData> verts(mNumberOfVertices);
 
     // First vertex: top pole (+y is "up" in object local coords)
     verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
@@ -142,41 +143,42 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     }
 
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug, "Sphere: Generating VAO: %d\n", mVAO
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
+            "Sphere: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mIBO);
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Sphere: Generating VBOs: %d %d\n", mVBO, mIBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        mNumberOfVertices * sizeof(sgct_helpers::VertexData),
+        mNumberOfVertices * sizeof(helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         // texcoords
         glVertexAttribPointer(
             0,
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -185,7 +187,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -194,7 +196,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(20)
         ); 
     }
@@ -207,7 +209,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
 
@@ -215,4 +217,4 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-} // namespace sgct_utils
+} // namespace sgct::utils

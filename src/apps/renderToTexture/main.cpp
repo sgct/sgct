@@ -15,7 +15,7 @@ namespace {
     };
 
     std::vector<FramebufferData> buffers;
-    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct::utils::Box> box;
 
     //variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -146,7 +146,7 @@ void resizeFBOs() {
 }
 
 void drawFun() {
-    sgct_core::OffScreenBuffer* fbo = gEngine->getCurrentFBO();
+    sgct::core::OffScreenBuffer* fbo = gEngine->getCurrentFBO();
     size_t drawIndex = gEngine->getCurrentDrawBufferIndex();
     
     // get viewport data and set the viewport
@@ -243,9 +243,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         1.f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
     );
 
     // set up shader

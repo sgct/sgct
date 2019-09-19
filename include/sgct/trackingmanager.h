@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <thread>
 #include <vector>
 
-namespace sgct_core { class User; }
+namespace sgct::core { class User; }
 
 namespace sgct {
 
@@ -61,7 +61,7 @@ private:
     double mSamplingTime = 0.0;
     bool mRunning = true;
 
-    sgct_core::User* mHeadUser = nullptr;
+    core::User* mHeadUser = nullptr;
     TrackingDevice* mHead = nullptr;
     int mNumberOfDevices = 0;
 };

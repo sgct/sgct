@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <memory>
 #include <string>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Returns the pixel size for the specified resolution of the cubemap faces.
@@ -159,11 +159,11 @@ protected:
     unsigned int mVBO = 0;
     unsigned int mVAO = 0;
 
-    sgct::ShaderProgram mShader;
-    sgct::ShaderProgram mDepthCorrectionShader;
+    ShaderProgram mShader;
+    ShaderProgram mDepthCorrectionShader;
     std::unique_ptr<OffScreenBuffer> mCubeMapFbo;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__NON_LINEAR_PROJECTION__H__

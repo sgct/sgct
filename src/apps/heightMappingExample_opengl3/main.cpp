@@ -174,7 +174,7 @@ void postSyncPreDrawFun() {
     gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
-    sgct_core::ClusterManager::instance()->getTrackingManager().setEnabled(
+    sgct::core::ClusterManager::instance()->getTrackingManager().setEnabled(
         useTracking.getVal()
     );
 
@@ -295,7 +295,7 @@ void keyCallback(int key, int, int action, int) {
                 useTracking.setVal(!useTracking.getVal());
                 break;
             case key::E:
-                sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                sgct::core::ClusterManager::instance()->getDefaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;

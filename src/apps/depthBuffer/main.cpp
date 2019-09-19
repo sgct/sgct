@@ -43,7 +43,7 @@ namespace {
 using namespace sgct;
 
 #ifdef Test
-sgct_utils::Sphere * sphere = NULL;
+sgct::utils::Sphere * sphere = NULL;
 #endif
 
 void updatePass() {
@@ -158,7 +158,7 @@ void postSyncPreDrawFun() {
     gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
-    sgct_core::ClusterManager::instance()->getTrackingManager().setEnabled(
+    sgct::core::ClusterManager::instance()->getTrackingManager().setEnabled(
         useTracking.getVal()
     );
 
@@ -231,7 +231,7 @@ void initOGLFun() {
     setupPostFXs();
 
 #ifdef Test
-    sphere = new sgct_utils::Sphere(2.0f, 512);
+    sphere = new sgct::utils::Sphere(2.0f, 512);
     gEngine->setNearAndFarClippingPlanes(1.0f, 3.0f);
 #else
     gEngine->setNearAndFarClippingPlanes(0.1f, 5.0f);
@@ -299,7 +299,7 @@ void keyCallback(int key, int, int action, int) {
                         glm::dmat4(1.0),
                         glm::dvec3(0.0, 0.0, 4.0)
                     );
-                    sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                    sgct::core::ClusterManager::instance()->getDefaultUser().setTransform(
                         xform
                     );
                 }

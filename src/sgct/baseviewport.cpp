@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/clustermanager.h>
 #include <sgct/user.h>
 
-namespace sgct_core {
+namespace sgct::core {
 
 BaseViewport::BaseViewport() : mUser(ClusterManager::instance()->getDefaultUser()) {}
 
@@ -257,4 +257,4 @@ void BaseViewport::setHorizontalFieldOfView(float horizFovDeg, float aspectRatio
     );
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

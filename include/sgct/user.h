@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <string>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Helper class for setting user variables

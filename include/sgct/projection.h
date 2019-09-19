@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/frustum.h>
 #include <glm/glm.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class ProjectionPlane;
 
@@ -37,6 +37,6 @@ protected:
     Frustum mFrustum;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__PROJECTION__H__

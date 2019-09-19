@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * This class manages and renders non linear fisheye projections
@@ -96,6 +96,6 @@ private:
     int mappingHeight;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__SPOUTOUTPUT_PROJECTION__H__

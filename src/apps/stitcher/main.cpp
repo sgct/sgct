@@ -42,7 +42,7 @@ namespace {
     float eyeSeparation = 0.065f;
     float domeDiameter = 14.8f;
 
-    //sgct_utils::Dome * dome = NULL;
+    //sgct::utils::Dome * dome = NULL;
 
     //variables to share across cluster
     sgct::SharedBool takeScreenshot(false);
@@ -261,17 +261,17 @@ void preWinInitFun() {
         win.setAlpha(alpha);
 
         for (int j = 0; j < gEngine->getWindow(i).getNumberOfViewports(); j++) {
-            sgct_core::Viewport& vp = win.getViewport(j);
+            sgct::core::Viewport& vp = win.getViewport(j);
             if (!vp.hasSubViewports()) {
                 continue;
             }
             vp.getNonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
             vp.getNonLinearProjection()->setCubemapResolution(cubemapRes);
             vp.getNonLinearProjection()->setInterpolationMode(
-                sgct_core::NonLinearProjection::InterpolationMode::Cubic
+                sgct::core::NonLinearProjection::InterpolationMode::Cubic
             );
 
-            sgct_core::FisheyeProjection* p = dynamic_cast<sgct_core::FisheyeProjection*>(
+            sgct::core::FisheyeProjection* p = dynamic_cast<sgct::core::FisheyeProjection*>(
                 vp.getNonLinearProjection()
             );
             if (p) {

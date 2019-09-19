@@ -15,7 +15,7 @@ namespace {
     const glm::vec4 materialSpecular = glm::vec4(0.f, 1.f, 1.f, 1.f);
     const float materialShininess = 64.f;
 
-    std::unique_ptr<sgct_utils::Sphere> sphere;
+    std::unique_ptr<sgct::utils::Sphere> sphere;
 } // namespace
 
 using namespace sgct;
@@ -28,7 +28,7 @@ void drawFun() {
 }
 
 void initOGLFun() {
-    sphere = std::make_unique<sgct_utils::Sphere>(1.f, 32);
+    sphere = std::make_unique<sgct::utils::Sphere>(1.f, 32);
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

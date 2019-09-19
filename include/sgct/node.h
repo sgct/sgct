@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class Node {
 public:
@@ -20,7 +20,7 @@ public:
      * Add a window to the window vector. Note that a window must be opened to become
      * visible.
      */
-    void addWindow(sgct::Window window);
+    void addWindow(Window window);
 
     /// Set which window that will render the draw calls.
     void setCurrentWindowIndex(int index);
@@ -50,10 +50,10 @@ public:
     int getNumberOfWindows();
 
     /// Get the window pointer at index in window vector.
-    sgct::Window& getWindow(int index);
+    Window& getWindow(int index);
 
     /// Get the active window pointer.
-    sgct::Window& getCurrentWindow();
+    Window& getCurrentWindow();
 
     /// Get the current window index
     int getCurrentWindowIndex();
@@ -95,10 +95,10 @@ private:
     std::string mDataTransferPort;
 
     int mCurrentWindowIndex = 0;
-    std::vector<sgct::Window> mWindows;
+    std::vector<Window> mWindows;
     bool mUseSwapGroups = false;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__NODE__H__

@@ -12,7 +12,7 @@ namespace {
     std::atomic_bool connected;
     std::atomic_bool running;
 
-    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
     sgct::SharedDouble currentTime(0.0);
@@ -20,7 +20,7 @@ namespace {
     std::string port;
     std::string address;
     bool isServer = false;
-    std::unique_ptr<sgct_core::Network> networkPtr;
+    std::unique_ptr<sgct::core::Network> networkPtr;
 
     std::pair<double, int> timerData;
 
@@ -57,7 +57,7 @@ void parseArguments(int& argc, char**& argv) {
     }
 }
 
-void networkConnectionUpdated(sgct_core::Network* conn) {
+void networkConnectionUpdated(sgct::core::Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
@@ -139,7 +139,7 @@ void connect() {
         return;
     }
 
-    networkPtr = std::make_unique<sgct_core::Network>();
+    networkPtr = std::make_unique<sgct::core::Network>();
 
     // init
     try {
@@ -157,7 +157,7 @@ void connect() {
             port,
             address,
             isServer,
-            sgct_core::Network::ConnectionType::DataTransfer
+            sgct::core::Network::ConnectionType::DataTransfer
         );
     }
     catch (const std::runtime_error& err) {
@@ -202,7 +202,7 @@ void disconnect() {
 
 void sendData(const void* data, int length, int packageId) {
     if (networkPtr) {
-        sgct_core::NetworkManager::instance()->transferData(
+        sgct::core::NetworkManager::instance()->transferData(
             data,
             length,
             packageId,
@@ -267,9 +267,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         2.f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
     );
 
     // Set up backface culling

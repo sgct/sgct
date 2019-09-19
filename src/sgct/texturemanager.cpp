@@ -119,7 +119,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
     std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
     // load image
-    sgct_core::Image img;
+    core::Image img;
     if (!img.load(filename)) {
         if (reload) {
             textureItem->second = TextureData();
@@ -157,7 +157,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
     return true;
 }
 
-bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgPtr,
+bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
                                  bool interpolate, int mipmapLevels)
 {
     if (!imgPtr) {
@@ -221,7 +221,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
     }
     
     // load image
-    sgct_core::Image img;
+    core::Image img;
     if (!img.load(filename)) {
         return false;
     }
@@ -282,7 +282,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
     return true;
 }
 
-bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& texPtr) {
+bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr) {
     glGenTextures(1, &texPtr);
     glBindTexture(GL_TEXTURE_2D, texPtr);
 
@@ -495,4 +495,4 @@ void TextureManager::freeTextureData() {
      mTextures.clear();
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

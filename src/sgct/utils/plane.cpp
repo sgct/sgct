@@ -13,14 +13,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/helpers/vertexdata.h>
 #include <array>
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 Plane::Plane(float width, float height) {
     createVBO(width, height);
 
-    if (!sgct::Engine::checkForOGLErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error, "SGCT Utils: Plane creation error\n"
+    if (!Engine::checkForOGLErrors()) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error, "SGCT Utils: Plane creation error\n"
         );
     }
 }
@@ -34,7 +34,7 @@ Plane::~Plane() {
 }
 
 void Plane::draw() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
     else {
@@ -65,46 +65,46 @@ void Plane::drawVAO() {
 }
 
 void Plane::createVBO(float width, float height) {
-    std::array<sgct_helpers::VertexData, 4> verts;
+    std::array<helpers::VertexData, 4> verts;
     verts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
     verts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
     verts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
     verts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
 
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug, "Plane: Generating VAO: %d\n", mVAO
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug, "Plane: Generating VAO: %d\n", mVAO
         );
     }
     
     glGenBuffers(1, &mVBO);
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug, "Plane: Generating VBO: %d\n", mVBO
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug, "Plane: Generating VBO: %d\n", mVBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        4 * sizeof(sgct_helpers::VertexData),
+        4 * sizeof(helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         // texcoords
         glVertexAttribPointer(
             0,
             2,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(0)
         );
         // normals
@@ -113,7 +113,7 @@ void Plane::createVBO(float width, float height) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(8)
         );
         // vert positions
@@ -122,16 +122,16 @@ void Plane::createVBO(float width, float height) {
             3,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(sgct_helpers::VertexData),
+            sizeof(helpers::VertexData),
             reinterpret_cast<void*>(20)
         );
     }
 
     // unbind
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-} // namespace sgct_utils
+} // namespace sgct::utils

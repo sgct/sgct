@@ -71,14 +71,14 @@ namespace {
     }
 
     bool parseDisconnectPackage(char* headerPtr) {
-        return (headerPtr[0] == sgct_core::Network::DisconnectId &&
+        return (headerPtr[0] == sgct::core::Network::DisconnectId &&
                 headerPtr[1] == 24 && headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
                 headerPtr[4] == 27 && headerPtr[5] == '\r' &&
                 headerPtr[6] == '\n' && headerPtr[7] == '\0');
     }
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 Network::Network()
     : mSocket(INVALID_SOCKET)
@@ -99,9 +99,7 @@ void Network::init(std::string port, std::string address, bool isServer,
     mServer = isServer;
     mConnectionType = type;
     if (mConnectionType == ConnectionType::SyncConnection) {
-        mBufferSize = static_cast<uint32_t>(
-            sgct::SharedData::instance()->getBufferSize()
-        );
+        mBufferSize = static_cast<uint32_t>(SharedData::instance()->getBufferSize());
         mUncompressedBufferSize = mBufferSize;
     }
 
@@ -167,8 +165,8 @@ void Network::init(std::string port, std::string address, bool isServer,
         // Client socket
         // Connect to server.
         while (!mTerminate) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Info,
                 "Attempting to connect to server (id: %d, ip: %s, type: %s)\n",
                 mId, getAddress().c_str(), getTypeStr(getType()).c_str()
             );
@@ -190,8 +188,9 @@ void Network::init(std::string port, std::string address, bool isServer,
                 break;
             }
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug, "Connect error code: %d\n", SGCT_ERRNO
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
+                "Connect error code: %d\n", SGCT_ERRNO
             );
 
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
@@ -237,8 +236,8 @@ void Network::connectionHandler() {
         mCommThread = std::make_unique<std::thread>([this]() { communicationHandler(); });
     }
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
         "Exiting connection handler for connection %d\n", mId
     );
 }
@@ -282,16 +281,16 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         );
 
         if (iResult != NO_ERROR) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Network: Failed to set no delay with error: %d\n"
                 "This will reduce cluster performance", SGCT_ERRNO
             );
         }
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Info,
             "Network: Enabling Nagle's Algorithm for connection %d\n", mId
         );
     }
@@ -314,15 +313,15 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         sizeof(int)
     );
     if (sockoptRes == SOCKET_ERROR) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Network: Failed to set reuse address with error: %d\n", SGCT_ERRNO
         );
     }
 
     // The default buffer value is 8k (8192 bytes) which is good for external control
     // but might be a bit to big for sync data.
-    if (getType() == sgct_core::Network::ConnectionType::SyncConnection) {
+    if (getType() == core::Network::ConnectionType::SyncConnection) {
         int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
             *socketPtr,
@@ -332,8 +331,8 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
             sizeof(int)
         );
         if (iResult == SOCKET_ERROR) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Network: Failed to set send buffer size to %d with error: %d\n",
                 bufferSize, SGCT_ERRNO
             );
@@ -346,8 +345,8 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
             sizeof(int)
         );
         if (iResult == SOCKET_ERROR) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Network: Failed to set receive buffer size to %d with error: %d\n",
                 bufferSize, SGCT_ERRNO
             );
@@ -364,8 +363,8 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
             sizeof(int)
         );
         if (iResult == SOCKET_ERROR) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Warning,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Warning,
                 "Network: Failed to set keep alive with error: %d\n", SGCT_ERRNO
             );
         }
@@ -412,8 +411,9 @@ void Network::setBufferSize(uint32_t newSize) {
 
 int Network::iterateFrameCounter() {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "Network::iterateFrameCounter\n"
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
+        "Network::iterateFrameCounter\n"
     );
 #endif
 
@@ -434,7 +434,7 @@ int Network::iterateFrameCounter() {
 #endif
     {
         std::unique_lock lock(mConnectionMutex);
-        mTimeStampSend = sgct::Engine::getTime();
+        mTimeStampSend = Engine::getTime();
     }
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Mutex for connection %d is unlocked\n", mId);
@@ -445,8 +445,8 @@ int Network::iterateFrameCounter() {
 
 void Network::pushClientMessage() {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "Network::pushClientMessage\n"
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info, "Network::pushClientMessage\n"
     );
 #endif
 
@@ -455,15 +455,15 @@ void Network::pushClientMessage() {
     int currentFrame = iterateFrameCounter();
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
-    if (sgct::MessageHandler::instance()->getDataSize() > HeaderSize) {
-        sgct::MutexManager::instance()->mDataSyncMutex.lock();
+    if (MessageHandler::instance()->getDataSize() > HeaderSize) {
+        MutexManager::instance()->mDataSyncMutex.lock();
 
         // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
         // though it has nothing to do with the messaging?
 
         // Don't remove this pointer, somehow the send function doesn't
         // work during the first call without setting the pointer first!!!
-        char* messageToSend = sgct::MessageHandler::instance()->getMessage();
+        char* messageToSend = MessageHandler::instance()->getMessage();
         messageToSend[0] = Network::DataId;
         messageToSend[1] = p[0];
         messageToSend[2] = p[1];
@@ -473,7 +473,7 @@ void Network::pushClientMessage() {
         // crop if needed
         uint32_t size = mBufferSize;
         uint32_t messageSize = std::min(
-            static_cast<uint32_t>(sgct::MessageHandler::instance()->getDataSize()),
+            static_cast<uint32_t>(MessageHandler::instance()->getDataSize()),
             size
         );
 
@@ -492,9 +492,9 @@ void Network::pushClientMessage() {
             static_cast<int>(messageSize)
         );
 
-        sgct::MutexManager::instance()->mDataSyncMutex.unlock();
+        MutexManager::instance()->mDataSyncMutex.unlock();
 
-        sgct::MessageHandler::instance()->clearBuffer();
+        MessageHandler::instance()->clearBuffer();
     }
     else {
         char tmpca[HeaderSize];
@@ -542,8 +542,9 @@ int Network::getRecvFramePrevious() const {
 
 double Network::getLoopTime() const {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Info, "Network::getLoopTime\n"
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Info,
+        "Network::getLoopTime\n"
     );
 #endif
     std::unique_lock lock(mConnectionMutex);
@@ -552,8 +553,9 @@ double Network::getLoopTime() const {
 
 bool Network::isUpdated() const {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "Network::isUpdated\n"
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
+        "Network::isUpdated\n"
     );
 #endif
 
@@ -598,8 +600,8 @@ void Network::setAcknowledgeFunction(std::function<void(int, int)> fn) {
 
 void Network::setConnectedStatus(bool state) {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
         "Network::setConnectedStatus = %s at syncframe %d\n",
         state ? "true" : "false", getSendFrame()
     );
@@ -615,8 +617,8 @@ bool Network::isConnected() const {
 
 Network::ConnectionType Network::getType() const {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
         "Network::getTypeOfServer\n"
     );
 #endif
@@ -639,8 +641,8 @@ bool Network::isTerminated() const {
 
 void Network::setRecvFrame(int i) {
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info, "Network::setRecvFrame\n"
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info, "Network::setRecvFrame\n"
     );
 #endif
     
@@ -649,7 +651,7 @@ void Network::setRecvFrame(int i) {
     mUpdated = true;
 
     std::unique_lock lock(mConnectionMutex);
-    mTimeStampTotal = sgct::Engine::getTime() - mTimeStampSend;
+    mTimeStampTotal = Engine::getTime() - mTimeStampSend;
 }
 
 int Network::getLastError() {
@@ -663,14 +665,14 @@ _ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, in
     while (iResult < length) {
         _ssize_t tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Info,
             "Received %d bytes of %d\n", tmpRes, length
         );
         for (int i = 0; i < tmpRes; i++) {
-            sgct::MessageHandler::instance()->print("%u\t", buffer[i]);
+            MessageHandler::instance()->print("%u\t", buffer[i]);
         }
-        sgct::MessageHandler::instance()->print("\n");
+        MessageHandler::instance()->print("\n");
 #endif
 
         if (tmpRes > 0) {
@@ -682,8 +684,8 @@ _ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, in
         else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
 #endif
         {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Warning,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Warning,
                 "Receiving data after interrupted system error (attempt %d)\n", attempts
             );
             attempts++;
@@ -720,8 +722,8 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
     if (iResult == static_cast<int>(HeaderSize)) {
         mHeaderId = header[0];
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->printDebug(
-            sgct::MessageHandler::Info, "Header id=%d\n", mHeaderId
+        MessageHandler::instance()->printDebug(
+            MessageHandler::Info, "Header id=%d\n", mHeaderId
         );
 #endif
         if (mHeaderId == DataId || mHeaderId == CompressedDataId) {
@@ -734,16 +736,16 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
 
             setRecvFrame(syncFrameNumber);
             if (syncFrameNumber < 0) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Network: Error sync in sync frame: %d for connection %d\n",
                     syncFrameNumber, mId
                 );
             }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::instance()->printDebug(
-                sgct::MessageHandler::Level::Info,
+            MessageHandler::instance()->printDebug(
+                MessageHandler::Level::Info,
                 "Network: Package info: Frame = %d, Size = %u for connection %d\n",
                 syncFrameNumber, dataSize, mId
             );
@@ -764,8 +766,8 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
     }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
         "Receiving data (buffer size: %d)\n", dataSize
     );
 #endif
@@ -786,8 +788,8 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
     if (iResult == static_cast<int>(HeaderSize)) {
         mHeaderId = header[0];
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->printDebug(
-            sgct::MessageHandler::Level::Info, "Header id=%d\n", mHeaderId
+        MessageHandler::instance()->printDebug(
+            MessageHandler::Level::Info, "Header id=%d\n", mHeaderId
         );
 #endif
         if (mHeaderId == DataId || mHeaderId == CompressedDataId) {
@@ -817,8 +819,8 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
     }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-    sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->printDebug(
+        MessageHandler::Level::Info,
         "Receiving data (buffer size: %d)\n", dataSize
     );
 #endif
@@ -826,8 +828,8 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
     if (dataSize > 0 && packageId > -1) {
         iResult = receiveData(mSocket, mRecvBuf.data(), dataSize, 0);
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->printDebug(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->printDebug(
+            MessageHandler::Level::Info,
             "Data type: %d, %d bytes of %u\n", packageId, iResult, dataSize
         );
 #endif
@@ -850,8 +852,8 @@ int Network::readExternalMessage() {
     {
         iResult = recv(mSocket, mRecvBuf.data(), mBufferSize, 0);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Info,
             "Receiving data after interrupted system error (attempt %d)\n", attempts
         );
         attempts++;
@@ -868,8 +870,8 @@ void Network::communicationHandler() {
 
     // listen for client if server
     if (mServer) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Info,
             "Waiting for client to connect to connection %d (port %s)\n",
             mId, getPort().c_str()
         );
@@ -883,8 +885,8 @@ void Network::communicationHandler() {
         while ( !isTerminated() && mSocket == INVALID_SOCKET && accErr == EINTR)
 #endif
         {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Info,
                 "Re-accept after interrupted system on connection %d\n", mId
             );
 
@@ -892,8 +894,8 @@ void Network::communicationHandler() {
         }
 
         if (mSocket == INVALID_SOCKET) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Accept connection %d failed! Error: %d\n", mId, accErr
             );
 
@@ -905,8 +907,8 @@ void Network::communicationHandler() {
     }
 
     setConnectedStatus(true);
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info, "Connection %d established!\n", mId
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info, "Connection %d established!\n", mId
     );
 
     if (mUpdateCallbackFn) {
@@ -929,21 +931,20 @@ void Network::communicationHandler() {
     do {
         // resize buffer request
         if (getType() != ConnectionType::DataTransfer && mRequestedSize > mBufferSize) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Info,
                 "Re-sizing tcp buffer size from %d to %d",
                 mBufferSize, mRequestedSize.load()
             );
 
             updateBuffer(mRecvBuf, mRequestedSize, mBufferSize);
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info, "Done.\n"
-            );
+            MessageHandler::instance()->print(MessageHandler::Level::Info, "Done.\n");
         }
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->printDebug(
-            sgct::MessageHandler::Level::NotifyAll, "Receiving message header\n"
+        MessageHandler::instance()->printDebug(
+            MessageHandler::Level::NotifyAll,
+            "Receiving message header\n"
         );
 #endif
         
@@ -987,8 +988,8 @@ void Network::communicationHandler() {
                         mTerminate = true;
                     }
 
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Info,
+                    MessageHandler::instance()->print(
+                        MessageHandler::Level::Info,
                         "Network: Client %d terminated connection\n", mId
                     );
 
@@ -1028,8 +1029,8 @@ void Network::communicationHandler() {
                                 );
                             }
                             else {
-                                sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::Level::Error,
+                                MessageHandler::instance()->print(
+                                    MessageHandler::Level::Error,
                                     "Network: Failed to uncompress data for connection "
                                     "%d. Error: %s\n",
                                     mId, getUncompressionErrorAsStr(err).c_str()
@@ -1041,16 +1042,16 @@ void Network::communicationHandler() {
                     }
                     else if (mHeaderId == ConnectedId && mConnectedCallbackFn) {
 #ifdef __SGCT_NETWORK_DEBUG__
-                        sgct::MessageHandler::instance()->printDebug(
-                            sgct::MessageHandler::Level::Info,
+                        MessageHandler::instance()->printDebug(
+                            MessageHandler::Level::Info,
                             "Signaling slave is connected... "
                         );
 #endif
                         mConnectedCallbackFn();
                         NetworkManager::gCond.notify_all();
 #ifdef __SGCT_NETWORK_DEBUG__
-                        sgct::MessageHandler::instance()->printDebug(
-                            sgct::MessageHandler::Level::Info, "Done.\n"
+                        MessageHandler::instance()->printDebug(
+                            MessageHandler::Level::Info, "Done.\n"
                         );
 #endif
                     }
@@ -1059,8 +1060,8 @@ void Network::communicationHandler() {
             // handle external ascii communication
             else if (getType() == ConnectionType::ExternalASCIIConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
-                sgct::MessageHandler::instance()->printDebug(
-                    sgct::MessageHandler::Level::Info,
+                MessageHandler::instance()->printDebug(
+                    MessageHandler::Level::Info,
                     "Parsing external TCP ASCII data... "
                 );
 #endif
@@ -1117,16 +1118,17 @@ void Network::communicationHandler() {
                     found = extBuffer.find("\r\n");
                 }
 #ifdef __SGCT_NETWORK_DEBUG__
-                sgct::MessageHandler::instance()->printDebug(
-                    sgct::MessageHandler::Level::Info, "Done\n"
+                MessageHandler::instance()->printDebug(
+                    MessageHandler::Level::Info,
+                    "Done\n"
                 );
 #endif
             }
             // handle external raw/binary communication
             else if (getType() == ConnectionType::ExternalRawConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
-                sgct::MessageHandler::instance()->printDebug(
-                    sgct::MessageHandler::Level::Info,
+                MessageHandler::instance()->printDebug(
+                    MessageHandler::Level::Info,
                     "Parsing external TCP raw data... "
                 );
 #endif
@@ -1135,8 +1137,9 @@ void Network::communicationHandler() {
                 }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-                sgct::MessageHandler::instance()->printDebug(
-                    sgct::MessageHandler::Level::Info, "Done\n"
+                MessageHandler::instance()->printDebug(
+                    MessageHandler::Level::Info,
+                    "Done\n"
                 );
 #endif
             }
@@ -1145,8 +1148,8 @@ void Network::communicationHandler() {
                 // Disconnect if requested
                 if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Info,
+                    MessageHandler::instance()->print(
+                        MessageHandler::Level::Info,
                         "Network: File transfer %d terminated connection\n", mId
                     );
                 }
@@ -1193,8 +1196,8 @@ void Network::communicationHandler() {
                                 recvOk = true;
                             }
                             else {
-                                sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::Level::Error,
+                                MessageHandler::instance()->print(
+                                    MessageHandler::Level::Error,
                                     "Network: Failed to uncompress data for connection "
                                     "%d! Error: %s\n",
                                     mId, getUncompressionErrorAsStr(err).c_str()
@@ -1235,8 +1238,8 @@ void Network::communicationHandler() {
                     }
                     else if (mHeaderId == ConnectedId && mConnectedCallbackFn) {
 #ifdef __SGCT_NETWORK_DEBUG__
-                        sgct::MessageHandler::instance()->printDebug(
-                            sgct::MessageHandler::Level::Info,
+                        MessageHandler::instance()->printDebug(
+                            MessageHandler::Level::Info,
                             "Signaling slave is connected... "
                         );
 #endif
@@ -1244,8 +1247,9 @@ void Network::communicationHandler() {
                         NetworkManager::gCond.notify_all();
                         
 #ifdef __SGCT_NETWORK_DEBUG__
-                        sgct::MessageHandler::instance()->printDebug(
-                            sgct::MessageHandler::Level::Info, "Done.\n"
+                        MessageHandler::instance()->printDebug(
+                            MessageHandler::Level::Info,
+                            "Done.\n"
                         );
 #endif
                     }
@@ -1255,39 +1259,40 @@ void Network::communicationHandler() {
         // handle failed receive
         else if (iResult == 0) {
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::instance()->printDebug(
-                sgct::MessageHandler::Level::Info, "Setting connection status to false..."
+            MessageHandler::instance()->printDebug(
+                MessageHandler::Level::Info, "Setting connection status to false..."
             );
 #endif
             setConnectedStatus(false);
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::instance()->printDebug(
-                sgct::MessageHandler::Level::Info, "Done.\n"
+            MessageHandler::instance()->printDebug(
+                MessageHandler::Level::Info, "Done.\n"
             );
 #endif
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "TCP Connection %d closed (error: %d)\n", mId, SGCT_ERRNO
             );
         }
         else {
         // if negative
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::instance()->printDebug(
-                sgct::MessageHandler::Level::Info,
+            MessageHandler::instance()->printDebug(
+                MessageHandler::Level::Info,
                 "Setting connection status to false... "
             );
 #endif
             setConnectedStatus(false);
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::instance()->printDebug(
-                sgct::MessageHandler::Level::Info, "Done.\n"
+            MessageHandler::instance()->printDebug(
+                MessageHandler::Level::Info,
+                "Done.\n"
             );
 #endif
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "TCP connection %d recv failed: %d\n", mId, SGCT_ERRNO
             );
         }
@@ -1304,8 +1309,9 @@ void Network::communicationHandler() {
         mUpdateCallbackFn(this);
     }
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info, "Node %d disconnected\n", mId
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
+        "Node %d disconnected\n", mId
     );
 }
 
@@ -1328,8 +1334,9 @@ void Network::sendData(const void* data, int length) {
             0
         );
         if (sentLen == SOCKET_ERROR) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error, "Send data failed\n"
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
+                "Send data failed\n"
             );
             break;
         }
@@ -1366,8 +1373,9 @@ void Network::closeNetwork(bool forced) {
         mMainThread = nullptr;
     }
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info, "Connection %d successfully terminated\n", mId
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
+        "Connection %d successfully terminated\n", mId
     );
 }
 
@@ -1386,8 +1394,9 @@ void Network::initShutdown() {
         sendData(gameOver, HeaderSize);
     }
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info, "Closing connection %d\n", mId
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
+        "Closing connection %d\n", mId
     );
 
 #ifdef __SGCT_MUTEX_DEBUG__
@@ -1415,4 +1424,4 @@ void Network::initShutdown() {
     closeSocket(mListenSocket);
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

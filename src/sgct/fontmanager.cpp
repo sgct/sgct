@@ -69,7 +69,7 @@ void main() {
 
 } // namespace
 
-namespace sgct_text {
+namespace sgct::text {
 
 FontManager* FontManager::mInstance = nullptr;
 
@@ -90,8 +90,8 @@ FontManager::FontManager() {
     FT_Error error = FT_Init_FreeType(&mFTLibrary);
 
     if (error != 0) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Could not initiate Freetype library\n"
         );
         return;
@@ -138,7 +138,7 @@ glm::vec4 FontManager::getStrokeColor() const {
     return mStrokeColor;
 }
 
-const sgct::ShaderProgram& FontManager::getShader() const {
+const ShaderProgram& FontManager::getShader() const {
     return mShader;
 }
 
@@ -167,8 +167,8 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
     bool inserted = mFontPaths.insert({ std::move(fontName), std::move(path) }).second;
 
     if (!inserted) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Font with name '%s' already specified.\n", fontName.c_str()
         );
     }
@@ -198,16 +198,16 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     std::map<std::string, std::string>::const_iterator it = mFontPaths.find(name);
 
     if (it == mFontPaths.end()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "FontManager: No font file specified for font [%s].\n", name.c_str()
         );
         return nullptr;
     }
 
     if (mFTLibrary == nullptr) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "FontManager: Freetype library is not initialized, can't create font [%s].\n",
             name.c_str()
         );
@@ -218,24 +218,24 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     FT_Error error = FT_New_Face(mFTLibrary, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "FontManager: Unsopperted file format [%s] for font [%s].\n",
             it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "FontManager: Font '%s' not found!\n", it->second.c_str()
         );
         return nullptr;
     }
 
     if (FT_Set_Char_Size(face, height << 6, height << 6, 96, 96) != 0) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "FontManager: Could not set pixel size for font[%s].\n", name.c_str()
         );
         return nullptr;
@@ -251,7 +251,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         std::string fragShader;
 
         mShader.setName("FontShader");
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (Engine::instance()->isOGLPipelineFixed()) {
             vertShader = FontVertShaderLegacy;
             fragShader = FontFragShaderLegacy;
         }
@@ -261,43 +261,43 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         }
 
         // replace glsl version
-        sgct_helpers::findAndReplace(
+        helpers::findAndReplace(
             vertShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
-        sgct_helpers::findAndReplace(
+        helpers::findAndReplace(
             fragShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
 
         bool vert = mShader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load font vertex shader\n"
             );
         }
         bool frag = mShader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load font fragment shader\n"
             );
         }
         mShader.createAndLinkProgram();
         mShader.bind();
 
-        if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (!Engine::instance()->isOGLPipelineFixed()) {
             mMVPLocation = mShader.getUniformLocation("MVP");
         }
         mColorLocation = mShader.getUniformLocation("Col");
@@ -311,6 +311,6 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     return font;
 }
 
-} // namespace sgct_text
+} // namespace sgct::text
 
 #endif // SGCT_HAS_TEXT

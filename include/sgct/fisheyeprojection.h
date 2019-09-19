@@ -12,11 +12,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <glm/glm.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
-/*!
-This class manages and renders non linear fisheye projections
-*/
+/**
+ * This class manages and renders non linear fisheye projections
+ */
 class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
@@ -136,6 +136,6 @@ private:
     } mShaderLoc;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__FISHEYE_PROJECTION__H__

@@ -249,7 +249,7 @@ namespace {
 
 
     void parseScene(tinyxml2::XMLElement* element) {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         XMLElement* child = element->FirstChildElement();
@@ -276,8 +276,8 @@ namespace {
             }
 
             if (childVal == "Orientation") {
-                sgct_core::ClusterManager::instance()->setSceneRotation(
-                    glm::mat4_cast(sgct_core::readconfig::parseOrientationNode(child))
+                sgct::core::ClusterManager::instance()->setSceneRotation(
+                    glm::mat4_cast(sgct::core::readconfig::parseOrientationNode(child))
                 );
             }
 
@@ -304,9 +304,9 @@ namespace {
     }
 
     void parseWindow(tinyxml2::XMLElement* element, std::string xmlFileName,
-                     sgct_core::Node& node)
+                     sgct::core::Node& node)
     {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         sgct::Window win = sgct::Window(node.getNumberOfWindows());
@@ -317,7 +317,7 @@ namespace {
 
         if (element->Attribute("tags")) {
             std::string tags = element->Attribute("tags");
-            std::vector<std::string> t = sgct_helpers::split(tags, ',');
+            std::vector<std::string> t = sgct::helpers::split(tags, ',');
             win.setTags(std::move(t));
         }
 
@@ -448,7 +448,7 @@ namespace {
             }
             path += element->Attribute("mpcdi");
             std::replace(path.begin(), path.end(), '\\', '/');
-            sgct_core::Mpcdi().parseConfiguration(path, node, win);
+            sgct::core::Mpcdi().parseConfiguration(path, node, win);
         }
 
         XMLElement* child = element->FirstChildElement();
@@ -507,7 +507,7 @@ namespace {
     }
 
     void parseNode(tinyxml2::XMLElement* element, std::string xmlFileName) {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         std::unique_ptr<Node> node = std::make_unique<Node>();
@@ -548,7 +548,7 @@ namespace {
     }
 
     void parseUser(tinyxml2::XMLElement* element) {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         User* usrPtr;
@@ -589,7 +589,7 @@ namespace {
             }
             else if (childVal == "Orientation") {
                 usrPtr->setOrientation(
-                    sgct_core::readconfig::parseOrientationNode(child)
+                    sgct::core::readconfig::parseOrientationNode(child)
                 );
             }
             else if (childVal == "Quaternion") {
@@ -694,7 +694,7 @@ namespace {
     }
 
     void parseDevice(tinyxml2::XMLElement* element) {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         ClusterManager& cm = *ClusterManager::instance();
@@ -755,7 +755,7 @@ namespace {
                 sgct::TrackingManager& m = cm.getTrackingManager();
                 sgct::Tracker& tr = *m.getLastTracker();
                 sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(sgct_core::readconfig::parseOrientationNode(child));
+                device.setOrientation(sgct::core::readconfig::parseOrientationNode(child));
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -804,7 +804,7 @@ namespace {
     }
 
     void parseTracker(tinyxml2::XMLElement* element) {
-        using namespace sgct_core;
+        using namespace sgct::core;
         using namespace tinyxml2;
 
         ClusterManager& cm = *ClusterManager::instance();
@@ -836,7 +836,7 @@ namespace {
                 sgct::TrackingManager& m = cm.getTrackingManager();
                 sgct::Tracker& tr = *m.getLastTracker();
                 sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(sgct_core::readconfig::parseOrientationNode(child));
+                device.setOrientation(sgct::core::readconfig::parseOrientationNode(child));
             }
             else if (childVal == "Quaternion") {
                 std::optional<glm::quat> quat = parseValueQuat(*child);
@@ -908,7 +908,7 @@ namespace {
         if (!masterAddress) {
             throw std::runtime_error("Cannot find master address or DNS name in XML");
         }
-        sgct_core::ClusterManager::instance()->setMasterAddress(masterAddress);
+        sgct::core::ClusterManager::instance()->setMasterAddress(masterAddress);
 
         const char* debugMode = XMLroot->Attribute("debug");
         if (debugMode) {
@@ -921,12 +921,12 @@ namespace {
 
         const char* port = XMLroot->Attribute("externalControlPort");
         if (port) {
-            sgct_core::ClusterManager::instance()->setExternalControlPort(port);
+            sgct::core::ClusterManager::instance()->setExternalControlPort(port);
         }
 
         const char* firmSync = XMLroot->Attribute("firmSync");
         if (firmSync) {
-            sgct_core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
+            sgct::core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
                 strcmp(firmSync, "true") == 0
             );
         }
@@ -1061,7 +1061,7 @@ namespace {
 
 } // namespace
 
-namespace sgct_core::readconfig {
+namespace sgct::core::readconfig {
 
 glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll) {
     const float x = pitch;
@@ -1159,15 +1159,15 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
 void readConfig(const std::string& filename) {
     std::string f = filename;
     if (f.empty()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "ReadConfig: No file specified! Using default configuration...\n"
         );
         readAndParseXMLString();
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ReadConfig: Parsing XML config '%s'...\n", f.c_str()
         );
 
@@ -1178,21 +1178,20 @@ void readConfig(const std::string& filename) {
 
         readAndParseXMLFile(f);
 
-
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ReadConfig: Config file '%s' read successfully\n", f.c_str()
         );
     }
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
         "ReadConfig: Number of nodes in cluster: %d\n",
         ClusterManager::instance()->getNumberOfNodes()
     );
 
     for (unsigned int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Info,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Info,
             "\tNode(%d) address: %s [%s]\n", i,
             ClusterManager::instance()->getNode(i)->getAddress().c_str(),
             ClusterManager::instance()->getNode(i)->getSyncPort().c_str()

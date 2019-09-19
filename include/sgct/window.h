@@ -20,10 +20,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 struct GLFWmonitor;
 struct GLFWwindow;
 
-namespace sgct_core {
+namespace sgct::core {
     class BaseViewport;
     class ScreenCapture;
-} // namespace sgct_core
+} // namespace sgct::core
 
 namespace sgct {
 
@@ -246,7 +246,7 @@ public:
      * Set the which viewport that is the current. This is done internally from SGCT and
      * end users shouldn't change this
      */
-    void setCurrentViewport(sgct_core::BaseViewport* vp);
+    void setCurrentViewport(core::BaseViewport* vp);
 
     /**
      * Set if fisheye alpha state. Should only be set using XML config of before calling
@@ -345,14 +345,14 @@ public:
      *
      * \returns pointer to screen capture ptr
      */
-    sgct_core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
+    core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
 
     /// \returns the number of samples used in multisampled anti-aliasing
     int getNumberOfAASamples() const;
 
     /**
      * Returns the stereo mode. The value can be compared to the
-     * sgct_core::ClusterManager::StereoMode enum
+     * sgct::core::ClusterManager::StereoMode enum
      */
     StereoMode getStereoMode() const;
 
@@ -364,7 +364,7 @@ public:
     glm::ivec2 getFinalFBODimensions() const;
 
     /// Returns pointer to FBO container
-    sgct_core::OffScreenBuffer* getFBO() const;
+    core::OffScreenBuffer* getFBO() const;
 
     /// \returns pointer to GLFW monitor
     GLFWmonitor* getMonitor() const;
@@ -373,13 +373,13 @@ public:
     GLFWwindow* getWindowHandle() const;
 
     /// \returns a pointer to the viewport that is beeing rendered to at the moment
-    sgct_core::BaseViewport* getCurrentViewport() const;
+    core::BaseViewport* getCurrentViewport() const;
 
     /// \returns a pointer to a specific viewport
-    sgct_core::Viewport& getViewport(size_t index);
+    core::Viewport& getViewport(size_t index);
 
     /// \returns a pointer to a specific viewport
-    const sgct_core::Viewport& getViewport(size_t index) const;
+    const core::Viewport& getViewport(size_t index) const;
 
     /// Get the current viewport data in pixels.
     glm::ivec4 getCurrentViewportPixelCoords() const;
@@ -407,7 +407,7 @@ public:
     float getHorizFieldOfViewDegrees() const;
     
     /// \returns the pointer to a specific post effect
-    sgct::PostFX& getPostFX(size_t index);
+    PostFX& getPostFX(size_t index);
 
     /// \returns the number of post effects
     size_t getNumberOfPostFXs() const;
@@ -440,7 +440,7 @@ public:
 
     /// Add a post effect for this window
     void addPostFX(PostFX fx);
-    void addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr);
+    void addViewport(std::unique_ptr<core::Viewport> vpPtr);
 
     /// \return true if any masks are used
     bool hasAnyMasks() const;
@@ -546,8 +546,8 @@ private:
         unsigned int positions = 0;
     } mFrameBufferTextures;
 
-    std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureLeftOrMono;
-    std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureRight;
+    std::unique_ptr<core::ScreenCapture> mScreenCaptureLeftOrMono;
+    std::unique_ptr<core::ScreenCapture> mScreenCaptureRight;
 
     StereoMode mStereoMode = StereoMode::NoStereo;
     int mNumberOfAASamples;
@@ -566,10 +566,10 @@ private:
 
     bool mHasAnyMasks = false;
 
-    sgct_core::BaseViewport* mCurrentViewport = nullptr;
-    std::vector<std::unique_ptr<sgct_core::Viewport>> mViewports;
-    std::vector<sgct::PostFX> mPostFXPasses;
-    std::unique_ptr<sgct_core::OffScreenBuffer> mFinalFBO;
+    core::BaseViewport* mCurrentViewport = nullptr;
+    std::vector<std::unique_ptr<core::Viewport>> mViewports;
+    std::vector<PostFX> mPostFXPasses;
+    std::unique_ptr<core::OffScreenBuffer> mFinalFBO;
 
     static GLFWwindow* mSharedHandle;
     static GLFWwindow* mCurrentContextOwner;

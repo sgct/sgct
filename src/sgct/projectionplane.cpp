@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/messagehandler.h>
 #include <tinyxml2.h>
 
-namespace sgct_core {
+namespace sgct::core {
 
 void ProjectionPlane::configure(tinyxml2::XMLElement* element,
                                 glm::vec3& initializedLowerLeftCorner,
@@ -31,8 +31,8 @@ void ProjectionPlane::configure(tinyxml2::XMLElement* element,
                 elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
                 elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
             {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Debug,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Debug,
                     "ProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
                     pos.x, pos.y, pos.z, i % 3
                 );
@@ -55,8 +55,8 @@ void ProjectionPlane::configure(tinyxml2::XMLElement* element,
                 i++;
             }
             else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "ProjectionPlane: Failed to parse coordinates from XML\n"
                 );
             }
@@ -102,4 +102,4 @@ glm::vec3 ProjectionPlane::getCoordinateUpperRight() const {
     return mPlaneCoords.upperRight;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

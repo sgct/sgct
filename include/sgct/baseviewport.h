@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/quaternion.hpp>
 #include <string>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class User;
 
@@ -92,6 +92,6 @@ protected:
     glm::vec4 mFOV;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__BASE_VIEWPORT__H__

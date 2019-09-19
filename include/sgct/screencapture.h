@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <glm/glm.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class Image;
 
@@ -141,6 +141,6 @@ private:
     int mWindowIndex = 0;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__SCREEN_CAPTURE__H__

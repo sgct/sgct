@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
 #define __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
 
-namespace sgct_core::shaders_modern_fisheye {
+namespace sgct::core::shaders_modern_fisheye {
 /*
     Contains GLSL 3.3+ shaders
 */
@@ -662,6 +662,6 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
     }
 )";
 
-} // sgct_core::shaders_modern_fisheye
+} // sgct::core::shaders_modern_fisheye
 
 #endif // __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__

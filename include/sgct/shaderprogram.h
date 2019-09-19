@@ -60,7 +60,7 @@ public:
      *
      * \return Whether the source code was set correctly or not
      */
-    bool addShaderSrc(std::string src, sgct_core::Shader::ShaderType type,
+    bool addShaderSrc(std::string src, core::Shader::ShaderType type,
         ShaderSourceType sSrcType = ShaderSourceType::File);
 
     /**
@@ -144,9 +144,9 @@ private:
     bool mIsLinked = false;          /// If this program has been linked
     int mProgramId = 0;              /// Unique program id
 
-    std::vector<sgct_core::ShaderData> mShaders;
+    std::vector<core::ShaderData> mShaders;
 };
 
-} // sgct
+} // namespace sgct
 
 #endif // __SGCT__SHADER_PROGRAM__H__

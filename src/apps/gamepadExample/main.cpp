@@ -29,9 +29,9 @@ void myDraw2DFun() {
             joystickInfoStr += std::to_string(buttons[i]) + ' ';
         }
 
-        sgct_text::print(
-            *sgct_text::FontManager::instance()->getFont("SGCTFont", 12),
-            sgct_text::TextAlignMode::TopLeft,
+        sgct::text::print(
+            *sgct::text::FontManager::instance()->getFont("SGCTFont", 12),
+            sgct::text::TextAlignMode::TopLeft,
             18,
             32,
             glm::vec4(1.f, 0.5f, 0.f, 1.f),

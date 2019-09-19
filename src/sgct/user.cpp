@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 User::User(std::string name) : mName(std::move(name)) {}
 
@@ -101,4 +101,4 @@ bool User::isTracked() const {
     return !(mHeadTrackerDeviceName.empty() || mHeadTrackerName.empty());
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

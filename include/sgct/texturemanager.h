@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <unordered_map>
 #include <glm/glm.hpp>
 
-namespace sgct_core { class Image; }
+namespace sgct::core { class Image; }
 
 namespace sgct {
 
@@ -122,7 +122,7 @@ public:
      *
      * \return true if texture loaded successfully
      */
-    bool loadTexture(const std::string& name, sgct_core::Image* imgPtr, bool interpolate,
+    bool loadTexture(const std::string& name, core::Image* imgPtr, bool interpolate,
         int mipmapLevels = 8);
 
     /**
@@ -155,7 +155,7 @@ private:
 
     /// \returns true if texture will be uploaded
     bool updateTexture(const std::string& name, unsigned int& texPtr, bool& reload);
-    bool uploadImage(const sgct_core::Image& imgPtr, unsigned int& texPtr);
+    bool uploadImage(const core::Image& imgPtr, unsigned int& texPtr);
     void freeTextureData();
 
     static TextureManager* mInstance;
@@ -170,6 +170,6 @@ private:
     glm::ivec2 mWarpMode;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__TEXTURE_MANAGER__H__

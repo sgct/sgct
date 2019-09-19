@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ogl_headers.h>
 #include <glm/gtc/constants.hpp>
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
                    unsigned int resolution)
@@ -22,8 +22,8 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
 {
     // must be four or higher
     if (mResolution < 4) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Warning: Dome geometry resolution must be higher than 4\n"
         );
         mResolution = 4;
@@ -32,9 +32,9 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
     createVBO(radius, FOV);
 
     // if error occured
-    if (!sgct::Engine::checkForOGLErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+    if (!Engine::checkForOGLErrors()) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error\n"
         );
     }
@@ -49,7 +49,7 @@ DomeGrid::~DomeGrid() {
 }
 
 void DomeGrid::draw() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
     }
     else {
@@ -138,19 +138,19 @@ void DomeGrid::createVBO(float radius, float FOV) {
 
 
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "DomeGrid: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "DomeGrid: Generating VBO: %d\n", mVBO
     );
 
@@ -162,15 +162,15 @@ void DomeGrid::createVBO(float radius, float FOV) {
         GL_STATIC_DRAW
     );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     }
 
     // unbind
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-} // namespace sgct_utils
+} // namespace sgct::utils

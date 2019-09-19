@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
-namespace sgct_core {
+namespace sgct::core {
 
 ClusterManager* ClusterManager::mInstance = nullptr;
 
@@ -203,8 +203,8 @@ ClusterManager::MeshImplementation ClusterManager::getMeshImplementation() const
     return mMeshImpl;
 }
 
-sgct::TrackingManager& ClusterManager::getTrackingManager() {
+TrackingManager& ClusterManager::getTrackingManager() {
     return mTrackingManager;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

@@ -16,6 +16,6 @@ namespace sgct {
     constexpr const int VersionRevision = @SGCT_VERSION_REVISION@;
 
     std::string getVersion();
-}
+} // namespace
 
 #endif // __SGCT__VERSION__H__

@@ -13,7 +13,7 @@
 
 namespace tinyxml2 { class XMLElement; }
 
-namespace sgct_core::readconfig {
+namespace sgct::core::readconfig {
 
 glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll);
 glm::quat parseOrientationNode(tinyxml2::XMLElement* element);

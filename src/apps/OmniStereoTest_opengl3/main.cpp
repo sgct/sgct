@@ -11,8 +11,8 @@ namespace {
 
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::Box> box;
-    std::unique_ptr<sgct_utils::DomeGrid> grid;
+    std::unique_ptr<sgct::utils::Box> box;
+    std::unique_ptr<sgct::utils::DomeGrid> grid;
     GLint matrixLoc = -1;
     GLint gridMatrixLoc = -1;
 
@@ -53,7 +53,7 @@ void initOmniStereo(bool mask) {
         return;
     }
 
-    sgct_core::Image turnMap;
+    sgct::core::Image turnMap;
     const bool turnMapSuccess = turnMap.load(turnMapSrc);
     if (!turnMapSuccess) {
         MessageHandler::instance()->print(
@@ -62,7 +62,7 @@ void initOmniStereo(bool mask) {
         );
     }
 
-    sgct_core::Image sepMap;
+    sgct::core::Image sepMap;
     const bool sepMapSuccess = sepMap.load(sepMapSrc);
     if (!sepMapSuccess) {
         MessageHandler::instance()->print(
@@ -88,20 +88,20 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         const float eyeSep = gEngine->getDefaultUser().getEyeSeparation();
 
-        sgct_core::Frustum::Mode fm;
+        sgct::core::Frustum::Mode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
             default:
-                fm = sgct_core::Frustum::MonoEye;
+                fm = sgct::core::Frustum::MonoEye;
                 eyePos = glm::vec3(0.f, 0.f, 0.f);
                 break;
             case 1:
-                fm = sgct_core::Frustum::StereoLeftEye;
+                fm = sgct::core::Frustum::StereoLeftEye;
                 eyePos = glm::vec3(-eyeSep / 2.f, 0.f, 0.f);
                 break;
             case 2:
-                fm = sgct_core::Frustum::StereoRightEye;
+                fm = sgct::core::Frustum::StereoRightEye;
                 eyePos = glm::vec3(eyeSep / 2.f, 0.f, 0.f);
                 break;
         }
@@ -144,7 +144,7 @@ void initOmniStereo(bool mask) {
                         turnMap.getInterpolatedSampleAt(
                             turnMapPos.x,
                             turnMapPos.y,
-                            sgct_core::Image::Blue
+                            sgct::core::Image::Blue
                         ) / 255.f,
                         2.2f
                     );
@@ -168,7 +168,7 @@ void initOmniStereo(bool mask) {
                         sepMap.getInterpolatedSampleAt(
                             sepMapPos.x,
                             sepMapPos.y,
-                            sgct_core::Image::Blue
+                            sgct::core::Image::Blue
                         ) / 255.f,
                         2.2f
                     );
@@ -214,7 +214,7 @@ void initOmniStereo(bool mask) {
                     };
 
 
-                    sgct_core::ProjectionPlane projPlane;
+                    sgct::core::ProjectionPlane projPlane;
                   
                     const glm::vec2 ll = glm::vec2(0.f, 0.f);
                     projPlane.setCoordinateLowerLeft(convertCoords(ll));
@@ -242,7 +242,7 @@ void initOmniStereo(bool mask) {
                     const glm::vec3 tiltedEyePos = glm::mat3(tiltEyeMat) * rotatedEyePos;
 
                     // calc projection
-                    sgct_core::Projection proj;
+                    sgct::core::Projection proj;
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
@@ -306,7 +306,7 @@ void drawOmniStereo() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    sgct_core::Frustum::Mode fm = gEngine->getCurrentFrustumMode();
+    sgct::core::Frustum::Mode fm = gEngine->getCurrentFrustumMode();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -382,11 +382,11 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         0.5f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
     );
-    grid = std::make_unique<sgct_utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
+    grid = std::make_unique<sgct::utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
 
     // Set up backface culling
     glCullFace(GL_BACK);

@@ -112,7 +112,7 @@ void draw() {
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
         sgct::Window& win = gEngine->getCurrentWindow();
-        sgct_core::BaseViewport* vp = win.getCurrentViewport();
+        sgct::core::BaseViewport* vp = win.getCurrentViewport();
         const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
         const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
         
@@ -120,34 +120,34 @@ void draw() {
         const float offset = w / 2.f - w / 7.f;
         
         const float s1 = h / 8.f;
-        sgct_text::Font* f1 = sgct_text::FontManager::instance()->getFont(
+        sgct::text::Font* f1 = sgct::text::FontManager::instance()->getFont(
             "SGCTFont",
             static_cast<unsigned int>(s1)
         );
 
-        sgct_text::print(
+        sgct::text::print(
             *f1,
-            sgct_text::TextAlignMode::TopLeft,
+            sgct::text::TextAlignMode::TopLeft,
             offset,
             h / 2.f - s1,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%d",
-            sgct_core::ClusterManager::instance()->getThisNodeId()
+            sgct::core::ClusterManager::instance()->getThisNodeId()
         );
 
         const float s2 = h / 20.f;
-        sgct_text::Font* f2 = sgct_text::FontManager::instance()->getFont(
+        sgct::text::Font* f2 = sgct::text::FontManager::instance()->getFont(
             "SGCTFont",
             static_cast<unsigned int>(s2)
         );
-        sgct_text::print(
+        sgct::text::print(
             *f2,
-            sgct_text::TextAlignMode::TopLeft,
+            sgct::text::TextAlignMode::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%s",
-            sgct_core::ClusterManager::instance()->getThisNode()->getAddress().c_str()
+            sgct::core::ClusterManager::instance()->getThisNode()->getAddress().c_str()
         );
     }
 #endif // SGCT_HAS_TEXT
@@ -325,19 +325,19 @@ void keyCallback(int key, int, int action, int) {
     }
 }
 
-void screenShot(sgct_core::Image* im, size_t winIndex,
-                sgct_core::ScreenCapture::EyeIndex ei)
+void screenShot(sgct::core::Image* im, size_t winIndex,
+                sgct::core::ScreenCapture::EyeIndex ei)
 {
     std::string eye;
     switch (ei) {
-        case sgct_core::ScreenCapture::EyeIndex::Mono:
+        case sgct::core::ScreenCapture::EyeIndex::Mono:
         default:
             eye = "mono";
             break;
-        case sgct_core::ScreenCapture::EyeIndex::StereoLeft:
+        case sgct::core::ScreenCapture::EyeIndex::StereoLeft:
             eye = "left";
             break;
-        case sgct_core::ScreenCapture::EyeIndex::StereoRight:
+        case sgct::core::ScreenCapture::EyeIndex::StereoRight:
             eye = "Right";
             break;
     }
@@ -409,13 +409,13 @@ int main(int argc, char* argv[]) {
     }
 
     if (useDisplayLists) {
-        sgct_core::ClusterManager::instance()->setMeshImplementation(
-            sgct_core::ClusterManager::MeshImplementation::DisplayList
+        sgct::core::ClusterManager::instance()->setMeshImplementation(
+            sgct::core::ClusterManager::MeshImplementation::DisplayList
         );
     }
     else {
-        sgct_core::ClusterManager::instance()->setMeshImplementation(
-            sgct_core::ClusterManager::MeshImplementation::BufferObjects
+        sgct::core::ClusterManager::instance()->setMeshImplementation(
+            sgct::core::ClusterManager::MeshImplementation::BufferObjects
         );
     }
 

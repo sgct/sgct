@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__
 #define __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__
 
-namespace sgct_core::shaders {
+namespace sgct::core::shaders {
 /*
     All shaders are in GLSL 1.2 for compability with Mac OS X
 */
@@ -33,6 +33,6 @@ constexpr const char* SphericalProjectionFrag = R"(
     }
 )";
 
-} // sgct_core::shaders
+} // sgct::core::shaders
 
 #endif // __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__

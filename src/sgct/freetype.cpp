@@ -35,7 +35,7 @@ void setupViewport() {
     sgct::Window::StereoMode sm = cWin.getStereoMode();
     if (sm >= sgct::Window::StereoMode::SideBySide) {
         if (sgct::Engine::instance()->getCurrentFrustumMode() ==
-            sgct_core::Frustum::StereoLeftEye)
+            sgct::core::Frustum::StereoLeftEye)
         {
             switch (sm) {
                 case sgct::Window::StereoMode::SideBySide:
@@ -175,27 +175,27 @@ std::vector<std::wstring> split(std::string str, wchar_t delimiter) {
 }
 
 
-float getLineWidth(sgct_text::Font& font, const std::wstring& line) {
+float getLineWidth(sgct::text::Font& font, const std::wstring& line) {
     // figure out width
     float lineWidth = 0.f;
     for (size_t j = 0; j < line.length() - 1; ++j) {
         wchar_t c = line.c_str()[j];
-        const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+        const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
         lineWidth += ffd.mDistToNextChar;
     }
     // add last char width
     wchar_t c = line.c_str()[line.length() - 1];
-    const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+    const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
     lineWidth += ffd.mSize.x;
 
     return lineWidth;
 }
 
-void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
-              const sgct_text::TextAlignMode& mode, float x, float y,
+void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
+              const sgct::text::TextAlignMode& mode, float x, float y,
               const glm::vec4& color)
 {
-    using namespace sgct_text;
+    using namespace sgct::text;
 
     const float h = font.getHeight() * 1.59f;
 
@@ -235,7 +235,7 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
 
             for (size_t j = 0; j < lines[i].length(); ++j) {
                 const wchar_t c = lines[i].c_str()[j];
-                const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+                const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glPushMatrix();
                 glLoadIdentity();
@@ -296,7 +296,7 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
 
             for (size_t j = 0; j < lines[i].length(); j++) {
                 const wchar_t c = lines[i].c_str()[j];
-                const sgct_text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+                const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
                     projectionMat,
@@ -330,11 +330,11 @@ void render2d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
     }
 }
 
-void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
-              const sgct_text::TextAlignMode& mode, const glm::mat4& mvp,
+void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
+              const sgct::text::TextAlignMode& mode, const glm::mat4& mvp,
               const glm::vec4& color)
 {
-    using namespace sgct_text;
+    using namespace sgct::text;
 
     const float h = font.getHeight() * 1.59f;
 
@@ -477,7 +477,7 @@ void render3d(const std::vector<std::wstring>& lines, sgct_text::Font& font,
 
 } // namespace
 
-namespace sgct_text {
+namespace sgct::text {
 
 void print(Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
     if (format == nullptr) {
@@ -598,6 +598,6 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
     render3d(lines, font, mode, mvp, color);
 }
 
-} // namespace sgct_text
+} // namespace sgct::text
 
 #endif // SGCT_HAS_TEXT

@@ -26,7 +26,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <SpoutLibrary.h>
 #endif
 
-namespace sgct_core {
+namespace sgct::core {
 
 //#define DebugCubemap
 
@@ -81,7 +81,7 @@ void SpoutOutputProjection::update(glm::vec2) {
     mVerts[19] = -1.f;
 
     // update VBO
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(mVAO);
     }
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
@@ -90,7 +90,7 @@ void SpoutOutputProjection::update(glm::vec2) {
     memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
     else {
@@ -99,7 +99,7 @@ void SpoutOutputProjection::update(glm::vec2) {
 }
 
 void SpoutOutputProjection::render() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         renderInternalFixedPipeline();
     }
     else {
@@ -108,7 +108,7 @@ void SpoutOutputProjection::render() {
 }
 
 void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         renderCubemapInternalFixedPipeline(subViewPortIndex);
     }
     else {
@@ -137,9 +137,9 @@ void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
 void SpoutOutputProjection::initTextures() {
     NonLinearProjection::initTextures();
 
-    sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures");
+    MessageHandler::instance()->print("SpoutOutputProjection initTextures");
 
-    const bool compat = sgct::Engine::instance()->isOpenGLCompatibilityMode();
+    const bool compat = Engine::instance()->isOpenGLCompatibilityMode();
     if (compat) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
@@ -152,7 +152,7 @@ void SpoutOutputProjection::initTextures() {
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-                sgct::MessageHandler::instance()->print(
+                MessageHandler::instance()->print(
                     "SpoutOutputProjection initTextures %d", i
                 );
                 if (!mSpout[i].enabled) {
@@ -191,7 +191,7 @@ void SpoutOutputProjection::initTextures() {
             mappingWidth = mCubemapResolution * 4;
             mappingHeight = mCubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            sgct::MessageHandler::instance()->print(
+            MessageHandler::instance()->print(
                 "SpoutOutputProjection initTextures Equirectangular"
             );
             mappingHandle = GetSpout();
@@ -226,7 +226,7 @@ void SpoutOutputProjection::initTextures() {
             mappingWidth = mCubemapResolution * 2;
             mappingHeight = mCubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            sgct::MessageHandler::instance()->print(
+            MessageHandler::instance()->print(
                 "SpoutOutputProjection initTextures Fisheye"
             );
             mappingHandle = GetSpout();
@@ -379,19 +379,19 @@ void SpoutOutputProjection::initShaders() {
     std::string fisheyeFragShader;
     std::string fisheyeVertShader;
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-        fisheyeVertShader = sgct_core::shaders_fisheye::FisheyeVert;
+    if (Engine::instance()->isOGLPipelineFixed()) {
+        fisheyeVertShader = core::shaders_fisheye::FisheyeVert;
 
-        if (sgct::Settings::instance()->useDepthTexture()) {
-            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
-            case sgct::Settings::DrawBufferType::Diffuse:
-                case sgct::Settings::DrawBufferType::DiffuseNormal:
+        if (Settings::instance()->useDepthTexture()) {
+            switch (Settings::instance()->getCurrentDrawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
+                case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::Settings::DrawBufferType::DiffusePosition:
+                case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
+                case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
                     break;
                 default:
@@ -401,62 +401,59 @@ void SpoutOutputProjection::initShaders() {
         }
         else  {
             // no depth
-            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
-                case sgct::Settings::DrawBufferType::Diffuse:
+            switch (Settings::instance()->getCurrentDrawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_fisheye::FisheyeFrag;
                     break;
-
-                case sgct::Settings::DrawBufferType::DiffuseNormal:
+                case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
                     break;
-
-                case sgct::Settings::DrawBufferType::DiffusePosition:
+                case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
                     break;
-
-                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
+                case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
                     break;
             }
         }
 
         //depth correction shader only
-        if (sgct::Settings::instance()->useDepthTexture()) {
+        if (Settings::instance()->useDepthTexture()) {
             std::string depthCorrFrag = shaders_fisheye::BaseVert;
             std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
             //replace glsl version
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 depthCorrFrag,
                 "**glsl_version**",
-                sgct::Engine::instance()->getGLSLVersion()
+                Engine::instance()->getGLSLVersion()
             );
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 depthCorrVert,
                 "**glsl_version**",
-                sgct::Engine::instance()->getGLSLVersion()
+                Engine::instance()->getGLSLVersion()
             );
 
             bool fragShader = mDepthCorrectionShader.addShaderSrc(
                 depthCorrFrag,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::ShaderSourceType::String
+                ShaderProgram::ShaderSourceType::String
             );
             if (!fragShader) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
             bool vertShader = mDepthCorrectionShader.addShaderSrc(
                 depthCorrVert,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::ShaderSourceType::String
+                ShaderProgram::ShaderSourceType::String
             );
             if (!vertShader) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -466,19 +463,19 @@ void SpoutOutputProjection::initShaders() {
         // modern pipeline
         fisheyeVertShader = shaders_modern_fisheye::FisheyeVert;
 
-        if (sgct::Settings::instance()->useDepthTexture()) {
-            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
-                case sgct::Settings::DrawBufferType::Diffuse:
+        if (Settings::instance()->useDepthTexture()) {
+            switch (Settings::instance()->getCurrentDrawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
                     break;
-                case sgct::Settings::DrawBufferType::DiffuseNormal:
+                case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::Settings::DrawBufferType::DiffusePosition:
+                case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
+                case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader =
                         shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
                     break;
@@ -486,60 +483,60 @@ void SpoutOutputProjection::initShaders() {
         }
         else {
             //no depth
-            switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
-                case sgct::Settings::DrawBufferType::Diffuse:
+            switch (Settings::instance()->getCurrentDrawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
                     break;
-                case sgct::Settings::DrawBufferType::DiffuseNormal:
+                case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
                     break;
-                case sgct::Settings::DrawBufferType::DiffusePosition:
+                case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
                     break;
-                case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
+                case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
                     break;
             }
         }
 
         //depth correction shader only
-        if (sgct::Settings::instance()->useDepthTexture()) {
+        if (Settings::instance()->useDepthTexture()) {
             std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
             std::string depthCorrVert =
                 shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
 
             //replace glsl version
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 depthCorrFrag,
                 "**glsl_version**",
-                sgct::Engine::instance()->getGLSLVersion()
+                Engine::instance()->getGLSLVersion()
             );
             bool fragShader = mDepthCorrectionShader.addShaderSrc(
                 depthCorrFrag,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::ShaderSourceType::String
+                ShaderProgram::ShaderSourceType::String
             );
             if (!fragShader) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
 
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 depthCorrVert,
                 "**glsl_version**",
-                sgct::Engine::instance()->getGLSLVersion()
+                Engine::instance()->getGLSLVersion()
             );
             bool vertShader = mDepthCorrectionShader.addShaderSrc(
                 depthCorrVert,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::ShaderSourceType::String
+                ShaderProgram::ShaderSourceType::String
             );
             if (!vertShader) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -549,28 +546,28 @@ void SpoutOutputProjection::initShaders() {
     // add functions to shader
     switch (mappingType) {
         case Mapping::Fisheye:
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                Engine::instance()->isOGLPipelineFixed() ?
                     shaders_fisheye::SampleFun :
                     shaders_modern_fisheye::SampleFun
             );
             break;
         case Mapping::Equirectangular:
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                Engine::instance()->isOGLPipelineFixed() ?
                     shaders_fisheye::SampleLatlonFun :
                     shaders_modern_fisheye::SampleLatlonFun
             );
             break;
         default:
-            sgct_helpers::findAndReplace(
+            helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                Engine::instance()->isOGLPipelineFixed() ?
                     shaders_fisheye::SampleFun :
                     shaders_modern_fisheye::SampleFun
             );
@@ -600,50 +597,48 @@ void SpoutOutputProjection::initShaders() {
         rollRot[1].x << "f*x + " << rollRot[1].y << "f*y + " << rollRot[1].z << "f*z, " <<
         rollRot[2].x << "f*x + " << rollRot[2].y << "f*y + " << rollRot[2].z << "f*z)";
 
-    //replace add correct transform in the fragment shader
-    sgct_helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
+    // replace add correct transform in the fragment shader
+    helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
 
-    //replace glsl version
-    sgct_helpers::findAndReplace(
+    // replace glsl version
+    helpers::findAndReplace(
         fisheyeVertShader,
         "**glsl_version**",
-        sgct::Engine::instance()->getGLSLVersion()
+        Engine::instance()->getGLSLVersion()
     );
-    sgct_helpers::findAndReplace(
+    helpers::findAndReplace(
         fisheyeFragShader,
         "**glsl_version**",
-        sgct::Engine::instance()->getGLSLVersion()
+        Engine::instance()->getGLSLVersion()
     );
 
-    //replace color
+    // replace color
     std::stringstream ssColor;
     ssColor.precision(2);
     ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g
             << ", " << mClearColor.b << ", " << mClearColor.a << ")";
-    sgct_helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
+    helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
 
     bool vertShader = mShader.addShaderSrc(
         fisheyeVertShader,
         GL_VERTEX_SHADER,
-        sgct::ShaderProgram::ShaderSourceType::String
+        ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Failed to load fisheye vertex shader:\n%s\n",
-            fisheyeVertShader.c_str()
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertShader.c_str()
         );
     }
     bool fragShader = mShader.addShaderSrc(
         fisheyeFragShader,
         GL_FRAGMENT_SHADER,
-        sgct::ShaderProgram::ShaderSourceType::String
+        ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Failed to load fisheye fragment shader\n%s\n",
-            fisheyeFragShader.c_str()
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load fisheye fragment shader\n%s\n", fisheyeFragShader.c_str()
         );
     }
 
@@ -668,9 +663,9 @@ void SpoutOutputProjection::initShaders() {
     mHalfFovLoc = mShader.getUniformLocation("halfFov");
     glUniform1f(mHalfFovLoc, glm::half_pi<float>());
 
-    sgct::ShaderProgram::unbind();
+    ShaderProgram::unbind();
 
-    if (sgct::Settings::instance()->useDepthTexture()) {
+    if (Settings::instance()->useDepthTexture()) {
         mDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
         mDepthCorrectionShader.createAndLinkProgram();
         mDepthCorrectionShader.bind();
@@ -682,26 +677,26 @@ void SpoutOutputProjection::initShaders() {
         mSwapNearLoc = mDepthCorrectionShader.getUniformLocation("near");
         mSwapFarLoc = mDepthCorrectionShader.getUniformLocation("far");
 
-        sgct::ShaderProgram::unbind();
+        ShaderProgram::unbind();
     }
 }
 
 void SpoutOutputProjection::initFBO() {
     NonLinearProjection::initFBO();
 
-    mSpoutFBO = std::make_unique<sgct_core::OffScreenBuffer>();
+    mSpoutFBO = std::make_unique<core::OffScreenBuffer>();
     mSpoutFBO->setInternalColorFormat(mTexInternalFormat);
     mSpoutFBO->createFBO(mappingWidth, mappingHeight, 1);
 
     if (mSpoutFBO->checkForErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Spout FBO created\n"
         );
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Spout FBO created with errors\n"
         );
     }
@@ -711,7 +706,7 @@ void SpoutOutputProjection::initFBO() {
 
 void SpoutOutputProjection::drawCubeFace(int face) {
     glLineWidth(1.0);
-    if (sgct::Engine::instance()->getWireframe()) {
+    if (Engine::instance()->getWireframe()) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     else {
@@ -768,11 +763,11 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (sgct::Engine::mInstance->mClearBufferFnPtr != nullptr) {
-        sgct::Engine::mInstance->mClearBufferFnPtr();
+    if (Engine::mInstance->mClearBufferFnPtr) {
+        Engine::mInstance->mClearBufferFnPtr();
     }
     else {
-        glm::vec4 color = sgct::Engine::instance()->getClearColor();
+        glm::vec4 color = Engine::instance()->getClearColor();
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -780,20 +775,20 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
         Projection& proj = mSubViewports[face].getProjection(
-            sgct::Engine::instance()->getCurrentFrustumMode()
+            Engine::instance()->getCurrentFrustumMode()
         );
         glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixf(glm::value_ptr(
-            proj.getViewMatrix() * sgct::Engine::instance()->getModelMatrix()
+            proj.getViewMatrix() * Engine::instance()->getModelMatrix()
         ));
     }
 
     // render
-    sgct::Engine::mInstance->mDrawFnPtr();
+    Engine::mInstance->mDrawFnPtr();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -809,7 +804,7 @@ void SpoutOutputProjection::blitCubeFace(int face) {
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
-    if (sgct::Settings::instance()->useDepthTexture()) {
+    if (Settings::instance()->useDepthTexture()) {
         mCubeMapFbo->attachDepthTexture(mTextures.depthSwap);
         mCubeMapFbo->attachColorTexture(mTextures.colorSwap);
     }
@@ -817,7 +812,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, face);
     }
 
-    if (sgct::Settings::instance()->useNormalTexture()) {
+    if (Settings::instance()->useNormalTexture()) {
         mCubeMapFbo->attachCubeMapTexture(
             mTextures.cubeMapNormals,
             face,
@@ -825,7 +820,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         );
     }
 
-    if (sgct::Settings::instance()->usePositionTexture()) {
+    if (Settings::instance()->usePositionTexture()) {
         mCubeMapFbo->attachCubeMapTexture(
             mTextures.cubeMapPositions,
             face,
@@ -836,7 +831,7 @@ void SpoutOutputProjection::attachTextures(int face) {
 
 void SpoutOutputProjection::renderInternal() {
     glEnable(GL_SCISSOR_TEST);
-    sgct::Engine::mInstance->enterCurrentViewport();
+    Engine::instance()->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -865,7 +860,7 @@ void SpoutOutputProjection::renderInternal() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+        bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -888,7 +883,7 @@ void SpoutOutputProjection::renderInternal() {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray(GL_FALSE);
 
-        sgct::ShaderProgram::unbind();
+        ShaderProgram::unbind();
 
         glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glDisable(GL_DEPTH_TEST);
@@ -946,7 +941,7 @@ void SpoutOutputProjection::renderInternal() {
 
 void SpoutOutputProjection::renderInternalFixedPipeline() {
     glEnable(GL_SCISSOR_TEST);
-    sgct::Engine::mInstance->enterCurrentViewport();
+    Engine::instance()->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -972,7 +967,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+        bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1004,7 +999,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
 
         glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
 
-        sgct::ShaderProgram::unbind();
+        ShaderProgram::unbind();
         mSpoutFBO->unBind();
 
         glBindTexture(GL_TEXTURE_2D, mappingTexture);
@@ -1057,7 +1052,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             attachTextures(idx);
         }
 
-        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
@@ -1066,7 +1061,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (sgct::Settings::instance()->useDepthTexture()) {
+        if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
@@ -1077,10 +1072,10 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glScissor(0, 0, mappingWidth, mappingHeight);
             glEnable(GL_SCISSOR_TEST);
 
-            sgct::Engine::mInstance->mClearBufferFnPtr();
+            Engine::instance()->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1102,15 +1097,15 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, sgct::Engine::instance()->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, sgct::Engine::instance()->mFarClippingPlaneDist);
+            glUniform1f(mSwapNearLoc, Engine::instance()->mNearClippingPlaneDist);
+            glUniform1f(mSwapFarLoc, Engine::instance()->mFarClippingPlaneDist);
 
-            sgct::Engine::instance()->getCurrentWindow().bindVAO();
+            Engine::instance()->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::instance()->getCurrentWindow().unbindVAO();
+            Engine::instance()->getCurrentWindow().unbindVAO();
 
             // unbind shader
-            sgct::ShaderProgram::unbind();
+            ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
 
@@ -1166,7 +1161,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             attachTextures(idx);
         }
 
-        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
@@ -1175,7 +1170,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (sgct::Settings::instance()->useDepthTexture()) {
+        if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
@@ -1188,7 +1183,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glEnable(GL_SCISSOR_TEST);
 
-            sgct::Engine::instance()->mClearBufferFnPtr();
+            Engine::instance()->mClearBufferFnPtr();
 
             glActiveTexture(GL_TEXTURE0);
             glMatrixMode(GL_TEXTURE);
@@ -1200,11 +1195,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, sgct::Engine::instance()->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, sgct::Engine::instance()->mFarClippingPlaneDist);
+            glUniform1f(mSwapNearLoc, Engine::instance()->mNearClippingPlaneDist);
+            glUniform1f(mSwapFarLoc, Engine::instance()->mFarClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
-            bool alpha = sgct::Engine::instance()->getCurrentWindow().getAlpha();
+            bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1224,7 +1219,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            sgct::Engine::instance()->getCurrentWindow().bindVBO();
+            Engine::instance()->getCurrentWindow().bindVBO();
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1233,11 +1228,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            sgct::Engine::instance()->getCurrentWindow().unbindVBO();
+            Engine::instance()->getCurrentWindow().unbindVBO();
             glPopClientAttrib();
 
             // unbind shader
-            sgct::ShaderProgram::unbind();
+            ShaderProgram::unbind();
             glPopAttrib();
         }
 
@@ -1268,4 +1263,4 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
     }
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

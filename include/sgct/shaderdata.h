@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/shader.h>
 
-namespace sgct_core {
+namespace sgct::core {
 
 struct ShaderData {
     Shader mShader;
@@ -18,6 +18,6 @@ struct ShaderData {
     bool mIsSrcFile;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__SHADER_DATA__H__

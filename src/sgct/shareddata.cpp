@@ -52,13 +52,9 @@ SharedData::SharedData() {
     }
 
     // fill rest of header with Network::DefaultId
-    memset(
-        headerSpace.data(),
-        sgct_core::Network::DefaultId,
-        sgct_core::Network::HeaderSize
-    );
+    memset(headerSpace.data(), core::Network::DefaultId, core::Network::HeaderSize);
 
-    headerSpace[0] = sgct_core::Network::DataId;
+    headerSpace[0] = core::Network::DataId;
 }
 
 void SharedData::setCompression(bool state, int level) {
@@ -116,7 +112,8 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 void SharedData::encode() {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::LeveL::NotifyAll, "SharedData::encode\n"
+        MessageHandler::Levek::NotifyAll,
+        "SharedData::encode\n"
     );
 #endif
     MutexManager::instance()->mDataSyncMutex.lock();
@@ -124,17 +121,17 @@ void SharedData::encode() {
     dataBlock.clear();
     if (mUseCompression) {
         dataBlockToCompress.clear();
-        headerSpace[0] = sgct_core::Network::CompressedDataId;
+        headerSpace[0] = core::Network::CompressedDataId;
     }
     else {
-        headerSpace[0] = sgct_core::Network::DataId;
+        headerSpace[0] = core::Network::DataId;
     }
 
     //reserve header space
     dataBlock.insert(
         dataBlock.begin(),
         headerSpace.begin(),
-        headerSpace.begin() + sgct_core::Network::HeaderSize
+        headerSpace.begin() + core::Network::HeaderSize
     );
 
     MutexManager::instance()->mDataSyncMutex.unlock();
@@ -200,7 +197,7 @@ void SharedData::encode() {
 }
 
 std::size_t SharedData::getUserDataSize() {
-    return dataBlock.size() - sgct_core::Network::HeaderSize;
+    return dataBlock.size() - core::Network::HeaderSize;
 }
 
 unsigned char* SharedData::getDataBlock() {

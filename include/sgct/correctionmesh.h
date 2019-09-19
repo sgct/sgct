@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace sgct_core {
+namespace sgct::core {
     
 class Viewport;
 
@@ -44,7 +44,7 @@ public:
      *
      * \return true if mesh found and loaded successfully
      */
-    bool readAndGenerateMesh(std::string path, Viewport& parent,Hint hint = Hint::None);
+    bool readAndGenerateMesh(std::string path, Viewport& parent, Hint hint = Hint::None);
 
     /// Render the final mesh where for mapping the frame buffer to the screen.
     void renderQuadMesh() const;
@@ -120,6 +120,6 @@ private:
     CorrectionMeshGeometry mMaskGeometry;
 };
     
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__CORRECTION_MESH__H__

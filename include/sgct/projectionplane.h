@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace tinyxml2 { class XMLElement; }
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * This class holds and manages the 3D projection plane
@@ -45,6 +45,6 @@ protected:
     } mPlaneCoords;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__PROJECTION_PLANE__H__

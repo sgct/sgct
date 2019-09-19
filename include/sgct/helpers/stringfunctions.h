@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 #include <string>
 
-namespace sgct_helpers {
+namespace sgct::helpers {
 
 static void findAndReplace(std::string& src, const std::string& pattern,
                            const std::string& replaceStr)

@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/projectionplane.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 void Projection::calculateProjection(glm::vec3 base,
                                      const ProjectionPlane& projectionPlane,
@@ -86,4 +86,4 @@ const glm::mat4& Projection::getProjectionMatrix() const {
     return mProjectionMatrix;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

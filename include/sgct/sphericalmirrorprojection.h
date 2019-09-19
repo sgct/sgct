@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/correctionmesh.h>
 #include <glm/glm.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * This class manages and renders non-linear fisheye projections
@@ -84,6 +84,6 @@ private:
     int mMatrixLoc = -1;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__SPHERICAL_MIRROR_PROJECTION__H__

@@ -177,7 +177,7 @@ void Settings::configure(tinyxml2::XMLElement* element) {
                 if (trim > 0.f) {
                     setFXAASubPixTrim(1.f / trim);
                     MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Debug,
+                        MessageHandler::Level::Debug,
                         "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.f / trim
                     );
                 }

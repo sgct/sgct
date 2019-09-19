@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class Statistics;
 
@@ -109,6 +109,6 @@ private:
     unsigned int mNumberOfActiveDataTransferConnections = 0;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__NETWORK_MANAGER__H__

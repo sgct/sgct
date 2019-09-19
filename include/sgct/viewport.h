@@ -15,10 +15,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-#define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
+#define TIXML_USE_STL // needed for tinyXML lib to link properly in mingw
 #include <tinyxml2.h>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class NonLinearProjection;
 
@@ -89,6 +89,6 @@ private:
     std::vector<unsigned char> mMpcdiWarpMesh;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__VIEWPORT__H__

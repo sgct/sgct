@@ -37,11 +37,8 @@ MessageHandler::MessageHandler() {
 
     mParseBuffer.resize(mMaxMessageSize);
     mCombinedBuffer.resize(mCombinedMessageSize);
-    headerSpace.resize(
-        sgct_core::Network::HeaderSize,
-        sgct_core::Network::DefaultId
-    );
-    headerSpace[0] = sgct_core::Network::DataId;
+    headerSpace.resize(core::Network::HeaderSize, core::Network::DefaultId);
+    headerSpace[0] = core::Network::DataId;
     mBuffer.insert(mBuffer.begin(), headerSpace.begin(), headerSpace.end());
 
 #ifdef __SGCT_DEBUG__

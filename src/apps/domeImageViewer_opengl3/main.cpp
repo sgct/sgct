@@ -18,7 +18,7 @@ namespace {
     std::mutex mutex;
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
-    std::vector<std::unique_ptr<sgct_core::Image>> transImages;
+    std::vector<std::unique_ptr<sgct::core::Image>> transImages;
 
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
@@ -37,7 +37,7 @@ namespace {
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
-    std::unique_ptr<sgct_utils::Dome> dome;
+    std::unique_ptr<sgct::utils::Dome> dome;
     GLint matrixLoc = -1;
 
     sgct::SharedDouble currentTime(0.0);
@@ -48,7 +48,7 @@ using namespace sgct;
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(mutex);
 
-    std::unique_ptr<sgct_core::Image> img = std::make_unique<sgct_core::Image>();
+    std::unique_ptr<sgct::core::Image> img = std::make_unique<sgct::core::Image>();
 
     const char type = static_cast<char>(data[0]);
     assert(type == 0 || type == 1);
@@ -214,7 +214,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (sgct::core::ClusterManager::instance()->getNumberOfNodes() == 1) {
                 clientsUploadDone = true;
             }
         }
@@ -237,7 +237,7 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
-        gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye)
+        gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal() + 1));
     }
@@ -281,7 +281,7 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    dome = std::make_unique<sgct_utils::Dome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<sgct::utils::Dome>(7.4f, 180.f, 256, 128);
 
     // Set up backface culling
     glCullFace(GL_BACK);
@@ -426,7 +426,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == lastPackage.getVal()) {
         counter++;
-        if (counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
+        if (counter == (sgct::core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             

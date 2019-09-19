@@ -10,9 +10,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/messagehandler.h>
 #include <algorithm>
 
-namespace sgct_core {
+namespace sgct::core {
 
-void Node::addWindow(sgct::Window window) {
+void Node::addWindow(Window window) {
     mWindows.emplace_back(std::move(window));
 }
 
@@ -32,7 +32,7 @@ bool Node::getKeyPressed(int key) {
         return false;
     }
 
-    for (const sgct::Window& window : mWindows) {
+    for (const Window& window : mWindows) {
         if (glfwGetKey(window.getWindowHandle(), key)) {
             return true;
         }
@@ -44,11 +44,11 @@ int Node::getNumberOfWindows() {
     return static_cast<int>(mWindows.size());
 }
 
-sgct::Window& Node::getWindow(int index) {
+Window& Node::getWindow(int index) {
     return mWindows[index];
 }
 
-sgct::Window& Node::getCurrentWindow() {
+Window& Node::getCurrentWindow() {
     return mWindows[mCurrentWindowIndex];
 }
 
@@ -57,7 +57,7 @@ int Node::getCurrentWindowIndex() {
 }
 
 bool Node::shouldAllWindowsClose() {
-    for (sgct::Window& window : mWindows) {
+    for (Window& window : mWindows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {
             window.setVisibility(false);
             glfwSetWindowShouldClose(window.getWindowHandle(), 0);
@@ -65,7 +65,7 @@ bool Node::shouldAllWindowsClose() {
     }
 
     size_t counter = 0;
-    for (const sgct::Window& window : mWindows) {
+    for (const Window& window : mWindows) {
         if (!(window.isVisible() || window.isRenderingWhileHidden())) {
             counter++;
         }
@@ -75,13 +75,13 @@ bool Node::shouldAllWindowsClose() {
 }
 
 void Node::showAllWindows() {
-    for (sgct::Window& window : mWindows) {
+    for (Window& window : mWindows) {
         window.setVisibility(true);
     }
 }
 
 void Node::hideAllWindows() {
-    for (sgct::Window& window : mWindows) {
+    for (Window& window : mWindows) {
         window.setVisibility(false);
     }
 }
@@ -99,8 +99,8 @@ void Node::setAddress(std::string address) {
     );
     mAddress = std::move(address);
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Node: Setting address to %s\n", mAddress.c_str()
     );
 }
@@ -108,8 +108,8 @@ void Node::setAddress(std::string address) {
 void Node::setSyncPort(std::string port) {
     mSyncPort = std::move(port);
     
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Node: Setting sync port to %s\n", mSyncPort.c_str()
     );
 }
@@ -117,8 +117,8 @@ void Node::setSyncPort(std::string port) {
 void Node::setDataTransferPort(std::string port) {
     mDataTransferPort = std::move(port);
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Node: Setting data transfer port to %s\n", mDataTransferPort.c_str()
     );
 }
@@ -143,4 +143,4 @@ const std::string& Node::getName() const {
     return mName;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

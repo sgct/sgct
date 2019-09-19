@@ -14,14 +14,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/sphericalmirrorprojection.h>
 #include <sgct/spoutoutputprojection.h>
 
-namespace sgct_core {
+namespace sgct::core {
 class Image;
 class NetworkManager;
 class Node;
 class ReadConfig;
 class Statistics;
 class Touch;
-} // namespace sgct_core
+} // namespace sgct::core
 
 /**
  * \namespace sgct
@@ -44,9 +44,9 @@ class Window;
  * \image latex render_diagram.eps "Render diagram" width=7cm
  */
 class Engine {
-    friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
-    friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
-    friend class sgct_core::SpoutOutputProjection; //needs to access draw callbacks
+    friend class core::FisheyeProjection; //needs to access draw callbacks
+    friend class core::SphericalMirrorProjection; //needs to access draw callbacks
+    friend class core::SpoutOutputProjection; //needs to access draw callbacks
 
 public:
     /// The different run modes used by the init function
@@ -306,8 +306,8 @@ public:
     unsigned int getScreenShotNumber() const;
 
     /// Don't use this. This function is called internally in SGCT.
-    void invokeScreenShotCallback(sgct_core::Image* imPtr, size_t winIndex,
-        sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void invokeScreenShotCallback(sgct::core::Image* imPtr, size_t winIndex,
+        sgct::core::ScreenCapture::EyeIndex ei, unsigned int type);
 
     /**
      * Create a timer that counts down and call the given callback when finished. The
@@ -608,7 +608,7 @@ void sgct::Engine::clearBuffer() {
     void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
 
     void setTouchCallbackFunction(
-        std::function<void(const sgct_core::Touch* touches)> fn);
+        std::function<void(const sgct::core::Touch* touches)> fn);
 
     /**
      *  This callback must be set before Engine::init is called. Parameters to the
@@ -617,8 +617,8 @@ void sgct::Engine::clearBuffer() {
      * \param fn is the function pointer to a screenshot callback for custom frame
      *        capture & export
      */
-    void setScreenShotCallback(std::function<void(sgct_core::Image*, size_t,
-        sgct_core::ScreenCapture::EyeIndex, unsigned int type)> fn);
+    void setScreenShotCallback(std::function<void(sgct::core::Image*, size_t,
+        sgct::core::ScreenCapture::EyeIndex, unsigned int type)> fn);
 
 
     /**
@@ -861,7 +861,7 @@ void sgct::Engine::clearBuffer() {
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
     /// Returns a pointer to this node (running on this computer).
-    const sgct_core::Node* getThisNode() const;
+    const sgct::core::Node* getThisNode() const;
 
     /// Returns a pointer to a specified window by index on this node.
     Window& getWindow(int index) const;
@@ -876,7 +876,7 @@ void sgct::Engine::clearBuffer() {
     int getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
-    static sgct_core::User& getDefaultUser();
+    static sgct::core::User& getDefaultUser();
 
     /// Returns a pointer to the tracking manager pointer
     static TrackingManager& getTrackingManager();
@@ -908,7 +908,7 @@ void sgct::Engine::clearBuffer() {
      *   - Stereo Left
      *   - Stereo Right
      */
-    sgct_core::Frustum::Mode getCurrentFrustumMode() const;
+    sgct::core::Frustum::Mode getCurrentFrustumMode() const;
 
     /**
      * Returns the active projection matrix (only valid inside in the draw callback
@@ -987,7 +987,7 @@ void sgct::Engine::clearBuffer() {
     RenderTarget getCurrentRenderTarget() const;
 
     /// \return the active off screen buffer. If no buffer is active nullptr is returned. 
-    sgct_core::OffScreenBuffer* getCurrentFBO() const;
+    sgct::core::OffScreenBuffer* getCurrentFBO() const;
 
     /**
      * Returns the active viewport in pixels (only valid inside in the draw callback
@@ -1157,8 +1157,7 @@ private:
      * This function copies/render the result from the previous window same viewport (if
      * it exists) into this window
      */
-    void copyPreviousWindowViewportToCurrentWindowViewport(
-        sgct_core::Frustum::Mode frustumMode);
+    void copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mode mode);
 
     static void clearBuffer();
 
@@ -1180,7 +1179,7 @@ private:
     std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
     std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
     std::function<
-        void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int)
+        void(core::Image*, size_t, core::ScreenCapture::EyeIndex, unsigned int)
     > mScreenShotFnPtr;
     std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
@@ -1193,7 +1192,7 @@ private:
     float mFarClippingPlaneDist = 100.f;
     glm::vec4 mClearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    sgct_core::Frustum::Mode mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
+    core::Frustum::Mode mCurrentFrustumMode = core::Frustum::MonoEye;
     glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> mDrawBufferResolutions;
     size_t mCurrentDrawBufferIndex = 0;
@@ -1203,7 +1202,7 @@ private:
         size_t sub = 0;
     } mCurrentViewportIndex;
     RenderTarget mCurrentRenderTarget = RenderTarget::WindowBuffer;
-    sgct_core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
+    core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
 
     bool mShowInfo = false;
     bool mShowGraph = false;
@@ -1233,9 +1232,9 @@ private:
         int fxaaTexture = -1;
     } mShaderLoc;
 
-    std::unique_ptr<sgct_core::NetworkManager> mNetworkConnections;
-    std::unique_ptr<sgct_core::Statistics> mStatistics;
-    sgct_core::Node* mThisNode = nullptr;
+    std::unique_ptr<core::NetworkManager> mNetworkConnections;
+    std::unique_ptr<core::Statistics> mStatistics;
+    core::Node* mThisNode = nullptr;
 
     std::unique_ptr<std::thread> mThreadPtr;
 

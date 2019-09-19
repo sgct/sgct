@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Helper class for creating frame buffer objects and render buffer objects.
@@ -89,6 +89,6 @@ private:
     bool mIsMultiSampled = false;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__OFFSCREEN_BUFFER__H__

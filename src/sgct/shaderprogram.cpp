@@ -15,7 +15,7 @@ namespace sgct {
 ShaderProgram::ShaderProgram(std::string name) : mName(std::move(name)) {}
 
 void ShaderProgram::deleteProgram() {
-    for (sgct_core::ShaderData& sd : mShaders) {
+    for (core::ShaderData& sd : mShaders) {
         if (sd.mShader.getId() > 0) {
             glDetachShader(mProgramId, sd.mShader.getId());
             sd.mShader.deleteShader();
@@ -30,10 +30,10 @@ void ShaderProgram::setName(std::string name) {
     mName = std::move(name);
 }
 
-bool ShaderProgram::addShaderSrc(std::string src, sgct_core::Shader::ShaderType type,
+bool ShaderProgram::addShaderSrc(std::string src, core::Shader::ShaderType type,
                                  ShaderSourceType sSrcType)
 {
-    sgct_core::ShaderData sd;
+    core::ShaderData sd;
     sd.mShader.setShaderType(type);
     sd.mIsSrcFile = sSrcType == ShaderSourceType::File;
     sd.mShaderSrc = std::move(src);
@@ -96,7 +96,7 @@ bool ShaderProgram::createAndLinkProgram() {
     }
 
     // Link shaders
-    for (const sgct_core::ShaderData& sd : mShaders) {
+    for (const core::ShaderData& sd : mShaders) {
         if (sd.mShader.getId() > 0) {
             glAttachShader(mProgramId, sd.mShader.getId());
         }
@@ -116,7 +116,7 @@ bool ShaderProgram::reload() {
     
     deleteProgram();
 
-    for (sgct_core::ShaderData& sd : mShaders) {
+    for (core::ShaderData& sd : mShaders) {
         bool success;
         if (sd.mIsSrcFile) {
             success = sd.mShader.setSourceFromFile(sd.mShaderSrc);

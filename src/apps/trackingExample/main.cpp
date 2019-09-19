@@ -228,9 +228,9 @@ void drawFun() {
     constexpr const int fontSize = 12;
     
     glColor3f(1.f, 1.f, 1.f);
-    sgct_text::print(
-        *sgct_text::FontManager::instance()->getFont("SGCTFont", fontSize),
-        sgct_text::TextAlignMode::TopLeft,
+    sgct::text::print(
+        *sgct::text::FontManager::instance()->getFont("SGCTFont", fontSize),
+        sgct::text::TextAlignMode::TopLeft,
         120.f,
         textVerticalPos,
         sharedText.getVal().c_str()

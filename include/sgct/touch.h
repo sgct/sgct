@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 struct GLFWtouch;
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * This class holds and manages touch points

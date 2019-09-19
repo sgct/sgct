@@ -31,7 +31,7 @@ namespace sgct::openvr {
 
     void copyWindowToHMD(Window* win);
 
-    glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::Mode nEye);
+    glm::mat4 getHMDCurrentViewProjectionMatrix(sgct::core::Frustum::Mode nEye);
 
     // Updates pose matrices for all tracked OpenVR devices
     void updatePoses();
@@ -50,5 +50,4 @@ namespace sgct::openvr {
 } // namespace sgct::openvr
 
 #endif // SGCT_HAS_OPENVR
-
 #endif // __SGCT__OPENVR__H__

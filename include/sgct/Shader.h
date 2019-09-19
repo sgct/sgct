@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <string>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Simple helper class for handling shaders. Shader can't be used directly, they must be

@@ -41,7 +41,7 @@ constexpr const float QuadVerts[20] = {
 };
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -56,7 +56,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -71,7 +71,7 @@ void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void windowFocusCallback(GLFWwindow* window, int state) {
-    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -84,7 +84,7 @@ void windowFocusCallback(GLFWwindow* window, int state) {
 }
 
 void windowIconifyCallback(GLFWwindow* window, int state) {
-    sgct_core::Node* node = sgct_core::ClusterManager::instance()->getThisNode();
+    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
     if (!node) {
         return;
     }
@@ -151,7 +151,7 @@ bool Window::isIconified() const {
 void Window::close() {
     makeOpenGLContextCurrent(Context::Shared);
 
-    for (sgct::PostFX& pfx : mPostFXPasses) {
+    for (PostFX& pfx : mPostFXPasses) {
         pfx.destroy();
     }
     mPostFXPasses.clear();
@@ -226,7 +226,7 @@ void Window::init() {
         glfwSetWindowIconifyCallback(mWindowHandle, windowIconifyCallback);
     }
 
-    using namespace sgct_core;
+    using namespace core;
     std::string title = "SGCT node: " +
         ClusterManager::instance()->getThisNode()->getAddress() +
         " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
@@ -249,7 +249,7 @@ void Window::initOGL() {
     initScreenCapture();
     loadShaders();
 
-    for (const std::unique_ptr<sgct_core::Viewport>& vp : mViewports) {
+    for (const std::unique_ptr<core::Viewport>& vp : mViewports) {
         if (!vp->hasSubViewports()) {
             continue;
         }
@@ -276,7 +276,7 @@ void Window::initContextSpecificOGL() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
 
     for (int j = 0; j < getNumberOfViewports(); j++) {
-        sgct_core::Viewport& vp = getViewport(j);
+        core::Viewport& vp = getViewport(j);
         vp.loadData();
         if (vp.hasBlendMaskTexture() || vp.hasBlackLevelMaskTexture()) {
             mHasAnyMasks = true;
@@ -405,8 +405,8 @@ void Window::swap(bool takeScreenshot) {
                 mScreenCaptureLeftOrMono->saveScreenCapture(
                     0,
                     mStereoMode == StereoMode::Active ?
-                        sgct_core::ScreenCapture::CaptureSource::LeftBackBuffer :
-                        sgct_core::ScreenCapture::CaptureSource::BackBuffer
+                        core::ScreenCapture::CaptureSource::LeftBackBuffer :
+                        core::ScreenCapture::CaptureSource::BackBuffer
                 );
             }
 
@@ -415,7 +415,7 @@ void Window::swap(bool takeScreenshot) {
                 //              it should have been mScreenCapture[1] instead?!
                 mScreenCaptureLeftOrMono->saveScreenCapture(
                     0,
-                    sgct_core::ScreenCapture::CaptureSource::RightBackBuffer
+                    core::ScreenCapture::CaptureSource::RightBackBuffer
                 );
             }
         }
@@ -451,7 +451,7 @@ void Window::updateResolutions() {
         // Set field of view of each of this window's viewports to match new
         // aspect ratio, adjusting only the horizontal (x) values.
         for (int j = 0; j < getNumberOfViewports(); ++j) {
-            sgct_core::Viewport& vp = getViewport(j);
+            core::Viewport& vp = getViewport(j);
             vp.updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
@@ -492,7 +492,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
-        sgct_core::Viewport& vp = getViewport(j);
+        core::Viewport& vp = getViewport(j);
         vp.setHorizontalFieldOfView(hFovDeg, mAspectRatio);
     }
     MessageHandler::instance()->print(
@@ -522,7 +522,7 @@ bool Window::update() {
 
     resizeFBOs();
 
-    auto resizePBO = [this](sgct_core::ScreenCapture& sc) {
+    auto resizePBO = [this](core::ScreenCapture& sc) {
         const int nCaptureChannels = mAlpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
@@ -545,7 +545,7 @@ bool Window::update() {
     }
 
     // resize non linear projection buffers
-    for (const std::unique_ptr<sgct_core::Viewport>& vp : mViewports) {
+    for (const std::unique_ptr<core::Viewport>& vp : mViewports) {
         if (vp->hasSubViewports()) {
             glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
             vp->getNonLinearProjection()->update(std::move(viewport));
@@ -830,14 +830,14 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwMakeContextCurrent(mSharedHandle);
 
     if (Settings::instance()->useFBO()) {
-        mScreenCaptureLeftOrMono = std::make_unique<sgct_core::ScreenCapture>();
+        mScreenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
 
         if (useRightEyeTexture()) {
-            mScreenCaptureRight = std::make_unique<sgct_core::ScreenCapture>();
+            mScreenCaptureRight = std::make_unique<core::ScreenCapture>();
         }
     }
 
-    mFinalFBO = std::make_unique<sgct_core::OffScreenBuffer>();
+    mFinalFBO = std::make_unique<core::OffScreenBuffer>();
 
     return true;
 }
@@ -927,7 +927,7 @@ void Window::initNvidiaSwapGroups() {
 }
 
 void Window::initScreenCapture() {
-    auto initializeCapture = [this](sgct_core::ScreenCapture& sc) {
+    auto initializeCapture = [this](core::ScreenCapture& sc) {
         // a workaround for devices that support pbos but not showing it, like OSX (Intel)
         if (Engine::instance()->isOGLPipelineFixed()) {
             sc.setUsePBO(
@@ -958,13 +958,13 @@ void Window::initScreenCapture() {
         Settings::CaptureFormat format = Settings::instance()->getCaptureFormat();
         switch (format) {
             case Settings::CaptureFormat::PNG:
-                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::PNG);
+                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::PNG);
                 break;
             case Settings::CaptureFormat::TGA:
-                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::TGA);
+                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::TGA);
                 break;
             case Settings::CaptureFormat::JPG:
-                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::JPEG);
+                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::JPEG);
                 break;
         }
 
@@ -978,7 +978,7 @@ void Window::initScreenCapture() {
 
 
     if (mScreenCaptureLeftOrMono) {
-        using namespace sgct_core;
+        using namespace core;
         if (useRightEyeTexture()) {
             mScreenCaptureLeftOrMono->init(mId, ScreenCapture::EyeIndex::StereoLeft);
         }
@@ -989,7 +989,7 @@ void Window::initScreenCapture() {
     }
 
     if (mScreenCaptureRight) {
-        mScreenCaptureRight->init(mId, sgct_core::ScreenCapture::EyeIndex::StereoRight);
+        mScreenCaptureRight->init(mId, core::ScreenCapture::EyeIndex::StereoRight);
         initializeCapture(*mScreenCaptureRight);
     }
 }
@@ -1256,7 +1256,7 @@ void Window::loadShaders() {
     }
 
     const bool fixed = Engine::instance()->isOGLPipelineFixed();
-    using namespace sgct_core;
+    using namespace core;
 
     std::string stereoVertShader = fixed ?
         shaders::AnaglyphVert :
@@ -1299,7 +1299,7 @@ void Window::loadShaders() {
 
     const std::string glslVersion = Engine::instance()->getGLSLVersion();
 
-    sgct_helpers::findAndReplace(stereoVertShader, "**glsl_version**", glslVersion);
+    helpers::findAndReplace(stereoVertShader, "**glsl_version**", glslVersion);
     const bool vertShader = stereo.shader.addShaderSrc(
         stereoVertShader,
         GL_VERTEX_SHADER,
@@ -1312,7 +1312,7 @@ void Window::loadShaders() {
         );
     }
 
-    sgct_helpers::findAndReplace(stereoFragShader, "**glsl_version**", glslVersion);
+    helpers::findAndReplace(stereoFragShader, "**glsl_version**", glslVersion);
     const bool fragShader = stereo.shader.addShaderSrc(
         stereoFragShader,
         GL_FRAGMENT_SHADER,
@@ -1361,7 +1361,7 @@ void Window::unbindVAO() const {
     glBindVertexArray(0);
 }
 
-sgct_core::OffScreenBuffer* Window::getFBO() const {
+core::OffScreenBuffer* Window::getFBO() const {
     return mFinalFBO.get();
 }
 
@@ -1432,14 +1432,14 @@ Window::StereoMode Window::getStereoMode() const {
     return mStereoMode;
 }
 
-void Window::addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr) {
+void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
     mViewports.push_back(std::move(vpPtr));
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug, "Adding viewport (total %d)\n", mViewports.size()
     );
 }
 
-sgct_core::BaseViewport* Window::getCurrentViewport() const {
+core::BaseViewport* Window::getCurrentViewport() const {
     if (mCurrentViewport == nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
@@ -1449,11 +1449,11 @@ sgct_core::BaseViewport* Window::getCurrentViewport() const {
     return mCurrentViewport;
 }
 
-const sgct_core::Viewport& Window::getViewport(size_t index) const {
+const core::Viewport& Window::getViewport(size_t index) const {
     return *mViewports[index];
 }
 
-sgct_core::Viewport& Window::getViewport(size_t index) {
+core::Viewport& Window::getViewport(size_t index) {
     return *mViewports[index];
 }
 
@@ -1492,7 +1492,7 @@ void Window::setStereoMode(StereoMode sm) {
     }
 }
 
-sgct_core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
+core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
         case Eye::MonoOrLeft:
             return mScreenCaptureLeftOrMono.get();
@@ -1507,7 +1507,7 @@ void Window::setCurrentViewport(size_t index) {
     mCurrentViewport = mViewports[index].get();
 }
 
-void Window::setCurrentViewport(sgct_core::BaseViewport* vp) {
+void Window::setCurrentViewport(core::BaseViewport* vp) {
     mCurrentViewport = vp;
 }
 

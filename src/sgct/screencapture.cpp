@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
     void screenCaptureHandler(void* arg) {
-        using SCTI = sgct_core::ScreenCapture::ScreenCaptureThreadInfo;
+        using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
         const bool saveSuccess = ptr->mFrameBufferImage->save();
@@ -30,8 +30,8 @@ namespace {
         ptr->mRunning = false;
     }
 
-    GLenum sourceForCaptureSource(sgct_core::ScreenCapture::CaptureSource source) {
-        using Source = sgct_core::ScreenCapture::CaptureSource;
+    GLenum sourceForCaptureSource(sgct::core::ScreenCapture::CaptureSource source) {
+        using Source = sgct::core::ScreenCapture::CaptureSource;
         switch (source) {
             default:
             case Source::BackBuffer: return GL_BACK;
@@ -41,15 +41,15 @@ namespace {
     }
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 ScreenCapture::ScreenCapture()
-    : mNumberOfThreads(sgct::Settings::instance()->getNumberOfCaptureThreads())
+    : mNumberOfThreads(Settings::instance()->getNumberOfCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
         "Clearing screen capture buffers...\n"
     );
 
@@ -96,8 +96,8 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
 
     if (mUsePBO) {
         glGenBuffers(1, &mPBO);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "ScreenCapture: Generating %dx%dx%d PBO: %u\n",
             mResolution.x, mResolution.y, mChannels, mPBO
         );
@@ -125,7 +125,7 @@ ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
+    addFrameNumberToFilename(Engine::instance()->getScreenShotNumber());
 
     checkImageBuffer(capSrc);
 
@@ -140,7 +140,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     if (mUsePBO) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
         
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (Engine::instance()->isOGLPipelineFixed()) {
             glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
             glEnable(GL_TEXTURE_2D);
         }
@@ -163,7 +163,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             );
         }
             
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (Engine::instance()->isOGLPipelineFixed()) {
             glPopAttrib();
         }
         
@@ -187,8 +187,8 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         }
         else {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Error: Can't map data (0) from GPU in frame capture!\n"
             );
         }
@@ -197,7 +197,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     }
     else {
         // no PBO
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (Engine::instance()->isOGLPipelineFixed()) {
             glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
             glEnable(GL_TEXTURE_2D);
         }
@@ -226,7 +226,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             );
         }
             
-        if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        if (Engine::instance()->isOGLPipelineFixed()) {
             glPopAttrib();
         }
         
@@ -252,8 +252,8 @@ void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
 void ScreenCapture::setUsePBO(bool state) {
     mUsePBO = state;
     
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Info,
         "ScreenCapture: PBO rendering %s.\n", state ? "enabled" : "disabled"
     );
 }
@@ -270,8 +270,8 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     mWindowIndex = windowIndex;
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Number of screen capture threads is set to %d\n", mNumberOfThreads
     );
 }
@@ -295,8 +295,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     bool useDefaultSettings = mPath.empty() && mBaseName.empty();
     if (useDefaultSettings) {
         std::string tmpPath;
-        using Settings = sgct::Settings;
-        using CapturePath = sgct::Settings::CapturePath;
+        using CapturePath = Settings::CapturePath;
         switch (mEyeIndex) {
             case EyeIndex::Mono:
             default:
@@ -312,7 +311,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 break;
         }
         filename = tmpPath;
-        sgct::Window& win = sgct::Engine::instance()->getWindow(mWindowIndex);
+        Window& win = Engine::instance()->getWindow(mWindowIndex);
         
         if (win.getName().empty()) {
             filename += "_win" + std::to_string(mWindowIndex);
@@ -373,7 +372,7 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::updateDownloadFormat() {
-    const bool fixedPipeline = sgct::Engine::instance()->isOGLPipelineFixed();
+    const bool fixedPipeline = Engine::instance()->isOGLPipelineFixed();
     switch (mChannels) {
         default:
             mDownloadFormat = mPreferBGR ? GL_BGRA : GL_RGBA;
@@ -391,7 +390,7 @@ void ScreenCapture::updateDownloadFormat() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
-    sgct::Window& win = sgct::Engine::instance()->getWindow(mWindowIndex);
+    Window& win = Engine::instance()->getWindow(mWindowIndex);
     
     if (CapSrc == CaptureSource::Texture) {
         if (mResolution != win.getFramebufferResolution()) {
@@ -411,20 +410,20 @@ void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
 
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Error in finding availible thread for screenshot/capture\n"
         );
         return nullptr;
     }
 
-    sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "Starting thread for screenshot/capture [%d]\n", index
     );
 
     if (mSCTIs[index].mFrameBufferImage == nullptr) {
-        mSCTIs[index].mFrameBufferImage = std::make_unique<sgct_core::Image>();
+        mSCTIs[index].mFrameBufferImage = std::make_unique<core::Image>();
         mSCTIs[index].mFrameBufferImage->setBytesPerChannel(mBytesPerColor);
         mSCTIs[index].mFrameBufferImage->setPreferBGRExport(mPreferBGR);
         mSCTIs[index].mFrameBufferImage->setChannels(mChannels);
@@ -446,4 +445,4 @@ void ScreenCapture::setCaptureCallback(
     mCaptureCallbackFn = std::move(callback);
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

@@ -86,18 +86,18 @@ namespace {
     }
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
-                                   sgct::Window& window)
+                               Window& window)
 {
     FILE* cfgFile = nullptr;
     unzFile zipfile;
 
     bool fileOpenSuccess = openZipFile(cfgFile, filenameMpcdi, &zipfile);
     if (!fileOpenSuccess) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiConfiguration: Unable to open zip archive file %s\n",
             filenameMpcdi.c_str()
         );
@@ -107,8 +107,8 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
     unz_global_info globalInfo;
     int globalInfoRet = unzGetGlobalInfo(zipfile, &globalInfo);
     if (globalInfoRet != UNZ_OK) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
             filenameMpcdi.c_str()
         );
@@ -132,8 +132,8 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
             0
         );
         if (getCurrentFileInfo != UNZ_OK) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i
             );
             unzClose(zipfile);
@@ -151,8 +151,8 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         if ((i + 1) < globalInfo.number_entry) {
             int goToNextFileStatus = unzGoToNextFile(zipfile);
             if (goToNextFileStatus != UNZ_OK) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Warning,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Warning,
                     "parseMpcdiConfiguration: Unable to get next file in archive\n"
                 );
             }
@@ -160,8 +160,8 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
     }
     unzClose(zipfile);
     if (!mXmlFileContents.isFound || !mPfmFileContents.isFound) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file\n",
             filenameMpcdi.c_str()
         );
@@ -184,8 +184,8 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     sf.fileName = filename;
     int openCurrentFile = unzOpenCurrentFile(zipfile);
     if (openCurrentFile != UNZ_OK) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
         );
         unzClose(zipfile);
@@ -198,8 +198,8 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
         static_cast<unsigned int>(sf.buffer.size())
     );
     if (err < 0) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiConfiguration: %s read from %s failed\n",
             suffix.c_str(), filename.c_str()
         );
@@ -209,7 +209,7 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     return true;
 }
 
-bool Mpcdi::readAndParseString(Node& node, sgct::Window& win) {
+bool Mpcdi::readAndParseString(Node& node, Window& win) {
     if (mXmlFileContents.buffer.empty()) {
         return false;
     }
@@ -236,8 +236,8 @@ bool Mpcdi::readAndParseString(Node& node, sgct::Window& win) {
             str = "File not found";
         }
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "readAndParseXMLString: error parsing file %s\n", str.c_str()
         );
         return false;
@@ -248,13 +248,11 @@ bool Mpcdi::readAndParseString(Node& node, sgct::Window& win) {
     }
 }
 
-bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
-                                  sgct::Window& win)
-{
+bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window& win) {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
     if (XMLroot == nullptr) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "readAndParseMpcdi: Cannot find XML root"
         );
         return false;
@@ -267,8 +265,8 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
         "3d"
     );
     if (!hasProfile) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "readAndParseMpcdi: Problem with 'MPCDI' attribute in XML\n"
         );
         return false;
@@ -280,8 +278,8 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
         "1"
     );
     if (!hasGeometry) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "readAndParseMpcdi: Problem with 'geometry' attribute in XML\n"
         );
         return false;
@@ -293,8 +291,8 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
         "2.0"
     );
     if (!hasVersion) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "readAndParseMpcdi: Problem with 'version' attribute in XML\n"
         );
         return false;
@@ -323,11 +321,11 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
     return true;
 }
 
-bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node,
-                                    sgct::Window& win, MpcdiFoundItems& parsedItems)
+bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Window& win,
+                                MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveDisplayElem) {
-        sgct::MessageHandler::instance()->print(
+        MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "parseMpcdiXml: Multiple 'display' elements not supported\n"
         );
@@ -387,9 +385,8 @@ bool Mpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win) 
     return true;
 }
 
-bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
-                                        sgct::Window& win,
-                                        std::string filesetRegionId)
+bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
+                                    std::string filesetRegionId)
 {
     std::unique_ptr<MpcdiWarp> warp = std::make_unique<MpcdiWarp>();
     warp->id = filesetRegionId;
@@ -403,8 +400,8 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
         else if (val == "interpolation") {
             std::string_view interpolation = child->GetText();
             if (interpolation != "linear") {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Warning,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Warning,
                     "parseMpcdiXml: only linear interpolation is supported\n"
                 );
             }
@@ -429,16 +426,16 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
             }
         }
         if (!foundMatchingPfmBuffer) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "parseMpcdiXml: matching geometryWarpFile not found\n"
             );
             return false;
         }
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiXml: geometryWarpFile requires both path and interpolation\n"
         );
         return false;
@@ -448,12 +445,12 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
     return true;
 }
 
-bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
-                                   MpcdiFoundItems& parsedItems)
+bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
+                               MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveBufferElem) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiXml: Multiple 'buffer' elements unsupported\n"
         );
         return false;
@@ -473,8 +470,8 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
         win.setFixResolution(true);
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiXml: Require both xResolution and yResolution values\n"
         );
         return false;
@@ -497,8 +494,8 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
     return true;
 }
 
-bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
-                                   MpcdiFoundItems& parsedItems)
+bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
+                               MpcdiFoundItems& parsedItems)
 {
     // Require an 'id' attribute for each region. These will be compared later to the
     // fileset, in which there must be a matching 'id'. The mBufferRegions vector is
@@ -508,8 +505,8 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
         mBufferRegions.push_back(element->Attribute("id"));
     }
     else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "parseMpcdiXml: No 'id' attribute provided for region\n"
         );
         return false;
@@ -520,4 +517,4 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
     return true;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

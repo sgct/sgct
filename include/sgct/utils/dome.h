@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/helpers/vertexdata.h>
 #include <vector>
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 /*!
     Helper class to render a dome grid
@@ -43,6 +43,6 @@ private:
     unsigned int mVAO = 0;
 };
 
-} // namespace sgct_utils
+} // namespace sgct::utils
 
 #endif // __SGCT__DOME__H__

@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Helper class for measuring application statistics
@@ -93,7 +93,7 @@ private:
     int mNumberOfLines = 0;
     bool mFixedPipeline = true;
 
-    sgct::ShaderProgram mShader;
+    ShaderProgram mShader;
     int mMVPLoc = -1;
     int mColLoc = -1;
 

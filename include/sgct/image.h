@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <pngconf.h>
 #include <string>
 
-namespace sgct_core {
+namespace sgct::core {
 
 class Image {
 public:
@@ -113,6 +113,6 @@ private:
     bool mExternalData = false;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__IMAGE__H__

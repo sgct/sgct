@@ -48,14 +48,14 @@ namespace {
 
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glGenFramebuffers(1, &mFrameBuffer);
     glGenRenderbuffers(1, &mDepthBuffer);
 
     mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && sgct::Settings::instance()->useFBO());
+    mIsMultiSampled = (samples > 1 && Settings::instance()->useFBO());
 
     // create a multisampled buffer
     if (mIsMultiSampled) {
@@ -66,8 +66,8 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             samples = 0;
         }
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Max samples supported: %d\n", MaxSamples
         );
 
@@ -78,12 +78,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         glGenRenderbuffers(1, &mColorBuffer);
 
         // generate render buffer for intermediate normal storage
-        if (sgct::Settings::instance()->useNormalTexture()) {
+        if (Settings::instance()->useNormalTexture()) {
             glGenRenderbuffers(1, &mNormalBuffer);
         }
 
         // generate render buffer for intermediate position storage
-        if (sgct::Settings::instance()->usePositionTexture()) {
+        if (Settings::instance()->usePositionTexture()) {
             glGenRenderbuffers(1, &mPositionBuffer);
         }
         
@@ -100,23 +100,23 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             height
         );
 
-        if (sgct::Settings::instance()->useNormalTexture()) {
+        if (Settings::instance()->useNormalTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, mNormalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
+                Settings::instance()->getBufferFloatPrecisionAsGLint(),
                 width,
                 height
             );
         }
 
-        if (sgct::Settings::instance()->usePositionTexture()) {
+        if (Settings::instance()->usePositionTexture()) {
             glBindRenderbuffer(GL_RENDERBUFFER, mPositionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                sgct::Settings::instance()->getBufferFloatPrecisionAsGLint(),
+                Settings::instance()->getBufferFloatPrecisionAsGLint(),
                 width,
                 height
             );
@@ -149,7 +149,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             GL_RENDERBUFFER,
             mColorBuffer
         );
-        if (sgct::Settings::instance()->useNormalTexture()) {
+        if (Settings::instance()->useNormalTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
@@ -157,7 +157,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
                 mNormalBuffer
             );
         }
-        if (sgct::Settings::instance()->usePositionTexture()) {
+        if (Settings::instance()->usePositionTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
@@ -178,8 +178,8 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (mIsMultiSampled) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO "
             "id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
             width, height, mFrameBuffer, mMultiSampledFrameBuffer, mDepthBuffer,
@@ -187,7 +187,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         );
     }
     else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(MessageHandler::Level::Debug,
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n"
             "\tRBO Depth buffer id=%d\n",
             width, height, mFrameBuffer, mDepthBuffer
@@ -197,7 +197,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && sgct::Settings::instance()->useFBO());
+    mIsMultiSampled = (samples > 1 && Settings::instance()->useFBO());
 
     glDeleteFramebuffers(1, &mFrameBuffer);
     glDeleteRenderbuffers(1, &mDepthBuffer);
@@ -291,7 +291,7 @@ void OffScreenBuffer::blit() {
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    if (sgct::Settings::instance()->useDepthTexture()) {
+    if (Settings::instance()->useDepthTexture()) {
         glBlitFramebuffer(
             0, 0, mSize.x, mSize.y,
             0, 0, mSize.x, mSize.y,
@@ -306,7 +306,7 @@ void OffScreenBuffer::blit() {
         );
     }
 
-    if (sgct::Settings::instance()->useNormalTexture()) {
+    if (Settings::instance()->useNormalTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT1);
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
@@ -317,7 +317,7 @@ void OffScreenBuffer::blit() {
         );
     }
 
-    if (sgct::Settings::instance()->usePositionTexture()) {
+    if (Settings::instance()->usePositionTexture()) {
         glReadBuffer(GL_COLOR_ATTACHMENT2);
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 
@@ -333,14 +333,14 @@ void OffScreenBuffer::destroy() {
     glDeleteFramebuffers(1, &mFrameBuffer);
     glDeleteRenderbuffers(1, &mDepthBuffer);
     
-    if(mIsMultiSampled) {
+    if (mIsMultiSampled) {
         glDeleteFramebuffers(1, &mMultiSampledFrameBuffer);
         glDeleteRenderbuffers(1, &mColorBuffer);
 
-        if (sgct::Settings::instance()->useNormalTexture()) {
+        if (Settings::instance()->useNormalTexture()) {
             glDeleteRenderbuffers(1, &mNormalBuffer);
         }
-        if (sgct::Settings::instance()->usePositionTexture()) {
+        if (Settings::instance()->usePositionTexture()) {
             glDeleteRenderbuffers(1, &mPositionBuffer);
         }
     }
@@ -404,58 +404,58 @@ bool OffScreenBuffer::checkForErrors() {
     }
     switch (FBOStatus) {
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has incomplete attachments\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has no attachments\n"
             );
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Unsupported FBO format\n"
             );
             break;
         case GL_FRAMEBUFFER_UNDEFINED:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Undefined FBO\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has incomplete draw buffer\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has incomplete read buffer\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has missmatching multisample values\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: FBO has incomplete layer targets\n"
             );
             break;
         case GL_FRAMEBUFFER_COMPLETE: //no error
             break;
         default: // Unknown error
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Unknown FBO error: 0x%X\n", FBOStatus
             );
             break;
@@ -463,53 +463,53 @@ bool OffScreenBuffer::checkForErrors() {
 
     switch (GLStatus) {
         case GL_INVALID_ENUM:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_ENUM error\n"
             );
             break;
         case GL_INVALID_VALUE:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_VALUE error\n"
             );
             break;
         case GL_INVALID_OPERATION:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_OPERATION error\n"
             );
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an "
                 "GL_INVALID_FRAMEBUFFER_OPERATION error!\n"
             );
             break;
         case GL_OUT_OF_MEMORY:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_OUT_OF_MEMORY error\n"
             );
             break;
         case GL_STACK_UNDERFLOW:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_STACK_UNDERFLOW error\n"
             );
             break;
         case GL_STACK_OVERFLOW:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an GL_STACK_OVERFLOW error\n"
             );
             break;
         case GL_NO_ERROR:
             break;
         default:
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an unknown GL error 0x%X\n",
                 GLStatus
             );
@@ -518,4 +518,4 @@ bool OffScreenBuffer::checkForErrors() {
     return false;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

@@ -112,7 +112,7 @@ void postSyncPreDrawFun() {
     gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
-    sgct_core::ClusterManager::instance()->getTrackingManager().setEnabled(
+    sgct::core::ClusterManager::instance()->getTrackingManager().setEnabled(
         useTracking.getVal()
     );
 
@@ -205,7 +205,7 @@ void keyCallback(int key, int, int action, int) {
                 useTracking.setVal(!useTracking.getVal());
                 break;
             case key::E:
-                sgct_core::ClusterManager::instance()->getDefaultUser().setTransform(
+                sgct::core::ClusterManager::instance()->getDefaultUser().setTransform(
                     glm::translate(glm::dmat4(1.f), glm::dvec3(0.f, 0.f, 4.f))
                 );
                 break;
@@ -222,7 +222,7 @@ void keyCallback(int key, int, int action, int) {
                 takeScreenshot.setVal(true);
                 break;
             case key::R:
-                sgct_core::ClusterManager::instance()->getThisNode()->showAllWindows();
+                sgct::core::ClusterManager::instance()->getThisNode()->showAllWindows();
                 break;
             case key::Left:
                 if (static_cast<int>(stereoMode.getVal()) > 0) {

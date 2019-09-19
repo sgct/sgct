@@ -3,7 +3,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct::utils::Box> box;
     sgct::SharedDouble currentTime(0.0);
 } // namespace
 
@@ -35,9 +35,9 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         2.f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
     );
 
     glEnable(GL_DEPTH_TEST);

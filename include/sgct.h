@@ -200,7 +200,7 @@ https://github.com/ValveSoftware/openvr/blob/master/LICENSE
 #include <sgct/ogl_headers.h>
 
 /// This namespace contains helper classes to draw simple geometry.
-namespace sgct_utils {}; // empty for doxygen documentation only
+namespace sgct::utils {}; // empty for doxygen documentation only
 
 #include <sgct/utils/box.h>
 #include <sgct/utils/dome.h>
@@ -209,7 +209,7 @@ namespace sgct_utils {}; // empty for doxygen documentation only
 #include <sgct/utils/sphere.h>
 
 /// This namespace contains various help classes and functions.
-namespace sgct_helpers {}; // empty for doxygen documentation only
+namespace sgct::helpers {}; // empty for doxygen documentation only
 #include <sgct/helpers/stringfunctions.h>
 #include <sgct/helpers/vertexdata.h>
 

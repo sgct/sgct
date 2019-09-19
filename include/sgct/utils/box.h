@@ -9,10 +9,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__BOX__H__
 
 /**
- * \namespace sgct_utils
+ * \namespace sgct::utils
  * \brief SGCT utils namespace contains basic utilities for geometry rendering
  */
-namespace sgct_utils {
+namespace sgct::utils {
 
 /**
  * This class creates and renders a textured box.

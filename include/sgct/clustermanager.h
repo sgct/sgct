@@ -17,10 +17,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 
 /**
- * \namespace sgct_core
+ * \namespace sgct::core
  * \brief SGCT core namespace is used internally within sgct.
  */
-namespace sgct_core {
+namespace sgct::core {
 
 class User;
 
@@ -202,7 +202,7 @@ private:
 
     // @TODO (abock, 2019-09-02): See nodes
     std::vector<std::unique_ptr<User>> mUsers;
-    sgct::TrackingManager mTrackingManager;
+    TrackingManager mTrackingManager;
 
     glm::mat4 mSceneTransform = glm::mat4(1.f);
     glm::mat4 mSceneScale = glm::mat4(1.f);
@@ -212,6 +212,6 @@ private:
     NetworkManager::NetworkMode mNetMode = NetworkManager::NetworkMode::Remote;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__CLUSTER_MANAGER__H__

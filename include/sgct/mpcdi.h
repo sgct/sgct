@@ -19,14 +19,13 @@
 
 namespace sgct { class Window; }
 
-namespace sgct_core {
+namespace sgct::core {
 
 class Node;
 
 class Mpcdi {
 public:
-    bool parseConfiguration(const std::string& filenameMpcdi, Node& node,
-        sgct::Window& window);
+    bool parseConfiguration(const std::string& filenameMpcdi, Node& node, Window& window);
 
 private:
     struct MpcdiFoundItems {
@@ -42,18 +41,17 @@ private:
         bool haveFoundInterpolation = false;
     };
 
-    bool readAndParseString(Node& node, sgct::Window& win);
-    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node,
-        sgct::Window& win);
-    bool readAndParseDisplay(tinyxml2::XMLElement* element, Node& node,
-        sgct::Window& win, MpcdiFoundItems& parsedItems);
-    bool readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win);
-    bool readAndParseBuffer(tinyxml2::XMLElement* element, sgct::Window& win,
+    bool readAndParseString(Node& node, Window& win);
+    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window& win);
+    bool readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Window& win,
         MpcdiFoundItems& parsedItems);
-    bool readAndParseRegion(tinyxml2::XMLElement* element, sgct::Window& win,
+    bool readAndParseFiles(tinyxml2::XMLElement* element, Window& win);
+    bool readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
         MpcdiFoundItems& parsedItems);
-    bool readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
-        sgct::Window& win, std::string filesetRegionId);
+    bool readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
+        MpcdiFoundItems& parsedItems);
+    bool readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
+        std::string filesetRegionId);
 
     struct SubFile {
         bool isFound = false;
@@ -71,6 +69,6 @@ private:
     std::vector<std::unique_ptr<MpcdiWarp>> mWarp;
 };
 
-} //namespace sgct_core
+} //namespace sgct::core
 
 #endif // __SGCT__MPCDI__H__

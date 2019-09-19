@@ -18,7 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <unordered_map>
 #include <vector>
 
-namespace sgct_text {
+namespace sgct::text {
 
 /**
  * Will handle font textures and rendering. Implementation is based on

@@ -6,7 +6,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::Box> box;
+    std::unique_ptr<sgct::utils::Box> box;
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -103,9 +103,9 @@ void initOGLFun() {
         sizeX, sizeY, sizeC, path.c_str()
     );
 
-    box = std::make_unique<sgct_utils::Box>(
+    box = std::make_unique<sgct::utils::Box>(
         2.f,
-        sgct_utils::Box::TextureMappingMode::Regular
+        sgct::utils::Box::TextureMappingMode::Regular
         );
 
     glCullFace(GL_BACK);

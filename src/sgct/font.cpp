@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ogl_headers.h>
 #include <array>
 
-namespace sgct_text {
+namespace sgct::text {
 
 Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
     : mName(std::move(name))
@@ -23,10 +23,10 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
     , mFTLibrary(lib)
 {
     // setup geometry
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         mListId = glGenLists(1);
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Font: Generating display list: %u\n", mListId
         );
 
@@ -52,12 +52,12 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
         glGenVertexArrays(1, &mVAO);
         glGenBuffers(1, &mVBO);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Font: Generating VAO: %u\n", mVAO
         );
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Font: Generating VBO: %u\n", mVBO
         );
 
@@ -155,8 +155,8 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
 
     FT_UInt charIndex = FT_Get_Char_Index(mFace, static_cast<FT_ULong>(c));
     if (charIndex == 0) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Font %s: Missing face for char %u!\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
@@ -164,8 +164,8 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
 
     FT_Error loadError = FT_Load_Glyph(mFace, charIndex, FT_LOAD_FORCE_AUTOHINT);
     if (loadError) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Font %s: FT_Load_Glyph failed for char %u!\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
@@ -179,8 +179,8 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     GlyphData gd;
     const bool success = getPixelData(mFace, width, height, pixels, gd);
     if (!success) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Font %s: FT_Get_Glyph failed for char %u.\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
@@ -225,7 +225,7 @@ unsigned int Font::generateTexture(int width, int height,
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -337,6 +337,6 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
     return true;
 }
 
-} // namespace sgct_text
+} // namespace sgct::text
 
 #endif // SGCT_HAS_TEXT

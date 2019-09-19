@@ -25,7 +25,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 using _ssize_t = int;
 
-namespace sgct_core {
+namespace sgct::core {
 
 /**
  * Network manages peer-to-peer tcp connections.
@@ -182,6 +182,6 @@ private:
     bool mUseNaglesAlgorithmInTransfer = false;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__NETWORK__H__

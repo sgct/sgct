@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPHERE__H__
 #define __SGCT__SPHERE__H__
 
-namespace sgct_utils {
+namespace sgct::utils {
 
 /**
  * This class creates and renders a textured sphere.
@@ -41,6 +41,6 @@ private:
     unsigned int mVAO = 0;
 };
 
-} // namespace sgct_utils
+} // namespace sgct::utils
 
 #endif // __SGCT__SPHERE__H__

@@ -20,10 +20,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <freetype/ftstroke.h>
 
 /**
- * \namespace sgct_text
+ * \namespace sgct::text
  * \brief SGCT text namespace is used for text rendering and font management
  */
-namespace sgct_text {
+namespace sgct::text {
 
 class Font;
 
@@ -38,25 +38,25 @@ class Font;
  *
  * \code{.cpp}
  * //Add Verdana size 14 to the FontManager using the system font path
- * if (!sgct_text::FontManager::instance()->addFont( "Verdana", "verdana.ttf"))
- *    sgct_text::FontManager::instance()->getFont( "Verdana", 14 );
+ * if (!sgct::text::FontManager::instance()->addFont( "Verdana", "verdana.ttf"))
+ *    sgct::text::FontManager::instance()->getFont( "Verdana", 14 );
  *
  * //Add Special font from local path
- * if (!sgct_text::FontManager::instance()->addFont(
+ * if (!sgct::text::FontManager::instance()->addFont(
  *       "Special",
  *       "Special.ttf",
- *       sgct_text::FontManager::Local
+ *       sgct::text::FontManager::Local
  *  ))
  * {
- *   sgct_text::FontManager::instance()->getFont("Special", 14);
+ *   sgct::text::FontManager::instance()->getFont("Special", 14);
  * }
  * \endcode
  *
  * Then in the draw or draw2d callback the font can be rendered:
  * \code{.cpp}
- * sgct_text::print(
- *     sgct_text::FontManager::instance()->getFont("Verdana", 14),
- *     sgct_text::TopLeft,
+ * sgct::text::print(
+ *     sgct::text::FontManager::instance()->getFont("Verdana", 14),
+ *     sgct::text::TopLeft,
  *     50,
  *     50,
  *     "Hello World!"
@@ -65,9 +65,9 @@ class Font;
  *
  * SGCT has an internal font that can be used as well:
  * \code{.cpp}
- * sgct_text::print(
- *     sgct_text::FontManager::instance()->getDefaultFont(14),
- *     sgct_text::TopLeft,
+ * sgct::text::print(
+ *     sgct::text::FontManager::instance()->getDefaultFont(14),
+ *     sgct::text::TopLeft,
  *     50,
  *     50,
  *     "Hello World!"
@@ -76,9 +76,9 @@ class Font;
  *
  * Non ASCII characters are supported as well:
  * \code{.cpp}
- * sgct_text::print(
- *     sgct_text::FontManager::instance()->getDefaultFont(14),
- *     sgct_text::TopLeft,
+ * sgct::text::print(
+ *     sgct::text::FontManager::instance()->getDefaultFont(14),
+ *     sgct::text::TopLeft,
  *     50,
  *     50,
  *     L"Hallå Världen!"
@@ -139,7 +139,7 @@ public:
 
     glm::vec4 getStrokeColor() const;
 
-    const sgct::ShaderProgram& getShader() const;
+    const ShaderProgram& getShader() const;
     unsigned int getMVPLocation() const;
     unsigned int getColorLocation() const;
     unsigned int getStrokeLocation() const;
@@ -176,7 +176,7 @@ private:
     // All generated fonts
     std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> mFontMap;
 
-    sgct::ShaderProgram mShader;
+    ShaderProgram mShader;
     int mMVPLocation = -1;
     int mColorLocation = -1;
     int mStrokeLocation = -1;

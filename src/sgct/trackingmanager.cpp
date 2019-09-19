@@ -69,9 +69,9 @@ namespace {
         TrackingManager* tmPtr = reinterpret_cast<TrackingManager*>(arg);
 
         while (true) {
-            double t = sgct::Engine::getTime();
+            double t = Engine::getTime();
             for (int i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
-                sgct::Tracker* trackerPtr = tmPtr->getTracker(i);
+                Tracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
@@ -97,7 +97,7 @@ namespace {
 
             bool isRunning = tmPtr->isRunning();
 
-            tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
+            tmPtr->setSamplingTime(Engine::getTime() - t);
 
             // Sleep for 1ms so we don't eat the CPU
             vrpn_SleepMsecs(1);
@@ -151,11 +151,11 @@ void TrackingManager::startSampling() {
         return;
     }
     // find user with headtracking
-    mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUser();
+    mHeadUser = core::ClusterManager::instance()->getTrackedUser();
 
     // if tracked user not found
     if (mHeadUser == nullptr) {
-        mHeadUser = &sgct_core::ClusterManager::instance()->getDefaultUser();
+        mHeadUser = &core::ClusterManager::instance()->getDefaultUser();
     }
         
     // link the head tracker

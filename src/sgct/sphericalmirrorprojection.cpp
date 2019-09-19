@@ -21,12 +21,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 //#define DebugCubemap
 
-namespace sgct_core {
+namespace sgct::core {
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         renderInternalFixedPipeline();
     }
     else {
@@ -35,7 +35,7 @@ void SphericalMirrorProjection::render() {
 }
 
 void SphericalMirrorProjection::renderCubemap(size_t* subViewPortIndex) {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         renderCubemapInternalFixedPipeline(subViewPortIndex);
     }
     else {
@@ -56,8 +56,8 @@ void SphericalMirrorProjection::setMeshPaths(std::string bottom, std::string lef
     mMeshPaths.top = std::move(top);
 }
 
-void sgct_core::SphericalMirrorProjection::initTextures() {
-    const bool compatProfile = sgct::Engine::instance()->isOpenGLCompatibilityMode();
+void core::SphericalMirrorProjection::initTextures() {
+    const bool compatProfile = Engine::instance()->isOpenGLCompatibilityMode();
     if (compatProfile) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
@@ -68,16 +68,16 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, mTexInternalFormat, mTexFormat, mTexType);
-        if (sgct::Engine::checkForOGLErrors()) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug,
+        if (Engine::checkForOGLErrors()) {
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "NonLinearProjection: %dx%d cube face texture (id: %d) generated\n",
                 mCubemapResolution, mCubemapResolution, texture
             );
         }
         else {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "NonLinearProjection: Error occured while generating %dx%d cube face "
                 "texture (id: %d)\n", mCubemapResolution, mCubemapResolution, texture
             );
@@ -98,7 +98,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
 
 void SphericalMirrorProjection::initVBO() {
     Viewport* vp = dynamic_cast<Viewport*>(
-        sgct::Engine::instance()->getCurrentWindow().getCurrentViewport()
+        Engine::instance()->getCurrentWindow().getCurrentViewport()
     );
     if (vp) {
         mMeshes.bottom.readAndGenerateMesh(mMeshPaths.bottom, *vp);
@@ -202,8 +202,8 @@ void SphericalMirrorProjection::initViewports() {
 void SphericalMirrorProjection::initShaders() {
     if (mStereo || mPreferedMonoFrustumMode != Frustum::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Warning,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Warning,
             "Stereo rendering not supported in spherical projection\n"
         );
     }
@@ -213,36 +213,34 @@ void SphericalMirrorProjection::initShaders() {
         mShader.deleteProgram();
     }
 
-    std::string sphericalMirrorVertexShader =
-        sgct::Engine::instance()->isOGLPipelineFixed() ?
-        sgct_core::shaders::SphericalProjectionVert :
-        sgct_core::shaders_modern::SphericalProjectionVert;
+    std::string sphericalMirrorVertexShader = Engine::instance()->isOGLPipelineFixed() ?
+        core::shaders::SphericalProjectionVert :
+        core::shaders_modern::SphericalProjectionVert;
 
-    std::string sphericalMirrorFragmentShader =
-        sgct::Engine::instance()->isOGLPipelineFixed() ?
-        sgct_core::shaders::SphericalProjectionFrag :
-        sgct_core::shaders_modern::SphericalProjectionFrag;
+    std::string sphericalMirrorFragmentShader = Engine::instance()->isOGLPipelineFixed() ?
+        core::shaders::SphericalProjectionFrag :
+        core::shaders_modern::SphericalProjectionFrag;
 
     // replace glsl version
-    sgct_helpers::findAndReplace(
+    helpers::findAndReplace(
         sphericalMirrorVertexShader,
         "**glsl_version**",
-        sgct::Engine::instance()->getGLSLVersion()
+        Engine::instance()->getGLSLVersion()
     );
-    sgct_helpers::findAndReplace(
+    helpers::findAndReplace(
         sphericalMirrorFragmentShader,
         "**glsl_version**",
-        sgct::Engine::instance()->getGLSLVersion()
+        Engine::instance()->getGLSLVersion()
     );
 
     bool vertShader = mShader.addShaderSrc(
         sphericalMirrorVertexShader,
         GL_VERTEX_SHADER,
-        sgct::ShaderProgram::ShaderSourceType::String
+        ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Failed to load spherical mirror vertex shader:\n%s\n",
             sphericalMirrorVertexShader.c_str()
         );
@@ -250,11 +248,11 @@ void SphericalMirrorProjection::initShaders() {
     bool fragShader = mShader.addShaderSrc(
         sphericalMirrorFragmentShader,
         GL_FRAGMENT_SHADER,
-        sgct::ShaderProgram::ShaderSourceType::String
+        ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "Failed to load spherical mirror fragment shader\n%s\n",
             sphericalMirrorFragmentShader.c_str()
         );
@@ -266,16 +264,16 @@ void SphericalMirrorProjection::initShaders() {
     mTexLoc = mShader.getUniformLocation("Tex");
     glUniform1i(mTexLoc, 0);
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (!Engine::instance()->isOGLPipelineFixed()) {
         mMatrixLoc = mShader.getUniformLocation("MVP");
     }
 
-    sgct::ShaderProgram::unbind();
+    ShaderProgram::unbind();
 }
 
 void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glLineWidth(1.0);
-    if (sgct::Engine::instance()->getWireframe()) {
+    if (Engine::instance()->getWireframe()) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     else {
@@ -330,30 +328,30 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (sgct::Engine::mInstance->mClearBufferFnPtr) {
-        sgct::Engine::mInstance->mClearBufferFnPtr();
+    if (Engine::mInstance->mClearBufferFnPtr) {
+        Engine::mInstance->mClearBufferFnPtr();
     }
     else {
-        glm::vec4 color = sgct::Engine::instance()->getClearColor();
+        glm::vec4 color = Engine::instance()->getClearColor();
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 #endif
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+    if (Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
         Projection& proj = mSubViewports[face].getProjection(
-            sgct::Engine::instance()->getCurrentFrustumMode()
+            Engine::instance()->getCurrentFrustumMode()
         );
         glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixf(glm::value_ptr(
-            proj.getViewMatrix() * sgct::Engine::instance()->getModelMatrix()
+            proj.getViewMatrix() * Engine::instance()->getModelMatrix()
         ));
     }
 
     // render
-    sgct::Engine::mInstance->mDrawFnPtr();
+    Engine::mInstance->mDrawFnPtr();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -372,9 +370,9 @@ void SphericalMirrorProjection::attachTextures(unsigned int texture) {
 }
 
 void SphericalMirrorProjection::renderInternal() {
-    sgct::Engine::instance()->enterCurrentViewport();
+    Engine::instance()->enterCurrentViewport();
 
-    sgct::Window& winPtr = sgct::Engine::instance()->getCurrentWindow();
+    Window& winPtr = Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -389,7 +387,7 @@ void SphericalMirrorProjection::renderInternal() {
     glActiveTexture(GL_TEXTURE0);
     
     glDisable(GL_CULL_FACE);
-    const bool alpha = sgct::Engine::mInstance->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -415,7 +413,7 @@ void SphericalMirrorProjection::renderInternal() {
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
     mMeshes.top.renderWarpMesh();
 
-    sgct::ShaderProgram::unbind();
+    ShaderProgram::unbind();
 
     glDisable(GL_DEPTH_TEST);
 
@@ -428,9 +426,9 @@ void SphericalMirrorProjection::renderInternal() {
 }
 
 void SphericalMirrorProjection::renderInternalFixedPipeline() {
-    sgct::Engine::mInstance->enterCurrentViewport();
+    Engine::instance()->enterCurrentViewport();
 
-    sgct::Window& winPtr = sgct::Engine::instance()->getCurrentWindow();
+    Window& winPtr = Engine::instance()->getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
     
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -480,7 +478,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
     mMeshes.top.renderWarpMesh();
 
-    sgct::ShaderProgram::unbind();
+    ShaderProgram::unbind();
 
     glPopClientAttrib();
     glPopAttrib();
@@ -500,7 +498,7 @@ void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) 
             attachTextures(texture);
         }
 
-        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture
@@ -534,7 +532,7 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
             attachTextures(texture);
         }
 
-        sgct::Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
+        Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture
@@ -551,4 +549,4 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
     renderInternal(mSubViewports[5], mTextures.cubeFaceBack, 5);
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

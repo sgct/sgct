@@ -73,7 +73,7 @@ void main() {
 
 } // namespace
 
-namespace sgct_core {
+namespace sgct::core {
 
 Statistics::Statistics() {
     for (unsigned int i = 0; i < StatsHistoryLength; i++) {
@@ -146,18 +146,18 @@ void Statistics::initVBO(bool fixedPipeline) {
             glGenVertexArrays(2, &mDynamicVAO[0]);
             glGenVertexArrays(1, &mStaticVAO);
 
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "Statistics: Generating VAOs:\n"
             );
             for (unsigned int i = 0; i < 2; i++) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Debug,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Debug,
                     "\t%d\n", mDynamicVAO[i]
                 );
             }
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "\t%d\n\n", mStaticVAO
             );
         }
@@ -165,18 +165,18 @@ void Statistics::initVBO(bool fixedPipeline) {
         glGenBuffers(2, &mDynamicVBO[0]);
         glGenBuffers(1, &mStaticVBO);
 
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "Statistics: Generating VBOs:\n"
         );
         for (unsigned int i = 0; i < 2; i++) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Debug,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "\t%d\n", mDynamicVBO[i]
             );
         }
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "\t%d\n\n", mStaticVBO
         );
     
@@ -224,37 +224,37 @@ void Statistics::initVBO(bool fixedPipeline) {
         std::string vertShader = Stats_Vert_Shader_Legacy;
         std::string fragShader = Stats_Frag_Shader_Legacy;
 
-        //replace glsl version
-        sgct_helpers::findAndReplace(
+        // replace glsl version
+        helpers::findAndReplace(
             vertShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
-        sgct_helpers::findAndReplace(
+        helpers::findAndReplace(
             fragShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
         
         bool vert = mShader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load statistics vertex shader\n"
             );
         }
         bool frag = mShader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load statistics fragment shader\n"
             );
         }
@@ -275,36 +275,36 @@ void Statistics::initVBO(bool fixedPipeline) {
         std::string fragShader = Stats_Frag_Shader;
 
         //replace glsl version
-        sgct_helpers::findAndReplace(
+        helpers::findAndReplace(
             vertShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
-        sgct_helpers::findAndReplace(
+        helpers::findAndReplace(
             fragShader,
             "**glsl_version**",
-            sgct::Engine::instance()->getGLSLVersion()
+            Engine::instance()->getGLSLVersion()
         );
 
         bool vert = mShader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load statistics vertex shader\n"
             );
         }
         bool frag = mShader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::ShaderSourceType::String
+            ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
                 "Failed to load statistics fragment shader\n"
             );
         }
@@ -688,4 +688,4 @@ float Statistics::getSyncTime() const {
     return mDynamicVertexList.syncTime[0].y;
 }
 
-} // namespace sgct_core
+} // namespace sgct::core

@@ -763,8 +763,8 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (Engine::mInstance->mClearBufferFnPtr) {
-        Engine::mInstance->mClearBufferFnPtr();
+    if (Engine::instance()->mClearBufferFnPtr) {
+        Engine::instance()->mClearBufferFnPtr();
     }
     else {
         glm::vec4 color = Engine::instance()->getClearColor();
@@ -788,7 +788,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     }
 
     // render
-    Engine::mInstance->mDrawFnPtr();
+    Engine::instance()->mDrawFnPtr();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

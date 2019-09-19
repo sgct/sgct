@@ -328,8 +328,8 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (Engine::mInstance->mClearBufferFnPtr) {
-        Engine::mInstance->mClearBufferFnPtr();
+    if (Engine::instance()->mClearBufferFnPtr) {
+        Engine::instance()->mClearBufferFnPtr();
     }
     else {
         glm::vec4 color = Engine::instance()->getClearColor();
@@ -351,7 +351,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     }
 
     // render
-    Engine::mInstance->mDrawFnPtr();
+    Engine::instance()->mDrawFnPtr();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -387,7 +387,7 @@ void SphericalMirrorProjection::renderInternal() {
     glActiveTexture(GL_TEXTURE0);
     
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -532,7 +532,7 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
             attachTextures(texture);
         }
 
-        Engine::mInstance->getCurrentWindow().setCurrentViewport(&bv);
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture

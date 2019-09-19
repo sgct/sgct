@@ -1016,8 +1016,8 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
     glEnable(GL_SCISSOR_TEST);
     setupViewport(face);
 
-    if (Engine::mInstance->mClearBufferFnPtr) {
-        Engine::mInstance->mClearBufferFnPtr();
+    if (Engine::instance()->mClearBufferFnPtr) {
+        Engine::instance()->mClearBufferFnPtr();
     }
     else {
         glm::vec4 color = Engine::instance()->getClearColor();
@@ -1037,7 +1037,7 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
         ));
     }
 
-    Engine::mInstance->mDrawFnPtr();
+    Engine::instance()->mDrawFnPtr();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -1078,7 +1078,7 @@ void FisheyeProjection::attachTextures(int face) {
 
 void FisheyeProjection::renderInternal() {
     glEnable(GL_SCISSOR_TEST);
-    Engine::mInstance->enterCurrentViewport();
+    Engine::instance()->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -1110,7 +1110,7 @@ void FisheyeProjection::renderInternal() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1188,7 +1188,7 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1239,7 +1239,7 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             attachTextures(idx);
         }
 
-        Engine::mInstance->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
@@ -1259,10 +1259,10 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glScissor(0, 0, mCubemapResolution, mCubemapResolution);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::mInstance->mClearBufferFnPtr();
+            Engine::instance()->mClearBufferFnPtr();
 
             glDisable(GL_CULL_FACE);
-            bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
+            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1285,13 +1285,13 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glUniform1i(mShaderLoc.swapDepthLoc, 1);
             glUniform1f(
                 mShaderLoc.swapNearLoc,
-                Engine::mInstance->mNearClippingPlaneDist
+                Engine::instance()->mNearClippingPlaneDist
             );
-            glUniform1f(mShaderLoc.swapFarLoc, Engine::mInstance->mFarClippingPlaneDist);
+            glUniform1f(mShaderLoc.swapFarLoc, Engine::instance()->mFarClippingPlaneDist);
 
-            Engine::mInstance->getCurrentWindow().bindVAO();
+            Engine::instance()->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::mInstance->getCurrentWindow().unbindVAO();
+            Engine::instance()->getCurrentWindow().unbindVAO();
 
             ShaderProgram::unbind();
 
@@ -1361,12 +1361,12 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glUniform1i(mShaderLoc.swapDepthLoc, 1);
             glUniform1f(
                 mShaderLoc.swapNearLoc,
-                Engine::mInstance->mNearClippingPlaneDist
+                Engine::instance()->mNearClippingPlaneDist
             );
-            glUniform1f(mShaderLoc.swapFarLoc, Engine::mInstance->mFarClippingPlaneDist);
+            glUniform1f(mShaderLoc.swapFarLoc, Engine::instance()->mFarClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
-            bool alpha = Engine::mInstance->getCurrentWindow().getAlpha();
+            bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1386,7 +1386,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            Engine::mInstance->getCurrentWindow().bindVBO();
+            Engine::instance()->getCurrentWindow().bindVBO();
             glClientActiveTexture(GL_TEXTURE0);
 
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1395,7 +1395,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glEnableClientState(GL_VERTEX_ARRAY);
             glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::mInstance->getCurrentWindow().unbindVBO();
+            Engine::instance()->getCurrentWindow().unbindVBO();
             glPopClientAttrib();
 
             ShaderProgram::unbind();

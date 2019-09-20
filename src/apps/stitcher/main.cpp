@@ -388,7 +388,12 @@ void myPreWinInitFun()
             {
                 gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setClearColor(glm::vec4(0.0, 0.0, 0.0, 1.0));
                 gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setCubemapResolution(cubemapRes);
-                gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setInterpolationMode(sgct_core::NonLinearProjection::Cubic);
+                if (cubic) {
+                    gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setInterpolationMode(sgct_core::NonLinearProjection::Cubic);
+                }
+                else {
+                    gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setInterpolationMode(sgct_core::NonLinearProjection::Linear);
+                }
 
                 if (sgct_core::FisheyeProjection * fp = dynamic_cast<sgct_core::FisheyeProjection*>(gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()))
                     fp->setDomeDiameter(domeDiameter);
@@ -505,16 +510,16 @@ void face(rotation rot)
         {
             glBegin(GL_QUADS);
             glTexCoord2d(0.0, 0.0);
-            glVertex2d(0.0, 0.0);
+            glVertex2d(-1.0, -1.0);
 
             glTexCoord2d(0.0, 1.0);
-            glVertex2d(0.0, 1.0);
+            glVertex2d(-1.0, 1.0);
 
             glTexCoord2d(1.0, 1.0);
             glVertex2d(1.0, 1.0);
 
             glTexCoord2d(1.0, 0.0);
-            glVertex2d(1.0, 0.0);
+            glVertex2d(1.0, -1.0);
             glEnd();
         }
         break;
@@ -523,16 +528,16 @@ void face(rotation rot)
         {
             glBegin(GL_QUADS);
             glTexCoord2d(1.0, 0.0);
-            glVertex2d(0.0, 0.0);
+            glVertex2d(-1.0, -1.0);
 
             glTexCoord2d(0.0, 0.0);
-            glVertex2d(0.0, 1.0);
+            glVertex2d(-1.0, 1.0);
 
             glTexCoord2d(0.0, 1.0);
             glVertex2d(1.0, 1.0);
 
             glTexCoord2d(1.0, 1.0);
-            glVertex2d(1.0, 0.0);
+            glVertex2d(1.0, -1.0);
             glEnd();
         }
         break;
@@ -541,16 +546,16 @@ void face(rotation rot)
         {
             glBegin(GL_QUADS);
             glTexCoord2d(1.0, 1.0);
-            glVertex2d(0.0, 0.0);
+            glVertex2d(-1.0, -1.0);
 
             glTexCoord2d(1.0, 0.0);
-            glVertex2d(0.0, 1.0);
+            glVertex2d(-1.0, 1.0);
 
             glTexCoord2d(0.0, 0.0);
             glVertex2d(1.0, 1.0);
 
             glTexCoord2d(0.0, 1.0);
-            glVertex2d(1.0, 0.0);
+            glVertex2d(1.0, -1.0);
             glEnd();
         }
         break;
@@ -559,16 +564,16 @@ void face(rotation rot)
         {
             glBegin(GL_QUADS);
             glTexCoord2d(0.0, 1.0);
-            glVertex2d(0.0, 0.0);
+            glVertex2d(-1.0, -1.0);
 
             glTexCoord2d(1.0, 1.0);
-            glVertex2d(0.0, 1.0);
+            glVertex2d(-1.0, 1.0);
 
             glTexCoord2d(1.0, 0.0);
             glVertex2d(1.0, 1.0);
 
             glTexCoord2d(0.0, 0.0);
-            glVertex2d(1.0, 0.0);
+            glVertex2d(1.0, -1.0);
             glEnd();
         }
         break;

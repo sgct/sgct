@@ -151,6 +151,7 @@
             "512x512",
             "1024x1024",
             "2048x2048",
+            "3072x3072",
             "4096x4096",
             "8192x8192"});
             this.cubemapComboBox.Location = new System.Drawing.Point(189, 42);
@@ -335,7 +336,7 @@
             this.domeDiameterInput.Name = "domeDiameterInput";
             this.domeDiameterInput.Size = new System.Drawing.Size(84, 26);
             this.domeDiameterInput.TabIndex = 5;
-            this.domeDiameterInput.Text = "15.00";
+            this.domeDiameterInput.Text = "14.80";
             this.domeDiameterInput.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.domeDiameterInput.TextChanged += new System.EventHandler(this.domeDiameterInput_TextChanged);
             // 
@@ -905,6 +906,7 @@
             "1024x1024",
             "2048x2048",
             "4096x4096",
+            "6144x6144",
             "8192x8192"});
             this.resolution_comboBox.Location = new System.Drawing.Point(120, 46);
             this.resolution_comboBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);

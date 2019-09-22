@@ -8,6 +8,7 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/config.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mpcdi.h>
 #include <sgct/node.h>
@@ -248,59 +249,30 @@ namespace {
     }
 
 
-    void parseScene(tinyxml2::XMLElement* element) {
+    sgct::config::Scene parseScene(tinyxml2::XMLElement* element) {
         using namespace sgct::core;
         using namespace tinyxml2;
+
+        sgct::config::Scene scene;
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
             std::string_view childVal = child->Value();
 
             if (childVal == "Offset") {
-                std::optional<glm::vec3> offset = parseValueVec3(*child);
-                if (offset) {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Debug,
-                        "ReadConfig: Setting scene offset to (%f, %f, %f)\n",
-                        offset->x, offset->y, offset->z
-                    );
-
-                    ClusterManager::instance()->setSceneOffset(*offset);
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse scene offset from XML\n"
-                    );
-                }
+                scene.offset = *parseValueVec3(*child);
             }
-
-            if (childVal == "Orientation") {
-                sgct::core::ClusterManager::instance()->setSceneRotation(
-                    glm::mat4_cast(sgct::core::readconfig::parseOrientationNode(child))
-                );
+            else if (childVal == "Orientation") {
+                scene.orientation = sgct::core::readconfig::parseOrientationNode(child);
             }
-
-            if (childVal == "Scale") {
-                std::optional<float> scale = parseValue<float>(*child, "value");
-                if (scale) {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Debug,
-                        "ReadConfig: Setting scene scale to %f\n", *scale
-                    );
-
-                    ClusterManager::instance()->setSceneScale(*scale);
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse scene orientation from XML\n"
-                    );
-                }
+            else if (childVal == "Scene") {
+                scene.scale = parseValue<float>(*child, "value");
             }
 
             child = child->NextSiblingElement();
         }
+
+        return scene;
     }
 
     void parseWindow(tinyxml2::XMLElement* element, std::string xmlFileName,
@@ -547,353 +519,167 @@ namespace {
         ClusterManager::instance()->addNode(std::move(node));
     }
 
-    void parseUser(tinyxml2::XMLElement* element) {
+    sgct::config::User parseUser(tinyxml2::XMLElement* element) {
         using namespace sgct::core;
         using namespace tinyxml2;
 
-        User* usrPtr;
+        sgct::config::User user;
         if (element->Attribute("name")) {
-            std::string name = element->Attribute("name");
-            std::unique_ptr<User> usr = std::make_unique<User>(std::move(name));
-            usrPtr = usr.get();
-            ClusterManager::instance()->addUser(std::move(usr));
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info,
-                "ReadConfig: Adding user '%s'\n", name.c_str()
-            );
+            user.name = element->Attribute("name");
         }
-        else {
-            usrPtr = &ClusterManager::instance()->getDefaultUser();
-        }
-
-        std::optional<float> eyeSep = parseValue<float>(*element, "eyeSeparation");
-        if (eyeSep) {
-            usrPtr->setEyeSeparation(*eyeSep);
-        }
+        user.eyeSeparation = parseValue<float>(*element, "eyeSeparation");
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
             std::string_view childVal = child->Value();
-
             if (childVal == "Pos") {
-                std::optional<glm::vec3> pos = parseValueVec3(*child);
-                if (pos) {
-                    usrPtr->setPos(std::move(*pos));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user position from XML\n"
-                    );
-                }
+                user.position = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                usrPtr->setOrientation(
-                    sgct::core::readconfig::parseOrientationNode(child)
-                );
-            }
-            else if (childVal == "Quaternion") {
-                std::optional<glm::quat> quat = parseValueQuat(*child);
-                if (quat) {
-                    usrPtr->setOrientation(std::move(*quat));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device orientation in XML\n"
-                    );
-                }
+                user.orientation = readconfig::parseOrientationNode(child);
             }
             else if (childVal == "Matrix") {
-                bool transpose = true;
+                sgct::config::User::Transform trans;
                 if (child->Attribute("transpose")) {
-                    transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
                 }
-
-                std::optional<glm::mat4> mat = parseValueMat4(*child);
-                if (mat) {
-                    if (transpose) {
-                        usrPtr->setTransform(glm::transpose(*mat));
-                    }
-                    else {
-                        usrPtr->setTransform(*mat);
-                    }
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user matrix in XML\n"
-                    );
-                }
+                trans.transformation = *parseValueMat4(*child);
+                user.transformation = trans;
             }
             else if (childVal == "Tracking") {
-                const char* tracker = child->Attribute("tracker");
-                const char* device = child->Attribute("device");
-
-                if (tracker && device) {
-                    usrPtr->setHeadTracker(tracker, device);
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user tracking data from XML\n"
-                    );
-                }
+                sgct::config::User::Tracking tracking;
+                tracking.tracker = child->Attribute("tracker");
+                tracking.device = child->Attribute("device");
             }
             child = child->NextSiblingElement();
         }
+
+        return user;
     }
 
-    void parseCapture(tinyxml2::XMLElement* element) {
+    sgct::config::Capture parseCapture(tinyxml2::XMLElement* element) {
+        sgct::config::Capture res;
         if (element->Attribute("path")) {
-
-            const char* p = element->Attribute("path");
-            using sgct::Settings;
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::Mono);
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::LeftStereo);
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::RightStereo);
+            res.monoPath = element->Attribute("path");
+            res.leftPath = element->Attribute("path");
+            res.rightPath = element->Attribute("path");
         }
         if (element->Attribute("monoPath")) {
-            const char* p = element->Attribute("monoPath");
-            using sgct::Settings;
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::Mono);
+            res.monoPath = element->Attribute("monoPath");
         }
         if (element->Attribute("leftPath")) {
-            const char* p = element->Attribute("leftPath");
-            using sgct::Settings;
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::LeftStereo);
+            res.leftPath = element->Attribute("leftPath");
         }
         if (element->Attribute("rightPath")) {
-            const char* p = element->Attribute("rightPath");
-            using sgct::Settings;
-            Settings::instance()->setCapturePath(p, Settings::CapturePath::RightStereo);
+            res.rightPath = element->Attribute("rightPath");
         }
-
         if (element->Attribute("format")) {
             std::string_view format = element->Attribute("format");
-            sgct::Settings::CaptureFormat f = [](std::string_view format) {
+            res.format = [](std::string_view format) {
                 if (format == "png" || format == "PNG") {
-                    return sgct::Settings::CaptureFormat::PNG;
+                    return sgct::config::Capture::Format::PNG;
                 }
                 else if (format == "tga" || format == "TGA") {
-                    return sgct::Settings::CaptureFormat::TGA;
+                    return sgct::config::Capture::Format::TGA;
                 }
                 else if (format == "jpg" || format == "JPG") {
-                    return sgct::Settings::CaptureFormat::JPG;
+                    return sgct::config::Capture::Format::JPG;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Warning,
                         "ReadConfig: Unknown capturing format. Using PNG\n"
                     );
-                    return sgct::Settings::CaptureFormat::PNG;
+                    return sgct::config::Capture::Format::PNG;
                 }
             } (format);
-            sgct::Settings::instance()->setCaptureFormat(f);
         }
+        return res;
     }
 
-    void parseDevice(tinyxml2::XMLElement* element) {
+    sgct::config::Device parseDevice(tinyxml2::XMLElement* element) {
         using namespace sgct::core;
         using namespace tinyxml2;
 
-        ClusterManager& cm = *ClusterManager::instance();
-        cm.getTrackingManager().addDeviceToCurrentTracker(element->Attribute("name"));
+        sgct::config::Device device;
+        device.name = element->Attribute("name");
 
         XMLElement* child = element->FirstChildElement();
-
         while (child) {
             std::string_view childVal = child->Value();
-
             if (childVal == "Sensor") {
-                std::optional<int> id = parseValue<int>(*child, "id");
-                if (child->Attribute("vrpnAddress") && id) {
-                    cm.getTrackingManager().addSensorToCurrentDevice(
-                        child->Attribute("vrpnAddress"),
-                        *id
-                    );
-                }
+                sgct::config::Device::Sensors sensors;
+                sensors.vrpnAddress = child->Attribute("vrpnAddress");
+                sensors.identifier = *parseValue<int>(*child, "id");
+                device.sensors.push_back(sensors);
             }
             else if (childVal == "Buttons") {
-                std::optional<int> count = parseValue<int>(*child, "count");
-                if (child->Attribute("vrpnAddress") && count) {
-                    cm.getTrackingManager().addButtonsToCurrentDevice(
-                        child->Attribute("vrpnAddress"),
-                        *count
-                    );
-                }
-
+                sgct::config::Device::Buttons buttons;
+                buttons.vrpnAddress = child->Attribute("vrpnAddress");
+                buttons.count = *parseValue<int>(*child, "count");
+                device.buttons.push_back(buttons);
             }
             else if (childVal == "Axes") {
-                std::optional<unsigned int> count = parseValue<unsigned int>(
-                    *child,
-                    "count"
-                );
-                if (child->Attribute("vrpnAddress") && count) {
-                    cm.getTrackingManager().addAnalogsToCurrentDevice(
-                        child->Attribute("vrpnAddress"),
-                        *count
-                    );
-                }
+                sgct::config::Device::Axes axes;
+                axes.vrpnAddress = child->Attribute("vrpnAddress");
+                axes.count = *parseValue<int>(*child, "count");
+                device.axes.push_back(axes);
             }
             else if (childVal == "Offset") {
-                std::optional<glm::vec3> offset = parseValueVec3(*child);
-                if (offset) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    sgct::TrackingDevice& device = *tr.getLastDevice();
-                    device.setOffset(std::move(*offset));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device offset in XML\n"
-                    );
-                }
+                device.offset = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                sgct::TrackingManager& m = cm.getTrackingManager();
-                sgct::Tracker& tr = *m.getLastTracker();
-                sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(sgct::core::readconfig::parseOrientationNode(child));
-            }
-            else if (childVal == "Quaternion") {
-                std::optional<glm::quat> quat = parseValueQuat(*child);
-
-                if (quat) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    sgct::TrackingDevice& device = *tr.getLastDevice();
-                    device.setOrientation(std::move(*quat));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device orientation in XML\n"
-                    );
-                }
+                device.orientation = sgct::core::readconfig::parseOrientationNode(child);
             }
             else if (childVal == "Matrix") {
-                bool transpose = true;
+                sgct::config::Device::Transform trans;
                 if (child->Attribute("transpose")) {
-                    transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
                 }
-
-                std::optional<glm::mat4> mat = parseValueMat4(*child);
-                if (mat) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    sgct::TrackingDevice& device = *tr.getLastDevice();
-
-                    if (transpose) {
-                        device.setTransform(glm::transpose(*mat));
-                    }
-                    else {
-                        device.setTransform(*mat);
-                    }
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device matrix in XML\n"
-                    );
-                }
+                trans.transformation = *parseValueMat4(*child);
+                device.transformation = trans;
             }
             child = child->NextSiblingElement();
         }
+
+        return device;
     }
 
-    void parseTracker(tinyxml2::XMLElement* element) {
+    sgct::config::Tracker parseTracker(tinyxml2::XMLElement* element) {
         using namespace sgct::core;
         using namespace tinyxml2;
 
-        ClusterManager& cm = *ClusterManager::instance();
-        cm.getTrackingManager().addTracker(std::string(element->Attribute("name")));
+        sgct::config::Tracker tracker;
+        tracker.name = element->Attribute("name");
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
             std::string_view childVal = child->Value();
-
-            if (childVal == "Device" && child->Attribute("name")) {
-                parseDevice(child);
+            if (childVal == "Device") {
+                sgct::config::Device device = parseDevice(child);
+                tracker.devices.push_back(device);
             }
             else if (childVal == "Offset") {
-                std::optional<glm::vec3> offset = parseValueVec3(*child);
-                if (offset) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    sgct::TrackingDevice& device = *tr.getLastDevice();
-                    device.setOffset(std::move(*offset));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker offset in XML\n"
-                    );
-                }
+                tracker.offset = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                sgct::TrackingManager& m = cm.getTrackingManager();
-                sgct::Tracker& tr = *m.getLastTracker();
-                sgct::TrackingDevice& device = *tr.getLastDevice();
-                device.setOrientation(sgct::core::readconfig::parseOrientationNode(child));
-            }
-            else if (childVal == "Quaternion") {
-                std::optional<glm::quat> quat = parseValueQuat(*child);
-                if (quat) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    sgct::TrackingDevice& device = *tr.getLastDevice();
-                    device.setOrientation(std::move(*quat));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker orientation quaternion\n"
-                    );
-                }
+                tracker.orientation = sgct::core::readconfig::parseOrientationNode(child);
             }
             else if (childVal == "Scale") {
-                std::optional<double> value = parseValue<double>(*child, "value");
-                if (value) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    tr.setScale(*value);
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker scale in XML\n"
-                    );
-                }
+                tracker.scale = parseValue<double>(*child, "value");
             }
             else if (childVal == "Matrix") {
-                bool transpose = true;
+                sgct::config::Tracker::Transform trans;
                 if (child->Attribute("transpose")) {
-                    transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
                 }
-
-                std::optional<glm::mat4> mat = parseValueMat4(*child);
-                if (mat) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-
-                    if (transpose) {
-                        tr.setTransform(glm::transpose(std::move(*mat)));
-                    }
-                    else {
-                        tr.setTransform(std::move(*mat));
-                    }
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker matrix in XML\n"
-                    );
-                }
+                trans.transformation = *parseValueMat4(*child);
+                tracker.transformation = trans;
             }
             child = child->NextSiblingElement();
         }
+
+        return tracker;
     }
 
     void readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename) {
@@ -936,22 +722,166 @@ namespace {
             std::string_view val = element->Value();
 
             if (val == "Scene") {
-                parseScene(element);
+                sgct::config::Scene scene = parseScene(element);
+                if (scene.offset) {
+                    sgct::core::ClusterManager::instance()->setSceneOffset(*scene.offset);
+                }
+                if (scene.orientation) {
+                    sgct::core::ClusterManager::instance()->setSceneRotation(
+                        glm::mat4_cast(*scene.orientation)
+                    );
+                }
+                if (scene.scale) {
+                    sgct::core::ClusterManager::instance()->setSceneScale(*scene.scale);
+                }
             }
             else if (val == "Node") {
                 parseNode(element, filename);
             }
             else if (val == "User") {
-                parseUser(element);
+                using namespace sgct::core;
+
+                sgct::config::User user = parseUser(element);
+                User* usrPtr;
+                if (user.name) {
+                    std::unique_ptr<User> usr = std::make_unique<User>(*user.name);
+                    usrPtr = usr.get();
+                    ClusterManager::instance()->addUser(std::move(usr));
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Info,
+                        "ReadConfig: Adding user '%s'\n", user.name->c_str()
+                    );
+                }
+                else {
+                    usrPtr = &ClusterManager::instance()->getDefaultUser();
+                }
+
+                if (user.eyeSeparation) {
+                    usrPtr->setEyeSeparation(*user.eyeSeparation);
+                }
+                usrPtr->setPos(*user.position);
+                if (user.orientation) {
+                    usrPtr->setOrientation(*user.orientation);
+                }
+                if (user.transformation) {
+                    if (user.transformation->transpose) {
+                        usrPtr->setTransform(glm::transpose(user.transformation->transformation));
+                    }
+                    else {
+                        usrPtr->setTransform(user.transformation->transformation);
+                    }
+                }
+                if (user.tracking) {
+                    usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
+                }
             }
             else if (val == "Settings") {
                 sgct::Settings::instance()->configure(element);
             }
             else if (val == "Capture") {
-                parseCapture(element);
+                sgct::config::Capture capture = parseCapture(element);
+
+                if (capture.monoPath) {
+                    sgct::Settings::instance()->setCapturePath(
+                        *capture.monoPath,
+                        sgct::Settings::CapturePath::Mono
+                    );
+                }
+                if (capture.leftPath) {
+                    sgct::Settings::instance()->setCapturePath(
+                        *capture.leftPath,
+                        sgct::Settings::CapturePath::LeftStereo
+                    );
+                }
+                if (capture.rightPath) {
+                    sgct::Settings::instance()->setCapturePath(
+                        *capture.rightPath,
+                        sgct::Settings::CapturePath::RightStereo
+                    );
+                }
+                if (capture.format) {
+                    sgct::Settings::CaptureFormat f = [](sgct::config::Capture::Format format) {
+                        switch (format) {
+                        default:
+                        case sgct::config::Capture::Format::PNG:
+                            return sgct::Settings::CaptureFormat::PNG;
+                        case sgct::config::Capture::Format::JPG:
+                            return sgct::Settings::CaptureFormat::JPG;
+                        case sgct::config::Capture::Format::TGA:
+                            return sgct::Settings::CaptureFormat::TGA;
+                        }
+                    }(*capture.format);
+                    sgct::Settings::instance()->setCaptureFormat(f);
+                }
             }
             else if (val == "Tracker" && element->Attribute("name")) {
-                parseTracker(element);
+                sgct::config::Tracker tracker = parseTracker(element);
+
+                sgct::core::ClusterManager& cm = *sgct::core::ClusterManager::instance();
+                cm.getTrackingManager().addTracker(tracker.name);
+
+                for (const sgct::config::Device& device : tracker.devices) {
+                    cm.getTrackingManager().addDeviceToCurrentTracker(device.name);
+
+                    for (const sgct::config::Device::Sensors& s : device.sensors) {
+                        cm.getTrackingManager().addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
+                    }
+                    for (const sgct::config::Device::Buttons& b : device.buttons) {
+                        cm.getTrackingManager().addButtonsToCurrentDevice(b.vrpnAddress, b.count);
+                    }
+                    for (const sgct::config::Device::Axes& a : device.axes) {
+                        cm.getTrackingManager().addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
+                    }
+                    if (device.offset) {
+                        sgct::TrackingManager& m = cm.getTrackingManager();
+                        sgct::Tracker& tr = *m.getLastTracker();
+                        sgct::TrackingDevice& dev = *tr.getLastDevice();
+                        dev.setOffset(*device.offset);
+                    }
+                    if (device.orientation) {
+                        sgct::TrackingManager& m = cm.getTrackingManager();
+                        sgct::Tracker& tr = *m.getLastTracker();
+                        sgct::TrackingDevice& dev = *tr.getLastDevice();
+                        dev.setOrientation(*device.orientation);
+                    }
+                    if (device.transformation) {
+                        sgct::TrackingManager& m = cm.getTrackingManager();
+                        sgct::Tracker& tr = *m.getLastTracker();
+                        sgct::TrackingDevice& dev = *tr.getLastDevice();
+
+                        if (device.transformation->transpose) {
+                            dev.setTransform(glm::transpose(device.transformation->transformation));
+                        }
+                        else {
+                            dev.setTransform(device.transformation->transformation);
+                        }
+                    }
+                }
+                if (tracker.offset) {
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    tr.setOffset(*tracker.offset);
+                }
+                if (tracker.orientation) {
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    tr.setOrientation(*tracker.orientation);
+                }
+                if (tracker.scale) {
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    tr.setScale(*tracker.scale);
+                }
+                if (tracker.transformation) {
+                    sgct::TrackingManager& m = cm.getTrackingManager();
+                    sgct::Tracker& tr = *m.getLastTracker();
+                    if (tracker.transformation->transpose) {
+                        tr.setTransform(glm::transpose(tracker.transformation->transformation));
+                    }
+                    else {
+                        tr.setTransform(tracker.transformation->transformation);
+                    }
+                }
             }
             element = element->NextSiblingElement();
         }

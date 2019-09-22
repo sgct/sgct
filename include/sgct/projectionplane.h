@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__PROJECTION_PLANE__H__
 #define __SGCT__PROJECTION_PLANE__H__
 
+#include <sgct/config.h>
 #include <glm/glm.hpp>
 
 namespace tinyxml2 { class XMLElement; }
@@ -19,8 +20,6 @@ namespace sgct::core {
  */
 class ProjectionPlane {
 public:
-    void configure(tinyxml2::XMLElement* element, glm::vec3& initializedLowerLeftCorner,
-        glm::vec3& initializedUpperLeftCorner, glm::vec3& initializedUpperRightCorner);
     void reset();
     void offset(const glm::vec3& p);
 

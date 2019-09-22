@@ -31,7 +31,7 @@ public:
         Cubemap
     };
 
-    void setSpoutChannels(bool channels[6]);
+    void setSpoutChannels(const bool channels[6]);
     void setSpoutMappingName(std::string name);
     void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(glm::vec3 orientation);

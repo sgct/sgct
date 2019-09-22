@@ -7,64 +7,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/projectionplane.h>
 
+#include <sgct/config.h>
 #include <sgct/messagehandler.h>
 #include <tinyxml2.h>
 
 namespace sgct::core {
-
-void ProjectionPlane::configure(tinyxml2::XMLElement* element,
-                                glm::vec3& initializedLowerLeftCorner,
-                                glm::vec3& initializedUpperLeftCorner,
-                                glm::vec3& initializedUpperRightCorner)
-{
-    using namespace tinyxml2;
-    size_t i = 0;
-
-    tinyxml2::XMLElement* elem = element->FirstChildElement();
-    while (elem) {
-        std::string_view val = elem->Value();
-
-        if (val == "Pos") {
-            glm::vec3 pos;
-
-            if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&
-                elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
-                elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
-            {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
-                    pos.x, pos.y, pos.z, i % 3
-                );
-
-                switch (i % 3) {
-                    case 0:
-                        setCoordinateLowerLeft(pos);
-                        initializedLowerLeftCorner = pos;
-                        break;
-                    case 1:
-                        setCoordinateUpperLeft(pos);
-                        initializedUpperLeftCorner = pos;
-                        break;
-                    case 2:
-                        setCoordinateUpperRight(pos);
-                        initializedUpperRightCorner = pos;
-                        break;
-                }
-
-                i++;
-            }
-            else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "ProjectionPlane: Failed to parse coordinates from XML\n"
-                );
-            }
-        }
-
-        elem = elem->NextSiblingElement();
-    }
-}
 
 void ProjectionPlane::reset() {
     mPlaneCoords.lowerLeft = glm::vec3(-1.f, -1.f, -2.f);

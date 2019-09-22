@@ -116,7 +116,7 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
     }
 }
 
-void SpoutOutputProjection::setSpoutChannels(bool channels[NFaces]) {
+void SpoutOutputProjection::setSpoutChannels(const bool channels[NFaces]) {
     for (size_t i = 0; i < NFaces; i++) {
         mSpout[i].enabled = channels[i];
     }

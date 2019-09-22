@@ -512,7 +512,7 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
         return false;
     }
     std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-    vp->configureMpcdi(element, parsedItems.resolution.x, parsedItems.resolution.y);
+    vp->configureMpcdi(element);
     win.addViewport(std::move(vp));
     return true;
 }

@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/baseviewport.h>
 
+#include <sgct/config.h>
 #include <sgct/correctionmesh.h>
 #include <memory>
 #include <string>
@@ -36,7 +37,7 @@ public:
     ~Viewport();
 
     void configure(tinyxml2::XMLElement* element);
-    void configureMpcdi(tinyxml2::XMLElement* element, int winResX, int winResY);
+    void configureMpcdi(tinyxml2::XMLElement* element);
     void setOverlayTexture(std::string texturePath);
     void setBlendMaskTexture(std::string texturePath);
     void setBlackLevelMaskTexture(std::string texturePath);
@@ -68,10 +69,10 @@ public:
     const std::vector<unsigned char>& mpcdiWarpMesh() const;
 
 private:
-    void parsePlanarProjection(tinyxml2::XMLElement* element);
-    void parseFisheyeProjection(tinyxml2::XMLElement* element);
-    void parseSpoutOutputProjection(tinyxml2::XMLElement* element);
-    void parseSphericalMirrorProjection(tinyxml2::XMLElement* element);
+    void applyPlanarProjection(const sgct::config::PlanarProjection& proj);
+    void applyFisheyeProjection(const sgct::config::FisheyeProjection& proj);
+    void applySpoutOutputProjection(const sgct::config::SpoutOutputProjection& proj);
+    void applySphericalMirrorProjection(const sgct::config::SphericalMirrorProjection& proj);
 
     CorrectionMesh mCM;
     std::string mOverlayFilename;

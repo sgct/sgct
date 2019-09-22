@@ -2,6 +2,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct.h
   ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/clustermanager.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/config.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fisheyeprojection.h
@@ -65,6 +66,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
   baseviewport.cpp
   clustermanager.cpp
+  config.cpp
   correctionmesh.cpp
   engine.cpp
   fisheyeprojection.cpp

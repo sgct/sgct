@@ -28,170 +28,68 @@ void Settings::destroy() {
     mInstance = nullptr;
 }
 
-void Settings::configure(tinyxml2::XMLElement* element) {
-    using namespace tinyxml2;
-
-    XMLElement* elem = element->FirstChildElement();
-    while (elem) {
-        std::string_view val = elem->Value();
-
-        if (val == "DepthBufferTexture") {
-            if (elem->Attribute("value")) {
-                setUseDepthTexture(strcmp(elem->Attribute("value"), "true") == 0);
+void Settings::applySettings(const sgct::config::Settings& settings) {
+    if (settings.useDepthTexture) {
+        setUseDepthTexture(*settings.useDepthTexture);
+    }
+    if (settings.useNormalTexture) {
+        setUseNormalTexture(*settings.useNormalTexture);
+    }
+    if (settings.usePositionTexture) {
+        setUsePositionTexture(*settings.usePositionTexture);
+    }
+    if (settings.usePBO) {
+        setUsePBO(*settings.usePBO);
+    }
+    if (settings.bufferFloatPrecision) {
+        BufferFloatPrecision p = [](sgct::config::Settings::BufferFloatPrecision p) {
+            switch (p) {
+                case sgct::config::Settings::BufferFloatPrecision::Float16Bit:
+                    return BufferFloatPrecision::Float16Bit;
+                case sgct::config::Settings::BufferFloatPrecision::Float32Bit:
+                    return BufferFloatPrecision::Float32Bit;
             }
+        }(*settings.bufferFloatPrecision);
+        setBufferFloatPrecision(p);
+    }
+    if (settings.display) {
+        if (settings.display->swapInterval) {
+            setSwapInterval(*settings.display->swapInterval);
         }
-        else if (val == "NormalTexture") {
-            if (elem->Attribute("value")) {
-                setUseNormalTexture(strcmp(elem->Attribute("value"), "true") == 0);
-            }
+        if (settings.display->refreshRate) {
+            setRefreshRateHint(*settings.display->refreshRate);
         }
-        else if (val == "PositionTexture") {
-            if (elem->Attribute("value")) {
-                setUsePositionTexture(strcmp(elem->Attribute("value"), "true") == 0);
-            }
+        if (settings.display->maintainAspectRatio) {
+            setTryMaintainAspectRatio(*settings.display->maintainAspectRatio);
         }
-        else if (val == "PBO") {
-            if (elem->Attribute("value")) {
-                setUsePBO(strcmp(elem->Attribute("value"), "true") == 0);
-            }
+        if (settings.display->exportWarpingMeshes) {
+            setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
         }
-        else if (val == "Precision") {
-            int fprec = 0;
-            if (elem->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
-                if (fprec == 16) {
-                    setBufferFloatPrecision(BufferFloatPrecision::Float16Bit);
-                }
-                else if (fprec == 32) {
-                    setBufferFloatPrecision(BufferFloatPrecision::Float32Bit);
-                }
-                else {
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Warning,
-                        "ReadConfig: Invalid precision value (%d)! Must be 16 or 32\n",
-                        fprec
-                    );
-                }
-            }
-            else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Warning,
-                    "ReadConfig: Invalid precision value! Must be 16 or 32\n"
-                );
-            }
+    }
+    if (settings.osdText) {
+        if (settings.osdText->name) {
+            setOSDTextFontName(*settings.osdText->name);
         }
-        else if (val == "Display") {
-            int interval = 0;
-            if (elem->QueryIntAttribute("swapInterval", &interval) == XML_NO_ERROR) {
-                setSwapInterval(interval);
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Info,
-                    "ReadConfig: Display swap interval is set to %d\n", interval
-                );
-            }
-
-            int rate = 0;
-            if (elem->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR) {
-                setRefreshRateHint(rate);
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Info,
-                    "ReadConfig: Display refresh rate hint is set to %d Hz\n", rate
-                );
-            }
-
-            const char* maintainAspect = elem->Attribute("tryMaintainAspectRatio");
-            if (maintainAspect != nullptr) {
-                setTryMaintainAspectRatio(strcmp(maintainAspect, "true") == 0);
-            }
-
-            const char* exportMeshes = elem->Attribute("exportWarpingMeshes");
-            if (exportMeshes) {
-                setExportWarpingMeshes(strcmp(exportMeshes, "true") == 0);
-            }
+        if (settings.osdText->path) {
+            setOSDTextFontPath(*settings.osdText->path);
         }
-        else if (val == "OSDText") {
-            float x = 0.f;
-            float y = 0.f;
-
-            if (elem->Attribute("name")) {
-                setOSDTextFontName(elem->Attribute("name"));
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font name to %s\n", elem->Attribute("name")
-                );
-            }
-
-            if (elem->Attribute("path")) {
-                setOSDTextFontPath(elem->Attribute("path"));
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font path to %s\n", elem->Attribute("path")
-                );
-            }
-
-            if (elem->Attribute("size")) {
-                unsigned int size;
-                XMLError err = elem->QueryUnsignedAttribute("size", &size);
-                if (err == tinyxml2::XML_NO_ERROR) {
-                    setOSDTextFontSize(size);
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Debug,
-                        "ReadConfig: Setting font size to %u\n", size
-                    );
-                }
-                else {
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Warning,
-                        "ReadConfig: Font size not specified. Setting to size=10\n"
-                    );
-                }
-            }
-
-            if (elem->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR) {
-                mOSDTextOffset.x = x;
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font x offset to %f\n", x
-                );
-            }
-
-            if (elem->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR) {
-                mOSDTextOffset.y = y;
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font y offset to %f\n", y
-                );
-            }
+        if (settings.osdText->size) {
+            setOSDTextFontSize(*settings.osdText->size);
         }
-        else if (val == "FXAA") {
-            float offset = 0.f;
-            if (elem->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR) {
-                setFXAASubPixOffset(offset);
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset
-                );
-            }
-
-            float trim = 0.f;
-            if (elem->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR) {
-                if (trim > 0.f) {
-                    setFXAASubPixTrim(1.f / trim);
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Debug,
-                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.f / trim
-                    );
-                }
-                else {
-                    setFXAASubPixTrim(0.f);
-                    MessageHandler::instance()->print(
-                        MessageHandler::Level::Debug,
-                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.f
-                    );
-                }
-            }
+        if (settings.osdText->xOffset) {
+            mOSDTextOffset.x = *settings.osdText->xOffset;
         }
-
-        elem = elem->NextSiblingElement();
+        if (settings.osdText->yOffset) {
+            mOSDTextOffset.y = *settings.osdText->yOffset;
+        }
+    }
+    if (settings.fxaa) {
+        if (settings.fxaa->offset) {
+            setFXAASubPixOffset(*settings.fxaa->offset);
+        }
+        if (settings.fxaa->trim) {
+            setFXAASubPixTrim(1.f / *settings.fxaa->trim);
+        }
     }
 }
 

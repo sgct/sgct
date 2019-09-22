@@ -545,6 +545,9 @@ Parameters:
         for (const sgct::config::Node& node : cluster.nodes) {
             applyNode(node);
         }
+        if (cluster.settings) {
+            sgct::Settings::instance()->applySettings(*cluster.settings);
+        }
         if (cluster.user) {
             applyUser(*cluster.user);
         }
@@ -612,7 +615,40 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
     }
 
     try {
-        sgct::config::Cluster cluster = core::readconfig::readConfig(configFilename);
+        sgct::config::Cluster cluster;
+        if (configFilename.empty()) {
+            sgct::config::ProjectionPlane proj;
+            proj.lowerLeft = glm::vec3(-1.778f, -1.f, 0.f);
+            proj.upperLeft = glm::vec3(-1.778f, 1.f, 0.f);
+            proj.upperRight = glm::vec3(1.778f, 1.f, 0.f);
+
+            sgct::config::Viewport viewport;
+            viewport.position = glm::vec2(0.f, 0.f);
+            viewport.size = glm::vec2(1.f, 1.f);
+            viewport.projection = proj;
+
+            sgct::config::Window window;
+            window.isFullScreen = false;
+            window.size = glm::ivec2(1280, 720);
+            window.viewports.push_back(viewport);
+
+            sgct::config::Node node;
+            node.address = "localhost";
+            node.port = 20401;
+            node.windows.push_back(window);
+         
+            sgct::config::User user;
+            user.eyeSeparation = 0.06f;
+            user.position = glm::vec3(0.f, 0.f, 4.f);
+
+            cluster.masterAddress = "localhost";
+            cluster.nodes.push_back(node);
+            cluster.user = user;
+        }
+        else {
+            cluster = core::readconfig::readConfig(configFilename);
+        }
+         
         applyCluster(cluster);
     }
     catch (const std::runtime_error& e) {

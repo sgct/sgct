@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
+#include <sgct/config.h>
 #include <glm/glm.hpp>
 #include <atomic>
 #include <mutex>
@@ -52,7 +53,7 @@ public:
     /// Destroy the Settings instance
     static void destroy();
 
-    void configure(tinyxml2::XMLElement* element);
+    void applySettings(const sgct::config::Settings& settings);
 
     /**
      * Set swap interval for all windows

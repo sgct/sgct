@@ -38,6 +38,13 @@ bool validateScene(const Scene& scene) {
     return success;
 }
 
+bool validateSettings(const Settings& settings) {
+    bool success = true;
+
+    // if (trim > 0.f) {
+    return success;
+}
+
 bool validateDevice(const Device& device) {
     bool success = true;
 

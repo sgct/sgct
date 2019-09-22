@@ -24,28 +24,85 @@
 #include <tinyxml2.h>
 
 namespace {
-    constexpr const char* DefaultConfig = R"(
-    <?xml version="1.0" ?>
-      <Cluster masterAddress="localhost">
-        <Node address="localhost" port="20401">
-          <Window fullScreen="false">
-            <Size x="1280" y="720" />
-            <Viewport>
-              <Pos x="0.0" y="0.0" />
-              <Size x="1.0" y="1.0" />
-              <Projectionplane>
-                <Pos x="-1.778" y="-1.0" z="0.0" />
-                <Pos x="-1.778" y=" 1.0" z="0.0" />
-                <Pos x=" 1.778" y=" 1.0" z="0.0" />
-              </Projectionplane>
-            </Viewport>
-          </Window>
-        </Node>
-        <User eyeSeparation="0.06">
-        <Pos x="0.0" y="0.0" z="4.0" />
-      </User>
-    </Cluster>
-    )";
+    glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;
+
+        bool eulerMode = false;
+        bool quatMode = false;
+
+        glm::quat quat;
+
+        float value;
+        if (element->QueryFloatAttribute("w", &value) == tinyxml2::XML_NO_ERROR) {
+            quat.w = value;
+            quatMode = true;
+        }
+
+        if (element->QueryFloatAttribute("y", &value) == tinyxml2::XML_NO_ERROR) {
+            y = value;
+            eulerMode = true;
+        }
+
+        if (element->QueryFloatAttribute("yaw", &value) == tinyxml2::XML_NO_ERROR) {
+            y = -value;
+        }
+
+        if (element->QueryFloatAttribute("heading", &value) == tinyxml2::XML_NO_ERROR) {
+            y = -value;
+        }
+
+        if (element->QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_NO_ERROR) {
+            y = -value;
+        }
+
+        if (element->QueryFloatAttribute("x", &value) == tinyxml2::XML_NO_ERROR) {
+            x = value;
+            eulerMode = true;
+        }
+
+        if (element->QueryFloatAttribute("pitch", &value) == tinyxml2::XML_NO_ERROR) {
+            x = value;
+        }
+
+        if (element->QueryFloatAttribute("elevation", &value) == tinyxml2::XML_NO_ERROR) {
+            x = value;
+        }
+
+        if (element->QueryFloatAttribute("z", &value) == tinyxml2::XML_NO_ERROR) {
+            z = value;
+            eulerMode = true;
+        }
+
+        if (element->QueryFloatAttribute("roll", &value) == tinyxml2::XML_NO_ERROR) {
+            z = -value;
+        }
+
+        if (element->QueryFloatAttribute("bank", &value) == tinyxml2::XML_NO_ERROR) {
+            z = -value;
+        }
+
+        if (quatMode) {
+            quat.x = x;
+            quat.y = y;
+            quat.z = z;
+        }
+        else {
+            if (eulerMode) {
+                quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
+            }
+            else {
+                quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
+            }
+        }
+
+        return quat;
+    }
 
     sgct::config::Window::StereoMode getStereoType(std::string type) {
         std::transform(
@@ -178,7 +235,6 @@ namespace {
             return -1;
         }
     }
-
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
         glm::ivec2 value;
@@ -334,7 +390,7 @@ namespace {
                 }
             }
             else if (val == "Orientation") {
-                proj.orientation = sgct::core::readconfig::parseOrientationNode(subElement);
+                proj.orientation = parseOrientationNode(subElement);
             }
             else if (val == "Offset") {
                 glm::vec3 offset;
@@ -701,7 +757,7 @@ namespace {
                 scene.offset = *parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                scene.orientation = sgct::core::readconfig::parseOrientationNode(child);
+                scene.orientation = parseOrientationNode(child);
             }
             else if (childVal == "Scale") {
                 scene.scale = parseValue<float>(*child, "value");
@@ -922,7 +978,7 @@ namespace {
                 user.position = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                user.orientation = readconfig::parseOrientationNode(child);
+                user.orientation = parseOrientationNode(child);
             }
             else if (childVal == "Matrix") {
                 sgct::config::User::Transform trans;
@@ -941,6 +997,102 @@ namespace {
         }
 
         return user;
+    }
+
+
+    [[nodiscard]] sgct::config::Settings parseSettings(tinyxml2::XMLElement* element) {
+        sgct::config::Settings settings;
+
+        tinyxml2::XMLElement* elem = element->FirstChildElement();
+        while (elem) {
+            std::string_view val = elem->Value();
+
+            if (val == "DepthBufferTexture") {
+                if (elem->Attribute("value")) {
+                    std::string_view v = elem->Attribute("value");
+                    settings.useDepthTexture = (v == "true");
+                }
+            }
+            else if (val == "NormalTexture") {
+                if (elem->Attribute("value")) {
+                    std::string_view v = elem->Attribute("value");
+                    settings.useNormalTexture = (v == "true");
+                }
+            }
+            else if (val == "PositionTexture") {
+                if (elem->Attribute("value")) {
+                    std::string_view v = elem->Attribute("value");
+                    settings.usePositionTexture = (v == "true");
+                }
+            }
+            else if (val == "PBO") {
+                if (elem->Attribute("value")) {
+                    std::string_view v = elem->Attribute("value");
+                    settings.usePBO = (v == "true");
+                }
+            }
+            else if (val == "Precision") {
+                std::optional<float> f = parseValue<float>(*elem, "float");
+                if (f) {
+                    if (*f == 16) {
+                        settings.bufferFloatPrecision = sgct::config::Settings::BufferFloatPrecision::Float16Bit;
+                    }
+                    else if (*f == 32) {
+                        settings.bufferFloatPrecision = sgct::config::Settings::BufferFloatPrecision::Float32Bit;
+                    }
+                    else {
+                        sgct::MessageHandler::instance()->print(
+                            sgct::MessageHandler::Level::Warning,
+                            "ReadConfig: Invalid precision value (%d)! Must be 16 or 32\n",
+                            *f
+                        );
+                    }
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Warning,
+                        "ReadConfig: Invalid precision value! Must be 16 or 32\n"
+                    );
+                }
+            }
+            else if (val == "Display") {
+                sgct::config::Settings::Display display;
+                display.swapInterval = parseValue<int>(*elem, "swapInterval");
+                display.refreshRate = parseValue<int>(*elem, "refreshRate");
+                if (elem->Attribute("tryMaintainAspectRatio")) {
+                    std::string_view v = elem->Attribute("tryMaintainAspectRatio");
+                    display.maintainAspectRatio = (v == "true");
+                }
+                if (elem->Attribute("exportWarpingMeshes")) {
+                    std::string_view v = elem->Attribute("exportWarpingMeshes");
+                    display.exportWarpingMeshes = (v == "true");
+                }
+                settings.display = display;
+            }
+            else if (val == "OSDText") {
+                sgct::config::Settings::OSDText osdText;
+                if (elem->Attribute("name")) {
+                    osdText.name = elem->Attribute("name");
+                }
+                if (elem->Attribute("path")) {
+                    osdText.path = elem->Attribute("path");
+                }
+                osdText.size = parseValue<int>(*elem, "size");
+                osdText.xOffset = parseValue<float>(*elem, "xOffset");
+                osdText.yOffset = parseValue<float>(*elem, "yOffset");
+                settings.osdText = osdText;
+            }
+            else if (val == "FXAA") {
+                sgct::config::Settings::FXAA fxaa;
+                fxaa.offset = parseValue<float>(*elem, "offset");
+                fxaa.trim = parseValue<float>(*elem, "trim");
+                settings.fxaa = fxaa;
+            }
+
+            elem = elem->NextSiblingElement();
+        }
+
+        return settings;
     }
 
     sgct::config::Capture parseCapture(tinyxml2::XMLElement* element) {
@@ -1015,7 +1167,7 @@ namespace {
                 device.offset = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                device.orientation = sgct::core::readconfig::parseOrientationNode(child);
+                device.orientation = parseOrientationNode(child);
             }
             else if (childVal == "Matrix") {
                 sgct::config::Device::Transform trans;
@@ -1049,7 +1201,7 @@ namespace {
                 tracker.offset = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
-                tracker.orientation = sgct::core::readconfig::parseOrientationNode(child);
+                tracker.orientation = parseOrientationNode(child);
             }
             else if (childVal == "Scale") {
                 tracker.scale = parseValue<double>(*child, "value");
@@ -1113,8 +1265,8 @@ namespace {
                 cluster.user = user;
             }
             else if (val == "Settings") {
-                // @TODO sgct::config::Settings
-                sgct::Settings::instance()->configure(element);
+                sgct::config::Settings settings = parseSettings(element);
+                cluster.settings = settings;
             }
             else if (val == "Capture") {
                 sgct::config::Capture capture = parseCapture(element);
@@ -1144,14 +1296,6 @@ namespace {
             );
         }
         return readAndParseXML(xmlDoc, filename);
-    }
-
-    [[nodiscard]] sgct::config::Cluster readAndParseXMLString() {
-        using namespace tinyxml2;
-        tinyxml2::XMLDocument xmlDoc;
-        XMLError err = xmlDoc.Parse(DefaultConfig, strlen(DefaultConfig));
-        assert(err == tinyxml2::XML_NO_ERROR);
-        return readAndParseXML(xmlDoc, "");
     }
 
     std::string replaceEnvVars(const std::string& filename) {
@@ -1248,114 +1392,24 @@ glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll) {
     return quat;
 }
 
-glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
-    float x = 0.f;
-    float y = 0.f;
-    float z = 0.f;
-
-    bool eulerMode = false;
-    bool quatMode = false;
-
-    glm::quat quat;
-
-    float value;
-    if (element->QueryFloatAttribute("w", &value) == tinyxml2::XML_NO_ERROR) {
-        quat.w = value;
-        quatMode = true;
-    }
-
-    if (element->QueryFloatAttribute("y", &value) == tinyxml2::XML_NO_ERROR) {
-        y = value;
-        eulerMode = true;
-    }
-
-    if (element->QueryFloatAttribute("yaw", &value) == tinyxml2::XML_NO_ERROR) {
-        y = -value;
-    }
-
-    if (element->QueryFloatAttribute("heading", &value) == tinyxml2::XML_NO_ERROR) {
-        y = -value;
-    }
-
-    if (element->QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_NO_ERROR) {
-        y = -value;
-    }
-
-    if (element->QueryFloatAttribute("x", &value) == tinyxml2::XML_NO_ERROR) {
-        x = value;
-        eulerMode = true;
-    }
-
-    if (element->QueryFloatAttribute("pitch", &value) == tinyxml2::XML_NO_ERROR) {
-        x = value;
-    }
-
-    if (element->QueryFloatAttribute("elevation", &value) == tinyxml2::XML_NO_ERROR) {
-        x = value;
-    }
-
-    if (element->QueryFloatAttribute("z", &value) == tinyxml2::XML_NO_ERROR) {
-        z = value;
-        eulerMode = true;
-    }
-
-    if (element->QueryFloatAttribute("roll", &value) == tinyxml2::XML_NO_ERROR) {
-        z = -value;
-    }
-
-    if (element->QueryFloatAttribute("bank", &value) == tinyxml2::XML_NO_ERROR) {
-        z = -value;
-    }
-
-    if (quatMode) {
-        quat.x = x;
-        quat.y = y;
-        quat.z = z;
-    }
-    else {
-        if (eulerMode) {
-            quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
-        }
-        else {
-            quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
-            quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
-        }
-    }
-
-    return quat;
-}
-
 sgct::config::Cluster readConfig(const std::string& filename) {
-    sgct::config::Cluster cluster;
     std::string f = filename;
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "ReadConfig: Parsing XML config '%s'...\n", f.c_str()
+    );
+
+    f = replaceEnvVars(f);
     if (f.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
-            "ReadConfig: No file specified! Using default configuration...\n"
-        );
-        cluster = readAndParseXMLString();
+        throw std::runtime_error("Could not resolve file path");
     }
-    else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "ReadConfig: Parsing XML config '%s'...\n", f.c_str()
-        );
 
-        f = replaceEnvVars(f);
-        if (f.empty()) {
-            throw std::runtime_error("Could not resolve file path");
-        }
+    sgct::config::Cluster cluster = readAndParseXMLFile(f);
 
-        cluster = readAndParseXMLFile(f);
-
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "ReadConfig: Config file '%s' read successfully\n", f.c_str()
-        );
-    }
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "ReadConfig: Config file '%s' read successfully\n", f.c_str()
+    );
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
         "ReadConfig: Number of nodes in cluster: %d\n", cluster.nodes.size()

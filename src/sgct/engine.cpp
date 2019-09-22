@@ -225,7 +225,7 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
     }
 
     try {
-        core::readconfig::readConfig(configFilename);
+        sgct::config::Cluster cluster = core::readconfig::readConfig(configFilename);
     }
     catch (const std::runtime_error& e) {
         // fatal error

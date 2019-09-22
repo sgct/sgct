@@ -65,13 +65,13 @@ public:
      * \param sync port is the number of the tcp port used for communication with this
      * node
      */
-    void setSyncPort(std::string port);
+    void setSyncPort(int port);
 
     /**
      * \param data transfer port is the number of the tcp port used for data transfers to 
      * this node
      */
-    void setDataTransferPort(std::string port);
+    void setDataTransferPort(int port);
 
     /// \param name the name identification string of this node
     void setName(std::string name);
@@ -80,10 +80,10 @@ public:
     const std::string& getAddress() const;
 
     /// \returns the sync port of this node
-    const std::string& getSyncPort() const;
+    int getSyncPort() const;
 
     /// \returns the data transfer port of this node
-    const std::string& getDataTransferPort() const;
+    int getDataTransferPort() const;
 
     /// \returns the name if this node
     const std::string& getName() const;
@@ -91,8 +91,8 @@ public:
 private:
     std::string mName;
     std::string mAddress;
-    std::string mSyncPort;
-    std::string mDataTransferPort;
+    int mSyncPort;
+    int mDataTransferPort;
 
     int mCurrentWindowIndex = 0;
     std::vector<Window> mWindows;

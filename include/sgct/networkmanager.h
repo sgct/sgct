@@ -76,7 +76,7 @@ public:
     const std::vector<std::string>& getLocalAddresses() const;
 
 private:
-    bool addConnection(const std::string& port, const std::string& address,
+    bool addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void initAPI();
     void getHostInfo();

@@ -19,303 +19,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <array>
 #include <optional>
+#include <variant>
 
 namespace {
-    std::optional<float> parseFrustumElement(const tinyxml2::XMLElement& elem,
-                                             std::string_view frustumTag)
-    {
-        if (frustumTag == elem.Value()) {
-            try {
-                return std::stof(elem.GetText());
-            }
-            catch (const std::invalid_argument&) {
-                std::string msg = "Viewport: Failed to parse frustum element "
-                    + std::string(frustumTag) + " from MPCDI XML\n";
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    msg.c_str()
-                );
-            }
-        }
-        return std::nullopt;
-    }
-
-    [[nodiscard]] sgct::config::PlanarProjection parsePlanarProjection(tinyxml2::XMLElement* element){
-        using namespace tinyxml2;
-
-        sgct::config::PlanarProjection proj;
-        XMLElement* subElement = element->FirstChildElement();
-        while (subElement) {
-            std::string_view val = subElement->Value();
-
-            if (val == "FOV") {
-                sgct::config::PlanarProjection::FOV fov;
-                XMLError errDown = subElement->QueryFloatAttribute("down", &fov.down);
-                XMLError errLeft = subElement->QueryFloatAttribute("left", &fov.left);
-                XMLError errRight = subElement->QueryFloatAttribute("right", &fov.right);
-                XMLError errUp = subElement->QueryFloatAttribute("up", &fov.up);
-
-                if (errDown == XML_NO_ERROR && errLeft == XML_NO_ERROR &&
-                    errRight == XML_NO_ERROR && errUp == XML_NO_ERROR)
-                {
-                    proj.fov = fov;
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "Viewport: Failed to parse planar projection FOV from XML\n"
-                    );
-                }
-            }
-            else if (val == "Orientation") {
-                proj.orientation = sgct::core::readconfig::parseOrientationNode(subElement);
-            }
-            else if (val == "Offset") {
-                glm::vec3 offset;
-                subElement->QueryFloatAttribute("x", &offset[0]);
-                subElement->QueryFloatAttribute("y", &offset[1]);
-                subElement->QueryFloatAttribute("z", &offset[2]);
-                proj.offset = offset;
-            }
-
-            subElement = subElement->NextSiblingElement();
-        }
-
-        return proj;
-    }
-
-    [[nodiscard]] sgct::config::FisheyeProjection parseFisheyeProjection(tinyxml2::XMLElement* element) {
-        sgct::config::FisheyeProjection proj;
-
-        float fov;
-        if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR) {
-            proj.fov = fov;
-        }
-        if (element->Attribute("quality")) {
-            const int res = sgct::core::cubeMapResolutionForQuality(element->Attribute("quality"));
-            proj.quality = res;
-        }
-        if (element->Attribute("method")) {
-            std::string_view method = element->Attribute("method");
-            proj.method = method == "five_face_cube" ?
-                sgct::config::FisheyeProjection::Method::FiveFace :
-                sgct::config::FisheyeProjection::Method::FourFace;
-        }
-        if (element->Attribute("interpolation")) {
-            std::string_view interpolation = element->Attribute("interpolation");
-            proj.interpolation = interpolation == "cubic" ?
-                sgct::config::FisheyeProjection::Interpolation::Cubic :
-                sgct::config::FisheyeProjection::Interpolation::Linear;
-        }
-        float diameter;
-        if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
-            proj.diameter = diameter;
-        }
-
-        float tilt;
-        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
-            proj.tilt = tilt;
-        }
-
-        tinyxml2::XMLElement* subElement = element->FirstChildElement();
-        while (subElement) {
-            std::string_view val = subElement->Value();
-
-            if (val == "Crop") {
-                sgct::config::FisheyeProjection::Crop crop;
-                subElement->QueryFloatAttribute("left", &crop.left);
-                subElement->QueryFloatAttribute("right", &crop.right);
-                subElement->QueryFloatAttribute("bottom", &crop.bottom);
-                subElement->QueryFloatAttribute("top", &crop.top);
-                proj.crop = crop;
-            }
-            else if (val == "Offset") {
-                glm::vec3 offset = glm::vec3(0.f);
-                subElement->QueryFloatAttribute("x", &offset[0]);
-                subElement->QueryFloatAttribute("y", &offset[1]);
-                subElement->QueryFloatAttribute("z", &offset[2]);
-                proj.offset = offset;
-            }
-            if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
-            }
-
-            subElement = subElement->NextSiblingElement();
-        }
-
-        return proj;
-    }
-
-    [[nodiscard]] sgct::config::SphericalMirrorProjection parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
-        sgct::config::SphericalMirrorProjection proj;
-        if (element->Attribute("quality")) {
-            proj.quality = sgct::core::cubeMapResolutionForQuality(element->Attribute("quality"));
-        }
-
-        float tilt;
-        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
-            proj.tilt = tilt;
-        }
-
-        tinyxml2::XMLElement* subElement = element->FirstChildElement();
-        while (subElement) {
-            std::string_view val = subElement->Value();
-
-            if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
-            }
-            else if (val == "Geometry") {
-                if (subElement->Attribute("bottom")) {
-                    proj.mesh.bottom = subElement->Attribute("bottom");
-                }
-
-                if (subElement->Attribute("left")) {
-                    proj.mesh.left = subElement->Attribute("left");
-                }
-
-                if (subElement->Attribute("right")) {
-                    proj.mesh.right = subElement->Attribute("right");
-                }
-
-                if (subElement->Attribute("top")) {
-                    proj.mesh.top = subElement->Attribute("top");
-                }
-            }
-
-            subElement = subElement->NextSiblingElement();
-        }
-
-
-        return proj;
-    }
-
-    [[nodiscard]] sgct::config::SpoutOutputProjection parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
-        sgct::config::SpoutOutputProjection proj;
-
-        if (element->Attribute("quality")) {
-            proj.quality = sgct::core::cubeMapResolutionForQuality(element->Attribute("quality"));
-        }
-        if (element->Attribute("mapping")) {
-            std::string_view val = element->Attribute("mapping");
-            if (val == "fisheye") {
-                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Fisheye;
-            }
-            else if (val == "equirectangular") {
-                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Equirectangular;
-            }
-            else if (val == "cubemap") {
-                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap;
-            }
-            else {
-                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap;
-            }
-        }
-        if (element->Attribute("mappingSpoutName")) {
-            proj.mappingSpoutName = element->Attribute("mappingSpoutName");
-        }
-
-        tinyxml2::XMLElement* subElement = element->FirstChildElement();
-        while (subElement) {
-            std::string_view val = subElement->Value();
-
-            if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
-            }
-
-            if (val == "Channels") {
-                // @TODO(abock)  In the previous version it was ambiguous whether it should be
-                //               initialized to false or true;  it did use 'true' in the end
-                //               but I don't think that is the correct way though
-
-                sgct::config::SpoutOutputProjection::Channels c;
-                subElement->QueryBoolAttribute("Right", &c.right);
-                subElement->QueryBoolAttribute("zLeft", &c.zLeft);
-                subElement->QueryBoolAttribute("Bottom", &c.bottom);
-                subElement->QueryBoolAttribute("Top", &c.top);
-                subElement->QueryBoolAttribute("Left", &c.left);
-                subElement->QueryBoolAttribute("zRight", &c.zRight);
-                proj.channels = c;
-            }
-
-            if (val == "RigOrientation") {
-                glm::vec3 orientation;
-                subElement->QueryFloatAttribute("pitch", &orientation[0]);
-                subElement->QueryFloatAttribute("yaw", &orientation[1]);
-                subElement->QueryFloatAttribute("roll", &orientation[2]);
-                proj.orientation = orientation;
-            }
-
-            subElement = subElement->NextSiblingElement();
-        }
-
-        return proj;
-    }
-
-    [[nodiscard]] sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement* element) {
-        using namespace tinyxml2;
-        size_t i = 0;
-
-        sgct::config::ProjectionPlane proj;
-
-        tinyxml2::XMLElement* elem = element->FirstChildElement();
-        while (elem) {
-            std::string_view val = elem->Value();
-
-            if (val == "Pos") {
-                glm::vec3 pos;
-                if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&
-                    elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
-                    elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
-                {
-                    switch (i % 3) {
-                    case 0:
-                        proj.lowerLeft = pos;
-                        break;
-                    case 1:
-                        proj.upperLeft = pos;
-                        break;
-                    case 2:
-                        proj.upperRight = pos;
-                        break;
-                    }
-
-                    i++;
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ProjectionPlane: Failed to parse coordinates from XML\n"
-                    );
-                }
-            }
-
-            elem = elem->NextSiblingElement();
-        }
-
-        return proj;
-
-        //setCoordinateLowerLeft(*proj.lowerLeft);
-        //initializedLowerLeftCorner = *proj.lowerLeft;
-        //setCoordinateUpperLeft(*proj.upperLeft);
-        //initializedUpperLeftCorner = *proj.upperLeft;
-        //setCoordinateUpperRight(*proj.upperLeft);
-        //initializedUpperRightCorner = *proj.upperLeft;
-    }
+    // Helper structs for the visitor pattern of the std::variant on projections
+    template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+    template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
     [[nodiscard]] sgct::config::MpcdiProjection parseMpcdi(tinyxml2::XMLElement* element) {
         using namespace tinyxml2;
@@ -454,7 +163,6 @@ namespace {
         return proj;
     }
 
-
 } // namespace
 
 namespace sgct::core {
@@ -473,121 +181,72 @@ Viewport::~Viewport() {
     glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
 }
 
-void Viewport::configure(tinyxml2::XMLElement* element) {
-    if (element->Attribute("user")) {
-        setUserName(element->Attribute("user"));
+void Viewport::applySettings(const sgct::config::Viewport& viewport) {
+    if (viewport.user) {
+        setUserName(*viewport.user);
     }
-
-    if (element->Attribute("name")) {
-        setName(element->Attribute("name"));
+    if (viewport.name) {
+        setName(*viewport.name);
     }
-
-    if (element->Attribute("overlay")) {
-        setOverlayTexture(element->Attribute("overlay"));
+    if (viewport.overlayTexture) {
+        setOverlayTexture(*viewport.overlayTexture);
     }
-
-    // for backward compability
-    if (element->Attribute("mask")) {
-        setBlendMaskTexture(element->Attribute("mask"));
+    if (viewport.blendMaskTexture) {
+        setBlendMaskTexture(*viewport.blendMaskTexture);
     }
-
-    if (element->Attribute("BlendMask")) {
-        setBlendMaskTexture(element->Attribute("BlendMask"));
+    if (viewport.blendLevelMaskTexture) {
+        setBlackLevelMaskTexture(*viewport.blendLevelMaskTexture);
     }
-
-    if (element->Attribute("BlackLevelMask")) {
-        setBlackLevelMaskTexture(element->Attribute("BlackLevelMask"));
+    if (viewport.correctionMeshTexture) {
+        setCorrectionMesh(*viewport.correctionMeshTexture);
     }
-
-    if (element->Attribute("mesh")) {
-        setCorrectionMesh(element->Attribute("mesh"));
+    if (viewport.meshHint) {
+        mMeshHint = *viewport.meshHint;
     }
-
-    if (element->Attribute("hint")) {
-        mMeshHint = element->Attribute("hint");
+    if (viewport.isTracked) {
+        setTracked(*viewport.isTracked);
     }
-
-    if (element->Attribute("tracked")) {
-        std::string_view tracked = element->Attribute("tracked");
-        setTracked(tracked == "true");
-    }
-
-    // get eye if set
-    if (element->Attribute("eye")) {
-        std::string_view eye = element->Attribute("eye");
-        if (eye == "center") {
-            setEye(Frustum::MonoEye);
-        }
-        else if (eye == "left") {
-            setEye(Frustum::StereoLeftEye);
-        }
-        else if (eye == "right") {
-            setEye(Frustum::StereoRightEye);
-        }
-    }
-
-    tinyxml2::XMLElement* subElement = element->FirstChildElement();
-    while (subElement) {
-        using namespace tinyxml2;
-
-        std::string_view val = subElement->Value();
-        if (val == "Pos") {
-            glm::vec2 position;
-            if (subElement->QueryFloatAttribute("x", &position[0]) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &position[1]) == XML_NO_ERROR)
-            {
-                setPos(std::move(position));
+    if (viewport.eye) {
+        Frustum::Mode e = [](sgct::config::Viewport::Eye e) {
+            switch (e) {
+                default:
+                case sgct::config::Viewport::Eye::Mono:
+                    return Frustum::MonoEye;
+                case sgct::config::Viewport::Eye::StereoLeft:
+                    return Frustum::StereoLeftEye;
+                case sgct::config::Viewport::Eye::StereoRight:
+                    return Frustum::StereoRightEye;
             }
-            else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Viewport: Failed to parse position from XML\n"
-                );
-            }
-        }
-        else if (val == "Size") {
-            glm::vec2 size;
-            if (subElement->QueryFloatAttribute("x", &size[0]) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &size[1]) == XML_NO_ERROR)
-            {
-                setSize(std::move(size));
-            }
-            else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Viewport: Failed to parse size from XML!\n"
-                );
-            }
-        }
-        else if (val == "PlanarProjection") {
-            sgct::config::PlanarProjection proj = parsePlanarProjection(subElement);
+        }(*viewport.eye);
+        setEye(e);
+    }
+
+    setPos(viewport.position);
+    setSize(viewport.size);
+
+    std::visit(overloaded{
+        [](const sgct::config::NoProjection&) {},
+        [this](const sgct::config::PlanarProjection& proj) {
             applyPlanarProjection(proj);
-        }
-        else if (val == "FisheyeProjection") {
-            sgct::config::FisheyeProjection proj = parseFisheyeProjection(subElement);
+        },
+        [this](const sgct::config::FisheyeProjection& proj) {
             applyFisheyeProjection(proj);
-        }
-        else if (val == "SphericalMirrorProjection") {
-            sgct::config::SphericalMirrorProjection proj = parseSphericalMirrorProjection(subElement);
+        },
+        [this](const sgct::config::SphericalMirrorProjection& proj) {
             applySphericalMirrorProjection(proj);
-        }
-        else if (val == "SpoutOutputProjection") {
-            sgct::config::SpoutOutputProjection proj = parseSpoutOutputProjection(subElement);
+        },
+        [this](const sgct::config::SpoutOutputProjection& proj) {
             applySpoutOutputProjection(proj);
-        }
-        else if (val == "Viewplane" || val == "Projectionplane") {
-            sgct::config::ProjectionPlane proj = parseProjectionPlane(subElement);
+        },
+        [this](const sgct::config::ProjectionPlane& proj) {
             mProjectionPlane.setCoordinateLowerLeft(*proj.lowerLeft);
             mUnTransformedViewPlaneCoords.lowerLeft = *proj.lowerLeft;
             mProjectionPlane.setCoordinateUpperLeft(*proj.upperLeft);
             mUnTransformedViewPlaneCoords.upperLeft = *proj.upperLeft;
             mProjectionPlane.setCoordinateUpperRight(*proj.upperRight);
             mUnTransformedViewPlaneCoords.upperRight = *proj.upperRight;
-        }
-
-        // iterate
-        subElement = subElement->NextSiblingElement();
-    }
+        },
+    }, viewport.projection);
 }
 
 
@@ -641,26 +300,26 @@ void Viewport::applyFisheyeProjection(const sgct::config::FisheyeProjection& pro
         fishProj->setCubemapResolution(*proj.quality);
     }
     if (proj.method) {
-        FisheyeProjection::FisheyeMethod m = [](config::FisheyeProjection::Method m) {
+        sgct::core::FisheyeProjection::FisheyeMethod m = [](sgct::config::FisheyeProjection::Method m) {
             switch (m) {
                 default:
-                case config::FisheyeProjection::Method::FourFace:
-                    return FisheyeProjection::FisheyeMethod::FourFaceCube;
-                case config::FisheyeProjection::Method::FiveFace:
-                    return FisheyeProjection::FisheyeMethod::FiveFaceCube;
+            case sgct::config::FisheyeProjection::Method::FourFace:
+                return sgct::core::FisheyeProjection::FisheyeMethod::FourFaceCube;
+            case sgct::config::FisheyeProjection::Method::FiveFace:
+                return sgct::core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
             }
         }(*proj.method);
         fishProj->setRenderingMethod(m);
     }
     if (proj.interpolation) {
-        NonLinearProjection::InterpolationMode i =
-            [](config::FisheyeProjection::Interpolation i) {
+        sgct::core::NonLinearProjection::InterpolationMode i =
+            [](sgct::config::FisheyeProjection::Interpolation i) {
                 switch (i) {
                     default:
-                    case config::FisheyeProjection::Interpolation::Linear:
-                        return NonLinearProjection::InterpolationMode::Linear;
-                    case config::FisheyeProjection::Interpolation::Cubic:
-                        return NonLinearProjection::InterpolationMode::Cubic;
+                    case sgct::config::FisheyeProjection::Interpolation::Linear:
+                        return sgct::core::NonLinearProjection::InterpolationMode::Linear;
+                    case sgct::config::FisheyeProjection::Interpolation::Cubic:
+                        return sgct::core::NonLinearProjection::InterpolationMode::Cubic;
                 }
             }(*proj.interpolation);
         fishProj->setInterpolationMode(i);

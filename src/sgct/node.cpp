@@ -105,21 +105,21 @@ void Node::setAddress(std::string address) {
     );
 }
 
-void Node::setSyncPort(std::string port) {
-    mSyncPort = std::move(port);
+void Node::setSyncPort(int port) {
+    mSyncPort = port;
     
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Node: Setting sync port to %s\n", mSyncPort.c_str()
+        "Node: Setting sync port to %d\n", mSyncPort
     );
 }
 
-void Node::setDataTransferPort(std::string port) {
-    mDataTransferPort = std::move(port);
+void Node::setDataTransferPort(int port) {
+    mDataTransferPort = port;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Node: Setting data transfer port to %s\n", mDataTransferPort.c_str()
+        "Node: Setting data transfer port to %d\n", mDataTransferPort
     );
 }
 
@@ -131,11 +131,11 @@ const std::string& Node::getAddress() const {
     return mAddress;
 }
 
-const std::string& Node::getSyncPort() const {
+int Node::getSyncPort() const {
     return mSyncPort;
 }
 
-const std::string& Node::getDataTransferPort() const {
+int Node::getDataTransferPort() const {
     return mDataTransferPort;
 }
 

@@ -48,7 +48,7 @@ namespace {
     </Cluster>
     )";
 
-    sgct::Window::StereoMode getStereoType(std::string type) {
+    sgct::config::Window::StereoMode getStereoType(std::string type) {
         std::transform(
             type.begin(),
             type.end(),
@@ -57,52 +57,52 @@ namespace {
         );
 
         if (type == "none" || type == "no_stereo") {
-            return sgct::Window::StereoMode::NoStereo;
+            return sgct::config::Window::StereoMode::NoStereo;
         }
         else if (type == "active" || type == "quadbuffer") {
-            return sgct::Window::StereoMode::Active;
+            return sgct::config::Window::StereoMode::Active;
         }
         else if (type == "checkerboard") {
-            return sgct::Window::StereoMode::Checkerboard;
+            return sgct::config::Window::StereoMode::Checkerboard;
         }
         else if (type == "checkerboard_inverted") {
-            return sgct::Window::StereoMode::CheckerboardInverted;
+            return sgct::config::Window::StereoMode::CheckerboardInverted;
         }
         else if (type == "anaglyph_red_cyan") {
-            return sgct::Window::StereoMode::AnaglyphRedCyan;
+            return sgct::config::Window::StereoMode::AnaglyphRedCyan;
         }
         else if (type == "anaglyph_amber_blue") {
-            return sgct::Window::StereoMode::AnaglyphAmberBlue;
+            return sgct::config::Window::StereoMode::AnaglyphAmberBlue;
         }
         else if (type == "anaglyph_wimmer") {
-            return sgct::Window::StereoMode::AnaglyphRedCyanWimmer;
+            return sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer;
         }
         else if (type == "vertical_interlaced") {
-            return sgct::Window::StereoMode::VerticalInterlaced;
+            return sgct::config::Window::StereoMode::VerticalInterlaced;
         }
         else if (type == "vertical_interlaced_inverted") {
-            return sgct::Window::StereoMode::VerticalInterlacedInverted;
+            return sgct::config::Window::StereoMode::VerticalInterlacedInverted;
         }
         else if (type == "test" || type == "dummy") {
-            return sgct::Window::StereoMode::Dummy;
+            return sgct::config::Window::StereoMode::Dummy;
         }
         else if (type == "side_by_side") {
-            return sgct::Window::StereoMode::SideBySide;
+            return sgct::config::Window::StereoMode::SideBySide;
         }
         else if (type == "side_by_side_inverted") {
-            return sgct::Window::StereoMode::SideBySideInverted;
+            return sgct::config::Window::StereoMode::SideBySideInverted;
         }
         else if (type == "top_bottom") {
-            return sgct::Window::StereoMode::TopBottom;
+            return sgct::config::Window::StereoMode::TopBottom;
         }
         else if (type == "top_bottom_inverted") {
-            return sgct::Window::StereoMode::TopBottomInverted;
+            return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
-        return sgct::Window::StereoMode::NoStereo;
+        return sgct::config::Window::StereoMode::NoStereo;
     }
 
-    sgct::Window::ColorBitDepth getBufferColorBitDepth(std::string type) {
+    sgct::config::Window::ColorBitDepth getBufferColorBitDepth(std::string type) {
         std::transform(
             type.begin(),
             type.end(),
@@ -111,35 +111,75 @@ namespace {
         );
 
         if (type == "8") {
-            return sgct::Window::ColorBitDepth::Depth8;
+            return sgct::config::Window::ColorBitDepth::Depth8;
         }
         else if (type == "16") {
-            return sgct::Window::ColorBitDepth::Depth16;
+            return sgct::config::Window::ColorBitDepth::Depth16;
         }
 
         else if (type == "16f") {
-            return sgct::Window::ColorBitDepth::Depth16Float;
+            return sgct::config::Window::ColorBitDepth::Depth16Float;
         }
         else if (type == "32f") {
-            return sgct::Window::ColorBitDepth::Depth32Float;
+            return sgct::config::Window::ColorBitDepth::Depth32Float;
         }
 
         else if (type == "16i") {
-            return sgct::Window::ColorBitDepth::Depth16Int;
+            return sgct::config::Window::ColorBitDepth::Depth16Int;
         }
         else if (type == "32i") {
-            return sgct::Window::ColorBitDepth::Depth32Int;
+            return sgct::config::Window::ColorBitDepth::Depth32Int;
         }
 
         else if (type == "16ui") {
-            return sgct::Window::ColorBitDepth::Depth16UInt;
+            return sgct::config::Window::ColorBitDepth::Depth16UInt;
         }
         else if (type == "32ui") {
-            return sgct::Window::ColorBitDepth::Depth32UInt;
+            return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
-        return sgct::Window::ColorBitDepth::Depth8;
+        return sgct::config::Window::ColorBitDepth::Depth8;
     }
+
+    int cubeMapResolutionForQuality(const std::string& quality) {
+        std::string q = quality;
+        q.resize(quality.size());
+        std::transform(
+            quality.begin(),
+            quality.end(),
+            q.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
+
+        static const std::unordered_map<std::string, int> Map = {
+            { "low",     256 },
+            { "256",     256 },
+            { "medium",  512 },
+            { "512",     512 },
+            { "high",   1024 },
+            { "1k",     1024 },
+            { "1024",   1024 },
+            { "1.5k",   1536 },
+            { "1536",   1536 },
+            { "2k",     2048 },
+            { "2048",   2048 },
+            { "4k",     4096 },
+            { "4096",   4096 },
+            { "8k",     8192 },
+            { "8192",   8192 },
+            { "16k",   16384 },
+            { "16384", 16384 },
+        };
+
+        auto it = Map.find(quality);
+        if (it != Map.end()) {
+            return it->second;
+        }
+        else {
+            return -1;
+        }
+    }
+
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
         glm::ivec2 value;
@@ -248,6 +288,405 @@ namespace {
         }
     }
 
+    std::optional<float> parseFrustumElement(const tinyxml2::XMLElement& elem,
+        std::string_view frustumTag)
+    {
+        if (frustumTag == elem.Value()) {
+            try {
+                return std::stof(elem.GetText());
+            }
+            catch (const std::invalid_argument&) {
+                std::string msg = "Viewport: Failed to parse frustum element "
+                    + std::string(frustumTag) + " from MPCDI XML\n";
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::Level::Error,
+                    msg.c_str()
+                );
+            }
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] sgct::config::PlanarProjection parsePlanarProjection(tinyxml2::XMLElement* element) {
+        using namespace tinyxml2;
+
+        sgct::config::PlanarProjection proj;
+        XMLElement* subElement = element->FirstChildElement();
+        while (subElement) {
+            std::string_view val = subElement->Value();
+
+            if (val == "FOV") {
+                sgct::config::PlanarProjection::FOV fov;
+                XMLError errDown = subElement->QueryFloatAttribute("down", &fov.down);
+                XMLError errLeft = subElement->QueryFloatAttribute("left", &fov.left);
+                XMLError errRight = subElement->QueryFloatAttribute("right", &fov.right);
+                XMLError errUp = subElement->QueryFloatAttribute("up", &fov.up);
+
+                if (errDown == XML_NO_ERROR && errLeft == XML_NO_ERROR &&
+                    errRight == XML_NO_ERROR && errUp == XML_NO_ERROR)
+                {
+                    proj.fov = fov;
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "Viewport: Failed to parse planar projection FOV from XML\n"
+                    );
+                }
+            }
+            else if (val == "Orientation") {
+                proj.orientation = sgct::core::readconfig::parseOrientationNode(subElement);
+            }
+            else if (val == "Offset") {
+                glm::vec3 offset;
+                subElement->QueryFloatAttribute("x", &offset[0]);
+                subElement->QueryFloatAttribute("y", &offset[1]);
+                subElement->QueryFloatAttribute("z", &offset[2]);
+                proj.offset = offset;
+            }
+
+            subElement = subElement->NextSiblingElement();
+        }
+
+        return proj;
+    }
+
+    [[nodiscard]] sgct::config::FisheyeProjection parseFisheyeProjection(tinyxml2::XMLElement* element) {
+        sgct::config::FisheyeProjection proj;
+
+        float fov;
+        if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR) {
+            proj.fov = fov;
+        }
+        if (element->Attribute("quality")) {
+            const int res = cubeMapResolutionForQuality(element->Attribute("quality"));
+            proj.quality = res;
+        }
+        if (element->Attribute("method")) {
+            std::string_view method = element->Attribute("method");
+            proj.method = method == "five_face_cube" ?
+                sgct::config::FisheyeProjection::Method::FiveFace :
+                sgct::config::FisheyeProjection::Method::FourFace;
+        }
+        if (element->Attribute("interpolation")) {
+            std::string_view interpolation = element->Attribute("interpolation");
+            proj.interpolation = interpolation == "cubic" ?
+                sgct::config::FisheyeProjection::Interpolation::Cubic :
+                sgct::config::FisheyeProjection::Interpolation::Linear;
+        }
+        float diameter;
+        if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
+            proj.diameter = diameter;
+        }
+
+        float tilt;
+        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
+            proj.tilt = tilt;
+        }
+
+        tinyxml2::XMLElement* subElement = element->FirstChildElement();
+        while (subElement) {
+            std::string_view val = subElement->Value();
+
+            if (val == "Crop") {
+                sgct::config::FisheyeProjection::Crop crop;
+                subElement->QueryFloatAttribute("left", &crop.left);
+                subElement->QueryFloatAttribute("right", &crop.right);
+                subElement->QueryFloatAttribute("bottom", &crop.bottom);
+                subElement->QueryFloatAttribute("top", &crop.top);
+                proj.crop = crop;
+            }
+            else if (val == "Offset") {
+                glm::vec3 offset = glm::vec3(0.f);
+                subElement->QueryFloatAttribute("x", &offset[0]);
+                subElement->QueryFloatAttribute("y", &offset[1]);
+                subElement->QueryFloatAttribute("z", &offset[2]);
+                proj.offset = offset;
+            }
+            if (val == "Background") {
+                glm::vec4 color;
+                subElement->QueryFloatAttribute("r", &color[0]);
+                subElement->QueryFloatAttribute("g", &color[1]);
+                subElement->QueryFloatAttribute("b", &color[2]);
+                subElement->QueryFloatAttribute("a", &color[3]);
+                proj.background = color;
+            }
+
+            subElement = subElement->NextSiblingElement();
+        }
+
+        return proj;
+    }
+
+    [[nodiscard]] sgct::config::SphericalMirrorProjection parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
+        sgct::config::SphericalMirrorProjection proj;
+        if (element->Attribute("quality")) {
+            proj.quality = cubeMapResolutionForQuality(element->Attribute("quality"));
+        }
+
+        float tilt;
+        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
+            proj.tilt = tilt;
+        }
+
+        tinyxml2::XMLElement* subElement = element->FirstChildElement();
+        while (subElement) {
+            std::string_view val = subElement->Value();
+
+            if (val == "Background") {
+                glm::vec4 color;
+                subElement->QueryFloatAttribute("r", &color[0]);
+                subElement->QueryFloatAttribute("g", &color[1]);
+                subElement->QueryFloatAttribute("b", &color[2]);
+                subElement->QueryFloatAttribute("a", &color[3]);
+                proj.background = color;
+            }
+            else if (val == "Geometry") {
+                if (subElement->Attribute("bottom")) {
+                    proj.mesh.bottom = subElement->Attribute("bottom");
+                }
+
+                if (subElement->Attribute("left")) {
+                    proj.mesh.left = subElement->Attribute("left");
+                }
+
+                if (subElement->Attribute("right")) {
+                    proj.mesh.right = subElement->Attribute("right");
+                }
+
+                if (subElement->Attribute("top")) {
+                    proj.mesh.top = subElement->Attribute("top");
+                }
+            }
+
+            subElement = subElement->NextSiblingElement();
+        }
+
+
+        return proj;
+    }
+
+    [[nodiscard]] sgct::config::SpoutOutputProjection parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
+        sgct::config::SpoutOutputProjection proj;
+
+        if (element->Attribute("quality")) {
+            proj.quality = cubeMapResolutionForQuality(element->Attribute("quality"));
+        }
+        if (element->Attribute("mapping")) {
+            std::string_view val = element->Attribute("mapping");
+            if (val == "fisheye") {
+                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Fisheye;
+            }
+            else if (val == "equirectangular") {
+                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Equirectangular;
+            }
+            else if (val == "cubemap") {
+                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap;
+            }
+            else {
+                proj.mapping = sgct::config::SpoutOutputProjection::Mapping::Cubemap;
+            }
+        }
+        if (element->Attribute("mappingSpoutName")) {
+            proj.mappingSpoutName = element->Attribute("mappingSpoutName");
+        }
+
+        tinyxml2::XMLElement* subElement = element->FirstChildElement();
+        while (subElement) {
+            std::string_view val = subElement->Value();
+
+            if (val == "Background") {
+                glm::vec4 color;
+                subElement->QueryFloatAttribute("r", &color[0]);
+                subElement->QueryFloatAttribute("g", &color[1]);
+                subElement->QueryFloatAttribute("b", &color[2]);
+                subElement->QueryFloatAttribute("a", &color[3]);
+                proj.background = color;
+            }
+
+            if (val == "Channels") {
+                // @TODO(abock)  In the previous version it was ambiguous whether it should be
+                //               initialized to false or true;  it did use 'true' in the end
+                //               but I don't think that is the correct way though
+
+                sgct::config::SpoutOutputProjection::Channels c;
+                subElement->QueryBoolAttribute("Right", &c.right);
+                subElement->QueryBoolAttribute("zLeft", &c.zLeft);
+                subElement->QueryBoolAttribute("Bottom", &c.bottom);
+                subElement->QueryBoolAttribute("Top", &c.top);
+                subElement->QueryBoolAttribute("Left", &c.left);
+                subElement->QueryBoolAttribute("zRight", &c.zRight);
+                proj.channels = c;
+            }
+
+            if (val == "RigOrientation") {
+                glm::vec3 orientation;
+                subElement->QueryFloatAttribute("pitch", &orientation[0]);
+                subElement->QueryFloatAttribute("yaw", &orientation[1]);
+                subElement->QueryFloatAttribute("roll", &orientation[2]);
+                proj.orientation = orientation;
+            }
+
+            subElement = subElement->NextSiblingElement();
+        }
+
+        return proj;
+    }
+
+    [[nodiscard]] sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement* element) {
+        using namespace tinyxml2;
+        size_t i = 0;
+
+        sgct::config::ProjectionPlane proj;
+
+        tinyxml2::XMLElement* elem = element->FirstChildElement();
+        while (elem) {
+            std::string_view val = elem->Value();
+
+            if (val == "Pos") {
+                glm::vec3 pos;
+                if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&
+                    elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
+                    elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
+                {
+                    switch (i % 3) {
+                    case 0:
+                        proj.lowerLeft = pos;
+                        break;
+                    case 1:
+                        proj.upperLeft = pos;
+                        break;
+                    case 2:
+                        proj.upperRight = pos;
+                        break;
+                    }
+
+                    i++;
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "ProjectionPlane: Failed to parse coordinates from XML\n"
+                    );
+                }
+            }
+
+            elem = elem->NextSiblingElement();
+        }
+
+        return proj;
+    }
+
+    [[nodiscard]] sgct::config::Viewport parseViewport(tinyxml2::XMLElement* element) {
+        sgct::config::Viewport viewport;
+        if (element->Attribute("user")) {
+            viewport.user = element->Attribute("user");
+        }
+
+        if (element->Attribute("name")) {
+            viewport.name = element->Attribute("name");
+        }
+
+        if (element->Attribute("overlay")) {
+            viewport.overlayTexture = element->Attribute("overlay");
+        }
+
+        // for backward compability
+        if (element->Attribute("mask")) {
+            viewport.blendMaskTexture = element->Attribute("mask");
+        }
+
+        if (element->Attribute("BlendMask")) {
+            viewport.blendMaskTexture = element->Attribute("BlendMask");
+        }
+
+        if (element->Attribute("BlackLevelMask")) {
+            viewport.blendLevelMaskTexture = element->Attribute("BlackLevelMask");
+        }
+
+        if (element->Attribute("mesh")) {
+            viewport.correctionMeshTexture = element->Attribute("mesh");
+        }
+
+        if (element->Attribute("hint")) {
+            viewport.meshHint = element->Attribute("hint");
+        }
+
+        if (element->Attribute("tracked")) {
+            std::string_view tracked = element->Attribute("tracked");
+            viewport.isTracked = (tracked == "true");
+        }
+
+        // get eye if set
+        if (element->Attribute("eye")) {
+            std::string_view eye = element->Attribute("eye");
+            if (eye == "center") {
+                viewport.eye = sgct::config::Viewport::Eye::Mono;
+            }
+            else if (eye == "left") {
+                viewport.eye = sgct::config::Viewport::Eye::StereoLeft;
+            }
+            else if (eye == "right") {
+                viewport.eye = sgct::config::Viewport::Eye::StereoRight;
+            }
+        }
+
+        tinyxml2::XMLElement* subElement = element->FirstChildElement();
+        while (subElement) {
+            using namespace tinyxml2;
+
+            std::string_view val = subElement->Value();
+            if (val == "Pos") {
+                glm::vec2 position;
+                if (subElement->QueryFloatAttribute("x", &position[0]) == XML_NO_ERROR &&
+                    subElement->QueryFloatAttribute("y", &position[1]) == XML_NO_ERROR)
+                {
+                    viewport.position = position;
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "Viewport: Failed to parse position from XML\n"
+                    );
+                }
+            }
+            else if (val == "Size") {
+                glm::vec2 size;
+                if (subElement->QueryFloatAttribute("x", &size[0]) == XML_NO_ERROR &&
+                    subElement->QueryFloatAttribute("y", &size[1]) == XML_NO_ERROR)
+                {
+                    viewport.size = size;
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "Viewport: Failed to parse size from XML!\n"
+                    );
+                }
+            }
+            else if (val == "PlanarProjection") {
+                viewport.projection = parsePlanarProjection(subElement);
+            }
+            else if (val == "FisheyeProjection") {
+                viewport.projection = parseFisheyeProjection(subElement);
+            }
+            else if (val == "SphericalMirrorProjection") {
+                viewport.projection = parseSphericalMirrorProjection(subElement);
+            }
+            else if (val == "SpoutOutputProjection") {
+                viewport.projection = parseSpoutOutputProjection(subElement);
+            }
+            else if (val == "Viewplane" || val == "Projectionplane") {
+                viewport.projection = parseProjectionPlane(subElement);
+            }
+
+            // iterate
+            subElement = subElement->NextSiblingElement();
+        }
+
+        return viewport;
+    }
+
 
     sgct::config::Scene parseScene(tinyxml2::XMLElement* element) {
         using namespace sgct::core;
@@ -275,142 +714,124 @@ namespace {
         return scene;
     }
 
-    void parseWindow(tinyxml2::XMLElement* element, std::string xmlFileName,
-                     sgct::core::Node& node)
+    [[nodiscard]] sgct::config::Window parseWindow(tinyxml2::XMLElement* element, std::string xmlFileName)
     {
-        using namespace sgct::core;
         using namespace tinyxml2;
 
-        sgct::Window win = sgct::Window(node.getNumberOfWindows());
+        sgct::config::Window window;
 
         if (element->Attribute("name")) {
-            win.setName(element->Attribute("name"));
+            window.name = element->Attribute("name");
         }
 
         if (element->Attribute("tags")) {
             std::string tags = element->Attribute("tags");
             std::vector<std::string> t = sgct::helpers::split(tags, ',');
-            win.setTags(std::move(t));
+            window.tags = t;
         }
 
         if (element->Attribute("bufferBitDepth")) {
-            win.setColorBitDepth(
-                getBufferColorBitDepth(element->Attribute("bufferBitDepth"))
-            );
+            window.bufferBitDepth =
+                getBufferColorBitDepth(element->Attribute("bufferBitDepth"));
         }
 
         if (element->Attribute("preferBGR")) {
-            win.setPreferBGR(strcmp(element->Attribute("preferBGR"), "true") == 0);
+            std::string_view v = element->Attribute("preferBGR");
+            window.preferBGR = (v == "true");
         }
+        // @TODO (abock, 2019-09-22) replace these construct with calls to
+        // parseValue<bool> function
 
-        //compability with older versions
+        // compatibility with older versions
         if (element->Attribute("fullScreen")) {
-            const bool v = strcmp(element->Attribute("fullScreen"), "true") == 0;
-            win.setWindowMode(v);
+            std::string_view v = element->Attribute("fullScreen");
+            window.isFullScreen = (v == "true");
         }
 
         if (element->Attribute("fullscreen")) {
-            const bool v = strcmp(element->Attribute("fullscreen"), "true") == 0;
-            win.setWindowMode(v);
+            std::string_view v = element->Attribute("fullscreen");
+            window.isFullScreen = (v == "true");
         }
 
         if (element->Attribute("floating")) {
-            const bool v = strcmp(element->Attribute("floating"), "true") == 0;
-            win.setFloating(v);
+            std::string_view v = element->Attribute("floating");
+            window.isFloating = (v == "true");
         }
 
         if (element->Attribute("alwaysRender")) {
-            const bool v = strcmp(element->Attribute("alwaysRender"), "true") == 0;
-            win.setRenderWhileHidden(v);
+            std::string_view v = element->Attribute("alwaysRender");
+            window.alwaysRender = (v == "true");
         }
 
         if (element->Attribute("hidden")) {
-            const bool v = strcmp(element->Attribute("hidden"), "true") == 0;
-            win.setVisibility(!v);
+            std::string_view v = element->Attribute("hidden");
+            window.isHidden = (v == "true");
         }
 
         if (element->Attribute("dbuffered")) {
-            const bool v = strcmp(element->Attribute("dbuffered"), "true") == 0;
-            win.setDoubleBuffered(v);
+            std::string_view v = element->Attribute("dbuffered");
+            window.doubleBuffered = (v == "true");
         }
 
-        std::optional<float> gamma = parseValue<float>(*element, "gamma");
-        if (gamma && gamma > 0.1f) {
-            win.setGamma(*gamma);
-        }
-
-        std::optional<float> contrast = parseValue<float>(*element, "contrast");
-        if (contrast && contrast > 0.f) {
-            win.setContrast(*contrast);
-        }
-
-        std::optional<float> brightness = parseValue<float>(*element, "brightness");
-        if (brightness && brightness > 0.f) {
-            win.setBrightness(*brightness);
-        }
+        window.gamma = parseValue<float>(*element, "gamma");
+        window.contrast = parseValue<float>(*element, "contrast");
+        window.brightness = parseValue<float>(*element, "brightness");
+        window.msaa = parseValue<int>(*element, "numberOfSamples");
 
         std::optional<int> numberOfSamples = parseValue<int>(*element, "numberOfSamples");
-        if (numberOfSamples && numberOfSamples <= 128) {
-            win.setNumberOfAASamples(*numberOfSamples);
+        if (numberOfSamples) {
+            window.msaa = numberOfSamples;
         }
-
         std::optional<int> msaa = parseValue<int>(*element, "msaa");
-        if (msaa && msaa <= 128) {
-            win.setNumberOfAASamples(*msaa);
+        if (msaa) {
+            window.msaa = msaa;
         }
-
         std::optional<int> MSAA = parseValue<int>(*element, "MSAA");
-        if (MSAA && MSAA <= 128) {
-            win.setNumberOfAASamples(*MSAA);
+        if (MSAA) {
+            window.msaa = MSAA;
         }
 
         if (element->Attribute("alpha")) {
-            const bool v = strcmp(element->Attribute("alpha"), "true") == 0;
-            win.setAlpha(v);
+            std::string_view v = element->Attribute("alpha");
+            window.hasAlpha = (v == "true");
         }
 
         if (element->Attribute("fxaa")) {
-            const bool v = strcmp(element->Attribute("fxaa"), "true") == 0;
-            win.setUseFXAA(v);
+            std::string_view v = element->Attribute("fxaa");
+            window.useFxaa = (v == "true");
         }
 
         if (element->Attribute("FXAA")) {
-            const bool v = strcmp(element->Attribute("FXAA"), "true") == 0;
-            win.setUseFXAA(v);
+            std::string_view v = element->Attribute("FXAA");
+            window.useFxaa = (v == "true");
         }
 
         if (element->Attribute("decorated")) {
-            const bool v = strcmp(element->Attribute("decorated"), "true") == 0;
-            win.setWindowDecoration(v);
+            std::string_view v = element->Attribute("decorated");
+            window.isDecorated = (v == "true");
         }
 
         if (element->Attribute("border")) {
-            const bool v = strcmp(element->Attribute("border"), "true") == 0;
-            win.setWindowDecoration(v);
+            std::string_view v = element->Attribute("border");
+            window.hasBorder = (v == "true");
         }
 
         if (element->Attribute("draw2D")) {
-            const bool v = strcmp(element->Attribute("draw2D"), "true") == 0;
-            win.setCallDraw2DFunction(v);
+            std::string_view v = element->Attribute("draw2D");
+            window.draw2D = (v == "true");
         }
 
         if (element->Attribute("draw3D")) {
-            const bool v = strcmp(element->Attribute("draw3D"), "true") == 0;
-            win.setCallDraw3DFunction(v);
+            std::string_view v = element->Attribute("draw3D");
+            window.draw3D = (v == "true");
         }
 
         if (element->Attribute("copyPreviousWindowToCurrentWindow")) {
-            const bool v = strcmp(
-                element->Attribute("copyPreviousWindowToCurrentWindow"),
-                "true"
-            ) == 0;
-            win.setCopyPreviousWindowToCurrentWindow(v);
+            std::string_view v = element->Attribute("copyPreviousWindowToCurrentWindow");
+            window.copyPreviousWindowToCurrentWindow = (v == "true");
         }
 
-        std::optional<int> index = parseValue<int>(*element, "monitor");
-        if (index) {
-            win.setFullScreenMonitorIndex(*index);
-        }
+        window.monitor = parseValue<int>(*element, "monitor");
 
         if (element->Attribute("mpcdi")) {
             std::string path;
@@ -420,7 +841,7 @@ namespace {
             }
             path += element->Attribute("mpcdi");
             std::replace(path.begin(), path.end(), '\\', '/');
-            sgct::core::Mpcdi().parseConfiguration(path, node, win);
+            window.mpcdi = path;
         }
 
         XMLElement* child = element->FirstChildElement();
@@ -428,95 +849,257 @@ namespace {
             std::string_view childVal = child->Value();
 
             if (childVal == "Stereo") {
-                sgct::Window::StereoMode v = getStereoType(child->Attribute("type"));
-                win.setStereoMode(v);
+                window.stereo = getStereoType(child->Attribute("type"));
             }
             else if (childVal == "Pos") {
-                std::optional<glm::ivec2> pos = parseValueIVec2(*child);
-                if (pos) {
-                    win.setWindowPosition(std::move(*pos));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse window position from XML\n"
-                    );
-                }
+                window.pos = parseValueIVec2(*child);
             }
             else if (childVal == "Size") {
-                std::optional<glm::ivec2> size = parseValueIVec2(*child);
-                if (size) {
-                    win.initWindowResolution(std::move(*size));
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse window resolution from XML\n"
-                    );
-                }
+                window.size = parseValueIVec2(*child);
             }
             else if (childVal == "Res") {
-                std::optional<glm::ivec2> res = parseValueIVec2(*child);
-                if (res) {
-                    win.setFramebufferResolution(std::move(*res));
-                    win.setFixResolution(true);
-                }
-                else {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse frame buffer resolution from XML\n"
-                    );
-                }
+                window.resolution = parseValueIVec2(*child);
             }
             else if (childVal == "Viewport") {
-                std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-                vp->configure(child);
-                win.addViewport(std::move(vp));
+                window.viewports.push_back(parseViewport(child));
             }
             child = child->NextSiblingElement();
+        }
+
+        return window;
+    }
+
+    void applyWindow(const sgct::config::Window& window, sgct::core::Node& node) {
+        sgct::Window win = sgct::Window(node.getNumberOfWindows());
+
+        if (window.name) {
+            win.setName(*window.name);
+        }
+        if (!window.tags.empty()) {
+            win.setTags(window.tags);
+        }
+        if (window.bufferBitDepth) {
+            sgct::Window::ColorBitDepth bd = [](sgct::config::Window::ColorBitDepth bd) {
+                switch (bd) {
+                    default:
+                    case sgct::config::Window::ColorBitDepth::Depth8:
+                        return sgct::Window::ColorBitDepth::Depth8;
+                    case sgct::config::Window::ColorBitDepth::Depth16:
+                        return sgct::Window::ColorBitDepth::Depth16;
+                    case sgct::config::Window::ColorBitDepth::Depth16Float:
+                        return sgct::Window::ColorBitDepth::Depth16Float;
+                    case sgct::config::Window::ColorBitDepth::Depth32Float:
+                        return sgct::Window::ColorBitDepth::Depth32Float;
+                    case sgct::config::Window::ColorBitDepth::Depth16Int:
+                        return sgct::Window::ColorBitDepth::Depth16Int;
+                    case sgct::config::Window::ColorBitDepth::Depth32Int:
+                        return sgct::Window::ColorBitDepth::Depth32Int;
+                    case sgct::config::Window::ColorBitDepth::Depth16UInt:
+                        return sgct::Window::ColorBitDepth::Depth16UInt;
+                    case sgct::config::Window::ColorBitDepth::Depth32UInt:
+                        return sgct::Window::ColorBitDepth::Depth32UInt;
+                }
+            }(*window.bufferBitDepth);
+            win.setColorBitDepth(bd);
+        }
+
+        if (window.preferBGR) {
+            win.setPreferBGR(*window.preferBGR);
+        }
+
+        if (window.isFullScreen) {
+            win.setWindowMode(*window.isFullScreen);
+        }
+
+        if (window.isFloating) {
+            win.setFloating(*window.isFloating);
+        }
+
+        if (window.alwaysRender) {
+            win.setRenderWhileHidden(*window.alwaysRender);
+        }
+
+        if (window.isHidden) {
+            win.setVisibility(*window.isHidden);
+        }
+
+        if (window.doubleBuffered) {
+            win.setDoubleBuffered(*window.doubleBuffered);
+        }
+
+        if (window.gamma) {
+            win.setGamma(*window.gamma);
+        }
+
+        if (window.contrast) {
+            win.setContrast(*window.contrast);
+        }
+
+        if (window.brightness) {
+            win.setBrightness(*window.brightness);
+        }
+
+        if (window.msaa) {
+            win.setNumberOfAASamples(*window.msaa);
+        }
+
+        if (window.hasAlpha) {
+            win.setAlpha(*window.hasAlpha);
+        }
+
+        if (window.useFxaa) {
+            win.setUseFXAA(*window.useFxaa);
+        }
+
+        if (window.isDecorated) {
+            win.setWindowDecoration(*window.isDecorated);
+        }
+
+        if (window.hasBorder) {
+            win.setWindowDecoration(*window.hasBorder);
+        }
+
+        if (window.draw2D) {
+            win.setCallDraw2DFunction(*window.draw2D);
+        }
+
+        if (window.draw3D) {
+            win.setCallDraw2DFunction(*window.draw3D);
+        }
+
+        if (window.copyPreviousWindowToCurrentWindow) {
+            win.setCopyPreviousWindowToCurrentWindow(*window.copyPreviousWindowToCurrentWindow);
+        }
+
+        if (window.monitor) {
+            win.setFullScreenMonitorIndex(*window.monitor);
+        }
+
+        if (window.mpcdi) {
+            sgct::core::Mpcdi().parseConfiguration(*window.mpcdi, node, win);
+        }
+
+        if (window.stereo) {
+            sgct::Window::StereoMode sm = [](sgct::config::Window::StereoMode sm) {
+                switch (sm) {
+                    default:
+                    case sgct::config::Window::StereoMode::NoStereo:
+                        return sgct::Window::StereoMode::NoStereo;
+                    case sgct::config::Window::StereoMode::Active:
+                        return sgct::Window::StereoMode::Active;
+                    case sgct::config::Window::StereoMode::AnaglyphRedCyan:
+                        return sgct::Window::StereoMode::AnaglyphRedCyan;
+                    case sgct::config::Window::StereoMode::AnaglyphAmberBlue:
+                        return sgct::Window::StereoMode::AnaglyphAmberBlue;
+                    case sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer:
+                        return sgct::Window::StereoMode::AnaglyphRedCyanWimmer;
+                    case sgct::config::Window::StereoMode::Checkerboard:
+                        return sgct::Window::StereoMode::Checkerboard;
+                    case sgct::config::Window::StereoMode::CheckerboardInverted:
+                        return sgct::Window::StereoMode::CheckerboardInverted;
+                    case sgct::config::Window::StereoMode::VerticalInterlaced:
+                        return sgct::Window::StereoMode::VerticalInterlaced;
+                    case sgct::config::Window::StereoMode::VerticalInterlacedInverted:
+                        return sgct::Window::StereoMode::VerticalInterlacedInverted;
+                    case sgct::config::Window::StereoMode::Dummy:
+                        return sgct::Window::StereoMode::Dummy;
+                    case sgct::config::Window::StereoMode::SideBySide:
+                        return sgct::Window::StereoMode::SideBySide;
+                    case sgct::config::Window::StereoMode::SideBySideInverted:
+                        return sgct::Window::StereoMode::SideBySideInverted;
+                    case sgct::config::Window::StereoMode::TopBottom:
+                        return sgct::Window::StereoMode::TopBottom;
+                    case sgct::config::Window::StereoMode::TopBottomInverted:
+                        return sgct::Window::StereoMode::TopBottomInverted;
+                }
+            }(*window.stereo);
+            win.setStereoMode(sm);
+        }
+
+        if (window.pos) {
+            win.setWindowPosition(*window.pos);
+        }
+
+        if (window.size) {
+            win.initWindowResolution(*window.size);
+        }
+
+        if (window.resolution) {
+            win.setFramebufferResolution(*window.resolution);
+            win.setFixResolution(true);
+        }
+
+        if (!window.viewports.empty()) {
+            for (const sgct::config::Viewport& viewport : window.viewports) {
+                std::unique_ptr<sgct::core::Viewport> vp = std::make_unique<sgct::core::Viewport>();
+                vp->applySettings(viewport);
+                win.addViewport(std::move(vp));
+            }
         }
         node.addWindow(std::move(win));
     }
 
-    void parseNode(tinyxml2::XMLElement* element, std::string xmlFileName) {
-        using namespace sgct::core;
-        using namespace tinyxml2;
-
-        std::unique_ptr<Node> node = std::make_unique<Node>();
-
+    [[nodiscard]] sgct::config::Node parseNode(tinyxml2::XMLElement* element, std::string xmlFileName) {
+        sgct::config::Node node;
         if (element->Attribute("address")) {
-            node->setAddress(element->Attribute("address"));
-        }
-        if (element->Attribute("name")) {
-            node->setName(element->Attribute("name"));
+            node.address = element->Attribute("address");
         }
         if (element->Attribute("ip")) {
-            // backward compability with older versions of SGCT config files
-            node->setAddress(element->Attribute("ip"));
+            node.address = element->Attribute("ip");
+        }
+        if (element->Attribute("name")) {
+            node.name = element->Attribute("name");
         }
         if (element->Attribute("port")) {
-            node->setSyncPort(element->Attribute("port"));
+            node.port = parseValue<int>(*element, "port");
         }
         if (element->Attribute("syncPort")) {
-            node->setSyncPort(element->Attribute("syncPort"));
+            node.port = parseValue<int>(*element, "syncPort");
         }
         if (element->Attribute("dataTransferPort")) {
-            node->setDataTransferPort(element->Attribute("dataTransferPort"));
+            node.dataTransferPort = parseValue<int>(*element, "dataTransferPort");
         }
         if (element->Attribute("swapLock")) {
-            const bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
-            node->setUseSwapGroups(useSwapLock);
+            std::string_view v = element->Attribute("swapLock");
+            node.swapLock = (v == "true");
         }
 
-        XMLElement* child = element->FirstChildElement();
+        tinyxml2::XMLElement* child = element->FirstChildElement();
         while (child) {
             std::string_view childVal = child->Value();
             if (childVal == "Window") {
-                parseWindow(child, xmlFileName, *node);
+                sgct::config::Window window = parseWindow(child, xmlFileName);
+                node.windows.push_back(window);
             }
             child = child->NextSiblingElement();
         }
-        ClusterManager::instance()->addNode(std::move(node));
+        return node;
+    }
+
+    void applyNode(const sgct::config::Node& node) {
+        std::unique_ptr<sgct::core::Node> n = std::make_unique<sgct::core::Node>();
+
+        if (node.address) {
+            n->setAddress(*node.address);
+        }
+        if (node.name) {
+            n->setName(*node.name);
+        }
+        if (node.port) {
+            n->setSyncPort(*node.port);
+        }
+        if (node.dataTransferPort) {
+            n->setDataTransferPort(*node.dataTransferPort);
+        }
+        if (node.swapLock) {
+            n->setUseSwapGroups(*node.swapLock);
+        }
+
+        for (const sgct::config::Window& window : node.windows) {
+            applyWindow(window, *n);
+        }
+    
+        sgct::core::ClusterManager::instance()->addNode(std::move(n));
     }
 
     sgct::config::User parseUser(tinyxml2::XMLElement* element) {
@@ -682,8 +1265,10 @@ namespace {
         return tracker;
     }
 
-    void readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename) {
+    [[nodiscard]] sgct::config::Cluster readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename) {
         using namespace tinyxml2;
+
+        sgct::config::Cluster cluster;
 
         XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
         if (XMLroot == nullptr) {
@@ -694,27 +1279,18 @@ namespace {
         if (!masterAddress) {
             throw std::runtime_error("Cannot find master address or DNS name in XML");
         }
-        sgct::core::ClusterManager::instance()->setMasterAddress(masterAddress);
+        cluster.masterAddress = masterAddress;
 
-        const char* debugMode = XMLroot->Attribute("debug");
-        if (debugMode) {
-            using namespace sgct;
-            const bool m = strcmp(debugMode, "true") == 0;
-            MessageHandler::instance()->setNotifyLevel(
-                m ? MessageHandler::Level::Debug : MessageHandler::Level::Warning
-            );
+        if (XMLroot->Attribute("debug")) {
+            std::string_view v = XMLroot->Attribute("debug");
+            cluster.debug = (v == "true");
         }
 
-        const char* port = XMLroot->Attribute("externalControlPort");
-        if (port) {
-            sgct::core::ClusterManager::instance()->setExternalControlPort(port);
-        }
+        cluster.externalControlport = parseValue<int>(*XMLroot, "externalControlPort");
 
-        const char* firmSync = XMLroot->Attribute("firmSync");
-        if (firmSync) {
-            sgct::core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
-                strcmp(firmSync, "true") == 0
-            );
+        if (XMLroot->Attribute("firmSync")) {
+            std::string_view v = XMLroot->Attribute("firmSync");
+            cluster.firmSync = (v == "true");
         }
 
         XMLElement* element = XMLroot->FirstChildElement();
@@ -723,171 +1299,223 @@ namespace {
 
             if (val == "Scene") {
                 sgct::config::Scene scene = parseScene(element);
-                if (scene.offset) {
-                    sgct::core::ClusterManager::instance()->setSceneOffset(*scene.offset);
-                }
-                if (scene.orientation) {
-                    sgct::core::ClusterManager::instance()->setSceneRotation(
-                        glm::mat4_cast(*scene.orientation)
-                    );
-                }
-                if (scene.scale) {
-                    sgct::core::ClusterManager::instance()->setSceneScale(*scene.scale);
-                }
+                cluster.scene = scene;
             }
             else if (val == "Node") {
-                parseNode(element, filename);
+                sgct::config::Node node = parseNode(element, filename);
+                cluster.nodes.push_back(node);
             }
             else if (val == "User") {
-                using namespace sgct::core;
-
                 sgct::config::User user = parseUser(element);
-                User* usrPtr;
-                if (user.name) {
-                    std::unique_ptr<User> usr = std::make_unique<User>(*user.name);
-                    usrPtr = usr.get();
-                    ClusterManager::instance()->addUser(std::move(usr));
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Info,
-                        "ReadConfig: Adding user '%s'\n", user.name->c_str()
-                    );
-                }
-                else {
-                    usrPtr = &ClusterManager::instance()->getDefaultUser();
-                }
-
-                if (user.eyeSeparation) {
-                    usrPtr->setEyeSeparation(*user.eyeSeparation);
-                }
-                usrPtr->setPos(*user.position);
-                if (user.orientation) {
-                    usrPtr->setOrientation(*user.orientation);
-                }
-                if (user.transformation) {
-                    if (user.transformation->transpose) {
-                        usrPtr->setTransform(glm::transpose(user.transformation->transformation));
-                    }
-                    else {
-                        usrPtr->setTransform(user.transformation->transformation);
-                    }
-                }
-                if (user.tracking) {
-                    usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
-                }
+                cluster.user = user;
             }
             else if (val == "Settings") {
+                // @TODO sgct::config::Settings
                 sgct::Settings::instance()->configure(element);
             }
             else if (val == "Capture") {
                 sgct::config::Capture capture = parseCapture(element);
-
-                if (capture.monoPath) {
-                    sgct::Settings::instance()->setCapturePath(
-                        *capture.monoPath,
-                        sgct::Settings::CapturePath::Mono
-                    );
-                }
-                if (capture.leftPath) {
-                    sgct::Settings::instance()->setCapturePath(
-                        *capture.leftPath,
-                        sgct::Settings::CapturePath::LeftStereo
-                    );
-                }
-                if (capture.rightPath) {
-                    sgct::Settings::instance()->setCapturePath(
-                        *capture.rightPath,
-                        sgct::Settings::CapturePath::RightStereo
-                    );
-                }
-                if (capture.format) {
-                    sgct::Settings::CaptureFormat f = [](sgct::config::Capture::Format format) {
-                        switch (format) {
-                        default:
-                        case sgct::config::Capture::Format::PNG:
-                            return sgct::Settings::CaptureFormat::PNG;
-                        case sgct::config::Capture::Format::JPG:
-                            return sgct::Settings::CaptureFormat::JPG;
-                        case sgct::config::Capture::Format::TGA:
-                            return sgct::Settings::CaptureFormat::TGA;
-                        }
-                    }(*capture.format);
-                    sgct::Settings::instance()->setCaptureFormat(f);
-                }
+                cluster.capture = capture;
             }
             else if (val == "Tracker" && element->Attribute("name")) {
                 sgct::config::Tracker tracker = parseTracker(element);
-
-                sgct::core::ClusterManager& cm = *sgct::core::ClusterManager::instance();
-                cm.getTrackingManager().addTracker(tracker.name);
-
-                for (const sgct::config::Device& device : tracker.devices) {
-                    cm.getTrackingManager().addDeviceToCurrentTracker(device.name);
-
-                    for (const sgct::config::Device::Sensors& s : device.sensors) {
-                        cm.getTrackingManager().addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
-                    }
-                    for (const sgct::config::Device::Buttons& b : device.buttons) {
-                        cm.getTrackingManager().addButtonsToCurrentDevice(b.vrpnAddress, b.count);
-                    }
-                    for (const sgct::config::Device::Axes& a : device.axes) {
-                        cm.getTrackingManager().addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
-                    }
-                    if (device.offset) {
-                        sgct::TrackingManager& m = cm.getTrackingManager();
-                        sgct::Tracker& tr = *m.getLastTracker();
-                        sgct::TrackingDevice& dev = *tr.getLastDevice();
-                        dev.setOffset(*device.offset);
-                    }
-                    if (device.orientation) {
-                        sgct::TrackingManager& m = cm.getTrackingManager();
-                        sgct::Tracker& tr = *m.getLastTracker();
-                        sgct::TrackingDevice& dev = *tr.getLastDevice();
-                        dev.setOrientation(*device.orientation);
-                    }
-                    if (device.transformation) {
-                        sgct::TrackingManager& m = cm.getTrackingManager();
-                        sgct::Tracker& tr = *m.getLastTracker();
-                        sgct::TrackingDevice& dev = *tr.getLastDevice();
-
-                        if (device.transformation->transpose) {
-                            dev.setTransform(glm::transpose(device.transformation->transformation));
-                        }
-                        else {
-                            dev.setTransform(device.transformation->transformation);
-                        }
-                    }
-                }
-                if (tracker.offset) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    tr.setOffset(*tracker.offset);
-                }
-                if (tracker.orientation) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    tr.setOrientation(*tracker.orientation);
-                }
-                if (tracker.scale) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    tr.setScale(*tracker.scale);
-                }
-                if (tracker.transformation) {
-                    sgct::TrackingManager& m = cm.getTrackingManager();
-                    sgct::Tracker& tr = *m.getLastTracker();
-                    if (tracker.transformation->transpose) {
-                        tr.setTransform(glm::transpose(tracker.transformation->transformation));
-                    }
-                    else {
-                        tr.setTransform(tracker.transformation->transformation);
-                    }
-                }
+                cluster.tracker = tracker;
             }
             element = element->NextSiblingElement();
         }
+
+        return cluster;
     }
 
-    void readAndParseXMLFile(const std::string& filename) {
+    void applyScene(const sgct::config::Scene& scene) {
+        if (scene.offset) {
+            sgct::core::ClusterManager::instance()->setSceneOffset(*scene.offset);
+        }
+        if (scene.orientation) {
+            sgct::core::ClusterManager::instance()->setSceneRotation(
+                glm::mat4_cast(*scene.orientation)
+            );
+        }
+        if (scene.scale) {
+            sgct::core::ClusterManager::instance()->setSceneScale(*scene.scale);
+        }
+    }
+
+    void applyUser(const sgct::config::User& user) {
+        sgct::core::User* usrPtr;
+        if (user.name) {
+            std::unique_ptr<sgct::core::User> usr = std::make_unique<sgct::core::User>(*user.name);
+            usrPtr = usr.get();
+            sgct::core::ClusterManager::instance()->addUser(std::move(usr));
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Info,
+                "ReadConfig: Adding user '%s'\n", user.name->c_str()
+            );
+        }
+        else {
+            usrPtr = &sgct::core::ClusterManager::instance()->getDefaultUser();
+        }
+
+        if (user.eyeSeparation) {
+            usrPtr->setEyeSeparation(*user.eyeSeparation);
+        }
+        usrPtr->setPos(*user.position);
+        if (user.orientation) {
+            usrPtr->setOrientation(*user.orientation);
+        }
+        if (user.transformation) {
+            if (user.transformation->transpose) {
+                usrPtr->setTransform(glm::transpose(user.transformation->transformation));
+            }
+            else {
+                usrPtr->setTransform(user.transformation->transformation);
+            }
+        }
+        if (user.tracking) {
+            usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
+        }
+    }
+
+    void applyCapture(const sgct::config::Capture& capture) {
+        if (capture.monoPath) {
+            sgct::Settings::instance()->setCapturePath(
+                *capture.monoPath,
+                sgct::Settings::CapturePath::Mono
+            );
+        }
+        if (capture.leftPath) {
+            sgct::Settings::instance()->setCapturePath(
+                *capture.leftPath,
+                sgct::Settings::CapturePath::LeftStereo
+            );
+        }
+        if (capture.rightPath) {
+            sgct::Settings::instance()->setCapturePath(
+                *capture.rightPath,
+                sgct::Settings::CapturePath::RightStereo
+            );
+        }
+        if (capture.format) {
+            sgct::Settings::CaptureFormat f = [](sgct::config::Capture::Format format) {
+                switch (format) {
+                    default:
+                    case sgct::config::Capture::Format::PNG:
+                        return sgct::Settings::CaptureFormat::PNG;
+                    case sgct::config::Capture::Format::JPG:
+                        return sgct::Settings::CaptureFormat::JPG;
+                    case sgct::config::Capture::Format::TGA:
+                        return sgct::Settings::CaptureFormat::TGA;
+                }
+            }(*capture.format);
+            sgct::Settings::instance()->setCaptureFormat(f);
+        }
+    }
+
+    void applyTracker(const sgct::config::Tracker& tracker) {
+        sgct::core::ClusterManager& cm = *sgct::core::ClusterManager::instance();
+        cm.getTrackingManager().addTracker(tracker.name);
+
+        for (const sgct::config::Device& device : tracker.devices) {
+            cm.getTrackingManager().addDeviceToCurrentTracker(device.name);
+
+            for (const sgct::config::Device::Sensors& s : device.sensors) {
+                cm.getTrackingManager().addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
+            }
+            for (const sgct::config::Device::Buttons& b : device.buttons) {
+                cm.getTrackingManager().addButtonsToCurrentDevice(b.vrpnAddress, b.count);
+            }
+            for (const sgct::config::Device::Axes& a : device.axes) {
+                cm.getTrackingManager().addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
+            }
+            if (device.offset) {
+                sgct::TrackingManager& m = cm.getTrackingManager();
+                sgct::Tracker& tr = *m.getLastTracker();
+                sgct::TrackingDevice& dev = *tr.getLastDevice();
+                dev.setOffset(*device.offset);
+            }
+            if (device.orientation) {
+                sgct::TrackingManager& m = cm.getTrackingManager();
+                sgct::Tracker& tr = *m.getLastTracker();
+                sgct::TrackingDevice& dev = *tr.getLastDevice();
+                dev.setOrientation(*device.orientation);
+            }
+            if (device.transformation) {
+                sgct::TrackingManager& m = cm.getTrackingManager();
+                sgct::Tracker& tr = *m.getLastTracker();
+                sgct::TrackingDevice& dev = *tr.getLastDevice();
+
+                if (device.transformation->transpose) {
+                    dev.setTransform(glm::transpose(device.transformation->transformation));
+                }
+                else {
+                    dev.setTransform(device.transformation->transformation);
+                }
+            }
+        }
+        if (tracker.offset) {
+            sgct::TrackingManager& m = cm.getTrackingManager();
+            sgct::Tracker& tr = *m.getLastTracker();
+            tr.setOffset(*tracker.offset);
+        }
+        if (tracker.orientation) {
+            sgct::TrackingManager& m = cm.getTrackingManager();
+            sgct::Tracker& tr = *m.getLastTracker();
+            tr.setOrientation(*tracker.orientation);
+        }
+        if (tracker.scale) {
+            sgct::TrackingManager& m = cm.getTrackingManager();
+            sgct::Tracker& tr = *m.getLastTracker();
+            tr.setScale(*tracker.scale);
+        }
+        if (tracker.transformation) {
+            sgct::TrackingManager& m = cm.getTrackingManager();
+            sgct::Tracker& tr = *m.getLastTracker();
+            if (tracker.transformation->transpose) {
+                tr.setTransform(glm::transpose(tracker.transformation->transformation));
+            }
+            else {
+                tr.setTransform(tracker.transformation->transformation);
+            }
+        }
+    }
+
+    void applyCluster(const sgct::config::Cluster& cluster) {
+        if (cluster.masterAddress) {
+            sgct::core::ClusterManager::instance()->setMasterAddress(*cluster.masterAddress);
+        }
+        if (cluster.debug) {
+            sgct::MessageHandler::instance()->setNotifyLevel(
+                *cluster.debug ?
+                sgct::MessageHandler::Level::Debug :
+                sgct::MessageHandler::Level::Warning
+            );
+        }
+        if (cluster.externalControlport) {
+            sgct::core::ClusterManager::instance()->setExternalControlPort(
+                *cluster.externalControlport
+            );
+        }
+        if (cluster.firmSync) {
+            sgct::core::ClusterManager::instance()->setFirmFrameLockSyncStatus(*cluster.firmSync);
+        }
+        if (cluster.scene) {
+            applyScene(*cluster.scene);
+        }
+        for (const sgct::config::Node& node : cluster.nodes) {
+            applyNode(node);
+        }
+        if (cluster.user) {
+            applyUser(*cluster.user);
+        }
+        if (cluster.capture) {
+            applyCapture(*cluster.capture);
+        }
+        if (cluster.tracker) {
+            applyTracker(*cluster.tracker);
+        }
+    }
+
+    [[nodiscard]] sgct::config::Cluster readAndParseXMLFile(const std::string& filename) {
         if (filename.empty()) {
             throw std::runtime_error("No XML file set");
         }
@@ -900,15 +1528,15 @@ namespace {
                 xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
             );
         }
-        readAndParseXML(xmlDoc, filename);
+        return readAndParseXML(xmlDoc, filename);
     }
 
-    void readAndParseXMLString() {
+    [[nodiscard]] sgct::config::Cluster readAndParseXMLString() {
         using namespace tinyxml2;
         tinyxml2::XMLDocument xmlDoc;
         XMLError err = xmlDoc.Parse(DefaultConfig, strlen(DefaultConfig));
         assert(err == tinyxml2::XML_NO_ERROR);
-        readAndParseXML(xmlDoc, "");
+        return readAndParseXML(xmlDoc, "");
     }
 
     std::string replaceEnvVars(const std::string& filename) {
@@ -988,7 +1616,6 @@ namespace {
 
         return res;
     }
-
 } // namespace
 
 namespace sgct::core::readconfig {
@@ -1086,14 +1713,15 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
     return quat;
 }
 
-void readConfig(const std::string& filename) {
+sgct::config::Cluster readConfig(const std::string& filename) {
+    sgct::config::Cluster cluster;
     std::string f = filename;
     if (f.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "ReadConfig: No file specified! Using default configuration...\n"
         );
-        readAndParseXMLString();
+        cluster = readAndParseXMLString();
     }
     else {
         MessageHandler::instance()->print(
@@ -1106,7 +1734,7 @@ void readConfig(const std::string& filename) {
             throw std::runtime_error("Could not resolve file path");
         }
 
-        readAndParseXMLFile(f);
+        cluster = readAndParseXMLFile(f);
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
@@ -1115,18 +1743,18 @@ void readConfig(const std::string& filename) {
     }
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "ReadConfig: Number of nodes in cluster: %d\n",
-        ClusterManager::instance()->getNumberOfNodes()
+        "ReadConfig: Number of nodes in cluster: %d\n", cluster.nodes.size()
     );
 
-    for (unsigned int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
+    for (size_t i = 0; i < cluster.nodes.size(); i++) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "\tNode(%d) address: %s [%s]\n", i,
-            ClusterManager::instance()->getNode(i)->getAddress().c_str(),
-            ClusterManager::instance()->getNode(i)->getSyncPort().c_str()
+            "\tNode(%d) address: %s [%d]\n", i,
+            cluster.nodes[i].address->c_str(), *cluster.nodes[i].port
         );
     }
+
+    return cluster;
 }
 
 } // namespace sgct_config::readconfig

@@ -163,12 +163,12 @@ void ClusterManager::setMasterAddress(std::string address) {
     mMasterAddress = std::move(address);
 }
 
-const std::string& ClusterManager::getExternalControlPort() const {
+int ClusterManager::getExternalControlPort() const {
     return mExternalControlPort;
 }
 
-void ClusterManager::setExternalControlPort(std::string port) {
-    mExternalControlPort = std::move(port);
+void ClusterManager::setExternalControlPort(int port) {
+    mExternalControlPort = port;
 }
 
 size_t ClusterManager::getNumberOfNodes() const {

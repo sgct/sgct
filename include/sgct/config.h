@@ -209,56 +209,91 @@ struct Viewport {
     std::variant<NoProjection, PlanarProjection, FisheyeProjection,
         SphericalMirrorProjection, SpoutOutputProjection, ProjectionPlane> projection;
 };
-
-
-
-
-
+bool validateViewport(const Viewport& viewport);
 
 struct Window {
-    std::string name;
+    enum class ColorBitDepth {
+        Depth8,
+        Depth16,
+        Depth16Float,
+        Depth32Float,
+        Depth16Int,
+        Depth32Int,
+        Depth16UInt,
+        Depth32UInt
+    };
+
+    enum class StereoMode {
+        NoStereo = 0,
+        Active,
+        AnaglyphRedCyan,
+        AnaglyphAmberBlue,
+        AnaglyphRedCyanWimmer,
+        Checkerboard,
+        CheckerboardInverted,
+        VerticalInterlaced,
+        VerticalInterlacedInverted,
+        Dummy,
+        SideBySide,
+        SideBySideInverted,
+        TopBottom,
+        TopBottomInverted
+    };
+
+    std::optional<std::string> name;
     std::vector<std::string> tags;
-    std::string bufferBitDepth;
-    bool preferBGR;
-    std::string stereoType;
-    bool isFullScreen;
-    bool isFloating;
-    bool alwaysRender;
-    bool isHidden;
-    bool doubleBuffered;
-    float gamma;
-    float contrast;
-    float brightness;
-    int msaa;
-    bool hasAlpha;
-    bool useFxaa;
-    bool isDecorated;
-    bool hasBorder;
-    bool draw2D;
-    bool draw3D;
-    bool copyPreviousWindowToCurrentWindow;
-    int monitor;
-    std::string mpcdi;
-    std::string stereo;
-    glm::ivec2 pos;
-    glm::ivec2 size;
-    glm::ivec2 resolution;
+    std::optional<ColorBitDepth> bufferBitDepth;
+    std::optional<bool> preferBGR;
+    std::optional<std::string> stereoType;
+    std::optional<bool> isFullScreen;
+    std::optional<bool> isFloating;
+    std::optional<bool> alwaysRender;
+    std::optional<bool> isHidden;
+    std::optional<bool> doubleBuffered;
+    std::optional<float> gamma;
+    std::optional<float> contrast;
+    std::optional<float> brightness;
+    std::optional<int> msaa;
+    std::optional<bool> hasAlpha;
+    std::optional<bool> useFxaa;
+    std::optional<bool> isDecorated;
+    std::optional<bool> hasBorder;
+    std::optional<bool> draw2D;
+    std::optional<bool> draw3D;
+    std::optional<bool> copyPreviousWindowToCurrentWindow;
+    std::optional<int> monitor;
+    std::optional<std::string> mpcdi;
+    std::optional<StereoMode> stereo;
+    std::optional<glm::ivec2> pos;
+    std::optional<glm::ivec2> size;
+    std::optional<glm::ivec2> resolution;
 
     std::vector<Viewport> viewports;
 };
+bool validateWindow(const Window& window);
 
 struct Node {
-    std::string address;
-    int port;
+    std::optional<std::string> address;
+    std::optional<std::string> name;
+    std::optional<int> port;
+    std::optional<int> dataTransferPort;
+    std::optional<bool> swapLock;
     std::vector<Window> windows;
 };
-
+bool validateNodes(const Node& node);
 
 struct Cluster {
-    std::string masterAddress;
+    std::optional<std::string> masterAddress;
+    std::optional<bool> debug;
+    std::optional<int> externalControlport;
+    std::optional<bool> firmSync;
+    std::optional<Scene> scene;
     std::vector<Node> nodes;
-    User user;
+    std::optional<User> user;
+    std::optional<Capture> capture;
+    std::optional<Tracker> tracker;
 };
+bool validateCluster(const Cluster& cluster);
 
 } // namespace sgct::config
 

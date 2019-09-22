@@ -159,15 +159,15 @@ bool NetworkManager::init() {
     if (ClusterManager::instance()->getNumberOfNodes() > 1) {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < mNetworkConnections.size(); i++) {
-            const std::string& port = mNetworkConnections[i]->getPort();
+            int port = mNetworkConnections[i]->getPort();
             if (port == cm.getThisNode()->getSyncPort() ||
                 port == cm.getThisNode()->getDataTransferPort() ||
                 port == cm.getExternalControlPort())
             {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Error,
-                    "NetworkManager: Port %s is already used by connection %u\n",
-                    cm.getThisNode()->getSyncPort().c_str(), i
+                    "NetworkManager: Port %d is already used by connection %u\n",
+                    cm.getThisNode()->getSyncPort(), i
                 );
                 return false;
             }
@@ -741,18 +741,9 @@ void NetworkManager::close() {
     );
 }
 
-bool NetworkManager::addConnection(const std::string& port, const std::string& address,
+bool NetworkManager::addConnection(int port, const std::string& address,
                                    Network::ConnectionType connectionType)
 {
-    if (port.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
-            "NetworkManager: No port set for %s\n",
-            Network::getTypeStr(connectionType).c_str()
-        );
-        return false;
-    }
-
     if (address.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
@@ -766,8 +757,8 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         std::unique_ptr<Network> netPtr = std::make_unique<Network>();
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "NetworkManager: Initiating network connection %d at port %s\n",
-            mNetworkConnections.size(), port.c_str()
+            "NetworkManager: Initiating network connection %d at port %d\n",
+            mNetworkConnections.size(), port
         );
         netPtr->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
         netPtr->setConnectedFunction([this]() { setAllNodesConnected(); });

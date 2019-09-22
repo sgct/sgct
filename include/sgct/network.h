@@ -65,8 +65,7 @@ public:
      * \param firmSync if set to true then firm framesync will be used for the whole
                        cluster
      */
-    void init(std::string port, std::string address, bool isServer,
-        ConnectionType serverType);
+    void init(int port, std::string address, bool isServer, ConnectionType serverType);
     void closeNetwork(bool forced);
     void initShutdown();
 
@@ -121,7 +120,7 @@ public:
     void enableNaglesAlgorithmInDataTransfer();
 
     /// \return the port of this connection
-    const std::string& getPort() const;
+    int getPort() const;
 
     /// \return the address of this connection
     const std::string& getAddress() const;
@@ -172,7 +171,7 @@ private:
     uint32_t mBufferSize = 1024;
     uint32_t mUncompressedBufferSize = mBufferSize;
     std::atomic<uint32_t> mRequestedSize = mBufferSize;
-    std::string mPort;
+    int mPort;
     std::string mAddress;
 
     std::vector<char> mRecvBuf;

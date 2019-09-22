@@ -85,4 +85,42 @@ bool validateMpcdiProjection(const MpcdiProjection& proj) {
     return success;
 }
 
+bool validateViewport(const Viewport& viewport) {
+    bool success = true;
+
+    return success;
+}
+
+bool validateWindow(const Window& viewport) {
+    bool success = true;
+
+    //if (gamma && gamma > 0.1f) {
+    //    win.setGamma(*gamma);
+    //}
+
+    //std::optional<float> contrast = parseValue<float>(*element, "contrast");
+    //if (contrast && contrast > 0.f) {
+    //    win.setContrast(*contrast);
+    //}
+
+    //std::optional<float> brightness = parseValue<float>(*element, "brightness");
+    //if (brightness && brightness > 0.f) {
+    //    win.setBrightness(*brightness);
+    //}
+
+    return success;
+}
+
+bool validateNodes(const Node& node) {
+    bool success = true;
+    return success;
+}
+
+bool validateCluster(const Cluster& cluster) {
+    bool success = true;
+    return success;
+}
+
+
+
 } // namespace sgct::config

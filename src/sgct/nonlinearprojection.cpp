@@ -16,45 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-int cubeMapResolutionForQuality(const std::string& quality) {
-    std::string q = quality;
-    q.resize(quality.size());
-    std::transform(
-        quality.begin(),
-        quality.end(),
-        q.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-
-    static const std::unordered_map<std::string, int> Map = {
-        { "low",     256 },
-        { "256",     256 },
-        { "medium",  512 },
-        { "512",     512 },
-        { "high",   1024 },
-        { "1k",     1024 },
-        { "1024",   1024 },
-        { "1.5k",   1536 },
-        { "1536",   1536 },
-        { "2k",     2048 },
-        { "2048",   2048 },
-        { "4k",     4096 },
-        { "4096",   4096 },
-        { "8k",     8192 },
-        { "8192",   8192 },
-        { "16k",   16384 },
-        { "16384", 16384 },
-    };
-
-    auto it = Map.find(quality);
-    if (it != Map.end()) {
-        return it->second;
-    }
-    else {
-        return -1;
-    }
-}
-
 NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &mTextures.cubeMapColor);
     glDeleteTextures(1, &mTextures.cubeMapDepth);

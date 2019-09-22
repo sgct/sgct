@@ -120,10 +120,10 @@ public:
      * \return the external control port number if it's set or specified in the XML
      * configuration
      */
-    const std::string& getExternalControlPort() const;
+    int getExternalControlPort() const;
 
     /// \param the external control port number
-    void setExternalControlPort(std::string port);
+    void setExternalControlPort(int port);
 
     /// Set if external control should use ASCII (Telnet) or raw binary parsing.
     void setUseASCIIForExternalControl(bool useASCII);
@@ -197,7 +197,7 @@ private:
     bool mFirmFrameLockSync = false;
     bool mIgnoreSync = false;
     std::string mMasterAddress;
-    std::string mExternalControlPort;
+    int mExternalControlPort;
     bool mUseASCIIForExternalControl = true;
 
     // @TODO (abock, 2019-09-02): See nodes

@@ -36,7 +36,7 @@ public:
     /// Destructor that deletes any overlay or mask textures
     ~Viewport();
 
-    void configure(tinyxml2::XMLElement* element);
+    void applySettings(const sgct::config::Viewport& viewport);
     void configureMpcdi(tinyxml2::XMLElement* element);
     void setOverlayTexture(std::string texturePath);
     void setBlendMaskTexture(std::string texturePath);

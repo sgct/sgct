@@ -16,21 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-/**
- * Returns the pixel size for the specified resolution of the cubemap faces.
- *
- * \param quality the quality hint
- *   - low (256x256)
- *   - medium (512x512)
- *   - high (1024x1024)
- *   - 1k (1024x1024)
- *   - 2k (2048x2048)
- *   - 4k (4096x4096)
- *   - 8k (8192x8192)
- *   - 16k (16384x16384)
- */
-int cubeMapResolutionForQuality(const std::string& quality);
-
 class OffScreenBuffer;
 
 /**

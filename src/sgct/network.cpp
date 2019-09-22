@@ -93,7 +93,7 @@ Network::~Network() {
     closeNetwork(false);
 }
 
-void Network::init(std::string port, std::string address, bool isServer,
+void Network::init(int port, std::string address, bool isServer,
                    ConnectionType type)
 {
     mServer = isServer;
@@ -103,7 +103,7 @@ void Network::init(std::string port, std::string address, bool isServer,
         mUncompressedBufferSize = mBufferSize;
     }
 
-    mPort = std::move(port);
+    mPort = port;
     mAddress = std::move(address);
 
     addrinfo* res = nullptr;
@@ -117,7 +117,7 @@ void Network::init(std::string port, std::string address, bool isServer,
     // Resolve the local address and port to be used by the server
     int addrRes = getaddrinfo(
         mServer ? nullptr : mAddress.c_str(),
-        mPort.c_str(),
+        std::to_string(mPort).c_str(),
         &hints,
         &res
     );
@@ -242,7 +242,7 @@ void Network::connectionHandler() {
     );
 }
 
-const std::string& Network::getPort() const {
+int Network::getPort() const {
     return mPort;
 }
 
@@ -872,8 +872,7 @@ void Network::communicationHandler() {
     if (mServer) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Waiting for client to connect to connection %d (port %s)\n",
-            mId, getPort().c_str()
+            "Waiting for client to connect to connection %d (port %d)\n", mId, getPort()
         );
 
         mSocket = accept(mListenSocket, nullptr, nullptr);

@@ -17,7 +17,7 @@ namespace {
 
     sgct::SharedDouble currentTime(0.0);
 
-    std::string port;
+    int port;
     std::string address;
     bool isServer = false;
     std::unique_ptr<sgct::core::Network> networkPtr;
@@ -34,10 +34,10 @@ void parseArguments(int& argc, char**& argv) {
     for (int i = 0; i < argc; i++) {
         std::string_view arg(argv[i]);
         if (arg == "-port" && argc > (i + 1)) {
-            port = argv[i + 1];
+            port = std::stoi(argv[i + 1]);
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info,
-                "Setting port to: %s\n", port.c_str()
+                "Setting port to: %d\n", port
             );
         }
         else if (arg == "-address" && argc > (i + 1)) {
@@ -122,14 +122,6 @@ void connect() {
         return;
     }
 
-    if (port.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Network error: No port set\n"
-        );
-        return;
-    }
-
     // no need to specify the address on the host/server
     if (!isServer && address.empty()) {
         MessageHandler::instance()->print(
@@ -145,7 +137,7 @@ void connect() {
     try {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "Initiating network connection at port %s\n", port.c_str()
+            "Initiating network connection at port %d\n", port
         );
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);

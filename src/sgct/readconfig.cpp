@@ -248,6 +248,20 @@ namespace {
         }
     }
 
+    std::optional<glm::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
+        using namespace tinyxml2;
+
+        glm::vec2 value;
+        XMLError xe = e.QueryFloatAttribute("x", &value[0]);
+        XMLError ye = e.QueryFloatAttribute("y", &value[1]);
+        if (xe == XML_NO_ERROR && ye == XML_NO_ERROR) {
+            return value;
+        }
+        else {
+            return std::nullopt;
+        }
+    }
+
     std::optional<glm::vec3> parseValueVec3(const tinyxml2::XMLElement& e) {
         using namespace tinyxml2;
 
@@ -256,6 +270,24 @@ namespace {
         XMLError ye = e.QueryFloatAttribute("y", &value[1]);
         XMLError ze = e.QueryFloatAttribute("z", &value[2]);
         if (xe == XML_NO_ERROR && ye == XML_NO_ERROR && ze == XML_NO_ERROR) {
+            return value;
+        }
+        else {
+            return std::nullopt;
+        }
+    }
+
+    std::optional<glm::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
+        using namespace tinyxml2;
+
+        glm::vec4 value;
+        XMLError re = e.QueryFloatAttribute("r", &value[0]);
+        XMLError ge = e.QueryFloatAttribute("g", &value[1]);
+        XMLError be = e.QueryFloatAttribute("b", &value[2]);
+        XMLError ae = e.QueryFloatAttribute("a", &value[3]);
+        if (re == XML_NO_ERROR && ge == XML_NO_ERROR && be == XML_NO_ERROR &&
+            ae == XML_NO_ERROR)
+        {
             return value;
         }
         else {
@@ -325,6 +357,9 @@ namespace {
         if constexpr (std::is_same_v<T, float>) {
             err = e.QueryFloatAttribute(name, &value);
         }
+        else if constexpr (std::is_same_v<T, bool>) {
+            err = e.QueryBoolAttribute(name, &value);
+        }
         else if constexpr (std::is_same_v<T, int>) {
             err = e.QueryIntAttribute(name, &value);
         }
@@ -339,6 +374,10 @@ namespace {
             return value;
         }
         else {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Error extracting value '%s'", name
+            );
             return std::nullopt;
         }
     }
@@ -371,16 +410,18 @@ namespace {
             std::string_view val = subElement->Value();
 
             if (val == "FOV") {
-                sgct::config::PlanarProjection::FOV fov;
-                XMLError errDown = subElement->QueryFloatAttribute("down", &fov.down);
-                XMLError errLeft = subElement->QueryFloatAttribute("left", &fov.left);
-                XMLError errRight = subElement->QueryFloatAttribute("right", &fov.right);
-                XMLError errUp = subElement->QueryFloatAttribute("up", &fov.up);
+                std::optional<float> down = parseValue<float>(*subElement, "down");
+                std::optional<float> left = parseValue<float>(*subElement, "left");
+                std::optional<float> right = parseValue<float>(*subElement, "right");
+                std::optional<float> up = parseValue<float>(*subElement, "up");
 
-                if (errDown == XML_NO_ERROR && errLeft == XML_NO_ERROR &&
-                    errRight == XML_NO_ERROR && errUp == XML_NO_ERROR)
-                {
-                    proj.fov = fov;
+                if (down && left && right && up) {
+                    sgct::config::PlanarProjection::FOV fov;
+                    fov.down = *down;
+                    fov.left = *left;
+                    fov.right = *right;
+                    fov.up = *up;
+                    proj.fov;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
@@ -393,11 +434,10 @@ namespace {
                 proj.orientation = parseOrientationNode(subElement);
             }
             else if (val == "Offset") {
-                glm::vec3 offset;
-                subElement->QueryFloatAttribute("x", &offset[0]);
-                subElement->QueryFloatAttribute("y", &offset[1]);
-                subElement->QueryFloatAttribute("z", &offset[2]);
-                proj.offset = offset;
+                std::optional<glm::vec3> offset = parseValueVec3(*subElement);
+                if (offset) {
+                    proj.offset = *offset;
+                }
             }
 
             subElement = subElement->NextSiblingElement();
@@ -409,10 +449,7 @@ namespace {
     [[nodiscard]] sgct::config::FisheyeProjection parseFisheyeProjection(tinyxml2::XMLElement* element) {
         sgct::config::FisheyeProjection proj;
 
-        float fov;
-        if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR) {
-            proj.fov = fov;
-        }
+        proj.fov = parseValue<float>(*element, "fov");
         if (element->Attribute("quality")) {
             const int res = cubeMapResolutionForQuality(element->Attribute("quality"));
             proj.quality = res;
@@ -429,42 +466,30 @@ namespace {
                 sgct::config::FisheyeProjection::Interpolation::Cubic :
                 sgct::config::FisheyeProjection::Interpolation::Linear;
         }
-        float diameter;
-        if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
-            proj.diameter = diameter;
-        }
-
-        float tilt;
-        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
-            proj.tilt = tilt;
-        }
+        proj.diameter = parseValue<float>(*element, "diameter");
+        proj.tilt = parseValue<float>(*element, "tilt");
 
         tinyxml2::XMLElement* subElement = element->FirstChildElement();
         while (subElement) {
             std::string_view val = subElement->Value();
 
             if (val == "Crop") {
+                std::optional<float> left = parseValue<float>(*subElement, "left");
+                std::optional<float> right = parseValue<float>(*subElement, "right");
+                std::optional<float> bottom = parseValue<float>(*subElement, "bottom");
+                std::optional<float> top = parseValue<float>(*subElement, "top");
                 sgct::config::FisheyeProjection::Crop crop;
-                subElement->QueryFloatAttribute("left", &crop.left);
-                subElement->QueryFloatAttribute("right", &crop.right);
-                subElement->QueryFloatAttribute("bottom", &crop.bottom);
-                subElement->QueryFloatAttribute("top", &crop.top);
+                crop.left = *left;
+                crop.right = *right;
+                crop.bottom = *bottom;
+                crop.top = *top;
                 proj.crop = crop;
             }
             else if (val == "Offset") {
-                glm::vec3 offset = glm::vec3(0.f);
-                subElement->QueryFloatAttribute("x", &offset[0]);
-                subElement->QueryFloatAttribute("y", &offset[1]);
-                subElement->QueryFloatAttribute("z", &offset[2]);
-                proj.offset = offset;
+                proj.offset = parseValueVec3(*subElement);
             }
             if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
+                proj.background = parseValueColor(*subElement);
             }
 
             subElement = subElement->NextSiblingElement();
@@ -479,22 +504,14 @@ namespace {
             proj.quality = cubeMapResolutionForQuality(element->Attribute("quality"));
         }
 
-        float tilt;
-        if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
-            proj.tilt = tilt;
-        }
+        proj.tilt = parseValue<float>(*element, "tilt");
 
         tinyxml2::XMLElement* subElement = element->FirstChildElement();
         while (subElement) {
             std::string_view val = subElement->Value();
 
             if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
+                proj.background = parseValueColor(*subElement);
             }
             else if (val == "Geometry") {
                 if (subElement->Attribute("bottom")) {
@@ -516,8 +533,6 @@ namespace {
 
             subElement = subElement->NextSiblingElement();
         }
-
-
         return proj;
     }
 
@@ -551,12 +566,7 @@ namespace {
             std::string_view val = subElement->Value();
 
             if (val == "Background") {
-                glm::vec4 color;
-                subElement->QueryFloatAttribute("r", &color[0]);
-                subElement->QueryFloatAttribute("g", &color[1]);
-                subElement->QueryFloatAttribute("b", &color[2]);
-                subElement->QueryFloatAttribute("a", &color[3]);
-                proj.background = color;
+                proj.background = parseValueColor(*subElement);
             }
 
             if (val == "Channels") {
@@ -599,11 +609,8 @@ namespace {
             std::string_view val = elem->Value();
 
             if (val == "Pos") {
-                glm::vec3 pos;
-                if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&
-                    elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
-                    elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
-                {
+                std::optional<glm::vec3> pos = parseValueVec3(*elem);
+                if (pos) {
                     switch (i % 3) {
                     case 0:
                         proj.lowerLeft = pos;
@@ -667,10 +674,7 @@ namespace {
             viewport.meshHint = element->Attribute("hint");
         }
 
-        if (element->Attribute("tracked")) {
-            std::string_view tracked = element->Attribute("tracked");
-            viewport.isTracked = (tracked == "true");
-        }
+        viewport.isTracked = parseValue<bool>(*element, "tracked");
 
         // get eye if set
         if (element->Attribute("eye")) {
@@ -692,11 +696,9 @@ namespace {
 
             std::string_view val = subElement->Value();
             if (val == "Pos") {
-                glm::vec2 position;
-                if (subElement->QueryFloatAttribute("x", &position[0]) == XML_NO_ERROR &&
-                    subElement->QueryFloatAttribute("y", &position[1]) == XML_NO_ERROR)
-                {
-                    viewport.position = position;
+                std::optional<glm::vec2> pos = parseValueVec2(*subElement);
+                if (pos) {
+                    viewport.position = *pos;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
@@ -706,11 +708,9 @@ namespace {
                 }
             }
             else if (val == "Size") {
-                glm::vec2 size;
-                if (subElement->QueryFloatAttribute("x", &size[0]) == XML_NO_ERROR &&
-                    subElement->QueryFloatAttribute("y", &size[1]) == XML_NO_ERROR)
-                {
-                    viewport.size = size;
+                std::optional<glm::vec2> size = parseValueVec2(*subElement);
+                if (size) {
+                    viewport.size = *size;
                 }
                 else {
                     sgct::MessageHandler::instance()->print(
@@ -735,7 +735,6 @@ namespace {
                 viewport.projection = parseProjectionPlane(subElement);
             }
 
-            // iterate
             subElement = subElement->NextSiblingElement();
         }
 
@@ -790,102 +789,49 @@ namespace {
                 getBufferColorBitDepth(element->Attribute("bufferBitDepth"));
         }
 
-        if (element->Attribute("preferBGR")) {
-            std::string_view v = element->Attribute("preferBGR");
-            window.preferBGR = (v == "true");
-        }
-        // @TODO (abock, 2019-09-22) replace these construct with calls to
-        // parseValue<bool> function
+        window.preferBGR = parseValue<bool>(*element, "preferBGR");
 
         // compatibility with older versions
         if (element->Attribute("fullScreen")) {
-            std::string_view v = element->Attribute("fullScreen");
-            window.isFullScreen = (v == "true");
+            window.isFullScreen = parseValue<bool>(*element, "fullScreen");
         }
 
         if (element->Attribute("fullscreen")) {
-            std::string_view v = element->Attribute("fullscreen");
-            window.isFullScreen = (v == "true");
+            window.isFullScreen = parseValue<bool>(*element, "fullscreen");
         }
 
-        if (element->Attribute("floating")) {
-            std::string_view v = element->Attribute("floating");
-            window.isFloating = (v == "true");
-        }
-
-        if (element->Attribute("alwaysRender")) {
-            std::string_view v = element->Attribute("alwaysRender");
-            window.alwaysRender = (v == "true");
-        }
-
-        if (element->Attribute("hidden")) {
-            std::string_view v = element->Attribute("hidden");
-            window.isHidden = (v == "true");
-        }
-
-        if (element->Attribute("dbuffered")) {
-            std::string_view v = element->Attribute("dbuffered");
-            window.doubleBuffered = (v == "true");
-        }
-
+        window.isFloating = parseValue<bool>(*element, "floating");
+        window.alwaysRender = parseValue<bool>(*element, "alwaysRender");
+        window.isHidden = parseValue<bool>(*element, "hidden");
+        window.doubleBuffered = parseValue<bool>(*element, "dbuffered");
         window.gamma = parseValue<float>(*element, "gamma");
         window.contrast = parseValue<float>(*element, "contrast");
         window.brightness = parseValue<float>(*element, "brightness");
         window.msaa = parseValue<int>(*element, "numberOfSamples");
 
-        std::optional<int> numberOfSamples = parseValue<int>(*element, "numberOfSamples");
-        if (numberOfSamples) {
-            window.msaa = numberOfSamples;
+        if (element->Attribute("numberOfSamples")) {
+            window.msaa = parseValue<int>(*element, "numberOfSamples");
         }
-        std::optional<int> msaa = parseValue<int>(*element, "msaa");
-        if (msaa) {
-            window.msaa = msaa;
+        if (element->Attribute("msaa")) {
+            window.msaa = parseValue<int>(*element, "msaa");
         }
-        std::optional<int> MSAA = parseValue<int>(*element, "MSAA");
-        if (MSAA) {
-            window.msaa = MSAA;
+        if (element->Attribute("MSAA")) {
+            window.msaa = parseValue<int>(*element, "MSAA");
         }
-
-        if (element->Attribute("alpha")) {
-            std::string_view v = element->Attribute("alpha");
-            window.hasAlpha = (v == "true");
-        }
+        window.hasAlpha = parseValue<bool>(*element, "alpha");
 
         if (element->Attribute("fxaa")) {
-            std::string_view v = element->Attribute("fxaa");
-            window.useFxaa = (v == "true");
+            window.useFxaa = parseValue<bool>(*element, "fxaa");
         }
-
         if (element->Attribute("FXAA")) {
-            std::string_view v = element->Attribute("FXAA");
-            window.useFxaa = (v == "true");
+            window.useFxaa = parseValue<bool>(*element, "FXAA");
         }
 
-        if (element->Attribute("decorated")) {
-            std::string_view v = element->Attribute("decorated");
-            window.isDecorated = (v == "true");
-        }
-
-        if (element->Attribute("border")) {
-            std::string_view v = element->Attribute("border");
-            window.hasBorder = (v == "true");
-        }
-
-        if (element->Attribute("draw2D")) {
-            std::string_view v = element->Attribute("draw2D");
-            window.draw2D = (v == "true");
-        }
-
-        if (element->Attribute("draw3D")) {
-            std::string_view v = element->Attribute("draw3D");
-            window.draw3D = (v == "true");
-        }
-
-        if (element->Attribute("copyPreviousWindowToCurrentWindow")) {
-            std::string_view v = element->Attribute("copyPreviousWindowToCurrentWindow");
-            window.copyPreviousWindowToCurrentWindow = (v == "true");
-        }
-
+        window.isDecorated = parseValue<bool>(*element, "decorated");
+        window.hasBorder = parseValue<bool>(*element, "border");
+        window.draw2D = parseValue<bool>(*element, "draw2D");
+        window.draw3D = parseValue<bool>(*element, "draw3D");
+        window.copyPreviousWindowToCurrentWindow = parseValue<bool>(*element, "copyPreviousWindowToCurrentWindow");
         window.monitor = parseValue<int>(*element, "monitor");
 
         if (element->Attribute("mpcdi")) {
@@ -935,19 +881,10 @@ namespace {
         if (element->Attribute("name")) {
             node.name = element->Attribute("name");
         }
-        if (element->Attribute("port")) {
-            node.port = parseValue<int>(*element, "port");
-        }
-        if (element->Attribute("syncPort")) {
-            node.port = parseValue<int>(*element, "syncPort");
-        }
-        if (element->Attribute("dataTransferPort")) {
-            node.dataTransferPort = parseValue<int>(*element, "dataTransferPort");
-        }
-        if (element->Attribute("swapLock")) {
-            std::string_view v = element->Attribute("swapLock");
-            node.swapLock = (v == "true");
-        }
+        node.port = parseValue<int>(*element, "port");
+        node.port = parseValue<int>(*element, "syncPort");
+        node.dataTransferPort = parseValue<int>(*element, "dataTransferPort");
+        node.swapLock = parseValue<bool>(*element, "swapLock");
 
         tinyxml2::XMLElement* child = element->FirstChildElement();
         while (child) {
@@ -982,8 +919,9 @@ namespace {
             }
             else if (childVal == "Matrix") {
                 sgct::config::User::Transform trans;
-                if (child->Attribute("transpose")) {
-                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                std::optional<bool> transpose = parseValue<bool>(*child, "transpose");
+                if (transpose) {
+                    trans.transpose = *transpose;
                 }
                 trans.transformation = *parseValueMat4(*child);
                 user.transformation = trans;
@@ -1008,28 +946,16 @@ namespace {
             std::string_view val = elem->Value();
 
             if (val == "DepthBufferTexture") {
-                if (elem->Attribute("value")) {
-                    std::string_view v = elem->Attribute("value");
-                    settings.useDepthTexture = (v == "true");
-                }
+                settings.useDepthTexture = parseValue<bool>(*elem, "value");
             }
             else if (val == "NormalTexture") {
-                if (elem->Attribute("value")) {
-                    std::string_view v = elem->Attribute("value");
-                    settings.useNormalTexture = (v == "true");
-                }
+                settings.useNormalTexture = parseValue<bool>(*elem, "value");
             }
             else if (val == "PositionTexture") {
-                if (elem->Attribute("value")) {
-                    std::string_view v = elem->Attribute("value");
-                    settings.usePositionTexture = (v == "true");
-                }
+                settings.usePositionTexture = parseValue<bool>(*elem, "value");
             }
             else if (val == "PBO") {
-                if (elem->Attribute("value")) {
-                    std::string_view v = elem->Attribute("value");
-                    settings.usePBO = (v == "true");
-                }
+                settings.usePBO = parseValue<bool>(*elem, "value");
             }
             else if (val == "Precision") {
                 std::optional<float> f = parseValue<float>(*elem, "float");
@@ -1059,14 +985,8 @@ namespace {
                 sgct::config::Settings::Display display;
                 display.swapInterval = parseValue<int>(*elem, "swapInterval");
                 display.refreshRate = parseValue<int>(*elem, "refreshRate");
-                if (elem->Attribute("tryMaintainAspectRatio")) {
-                    std::string_view v = elem->Attribute("tryMaintainAspectRatio");
-                    display.maintainAspectRatio = (v == "true");
-                }
-                if (elem->Attribute("exportWarpingMeshes")) {
-                    std::string_view v = elem->Attribute("exportWarpingMeshes");
-                    display.exportWarpingMeshes = (v == "true");
-                }
+                display.maintainAspectRatio = parseValue<bool>(*elem, "tryMaintainAspectRatio");
+                display.exportWarpingMeshes = parseValue<bool>(*elem, "exportWarpingMeshes");
                 settings.display = display;
             }
             else if (val == "OSDText") {
@@ -1171,8 +1091,9 @@ namespace {
             }
             else if (childVal == "Matrix") {
                 sgct::config::Device::Transform trans;
-                if (child->Attribute("transpose")) {
-                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                std::optional<bool> transpose = parseValue<bool>(*child, "transpose");
+                if (transpose) {
+                    trans.transpose = *transpose;
                 }
                 trans.transformation = *parseValueMat4(*child);
                 device.transformation = trans;
@@ -1208,8 +1129,9 @@ namespace {
             }
             else if (childVal == "Matrix") {
                 sgct::config::Tracker::Transform trans;
-                if (child->Attribute("transpose")) {
-                    trans.transpose = strcmp(child->Attribute("transpose"), "true") == 0;
+                std::optional<bool> transpose = parseValue<bool>(*child, "transpose");
+                if (transpose) {
+                    trans.transpose = *transpose;
                 }
                 trans.transformation = *parseValueMat4(*child);
                 tracker.transformation = trans;
@@ -1220,12 +1142,23 @@ namespace {
         return tracker;
     }
 
-    [[nodiscard]] sgct::config::Cluster readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename) {
-        using namespace tinyxml2;
+    [[nodiscard]] sgct::config::Cluster readAndParseXMLFile(const std::string& filename) {
+        if (filename.empty()) {
+            throw std::runtime_error("No XML file set");
+        }
+
+        tinyxml2::XMLDocument xmlDoc;
+        bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
+        if (!s) {
+            throw std::runtime_error(
+                "Error loading XML file '" + filename + "'. " +
+                xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
+            );
+        }
 
         sgct::config::Cluster cluster;
 
-        XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
+        tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
         if (XMLroot == nullptr) {
             throw std::runtime_error("Cannot find XML root");
         }
@@ -1236,19 +1169,11 @@ namespace {
         }
         cluster.masterAddress = masterAddress;
 
-        if (XMLroot->Attribute("debug")) {
-            std::string_view v = XMLroot->Attribute("debug");
-            cluster.debug = (v == "true");
-        }
-
+        cluster.debug = parseValue<bool>(*XMLroot, "debug");
         cluster.externalControlport = parseValue<int>(*XMLroot, "externalControlPort");
+        cluster.firmSync = parseValue<bool>(*XMLroot, "firmSync");
 
-        if (XMLroot->Attribute("firmSync")) {
-            std::string_view v = XMLroot->Attribute("firmSync");
-            cluster.firmSync = (v == "true");
-        }
-
-        XMLElement* element = XMLroot->FirstChildElement();
+        tinyxml2::XMLElement* element = XMLroot->FirstChildElement();
         while (element) {
             std::string_view val = element->Value();
 
@@ -1280,22 +1205,6 @@ namespace {
         }
 
         return cluster;
-    }
-
-    [[nodiscard]] sgct::config::Cluster readAndParseXMLFile(const std::string& filename) {
-        if (filename.empty()) {
-            throw std::runtime_error("No XML file set");
-        }
-
-        tinyxml2::XMLDocument xmlDoc;
-        bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
-        if (!s) {
-            throw std::runtime_error(
-                "Error loading XML file '" + filename + "'. " +
-                xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
-            );
-        }
-        return readAndParseXML(xmlDoc, filename);
     }
 
     std::string replaceEnvVars(const std::string& filename) {

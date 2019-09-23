@@ -50,7 +50,7 @@ private:
     void internalRenderFixedPipeline();
 
     void (*mUpdateFn)() = nullptr;
-    void (PostFX::*mRenderFn)(void) = nullptr;
+    void (PostFX::*mRenderFn)() = nullptr;
 
     ShaderProgram mShaderProgram;
     unsigned int mInputTexture = 0;

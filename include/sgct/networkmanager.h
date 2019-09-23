@@ -38,20 +38,20 @@ public:
      * Compare if the last frame and current frames are different -> data update
      * And if send frame == recieved frame
      */
-    bool isSyncComplete();
+    bool isSyncComplete() const;
     void close();
 
     /// \returns the static pointer to the NetworkManager instance
     static NetworkManager* instance();
 
-    bool matchAddress(const std::string& address);
+    bool matchAddress(const std::string& address) const;
 
     /// Retrieve the node id if this node is part of the cluster configuration
-    void retrieveNodeId();
-    bool isComputerServer();
-    bool isRunning();
-    bool areAllNodesConnected();
-    Network* getExternalControlPtr();
+    void retrieveNodeId() const;
+    bool isComputerServer() const;
+    bool isRunning() const;
+    bool areAllNodesConnected() const;
+    Network* getExternalControlConnection();
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, size_t nodeIndex);
     void transferData(const void* data, int length, int packageId, Network* connection);
@@ -65,12 +65,12 @@ public:
      */
     void setDataTransferCompression(bool state, int level = 1);
 
-    unsigned int getActiveConnectionsCount();
-    unsigned int getActiveSyncConnectionsCount();
-    unsigned int getActiveDataTransferConnectionsCount();
-    int getConnectionsCount();
-    int getSyncConnectionsCount();
-    int getDataTransferConnectionsCount();
+    unsigned int getActiveConnectionsCount() const;
+    unsigned int getActiveSyncConnectionsCount() const;
+    unsigned int getActiveDataTransferConnectionsCount() const;
+    int getConnectionsCount() const;
+    int getSyncConnectionsCount() const;
+    int getDataTransferConnectionsCount() const;
     const Network& getConnectionByIndex(unsigned int index) const;
     Network* getSyncConnectionByIndex(unsigned int index) const;
     const std::vector<std::string>& getLocalAddresses() const;

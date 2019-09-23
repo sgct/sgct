@@ -35,11 +35,7 @@ NonLinearProjection::~NonLinearProjection() {
     }
 
     glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
-
     glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
-
     mShader.deleteProgram();
     mDepthCorrectionShader.deleteProgram();
 }
@@ -344,7 +340,6 @@ void NonLinearProjection::initVBO() {
         );
     }
 
-    // unbind
     if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }
@@ -414,7 +409,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFor
 }
 
 void NonLinearProjection::setupViewport(BaseViewport& vp) {
-    float cmRes = static_cast<float>(mCubemapResolution);
+    const float cmRes = static_cast<float>(mCubemapResolution);
 
     mVpCoords = glm::ivec4(
         static_cast<int>(floor(vp.getPosition().x * cmRes + 0.5f)),
@@ -438,7 +433,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
     if (mCubemapResolution > MaxMapRes) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "NonLinearProjection: Requested map size is too big (%d > %d)!\n",
+            "NonLinearProjection: Requested map size is too big (%d > %d)\n",
             mCubemapResolution, MaxMapRes
         );
     }

@@ -15,7 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct {
 
 bool PostFX::init(std::string name, const std::string& vertShaderSrc,
-                  const std::string& fragShaderSrc, ShaderProgram::ShaderSourceType srcType)
+                  const std::string& fragShaderSrc,
+                  ShaderProgram::ShaderSourceType srcType)
 {
     mName = std::move(name);
     mShaderProgram.setName(mName);
@@ -144,14 +145,14 @@ void PostFX::internalRenderFixedPipeline() {
     
     mSize = win.getFramebufferResolution();
 
-    //if for some reson the active texture has been reset
+    // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
 
     glMatrixMode(GL_MODELVIEW);
 
-    //if for some reson the active texture has been reset
+    // if for some reson the active texture has been reset
     glViewport(0, 0, mSize.x, mSize.y);
     
     glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -161,7 +162,7 @@ void PostFX::internalRenderFixedPipeline() {
 
     mShaderProgram.bind();
 
-    if (mUpdateFn != nullptr) {
+    if (mUpdateFn) {
         mUpdateFn();
     }
 
@@ -178,9 +179,7 @@ void PostFX::internalRenderFixedPipeline() {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     win.unbindVBO();
-
     ShaderProgram::unbind();
-
     glPopClientAttrib();
 }
 

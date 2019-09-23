@@ -106,8 +106,8 @@ namespace {
 
     sgct::config::Window::StereoMode getStereoType(std::string type) {
         std::transform(
-            type.begin(),
-            type.end(),
+            type.cbegin(),
+            type.cend(),
             type.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
@@ -155,13 +155,17 @@ namespace {
             return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "Unknown stereo mode %s", type.c_str()
+        );
         return sgct::config::Window::StereoMode::NoStereo;
     }
 
     sgct::config::Window::ColorBitDepth getBufferColorBitDepth(std::string type) {
         std::transform(
-            type.begin(),
-            type.end(),
+            type.cbegin(),
+            type.cend(),
             type.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
@@ -194,16 +198,18 @@ namespace {
             return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "Unknown color bit depth %s", type.c_str()
+        );
         return sgct::config::Window::ColorBitDepth::Depth8;
     }
 
-    int cubeMapResolutionForQuality(const std::string& quality) {
-        std::string q = quality;
-        q.resize(quality.size());
+    int cubeMapResolutionForQuality(std::string quality) {
         std::transform(
+            quality.cbegin(),
+            quality.cend(),
             quality.begin(),
-            quality.end(),
-            q.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
 
@@ -228,12 +234,7 @@ namespace {
         };
 
         auto it = Map.find(quality);
-        if (it != Map.end()) {
-            return it->second;
-        }
-        else {
-            return -1;
-        }
+        return (it != Map.end()) ? it->second : -1;
     }
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
@@ -298,7 +299,7 @@ namespace {
     std::optional<glm::quat> parseValueQuat(const tinyxml2::XMLElement& e) {
         glm::quat q;
         // Yes, this order is correct;  the constructor takes w,x,y,z but the
-        // layout in memory is x, y, z, w
+        // layout in memory is x,y,z,w
         tinyxml2::XMLError we = e.QueryFloatAttribute("w", &q[3]);
         tinyxml2::XMLError xe = e.QueryFloatAttribute("x", &q[0]);
         tinyxml2::XMLError ye = e.QueryFloatAttribute("y", &q[1]);
@@ -405,10 +406,10 @@ namespace {
                 std::optional<float> up = parseValue<float>(*subElement, "up");
 
                 if (down && left && right && up) {
-                    // (abock, 2019-09-22);  The negative signs here were lifted up from
-                    // the viewport class. I think it is nicer to store them in negative
-                    // values and consider the fact that the down and left fovs are
-                    // inverted to be a detail of the XML specification rather than SGCT
+                    // The negative signs here were lifted up from the viewport class. I
+                    // think it is nicer to store them in negative values and consider the
+                    // fact that the down and left fovs are inverted to be a detail of the
+                    // XML specification rather than SGCT
                     proj.fov.down = -*down;
                     proj.fov.left = -*left;
                     proj.fov.right = *right;
@@ -473,10 +474,18 @@ namespace {
                 std::optional<float> bottom = parseValue<float>(*subElement, "bottom");
                 std::optional<float> top = parseValue<float>(*subElement, "top");
                 sgct::config::FisheyeProjection::Crop crop;
-                crop.left = *left;
-                crop.right = *right;
-                crop.bottom = *bottom;
-                crop.top = *top;
+                if (left) {
+                    crop.left = *left;
+                }
+                if (right) {
+                    crop.right = *right;
+                }
+                if (bottom) {
+                    crop.bottom = *bottom;
+                }
+                if (top) {
+                    crop.top = *top;
+                }
                 proj.crop = crop;
             }
             else if (val == "Offset") {
@@ -570,20 +579,21 @@ namespace {
 
             if (val == "Channels") {
                 sgct::config::SpoutOutputProjection::Channels c;
-                subElement->QueryBoolAttribute("Right", &c.right);
-                subElement->QueryBoolAttribute("zLeft", &c.zLeft);
-                subElement->QueryBoolAttribute("Bottom", &c.bottom);
-                subElement->QueryBoolAttribute("Top", &c.top);
-                subElement->QueryBoolAttribute("Left", &c.left);
-                subElement->QueryBoolAttribute("zRight", &c.zRight);
+                c.right = *parseValue<bool>(*subElement, "Right");
+                c.zLeft = *parseValue<bool>(*subElement, "zLeft");
+                c.bottom = *parseValue<bool>(*subElement, "Bottom");
+                c.top = *parseValue<bool>(*subElement, "Top");
+                c.left = *parseValue<bool>(*subElement, "Left");
+                c.zRight = *parseValue<bool>(*subElement, "zRight");
                 proj.channels = c;
             }
 
             if (val == "RigOrientation") {
-                glm::vec3 orientation;
-                subElement->QueryFloatAttribute("pitch", &orientation[0]);
-                subElement->QueryFloatAttribute("yaw", &orientation[1]);
-                subElement->QueryFloatAttribute("roll", &orientation[2]);
+                glm::vec3 orientation = glm::vec3(
+                    *parseValue<float>(*subElement, "pitch"),
+                    *parseValue<float>(*subElement, "yaw"),
+                    *parseValue<float>(*subElement, "roll")
+                );
                 proj.orientation = orientation;
             }
 
@@ -607,15 +617,15 @@ namespace {
                 std::optional<glm::vec3> pos = parseValueVec3(*elem);
                 if (pos) {
                     switch (i % 3) {
-                    case 0:
-                        proj.lowerLeft = pos;
-                        break;
-                    case 1:
-                        proj.upperLeft = pos;
-                        break;
-                    case 2:
-                        proj.upperRight = pos;
-                        break;
+                        case 0:
+                            proj.lowerLeft = pos;
+                            break;
+                        case 1:
+                            proj.upperLeft = pos;
+                            break;
+                        case 2:
+                            proj.upperRight = pos;
+                            break;
                     }
 
                     i++;
@@ -745,7 +755,7 @@ namespace {
             std::string_view childVal = child->Value();
 
             if (childVal == "Offset") {
-                scene.offset = *parseValueVec3(*child);
+                scene.offset = parseValueVec3(*child);
             }
             else if (childVal == "Orientation") {
                 scene.orientation = parseOrientationNode(child);
@@ -760,8 +770,7 @@ namespace {
         return scene;
     }
 
-    sgct::config::Window parseWindow(tinyxml2::XMLElement* element,
-                                     std::string xmlFileName)
+    sgct::config::Window parseWindow(tinyxml2::XMLElement* element, std::string filename)
     {
         using namespace tinyxml2;
 
@@ -774,7 +783,7 @@ namespace {
         if (element->Attribute("tags")) {
             std::string tags = element->Attribute("tags");
             std::vector<std::string> t = sgct::helpers::split(tags, ',');
-            window.tags = t;
+            window.tags = std::move(t);
         }
 
         if (element->Attribute("bufferBitDepth")) {
@@ -833,9 +842,9 @@ namespace {
 
         if (element->Attribute("mpcdi")) {
             std::string path;
-            size_t lastSlashPos = xmlFileName.find_last_of("/");
+            size_t lastSlashPos = filename.find_last_of("/");
             if (lastSlashPos != std::string::npos) {
-                path = xmlFileName.substr(0, lastSlashPos) + "/";
+                path = filename.substr(0, lastSlashPos) + "/";
             }
             path += element->Attribute("mpcdi");
             std::replace(path.begin(), path.end(), '\\', '/');
@@ -991,7 +1000,7 @@ namespace {
                     else {
                         sgct::MessageHandler::instance()->print(
                             sgct::MessageHandler::Level::Warning,
-                            "ReadConfig: Wrong precision value (%d)! Must be 16 or 32\n",
+                            "ReadConfig: Wrong precision value (%d). Must be 16 or 32\n",
                             *f
                         );
                     }
@@ -1200,28 +1209,23 @@ namespace {
             std::string_view val = element->Value();
 
             if (val == "Scene") {
-                sgct::config::Scene scene = parseScene(element);
-                cluster.scene = scene;
+                cluster.scene = parseScene(element);
             }
             else if (val == "Node") {
                 sgct::config::Node node = parseNode(element, filename);
                 cluster.nodes.push_back(node);
             }
             else if (val == "User") {
-                sgct::config::User user = parseUser(element);
-                cluster.user = user;
+                cluster.user = parseUser(element);
             }
             else if (val == "Settings") {
-                sgct::config::Settings settings = parseSettings(element);
-                cluster.settings = settings;
+                cluster.settings = parseSettings(element);
             }
             else if (val == "Capture") {
-                sgct::config::Capture capture = parseCapture(element);
-                cluster.capture = capture;
+                cluster.capture = parseCapture(element);
             }
             else if (val == "Tracker" && element->Attribute("name")) {
-                sgct::config::Tracker tracker = parseTracker(element);
-                cluster.tracker = tracker;
+                cluster.tracker = parseTracker(element);
             }
             element = element->NextSiblingElement();
         }

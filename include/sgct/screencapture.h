@@ -48,10 +48,6 @@ public:
     };
 
     struct ScreenCaptureThreadInfo {
-        //ScreenCaptureThreadInfo() = default;
-        //ScreenCaptureThreadInfo(ScreenCaptureThreadInfo&&) = default;
-        //ScreenCaptureThreadInfo& operator=(ScreenCaptureThreadInfo&&) = default;
-
         std::unique_ptr<Image> mFrameBufferImage;
         std::unique_ptr<std::thread> mFrameCaptureThread;
         std::mutex* mMutex = nullptr;

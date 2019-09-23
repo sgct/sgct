@@ -174,7 +174,6 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         mDepthBuffer
     );
 
-    // unbind
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (mIsMultiSampled) {
@@ -397,12 +396,12 @@ int OffScreenBuffer::getInternalColorFormat() const {
 
 bool OffScreenBuffer::checkForErrors() {
     // Does the GPU support current FBO configuration?
-    const GLenum FBOStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    const GLenum GLStatus = glGetError();
-    if (FBOStatus == GL_FRAMEBUFFER_COMPLETE && GLStatus == GL_NO_ERROR) {
+    const GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    const GLenum glStatus = glGetError();
+    if (fboStatus == GL_FRAMEBUFFER_COMPLETE && glStatus == GL_NO_ERROR) {
         return true;
     }
-    switch (FBOStatus) {
+    switch (fboStatus) {
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
@@ -456,12 +455,12 @@ bool OffScreenBuffer::checkForErrors() {
         default: // Unknown error
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "OffScreenBuffer: Unknown FBO error: 0x%X\n", FBOStatus
+                "OffScreenBuffer: Unknown FBO error: 0x%X\n", fboStatus
             );
             break;
     }
 
-    switch (GLStatus) {
+    switch (glStatus) {
         case GL_INVALID_ENUM:
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
@@ -484,7 +483,7 @@ bool OffScreenBuffer::checkForErrors() {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an "
-                "GL_INVALID_FRAMEBUFFER_OPERATION error!\n"
+                "GL_INVALID_FRAMEBUFFER_OPERATION error\n"
             );
             break;
         case GL_OUT_OF_MEMORY:
@@ -511,7 +510,7 @@ bool OffScreenBuffer::checkForErrors() {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "OffScreenBuffer: Creating FBO triggered an unknown GL error 0x%X\n",
-                GLStatus
+                glStatus
             );
             break;
     }

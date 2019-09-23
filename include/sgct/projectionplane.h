@@ -8,10 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__PROJECTION_PLANE__H__
 #define __SGCT__PROJECTION_PLANE__H__
 
-#include <sgct/config.h>
 #include <glm/glm.hpp>
-
-namespace tinyxml2 { class XMLElement; }
 
 namespace sgct::core {
 
@@ -37,11 +34,9 @@ public:
     glm::vec3 getCoordinateUpperRight() const;
 
 protected:
-    struct {
-        glm::vec3 lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
-        glm::vec3 upperLeft = glm::vec3(-1.f, 1.f, -2.f);
-        glm::vec3 upperRight = glm::vec3(1.f, 1.f, -2.f);
-    } mPlaneCoords;
+    glm::vec3 lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    glm::vec3 upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    glm::vec3 upperRight = glm::vec3(1.f, 1.f, -2.f);
 };
 
 } // namespace sgct::core

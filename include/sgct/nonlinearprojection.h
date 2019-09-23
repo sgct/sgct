@@ -139,7 +139,7 @@ protected:
 
     int mCubemapResolution = 512;
     glm::vec4 mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
-    glm::ivec4 mVpCoords = glm::ivec4(0);
+    glm::ivec4 mVpCoords = glm::ivec4(0, 0, 0, 0);
     bool mUseDepthTransformation = false;
     bool mStereo = false;
     int mTexInternalFormat;

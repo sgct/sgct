@@ -12,13 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-void Projection::calculateProjection(glm::vec3 base,
-                                     const ProjectionPlane& projectionPlane,
+void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj,
                                      float nearClip, float farClip, glm::vec3 offset)
 {
-    const glm::vec3 lowerLeft = projectionPlane.getCoordinateLowerLeft();
-    const glm::vec3 upperLeft = projectionPlane.getCoordinateUpperLeft();
-    const glm::vec3 upperRight = projectionPlane.getCoordinateUpperRight();
+    const glm::vec3 lowerLeft = proj.getCoordinateLowerLeft();
+    const glm::vec3 upperLeft = proj.getCoordinateUpperLeft();
+    const glm::vec3 upperRight = proj.getCoordinateUpperRight();
     
     // calculate viewplane's internal coordinate system bases
     const glm::vec3 planeX = glm::normalize(upperRight - upperLeft);
@@ -26,7 +25,7 @@ void Projection::calculateProjection(glm::vec3 base,
     const glm::vec3 planeZ = glm::normalize(glm::cross(planeX, planeY));
 
     //calculate plane rotation using Direction Cosine Matrix (DCM)
-    glm::mat3 DCM(1.f); //init as identity matrix
+    glm::mat3 DCM(1.f); // init as identity matrix
     DCM[0][0] = glm::dot(planeX, glm::vec3(1.f, 0.f, 0.f));
     DCM[0][1] = glm::dot(planeX, glm::vec3(0.f, 1.f, 0.f));
     DCM[0][2] = glm::dot(planeX, glm::vec3(0.f, 0.f, 1.f));

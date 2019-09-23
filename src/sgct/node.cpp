@@ -52,7 +52,7 @@ Window& Node::getCurrentWindow() {
     return mWindows[mCurrentWindowIndex];
 }
 
-int Node::getCurrentWindowIndex() {
+int Node::getCurrentWindowIndex() const {
     return mCurrentWindowIndex;
 }
 
@@ -71,7 +71,7 @@ bool Node::shouldAllWindowsClose() {
         }
     }
 
-    return counter == mWindows.size();
+    return (counter == mWindows.size());
 }
 
 void Node::showAllWindows() {
@@ -92,8 +92,8 @@ bool Node::isUsingSwapGroups() const {
 
 void Node::setAddress(std::string address) {
     std::transform(
-        address.begin(),
-        address.end(),
+        address.cbegin(),
+        address.cend(),
         address.begin(),
         [](char c) { return static_cast<char>(::tolower(c)); }
     );

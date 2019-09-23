@@ -27,10 +27,7 @@ Plane::Plane(float width, float height) {
 
 Plane::~Plane() {
     glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
-
     glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
 }
 
 void Plane::draw() {

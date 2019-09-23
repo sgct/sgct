@@ -13,10 +13,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
 #endif
-#include <sgct/window.h>
 #include <sgct/clustermanager.h>
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/window.h>
 #include <algorithm>
 
 namespace {
@@ -142,7 +142,7 @@ void initialize(float nearClip, float farClip) {
         );
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "OpenVR Device Name : %s\n", HMDDevice.c_str()
+            "OpenVR Device Name: %s\n", HMDDevice.c_str()
         );
 
         std::string HMDNumber = getTrackedDeviceString(
@@ -368,7 +368,6 @@ glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farC
     }
 
     vr::HmdMatrix44_t mat = HMD->GetProjectionMatrix(nEye, nearClip, farClip);
-
     return glm::mat4(
         mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
         mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
@@ -389,7 +388,6 @@ glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye) {
         mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.f,
         mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.f
     );
-
     return glm::inverse(matrixObj);
 }
 

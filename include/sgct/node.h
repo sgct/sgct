@@ -56,7 +56,7 @@ public:
     Window& getCurrentWindow();
 
     /// Get the current window index
-    int getCurrentWindowIndex();
+    int getCurrentWindowIndex() const;
 
     /// \param address is the hostname, DNS-name or ip
     void setAddress(std::string address);

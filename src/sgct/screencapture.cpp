@@ -66,7 +66,6 @@ ScreenCapture::~ScreenCapture() {
     }
 
     glDeleteBuffers(1, &mPBO);
-    mPBO = 0;
 }
 
 void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor) {
@@ -112,7 +111,6 @@ void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferB
     mDownloadType = type;
     mDownloadTypeSetByUser = mDownloadType;
     mPreferBGR = preferBGR;
-
     updateDownloadFormat();
 }
 
@@ -126,7 +124,6 @@ ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     addFrameNumberToFilename(Engine::instance()->getScreenShotNumber());
-
     checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
@@ -152,15 +149,9 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         else {
             // set the target framebuffer to read
             glReadBuffer(sourceForCaptureSource(capSrc));
-            glReadPixels(
-                0,
-                0,
-                static_cast<GLsizei>(imPtr->getWidth()),
-                static_cast<GLsizei>(imPtr->getHeight()),
-                mDownloadFormat,
-                mDownloadType,
-                0
-            );
+            const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
+            const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
+            glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, 0);
         }
             
         if (Engine::instance()->isOGLPipelineFixed()) {
@@ -189,7 +180,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         else {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "Error: Can't map data (0) from GPU in frame capture!\n"
+                "Error: Can't map data (0) from GPU in frame capture\n"
             );
         }
         
@@ -215,15 +206,9 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         else {
             // set the target framebuffer to read
             glReadBuffer(sourceForCaptureSource(capSrc));
-            glReadPixels(
-                0,
-                0,
-                static_cast<GLsizei>(imPtr->getWidth()),
-                static_cast<GLsizei>(imPtr->getHeight()),
-                mDownloadFormat,
-                mDownloadType,
-                imPtr->getData()
-            );
+            const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
+            const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
+            glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, imPtr->getData());
         }
             
         if (Engine::instance()->isOGLPipelineFixed()) {
@@ -254,7 +239,7 @@ void ScreenCapture::setUsePBO(bool state) {
     
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "ScreenCapture: PBO rendering %s.\n", state ? "enabled" : "disabled"
+        "ScreenCapture: PBO rendering %s\n", state ? "enabled" : "disabled"
     );
 }
 

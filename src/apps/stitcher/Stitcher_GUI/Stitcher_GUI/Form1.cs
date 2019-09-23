@@ -51,7 +51,7 @@ namespace Stitcher_GUI
             browseFolderDialog = new FolderBrowserDialog();
 
             eyeSeparation = 0.065;
-            domeDiameter = 15.0;
+            domeDiameter = 14.8;
 
             updateTextBoxes();
         }
@@ -361,7 +361,7 @@ namespace Stitcher_GUI
 
         private void start_button_Click(object sender, EventArgs e)
         {
-            string processName = "stitcher_msvc12_x64.exe";
+            string processName = "stitcher.exe";
             string arguments = "-config fisheye.xml";
 
             if( stereo_checkBox.Checked )
@@ -467,7 +467,7 @@ namespace Stitcher_GUI
 
         private void domeDiameterInput_TextChanged(object sender, EventArgs e)
         {
-            domeDiameterInput.Text = checkDoubleInput(domeDiameterInput.Text, "15.00", out domeDiameter);
+            domeDiameterInput.Text = checkDoubleInput(domeDiameterInput.Text, "14.80", out domeDiameter);
         }
 
         private void format_comboBox_SelectedIndexChanged(object sender, EventArgs e)

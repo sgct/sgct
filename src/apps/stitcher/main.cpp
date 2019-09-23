@@ -57,49 +57,49 @@ void face(Rotation rot) {
         default:
             glBegin(GL_QUADS);
             glTexCoord2f(0.f, 0.f);
-            glVertex2f(0.f, 0.f);
+            glVertex2f(-1.f, -1.f);
             glTexCoord2f(0.f, 1.f);
-            glVertex2f(0.f, 1.f);
+            glVertex2f(-1.f, 1.f);
             glTexCoord2f(1.f, 1.f);
             glVertex2f(1.f, 1.f);
             glTexCoord2f(1.f, 0.f);
-            glVertex2f(1.f, 0.f);
+            glVertex2f(1.f, -1.f);
             glEnd();
             break;
         case Rotation::ROT_90_DEG:
             glBegin(GL_QUADS);
             glTexCoord2f(1.f, 0.f);
-            glVertex2f(0.f, 0.f);
+            glVertex2f(-1.f, -1.f);
             glTexCoord2f(0.f, 0.f);
-            glVertex2f(0.f, 1.f);
+            glVertex2f(-1.f, 1.f);
             glTexCoord2f(0.f, 1.f);
             glVertex2f(1.f, 1.f);
             glTexCoord2f(1.f, 1.f);
-            glVertex2f(1.f, 0.f);
+            glVertex2f(1.f, -1.f);
             glEnd();
             break;
         case Rotation::ROT_180_DEG:
             glBegin(GL_QUADS);
             glTexCoord2f(1.f, 1.f);
-            glVertex2f(0.f, 0.f);
+            glVertex2f(-1.f, -1.f);
             glTexCoord2f(1.f, 0.f);
-            glVertex2f(0.f, 1.f);
+            glVertex2f(-1.f, 1.f);
             glTexCoord2f(0.f, 0.f);
             glVertex2f(1.f, 1.f);
             glTexCoord2f(0.f, 1.f);
-            glVertex2f(1.f, 0.f);
+            glVertex2f(1.f, -1.f);
             glEnd();
             break;
         case Rotation::ROT_270_DEG:
             glBegin(GL_QUADS);
             glTexCoord2f(0.f, 1.f);
-            glVertex2f(0.f, 0.f);
+            glVertex2f(-1.f, -1.f);
             glTexCoord2f(1.f, 1.f);
-            glVertex2f(0.f, 1.f);
+            glVertex2f(-1.f, 1.f);
             glTexCoord2f(1.f, 0.f);
             glVertex2f(1.f, 1.f);
             glTexCoord2f(0.f, 0.f);
-            glVertex2f(1.f, 0.f);
+            glVertex2f(1.f, -1.f);
             glEnd();
             break;
     }
@@ -267,9 +267,16 @@ void preWinInitFun() {
             }
             vp.getNonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
             vp.getNonLinearProjection()->setCubemapResolution(cubemapRes);
-            vp.getNonLinearProjection()->setInterpolationMode(
-                sgct::core::NonLinearProjection::InterpolationMode::Cubic
-            );
+            if (cubic) {
+                vp.getNonLinearProjection()->setInterpolationMode(
+                    sgct::core::NonLinearProjection::InterpolationMode::Cubic
+                );
+            }
+            else {
+                vp.getNonLinearProjection()->setInterpolationMode(
+                    sgct::core::NonLinearProjection::InterpolationMode::Linear
+                );
+            }
 
             sgct::core::FisheyeProjection* p = dynamic_cast<sgct::core::FisheyeProjection*>(
                 vp.getNonLinearProjection()

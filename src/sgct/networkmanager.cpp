@@ -226,7 +226,7 @@ bool NetworkManager::init() {
         }
 
         // add all connections from config file
-        for (unsigned int i = 0; i < cm.getNumberOfNodes(); i++) {
+        for (int i = 0; i < cm.getNumberOfNodes(); i++) {
             // don't add itself if server
             if (mIsServer && !matchAddress(cm.getNode(i)->getAddress())) {
                 bool addSyncPort = addConnection(

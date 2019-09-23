@@ -103,6 +103,7 @@ Font::~Font() {
         }
     }
 
+    // This needs to be cleared before the face is destroyed
     mFontFaceDataMap.clear();
     FT_Done_Face(mFace);
 }
@@ -120,7 +121,6 @@ const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
         // check if c does not exist in map
         createCharacter(c);
     }
-    
     return mFontFaceDataMap[c];
 }
 
@@ -157,7 +157,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     if (charIndex == 0) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "Font %s: Missing face for char %u!\n",
+            "Font %s: Missing face for char %u\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
     }
@@ -166,7 +166,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     if (loadError) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Font %s: FT_Load_Glyph failed for char %u!\n",
+            "Font %s: FT_Load_Glyph failed for char %u\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
         return false;
@@ -181,7 +181,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     if (!success) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Font %s: FT_Get_Glyph failed for char %u.\n",
+            "Font %s: FT_Get_Glyph failed for char %u\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
         return false;

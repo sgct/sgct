@@ -359,9 +359,17 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
         glPushMatrix();
 
         FontManager::instance()->getShader().bind();
-        glUniform4fv(FontManager::instance()->getColorLocation(), 1, glm::value_ptr(color));
+        glUniform4fv(
+            FontManager::instance()->getColorLocation(),
+            1,
+            glm::value_ptr(color)
+        );
         const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(FontManager::instance()->getStrokeLocation(), 1, glm::value_ptr(stroke));
+        glUniform4fv(
+            FontManager::instance()->getStrokeLocation(),
+            1,
+            glm::value_ptr(stroke)
+        );
 
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(0.f, -h * i, 0.f);
@@ -443,11 +451,11 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
                 const wchar_t c = lines[i].c_str()[j];
                 const Font::FontFaceData& ffd = font.getFontFaceData(c);
 
-                glm::mat4 trans = glm::translate(
+                const glm::mat4 trans = glm::translate(
                     textScaleMat,
                     glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
                 );
-                glm::mat4 scale = glm::scale(
+                const glm::mat4 scale = glm::scale(
                     trans,
                     glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
                 );
@@ -480,10 +488,6 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 namespace sgct::text {
 
 void print(Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -494,10 +498,6 @@ void print(Font& font, TextAlignMode mode, float x, float y, const char* format,
 }
 
 void print(Font& font, TextAlignMode mode, float x, float y, const wchar_t* format, ...) {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<wchar_t> buf = parseArgList(args, format);
@@ -510,10 +510,6 @@ void print(Font& font, TextAlignMode mode, float x, float y, const wchar_t* form
 void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -526,10 +522,6 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const wchar_t* format, ...)
 {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<wchar_t> buf = parseArgList(args, format);
@@ -540,9 +532,6 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 }
 
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...) {
-    if (format == nullptr)
-        return;
-
     va_list	args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -553,10 +542,6 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, 
 }
 
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* format, ...) {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<wchar_t> buf = parseArgList(args, format);
@@ -569,10 +554,6 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* forma
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const char* format, ...)
 {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -585,10 +566,6 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const wchar_t* format, ...)
 {
-    if (format == nullptr) {
-        return;
-    }
-
     va_list	args;
     va_start(args, format);
     std::vector<wchar_t> buf = parseArgList(args, format);

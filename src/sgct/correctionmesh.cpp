@@ -616,10 +616,10 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
         return false;
     }
     else {
-        double x = static_cast<double>(viewData.qx);
-        double y = static_cast<double>(viewData.qy);
-        double z = static_cast<double>(viewData.qz);
-        double w = static_cast<double>(viewData.qw);
+        const double x = static_cast<double>(viewData.qx);
+        const double y = static_cast<double>(viewData.qy);
+        const double z = static_cast<double>(viewData.qz);
+        const double w = static_cast<double>(viewData.qw);
         
         // @TODO (abock, 2019-08-30): It seems weird that we are mixing the euler angles
         // from x,y,z to y,x,z. Maybe something related to left-handed and right-handed
@@ -908,7 +908,6 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
         }
     }
 
-
     return true;
 }
 
@@ -1023,10 +1022,10 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
         return false;
     }
 
-    float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
-    float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
+    const float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
+    const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
-    if (ceilf(numberOfColsf) != numberOfColsf || ceilf(numberOfRowsf) != numberOfRowsf) {
+    if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "CorrectionMesh: Not a valid squared matrix read from SimCAD file\n"
@@ -1034,8 +1033,8 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
         return false;
     }
 
-    unsigned int numberOfCols = static_cast<unsigned int>(numberOfColsf);
-    unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
+    const unsigned int numberOfCols = static_cast<unsigned int>(numberOfColsf);
+    const unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
 
 
 #ifdef CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
@@ -1248,7 +1247,6 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
             );
 #endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
         }
-
     }
 
     // copy vertices
@@ -1258,13 +1256,15 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
     // Make a triangle strip index list
     buf.indices.reserve(4 * numberOfRows * numberOfCols);
     for (unsigned int r = 0; r < numberOfRows - 1; r++) {
-        if ((r % 2) == 0) { // even rows
+        if ((r % 2) == 0) {
+            // even rows
             for (unsigned int c = 0; c < numberOfCols; c++) {
                 buf.indices.push_back(c + r * numberOfCols);
                 buf.indices.push_back(c + (r + 1) * numberOfCols);
             }
         }
-        else { // odd rows
+        else {
+            // odd rows
             for (unsigned int c = numberOfCols - 1; c > 0; c--) {
                 buf.indices.push_back(c + (r + 1) * numberOfCols);
                 buf.indices.push_back(c - 1 + r * numberOfCols);
@@ -1323,8 +1323,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "CorrectionMesh: Reading SkySkan mesh data from '%s'\n",
-        meshPath.c_str()
+        "CorrectionMesh: Reading SkySkan mesh data from '%s'\n", meshPath.c_str()
     );
 
     FILE* meshFile = nullptr;
@@ -1438,7 +1437,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
     // create frustums and projection matrices
     if (!vFovSet || verticalFov <= 0.f) {
         // half the width (radius is one unit, cancels it self out)
-        const float hw = tanf(glm::radians<float>(horizontalFov) / 2.f);
+        const float hw = tan(glm::radians<float>(horizontalFov) / 2.f);
         // half height
         const float hh = (1200.f / 2048.f) * hw;
         
@@ -1985,11 +1984,11 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     for (int i = 0; i < numCorrectionValues; ++i) {
         const int gridIndex_column = i % numberOfCols;
         const int gridIndex_row = i / numberOfCols;
-        //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
+        // Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
         // add the correction offsets to each warp point
         smoothPos[i].x = static_cast<float>(gridIndex_column) /
                          static_cast<float>(numberOfCols - 1);
-        //Reverse the y position because the values from pfm file are given in raster-scan
+        // Reverse the y position because the values from pfm file are given in raster-scan
         // order, which is left to right but starts at upper-left rather than lower-left.
         smoothPos[i].y = 1.f - (static_cast<float>(gridIndex_row) /
                          static_cast<float>(numberOfRows - 1));
@@ -2011,7 +2010,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         warpedPos[i].x = (warpedPos[i].x - minX) / scaleFactor;
         warpedPos[i].y = (warpedPos[i].y - minY) / scaleFactor;
     }
-#endif //NORMALIZE_CORRECTION_MESH
+#endif // NORMALIZE_CORRECTION_MESH
 
     buf.vertices.reserve(numCorrectionValues);
     for (int i = 0; i < numCorrectionValues; ++i) {
@@ -2272,7 +2271,6 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
         // display lists
         geom.mVertexMeshData = glGenLists(1);
         glNewList(geom.mVertexMeshData, GL_COMPILE);
-
         glBegin(geom.mGeometryType);
         
         for (unsigned int i = 0; i < geom.mNumberOfIndices; i++) {
@@ -2283,7 +2281,6 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
             glVertex2f(vertex.x, vertex.y);
         }
         glEnd();
-
         glEndList();
         
         MessageHandler::instance()->print(
@@ -2325,12 +2322,12 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
         
     // export vertices
     for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-        file << "v " << vertices[i].x << " " << vertices[i].y << " 0\n";
+        file << "v " << vertices[i].x << ' ' << vertices[i].y << " 0\n";
     }
 
     // export texture coords
     for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
-        file << "vt " << vertices[i].s << " " << vertices[i].t << " 0\n";
+        file << "vt " << vertices[i].s << ' ' << vertices[i].t << " 0\n";
     }
 
     // export generated normals
@@ -2338,7 +2335,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
         file << "vn 0 0 1\n";
     }
 
-    file << "# Number of faces: " << mWarpGeometry.mNumberOfIndices / 3 << "\n";
+    file << "# Number of faces: " << mWarpGeometry.mNumberOfIndices / 3 << '\n';
 
     // export face indices
     if (mWarpGeometry.mGeometryType == GL_TRIANGLES) {
@@ -2346,7 +2343,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
             file << "f " << indices[i] + 1 << '/' << indices[i] + 1 << '/'
                  << indices[i] + 1 << ' ';
             file << indices[i + 1] + 1 << '/' << indices[i + 1] + 1 << '/'
-                 << indices[i + 1] + 1 << " ";
+                 << indices[i + 1] + 1 << ' ';
             file << indices[i + 2] + 1 << '/' << indices[i + 2] + 1 << '/'
                  << indices[i + 2] + 1 << '\n';
         }
@@ -2358,7 +2355,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
         file << "f " << indices[0] + 1 << '/' << indices[0] + 1 << '/'
              << indices[0] + 1 << ' ';
         file << indices[1] + 1 << '/' << indices[1] + 1 << '/'
-             << indices[1] + 1 << " ";
+             << indices[1] + 1 << ' ';
         file << indices[2] + 1 << '/' << indices[2] + 1 << '/'
              << indices[2] + 1 << '\n';
 

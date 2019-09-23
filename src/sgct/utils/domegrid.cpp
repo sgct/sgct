@@ -42,10 +42,7 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
 
 DomeGrid::~DomeGrid() {
     glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
-
     glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
 }
 
 void DomeGrid::draw() {
@@ -166,7 +163,6 @@ void DomeGrid::createVBO(float radius, float FOV) {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     }
 
-    // unbind
     if (!Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }

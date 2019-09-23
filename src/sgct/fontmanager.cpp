@@ -233,7 +233,8 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         return nullptr;
     }
 
-    if (FT_Set_Char_Size(face, height << 6, height << 6, 96, 96) != 0) {
+    FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
+    if (charSizeErr != 0) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "FontManager: Could not set pixel size for font[%s].\n", name.c_str()
@@ -272,7 +273,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
             Engine::instance()->getGLSLVersion()
         );
 
-        bool vert = mShader.addShaderSrc(
+        const bool vert = mShader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -283,7 +284,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
                 "Failed to load font vertex shader\n"
             );
         }
-        bool frag = mShader.addShaderSrc(
+        const bool frag = mShader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String

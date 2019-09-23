@@ -15,7 +15,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <memory>
 #include <string>
 
-
 /**
  * \namespace sgct::core
  * \brief SGCT core namespace is used internally within sgct.
@@ -85,7 +84,7 @@ public:
     void setNetworkMode(NetworkManager::NetworkMode nm);
 
     /// \return the number of nodes in the cluster
-    size_t getNumberOfNodes() const;
+    int getNumberOfNodes() const;
     
     /// \return the scene transform specified in the configuration file
     const glm::mat4& getSceneTransform() const;
@@ -174,7 +173,7 @@ public:
     MeshImplementation getMeshImplementation() const;
 
     /// \returns the pointer to the tracking manager
-    sgct::TrackingManager& getTrackingManager();
+    TrackingManager& getTrackingManager();
 
 private:
     ClusterManager();

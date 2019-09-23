@@ -117,7 +117,6 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
                 0.f
             ));
             break;
-
     }
 
     if (Engine::instance()->isOGLPipelineFixed()) {

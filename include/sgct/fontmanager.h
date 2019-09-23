@@ -183,7 +183,7 @@ private:
     int mTextureLocation = -1;
 };
 
-} // sgct
+} // namespace sgct
 
 #endif // SGCT_HAS_TEXT
 

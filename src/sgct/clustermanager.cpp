@@ -171,8 +171,8 @@ void ClusterManager::setExternalControlPort(int port) {
     mExternalControlPort = port;
 }
 
-size_t ClusterManager::getNumberOfNodes() const {
-    return nodes.size();
+int ClusterManager::getNumberOfNodes() const {
+    return static_cast<int>(nodes.size());
 }
 
 const glm::mat4& ClusterManager::getSceneTransform() const {

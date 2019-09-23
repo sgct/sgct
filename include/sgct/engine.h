@@ -306,8 +306,8 @@ public:
     unsigned int getScreenShotNumber() const;
 
     /// Don't use this. This function is called internally in SGCT.
-    void invokeScreenShotCallback(sgct::core::Image* imPtr, size_t winIndex,
-        sgct::core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
+        core::ScreenCapture::EyeIndex ei, unsigned int type);
 
     /**
      * Create a timer that counts down and call the given callback when finished. The
@@ -617,8 +617,8 @@ void sgct::Engine::clearBuffer() {
      * \param fn is the function pointer to a screenshot callback for custom frame
      *        capture & export
      */
-    void setScreenShotCallback(std::function<void(sgct::core::Image*, size_t,
-        sgct::core::ScreenCapture::EyeIndex, unsigned int type)> fn);
+    void setScreenShotCallback(std::function<void(core::Image*, size_t,
+        core::ScreenCapture::EyeIndex, unsigned int type)> fn);
 
 
     /**
@@ -876,7 +876,7 @@ void sgct::Engine::clearBuffer() {
     int getCurrentWindowIndex() const;
 
     /// Returns a pointer to the user (VR observer position) object
-    static sgct::core::User& getDefaultUser();
+    static core::User& getDefaultUser();
 
     /// Returns a pointer to the tracking manager pointer
     static TrackingManager& getTrackingManager();
@@ -908,7 +908,7 @@ void sgct::Engine::clearBuffer() {
      *   - Stereo Left
      *   - Stereo Right
      */
-    sgct::core::Frustum::Mode getCurrentFrustumMode() const;
+    core::Frustum::Mode getCurrentFrustumMode() const;
 
     /**
      * Returns the active projection matrix (only valid inside in the draw callback
@@ -987,7 +987,7 @@ void sgct::Engine::clearBuffer() {
     RenderTarget getCurrentRenderTarget() const;
 
     /// \return the active off screen buffer. If no buffer is active nullptr is returned. 
-    sgct::core::OffScreenBuffer* getCurrentFBO() const;
+    core::OffScreenBuffer* getCurrentFBO() const;
 
     /**
      * Returns the active viewport in pixels (only valid inside in the draw callback

@@ -584,6 +584,7 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
     try {
         sgct::config::Cluster cluster;
         if (configFilename.empty()) {
+            // Create a default configuration
             sgct::config::ProjectionPlane proj;
             proj.lowerLeft = glm::vec3(-1.778f, -1.f, 0.f);
             proj.upperLeft = glm::vec3(-1.778f, 1.f, 0.f);
@@ -1119,12 +1120,12 @@ void Engine::initOGL() {
     // Add fonts
 #ifdef SGCT_HAS_TEXT
     if (Settings::instance()->getOSDTextFontPath().empty()) {
-        const bool success = sgct::text::FontManager::instance()->addFont(
+        const bool success = text::FontManager::instance()->addFont(
             "SGCTFont",
             Settings::instance()->getOSDTextFontName()
         );
         if (!success) {
-            sgct::text::FontManager::instance()->getFont(
+            text::FontManager::instance()->getFont(
                 "SGCTFont",
                 Settings::instance()->getOSDTextFontSize()
             );
@@ -1133,13 +1134,13 @@ void Engine::initOGL() {
     else {
         std::string tmpPath = Settings::instance()->getOSDTextFontPath() +
                               Settings::instance()->getOSDTextFontName();
-        const bool success = sgct::text::FontManager::instance()->addFont(
+        const bool success = text::FontManager::instance()->addFont(
             "SGCTFont",
             tmpPath,
-            sgct::text::FontManager::FontPath::Local
+            text::FontManager::FontPath::Local
         );
         if (!success) {
-            sgct::text::FontManager::instance()->getFont(
+            text::FontManager::instance()->getFont(
                 "SGCTFont",
                 Settings::instance()->getOSDTextFontSize()
             );
@@ -1360,8 +1361,7 @@ bool Engine::frameLockPreStage() {
                     conn->getRecvFramePrevious(),
                     getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
                     getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
-                    getCurrentWindow().getSwapGroupFrameNumber(),
-                    mFrameCounter
+                    getCurrentWindow().getSwapGroupFrameNumber(), mFrameCounter
                 );
             }
 
@@ -1410,7 +1410,6 @@ bool Engine::frameLockPostStage() {
         }
 
         // for debugging
-
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
         }
@@ -1431,8 +1430,7 @@ bool Engine::frameLockPostStage() {
                     mNetworkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
                     getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
                     getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
-                    getCurrentWindow().getSwapGroupFrameNumber(),
-                    mFrameCounter
+                    getCurrentWindow().getSwapGroupFrameNumber(), mFrameCounter
                 );
             }
         }
@@ -1541,7 +1539,6 @@ void Engine::render() {
             {
                 continue;
             }
-
 
             // store the first buffer index for each window
             firstDrawBufferIndexInWindow = mCurrentDrawBufferIndex;
@@ -1795,7 +1792,7 @@ void Engine::renderDisplayInfo() {
                 sgct::text::TextAlignMode::TopLeft,
                 pos.x,
                 lineHeight * 3.f + pos.y,
-                glm::vec4(0.f,0.8f,0.8f,1.f),
+                glm::vec4(0.f, 0.8f, 0.8f, 1.f),
                 "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)",
                 mStatistics->getAvgSyncTime() * 1000.0,
                 SharedData::instance()->getUserDataSize(),
@@ -1936,7 +1933,6 @@ void Engine::drawFixedPipeline() {
     }
     
     glDisable(GL_SCISSOR_TEST);
-
     glMatrixMode(GL_PROJECTION);
 
     core::Projection& proj =
@@ -2093,7 +2089,7 @@ void Engine::renderFBOTexture() {
     // needed for shaders
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    mCurrentFrustumMode = win.getStereoMode() == Window::StereoMode::Active ?
+    mCurrentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
         core::Frustum::StereoLeftEye :
         core::Frustum::MonoEye;
 
@@ -2211,14 +2207,13 @@ void Engine::renderFBOTexture() {
     glDisable(GL_BLEND);
 }
 
-
 void Engine::renderFBOTextureFixedPipeline() {
     core::OffScreenBuffer::unBind();
     
     Window& win = getCurrentWindow();
     win.makeOpenGLContextCurrent(Window::Context::Window);
     
-    mCurrentFrustumMode = win.getStereoMode() == Window::StereoMode::Active ?
+    mCurrentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
         core::Frustum::StereoLeftEye :
         core::Frustum::MonoEye;
     
@@ -2486,8 +2481,8 @@ void Engine::render2D() {
 
         if (mShowGraph) {
             mStatistics->draw(
-                static_cast<float>(getCurrentWindow().getFramebufferResolution().y)
-                / static_cast<float>(getCurrentWindow().getResolution().y)
+                static_cast<float>(getCurrentWindow().getFramebufferResolution().y) /
+                static_cast<float>(getCurrentWindow().getResolution().y)
             );
         }
         // The text renderer enters automatically the correct viewport
@@ -2508,7 +2503,6 @@ void Engine::render2D() {
 
 void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
 
     size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
     for (size_t i = 0; i < numberOfPasses; i++) {
@@ -2541,7 +2535,7 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
     }
 
     if (getCurrentWindow().useFXAA()) {
-        PostFX* lastFx = numberOfPasses > 0 ?
+        PostFX* lastFx = (numberOfPasses > 0) ?
             &getCurrentWindow().getPostFX(numberOfPasses - 1) :
             nullptr;
 
@@ -2584,7 +2578,6 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         getCurrentWindow().unbindVAO();
 
-        //unbind FXAA
         ShaderProgram::unbind();
     }
 }
@@ -2592,7 +2585,7 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
 void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
+    const size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
     if (numberOfPasses > 0) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glEnable(GL_TEXTURE_2D);
@@ -2776,7 +2769,7 @@ void Engine::loadShaders() {
     helpers::findAndReplace(fxaaVertShader, "**glsl_version**", getGLSLVersion());
     helpers::findAndReplace(fxaaFragShader, "**glsl_version**", getGLSLVersion());
 
-    bool fxaaVertSuccess = mShader.fxaa.addShaderSrc(
+    const bool fxaaVertSuccess = mShader.fxaa.addShaderSrc(
         fxaaVertShader,
         GL_VERTEX_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -2788,7 +2781,7 @@ void Engine::loadShaders() {
         );
     }
 
-    bool fxaaFragSuccess = mShader.fxaa.addShaderSrc(
+    const bool fxaaFragSuccess = mShader.fxaa.addShaderSrc(
         fxaaFragShader,
         GL_FRAGMENT_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -2803,7 +2796,7 @@ void Engine::loadShaders() {
     mShader.fxaa.bind();
 
     mShaderLoc.sizeX = mShader.fxaa.getUniformLocation("rt_w");
-    glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
+    const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
     glUniform1f(mShaderLoc.sizeX, static_cast<float>(framebufferSize.x));
 
     mShaderLoc.sizeY = mShader.fxaa.getUniformLocation("rt_h");
@@ -2833,7 +2826,7 @@ void Engine::loadShaders() {
         helpers::findAndReplace(fboQuadFragShader, "**glsl_version**", glslVersion);
         
         mShader.fboQuad.setName("FBOQuadShader");
-        bool quadVertSuccess = mShader.fboQuad.addShaderSrc(
+        const bool quadVertSuccess = mShader.fboQuad.addShaderSrc(
             fboQuadVertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -2844,7 +2837,7 @@ void Engine::loadShaders() {
                 "Failed to load FBO quad vertex shader\n"
             );
         }
-        bool quadFragSuccess = mShader.fboQuad.addShaderSrc(
+        const bool quadFragSuccess = mShader.fboQuad.addShaderSrc(
             fboQuadFragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -2871,7 +2864,7 @@ void Engine::loadShaders() {
         helpers::findAndReplace(overlayFragShader, "**glsl_version**", getGLSLVersion());
         
         mShader.overlay.setName("OverlayShader");
-        bool overlayVertSuccess = mShader.overlay.addShaderSrc(
+        const bool overlayVertSuccess = mShader.overlay.addShaderSrc(
             overlayVertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -2882,7 +2875,7 @@ void Engine::loadShaders() {
                 "Failed to load overlay vertex shader\n"
             );
         }
-        bool overlayFragSuccess = mShader.overlay.addShaderSrc(
+        const bool overlayFragSuccess = mShader.overlay.addShaderSrc(
             overlayFragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -3471,10 +3464,10 @@ void Engine::printNodeInfo(unsigned int nodeId) {
 void Engine::enterCurrentViewport() {
     core::BaseViewport* vp = getCurrentWindow().getCurrentViewport();
     
-    glm::vec2 res = glm::vec2(getCurrentWindow().getFramebufferResolution());
+    const glm::vec2 res = glm::vec2(getCurrentWindow().getFramebufferResolution());
         
-    glm::vec2 p = vp->getPosition() * res;
-    glm::vec2 s = vp->getSize() * res;
+    const glm::vec2 p = vp->getPosition() * res;
+    const glm::vec2 s = vp->getSize() * res;
     mCurrentViewportCoords = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
 
     Window::StereoMode sm = getCurrentWindow().getStereoMode();
@@ -3653,7 +3646,7 @@ unsigned int Engine::getCurrentDrawTexture() const {
     }
     else {
         return getCurrentWindow().getFrameBufferTexture(
-            mCurrentFrustumMode == core::Frustum::StereoRightEye ? RightEye : LeftEye
+            (mCurrentFrustumMode == core::Frustum::StereoRightEye) ? RightEye : LeftEye
         );
     }
 }
@@ -3815,7 +3808,7 @@ void Engine::updateDrawBufferResolutions() {
         }
 
         // second add window resolution
-        glm::ivec2 size = win.getFinalFBODimensions();
+        const glm::ivec2 size = win.getFinalFBODimensions();
         mDrawBufferResolutions.push_back(size);
     }
 }

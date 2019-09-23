@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::utils {
 
 Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
-                   unsigned int elevationSteps)
+           unsigned int elevationSteps)
     : mElevationSteps(elevationSteps)
     , mAzimuthSteps(azimuthSteps)
 {
@@ -52,11 +52,8 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
 
 Dome::~Dome() {
     glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
     glDeleteBuffers(1, &mIBO);
-    mIBO = 0;
     glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
 }
 
 void Dome::draw() {
@@ -121,13 +118,13 @@ void Dome::drawVAO() {
     }
 
     // one extra for the cap vertex and one extra for duplication of last index
-    unsigned int size = mAzimuthSteps + 2; 
-    unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+    const unsigned int size = mAzimuthSteps + 2; 
+    const unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
     glDrawElements(
         GL_TRIANGLE_FAN,
         size,
         GL_UNSIGNED_INT,
-        reinterpret_cast<void*>(offset*sizeof(unsigned int))
+        reinterpret_cast<void*>(offset * sizeof(unsigned int))
     );
     glBindVertexArray(0);
 }
@@ -183,8 +180,7 @@ void Dome::createVBO(float radius, float FOV) {
                 s, t,
                 x, y, z,
                 x * radius, y * radius, z * radius
-                }
-            );
+            });
 
             indices.push_back(numVerts);
             indices.push_back(mAzimuthSteps + numVerts);

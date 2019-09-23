@@ -17,9 +17,9 @@ namespace sgct::utils {
 Box::Box(float size, TextureMappingMode mode) {
     createVBO(size, mode);
 
-    if (!sgct::Engine::checkForOGLErrors()) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,\
+    if (!Engine::checkForOGLErrors()) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
             "SGCT Utils: Box creation error\n"
         );
     }
@@ -27,10 +27,7 @@ Box::Box(float size, TextureMappingMode mode) {
 
 Box::~Box() {
     glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
-
     glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
 }
 
 void Box::draw() {
@@ -59,10 +56,8 @@ void Box::drawVBO() {
 }
 
 void Box::drawVAO() {
-    glBindVertexArray( mVAO );
+    glBindVertexArray(mVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    // unbind
     glBindVertexArray(0);
 }
 
@@ -220,7 +215,7 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
 
     if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
-        glBindVertexArray( mVAO );
+        glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);

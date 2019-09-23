@@ -181,7 +181,7 @@ Viewport::~Viewport() {
     glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
 }
 
-void Viewport::applySettings(const sgct::config::Viewport& viewport) {
+void Viewport::applySettings(const config::Viewport& viewport) {
     if (viewport.user) {
         setUserName(*viewport.user);
     }
@@ -207,14 +207,14 @@ void Viewport::applySettings(const sgct::config::Viewport& viewport) {
         setTracked(*viewport.isTracked);
     }
     if (viewport.eye) {
-        Frustum::Mode e = [](sgct::config::Viewport::Eye e) {
+        Frustum::Mode e = [](config::Viewport::Eye e) {
             switch (e) {
                 default:
-                case sgct::config::Viewport::Eye::Mono:
+                case config::Viewport::Eye::Mono:
                     return Frustum::MonoEye;
-                case sgct::config::Viewport::Eye::StereoLeft:
+                case config::Viewport::Eye::StereoLeft:
                     return Frustum::StereoLeftEye;
-                case sgct::config::Viewport::Eye::StereoRight:
+                case config::Viewport::Eye::StereoRight:
                     return Frustum::StereoRightEye;
             }
         }(*viewport.eye);
@@ -225,20 +225,20 @@ void Viewport::applySettings(const sgct::config::Viewport& viewport) {
     setSize(viewport.size);
 
     std::visit(overloaded{
-        [](const sgct::config::NoProjection&) {},
-        [this](const sgct::config::PlanarProjection& proj) {
+        [](const config::NoProjection&) {},
+        [this](const config::PlanarProjection& proj) {
             applyPlanarProjection(proj);
         },
-        [this](const sgct::config::FisheyeProjection& proj) {
+        [this](const config::FisheyeProjection& proj) {
             applyFisheyeProjection(proj);
         },
-        [this](const sgct::config::SphericalMirrorProjection& proj) {
+        [this](const config::SphericalMirrorProjection& proj) {
             applySphericalMirrorProjection(proj);
         },
-        [this](const sgct::config::SpoutOutputProjection& proj) {
+        [this](const config::SpoutOutputProjection& proj) {
             applySpoutOutputProjection(proj);
         },
-        [this](const sgct::config::ProjectionPlane& proj) {
+        [this](const config::ProjectionPlane& proj) {
             mProjectionPlane.setCoordinateLowerLeft(*proj.lowerLeft);
             mUnTransformedViewPlaneCoords.lowerLeft = *proj.lowerLeft;
             mProjectionPlane.setCoordinateUpperLeft(*proj.upperLeft);
@@ -250,7 +250,7 @@ void Viewport::applySettings(const sgct::config::Viewport& viewport) {
 }
 
 void Viewport::configureMpcdi(tinyxml2::XMLElement* element) {
-    sgct::config::MpcdiProjection proj = parseMpcdi(element);
+    config::MpcdiProjection proj = parseMpcdi(element);
 
     if (proj.id) {
         setName(*proj.id);
@@ -274,7 +274,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element) {
     }
 }
 
-void Viewport::applyPlanarProjection(const sgct::config::PlanarProjection& proj) {
+void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
     setViewPlaneCoordsUsingFOVs(
         proj.fov.up,
         proj.fov.down,
@@ -288,7 +288,7 @@ void Viewport::applyPlanarProjection(const sgct::config::PlanarProjection& proj)
     }
 }
 
-void Viewport::applyFisheyeProjection(const sgct::config::FisheyeProjection& proj) {
+void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     std::unique_ptr<FisheyeProjection> fishProj = std::make_unique<FisheyeProjection>();
     fishProj->setUser(mUser);
     
@@ -299,26 +299,27 @@ void Viewport::applyFisheyeProjection(const sgct::config::FisheyeProjection& pro
         fishProj->setCubemapResolution(*proj.quality);
     }
     if (proj.method) {
-        sgct::core::FisheyeProjection::FisheyeMethod m = [](sgct::config::FisheyeProjection::Method m) {
+        core::FisheyeProjection::FisheyeMethod m = [](config::FisheyeProjection::Method m)
+        {
             switch (m) {
                 default:
-                case sgct::config::FisheyeProjection::Method::FourFace:
-                    return sgct::core::FisheyeProjection::FisheyeMethod::FourFaceCube;
-                case sgct::config::FisheyeProjection::Method::FiveFace:
-                    return sgct::core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
+                case config::FisheyeProjection::Method::FourFace:
+                    return core::FisheyeProjection::FisheyeMethod::FourFaceCube;
+                case config::FisheyeProjection::Method::FiveFace:
+                    return core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
             }
         }(*proj.method);
         fishProj->setRenderingMethod(m);
     }
     if (proj.interpolation) {
-        sgct::core::NonLinearProjection::InterpolationMode i =
-            [](sgct::config::FisheyeProjection::Interpolation i) {
+        core::NonLinearProjection::InterpolationMode i =
+            [](config::FisheyeProjection::Interpolation i) {
                 switch (i) {
                     default:
-                    case sgct::config::FisheyeProjection::Interpolation::Linear:
-                        return sgct::core::NonLinearProjection::InterpolationMode::Linear;
-                    case sgct::config::FisheyeProjection::Interpolation::Cubic:
-                        return sgct::core::NonLinearProjection::InterpolationMode::Cubic;
+                    case config::FisheyeProjection::Interpolation::Linear:
+                        return core::NonLinearProjection::InterpolationMode::Linear;
+                    case config::FisheyeProjection::Interpolation::Cubic:
+                        return core::NonLinearProjection::InterpolationMode::Cubic;
                 }
             }(*proj.interpolation);
         fishProj->setInterpolationMode(i);
@@ -347,7 +348,7 @@ void Viewport::applyFisheyeProjection(const sgct::config::FisheyeProjection& pro
     mNonLinearProjection = std::move(fishProj);
 }
 
-void Viewport::applySpoutOutputProjection(const sgct::config::SpoutOutputProjection& proj) {
+void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& proj) {
 #ifndef SGCT_HAS_SPOUT
     (void)proj;
     MessageHandler::instance()->print(
@@ -364,14 +365,14 @@ void Viewport::applySpoutOutputProjection(const sgct::config::SpoutOutputProject
         spoutProj->setCubemapResolution(*proj.quality);
     }
     if (proj.mapping) {
-        SpoutOutputProjection::Mapping m = [](sgct::config::SpoutOutputProjection::Mapping m) {
+        SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
             switch (m) {
                 default:
-                case sgct::config::SpoutOutputProjection::Mapping::Fisheye:
+                case config::SpoutOutputProjection::Mapping::Fisheye:
                     return SpoutOutputProjection::Mapping::Fisheye;
-                case sgct::config::SpoutOutputProjection::Mapping::Equirectangular:
+                case config::SpoutOutputProjection::Mapping::Equirectangular:
                     return SpoutOutputProjection::Mapping::Equirectangular;
-                case sgct::config::SpoutOutputProjection::Mapping::Cubemap:
+                case config::SpoutOutputProjection::Mapping::Cubemap:
                     return SpoutOutputProjection::Mapping::Cubemap;
             }
         }(*proj.mapping);
@@ -382,14 +383,6 @@ void Viewport::applySpoutOutputProjection(const sgct::config::SpoutOutputProject
         spoutProj->setClearColor(*proj.background);
     }
     if (proj.channels) {
-
-        bool right = true;
-        bool zLeft = true;
-        bool bottom = true;
-        bool top = true;
-        bool left = true;
-        bool zRight = true;
-
         bool channels[6] = {
             proj.channels->right,
             proj.channels->zLeft,
@@ -409,12 +402,16 @@ void Viewport::applySpoutOutputProjection(const sgct::config::SpoutOutputProject
 #endif
 }
 
-void Viewport::applySphericalMirrorProjection(const sgct::config::SphericalMirrorProjection& proj) {
+void Viewport::applySphericalMirrorProjection(
+                                            const config::SphericalMirrorProjection& proj)
+{
     std::unique_ptr<SphericalMirrorProjection> sphericalMirrorProj =
         std::make_unique<SphericalMirrorProjection>();
 
     sphericalMirrorProj->setUser(mUser);
-    sphericalMirrorProj->setCubemapResolution(*proj.quality);
+    if (proj.quality) {
+        sphericalMirrorProj->setCubemapResolution(*proj.quality);
+    }
 
     if (proj.tilt) {
         sphericalMirrorProj->setTilt(*proj.tilt);

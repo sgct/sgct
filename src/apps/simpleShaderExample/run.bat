@@ -1,1 +1,0 @@
-simpleShaderExample.exe -config ../../config/single.xml

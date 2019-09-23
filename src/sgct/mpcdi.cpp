@@ -51,6 +51,7 @@ namespace {
             );
         }
 
+        // @TODO (abock, 2019-09-23)  Do something with the resolution
         //glm::vec2 vpResolution;
         //if (element->QueryFloatAttribute("xResolution", &vpResolution[0]) == XML_NO_ERROR &&
         //    element->QueryFloatAttribute("yResolution", &vpResolution[1]) == XML_NO_ERROR)
@@ -67,7 +68,6 @@ namespace {
         //        );
         //    }
 
-        //    // @TODO:  Do something with the resolution
         //}
         //else {
         //    MessageHandler::instance()->print(
@@ -299,7 +299,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         }
     }
     unzClose(zipfile);
-    if (!mXmlFileContents.isFound || !mPfmFileContents.isFound) {
+    if (!mXmlFileContents.isFound && !mPfmFileContents.isFound) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file\n",
@@ -496,6 +496,7 @@ bool Mpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win) 
     while (child) {
         std::string_view val = child->Value();
         if (val == "fileset") {
+            child = child->NextSiblingElement();
             continue;
         }
 

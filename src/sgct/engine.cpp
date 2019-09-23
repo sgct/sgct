@@ -406,6 +406,7 @@ Parameters:
 
         if (window.mpcdi) {
             sgct::core::Mpcdi().parseConfiguration(*window.mpcdi, node, win);
+            return;
         }
 
         if (window.stereo) {
@@ -717,18 +718,8 @@ bool Engine::initNetwork() {
         );
         return false;
     }
-    catch (const char* err) {
-        // @TODO (abock, 2019-08-25) NetworkManager threw a lot of C arrays around, but I
-        // changed them to std::runtime_error.  I might have missed one or two, though?
-        // Anyway, this catch clause should be get rid of
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Initiating network connections failed. Error: '%s'\n", err
-        );
-        return false;
-    }
 
-    //check in cluster configuration which it is
+    // check in cluster configuration which it is
     if (core::ClusterManager::instance()->getNetworkMode() ==
         core::NetworkManager::NetworkMode::Remote)
     {

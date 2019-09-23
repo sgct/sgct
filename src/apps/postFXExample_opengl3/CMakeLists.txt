@@ -11,8 +11,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/blur_h.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/blur_v.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/glow.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/threshold.frag"

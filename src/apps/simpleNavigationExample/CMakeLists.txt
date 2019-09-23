@@ -6,10 +6,9 @@ set_compile_options(simpleNavigationExample)
 target_link_libraries(simpleNavigationExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.command"
+  "${CMAKE_CURRENT_SOURCE_DIR}/single_fisheye.xml"
 )
 copy_files(simpleNavigationExample ${files})
 copy_sgct_dynamic_libraries(simpleNavigationExample)

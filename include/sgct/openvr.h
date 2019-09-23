@@ -10,12 +10,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #ifdef SGCT_HAS_OPENVR
 
-#include <string>
-#include <stdio.h>
+#include <sgct/frustum.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <sgct/Frustum.h>
+#include <string>
 #include <openvr.h>
 
 class Window;

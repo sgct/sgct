@@ -123,8 +123,6 @@ protected:
         unsigned int cubeFaceBack = 0;
     } mTextures;
 
-    // @TODO (abock, 2019-08-25) This should be replaced with an anonymous struct
-    // containing the 6 named viewports in the same order as mTextures
     struct {
         BaseViewport right;
         BaseViewport left;

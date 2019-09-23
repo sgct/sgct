@@ -569,10 +569,6 @@ namespace {
             }
 
             if (val == "Channels") {
-                // @TODO(abock, 2019-09-22) In the previous version it was ambiguous
-                // whether it should be initialized to false or true;  it did use 'true'
-                // in the end but I don't think that is the correct way though
-
                 sgct::config::SpoutOutputProjection::Channels c;
                 subElement->QueryBoolAttribute("Right", &c.right);
                 subElement->QueryBoolAttribute("zLeft", &c.zLeft);

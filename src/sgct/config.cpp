@@ -113,7 +113,7 @@ bool validateDevice(const Device& device) {
     }
 
     auto validateAddress = [](const auto& v) -> bool {
-        if (!v.vrpnAddress.empty()) {
+        if (v.vrpnAddress.empty()) {
             printError("VRPN address must not be empty\n");
             return false;
         }

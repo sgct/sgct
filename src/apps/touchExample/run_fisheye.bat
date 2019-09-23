@@ -1,1 +1,1 @@
-touchExample.exe -config ../../config/single_fisheye.xml
+touchExample.exe -config single_fisheye.xml

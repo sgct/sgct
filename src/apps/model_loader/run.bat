@@ -1,1 +1,0 @@
-model_loader.exe -config ../../config/single.xml

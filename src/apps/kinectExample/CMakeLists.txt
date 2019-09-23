@@ -7,8 +7,6 @@ target_link_libraries(kinectExample PRIVATE sgct)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/Kinect.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
 )
 copy_files(kinectExample ${files})
 copy_sgct_dynamic_libraries(kinectExample)

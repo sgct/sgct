@@ -7,16 +7,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #ifdef SGCT_HAS_OPENVR
 
-#include <sgct/SGCTOpenVR.h>
+#include <sgct/openvr.h>
 
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
 #endif
-#include <sgct/SGCTWindow.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
+#include <sgct/window.h>
+#include <sgct/clustermanager.h>
+#include <sgct/messagehandler.h>
+#include <sgct/offscreenbuffer.h>
+#include <algorithm>
 
 namespace {
     struct FBODesc {
@@ -111,11 +112,10 @@ void initialize(float nearClip, float farClip) {
 
     if (eError != vr::VRInitError_None) {
         shutdown();
-        std::string err = "Unable to init VR runtime: ";
-        err += vr::VR_GetVRInitErrorAsEnglishDescription(eError);
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "VR_Init Failed", err.c_str()
+            "VR_Init Failed. Unable to init VR runtime: %s",
+            vr::VR_GetVRInitErrorAsEnglishDescription(eError)
         );
     }
     else {
@@ -153,7 +153,7 @@ void initialize(float nearClip, float farClip) {
         );
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "OpenVR Device Number : %s\n", HMDNumber.c_str()
+            "OpenVR Device Number: %s\n", HMDNumber.c_str()
         );
 
         vr::IVRRenderModels* renderModels = reinterpret_cast<vr::IVRRenderModels*>(
@@ -161,11 +161,10 @@ void initialize(float nearClip, float farClip) {
         );
         if (!renderModels) {
             shutdown();
-            std::string err = "Unable to get render model interface: ";
-            err += vr::VR_GetVRInitErrorAsEnglishDescription(eError);
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "VR_Init Failed: %s\n", err.c_str()
+                "VR_Init Failed. Unable to get render model interface: %s\n",
+                vr::VR_GetVRInitErrorAsEnglishDescription(eError)
             );
         }
 
@@ -304,7 +303,9 @@ void updatePoses() {
         return;
     }
 
-    char deviceClassChar[vr::k_unMaxTrackedDeviceCount];
+    // abock, 2019-09-11; This deviceClassChar value is not actually used anywhere, but I
+    // didn't feel like I wanted to remove it, but I think it ought to be
+    //char deviceClassChar[vr::k_unMaxTrackedDeviceCount];
     glm::mat4 devicePoseMat[vr::k_unMaxTrackedDeviceCount];
 
     vr::TrackedDevicePose_t trackedDevicePose[vr::k_unMaxTrackedDeviceCount];
@@ -323,35 +324,34 @@ void updatePoses() {
             trackedDevicePose[nDevice].mDeviceToAbsoluteTracking
         );
 
-        // @TODO (abock, 2019-09-11) This deviceClassCharalue is not actually used
-        // anywhere, but I didn't feel like I wanted to remove it, but I think it could be
-        if (deviceClassChar[nDevice] == 0) {
-            switch (HMD->GetTrackedDeviceClass(nDevice)) {
-                case vr::TrackedDeviceClass_Controller:
-                    deviceClassChar[nDevice] = 'C';
-                    break;
-                case vr::TrackedDeviceClass_HMD:
-                    deviceClassChar[nDevice] = 'H';
-                    break;
-                case vr::TrackedDeviceClass_Invalid:
-                    deviceClassChar[nDevice] = 'I';
-                    break;
-                case vr::TrackedDeviceClass_GenericTracker:
-                    deviceClassChar[nDevice] = 'G';
-                    break;
-                case vr::TrackedDeviceClass_TrackingReference:
-                    deviceClassChar[nDevice] = 'T';
-                    break;
-                default:
-                    deviceClassChar[nDevice] = '?';
-                    break;
-            }
-        }
+
+        //if (deviceClassChar[nDevice] == 0) {
+        //    switch (HMD->GetTrackedDeviceClass(nDevice)) {
+        //        case vr::TrackedDeviceClass_Controller:
+        //            deviceClassChar[nDevice] = 'C';
+        //            break;
+        //        case vr::TrackedDeviceClass_HMD:
+        //            deviceClassChar[nDevice] = 'H';
+        //            break;
+        //        case vr::TrackedDeviceClass_Invalid:
+        //            deviceClassChar[nDevice] = 'I';
+        //            break;
+        //        case vr::TrackedDeviceClass_GenericTracker:
+        //            deviceClassChar[nDevice] = 'G';
+        //            break;
+        //        case vr::TrackedDeviceClass_TrackingReference:
+        //            deviceClassChar[nDevice] = 'T';
+        //            break;
+        //        default:
+        //            deviceClassChar[nDevice] = '?';
+        //            break;
+        //    }
+        //}
     }
 
     if (trackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid) {
         poseHMDMat = devicePoseMat[vr::k_unTrackedDeviceIndex_Hmd];
-        glm::inverse(poseHMDMat);
+        poseHMDMat = glm::inverse(poseHMDMat);
     }
 }
 
@@ -399,10 +399,10 @@ glm::mat4 getHMDPoseMatrix() {
 
 glm::quat getInverseRotation(glm::mat4 matPose) {
     glm::quat q;
-    q.w = sqrt(fmaxf(0, 1 + matPose[0][0] + matPose[1][1] + matPose[2][2])) / 2;
-    q.x = sqrt(fmaxf(0, 1 + matPose[0][0] - matPose[1][1] - matPose[2][2])) / 2;
-    q.y = sqrt(fmaxf(0, 1 - matPose[0][0] + matPose[1][1] - matPose[2][2])) / 2;
-    q.z = sqrt(fmaxf(0, 1 - matPose[0][0] - matPose[1][1] + matPose[2][2])) / 2;
+    q.w = sqrt(std::max(0.f, 1.f + matPose[0][0] + matPose[1][1] + matPose[2][2])) / 2.f;
+    q.x = sqrt(std::max(0.f, 1.f + matPose[0][0] - matPose[1][1] - matPose[2][2])) / 2.f;
+    q.y = sqrt(std::max(0.f, 1.f - matPose[0][0] + matPose[1][1] - matPose[2][2])) / 2.f;
+    q.z = sqrt(std::max(0.f, 1.f - matPose[0][0] - matPose[1][1] + matPose[2][2])) / 2.f;
     q.x = copysign(q.x, matPose[2][1] - matPose[1][2]);
     q.y = copysign(q.y, matPose[0][2] - matPose[2][0]);
     q.z = copysign(q.z, matPose[1][0] - matPose[0][1]);

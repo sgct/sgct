@@ -744,6 +744,15 @@ void NetworkManager::close() {
 bool NetworkManager::addConnection(int port, const std::string& address,
                                    Network::ConnectionType connectionType)
 {
+    if (port == 0) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Info,
+            "NetworkManager: No port set for %s!\n",
+            Network::getTypeStr(connectionType).c_str()
+        );
+        return false;
+    }
+
     if (address.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,

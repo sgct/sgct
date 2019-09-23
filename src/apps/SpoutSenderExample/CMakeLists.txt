@@ -6,8 +6,6 @@ set_compile_options(SpoutSenderExample_opengl3)
 target_link_libraries(SpoutSenderExample_opengl3 PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
   "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"

@@ -197,7 +197,7 @@ private:
     bool mFirmFrameLockSync = false;
     bool mIgnoreSync = false;
     std::string mMasterAddress;
-    int mExternalControlPort;
+    int mExternalControlPort = 0;
     bool mUseASCIIForExternalControl = true;
 
     // @TODO (abock, 2019-09-02): See nodes

@@ -1,1 +1,0 @@
-kinectExample.exe -config ../../config/single.xml

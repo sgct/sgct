@@ -9,8 +9,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/heightmap.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/heightmap.vert"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/heightmap.png"

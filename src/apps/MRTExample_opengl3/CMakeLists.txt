@@ -8,8 +8,6 @@ target_link_libraries(MRTExample_opengl3 PRIVATE sgct)
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/mrt.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/mrt.vert"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(MRTExample_opengl3 ${files})

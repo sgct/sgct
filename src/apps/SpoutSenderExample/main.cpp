@@ -1,5 +1,5 @@
 #include <sgct.h>
-#include <sgct/SGCTWindow.h>
+#include <sgct/window.h>
 #include <SpoutLibrary.h>
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,7 +8,7 @@
 namespace {
     sgct::Engine* gEngine;
 
-    std::unique_ptr<sgct_utils::SGCTBox> box;
+    std::unique_ptr<sgct::utils::Box> box;
     //sgct_utils::SGCTPlane * myPlane = NULL;
     GLint matrixLoc = -1;
 
@@ -140,16 +140,13 @@ void initOGLFun() {
     }
     
     // set background
-    Engine::instance()->setClearColor(0.3f, 0.3f, 0.3f, 0.f);
+    Engine::instance()->setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
     
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct_utils::SGCTBox>(
-        2.f,
-        sgct_utils::SGCTBox::TextureMappingMode::Regular
-    );
+    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);

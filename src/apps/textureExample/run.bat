@@ -1,1 +1,0 @@
-textureExample.exe -config ../../config/single.xml

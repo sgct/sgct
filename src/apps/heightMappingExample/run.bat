@@ -1,1 +1,0 @@
-heightMappingExample.exe -config ../../config/single.xml

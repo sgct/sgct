@@ -24,7 +24,6 @@ target_link_libraries(soundExample PRIVATE ${OPENAL_LIBRARY} ${ALUT_LIBRARY})
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/file1.wav"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
 )
 copy_files(soundExample ${files})
 copy_sgct_dynamic_libraries(soundExample)

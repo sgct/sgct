@@ -162,19 +162,6 @@ void connect() {
         networkPtr->closeNetwork(true);
         return;
     }
-    catch (const char* err) {
-        // @TODO (abock, 2019-09-05);  I think i removed all instances of throwing raw
-        // char* from the networking API, but I'm not 100% sure that won't happen, so I'll
-        // leave this right here
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Network error: %s\n", err
-        );
-        networkPtr->initShutdown();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        networkPtr->closeNetwork(true);
-        return;
-    }
 
     connected = true;
 }

@@ -125,7 +125,14 @@ protected:
 
     // @TODO (abock, 2019-08-25) This should be replaced with an anonymous struct
     // containing the 6 named viewports in the same order as mTextures
-    BaseViewport mSubViewports[6];
+    struct {
+        BaseViewport right;
+        BaseViewport left;
+        BaseViewport bottom;
+        BaseViewport top;
+        BaseViewport front;
+        BaseViewport back;
+    } mSubViewports;
 
     std::vector<float> mVerts;
 

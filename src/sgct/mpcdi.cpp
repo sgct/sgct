@@ -9,6 +9,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/messagehandler.h>
+#include <sgct/readconfig.h>
 #include <sgct/viewport.h>
 #include <algorithm>
 #include <sstream>
@@ -16,6 +17,145 @@
 #include <zip.h>
 
 namespace {
+    [[nodiscard]] sgct::config::MpcdiProjection parseMpcdi(tinyxml2::XMLElement* element) {
+        using namespace tinyxml2;
+
+        sgct::config::MpcdiProjection proj;
+        if (element->Attribute("id")) {
+            proj.id = element->Attribute("id");
+        }
+
+        glm::vec2 vpPosition;
+        if (element->QueryFloatAttribute("x", &vpPosition[0]) == XML_NO_ERROR &&
+            element->QueryFloatAttribute("y", &vpPosition[1]) == XML_NO_ERROR)
+        {
+            proj.position = vpPosition;
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Viewport: Failed to parse position from XML\n"
+            );
+        }
+
+        glm::vec2 vpSize;
+        if (element->QueryFloatAttribute("xSize", &vpSize[0]) == XML_NO_ERROR &&
+            element->QueryFloatAttribute("ySize", &vpSize[1]) == XML_NO_ERROR)
+        {
+            proj.size = vpSize;
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "Viewport: Failed to parse size from XML\n"
+            );
+        }
+
+        //glm::vec2 vpResolution;
+        //if (element->QueryFloatAttribute("xResolution", &vpResolution[0]) == XML_NO_ERROR &&
+        //    element->QueryFloatAttribute("yResolution", &vpResolution[1]) == XML_NO_ERROR)
+        //{
+        //    float expectedResolutionX = std::floor(vpResolution.x * winResX);
+        //    float expectedResolutionY = std::floor(vpResolution.y * winResY);
+
+        //    if (expectedResolutionX != vpResolution.x ||
+        //        expectedResolutionY != vpResolution.y)
+        //    {
+        //        MessageHandler::instance()->print(
+        //            MessageHandler::Level::Warning,
+        //            "Viewport: MPCDI region expected resolution does not match window\n"
+        //        );
+        //    }
+
+        //    // @TODO:  Do something with the resolution
+        //}
+        //else {
+        //    MessageHandler::instance()->print(
+        //        MessageHandler::Level::Error,
+        //        "Viewport: Failed to parse resolution from XML\n"
+        //    );
+        //}
+
+        float yaw = 0.f;
+        float pitch = 0.f;
+        float roll = 0.f;
+        tinyxml2::XMLElement* child = element->FirstChildElement();
+        while (child) {
+            std::string_view val = child->Value();
+            if (val == "frustum") {
+                bool hasRight = false;
+                bool hasLeft = false;
+                bool hasUp = false;
+                bool hasDown = false;
+                bool hasYaw = false;
+                bool hasPitch = false;
+                bool hasRoll = false;
+                sgct::config::MpcdiProjection::Frustum frustum;
+                tinyxml2::XMLElement* grandChild = child->FirstChildElement();
+                while (grandChild) {
+                    try {
+                        std::string_view grandChildVal = grandChild->Value();
+                        if (grandChildVal == "rightAngle") {
+                            frustum.right = std::stof(grandChild->GetText());
+                            hasRight = true;
+                        }
+                        else if (grandChildVal == "leftAngle") {
+                            frustum.left = std::stof(grandChild->GetText());
+                            hasLeft = true;
+                        }
+                        else if (grandChildVal == "upAngle") {
+                            frustum.up = std::stof(grandChild->GetText());
+                            hasUp = true;
+                        }
+                        else if (grandChildVal == "downAngle") {
+                            frustum.down = std::stof(grandChild->GetText());
+                            hasDown = true;
+                        }
+                        else if (grandChildVal == "yaw") {
+                            yaw = std::stof(grandChild->GetText());
+                            hasYaw = true;
+                        }
+                        else if (grandChildVal == "pitch") {
+                            pitch = std::stof(grandChild->GetText());
+                            hasPitch = true;
+                        }
+                        else if (grandChildVal == "roll") {
+                            roll = std::stof(grandChild->GetText());
+                            hasRoll = true;
+                        }
+                    }
+                    catch (const std::invalid_argument&) {
+                        sgct::MessageHandler::instance()->print(
+                            sgct::MessageHandler::Level::Error,
+                            "Viewport: Failed to parse frustum element from MPCDI XML\n"
+                        );
+                    }
+
+                    grandChild = grandChild->NextSiblingElement();
+                }
+
+
+                const bool hasMissingField = !hasDown || !hasUp || !hasLeft || !hasRight ||
+                    !hasYaw || !hasPitch || !hasRoll;
+
+                if (hasMissingField) {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "Viewport: Failed to parse mpcdi projection FOV from XML\n"
+                    );
+                    return {};
+                }
+
+                proj.orientation = sgct::core::readconfig::parseMpcdiOrientationNode(yaw, pitch, roll);
+            }
+            child = child->NextSiblingElement();
+        }
+
+        return proj;
+    }
+
+
+
     bool doesStringHaveSuffix(const std::string& str, const std::string& suffix) {
         return str.size() >= suffix.size() &&
             str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
@@ -512,7 +652,8 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
         return false;
     }
     std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-    vp->configureMpcdi(element);
+    sgct::config::MpcdiProjection proj = parseMpcdi(element);
+    vp->applySettings(proj);
     win.addViewport(std::move(vp));
     return true;
 }

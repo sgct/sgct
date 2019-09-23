@@ -18,14 +18,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::config {
 
 struct User {
-    std::optional<std::string> name;
-    std::optional<float> eyeSeparation;
-    std::optional<glm::vec3> position;
-    std::optional<glm::mat4> transformation;
     struct Tracking {
         std::string tracker;
         std::string device;
     };
+
+    std::optional<std::string> name;
+    std::optional<float> eyeSeparation;
+    std::optional<glm::vec3> position;
+    std::optional<glm::mat4> transformation;
     std::optional<Tracking> tracking;
 };
 bool validateUser(const User& user);

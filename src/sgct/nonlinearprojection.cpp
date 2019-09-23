@@ -62,10 +62,23 @@ void NonLinearProjection::init(int internalTextureFormat, unsigned int textureFo
 void NonLinearProjection::updateFrustums(const Frustum::Mode& mode, float nearClip,
                                          float farClip)
 {
-    for (int side = 0; side < 6; side++) {
-        if (mSubViewports[side].isEnabled()) {
-            mSubViewports[side].calculateNonLinearFrustum(mode, nearClip, farClip);
-        }
+    if (mSubViewports.right.isEnabled()) {
+        mSubViewports.right.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+    if (mSubViewports.left.isEnabled()) {
+        mSubViewports.left.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+    if (mSubViewports.bottom.isEnabled()) {
+        mSubViewports.bottom.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+    if (mSubViewports.top.isEnabled()) {
+        mSubViewports.top.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+    if (mSubViewports.front.isEnabled()) {
+        mSubViewports.front.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+    if (mSubViewports.back.isEnabled()) {
+        mSubViewports.back.calculateNonLinearFrustum(mode, nearClip, farClip);
     }
 }
 
@@ -98,9 +111,12 @@ void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::Mode fm) {
 }
 
 void NonLinearProjection::setUser(User& user) {
-    for (int i = 0; i < 6; ++i) {
-        mSubViewports[i].setUser(user);
-    }
+    mSubViewports.right.setUser(user);
+    mSubViewports.left.setUser(user);
+    mSubViewports.bottom.setUser(user);
+    mSubViewports.top.setUser(user);
+    mSubViewports.front.setUser(user);
+    mSubViewports.back.setUser(user);
 }
 
 int NonLinearProjection::getCubemapResolution() const {

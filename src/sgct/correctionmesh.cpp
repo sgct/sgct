@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <tinyxml2.h>
 
 #if (_MSC_VER >= 1400)
     #define _sscanf sscanf_s

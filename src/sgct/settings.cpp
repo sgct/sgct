@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/messagehandler.h>
 #include <sgct/screencapture.h>
-#include <tinyxml2.h>
 
 namespace sgct {
 
@@ -44,6 +43,7 @@ void Settings::applySettings(const sgct::config::Settings& settings) {
     if (settings.bufferFloatPrecision) {
         BufferFloatPrecision p = [](sgct::config::Settings::BufferFloatPrecision p) {
             switch (p) {
+                default:
                 case sgct::config::Settings::BufferFloatPrecision::Float16Bit:
                     return BufferFloatPrecision::Float16Bit;
                 case sgct::config::Settings::BufferFloatPrecision::Float32Bit:

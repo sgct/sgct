@@ -16,9 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-#define TIXML_USE_STL // needed for tinyXML lib to link properly in mingw
-#include <tinyxml2.h>
-
 namespace sgct::core {
 
 class NonLinearProjection;
@@ -37,7 +34,7 @@ public:
     ~Viewport();
 
     void applySettings(const sgct::config::Viewport& viewport);
-    void configureMpcdi(tinyxml2::XMLElement* element);
+    void applySettings(const sgct::config::MpcdiProjection& mpcdi);
     void setOverlayTexture(std::string texturePath);
     void setBlendMaskTexture(std::string texturePath);
     void setBlackLevelMaskTexture(std::string texturePath);

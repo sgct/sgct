@@ -292,79 +292,159 @@ void SpoutOutputProjection::initViewports() {
         glm::vec3(0.f, 0.f, 1.f)
     );
 
-    // @TODO (abock, 2019-09-18); This solution is kind of ugly, but I didn't have it in
-    // me to change it yet.  Using the enum in the switch in the for loop is not very nice
-    // and probably should be replaced with a proper function to be called
-    // add viewports
-    for (int i = 0; i < 6; i++) {
-        mSubViewports[i].setName("SpoutOutput " + std::to_string(i));
+    // right, left, bottom, top, front, back
+    {
+        mSubViewports.right.setName("SpoutOutput 0");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat(1.f);
+        glm::mat4 rotMat = glm::rotate(
+            rollRot,
+            glm::radians(-90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        upperRight.x = radius;
+        mSubViewports.right.setSize(glm::vec2(1.f, 1.f));
 
-        // Rotate and clamp the half height viewports
-        switch (static_cast<CubeFaces>(i)) {
-            case CubeFaces::PosX: //+X face
-                rotMat = glm::rotate(
-                    rollRot,
-                    glm::radians(-90.f),
-                    glm::vec3(0.f, 1.f, 0.f)
-                );
-                upperRight.x = radius;
-                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
-                break;
-            case CubeFaces::NegX: //-X face
-                rotMat = glm::rotate(
-                    rollRot,
-                    glm::radians(90.f),
-                    glm::vec3(0.f, 1.f, 0.f)
-                );
-                lowerLeft.x = -radius;
-                upperLeft.x = -radius;
-                mSubViewports[i].setPos(glm::vec2(0.f, 0.f));
-                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
-                break;
-            case CubeFaces::PosY: //+Y face
-                rotMat = glm::rotate(
-                    rollRot,
-                    glm::radians(-90.f),
-                    glm::vec3(1.f, 0.f, 0.f)
-                );
-                lowerLeft.y = -radius;
-                mSubViewports[i].setPos(glm::vec2(0.f, 0.f));
-                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
-                break;
-            case CubeFaces::NegY: //-Y face
-                rotMat = glm::rotate(
-                    rollRot,
-                    glm::radians(90.f),
-                    glm::vec3(1.f, 0.f, 0.f)
-                );
-                upperLeft.y = radius;
-                upperRight.y = radius;
-                mSubViewports[i].setSize(glm::vec2(1.f, 1.f));
-                break;
-            case CubeFaces::PosZ: //+Z face
-                rotMat = rollRot;
-                break;
-            case CubeFaces::NegZ: //-Z face
-                rotMat = glm::rotate(rollRot,
-                    glm::radians(180.f),
-                    glm::vec3(0.f, 1.f, 0.f)
-                );
-                break;
-        }
-
-        mSubViewports[i].getProjectionPlane().setCoordinateLowerLeft(
+        mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports[i].getProjectionPlane().setCoordinateUpperLeft(
+        mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports[i].getProjectionPlane().setCoordinateUpperRight(
+        mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
+            glm::vec3(rotMat * upperRight)
+        );
+    }
+
+    // left
+    {
+        mSubViewports.left.setName("SpoutOutput 1");
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
+
+        glm::mat4 rotMat = glm::rotate(
+            rollRot,
+            glm::radians(90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        lowerLeft.x = -radius;
+        upperLeft.x = -radius;
+        mSubViewports.left.setPos(glm::vec2(0.f, 0.f));
+        mSubViewports.left.setSize(glm::vec2(1.f, 1.f));
+
+        mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
+            glm::vec3(rotMat * upperRight)
+        );
+    }
+
+    // bottom
+    {
+        mSubViewports.bottom.setName("SpoutOutput 2");
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
+
+        glm::mat4 rotMat = glm::rotate(
+            rollRot,
+            glm::radians(-90.f),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        lowerLeft.y = -radius;
+        mSubViewports.bottom.setPos(glm::vec2(0.f, 0.f));
+        mSubViewports.bottom.setSize(glm::vec2(1.f, 1.f));
+
+        mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+            glm::vec3(rotMat * upperRight)
+        );
+    }
+
+    // top
+    {
+        mSubViewports.top.setName("SpoutOutput 3");
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
+
+        glm::mat4 rotMat = glm::rotate(
+            rollRot,
+            glm::radians(90.f),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        upperLeft.y = radius;
+        upperRight.y = radius;
+        mSubViewports.top.setSize(glm::vec2(1.f, 1.f));
+
+        mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
+            glm::vec3(rotMat * upperRight)
+        );
+    }
+
+    // front
+    {
+        mSubViewports.front.setName("SpoutOutput 4");
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
+
+        glm::mat4 rotMat = rollRot;
+
+        mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
+            glm::vec3(rotMat * upperRight)
+        );
+    }
+
+    // back
+    {
+        mSubViewports.back.setName("SpoutOutput 5");
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
+
+        glm::mat4 rotMat = glm::rotate(rollRot,
+            glm::radians(180.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+
+        mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
@@ -705,6 +785,18 @@ void SpoutOutputProjection::initFBO() {
 }
 
 void SpoutOutputProjection::drawCubeFace(int face) {
+    BaseViewport& vp = [this](int face) -> BaseViewport& {
+        switch (face) {
+            default:
+            case 0: return mSubViewports.right;
+            case 1: return mSubViewports.left;
+            case 2: return mSubViewports.bottom;
+            case 3: return mSubViewports.top;
+            case 4: return mSubViewports.front;
+            case 5: return mSubViewports.back;
+        }
+    }(face);
+
     glLineWidth(1.0);
     if (Engine::instance()->getWireframe()) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -718,7 +810,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(mSubViewports[face]);
+    setupViewport(vp);
 
 #ifdef DebugCubemap
     glm::vec4 color;
@@ -777,9 +869,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     if (Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
-        Projection& proj = mSubViewports[face].getProjection(
-            Engine::instance()->getCurrentFrustumMode()
-        );
+        Projection& proj = vp.getProjection(Engine::instance()->getCurrentFrustumMode());
         glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixf(glm::value_ptr(
@@ -1038,7 +1128,17 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
 
 void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
     for (int i = 0; i < 6; i++) {
-        BaseViewport& vp = mSubViewports[i];
+        BaseViewport& vp = [this](int face) -> BaseViewport& {
+            switch (face) {
+                default:
+                case 0: return mSubViewports.right;
+                case 1: return mSubViewports.left;
+                case 2: return mSubViewports.bottom;
+                case 3: return mSubViewports.top;
+                case 4: return mSubViewports.front;
+                case 5: return mSubViewports.back;
+            }
+        }(i);
         *subViewPortIndex = i;
         unsigned int idx = static_cast<unsigned int>(i);
 
@@ -1147,7 +1247,17 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
 
 void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
     for (int i = 0; i < 6; i++) {
-        BaseViewport& vp = mSubViewports[i];
+        BaseViewport& vp = [this](int face) -> BaseViewport& {
+            switch (face) {
+                default:
+                case 0: return mSubViewports.right;
+                case 1: return mSubViewports.left;
+                case 2: return mSubViewports.bottom;
+                case 3: return mSubViewports.top;
+                case 4: return mSubViewports.front;
+                case 5: return mSubViewports.back;
+            }
+        }(i);
         *subViewPortIndex = i;
         unsigned int idx = static_cast<unsigned int>(i);
 

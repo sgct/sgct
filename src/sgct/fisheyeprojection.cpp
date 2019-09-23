@@ -234,7 +234,7 @@ void FisheyeProjection::initViewports() {
 
         // +X face
         {
-            mSubViewports[0].setName("Fisheye +X");
+            mSubViewports.right.setName("Fisheye +X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -247,22 +247,22 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
 
-            mSubViewports[0].setSize(glm::vec2(1.f - cropLevel, 1.f));
+            mSubViewports.right.setSize(glm::vec2(1.f - cropLevel, 1.f));
 
-            mSubViewports[0].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[0].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[0].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // -X face
         {
-            mSubViewports[1].setName("Fisheye -X");
+            mSubViewports.left.setName("Fisheye -X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -276,23 +276,23 @@ void FisheyeProjection::initViewports() {
             upperLeft.x = -projectionOffset;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports[1].setPos(glm::vec2(cropLevel, 0.f));
-            mSubViewports[1].setSize(glm::vec2(1.f - cropLevel, 1.f));
+            mSubViewports.left.setPos(glm::vec2(cropLevel, 0.f));
+            mSubViewports.left.setSize(glm::vec2(1.f - cropLevel, 1.f));
 
-            mSubViewports[1].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[1].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[1].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // +Y face
         {
-            mSubViewports[2].setName("Fisheye +Y");
+            mSubViewports.bottom.setName("Fisheye +Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -305,23 +305,23 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports[2].setPos(glm::vec2(0.f, cropLevel));
-            mSubViewports[2].setSize(glm::vec2(1.f, 1.f - cropLevel));
+            mSubViewports.bottom.setPos(glm::vec2(0.f, cropLevel));
+            mSubViewports.bottom.setSize(glm::vec2(1.f, 1.f - cropLevel));
 
-            mSubViewports[2].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[2].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[2].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // -Y face
         {
-            mSubViewports[3].setName("Fisheye -Y");
+            mSubViewports.top.setName("Fisheye -Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -335,39 +335,39 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
 
-            mSubViewports[3].setSize(glm::vec2(1.f, 1.f - cropLevel));
+            mSubViewports.top.setSize(glm::vec2(1.f, 1.f - cropLevel));
 
-            mSubViewports[3].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[3].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[3].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // +Z face
         {
-            mSubViewports[4].setName("Fisheye +Z");
+            mSubViewports.front.setName("Fisheye +Z");
             
-            mSubViewports[4].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rollRot * lowerLeftBase)
             );
-            mSubViewports[4].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rollRot * upperLeftBase)
             );
-            mSubViewports[4].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rollRot * upperRightBase)
             );
         }
 
         // -Z face
         {
-            mSubViewports[5].setName("Fisheye -Z");
+            mSubViewports.back.setName("Fisheye -Z");
             if (mMethod == FisheyeMethod::FiveFaceCube) {
-                mSubViewports[5].setEnabled(false);
+                mSubViewports.back.setEnabled(false);
             }
 
             const glm::mat4 rotMat = glm::rotate(
@@ -376,13 +376,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports[5].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports[5].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports[5].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
@@ -397,7 +397,7 @@ void FisheyeProjection::initViewports() {
 
         // +X face
         {
-            mSubViewports[0].setName("Fisheye +X");
+            mSubViewports.right.setName("Fisheye +X");
             
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -405,21 +405,21 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports[0].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports[0].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports[0].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -X face
         {
-            mSubViewports[1].setName("Fisheye -X");
-            mSubViewports[1].setEnabled(false);
+            mSubViewports.left.setName("Fisheye -X");
+            mSubViewports.left.setEnabled(false);
 
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -427,20 +427,20 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports[1].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports[1].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports[1].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Y face
         {
-            mSubViewports[2].setName("Fisheye +Y");
+            mSubViewports.bottom.setName("Fisheye +Y");
 
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -448,20 +448,20 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            mSubViewports[2].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports[2].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports[2].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -Y face
         {
-            mSubViewports[3].setName("Fisheye -Y");
+            mSubViewports.top.setName("Fisheye -Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -469,28 +469,28 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            mSubViewports[3].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports[3].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports[3].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Z face
         {
-            mSubViewports[4].setName("Fisheye +Z");
+            mSubViewports.front.setName("Fisheye +Z");
             
-            mSubViewports[4].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(panRot * lowerLeftBase)
             );
-            mSubViewports[4].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(panRot * upperLeftBase)
             );
-            mSubViewports[4].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(panRot * upperRightBase)
             );
 
@@ -498,9 +498,9 @@ void FisheyeProjection::initViewports() {
 
         // -Z face
         {
-            mSubViewports[5].setName("Fisheye -Z");
+            mSubViewports.back.setName("Fisheye -Z");
             
-            mSubViewports[5].setEnabled(false);
+            mSubViewports.back.setEnabled(false);
             glm::vec4 lowerLeft = lowerLeftBase;
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
@@ -511,13 +511,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports[5].getProjectionPlane().setCoordinateLowerLeft(
+            mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[5].getProjectionPlane().setCoordinateUpperLeft(
+            mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[5].getProjectionPlane().setCoordinateUpperRight(
+            mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
@@ -1306,12 +1306,12 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         }
     };
 
-    internalRender(mSubViewports[0], 0);
-    internalRender(mSubViewports[1], 1);
-    internalRender(mSubViewports[2], 2);
-    internalRender(mSubViewports[3], 3);
-    internalRender(mSubViewports[4], 4);
-    internalRender(mSubViewports[5], 5);
+    internalRender(mSubViewports.right, 0);
+    internalRender(mSubViewports.left, 1);
+    internalRender(mSubViewports.bottom, 2);
+    internalRender(mSubViewports.top, 3);
+    internalRender(mSubViewports.front, 4);
+    internalRender(mSubViewports.back, 5);
 }
 
 void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
@@ -1403,12 +1403,12 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
         }
     };
 
-    internalRender(mSubViewports[0], 0);
-    internalRender(mSubViewports[1], 1);
-    internalRender(mSubViewports[2], 2);
-    internalRender(mSubViewports[3], 3);
-    internalRender(mSubViewports[4], 4);
-    internalRender(mSubViewports[5], 5);
+    internalRender(mSubViewports.right, 0);
+    internalRender(mSubViewports.left, 1);
+    internalRender(mSubViewports.bottom, 2);
+    internalRender(mSubViewports.top, 3);
+    internalRender(mSubViewports.front, 4);
+    internalRender(mSubViewports.back, 5);
 }
 
 } // namespace sgct::core

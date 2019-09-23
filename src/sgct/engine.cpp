@@ -5,9 +5,6 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-// @TODO (abock, 2019-09-22) Just running SGCT in OpenSpace with the default scene causes
-// the render function to be called twice.
-
 #include <sgct/engine.h>
 
 #include <sgct/clustermanager.h>

@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/config.h>
 #include <sgct/messagehandler.h>
-#include <tinyxml2.h>
 
 namespace sgct::core {
 

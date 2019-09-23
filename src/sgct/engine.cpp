@@ -5,6 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
+// @TODO (abock, 2019-09-22) Just running SGCT in OpenSpace with the default scene causes
+// the render function to be called twice.
+
 #include <sgct/engine.h>
 
 #include <sgct/clustermanager.h>
@@ -187,34 +190,30 @@ Parameters:
     }
 
     void applyUser(const sgct::config::User& user) {
-        sgct::core::User* usrPtr;
+        using namespace sgct::core;
+
+        User* usrPtr;
         if (user.name) {
-            std::unique_ptr<sgct::core::User> usr = std::make_unique<sgct::core::User>(*user.name);
+            std::unique_ptr<User> usr = std::make_unique<User>(*user.name);
             usrPtr = usr.get();
-            sgct::core::ClusterManager::instance()->addUser(std::move(usr));
+            ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
                 "ReadConfig: Adding user '%s'\n", user.name->c_str()
             );
         }
         else {
-            usrPtr = &sgct::core::ClusterManager::instance()->getDefaultUser();
+            usrPtr = &ClusterManager::instance()->getDefaultUser();
         }
 
         if (user.eyeSeparation) {
             usrPtr->setEyeSeparation(*user.eyeSeparation);
         }
-        usrPtr->setPos(*user.position);
-        if (user.orientation) {
-            usrPtr->setOrientation(*user.orientation);
+        if (user.position) {
+            usrPtr->setPos(*user.position);
         }
         if (user.transformation) {
-            if (user.transformation->transpose) {
-                usrPtr->setTransform(glm::transpose(user.transformation->transformation));
-            }
-            else {
-                usrPtr->setTransform(user.transformation->transformation);
-            }
+            usrPtr->setTransform(*user.transformation);
         }
         if (user.tracking) {
             usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
@@ -256,71 +255,47 @@ Parameters:
         }
     }
 
+    void applyDevice(const sgct::config::Device& device) {
+        sgct::core::ClusterManager& cm = *sgct::core::ClusterManager::instance();
+        cm.getTrackingManager().addDeviceToCurrentTracker(device.name);
+
+        for (const sgct::config::Device::Sensors& s : device.sensors) {
+            cm.getTrackingManager().addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
+        }
+        for (const sgct::config::Device::Buttons& b : device.buttons) {
+            cm.getTrackingManager().addButtonsToCurrentDevice(b.vrpnAddress, b.count);
+        }
+        for (const sgct::config::Device::Axes& a : device.axes) {
+            cm.getTrackingManager().addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
+        }
+        if (device.offset) {
+            sgct::Tracker& tr = *cm.getTrackingManager().getLastTracker();
+            tr.getLastDevice()->setOffset(*device.offset);
+        }
+        if (device.transformation) {
+            sgct::Tracker& tr = *cm.getTrackingManager().getLastTracker();
+            tr.getLastDevice()->setTransform(*device.transformation);
+        }
+    }
+
     void applyTracker(const sgct::config::Tracker& tracker) {
         sgct::core::ClusterManager& cm = *sgct::core::ClusterManager::instance();
         cm.getTrackingManager().addTracker(tracker.name);
 
         for (const sgct::config::Device& device : tracker.devices) {
-            cm.getTrackingManager().addDeviceToCurrentTracker(device.name);
-
-            for (const sgct::config::Device::Sensors& s : device.sensors) {
-                cm.getTrackingManager().addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
-            }
-            for (const sgct::config::Device::Buttons& b : device.buttons) {
-                cm.getTrackingManager().addButtonsToCurrentDevice(b.vrpnAddress, b.count);
-            }
-            for (const sgct::config::Device::Axes& a : device.axes) {
-                cm.getTrackingManager().addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
-            }
-            if (device.offset) {
-                sgct::TrackingManager& m = cm.getTrackingManager();
-                sgct::Tracker& tr = *m.getLastTracker();
-                sgct::TrackingDevice& dev = *tr.getLastDevice();
-                dev.setOffset(*device.offset);
-            }
-            if (device.orientation) {
-                sgct::TrackingManager& m = cm.getTrackingManager();
-                sgct::Tracker& tr = *m.getLastTracker();
-                sgct::TrackingDevice& dev = *tr.getLastDevice();
-                dev.setOrientation(*device.orientation);
-            }
-            if (device.transformation) {
-                sgct::TrackingManager& m = cm.getTrackingManager();
-                sgct::Tracker& tr = *m.getLastTracker();
-                sgct::TrackingDevice& dev = *tr.getLastDevice();
-
-                if (device.transformation->transpose) {
-                    dev.setTransform(glm::transpose(device.transformation->transformation));
-                }
-                else {
-                    dev.setTransform(device.transformation->transformation);
-                }
-            }
+            applyDevice(device);
         }
         if (tracker.offset) {
-            sgct::TrackingManager& m = cm.getTrackingManager();
-            sgct::Tracker& tr = *m.getLastTracker();
+            sgct::Tracker& tr = *cm.getTrackingManager().getLastTracker();
             tr.setOffset(*tracker.offset);
         }
-        if (tracker.orientation) {
-            sgct::TrackingManager& m = cm.getTrackingManager();
-            sgct::Tracker& tr = *m.getLastTracker();
-            tr.setOrientation(*tracker.orientation);
-        }
         if (tracker.scale) {
-            sgct::TrackingManager& m = cm.getTrackingManager();
-            sgct::Tracker& tr = *m.getLastTracker();
+            sgct::Tracker& tr = *cm.getTrackingManager().getLastTracker();
             tr.setScale(*tracker.scale);
         }
         if (tracker.transformation) {
-            sgct::TrackingManager& m = cm.getTrackingManager();
-            sgct::Tracker& tr = *m.getLastTracker();
-            if (tracker.transformation->transpose) {
-                tr.setTransform(glm::transpose(tracker.transformation->transformation));
-            }
-            else {
-                tr.setTransform(tracker.transformation->transformation);
-            }
+            sgct::Tracker& tr = *cm.getTrackingManager().getLastTracker();
+            tr.setTransform(*tracker.transformation);
         }
     }
 
@@ -336,23 +311,23 @@ Parameters:
         if (window.bufferBitDepth) {
             sgct::Window::ColorBitDepth bd = [](sgct::config::Window::ColorBitDepth bd) {
                 switch (bd) {
-                default:
-                case sgct::config::Window::ColorBitDepth::Depth8:
-                    return sgct::Window::ColorBitDepth::Depth8;
-                case sgct::config::Window::ColorBitDepth::Depth16:
-                    return sgct::Window::ColorBitDepth::Depth16;
-                case sgct::config::Window::ColorBitDepth::Depth16Float:
-                    return sgct::Window::ColorBitDepth::Depth16Float;
-                case sgct::config::Window::ColorBitDepth::Depth32Float:
-                    return sgct::Window::ColorBitDepth::Depth32Float;
-                case sgct::config::Window::ColorBitDepth::Depth16Int:
-                    return sgct::Window::ColorBitDepth::Depth16Int;
-                case sgct::config::Window::ColorBitDepth::Depth32Int:
-                    return sgct::Window::ColorBitDepth::Depth32Int;
-                case sgct::config::Window::ColorBitDepth::Depth16UInt:
-                    return sgct::Window::ColorBitDepth::Depth16UInt;
-                case sgct::config::Window::ColorBitDepth::Depth32UInt:
-                    return sgct::Window::ColorBitDepth::Depth32UInt;
+                    default:
+                    case sgct::config::Window::ColorBitDepth::Depth8:
+                        return sgct::Window::ColorBitDepth::Depth8;
+                    case sgct::config::Window::ColorBitDepth::Depth16:
+                        return sgct::Window::ColorBitDepth::Depth16;
+                    case sgct::config::Window::ColorBitDepth::Depth16Float:
+                        return sgct::Window::ColorBitDepth::Depth16Float;
+                    case sgct::config::Window::ColorBitDepth::Depth32Float:
+                        return sgct::Window::ColorBitDepth::Depth32Float;
+                    case sgct::config::Window::ColorBitDepth::Depth16Int:
+                        return sgct::Window::ColorBitDepth::Depth16Int;
+                    case sgct::config::Window::ColorBitDepth::Depth32Int:
+                        return sgct::Window::ColorBitDepth::Depth32Int;
+                    case sgct::config::Window::ColorBitDepth::Depth16UInt:
+                        return sgct::Window::ColorBitDepth::Depth16UInt;
+                    case sgct::config::Window::ColorBitDepth::Depth32UInt:
+                        return sgct::Window::ColorBitDepth::Depth32UInt;
                 }
             }(*window.bufferBitDepth);
             win.setColorBitDepth(bd);
@@ -423,7 +398,9 @@ Parameters:
         }
 
         if (window.copyPreviousWindowToCurrentWindow) {
-            win.setCopyPreviousWindowToCurrentWindow(*window.copyPreviousWindowToCurrentWindow);
+            win.setCopyPreviousWindowToCurrentWindow(
+                *window.copyPreviousWindowToCurrentWindow
+            );
         }
 
         if (window.monitor) {
@@ -437,35 +414,35 @@ Parameters:
         if (window.stereo) {
             sgct::Window::StereoMode sm = [](sgct::config::Window::StereoMode sm) {
                 switch (sm) {
-                default:
-                case sgct::config::Window::StereoMode::NoStereo:
-                    return sgct::Window::StereoMode::NoStereo;
-                case sgct::config::Window::StereoMode::Active:
-                    return sgct::Window::StereoMode::Active;
-                case sgct::config::Window::StereoMode::AnaglyphRedCyan:
-                    return sgct::Window::StereoMode::AnaglyphRedCyan;
-                case sgct::config::Window::StereoMode::AnaglyphAmberBlue:
-                    return sgct::Window::StereoMode::AnaglyphAmberBlue;
-                case sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer:
-                    return sgct::Window::StereoMode::AnaglyphRedCyanWimmer;
-                case sgct::config::Window::StereoMode::Checkerboard:
-                    return sgct::Window::StereoMode::Checkerboard;
-                case sgct::config::Window::StereoMode::CheckerboardInverted:
-                    return sgct::Window::StereoMode::CheckerboardInverted;
-                case sgct::config::Window::StereoMode::VerticalInterlaced:
-                    return sgct::Window::StereoMode::VerticalInterlaced;
-                case sgct::config::Window::StereoMode::VerticalInterlacedInverted:
-                    return sgct::Window::StereoMode::VerticalInterlacedInverted;
-                case sgct::config::Window::StereoMode::Dummy:
-                    return sgct::Window::StereoMode::Dummy;
-                case sgct::config::Window::StereoMode::SideBySide:
-                    return sgct::Window::StereoMode::SideBySide;
-                case sgct::config::Window::StereoMode::SideBySideInverted:
-                    return sgct::Window::StereoMode::SideBySideInverted;
-                case sgct::config::Window::StereoMode::TopBottom:
-                    return sgct::Window::StereoMode::TopBottom;
-                case sgct::config::Window::StereoMode::TopBottomInverted:
-                    return sgct::Window::StereoMode::TopBottomInverted;
+                    default:
+                    case sgct::config::Window::StereoMode::NoStereo:
+                        return sgct::Window::StereoMode::NoStereo;
+                    case sgct::config::Window::StereoMode::Active:
+                        return sgct::Window::StereoMode::Active;
+                    case sgct::config::Window::StereoMode::AnaglyphRedCyan:
+                        return sgct::Window::StereoMode::AnaglyphRedCyan;
+                    case sgct::config::Window::StereoMode::AnaglyphAmberBlue:
+                        return sgct::Window::StereoMode::AnaglyphAmberBlue;
+                    case sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer:
+                        return sgct::Window::StereoMode::AnaglyphRedCyanWimmer;
+                    case sgct::config::Window::StereoMode::Checkerboard:
+                        return sgct::Window::StereoMode::Checkerboard;
+                    case sgct::config::Window::StereoMode::CheckerboardInverted:
+                        return sgct::Window::StereoMode::CheckerboardInverted;
+                    case sgct::config::Window::StereoMode::VerticalInterlaced:
+                        return sgct::Window::StereoMode::VerticalInterlaced;
+                    case sgct::config::Window::StereoMode::VerticalInterlacedInverted:
+                        return sgct::Window::StereoMode::VerticalInterlacedInverted;
+                    case sgct::config::Window::StereoMode::Dummy:
+                        return sgct::Window::StereoMode::Dummy;
+                    case sgct::config::Window::StereoMode::SideBySide:
+                        return sgct::Window::StereoMode::SideBySide;
+                    case sgct::config::Window::StereoMode::SideBySideInverted:
+                        return sgct::Window::StereoMode::SideBySideInverted;
+                    case sgct::config::Window::StereoMode::TopBottom:
+                        return sgct::Window::StereoMode::TopBottom;
+                    case sgct::config::Window::StereoMode::TopBottomInverted:
+                        return sgct::Window::StereoMode::TopBottomInverted;
                 }
             }(*window.stereo);
             win.setStereoMode(sm);
@@ -475,9 +452,7 @@ Parameters:
             win.setWindowPosition(*window.pos);
         }
 
-        if (window.size) {
-            win.initWindowResolution(*window.size);
-        }
+        win.initWindowResolution(window.size);
 
         if (window.resolution) {
             win.setFramebufferResolution(*window.resolution);
@@ -497,15 +472,11 @@ Parameters:
     void applyNode(const sgct::config::Node& node) {
         std::unique_ptr<sgct::core::Node> n = std::make_unique<sgct::core::Node>();
 
-        if (node.address) {
-            n->setAddress(*node.address);
-        }
+        n->setAddress(node.address);
         if (node.name) {
             n->setName(*node.name);
         }
-        if (node.port) {
-            n->setSyncPort(*node.port);
-        }
+        n->setSyncPort(node.port);
         if (node.dataTransferPort) {
             n->setDataTransferPort(*node.dataTransferPort);
         }
@@ -521,9 +492,7 @@ Parameters:
     }
 
     void applyCluster(const sgct::config::Cluster& cluster) {
-        if (cluster.masterAddress) {
-            sgct::core::ClusterManager::instance()->setMasterAddress(*cluster.masterAddress);
-        }
+        sgct::core::ClusterManager::instance()->setMasterAddress(cluster.masterAddress);
         if (cluster.debug) {
             sgct::MessageHandler::instance()->setNotifyLevel(
                 *cluster.debug ?
@@ -531,13 +500,15 @@ Parameters:
                 sgct::MessageHandler::Level::Warning
             );
         }
-        if (cluster.externalControlport) {
+        if (cluster.externalControlPort) {
             sgct::core::ClusterManager::instance()->setExternalControlPort(
-                *cluster.externalControlport
+                *cluster.externalControlPort
             );
         }
         if (cluster.firmSync) {
-            sgct::core::ClusterManager::instance()->setFirmFrameLockSyncStatus(*cluster.firmSync);
+            sgct::core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
+                *cluster.firmSync
+            );
         }
         if (cluster.scene) {
             applyScene(*cluster.scene);
@@ -558,8 +529,6 @@ Parameters:
             applyTracker(*cluster.tracker);
         }
     }
-
-
 } // namespace
 
 namespace sgct {
@@ -647,6 +616,11 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
         }
         else {
             cluster = core::readconfig::readConfig(configFilename);
+        }
+
+        const bool validation = sgct::config::validateCluster(cluster);
+        if (!validation) {
+            throw std::runtime_error("Validation of configuration failes");
         }
          
         applyCluster(cluster);

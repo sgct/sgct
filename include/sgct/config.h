@@ -21,12 +21,7 @@ struct User {
     std::optional<std::string> name;
     std::optional<float> eyeSeparation;
     std::optional<glm::vec3> position;
-    std::optional<glm::quat> orientation;
-    struct Transform {
-        glm::mat4 transformation;
-        bool transpose = false;
-    };
-    std::optional<Transform> transformation;
+    std::optional<glm::mat4> transformation;
     struct Tracking {
         std::string tracker;
         std::string device;
@@ -41,7 +36,6 @@ struct Capture {
     std::optional<std::string> leftPath;
     std::optional<std::string> rightPath;
     std::optional<Format> format;
-
 };
 bool validateCapture(const Capture& capture);
 
@@ -102,33 +96,22 @@ struct Device {
         std::string vrpnAddress;
         int count;
     };
-    struct Transform {
-        glm::mat4 transformation;
-        bool transpose = false;
-    };
     
     std::string name;
     std::vector<Sensors> sensors;
     std::vector<Buttons> buttons;
     std::vector<Axes> axes;
     std::optional<glm::vec3> offset;
-    std::optional<glm::quat> orientation;
-    std::optional<Transform> transformation;
+    std::optional<glm::mat4> transformation;
 };
 bool validateDevice(const Device& device);
 
 struct Tracker {
-    struct Transform {
-        glm::mat4 transformation;
-        bool transpose = false;
-    };
-
     std::string name;
     std::vector<Device> devices;
     std::optional<glm::vec3> offset;
-    std::optional<glm::quat> orientation;
     std::optional<double> scale;
-    std::optional<Transform> transformation;
+    std::optional<glm::mat4> transformation;
 };
 bool validateTracker(const Tracker& tracker);
 
@@ -139,9 +122,9 @@ struct PlanarProjection {
         float left;
         float right;
         float up;
-        float distance = 10.f;
+        std::optional<float> distance;
     };
-    std::optional<FOV> fov;
+    FOV fov;
     std::optional<glm::quat> orientation;
     std::optional<glm::vec3> offset;
 };
@@ -196,10 +179,10 @@ struct SpoutOutputProjection {
     };
     std::optional<int> quality;
     std::optional<Mapping> mapping;
-    std::optional<std::string> mappingSpoutName;
+    std::string mappingSpoutName;
     std::optional<glm::vec4> background;
     std::optional<Channels> channels;
-    std::optional<glm::quat> orientation;
+    std::optional<glm::vec3> orientation;
 };
 bool validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
@@ -281,7 +264,6 @@ struct Window {
     std::vector<std::string> tags;
     std::optional<ColorBitDepth> bufferBitDepth;
     std::optional<bool> preferBGR;
-    std::optional<std::string> stereoType;
     std::optional<bool> isFullScreen;
     std::optional<bool> isFloating;
     std::optional<bool> alwaysRender;
@@ -302,7 +284,7 @@ struct Window {
     std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;
     std::optional<glm::ivec2> pos;
-    std::optional<glm::ivec2> size;
+    glm::ivec2 size;
     std::optional<glm::ivec2> resolution;
 
     std::vector<Viewport> viewports;
@@ -310,19 +292,19 @@ struct Window {
 bool validateWindow(const Window& window);
 
 struct Node {
-    std::optional<std::string> address;
+    std::string address;
+    int port;
     std::optional<std::string> name;
-    std::optional<int> port;
     std::optional<int> dataTransferPort;
     std::optional<bool> swapLock;
     std::vector<Window> windows;
 };
-bool validateNodes(const Node& node);
+bool validateNode(const Node& node);
 
 struct Cluster {
-    std::optional<std::string> masterAddress;
+    std::string masterAddress;
     std::optional<bool> debug;
-    std::optional<int> externalControlport;
+    std::optional<int> externalControlPort;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;

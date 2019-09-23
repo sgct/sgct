@@ -249,7 +249,6 @@ void Viewport::applySettings(const sgct::config::Viewport& viewport) {
     }, viewport.projection);
 }
 
-
 void Viewport::configureMpcdi(tinyxml2::XMLElement* element) {
     sgct::config::MpcdiProjection proj = parseMpcdi(element);
 
@@ -276,15 +275,15 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element) {
 }
 
 void Viewport::applyPlanarProjection(const sgct::config::PlanarProjection& proj) {
-    if (proj.fov) {
-        setViewPlaneCoordsUsingFOVs(
-            proj.fov->up,
-            -proj.fov->down,
-            -proj.fov->left,
-            proj.fov->right,
-            proj.orientation ? *proj.orientation : glm::quat(),
-            proj.fov->distance
-        );
+    setViewPlaneCoordsUsingFOVs(
+        proj.fov.up,
+        proj.fov.down,
+        proj.fov.left,
+        proj.fov.right,
+        proj.orientation.value_or(glm::quat()),
+        proj.fov.distance.value_or(10.f)
+    );
+    if (proj.offset) {
         mProjectionPlane.offset(*proj.offset);
     }
 }
@@ -303,10 +302,10 @@ void Viewport::applyFisheyeProjection(const sgct::config::FisheyeProjection& pro
         sgct::core::FisheyeProjection::FisheyeMethod m = [](sgct::config::FisheyeProjection::Method m) {
             switch (m) {
                 default:
-            case sgct::config::FisheyeProjection::Method::FourFace:
-                return sgct::core::FisheyeProjection::FisheyeMethod::FourFaceCube;
-            case sgct::config::FisheyeProjection::Method::FiveFace:
-                return sgct::core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
+                case sgct::config::FisheyeProjection::Method::FourFace:
+                    return sgct::core::FisheyeProjection::FisheyeMethod::FourFaceCube;
+                case sgct::config::FisheyeProjection::Method::FiveFace:
+                    return sgct::core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
             }
         }(*proj.method);
         fishProj->setRenderingMethod(m);
@@ -378,14 +377,28 @@ void Viewport::applySpoutOutputProjection(const sgct::config::SpoutOutputProject
         }(*proj.mapping);
         spoutProj->setSpoutMapping(m);
     }
-    if (proj.mappingSpoutName) {
-        spoutProj->setSpoutMappingName(*proj.mappingSpoutName);
-    }
+    spoutProj->setSpoutMappingName(proj.mappingSpoutName);
     if (proj.background) {
         spoutProj->setClearColor(*proj.background);
     }
     if (proj.channels) {
-        spoutProj->setSpoutChannels(&(*proj.channels));
+
+        bool right = true;
+        bool zLeft = true;
+        bool bottom = true;
+        bool top = true;
+        bool left = true;
+        bool zRight = true;
+
+        bool channels[6] = {
+            proj.channels->right,
+            proj.channels->zLeft,
+            proj.channels->bottom,
+            proj.channels->top,
+            proj.channels->left,
+            proj.channels->zRight
+        };
+        spoutProj->setSpoutChannels(channels);
     }
     if (proj.orientation) {
         spoutProj->setSpoutRigOrientation(*proj.orientation);

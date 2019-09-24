@@ -318,15 +318,18 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
             const int l = j - offsetRows;
 
             const int idx = 2 * (i + j * width);
-            if (k >= gd.mBitmapPtr->width || l >= gd.mBitmapPtr->rows || k < 0 || l < 0) {
+            if (k >= static_cast<int>(gd.mBitmapPtr->width) ||
+                l >= static_cast<int>(gd.mBitmapPtr->rows) || k < 0 || l < 0)
+            {
                 pixels[idx] = 0;
             }
             else {
                 pixels[idx] = gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
             }
 
-            const bool strokeInRange = i >= gd.mStrokeBitmapPtr->width ||
-                                       j >= gd.mStrokeBitmapPtr->rows;
+            const bool strokeInRange =
+                i >= static_cast<int>(gd.mStrokeBitmapPtr->width) ||
+                j >= static_cast<int>(gd.mStrokeBitmapPtr->rows);
             unsigned char strokeVal = strokeInRange ?
                 0 : gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
 

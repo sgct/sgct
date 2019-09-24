@@ -3735,8 +3735,8 @@ void Engine::invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
 }
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
-    if (mNetworkConnections->getExternalControlPtr()) {
-        mNetworkConnections->getExternalControlPtr()->sendData(data, length);
+    if (mNetworkConnections->getExternalControlConnection()) {
+        mNetworkConnections->getExternalControlConnection()->sendData(data, length);
     }
 }
 
@@ -3755,20 +3755,20 @@ void Engine::transferDataToNode(const void* data, int length, int packageId,
 }
 
 void Engine::sendMessageToExternalControl(const std::string& msg) {
-    if (mNetworkConnections->getExternalControlPtr()) {
+    if (mNetworkConnections->getExternalControlConnection()) {
         const int size = static_cast<int>(msg.size());
-        mNetworkConnections->getExternalControlPtr()->sendData(msg.c_str(), size);
+        mNetworkConnections->getExternalControlConnection()->sendData(msg.c_str(), size);
     }
 }
 
 bool Engine::isExternalControlConnected() const {
-    return (mNetworkConnections->getExternalControlPtr() &&
-            mNetworkConnections->getExternalControlPtr()->isConnected());
+    return (mNetworkConnections->getExternalControlConnection() &&
+            mNetworkConnections->getExternalControlConnection()->isConnected());
 }
 
 void Engine::setExternalControlBufferSize(unsigned int newSize) {
-    if (mNetworkConnections->getExternalControlPtr()) {
-        mNetworkConnections->getExternalControlPtr()->setBufferSize(newSize);
+    if (mNetworkConnections->getExternalControlConnection()) {
+        mNetworkConnections->getExternalControlConnection()->setBufferSize(newSize);
     }
 }
 

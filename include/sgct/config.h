@@ -294,7 +294,7 @@ bool validateWindow(const Window& window);
 
 struct Node {
     std::string address;
-    int port;
+    int port = 0;
     std::optional<std::string> name;
     std::optional<int> dataTransferPort;
     std::optional<bool> swapLock;

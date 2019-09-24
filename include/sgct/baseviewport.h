@@ -88,7 +88,7 @@ protected:
         glm::vec3 upperRight;
     } mUnTransformedViewPlaneCoords;
     glm::quat mRot;
-    float mDistance;
+    float mDistance = 10.f;
     glm::vec4 mFOV;
 };
 

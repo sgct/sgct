@@ -60,7 +60,7 @@ private:
     std::vector<TouchPoint> mPreviousTouchPoints;
     std::unordered_map<int, glm::vec2> mPreviousTouchPositions;
     std::vector<int> mPrevTouchIds;
-    bool mAllPointsStationary;
+    bool mAllPointsStationary = true;
 };
 
 std::string getTouchPointInfo(const Touch::TouchPoint& tp);

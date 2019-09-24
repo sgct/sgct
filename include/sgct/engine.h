@@ -164,37 +164,37 @@ public:
     /// This is SGCT's renderloop where rendering & synchronization takes place.
     void render();
 
-    /// \returns the frame time (delta time) in seconds
+    /// \return the frame time (delta time) in seconds
     double getDt() const;
 
-    /// \returns the average frames per second
+    /// \return the average frames per second
     double getAvgFPS() const;
 
-    /// \returns the average frame time (delta time) in seconds
+    /// \return the average frame time (delta time) in seconds
     double getAvgDt() const;
 
-    /// \returns the minimum frame time (delta time) in the averaging window (seconds)
+    /// \return the minimum frame time (delta time) in the averaging window (seconds)
     double getMinDt() const;
     
-    /// \returns the maximum frame time (delta time) in the averaging window (seconds)
+    /// \return the maximum frame time (delta time) in the averaging window (seconds)
     double getMaxDt() const;
 
-    /// \returns the standard devitation of the delta time in seconds
+    /// \return the standard devitation of the delta time in seconds
     double getDtStandardDeviation() const;
 
-    /// \returns the draw time in seconds
+    /// \return the draw time in seconds
     double getDrawTime() const;
 
-    /// \returns the sync time (time waiting for other nodes and network) in seconds
+    /// \return the sync time (time waiting for other nodes and network) in seconds
     double getSyncTime() const;
 
-    /// \returns the clear color as 4 floats (RGBA)
+    /// \return the clear color as 4 floats (RGBA)
     glm::vec4 getClearColor() const;
     
-    /// \returns the near clipping plane distance in meters
+    /// \return the near clipping plane distance in meters
     float getNearClippingPlane() const;
 
-    /// \returns the far clipping plane distance in meters
+    /// \return the far clipping plane distance in meters
     float getFarClippingPlane() const;
 
     /**
@@ -226,8 +226,8 @@ public:
      * is: SGCT_KEY_ESC. To diable shutdown or escaping SGCT then use: SGCT_KEY_UNKNOWN
      *
      * \param key can be either an uppercase printable ISO 8859-1 (Latin 1) character
-     * (e.g. 'A', '3' or '.'), or a special key identifier described in
-     * setKeyboardCallbackFunction description.
+     *        (e.g. 'A', '3' or '.'), or a special key identifier described in
+     * s      etKeyboardCallbackFunction description.
      */
     void setExitKey(int key);
 
@@ -242,25 +242,25 @@ public:
 
     /**
      * \return the active draw texture if frame buffer objects are used,
-     * otherwise GL_FALSE
+     *         otherwise GL_FALSE
      */
     unsigned int getCurrentDrawTexture() const;
 
     /**
      * \return the active depth texture if depth texture rendering is enabled through
-     * Settings and if frame buffer objects are used otherwise GL_FALSE
+     *         Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentDepthTexture() const;
 
     /**
      * \return the active normal texture if normal texture rendering is enabled through
-     * Settings and if frame buffer objects are used otherwise GL_FALSE
+     *         Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentNormalTexture() const;
 
     /**
      * \return the active position texture if position texture rendering is enabled
-     * through Settings and if frame buffer objects are used otherwise GL_FALSE
+     *         through Settings and if frame buffer objects are used otherwise GL_FALSE
      */
     unsigned int getCurrentPositionTexture() const;
 
@@ -316,7 +316,7 @@ public:
      *
      * \param millisec is the countdown time
      * \param fnPtr is the function pointer to a timer callback (the argument will be the
-     * timer handle/id).
+     *        timer handle/id).
      *
      * \return Handle/id to the created timer
      */
@@ -371,7 +371,6 @@ public:
      * buffer function.
      *
      * \param fnPtr is the function pointer to a clear buffer function callback
-     *
      *
 \code
 void sgct::Engine::clearBuffer() {
@@ -611,8 +610,8 @@ void sgct::Engine::clearBuffer() {
         std::function<void(const sgct::core::Touch* touches)> fn);
 
     /**
-     *  This callback must be set before Engine::init is called. Parameters to the
-     * callback are: Image pointer for image data, window index, eye index, download type
+     * This callback must be set before Engine::init is called. Parameters to the callback
+     * are: Image pointer for image data, window index, eye index, download type
      *
      * \param fn is the function pointer to a screenshot callback for custom frame
      *        capture & export
@@ -710,25 +709,24 @@ void sgct::Engine::clearBuffer() {
     void setExternalControlBufferSize(unsigned int newSize);
 
     /**
-     * Don't use this. This function is called from Network and will invoke the
-     * external network callback when messages are received.
+     * Don't use this. This function is called from Network and will invoke the external
+     * network callback when messages are received.
      */
     void invokeDecodeCallbackForExternalControl(const char* receivedData,
         int receivedLength, int clientId);
 
     /**
-     *  Don't use this. This function is called from Network and will invoke the
-     * external network update callback when connection is connected/disconnected.
+     * Don't use this. This function is called from Network and will invoke the external
+     * network update callback when connection is connected/disconnected.
      */
     void invokeUpdateCallbackForExternalControl(bool connected);
 
-    // data transfer functions
     /**
      * Compression levels 1-9.
-     *   -1 = Default compression
+     *  -1 = Default compression
      *   0 = No compression
-     * 1 = Best speed
-     * 9 = Best compression
+     *   1 = Best speed
+     *   9 = Best compression
      */
     void setDataTransferCompression(bool state, int level = 1);
 
@@ -844,7 +842,6 @@ void sgct::Engine::clearBuffer() {
 
     /**
      * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
-     *
      * \param numOfValues is the number of analog axes
      *
      * \return the analog float values (array)
@@ -853,32 +850,31 @@ void sgct::Engine::clearBuffer() {
 
     /**
      * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
-     *
      * \param numOfValues is the number of buttons
      *
      * \return the button values (array)
      */
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
-    /// Returns a pointer to this node (running on this computer).
+    /// \return a pointer to this node (running on this computer).
     const sgct::core::Node* getThisNode() const;
 
-    /// Returns a pointer to a specified window by index on this node.
+    /// \return a pointer to a specified window by index on this node.
     Window& getWindow(int index) const;
 
-    /// Returns the number of windows for this node.
+    /// \return the number of windows for this node.
     size_t getNumberOfWindows() const;
 
-    /// Returns a pointer to the current window that is beeing rendered
+    /// \return a pointer to the current window that is beeing rendered
     Window& getCurrentWindow() const;
 
-    /// Returns an index to the current window that is beeing rendered
+    /// \return an index to the current window that is beeing rendered
     int getCurrentWindowIndex() const;
 
-    /// Returns a pointer to the user (VR observer position) object
+    /// \return a pointer to the user (VR observer position) object
     static core::User& getDefaultUser();
 
-    /// Returns a pointer to the tracking manager pointer
+    /// \return a pointer to the tracking manager pointer
     static TrackingManager& getTrackingManager();
 
     /**
@@ -886,24 +882,24 @@ void sgct::Engine::clearBuffer() {
      * (to commandline). Avoid this function in the render loop for release code since it
      * can reduce performance.
      *
-     * \returns true if no errors occured
+     * \return true if no errors occured
      */
     static bool checkForOGLErrors();
 
-    /// Returns true if this node is the master
+    /// \return true if this node is the master
     bool isMaster() const;
 
-    /// Returns true if on-screen info is rendered.
+    /// \return true if on-screen info is rendered.
     bool isDisplayInfoRendered() const;
 
     /**
-     * Returns true if render target is off-screen (FBO) or false if render target is the
-     * frame buffer.
+     * \return true if render target is off-screen (FBO) or false if render target is the
+     *         frame buffer.
      */
     bool isRenderingOffScreen() const;
 
     /**
-     * Returns the active frustum mode which can be one of the following:
+     * \return the active frustum mode which can be one of the following:
      *   - Mono
      *   - Stereo Left
      *   - Stereo Right
@@ -911,14 +907,14 @@ void sgct::Engine::clearBuffer() {
     core::Frustum::Mode getCurrentFrustumMode() const;
 
     /**
-     * Returns the active projection matrix (only valid inside in the draw callback
+     * \return the active projection matrix (only valid inside in the draw callback
      * function)
      */
     const glm::mat4& getCurrentProjectionMatrix() const;
 
-    /*!
-        Returns the active view matrix (only valid inside in the draw callback function)
-    */
+    /**
+     * \return the active view matrix (only valid inside in the draw callback function)
+     */
     const glm::mat4& getCurrentViewMatrix() const;
 
     /**
@@ -1240,7 +1236,7 @@ private:
 
     std::string configFilename;
     std::string mLogfilePath;
-    bool mRunning;
+    bool mRunning = true;
     bool mInitialized = false;
     std::string mAAInfo;
 

@@ -90,7 +90,7 @@ public:
     const glm::mat4& getSceneTransform() const;
 
     /**
-     *  Don't set this, this is done automatically using from the Network Manager which
+     * Don't set this, this is done automatically using from the Network Manager which
      * compares IP addresses from this computer to the XML config file.
      *
      * \param the index to the node where this application is running on
@@ -102,7 +102,7 @@ public:
 
     /**
      * \return the dns, name or IP of the master in the cluster (depends on what's been
-     * set in the XML config)
+     *         set in the XML config)
      */
     const std::string& getMasterAddress() const;
 
@@ -117,7 +117,7 @@ public:
 
     /**
      * \return the external control port number if it's set or specified in the XML
-     * configuration
+     *         configuration
      */
     int getExternalControlPort() const;
 

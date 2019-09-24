@@ -251,7 +251,7 @@ public:
     bool getExportWarpingMeshes() const;
 
     /// Get if run length encoding (RLE) is used in PNG and TGA export.
-    bool getUseRLE();
+    bool getUseRLE() const;
 
     /**
      * Get the capture/screenshot path
@@ -261,10 +261,10 @@ public:
     CaptureFormat getCaptureFormat();
 
     /// Get the zlib compression level used in png export.
-    int getPNGCompressionLevel();
+    int getPNGCompressionLevel() const;
 
     /// Get the JPEG quality settings (0-100)
-    int getJPEGQuality();
+    int getJPEGQuality() const;
 
     /// Return true if depth buffer is rendered to texture
     bool useDepthTexture() const;

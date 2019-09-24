@@ -636,7 +636,7 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
 }
 
 bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
-                               MpcdiFoundItems& parsedItems)
+                               MpcdiFoundItems&)
 {
     // Require an 'id' attribute for each region. These will be compared later to the
     // fileset, in which there must be a matching 'id'. The mBufferRegions vector is

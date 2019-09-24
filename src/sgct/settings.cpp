@@ -141,11 +141,11 @@ void Settings::setJPEGQuality(int quality) {
     mJPEGQuality = quality;
 }
 
-int Settings::getPNGCompressionLevel() { 
+int Settings::getPNGCompressionLevel() const { 
     return mPNGCompressionLevel;
 }
 
-int Settings::getJPEGQuality() {
+int Settings::getJPEGQuality() const {
     return mJPEGQuality;
 }
 
@@ -266,8 +266,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
-            "Settings: Number of default MSAA samples must be a power of two\n",
-            samples
+            "Settings: Number of default MSAA samples must be a power of two\n", samples
         );
     }
 }
@@ -312,7 +311,7 @@ void Settings::setExportWarpingMeshes(bool state) {
     mExportWarpingMeshes = state;
 }
 
-bool Settings::getUseRLE() {
+bool Settings::getUseRLE() const {
     return mUseRLE;
 }
 

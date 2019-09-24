@@ -620,8 +620,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 }
                 char data[Network::HeaderSize];
                 std::fill(
-                    std::cbegin(data),
-                    std::cend(data),
+                    std::begin(data),
+                    std::end(data),
                     static_cast<char>(Network::DefaultId)
                 );
                 data[0] = Network::ConnectedId;
@@ -632,8 +632,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 if (mDataTransferConnections[i]->isConnected()) {
                     char data[Network::HeaderSize];
                     std::fill(
-                        std::cbegin(data),
-                        std::cend(data),
+                        std::begin(data),
+                        std::end(data),
                         static_cast<char>(Network::DefaultId)
                     );
                     data[0] = Network::ConnectedId;

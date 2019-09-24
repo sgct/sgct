@@ -27,8 +27,8 @@ public:
      * The constructor sets shader type.
      *
      * \param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
-     *                   GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
-     *                   GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+     *        GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or 
+     *        GL_FRAGMENT_SHADER
      */
 
     Shader(ShaderType shaderType);
@@ -37,8 +37,8 @@ public:
      * Set the shader type.
      *
      * \param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
-     *                   GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
-     *                   GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+     *        GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or
+     *        GL_FRAGMENT_SHADER
      */
     void setShaderType(ShaderType shaderType);
 

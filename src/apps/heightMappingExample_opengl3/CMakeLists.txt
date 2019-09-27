@@ -16,3 +16,4 @@ set(files
 )
 copy_files(heightMappingExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(heightMappingExample_opengl3)
+set_target_properties(heightMappingExample_opengl3 PROPERTIES FOLDER "Examples")

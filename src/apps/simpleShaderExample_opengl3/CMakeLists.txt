@@ -11,3 +11,4 @@ set(files
 )
 copy_files(simpleShaderExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(simpleShaderExample_opengl3)
+set_target_properties(simpleShaderExample_opengl3 PROPERTIES FOLDER "Examples")

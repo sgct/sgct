@@ -14,3 +14,4 @@ set(files
 )
 copy_files(networkExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(networkExample_opengl3)
+set_target_properties(networkExample_opengl3 PROPERTIES FOLDER "Examples")

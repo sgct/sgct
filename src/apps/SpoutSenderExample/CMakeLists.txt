@@ -12,3 +12,4 @@ set(files
 )
 copy_files(SpoutSenderExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(SpoutSenderExample_opengl3)
+set_target_properties(SpoutSenderExample_opengl3 PROPERTIES FOLDER "Examples")

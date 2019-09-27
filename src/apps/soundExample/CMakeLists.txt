@@ -27,3 +27,4 @@ set(files
 )
 copy_files(soundExample ${files})
 copy_sgct_dynamic_libraries(soundExample)
+set_target_properties(soundExample PROPERTIES FOLDER "Examples")

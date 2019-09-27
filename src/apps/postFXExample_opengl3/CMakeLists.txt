@@ -18,3 +18,4 @@ set(files
 )
 copy_files(postFXExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(postFXExample_opengl3)
+set_target_properties(postFXExample_opengl3 PROPERTIES FOLDER "Examples")

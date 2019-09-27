@@ -19,3 +19,4 @@ set(files
 )
 copy_files(openvrFullDomeViewer ${files})
 copy_sgct_dynamic_libraries(openvrFullDomeViewer)
+set_target_properties(openvrFullDomeViewer PROPERTIES FOLDER "Examples")

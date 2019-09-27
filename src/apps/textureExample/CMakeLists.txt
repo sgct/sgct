@@ -10,3 +10,4 @@ set(files
 )
 copy_files(textureExample ${files})
 copy_sgct_dynamic_libraries(textureExample)
+set_target_properties(textureExample PROPERTIES FOLDER "Examples")

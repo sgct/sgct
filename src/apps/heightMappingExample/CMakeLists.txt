@@ -16,3 +16,4 @@ set(files
 )
 copy_files(heightMappingExample ${files})
 copy_sgct_dynamic_libraries(heightMappingExample)
+set_target_properties(heightMappingExample PROPERTIES FOLDER "Examples")

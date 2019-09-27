@@ -10,3 +10,4 @@ set(files
 )
 copy_files(kinectExample ${files})
 copy_sgct_dynamic_libraries(kinectExample)
+set_target_properties(kinectExample PROPERTIES FOLDER "Examples")

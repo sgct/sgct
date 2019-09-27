@@ -12,3 +12,4 @@ set(files
 )
 copy_files(renderToTexture ${files})
 copy_sgct_dynamic_libraries(renderToTexture)
+set_target_properties(renderToTexture PROPERTIES FOLDER "Examples")

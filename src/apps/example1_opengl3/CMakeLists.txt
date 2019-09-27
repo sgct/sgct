@@ -11,3 +11,4 @@ set(files
 )
 copy_files(example1_opengl3 ${files})
 copy_sgct_dynamic_libraries(example1_opengl3)
+set_target_properties(example1_opengl3 PROPERTIES FOLDER "Examples")

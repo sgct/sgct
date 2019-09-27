@@ -12,6 +12,7 @@ set(files
 )
 copy_files(SGCTRemote ${files})
 copy_sgct_dynamic_libraries(SGCTRemote)
+set_target_properties(SGCTRemote PROPERTIES FOLDER "Examples")
 
 if (MSVC)
   configure_file(
@@ -22,4 +23,5 @@ if (MSVC)
     SGCTRemoteGUI
     ${PROJECT_SOURCE_DIR}/src/apps/SGCTRemote/SGCTRemote_GUI/SGCTRemoteGUI.csproj
   )
+  set_target_properties(SGCTRemoteGUI PROPERTIES FOLDER "Examples")
 endif()

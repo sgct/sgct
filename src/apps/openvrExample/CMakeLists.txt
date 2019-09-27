@@ -19,3 +19,4 @@ set(files
 )
 copy_files(openvrExample ${files})
 copy_sgct_dynamic_libraries(openvrExample)
+set_target_properties(openvrExample PROPERTIES FOLDER "Examples")

@@ -15,3 +15,4 @@ set(files
 )
 copy_files(dataTransfer_opengl3 ${files})
 copy_sgct_dynamic_libraries(dataTransfer_opengl3)
+set_target_properties(dataTransfer_opengl3 PROPERTIES FOLDER "Examples")

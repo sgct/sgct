@@ -12,3 +12,4 @@ set(files
 )
 copy_files(MRTExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(MRTExample_opengl3)
+set_target_properties(MRTExample_opengl3 PROPERTIES FOLDER "Examples")

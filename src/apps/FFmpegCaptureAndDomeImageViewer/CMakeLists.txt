@@ -37,3 +37,4 @@ set(files
 )
 copy_files(FFmpegCaptureAndDomeImageViewer ${files})
 copy_sgct_dynamic_libraries(FFmpegCaptureAndDomeImageViewer)
+set_target_properties(FFmpegCaptureAndDomeImageViewer PROPERTIES FOLDER "Examples")

@@ -13,3 +13,4 @@ set(files
 )
 copy_files(MRTExample ${files})
 copy_sgct_dynamic_libraries(MRTExample)
+set_target_properties(MRTExample PROPERTIES FOLDER "Examples")

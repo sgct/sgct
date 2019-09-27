@@ -12,3 +12,4 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.obj")
 copy_files(model_loader_opengl3 ${files})
 copy_sgct_dynamic_libraries(model_loader_opengl3)
+set_target_properties(model_loader_opengl3 PROPERTIES FOLDER "Examples")

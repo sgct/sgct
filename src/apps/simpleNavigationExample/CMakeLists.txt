@@ -12,3 +12,4 @@ set(files
 )
 copy_files(simpleNavigationExample ${files})
 copy_sgct_dynamic_libraries(simpleNavigationExample)
+set_target_properties(simpleNavigationExample PROPERTIES FOLDER "Examples")

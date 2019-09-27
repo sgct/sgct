@@ -15,6 +15,7 @@ set(files
 )
 copy_files(stitcher ${files})
 copy_sgct_dynamic_libraries(stitcher)
+set_target_properties(stitcher PROPERTIES FOLDER "Examples")
 
 if (MSVC)
   configure_file(
@@ -24,4 +25,5 @@ if (MSVC)
   include_external_msproject(Stitcher_GUI
     ${PROJECT_SOURCE_DIR}/src/apps/stitcher/Stitcher_GUI/Stitcher_GUI/Stitcher_GUI.csproj
   )
+  set_target_properties(Stitcher_GUI PROPERTIES FOLDER "Examples")
 endif()

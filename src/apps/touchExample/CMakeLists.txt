@@ -19,3 +19,4 @@ set(files
 )
 copy_files(touchExample ${files})
 copy_sgct_dynamic_libraries(touchExample)
+set_target_properties(touchExample PROPERTIES FOLDER "Examples")

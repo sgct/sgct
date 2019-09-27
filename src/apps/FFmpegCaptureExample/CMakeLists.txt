@@ -33,3 +33,4 @@ set(files
 )
 copy_files(FFmpegCaptureExample ${files})
 copy_sgct_dynamic_libraries(FFmpegCaptureExample)
+set_target_properties(FFmpegCaptureExample PROPERTIES FOLDER "Examples")

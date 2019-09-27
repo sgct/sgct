@@ -20,3 +20,4 @@ set(files
 )
 copy_files(imguiExample ${files})
 copy_sgct_dynamic_libraries(imguiExample)
+set_target_properties(imguiExample PROPERTIES FOLDER "Examples")

@@ -15,3 +15,4 @@ set(files
 )
 copy_files(simpleNavigationExample_opengl3 ${files})
 copy_sgct_dynamic_libraries(simpleNavigationExample_opengl3)
+set_target_properties(simpleNavigationExample_opengl3 PROPERTIES FOLDER "Examples")

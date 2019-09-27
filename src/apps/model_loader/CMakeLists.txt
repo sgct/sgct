@@ -11,3 +11,4 @@ set(files
 )
 copy_files(model_loader ${files})
 copy_sgct_dynamic_libraries(model_loader)
+set_target_properties(model_loader PROPERTIES FOLDER "Examples")

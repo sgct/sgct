@@ -19,3 +19,4 @@ set(files
 )
 copy_files(OmniStereoTest_opengl3 ${files})
 copy_sgct_dynamic_libraries(OmniStereoTest_opengl3)
+set_target_properties(OmniStereoTest_opengl3 PROPERTIES FOLDER "Examples")

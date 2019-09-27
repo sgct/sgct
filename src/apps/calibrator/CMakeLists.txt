@@ -23,3 +23,4 @@ set(files
 )
 copy_files(calibrator ${files})
 copy_sgct_dynamic_libraries(calibrator)
+set_target_properties(calibrator PROPERTIES FOLDER "Examples")

@@ -17,3 +17,4 @@ set(files
 )
 copy_files(depthBufferExample ${files})
 copy_sgct_dynamic_libraries(depthBufferExample)
+set_target_properties(depthBufferExample PROPERTIES FOLDER "Examples")

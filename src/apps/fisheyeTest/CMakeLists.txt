@@ -15,3 +15,4 @@ set(files
 )
 copy_files(fisheyeTest ${files})
 copy_sgct_dynamic_libraries(fisheyeTest)
+set_target_properties(fisheyeTest PROPERTIES FOLDER "Examples")

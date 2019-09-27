@@ -10,3 +10,4 @@ set(files
 )
 copy_files(orthoTexture ${files})
 copy_sgct_dynamic_libraries(orthoTexture)
+set_target_properties(orthoTexture PROPERTIES FOLDER "Examples")

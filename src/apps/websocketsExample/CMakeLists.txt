@@ -19,3 +19,4 @@ set(files
 )
 copy_files(websocketsExample ${files})
 copy_sgct_dynamic_libraries(websocketsExample)
+set_target_properties(websocketsExample PROPERTIES FOLDER "Examples")

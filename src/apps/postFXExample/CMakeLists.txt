@@ -16,3 +16,4 @@ set(files
 )
 copy_files(postFXExample ${files})
 copy_sgct_dynamic_libraries(postFXExample)
+set_target_properties(postFXExample PROPERTIES FOLDER "Examples")

@@ -1,9 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(imguiExample
-  main.cpp
-)
+add_executable(imguiExample main.cpp simple.frag simple.vert)
 set_compile_options(imguiExample)
 target_link_libraries(imguiExample PRIVATE sgct)
 

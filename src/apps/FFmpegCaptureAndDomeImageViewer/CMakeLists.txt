@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(FFmpegCaptureAndDomeImageViewer main.cpp capture.h capture.cpp)
+add_executable(FFmpegCaptureAndDomeImageViewer main.cpp capture.h capture.cpp chromakey.frag xform.frag xform.vert)
 set_compile_options(FFmpegCaptureAndDomeImageViewer)
 target_link_libraries(FFmpegCaptureAndDomeImageViewer PRIVATE sgct)
 

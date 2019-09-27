@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(postFXExample main.cpp)
+add_executable(postFXExample main.cpp base.vert blur.frag blur_h.vert blur_v.vert glow.frag threshold.frag)
 set_compile_options(postFXExample)
 target_link_libraries(postFXExample PRIVATE sgct)
 

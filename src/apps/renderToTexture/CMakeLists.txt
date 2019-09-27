@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(renderToTexture main.cpp)
+add_executable(renderToTexture main.cpp simple.frag simple.vert)
 set_compile_options(renderToTexture)
 target_link_libraries(renderToTexture PRIVATE sgct)
 

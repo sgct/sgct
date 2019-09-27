@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 
-add_executable(MRTExample main.cpp)
+add_executable(MRTExample main.cpp mrt.frag mrt.vert)
 set_compile_options(MRTExample)
 target_link_libraries(MRTExample PRIVATE sgct)
 

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(networkExample_opengl3 main.cpp)
+add_executable(networkExample_opengl3 main.cpp box.frag box.vert)
 set_compile_options(networkExample_opengl3)
 target_link_libraries(networkExample_opengl3 PRIVATE sgct)
 

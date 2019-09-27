@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(textureExample_opengl3 main.cpp)
+add_executable(textureExample_opengl3 main.cpp simple.frag simple.vert)
 set_compile_options(textureExample_opengl3)
 target_link_libraries(textureExample_opengl3 PRIVATE sgct)
 

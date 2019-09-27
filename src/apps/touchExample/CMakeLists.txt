@@ -1,7 +1,8 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(touchExample main.cpp)
+add_executable(touchExample main.cpp gridShader.frag gridShader.vert pyramidShader.frag
+  pyramidShader.vert)
 set_compile_options(touchExample)
 target_link_libraries(touchExample PRIVATE sgct)
 

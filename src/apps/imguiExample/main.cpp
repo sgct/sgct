@@ -1,41 +1,44 @@
+#include <sgct.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "sgct.h"
-
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
 
-sgct::Engine * gEngine;
+namespace {
+    sgct::Engine* gEngine;
 
-void myDrawFun();
-void myDraw2DFun();
-void myPreSyncFun();
-void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
+    void myDrawFun();
+    void myDraw2DFun();
+    void myPreSyncFun();
+    void myInitOGLFun();
+    void myEncodeFun();
+    void myDecodeFun();
+    void myCleanUpFun();
 
-//input callbacks
-void keyCallback(int key, int action);
-void charCallback(unsigned int c);
-void mouseButtonCallback(int button, int action, int mods);
-void mouseScrollCallback(double xoffset, double yoffset);
+    //input callbacks
+    void keyCallback(int key, int action);
+    void charCallback(unsigned int c);
+    void mouseButtonCallback(int button, int action, int mods);
+    void mouseScrollCallback(double xoffset, double yoffset);
 
-sgct_utils::SGCTBox * myBox = NULL;
-GLint Matrix_Loc = -1;
+    sgct_utils::SGCTBox* myBox = NULL;
+    GLint Matrix_Loc = -1;
 
-//variables to share across cluster
-sgct::SharedDouble curr_time(0.0);
-sgct::SharedFloat sharedSpeed(0.44f);
-sgct::SharedBool sharedTextureOnOff(true);
-sgct::SharedObject<glm::vec3> sharedClearColor(glm::vec3(60.0f));
+    //variables to share across cluster
+    sgct::SharedDouble curr_time(0.0);
+    sgct::SharedFloat sharedSpeed(0.44f);
+    sgct::SharedBool sharedTextureOnOff(true);
+    sgct::SharedObject<glm::vec3> sharedClearColor(glm::vec3(60.0f));
 
-//ImGUI variables
-float speed = 0.44f;
-bool use_texture = true;
-ImVec4 clear_color = ImColor(60, 60, 60);
-bool show_settings_window = true;
-bool show_test_window = false;
+    //ImGUI variables
+    float speed = 0.44f;
+    bool use_texture = true;
+    ImVec4 clear_color = ImColor(60, 60, 60);
+    bool show_settings_window = true;
+    bool show_test_window = false;
+} // namespace
+
+
 
 int main( int argc, char* argv[] )
 {
@@ -153,9 +156,7 @@ void myInitOGLFun()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "SimpleVertexShader.vertexshader",
-            "SimpleFragmentShader.fragmentshader" );
+    sgct::ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
 
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 

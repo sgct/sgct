@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(simpleShaderExample main.cpp)
+add_executable(simpleShaderExample main.cpp simple.frag simple.vert)
 set_compile_options(simpleShaderExample)
 target_link_libraries(simpleShaderExample PRIVATE sgct)
 

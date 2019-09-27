@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(FFmpegCaptureExample main.cpp capture.h capture.cpp)
+add_executable(FFmpegCaptureExample main.cpp capture.h capture.cpp xform.frag xform.vert)
 set_compile_options(FFmpegCaptureExample)
 target_link_libraries(FFmpegCaptureExample PRIVATE sgct)
 

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(heightMappingExample_opengl3 main.cpp)
+add_executable(heightMappingExample_opengl3 main.cpp heightmap.frag heightmap.vert)
 set_compile_options(heightMappingExample_opengl3)
 target_link_libraries(heightMappingExample_opengl3 PRIVATE sgct)
 

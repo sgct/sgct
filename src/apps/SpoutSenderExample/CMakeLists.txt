@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(SpoutSenderExample_opengl3 main.cpp)
+add_executable(SpoutSenderExample_opengl3 main.cpp xform.frag xform.vert)
 set_compile_options(SpoutSenderExample_opengl3)
 target_link_libraries(SpoutSenderExample_opengl3 PRIVATE sgct)
 

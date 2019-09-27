@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(openvrExample main.cpp)
+add_executable(openvrExample main.cpp gridShader.frag gridShader.vert pyramidShader.frag pyramidShader.vert)
 set_compile_options(openvrExample)
 target_link_libraries(openvrExample PRIVATE sgct)
 

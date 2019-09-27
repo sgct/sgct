@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(OmniStereoTest_opengl3 main.cpp)
+add_executable(OmniStereoTest_opengl3 main.cpp base.frag base.vert grid.frag grid.vert)
 set_compile_options(OmniStereoTest_opengl3)
 target_link_libraries(OmniStereoTest_opengl3 PRIVATE sgct)
 

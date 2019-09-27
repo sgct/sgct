@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(MRTExample_opengl3 main.cpp)
+add_executable(MRTExample_opengl3 main.cpp mrt.frag mrt.vert)
 set_compile_options(MRTExample_opengl3)
 target_link_libraries(MRTExample_opengl3 PRIVATE sgct)
 

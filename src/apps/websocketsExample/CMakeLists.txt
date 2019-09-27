@@ -1,14 +1,8 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(websocketsExample
-  main.cpp
-  quad.cpp
-  quad.h
-  userData.cpp
-  userData.h
-  webserver.cpp
-  webserver.h
+add_executable(websocketsExample main.cpp quad.cpp quad.h userData.cpp userData.h
+  webserver.cpp webserver.h avatar.frag avatar.vert
 )
 set_compile_options(websocketsExample)
 target_link_libraries(websocketsExample PRIVATE sgct)

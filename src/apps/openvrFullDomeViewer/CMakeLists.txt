@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(openvrFullDomeViewer main.cpp)
+add_executable(openvrFullDomeViewer main.cpp xform.frag xform.vert)
 set_compile_options(openvrFullDomeViewer)
 target_link_libraries(openvrFullDomeViewer PRIVATE sgct)
 

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(heightMappingExample main.cpp)
+add_executable(heightMappingExample main.cpp heightmap.frag heightmap.vert)
 set_compile_options(heightMappingExample)
 target_link_libraries(heightMappingExample PRIVATE sgct)
 

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(model_loader_opengl3 main.cpp objloader.h objloader.cpp)
+add_executable(model_loader_opengl3 main.cpp objloader.h objloader.cpp simple.frag simple.vert)
 set_compile_options(model_loader_opengl3)
 target_link_libraries(model_loader_opengl3 PRIVATE sgct)
 

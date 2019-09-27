@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(depthBufferExample main.cpp)
+add_executable(depthBufferExample main.cpp depth.frag depth.vert heightmap.frag heightmap.vert)
 set_compile_options(depthBufferExample)
 target_link_libraries(depthBufferExample PRIVATE sgct)
 

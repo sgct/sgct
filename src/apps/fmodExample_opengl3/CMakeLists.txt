@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(FMOD_example_opengl3 main.cpp fmod_audio.cpp fmod_audio.h)
+add_executable(FMOD_example_opengl3 main.cpp fmod_audio.cpp fmod_audio.h simple.frag simple.vert)
 set_compile_options(FMOD_example_opengl3)
 target_link_libraries(FMOD_example_opengl3 PRIVATE sgct)
 

@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(domeImageViewer_opengl3 main.cpp)
+add_executable(domeImageViewer_opengl3 main.cpp xform.frag xform.vert)
 set_compile_options(domeImageViewer_opengl3)
 target_link_libraries(domeImageViewer_opengl3 PRIVATE sgct)
 

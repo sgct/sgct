@@ -574,7 +574,10 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
 }
 
 void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) {
-    auto renderInternal = [this](BaseViewport& bv, unsigned int& texture, int idx) {
+    auto renderInternal =
+        [this, subViewPortIndex](BaseViewport& bv, unsigned int& texture, int idx)
+    {
+        *subViewPortIndex = static_cast<size_t>(idx);
         if (!bv.isEnabled()) {
             return;
         }

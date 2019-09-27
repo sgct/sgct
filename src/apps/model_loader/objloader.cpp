@@ -295,7 +295,7 @@ bool loadOBJ(const std::string& path, std::vector<glm::vec3>& vertices,
             uvs.push_back(uv);
         }
 
-        if (!normalIndices.empty() > 0) {
+        if (!normalIndices.empty()) {
             unsigned int normalIndex = normalIndices[i];
             glm::vec3 normal = tmp.normals[normalIndex - 1];
             normals.push_back(normal);

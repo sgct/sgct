@@ -12,8 +12,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/shaderprogram.h>
 #include <glm/glm.hpp>
-#include <string>
 #include <map>
+#include <memory>
+#include <string>
 #include <unordered_map>
 
 #include <freetype/ftglyph.h>

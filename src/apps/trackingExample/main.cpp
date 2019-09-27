@@ -158,7 +158,7 @@ void preSyncFun() {
             if (devicePtr->hasButtons()) {
                 ss << "\n     Buttons\n";
                     
-                for (size_t k = 0; k < devicePtr->getNumberOfButtons(); k++) {
+                for (int k = 0; k < devicePtr->getNumberOfButtons(); ++k) {
                     ss << "          Button " << k << ": "
                        << (devicePtr->getButton(k) ? "pressed" : "released") << '\n';
                 }
@@ -167,7 +167,7 @@ void preSyncFun() {
             if (devicePtr->hasAnalogs()) {
                 ss << "\n     Analog axes\n";
                     
-                for (size_t k = 0; k < devicePtr->getNumberOfAxes(); k++) {
+                for (int k = 0; k < devicePtr->getNumberOfAxes(); ++k) {
                     ss << "          Axis " << k << ": "
                        << devicePtr->getAnalog(k) << '\n';
                 }

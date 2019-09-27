@@ -34,11 +34,19 @@ namespace {
     };
 
 #ifdef SGCT_HAS_TURBOJPEG
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4324)
+#endif // _MSC_VER 
     //---------------- JPEG helpers -----------------
     struct my_error_mgr {
         struct jpeg_error_mgr pub; // "public" fields
         jmp_buf setjmp_buffer; // for return to caller
     };
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER 
 
     // Here's the routine that will replace the standard error_exit method:
     METHODDEF(void) my_error_exit(j_common_ptr cinfo) {

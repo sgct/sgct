@@ -10,13 +10,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
-#if defined(__WIN32__) || defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(WIN32)
     #define _WIN_PLATFORM
     using SGCT_SOCKET = size_t;
 #else //linux & OS X

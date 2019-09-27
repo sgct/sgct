@@ -339,8 +339,8 @@ void initOGLFun() {
 
     size_t numberOfActiveViewports = 0;
     sgct::core::Node* thisNode = sgct::core::ClusterManager::instance()->getThisNode();
-    for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
-        for (size_t j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
+    for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
+        for (int j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
             if (thisNode->getWindow(i).getViewport(j).isEnabled()) {
                 numberOfActiveViewports++;
             }
@@ -450,7 +450,7 @@ void keyCallback(int key, int, int action, int) {
                 if (action == action::Press) {
                     mousePointer = !mousePointer;
 
-                    for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
                         sgct::Engine::setMouseCursorVisibility(i, mousePointer);
                     }
                 }

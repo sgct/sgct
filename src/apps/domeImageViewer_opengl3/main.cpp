@@ -100,10 +100,10 @@ void startDataTransfer() {
         file.seekg(0, std::ios::beg);
 
         std::vector<char> buffer(size + HeaderSize);
-        const char type = p.second;
+        int type = p.second;
 
         // write header (single unsigned char)
-        buffer[0] = type;
+        buffer[0] = static_cast<char>(type);
 
         if (file.read(buffer.data() + HeaderSize, size)) {
             const int s = static_cast<int>(buffer.size());
@@ -446,7 +446,12 @@ void dropCallback(int count, const char** paths) {
             std::string tmpStr(paths[i]);
 
             // transform to lowercase
-            std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+            std::transform(
+                tmpStr.begin(),
+                tmpStr.end(),
+                tmpStr.begin(),
+                [](char c) { return static_cast<char>(tolower(c)); }
+            );
 
             pathStrings.push_back(tmpStr);
         }

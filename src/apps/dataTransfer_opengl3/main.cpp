@@ -232,10 +232,10 @@ void startDataTransfer() {
         file.seekg(0, std::ios::beg);
 
         std::vector<char> buffer(size + HeaderSize);
-        char type = tmpPair.second;
+        int type = tmpPair.second;
 
         // write header (single unsigned char)
-        buffer[0] = type;
+        buffer[0] = static_cast<char>(type);
 
         if (file.read(buffer.data() + HeaderSize, size)) {
             gEngine->transferDataBetweenNodes(
@@ -425,13 +425,18 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void dropCallback(int count, const char** paths) {
+void dropCallback(int, const char** paths) {
     if (gEngine->isMaster()) {
         // simply pick the first path to transmit
         std::string tmpStr(paths[0]);
 
         // transform to lowercase
-        std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+        std::transform(
+            tmpStr.begin(),
+            tmpStr.end(),
+            tmpStr.begin(),
+            [](char c) { return static_cast<char>(c); }
+        );
 
         const size_t foundJpg = tmpStr.find(".jpg");
         const size_t foundJpeg = tmpStr.find(".jpeg");

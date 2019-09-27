@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/screencapture.h>
 #include <sgct/sphericalmirrorprojection.h>
 #include <sgct/spoutoutputprojection.h>
+#include <functional>
 
 namespace sgct::core {
 class Image;
@@ -268,7 +269,7 @@ public:
     glm::ivec2 getCurrentResolution() const;
 
     /// \return the index of the focus window. If no window has focus, 0 is returned.
-    size_t getFocusedWindowIndex() const;
+    int getFocusedWindowIndex() const;
 
     /// \param state of the wireframe rendering
     void setWireframe(bool state);

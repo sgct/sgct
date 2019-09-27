@@ -303,7 +303,7 @@ void keyCallback(int key, int, int action, int) {
                 mPause = !mPause;
                 break;
             case key::F:
-                for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+                for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
                     gEngine->getWindow(i).setUseFXAA(!gEngine->getWindow(i).useFXAA());
                 }
                 break;

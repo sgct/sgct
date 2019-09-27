@@ -2,6 +2,7 @@
 #include <vrpn/vrpn_Button.h>
 #include <vrpn/vrpn_Tracker.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 std::unique_ptr<vrpn_Tracker_Remote> mTracker;

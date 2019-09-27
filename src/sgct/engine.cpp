@@ -3738,7 +3738,7 @@ glm::ivec2 Engine::getCurrentResolution() const {
     return getCurrentWindow().getFramebufferResolution();
 }
 
-size_t Engine::getFocusedWindowIndex() const {
+int Engine::getFocusedWindowIndex() const {
     for (int i = 0; i < mThisNode->getNumberOfWindows(); i++) {
         if (mThisNode->getWindow(i).isFocused()) {
             return i;

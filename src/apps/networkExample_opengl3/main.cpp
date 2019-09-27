@@ -72,7 +72,7 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
     );
 }
 
-void networkAck(int packageId, int clientId) {
+void networkAck(int packageId, int) {
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
         "Network package %d is received\n", packageId
@@ -86,7 +86,7 @@ void networkAck(int packageId, int clientId) {
     }
 }
 
-void networkDecode(void* receivedData, int receivedLength, int packageId, int clientId) {
+void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
         "Network decoding package %d...\n", packageId
@@ -266,7 +266,7 @@ void initOGLFun() {
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
-    for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
         gEngine->getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
     }
 }

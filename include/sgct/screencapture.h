@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__SCREEN_CAPTURE__H__
 
 #include <sgct/ogl_headers.h>
+#include <functional>
 #include <mutex>
 #include <string>
 #include <thread>

@@ -53,8 +53,6 @@ public:
     /// Destroy the Settings instance
     static void destroy();
 
-    void applySettings(const sgct::config::Settings& settings);
-
     /**
      * Set swap interval for all windows
      *   -1 = adaptive sync (Nvidia)

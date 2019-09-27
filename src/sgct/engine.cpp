@@ -239,13 +239,13 @@ Parameters:
         if (capture.format) {
             sgct::Settings::CaptureFormat f = [](sgct::config::Capture::Format format) {
                 switch (format) {
-                default:
-                case sgct::config::Capture::Format::PNG:
-                    return sgct::Settings::CaptureFormat::PNG;
-                case sgct::config::Capture::Format::JPG:
-                    return sgct::Settings::CaptureFormat::JPG;
-                case sgct::config::Capture::Format::TGA:
-                    return sgct::Settings::CaptureFormat::TGA;
+                    default:
+                    case sgct::config::Capture::Format::PNG:
+                        return sgct::Settings::CaptureFormat::PNG;
+                    case sgct::config::Capture::Format::JPG:
+                        return sgct::Settings::CaptureFormat::JPG;
+                    case sgct::config::Capture::Format::TGA:
+                        return sgct::Settings::CaptureFormat::TGA;
                 }
             }(*capture.format);
             sgct::Settings::instance()->setCaptureFormat(f);
@@ -489,6 +489,77 @@ Parameters:
         sgct::core::ClusterManager::instance()->addNode(std::move(n));
     }
 
+    void applySettings(const sgct::config::Settings& settings) {
+        sgct::Settings& s = *sgct::Settings::instance();
+
+        if (settings.useDepthTexture) {
+            s.setUseDepthTexture(*settings.useDepthTexture);
+        }
+        if (settings.useNormalTexture) {
+            s.setUseNormalTexture(*settings.useNormalTexture);
+        }
+        if (settings.usePositionTexture) {
+            s.setUsePositionTexture(*settings.usePositionTexture);
+        }
+        if (settings.usePBO) {
+            s.setUsePBO(*settings.usePBO);
+        }
+        if (settings.bufferFloatPrecision) {
+            sgct::Settings::BufferFloatPrecision p =
+            [](sgct::config::Settings::BufferFloatPrecision p) {
+                switch (p) {
+                default:
+                case sgct::config::Settings::BufferFloatPrecision::Float16Bit:
+                    return sgct::Settings::BufferFloatPrecision::Float16Bit;
+                case sgct::config::Settings::BufferFloatPrecision::Float32Bit:
+                    return sgct::Settings::BufferFloatPrecision::Float32Bit;
+                }
+            }(*settings.bufferFloatPrecision);
+            s.setBufferFloatPrecision(p);
+        }
+        if (settings.display) {
+            if (settings.display->swapInterval) {
+                s.setSwapInterval(*settings.display->swapInterval);
+            }
+            if (settings.display->refreshRate) {
+                s.setRefreshRateHint(*settings.display->refreshRate);
+            }
+            if (settings.display->maintainAspectRatio) {
+                s.setTryMaintainAspectRatio(*settings.display->maintainAspectRatio);
+            }
+            if (settings.display->exportWarpingMeshes) {
+                s.setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
+            }
+        }
+        if (settings.osdText) {
+            if (settings.osdText->name) {
+                s.setOSDTextFontName(*settings.osdText->name);
+            }
+            if (settings.osdText->path) {
+                s.setOSDTextFontPath(*settings.osdText->path);
+            }
+            if (settings.osdText->size) {
+                s.setOSDTextFontSize(*settings.osdText->size);
+            }
+            if (settings.osdText->xOffset) {
+                const glm::vec2 curr = s.getOSDTextOffset();
+                s.setOSDTextOffset(glm::vec2(*settings.osdText->xOffset, curr.y));
+            }
+            if (settings.osdText->yOffset) {
+                const glm::vec2 curr = s.getOSDTextOffset();
+                s.setOSDTextOffset(glm::vec2(curr.x, *settings.osdText->yOffset));
+            }
+        }
+        if (settings.fxaa) {
+            if (settings.fxaa->offset) {
+                s.setFXAASubPixOffset(*settings.fxaa->offset);
+            }
+            if (settings.fxaa->trim) {
+                s.setFXAASubPixTrim(1.f / *settings.fxaa->trim);
+            }
+        }
+    }
+
     void applyCluster(const sgct::config::Cluster& cluster) {
         sgct::core::ClusterManager::instance()->setMasterAddress(cluster.masterAddress);
         if (cluster.debug) {
@@ -515,7 +586,7 @@ Parameters:
             applyNode(node);
         }
         if (cluster.settings) {
-            sgct::Settings::instance()->applySettings(*cluster.settings);
+            applySettings(*cluster.settings);
         }
         if (cluster.user) {
             applyUser(*cluster.user);

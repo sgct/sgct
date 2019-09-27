@@ -88,7 +88,7 @@ void Viewport::applySettings(const config::Viewport& viewport) {
     setPos(viewport.position);
     setSize(viewport.size);
 
-    std::visit(overloaded{
+    std::visit(overloaded {
         [](const config::NoProjection&) {},
         [this](const config::PlanarProjection& proj) {
             applyPlanarProjection(proj);

@@ -5,6 +5,8 @@ namespace {
     sgct::SharedDouble currentTime(0.0);
 } // namespace
 
+using namespace sgct;
+
 void drawFun() {
     float speed = 50.f;
     glRotatef(static_cast<float>(currentTime.getVal()) * speed, 0.f, 1.f, 0.f);
@@ -26,27 +28,28 @@ void preSyncFun() {
     // set the time only on the master
     if (gEngine->isMaster()) {
         // get the time in seconds
-        currentTime.setVal(sgct::Engine::getTime());
+        currentTime.setVal(Engine::getTime());
     }
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance()->writeDouble(currentTime);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
+    SharedData::instance()->readDouble(currentTime);
 }
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    Configuration config = parseArguments(arg);
+    gEngine = new Engine(config);
 
     // Bind your functions
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     if (!gEngine->init()) {
         delete gEngine;

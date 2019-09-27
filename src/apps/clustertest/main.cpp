@@ -489,7 +489,8 @@ void externalControlCallback(const char* receivedChars, int size) {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    Configuration config = parseArguments(arg);
+    gEngine = new Engine(config);
 
     gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     gEngine->setInitOGLFunction(initOGLFun);

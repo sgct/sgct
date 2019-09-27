@@ -371,7 +371,8 @@ Sides getSideIndex(size_t index) {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
-    gEngine = new Engine(arguments);
+    Configuration config = parseArguments(arguments);
+    gEngine = new Engine(config);
 
     // parse arguments
     for (int i = 0; i < argc; i++) {

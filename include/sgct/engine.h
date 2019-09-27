@@ -8,12 +8,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
+#include <sgct/config.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/fisheyeprojection.h>
+#include <sgct/messagehandler.h>
 #include <sgct/screencapture.h>
+#include <sgct/settings.h>
 #include <sgct/sphericalmirrorprojection.h>
 #include <sgct/spoutoutputprojection.h>
 #include <functional>
+#include <optional>
 
 namespace sgct::core {
 class Image;
@@ -33,6 +37,59 @@ namespace sgct {
 class PostFX;
 class TrackingManager;
 class Window;
+
+struct Configuration {
+    std::optional<config::Cluster> clusterConfig;
+
+    std::optional<std::string> filename; // @TODO (abock, 2019-09-28) remove this
+    std::optional<bool> isServer;
+    std::optional<std::string> logPath;
+    std::optional<MessageHandler::Level> logLevel;
+    std::optional<bool> showHelpText;
+    std::optional<int> nodeId;
+    std::optional<bool> firmSync;
+    std::optional<bool> ignoreSync;
+    std::optional<bool> forceGlTexImage;
+    std::optional<bool> fxaa;
+    std::optional<int> msaaSamples;
+    std::optional<bool> noFbo;
+    std::optional<Settings::CaptureFormat> captureFormat;
+    std::optional<int> nCaptureThreads;
+};
+
+/**
+ * This is the only valid constructor that also initiates
+ * [GLFW](http://www.glfw.org/). Command line parameters are used to load a
+ * configuration file and settings. Note that parameter with one '\-' are followed by
+ * arguments but parameters with '\-\-' are just options without arguments.
+ *
+ * Parameter     | Description
+ * ------------- | -------------
+ * -config <filename> | set xml confiuration file
+ * -logPath <filepath> | set log file path
+ * --help | display help message and exit
+ * -local <integer> | set which node in configuration that is the localhost (index
+ *                    starts at 0)
+ * --client | run the application as client (only available when running as local)
+ * --slave | run the application as client (only available when running as local)
+ * --debug | set the notify level of messagehandler to debug
+ * --Firm-Sync | enable firm frame sync
+ * --Loose-Sync | disable firm frame sync
+ * --Ignore-Sync | disable frame sync
+ * -notify <integer> | set the notify level used in the MessageHandler
+ *                     (0 = highest priority)
+ * --No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering,
+ *            FXAA and fisheye rendering will be disabled)
+ * --Capture-PNG | use png images for screen capture (default)
+ * --Capture-TGA | use tga images for screen capture
+ * -MSAA <integer> | Enable MSAA as default (argument must be a power of two)
+ * --FXAA | Enable FXAA as default
+ * --gDebugger | Force textures to be generated using glTexImage2D instead of
+ *               glTexStorage2D
+ * -numberOfCaptureThreads <integer> | set the maximum amount of threads that should
+ *                                     be used during framecapture (default 8)
+ */
+Configuration parseArguments(std::vector<std::string>& arg);
 
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
@@ -105,39 +162,8 @@ public:
     /// \returns the static pointer to the engine instance
     static Engine* instance();
 
-    /**
-     * This is the only valid constructor that also initiates
-     * [GLFW](http://www.glfw.org/). Command line parameters are used to load a
-     * configuration file and settings. Note that parameter with one '\-' are followed by
-     * arguments but parameters with '\-\-' are just options without arguments.
-     *
-     * Parameter     | Description
-     * ------------- | -------------
-     * -config <filename> | set xml confiuration file
-     * -logPath <filepath> | set log file path
-     * --help | display help message and exit
-     * -local <integer> | set which node in configuration that is the localhost (index
-     *                    starts at 0)
-     * --client | run the application as client (only available when running as local)
-     * --slave | run the application as client (only available when running as local)
-     * --debug | set the notify level of messagehandler to debug
-     * --Firm-Sync | enable firm frame sync
-     * --Loose-Sync | disable firm frame sync
-     * --Ignore-Sync | disable frame sync
-     * -notify <integer> | set the notify level used in the MessageHandler
-     *                     (0 = highest priority)
-     * --No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering,
-     *            FXAA and fisheye rendering will be disabled)
-     * --Capture-PNG | use png images for screen capture (default)
-     * --Capture-TGA | use tga images for screen capture
-     * -MSAA <integer> | Enable MSAA as default (argument must be a power of two)
-     * --FXAA | Enable FXAA as default
-     * --gDebugger | Force textures to be generated using glTexImage2D instead of
-     *               glTexStorage2D
-     * -numberOfCaptureThreads <integer> | set the maximum amount of threads that should
-     *                                     be used during framecapture (default 8)
-     */
-    Engine(std::vector<std::string>& arg);
+
+    Engine(const Configuration& arg);
 
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
@@ -1043,13 +1069,6 @@ private:
 
     void calculateFPS(double timestamp);
 
-    /**
-     * \param arg is the list of arguments
-     *
-     * This function parses all SGCT arguments and removes them from the argument list.
-     */
-    void parseArguments(std::vector<std::string>& arg);
-    
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
 

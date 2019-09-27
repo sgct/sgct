@@ -425,7 +425,8 @@ void cleanUpFun() {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    Configuration config = parseArguments(arg);
+    gEngine = new Engine(config);
 
     for (int i = 0; i < argc; i++) {
         std::string_view argument = argv[i];

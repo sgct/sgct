@@ -238,7 +238,8 @@ void keyCallback(int key, int, int action, int) {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new Engine(arg);
+    Configuration config = parseArguments(arg);
+    gEngine = new Engine(config);
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);

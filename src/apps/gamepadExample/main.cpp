@@ -43,7 +43,8 @@ void myDraw2DFun() {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new Engine(arg);
+    Configuration config = parseArguments(arg);
+    gEngine = new Engine(config);
 
     if (!gEngine->init()) {
         delete gEngine;

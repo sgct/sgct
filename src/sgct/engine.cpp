@@ -11,12 +11,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
-#include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/readconfig.h>
 #include <sgct/mpcdi.h>
 #include <sgct/mutexmanager.h>
-#include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statistics.h>
@@ -608,13 +606,183 @@ Engine* Engine::instance() {
     return mInstance;
 }
 
-Engine::Engine(std::vector<std::string>& arg) {
+Configuration parseArguments(std::vector<std::string>& arg) {
+    Configuration config;
+
+    MessageHandler::instance()->print(MessageHandler::Level::Info, "Parsing arguments\n");
+    size_t i = 0;
+    while (i < arg.size()) {
+        if (arg[i] == "-config" && arg.size() > (i + 1)) {
+            config.filename = arg[i + 1];
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--client" || arg[i] == "--slave") {
+            config.isServer = false;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--debug") {
+            config.logLevel = MessageHandler::Level::Debug;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--help") {
+            config.showHelpText = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-local" && arg.size() > (i + 1)) {
+            config.isServer = true;
+            int id = std::stoi(arg[i + 1]);
+            config.nodeId = id;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-logPath") {
+            // Remove unwanted chars
+            std::string tmpStr = arg[i + 1];
+            tmpStr.erase(remove(tmpStr.begin(), tmpStr.end(), '\"'), tmpStr.end());
+            size_t lastPos = tmpStr.length() - 1;
+
+            const char last = tmpStr.at(lastPos);
+            if (last == '\\' || last == '/') {
+                tmpStr.erase(lastPos);
+            }
+
+            config.logPath = tmpStr;
+
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
+            int level = std::stoi(arg[i + 1]);
+
+            config.logLevel = static_cast<MessageHandler::Level>(level);
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Firm-Sync") {
+            config.firmSync = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Loose-Sync") {
+            config.firmSync = false;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Ignore-Sync" || arg[i] == "--No-Sync") {
+            config.ignoreSync = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--gDebugger") {
+            config.forceGlTexImage = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--FXAA") {
+            config.fxaa = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-MSAA" && arg.size() > (i + 1)) {
+            int msaa = std::stoi(arg[i + 1]);
+            config.msaaSamples = msaa;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--No-FBO") {
+            config.noFbo = false;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Capture-TGA") {
+            config.captureFormat = Settings::CaptureFormat::TGA;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Capture-PNG") {
+            config.captureFormat = Settings::CaptureFormat::PNG;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "--Capture-JPG") {
+            config.captureFormat = Settings::CaptureFormat::JPG;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-numberOfCaptureThreads" && arg.size() > (i + 1)) {
+            int nThreads = std::stoi(arg[i + 1]);
+            config.nCaptureThreads = nThreads;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else {
+            i++;
+        }
+    }
+
+    return config;
+}
+
+Engine::Engine(const Configuration& configuration) {
     mInstance = this;
 
     setClearBufferFunction(clearBuffer);
 
-    // parse needs to be before read config since the path to the XML is parsed here
-    parseArguments(arg);
+    if (configuration.filename) {
+        configFilename = *configuration.filename;
+    }
+    if (configuration.isServer) {
+        core::ClusterManager::instance()->setNetworkMode(
+            *configuration.isServer ?
+                core::NetworkManager::NetworkMode::LocalServer :
+                core::NetworkManager::NetworkMode::LocalClient
+        );
+    }
+    if (configuration.logPath) {
+        mLogfilePath = *configuration.logPath;
+    }
+    if (configuration.logLevel) {
+        MessageHandler::instance()->setNotifyLevel(*configuration.logLevel);
+    }
+    if (configuration.showHelpText) {
+        mHelpMode = true;
+        outputHelpMessage();
+    }
+    if (configuration.nodeId) {
+        core::ClusterManager::instance()->setThisNodeId(*configuration.nodeId);
+    }
+    if (configuration.firmSync) {
+        core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
+            *configuration.firmSync
+        );
+    }
+    if (configuration.ignoreSync) {
+        core::ClusterManager::instance()->setUseIgnoreSync(*configuration.ignoreSync);
+    }
+    if (configuration.forceGlTexImage) {
+        Settings::instance()->setForceGlTexImage2D(*configuration.forceGlTexImage);
+    }
+    if (configuration.fxaa) {
+        Settings::instance()->setDefaultFXAAState(*configuration.fxaa);
+    }
+    if (configuration.msaaSamples) {
+        if (*configuration.msaaSamples <= 0) {
+            MessageHandler::instance()->print("Only positive MSAA samples are allowed");
+        }
+        else {
+            Settings::instance()->setDefaultNumberOfAASamples(*configuration.msaaSamples);
+        }
+    }
+    if (configuration.noFbo) {
+        Settings::instance()->setUseFBO(*configuration.noFbo);
+    }
+    if (configuration.captureFormat) {
+        Settings::instance()->setCaptureFormat(*configuration.captureFormat);
+    }
+    if (configuration.nCaptureThreads) {
+        if (*configuration.nCaptureThreads <= 0) {
+            MessageHandler::instance()->print(
+                "Only positive number of capture threads allowed"
+            );
+        }
+        else {
+            Settings::instance()->setNumberOfCaptureThreads(
+                *configuration.nCaptureThreads
+            );
+        }
+    }
 
     if (!mHelpMode) {
         glfwSetErrorCallback(glfwErrorCallback);
@@ -3307,133 +3475,6 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
 
     getCurrentWindow().unbindVAO();
     ShaderProgram::unbind();
-}
-
-void Engine::parseArguments(std::vector<std::string>& arg) {
-    MessageHandler::instance()->print(MessageHandler::Level::Info, "Parsing arguments\n");
-    size_t i = 0;
-    while (i < arg.size()) {
-        if (arg[i] == "-config" && arg.size() > (i + 1)) {
-            configFilename = arg[i + 1];
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--client") {
-            core::ClusterManager::instance()->setNetworkMode(
-                core::NetworkManager::NetworkMode::LocalClient
-            );
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--slave") {
-            core::ClusterManager::instance()->setNetworkMode(
-                core::NetworkManager::NetworkMode::LocalClient
-            );
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--debug") {
-            MessageHandler::instance()->setNotifyLevel(MessageHandler::Level::Debug);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--help") {
-            mHelpMode = true;
-            outputHelpMessage();
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-local" && arg.size() > (i + 1)) {
-            core::ClusterManager::instance()->setNetworkMode(
-                core::NetworkManager::NetworkMode::LocalServer
-            );
-            
-            int id = std::stoi(arg[i + 1]);
-            core::ClusterManager::instance()->setThisNodeId(id);
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-logPath") {
-            // Remove unwanted chars
-            std::string tmpStr = arg[i+1];
-            tmpStr.erase(remove(tmpStr.begin(), tmpStr.end(), '\"'), tmpStr.end());
-            size_t lastPos = tmpStr.length() - 1;
-            
-            const char last = tmpStr.at(lastPos);
-            if (last == '\\' || last == '/') {
-                tmpStr.erase(lastPos);
-            }
-
-            mLogfilePath = tmpStr;
-
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
-            int level = std::stoi(arg[i + 1]);
-            MessageHandler::instance()->setNotifyLevel(
-                static_cast<MessageHandler::Level>(level)
-            );
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Firm-Sync") {
-            core::ClusterManager::instance()->setFirmFrameLockSyncStatus(true);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Loose-Sync") {
-            core::ClusterManager::instance()->setFirmFrameLockSyncStatus(false);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Ignore-Sync") {
-            core::ClusterManager::instance()->setUseIgnoreSync(true);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--No-Sync") {
-            core::ClusterManager::instance()->setUseIgnoreSync(true);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--gDebugger") {
-            Settings::instance()->setForceGlTexImage2D(true);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--FXAA") {
-            Settings::instance()->setDefaultFXAAState(true);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-MSAA" && arg.size() > (i + 1)) {
-            int msaa = std::stoi(arg[i + 1]);
-            Settings::instance()->setDefaultNumberOfAASamples(msaa);
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--No-FBO") {
-            Settings::instance()->setUseFBO(false);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Capture-TGA") {
-            Settings::instance()->setCaptureFormat(Settings::CaptureFormat::TGA);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Capture-PNG") {
-            Settings::instance()->setCaptureFormat(Settings::CaptureFormat::PNG);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--Capture-JPG") {
-            Settings::instance()->setCaptureFormat(Settings::CaptureFormat::JPG);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-numberOfCaptureThreads" && arg.size() > (i + 1)) {
-            int nThreads = std::stoi(arg[i + 1]);
-            if (nThreads > 0) {
-                Settings::instance()->setNumberOfCaptureThreads(nThreads);
-            }
-
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else {
-            i++;
-        }
-    }
-
-    MessageHandler::instance()->print(MessageHandler::Level::Info, "Done\n");
 }
 
 void Engine::setDrawFunction(std::function<void()> fn) {

@@ -1,242 +1,227 @@
 #include <sgct.h>
+#include <sgct/engine.h>
+#include <sgct/window.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <memory>
 
 namespace {
     sgct::Engine* gEngine;
 
-    void myDrawFun();
-    void myDraw2DFun();
-    void myPreSyncFun();
-    void myInitOGLFun();
-    void myEncodeFun();
-    void myDecodeFun();
-    void myCleanUpFun();
+    std::unique_ptr<sgct::utils::Box> box;
+    GLint matrixLoc = -1;
 
-    //input callbacks
-    void keyCallback(int key, int action);
-    void charCallback(unsigned int c);
-    void mouseButtonCallback(int button, int action, int mods);
-    void mouseScrollCallback(double xoffset, double yoffset);
-
-    sgct_utils::SGCTBox* myBox = NULL;
-    GLint Matrix_Loc = -1;
-
-    //variables to share across cluster
-    sgct::SharedDouble curr_time(0.0);
+    sgct::SharedDouble currTime(0.0);
     sgct::SharedFloat sharedSpeed(0.44f);
     sgct::SharedBool sharedTextureOnOff(true);
     sgct::SharedObject<glm::vec3> sharedClearColor(glm::vec3(60.0f));
 
-    //ImGUI variables
+    bool useTexture = true;
     float speed = 0.44f;
-    bool use_texture = true;
-    ImVec4 clear_color = ImColor(60, 60, 60);
-    bool show_settings_window = true;
-    bool show_test_window = false;
+    ImVec4 clearColor = ImColor(60, 60, 60);
+    bool showSettingsWindow = true;
+    bool showTestWindow = false;
 } // namespace
 
+using namespace sgct;
 
+void myDrawFun() {
 
-int main( int argc, char* argv[] )
-{
-    gEngine = new sgct::Engine( argc, argv );
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    gEngine->setClearColor(clearColor.x, clearColor.y, clearColor.z, 1.f);
 
-    gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDraw2DFunction(myDraw2DFun);
-    gEngine->setDrawFunction( myDrawFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    
-    gEngine->setKeyboardCallbackFunction( keyCallback );
-    gEngine->setCharCallbackFunction( charCallback );
-    gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
-    gEngine->setMouseScrollCallbackFunction( mouseScrollCallback );
+    // create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3( 0.f, 0.f, -3.f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currTime.getVal() * speed), glm::vec3(0.f, -1.f, 0.f)
+    );
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currTime.getVal() * (speed / 2.f)), glm::vec3(1.f, 0.f, 0.f)
+    );
 
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
-
-    // Main loop
-    gEngine->render();
-
-    // Clean up
-    if( gEngine->isMaster() )
-        ImGui_ImplGlfwGL3_Shutdown();
-    
-    delete gEngine;
-
-    // Exit program
-    exit( EXIT_SUCCESS );
-}
-
-void myDrawFun()
-{
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-    gEngine->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
-
-    //create scene transform (animation)
-    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, (use_texture ? sgct::TextureManager::instance()->getTextureId("box") : NULL));
+    glBindTexture(
+        GL_TEXTURE_2D,
+        (useTexture ? TextureManager::instance()->getTextureId("box") : 0)
+    );
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    ShaderManager::instance()->bindShaderProgram("xform");
 
-    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-
-    //draw the box
-    myBox->draw();
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-
-    glDisable( GL_CULL_FACE );
-    glDisable( GL_DEPTH_TEST );
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    box->draw();
+    ShaderManager::instance()->unBindShaderProgram();
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
-void myDraw2DFun()
-{
-    if (gEngine->isMaster())
-    {
-        ImGui_ImplGlfwGL3_NewFrame(gEngine->getCurrentWindowPtr()->getXFramebufferResolution(), gEngine->getCurrentWindowPtr()->getYFramebufferResolution());
+void myDraw2DFun() {
+    if (gEngine->isMaster()) {
+        const glm::ivec2 res = gEngine->getCurrentWindow().getFramebufferResolution();
+        ImGui_ImplGlfwGL3_NewFrame(res.x, res.y);
 
         // Show a settings window custom made for this application
         // Toggle this windows with the 'W' key.
-        if (show_settings_window)
-        {
+        if (showSettingsWindow) {
             ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Settings");
-            ImGui::SliderFloat("Rotation Speed", &(speed), 0.0f, 1.0f);
-            ImGui::Checkbox("Texture On/Off", &use_texture);
-            ImGui::ColorEdit3("Clear Color", (float*)&clear_color);
-            if (ImGui::Button("Toggle Test Window")) show_test_window ^= 1;
+            ImGui::SliderFloat("Rotation Speed", &speed, 0.f, 1.f);
+            ImGui::Checkbox("Texture On/Off", &useTexture);
+            ImGui::ColorEdit3("Clear Color", static_cast<float*>(&clearColor));
+            if (ImGui::Button("Toggle Test Window")) {
+                showTestWindow ^= 1;
+            }
             ImGui::End();
         }
 
         // Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (show_test_window)
-        {
+        if (showTestWindow) {
             ImGui::SetNextWindowPos(ImVec2(100, 20), ImGuiSetCond_FirstUseEver);
-            ImGui::ShowTestWindow(&show_test_window);
+            ImGui::ShowTestWindow(&showTestWindow);
         }
 
         ImGui::Render();
     }
 }
 
-void myPreSyncFun()
-{
-    if( gEngine->isMaster() )
-    {
-        curr_time.setVal( sgct::Engine::getTime() );
+void myPreSyncFun() {
+    if (gEngine->isMaster()) {
+        currTime.setVal(Engine::getTime());
     }
 }
 
-void myInitOGLFun()
-{
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
+void myInitOGLFun() {
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
+    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
-    //Set up backface culling
     glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
 
-    sgct::ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+    ShaderManager::instance()->bindShaderProgram("xform");
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    const sgct::ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
+    matrixLoc = prg.getUniformLocation("MVP");
+    GLint textureLocation = prg.getUniformLocation("Tex");
+    glUniform1i(textureLocation, 0);
 
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-    glUniform1i( Tex_Loc, 0 );
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->unBindShaderProgram();
     
     // Setup ImGui binding
-    if( gEngine->isMaster() )
-        ImGui_ImplGlfwGL3_Init(gEngine->getCurrentWindowPtr()->getWindowHandle());
+    if (gEngine->isMaster()) {
+        ImGui_ImplGlfwGL3_Init(gEngine->getCurrentWindow().getWindowHandle());
+    }
 }
 
-void myEncodeFun()
-{
-    sgct::SharedData::instance()->writeDouble(&curr_time);
+void myEncodeFun() {
+    SharedData::instance()->writeDouble(currTime);
     sharedSpeed.setVal(speed);
-    sgct::SharedData::instance()->writeFloat(&sharedSpeed);
-    sharedTextureOnOff.setVal(use_texture);
-    sgct::SharedData::instance()->writeBool(&sharedTextureOnOff);
-    sharedClearColor.setVal(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-    sgct::SharedData::instance()->writeObj(&sharedClearColor);
+    SharedData::instance()->writeFloat(sharedSpeed);
+    sharedTextureOnOff.setVal(useTexture);
+    SharedData::instance()->writeBool(sharedTextureOnOff);
+    sharedClearColor.setVal(glm::vec3(clearColor.x, clearColor.y, clearColor.z));
+    SharedData::instance()->writeObj(sharedClearColor);
 }
 
-void myDecodeFun()
-{
-    sgct::SharedData::instance()->readDouble(&curr_time);
-    sgct::SharedData::instance()->readFloat(&sharedSpeed);
+void myDecodeFun() {
+    SharedData::instance()->readDouble(currTime);
+    SharedData::instance()->readFloat(sharedSpeed);
     speed = sharedSpeed.getVal();
-    sgct::SharedData::instance()->readBool(&sharedTextureOnOff);
-    use_texture = sharedTextureOnOff.getVal();
-    sgct::SharedData::instance()->readObj(&sharedClearColor);
-    clear_color.x = sharedClearColor.getVal().x;
-    clear_color.y = sharedClearColor.getVal().y;
-    clear_color.z = sharedClearColor.getVal().z;
+    SharedData::instance()->readBool(sharedTextureOnOff);
+    useTexture = sharedTextureOnOff.getVal();
+    SharedData::instance()->readObj(sharedClearColor);
+    clearColor.x = sharedClearColor.getVal().x;
+    clearColor.y = sharedClearColor.getVal().y;
+    clearColor.z = sharedClearColor.getVal().z;
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-            case SGCT_KEY_W:
-                if(action == SGCT_PRESS)
-                    show_settings_window = !show_settings_window;
-                break;
+void keyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        if ((key == sgct::key::W) && (action == sgct::action::Press)) {
+            showSettingsWindow = !showSettingsWindow;
         }
-        
-        ImGui_ImplGlfwGL3_KeyCallback(gEngine->getCurrentWindowPtr()->getWindowHandle(), key, 0, action, 0);
+        ImGui_ImplGlfwGL3_KeyCallback(
+            gEngine->getCurrentWindow().getWindowHandle(),
+            key,
+            0,
+            action,
+            0
+        );
     }
 }
 
-void charCallback(unsigned int c)
-{
-    if( gEngine->isMaster() )
-    {
-        ImGui_ImplGlfwGL3_CharCallback(gEngine->getCurrentWindowPtr()->getWindowHandle(), c);
+void charCallback(unsigned int c, int) {
+    if (gEngine->isMaster()) {
+        ImGui_ImplGlfwGL3_CharCallback(gEngine->getCurrentWindow().getWindowHandle(), c);
     }
 }
 
-void mouseButtonCallback(int button, int action, int mods)
-{
-    if( gEngine->isMaster() )
-    {
-        ImGui_ImplGlfwGL3_MouseButtonCallback(gEngine->getCurrentWindowPtr()->getWindowHandle(), button, action, 0);
+void mouseButtonCallback(int button, int action, int mods) {
+    if (gEngine->isMaster()) {
+        ImGui_ImplGlfwGL3_MouseButtonCallback(
+            gEngine->getCurrentWindow().getWindowHandle(),
+            button,
+            action,
+            0
+        );
     }
 }
 
-void mouseScrollCallback(double xoffset, double yoffset)
-{
-    if( gEngine->isMaster() )
-    {
-        ImGui_ImplGlfwGL3_ScrollCallback(gEngine->getCurrentWindowPtr()->getWindowHandle(), xoffset, yoffset);
+void mouseScrollCallback(double x, double y) {
+    if (gEngine->isMaster()) {
+        ImGui_ImplGlfwGL3_ScrollCallback(
+            gEngine->getCurrentWindow().getWindowHandle(),
+            x,
+            y
+        );
     }
 }
 
-void myCleanUpFun()
-{
-    if(myBox != NULL)
-        delete myBox;
+void myCleanUpFun() {
+    box = nullptr;
+}
+
+int main(int argc, char** argv) {
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    gEngine = new Engine(arg);
+
+    gEngine->setInitOGLFunction(myInitOGLFun);
+    gEngine->setDraw2DFunction(myDraw2DFun);
+    gEngine->setDrawFunction(myDrawFun);
+    gEngine->setPreSyncFunction(myPreSyncFun);
+    gEngine->setCleanUpFunction(myCleanUpFun);
+
+    gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setCharCallbackFunction(charCallback);
+    gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
+    gEngine->setMouseScrollCallbackFunction(mouseScrollCallback);
+
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
+
+    SharedData::instance()->setEncodeFunction(myEncodeFun);
+    SharedData::instance()->setDecodeFunction(myDecodeFun);
+
+    gEngine->render();
+
+    if (gEngine->isMaster()) {
+        ImGui_ImplGlfwGL3_Shutdown();
+    }
+
+    delete gEngine;
+
+    exit(EXIT_SUCCESS);
 }

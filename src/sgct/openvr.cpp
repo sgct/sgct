@@ -256,10 +256,10 @@ void copyWindowToHMD(Window* win) {
 }
 
 glm::mat4 getHMDCurrentViewProjectionMatrix(core::Frustum::Mode nEye) {
-    if (nEye == core::Frustum::StereoLeftEye) {
+    if (nEye == core::Frustum::Mode::StereoLeftEye) {
         return eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
     }
-    else if (nEye == core::Frustum::StereoRightEye) {
+    else if (nEye == core::Frustum::Mode::StereoRightEye) {
         return eyeRightProjectionMat * eyeRightToHeadMat *  poseHMDMat;
     }
     else {

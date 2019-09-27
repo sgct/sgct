@@ -1647,7 +1647,7 @@ void Engine::render() {
                     nonLinearProj->renderCubemap(&mCurrentViewportIndex.sub);
                 }
                 else {
-                    mCurrentFrustumMode = core::Frustum::StereoLeftEye;
+                    mCurrentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                     nonLinearProj->renderCubemap(&mCurrentViewportIndex.sub);
                 }
 
@@ -1661,11 +1661,11 @@ void Engine::render() {
 
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
-                mCurrentFrustumMode = core::Frustum::MonoEye;
+                mCurrentFrustumMode = core::Frustum::Mode::MonoEye;
                 renderViewports(LeftEye);
             }
             else {
-                mCurrentFrustumMode = core::Frustum::StereoLeftEye;
+                mCurrentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 renderViewports(LeftEye);
             }
 
@@ -1692,7 +1692,7 @@ void Engine::render() {
                 mCurrentOffScreenBuffer = p->getOffScreenBuffer();
 
                 p->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
-                mCurrentFrustumMode = core::Frustum::StereoRightEye;
+                mCurrentFrustumMode = core::Frustum::Mode::StereoRightEye;
                 p->renderCubemap(&mCurrentViewportIndex.sub);
 
                 // FBO index, every window and every nonlinear projection has it's own
@@ -1703,7 +1703,7 @@ void Engine::render() {
             mCurrentRenderTarget = RenderTarget::WindowBuffer;
             mCurrentOffScreenBuffer = win.getFBO();
 
-            mCurrentFrustumMode = core::Frustum::StereoRightEye;
+            mCurrentFrustumMode = core::Frustum::Mode::StereoRightEye;
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
                 renderViewports(LeftEye);
@@ -1930,7 +1930,7 @@ void Engine::renderDisplayInfo() {
         );
 
         // if active stereoscopic rendering
-        if (mCurrentFrustumMode == core::Frustum::StereoLeftEye) {
+        if (mCurrentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
             sgct::text::print(
                 *font,
                 sgct::text::TextAlignMode::TopLeft,
@@ -1941,7 +1941,7 @@ void Engine::renderDisplayInfo() {
                 getCurrentWindow().getStereoModeStr().c_str()
             );
         }
-        else if (mCurrentFrustumMode == core::Frustum::StereoRightEye) {
+        else if (mCurrentFrustumMode == core::Frustum::Mode::StereoRightEye) {
             sgct::text::print(
                 *font,
                 sgct::text::TextAlignMode::TopLeft,
@@ -2161,8 +2161,8 @@ void Engine::renderFBOTexture() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     mCurrentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
-        core::Frustum::StereoLeftEye :
-        core::Frustum::MonoEye;
+        core::Frustum::Mode::StereoLeftEye :
+        core::Frustum::Mode::MonoEye;
 
     glm::ivec2 size = glm::ivec2(
         glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
@@ -2216,7 +2216,7 @@ void Engine::renderFBOTexture() {
             glViewport(0, 0, size.x, size.y);
             
             //clear buffers
-            mCurrentFrustumMode = core::Frustum::StereoRightEye;
+            mCurrentFrustumMode = core::Frustum::Mode::StereoRightEye;
             setAndClearBuffer(BufferMode::BackBufferBlack);
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
@@ -2285,8 +2285,8 @@ void Engine::renderFBOTextureFixedPipeline() {
     win.makeOpenGLContextCurrent(Window::Context::Window);
     
     mCurrentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
-        core::Frustum::StereoLeftEye :
-        core::Frustum::MonoEye;
+        core::Frustum::Mode::StereoLeftEye :
+        core::Frustum::Mode::MonoEye;
     
     glm::ivec2 s = glm::ivec2(glm::ceil(win.getScale() * glm::vec2(win.getResolution())));
     glViewport(0, 0, s.x, s.y);
@@ -2355,7 +2355,7 @@ void Engine::renderFBOTextureFixedPipeline() {
             glm::ivec2 res = win.getResolution();
             glViewport(0, 0, res.x, res.y);
             
-            mCurrentFrustumMode = core::Frustum::StereoRightEye;
+            mCurrentFrustumMode = core::Frustum::Mode::StereoRightEye;
             setAndClearBuffer(BufferMode::BackBufferBlack);
 
             glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
@@ -2496,7 +2496,9 @@ void Engine::renderViewports(TextureIndexes ti) {
     // if side-by-side and top-bottom mode only do post fx and blit only after rendered
     // right eye
     bool splitScreenStereo = (sm >= Window::StereoMode::SideBySide);
-    if (!(splitScreenStereo && mCurrentFrustumMode == core::Frustum::StereoLeftEye)) {
+    if (!(splitScreenStereo &&
+        mCurrentFrustumMode == core::Frustum::Mode::StereoLeftEye))
+    {
         if (getCurrentWindow().usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
@@ -2507,7 +2509,7 @@ void Engine::renderViewports(TextureIndexes ti) {
             if (splitScreenStereo) {
                 // render left eye info and graph so that all 2D items are rendered after
                 // post fx
-                mCurrentFrustumMode = core::Frustum::StereoLeftEye;
+                mCurrentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
             }
         }
@@ -2516,7 +2518,7 @@ void Engine::renderViewports(TextureIndexes ti) {
             if (splitScreenStereo) {
                 // render left eye info and graph so that all 2D items are rendered after
                 // post fx
-                mCurrentFrustumMode = core::Frustum::StereoLeftEye;
+                mCurrentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
             }
 
@@ -2973,12 +2975,12 @@ void Engine::setAndClearBuffer(BufferMode mode) {
             glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
             glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
         }
-        else if (mCurrentFrustumMode == core::Frustum::StereoLeftEye) {
+        else if (mCurrentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
             // if active left
             glDrawBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
             glReadBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
         }
-        else if (mCurrentFrustumMode == core::Frustum::StereoRightEye) {
+        else if (mCurrentFrustumMode == core::Frustum::Mode::StereoRightEye) {
             // if active right
             glDrawBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
             glReadBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
@@ -3216,38 +3218,38 @@ void Engine::updateFrustums() {
             if (vp.hasSubViewports()) {
                 core::NonLinearProjection& proj = *vp.getNonLinearProjection();
                 proj.updateFrustums(
-                    core::Frustum::MonoEye,
+                    core::Frustum::Mode::MonoEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
 
                 proj.updateFrustums(
-                    core::Frustum::StereoLeftEye,
+                    core::Frustum::Mode::StereoLeftEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
 
                 proj.updateFrustums(
-                    core::Frustum::StereoRightEye,
+                    core::Frustum::Mode::StereoRightEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
             }
             else {
                 vp.calculateFrustum(
-                    core::Frustum::MonoEye,
+                    core::Frustum::Mode::MonoEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
 
                 vp.calculateFrustum(
-                    core::Frustum::StereoLeftEye,
+                    core::Frustum::Mode::StereoLeftEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
 
                 vp.calculateFrustum(
-                    core::Frustum::StereoRightEye,
+                    core::Frustum::Mode::StereoRightEye,
                     mNearClippingPlaneDist,
                     mFarClippingPlaneDist
                 );
@@ -3286,7 +3288,18 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
     glUniform1i(mShaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(mode));
+    TextureIndexes m = [](core::Frustum::Mode m) {
+        switch (m) {
+            // abock (2019-09-27) Yep, I'm confused about this mapping, too. But I just
+            // took the enumerations values as they were and I assume that it was an
+            // undetected bug
+            default:
+            case core::Frustum::Mode::MonoEye: return TextureIndexes::LeftEye;
+            case core::Frustum::Mode::StereoLeftEye: return TextureIndexes::RightEye;
+            case core::Frustum::Mode::StereoRightEye: return TextureIndexes::Intermediate;
+        }
+    }(mode);
+    glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
 
     getCurrentWindow().bindVAO();
 
@@ -3543,7 +3556,7 @@ void Engine::enterCurrentViewport() {
 
     Window::StereoMode sm = getCurrentWindow().getStereoMode();
     if (sm >= Window::StereoMode::SideBySide) {
-        if (mCurrentFrustumMode == core::Frustum::StereoLeftEye) {
+        if (mCurrentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
             switch (sm) {
                 case Window::StereoMode::SideBySide:
                     mCurrentViewportCoords.x /= 2;
@@ -3717,7 +3730,9 @@ unsigned int Engine::getCurrentDrawTexture() const {
     }
     else {
         return getCurrentWindow().getFrameBufferTexture(
-            (mCurrentFrustumMode == core::Frustum::StereoRightEye) ? RightEye : LeftEye
+            (mCurrentFrustumMode == core::Frustum::Mode::StereoRightEye) ?
+                RightEye :
+                LeftEye
         );
     }
 }

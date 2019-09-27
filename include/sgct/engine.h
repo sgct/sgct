@@ -1189,7 +1189,7 @@ private:
     float mFarClippingPlaneDist = 100.f;
     glm::vec4 mClearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    core::Frustum::Mode mCurrentFrustumMode = core::Frustum::MonoEye;
+    core::Frustum::Mode mCurrentFrustumMode = core::Frustum::Mode::MonoEye;
     glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> mDrawBufferResolutions;
     size_t mCurrentDrawBufferIndex = 0;
@@ -1245,9 +1245,9 @@ private:
     unsigned int mShotCounter = 0;
 
     struct TimerInformation {
-        int mId;
-        double mLastFired;
-        double mInterval;
+        int mId = 0;
+        double mLastFired = 0.0;
+        double mInterval = 0.0;
         std::function<void(int)> mCallback;
     };
 

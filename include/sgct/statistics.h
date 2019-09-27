@@ -55,9 +55,9 @@ private:
     float mAvgDrawTime = 0.f;
     float mAvgSyncTime = 0.f;
     float mAvgFrameTime = 0.f;
-    float mMinFrameTime;
-    float mMaxFrameTime;
-    float mStdDevFrameTime;
+    float mMinFrameTime = std::numeric_limits<float>::max();
+    float mMaxFrameTime = -std::numeric_limits<float>::max();
+    float mStdDevFrameTime = 0.f;
 
     struct StatsVertex {
         float x;

@@ -237,7 +237,7 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
-        gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoRightEye)
+        gEngine->getCurrentFrustumMode() == sgct::core::Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal() + 1));
     }

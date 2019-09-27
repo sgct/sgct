@@ -34,14 +34,12 @@ namespace sgct::core {
 class Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
-    enum PackageHeaderId {
-        DefaultId = 0,
-        Ack = 6,
-        DataId = 17,
-        ConnectedId = 18,
-        DisconnectId = 19,
-        CompressedDataId = 21
-    };
+    static constexpr const char DefaultId = 0;
+    static constexpr const char Ack = 6;
+    static constexpr const char DataId = 17;
+    static constexpr const char ConnectedId = 18;
+    static constexpr const char DisconnectId = 19;
+    static constexpr const char CompressedDataId = 21;
 
     enum class ConnectionType {
         SyncConnection = 0,

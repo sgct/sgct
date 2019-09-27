@@ -72,7 +72,7 @@ void drawFun() {
     if (frametest.getVal()) {
         if (gEngine->getCurrentFrameNumber() % 2 == 0) {
             // even
-            if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoRightEye) {
+            if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
                 gEngine->setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
             }
@@ -83,7 +83,7 @@ void drawFun() {
         }
         else {
             // odd
-            if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoRightEye) {
+            if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind
                 gEngine->setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
             }
@@ -144,7 +144,7 @@ void drawFun() {
     float xPos = gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f;
 
     glColor3f(1.f, 1.f, 0.f);
-    if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoLeftEye) {
+    if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoLeftEye) {
         sgct::text::print(
             *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct::text::TextAlignMode::TopRight,
@@ -153,7 +153,7 @@ void drawFun() {
             "Left"
         );
     }
-    else if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::StereoRightEye) {
+    else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
         sgct::text::print(
             *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct::text::TextAlignMode::TopLeft,
@@ -162,7 +162,7 @@ void drawFun() {
             "Right"
         );
     }
-    else if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::MonoEye) {
+    else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::MonoEye) {
         sgct::text::print(
             *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
             sgct::text::TextAlignMode::TopLeft,

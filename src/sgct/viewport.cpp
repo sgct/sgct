@@ -75,11 +75,11 @@ void Viewport::applySettings(const config::Viewport& viewport) {
             switch (e) {
                 default:
                 case config::Viewport::Eye::Mono:
-                    return Frustum::MonoEye;
+                    return Frustum::Mode::MonoEye;
                 case config::Viewport::Eye::StereoLeft:
-                    return Frustum::StereoLeftEye;
+                    return Frustum::Mode::StereoLeftEye;
                 case config::Viewport::Eye::StereoRight:
-                    return Frustum::StereoRightEye;
+                    return Frustum::Mode::StereoRightEye;
             }
         }(*viewport.eye);
         setEye(e);

@@ -135,7 +135,7 @@ protected:
     std::vector<float> mVerts;
 
     InterpolationMode mInterpolationMode = InterpolationMode::Linear;
-    Frustum::Mode mPreferedMonoFrustumMode = Frustum::MonoEye;
+    Frustum::Mode mPreferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
     int mCubemapResolution = 512;
     glm::vec4 mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);

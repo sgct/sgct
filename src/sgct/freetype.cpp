@@ -35,7 +35,7 @@ void setupViewport() {
     sgct::Window::StereoMode sm = cWin.getStereoMode();
     if (sm >= sgct::Window::StereoMode::SideBySide) {
         if (sgct::Engine::instance()->getCurrentFrustumMode() ==
-            sgct::core::Frustum::StereoLeftEye)
+            sgct::core::Frustum::Mode::StereoLeftEye)
         {
             switch (sm) {
                 case sgct::Window::StereoMode::SideBySide:

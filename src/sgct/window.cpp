@@ -287,7 +287,7 @@ void Window::initContextSpecificOGL() {
     TextureManager::instance()->setCompression(cm);
 }
 
-unsigned int Window::getFrameBufferTexture(unsigned int index) {
+unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
     switch (index) {
         case Engine::LeftEye:
             if (mFrameBufferTextures.leftEye == 0) {

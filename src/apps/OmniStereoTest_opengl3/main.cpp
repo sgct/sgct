@@ -21,7 +21,7 @@ namespace {
     sgct::SharedBool takeScreenshot(true);
 
     struct OmniData {
-        glm::mat4 mViewProjectionMatrix[3];
+        std::map<sgct::core::Frustum::Mode, glm::mat4> mViewProjectionMatrix;
         bool enabled = false;
     };
     std::vector<std::vector<OmniData>> omniProjections;
@@ -88,20 +88,20 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         const float eyeSep = gEngine->getDefaultUser().getEyeSeparation();
 
-        sgct::core::Frustum::Mode fm;
+        core::Frustum::Mode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
             default:
-                fm = sgct::core::Frustum::MonoEye;
+                fm = core::Frustum::Mode::MonoEye;
                 eyePos = glm::vec3(0.f, 0.f, 0.f);
                 break;
             case 1:
-                fm = sgct::core::Frustum::StereoLeftEye;
+                fm = core::Frustum::Mode::StereoLeftEye;
                 eyePos = glm::vec3(-eyeSep / 2.f, 0.f, 0.f);
                 break;
             case 2:
-                fm = sgct::core::Frustum::StereoRightEye;
+                fm = core::Frustum::Mode::StereoRightEye;
                 eyePos = glm::vec3(eyeSep / 2.f, 0.f, 0.f);
                 break;
         }

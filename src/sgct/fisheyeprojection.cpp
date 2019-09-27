@@ -103,14 +103,14 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
     switch (Engine::instance()->getCurrentFrustumMode()) {
         default:
             break;
-        case Frustum::StereoLeftEye:
+        case Frustum::Mode::StereoLeftEye:
             setOffset(glm::vec3(
                 -eng.getDefaultUser().getEyeSeparation() / mDiameter,
                 0.f,
                 0.f
             ));
             break;
-        case Frustum::StereoRightEye:
+        case Frustum::Mode::StereoRightEye:
             setOffset(glm::vec3(
                 eng.getDefaultUser().getEyeSeparation() / mDiameter,
                 0.f,
@@ -524,7 +524,7 @@ void FisheyeProjection::initViewports() {
 }
 
 void FisheyeProjection::initShaders() {
-    if (mStereo || mPreferedMonoFrustumMode != Frustum::MonoEye) {
+    if (mStereo || mPreferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
         mOffAxis = true;
     }

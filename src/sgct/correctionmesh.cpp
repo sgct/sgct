@@ -1878,7 +1878,9 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
                 MessageHandler::Level::Error,
                 "CorrectionMesh: Error reading from file\n"
             );
-            fclose(meshFile);
+            if (meshFile) {
+                fclose(meshFile);
+            }
             return false;
         }
 

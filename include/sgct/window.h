@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
+#include <sgct/engine.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/postfx.h>
 #include <sgct/screencapture.h>
@@ -336,7 +337,7 @@ public:
      * \param index Index or Engine::TextureIndexes enum
      * \returns texture index of selected frame buffer texture
      */
-    unsigned int getFrameBufferTexture(unsigned int index);
+    unsigned int getFrameBufferTexture(Engine::TextureIndexes index);
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.

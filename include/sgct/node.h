@@ -91,8 +91,8 @@ public:
 private:
     std::string mName;
     std::string mAddress;
-    int mSyncPort;
-    int mDataTransferPort;
+    int mSyncPort = 0;
+    int mDataTransferPort = 0;
 
     int mCurrentWindowIndex = 0;
     std::vector<Window> mWindows;

@@ -273,7 +273,7 @@ void SphericalMirrorProjection::initViewports() {
 }
 
 void SphericalMirrorProjection::initShaders() {
-    if (mStereo || mPreferedMonoFrustumMode != Frustum::MonoEye) {
+    if (mStereo || mPreferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,

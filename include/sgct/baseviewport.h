@@ -73,7 +73,7 @@ protected:
     } mProjections;
     
     ProjectionPlane mProjectionPlane;
-    Frustum::Mode mEye = Frustum::MonoEye;
+    Frustum::Mode mEye = Frustum::Mode::MonoEye;
 
     User& mUser;
     std::string mName = "NoName";

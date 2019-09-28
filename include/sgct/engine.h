@@ -56,10 +56,9 @@ struct Configuration {
 };
 
 /**
- * This is the only valid constructor that also initiates
- * [GLFW](http://www.glfw.org/). Command line parameters are used to load a
- * configuration file and settings. Note that parameter with one '\-' are followed by
- * arguments but parameters with '\-\-' are just options without arguments.
+ * Command line parameters are used to load a configuration file and settings. Note that
+ * parameter with one '\-' are followed by arguments but parameters with '\-\-' are just
+ * options without arguments.
  *
  * Parameter     | Description
  * ------------- | -------------
@@ -88,6 +87,7 @@ struct Configuration {
  *                                     be used during framecapture (default 8)
  */
 Configuration parseArguments(std::vector<std::string>& arg);
+
 config::Cluster loadCluster(std::optional<std::string> path);
 
 /**
@@ -141,7 +141,6 @@ public:
         OpenGL_4_5_Debug_Core_Profile,
         /// Using a programmable OpenGL 4.6 pipeline using a core debug profile
         OpenGL_4_6_Debug_Core_Profile
-
     };
 
     enum class RenderTarget { WindowBuffer, NonLinearBuffer };
@@ -248,11 +247,11 @@ public:
 
     /**
      * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
-     * is: SGCT_KEY_ESC. To diable shutdown or escaping SGCT then use: SGCT_KEY_UNKNOWN
+     * is: sgct::key:ESC. To diable shutdown or escaping SGCT then use: sgct::key::Unknown
      *
      * \param key can be either an uppercase printable ISO 8859-1 (Latin 1) character
      *        (e.g. 'A', '3' or '.'), or a special key identifier described in
-     * s      etKeyboardCallbackFunction description.
+     *        setKeyboardCallbackFunction description.
      */
     void setExitKey(int key);
 

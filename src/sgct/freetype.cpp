@@ -199,135 +199,73 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
     const float h = font.getHeight() * 1.59f;
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    setupViewport();
+    const glm::mat4 projectionMat(setupOrthoMat());
 
-        FontManager::instance()->getShader().bind();
-        glUniform4fv(
-            FontManager::instance()->getColorLocation(),
-            1,
-            glm::value_ptr(color)
-        );
-        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(
-            FontManager::instance()->getStrokeLocation(),
-            1,
-            glm::value_ptr(stroke)
-        );
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for (size_t i = 0; i < lines.size(); ++i) {
-            glm::vec3 offset(x, y - h * i, 0.f);
+    FontManager::instance()->getShader().bind();
 
-            if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(font, lines[i]) / 2.f;
-            }
-            else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(font, lines[i]);
-            }
+    glBindVertexArray(font.getVAO());
+    glActiveTexture(GL_TEXTURE0);
 
-            for (size_t j = 0; j < lines[i].length(); ++j) {
-                const wchar_t c = lines[i].c_str()[j];
-                const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+    glUniform4fv(
+        FontManager::instance()->getColorLocation(),
+        1,
+        glm::value_ptr(color)
+    );
+    const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+    glUniform4fv(
+        FontManager::instance()->getStrokeLocation(),
+        1,
+        glm::value_ptr(stroke)
+    );
 
-                glPushMatrix();
-                glLoadIdentity();
-                glTranslatef(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z);
-                glScalef(ffd.mSize.x, ffd.mSize.y, 1.f);
+    for (size_t i = 0; i < lines.size(); i++) {
+        glm::vec3 offset(x, y - h * i, 0.f);
 
-                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
-
-                glCallList(font.getDisplayList());
-                glPopMatrix();
-
-                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
-            }
+        if (mode == TextAlignMode::TopCenter) {
+            offset.x -= getLineWidth(font, lines[i]) / 2.f;
+        }
+        else if (mode == TextAlignMode::TopRight) {
+            offset.x -= getLineWidth(font, lines[i]);
         }
 
-        sgct::ShaderProgram::unbind();
+        for (size_t j = 0; j < lines[i].length(); j++) {
+            const wchar_t c = lines[i].c_str()[j];
+            const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else {
-        setupViewport();
-        const glm::mat4 projectionMat(setupOrthoMat());
+            glm::mat4 trans = glm::translate(
+                projectionMat,
+                glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
+            );
+            glm::mat4 scale = glm::scale(
+                trans,
+                glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
+            );
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glUniform1i(FontManager::instance()->getTextureLoc(), 0);
 
-        FontManager::instance()->getShader().bind();
+            glUniformMatrix4fv(
+                FontManager::instance()->getMVPLocation(),
+                1,
+                GL_FALSE,
+                glm::value_ptr(scale)
+            );
 
-        glBindVertexArray(font.getVAO());
-        glActiveTexture(GL_TEXTURE0);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glUniform4fv(
-            FontManager::instance()->getColorLocation(),
-            1,
-            glm::value_ptr(color)
-        );
-        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(
-            FontManager::instance()->getStrokeLocation(),
-            1,
-            glm::value_ptr(stroke)
-        );
-
-        for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(x, y - h * i, 0.f);
-
-            if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(font, lines[i]) / 2.f;
-            }
-            else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(font, lines[i]);
-            }
-
-            for (size_t j = 0; j < lines[i].length(); j++) {
-                const wchar_t c = lines[i].c_str()[j];
-                const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
-
-                glm::mat4 trans = glm::translate(
-                    projectionMat,
-                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
-                );
-                glm::mat4 scale = glm::scale(
-                    trans,
-                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
-                );
-
-                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
-
-                glUniformMatrix4fv(
-                    FontManager::instance()->getMVPLocation(),
-                    1,
-                    GL_FALSE,
-                    glm::value_ptr(scale)
-                );
-
-                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
-            }
+            offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
         }
-
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
     }
+
+    glBindVertexArray(0);
+    sgct::ShaderProgram::unbind();
 }
 
 void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
@@ -338,149 +276,72 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
     const float h = font.getHeight() * 1.59f;
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
+    FontManager::instance()->getShader().bind();
 
-        const float textScale = 1.f / font.getHeight();
-        const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
+    glBindVertexArray(font.getVAO());
+    glActiveTexture(GL_TEXTURE0);
 
-        //clear sgct projection
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
+    glUniform4fv(
+        FontManager::instance()->getColorLocation(),
+        1,
+        glm::value_ptr(color)
+    );
+    const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
+    glUniform4fv(
+        FontManager::instance()->getStrokeLocation(),
+        1,
+        glm::value_ptr(stroke)
+    );
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
+    const float textScale = 1.f / font.getHeight();
+    const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
 
-        FontManager::instance()->getShader().bind();
-        glUniform4fv(
-            FontManager::instance()->getColorLocation(),
-            1,
-            glm::value_ptr(color)
-        );
-        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(
-            FontManager::instance()->getStrokeLocation(),
-            1,
-            glm::value_ptr(stroke)
-        );
+    for (size_t i = 0; i < lines.size(); i++) {
+        glm::vec3 offset(0.f, -h * i, 0.f);
 
-        for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(0.f, -h * i, 0.f);
-
-            if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(font, lines[i]) / 2.f;
-            }
-            else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(font, lines[i]);
-            }
-
-            for (size_t j = 0; j < lines[i].length(); j++) {
-                const wchar_t c = lines[i].c_str()[j];
-                const Font::FontFaceData& ffd = font.getFontFaceData(c);
-
-                glm::mat4 trans = glm::translate(
-                    textScaleMat,
-                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
-                );
-                glm::mat4 scale = glm::scale(
-                    trans,
-                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
-                );
-
-                glLoadMatrixf(glm::value_ptr(scale));
-
-                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
-                glCallList(font.getDisplayList());
-
-                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
-            }
+        if (mode == TextAlignMode::TopCenter) {
+            offset.x -= getLineWidth(font, lines[i]) / 2.f;
+        }
+        else if (mode == TextAlignMode::TopRight) {
+            offset.x -= getLineWidth(font, lines[i]);
         }
 
-        sgct::ShaderProgram::unbind();
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glPopAttrib();
-    }
-    else {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        for (size_t j = 0; j < lines[i].length(); j++) {
+            const wchar_t c = lines[i].c_str()[j];
+            const Font::FontFaceData& ffd = font.getFontFaceData(c);
 
-        FontManager::instance()->getShader().bind();
+            const glm::mat4 trans = glm::translate(
+                textScaleMat,
+                glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
+            );
+            const glm::mat4 scale = glm::scale(
+                trans,
+                glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
+            );
 
-        glBindVertexArray(font.getVAO());
-        glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glUniform4fv(
-            FontManager::instance()->getColorLocation(),
-            1,
-            glm::value_ptr(color)
-        );
-        const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-        glUniform4fv(
-            FontManager::instance()->getStrokeLocation(),
-            1,
-            glm::value_ptr(stroke)
-        );
+            glUniform1i(FontManager::instance()->getTextureLoc(), 0);
+            glUniformMatrix4fv(
+                FontManager::instance()->getMVPLocation(),
+                1,
+                GL_FALSE,
+                glm::value_ptr(scale)
+            );
 
-        const float textScale = 1.f / font.getHeight();
-        const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        for (size_t i = 0; i < lines.size(); i++) {
-            glm::vec3 offset(0.f, -h * i, 0.f);
-
-            if (mode == TextAlignMode::TopCenter) {
-                offset.x -= getLineWidth(font, lines[i]) / 2.f;
-            }
-            else if (mode == TextAlignMode::TopRight) {
-                offset.x -= getLineWidth(font, lines[i]);
-            }
-
-            for (size_t j = 0; j < lines[i].length(); j++) {
-                const wchar_t c = lines[i].c_str()[j];
-                const Font::FontFaceData& ffd = font.getFontFaceData(c);
-
-                const glm::mat4 trans = glm::translate(
-                    textScaleMat,
-                    glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
-                );
-                const glm::mat4 scale = glm::scale(
-                    trans,
-                    glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
-                );
-
-                glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-                glUniform1i(FontManager::instance()->getTextureLoc(), 0);
-                glUniformMatrix4fv(
-                    FontManager::instance()->getMVPLocation(),
-                    1,
-                    GL_FALSE,
-                    glm::value_ptr(scale)
-                );
-
-                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-                offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
-            }
+            offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
         }
-
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
     }
+
+    glBindVertexArray(0);
+    sgct::ShaderProgram::unbind();
 }
 
 } // namespace

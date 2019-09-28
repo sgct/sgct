@@ -108,12 +108,9 @@ class Engine {
 public:
     /// The different run modes used by the init function
     enum class RunMode { 
-        /// The default mode using fixed OpenGL pipeline (compability mode)
-        Default_Mode = 0,
-        /// Using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
-        OpenGL_Compatibility_Profile,
         /// Using a programmable OpenGL 3.3 pipeline using a core profile
-        OpenGL_3_3_Core_Profile,
+        Default_Mode = 0,
+        OpenGL_3_3_Core_Profile = 0,
         /// Using a programmable OpenGL 4.0 pipeline using a core profile
         OpenGL_4_0_Core_Profile,
         /// Using a programmable OpenGL 4.1 pipeline using a core profile
@@ -968,14 +965,6 @@ void sgct::Engine::clearBuffer() {
     /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
 
-    /**
-     * Return true if OpenGL pipeline is fixed (OpenGL 1-2) or false if OpenGL pipeline is
-     * programmable (OpenGL 3-4)
-     */
-    bool isOGLPipelineFixed() const;
-
-    bool isOpenGLCompatibilityMode() const;
-
     /// Get the GLSL version string that matches the run mode setting
     const std::string& getGLSLVersion() const;
 
@@ -1223,7 +1212,6 @@ private:
     bool mTakeScreenshot = false;
     bool mTerminate = false;
     bool mRenderingOffScreen = false;
-    bool mFixedOGLPipeline = true;
     bool mHelpMode = false;
 
     bool mPrintSyncMessage = true;

@@ -291,29 +291,14 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     // if three channels
     int textureType = isBGR ? GL_BGR : GL_RGB;
 
-    // if OpenGL 1-2
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        if (imgPtr.getChannels() == 4) {
-            textureType = isBGR ? GL_BGRA : GL_RGBA;
-        }
-        else if (imgPtr.getChannels() == 1) {
-            textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
-        }
-        else if (imgPtr.getChannels() == 2) {
-            textureType = GL_LUMINANCE_ALPHA;
-        }
+    if (imgPtr.getChannels() == 4) {
+        textureType = isBGR ? GL_BGRA : GL_RGBA;
     }
-    else {
-        // OpenGL 3+
-        if (imgPtr.getChannels() == 4) {
-            textureType = isBGR ? GL_BGRA : GL_RGBA;
-        }
-        else if (imgPtr.getChannels() == 1) {
-            textureType = GL_RED;
-        }
-        else if (imgPtr.getChannels() == 2) {
-            textureType = GL_RG;
-        }
+    else if (imgPtr.getChannels() == 1) {
+        textureType = GL_RED;
+    }
+    else if (imgPtr.getChannels() == 2) {
+        textureType = GL_RG;
     }
 
     GLint internalFormat = 0;
@@ -339,49 +324,25 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 
     switch (imgPtr.getChannels()) {
         case 1:
-            if (Engine::instance()->isOGLPipelineFixed()) {
-                if (bpc == 1) {
-                    internalFormat = (mCompression == CompressionMode::None) ?
-                        (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) :
-                        (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
-                }
-                else {
-                    internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
-                }
+            if (mCompression == CompressionMode::None) {
+                internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
+            }
+            else if (mCompression == CompressionMode::Generic) {
+                internalFormat = GL_COMPRESSED_RED;
             }
             else {
-                if (mCompression == CompressionMode::None) {
-                    internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
-                }
-                else if (mCompression == CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RED;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RED_RGTC1;
-                }
+                internalFormat = GL_COMPRESSED_RED_RGTC1;
             }
             break;
         case 2:
-            if (Engine::instance()->isOGLPipelineFixed()) {
-                if (mCompression == CompressionMode::None) {
-                    internalFormat = bpc == 1 ?
-                        GL_LUMINANCE8_ALPHA8 :
-                        GL_LUMINANCE16_ALPHA16;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
-                }
+            if (mCompression == CompressionMode::None) {
+                internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
+            }
+            else if (mCompression == CompressionMode::Generic) {
+                internalFormat = GL_COMPRESSED_RG;
             }
             else {
-                if (mCompression == CompressionMode::None) {
-                    internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
-                }
-                else if (mCompression == CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RG;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RG_RGTC2;
-                }
+                internalFormat = GL_COMPRESSED_RG_RGTC2;
             }
             break;
         case 3:

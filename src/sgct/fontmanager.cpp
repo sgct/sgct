@@ -248,18 +248,9 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     static bool shaderCreated = false;
 
     if (!shaderCreated) {
-        std::string vertShader;
-        std::string fragShader;
-
         mShader.setName("FontShader");
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            vertShader = FontVertShaderLegacy;
-            fragShader = FontFragShaderLegacy;
-        }
-        else {
-            vertShader = FontVertShader;
-            fragShader = FontFragShader;
-        }
+        std::string vertShader = FontVertShader;
+        std::string fragShader = FontFragShader;
 
         // replace glsl version
         helpers::findAndReplace(
@@ -298,9 +289,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         mShader.createAndLinkProgram();
         mShader.bind();
 
-        if (!Engine::instance()->isOGLPipelineFixed()) {
-            mMVPLocation = mShader.getUniformLocation("MVP");
-        }
+        mMVPLocation = mShader.getUniformLocation("MVP");
         mColorLocation = mShader.getUniformLocation("Col");
         mStrokeLocation = mShader.getUniformLocation("StrokeCol");
         mTextureLocation = mShader.getUniformLocation("Tex");

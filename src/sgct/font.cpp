@@ -23,72 +23,45 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
     , mFTLibrary(lib)
 {
     // setup geometry
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        mListId = glGenLists(1);
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Font: Generating display list: %u\n", mListId
-        );
+    glGenVertexArrays(1, &mVAO);
+    glGenBuffers(1, &mVBO);
 
-        // So now we can create the display list
-        glNewList(mListId, GL_COMPILE);
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "Font: Generating VAO: %u\n", mVAO
+    );
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "Font: Generating VBO: %u\n", mVBO
+    );
 
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.f, 0.f);
-        glVertex3f(0.f, 1.f, 0.f);
+    std::array<float, 16> c = {
+        0.f, 1.f, 0.f, 0.f,
+        1.f, 1.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f,
+        1.f, 0.f, 1.f, 1.f
+    };
 
-        glTexCoord2f(0.f, 1.f);
-        glVertex3f(0.f, 0.f, 0.f);
+    glBindVertexArray(mVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
 
-        glTexCoord2f(1.f, 1.f);
-        glVertex3f(1.f, 0.f, 0.f);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
-        glTexCoord2f(1.f, 0.f);
-        glVertex3f(1.f, 1.f, 0.f);
-        glEnd();
-        glEndList();
-    }
-    else {
-        glGenVertexArrays(1, &mVAO);
-        glGenBuffers(1, &mVBO);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Font: Generating VAO: %u\n", mVAO
-        );
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Font: Generating VBO: %u\n", mVBO
-        );
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        4 * sizeof(float),
+        reinterpret_cast<void*>(8)
+    );
 
-        std::array<float, 16> c = {
-            0.f, 1.f, 0.f, 0.f,
-            1.f, 1.f, 1.f, 0.f,
-            0.f, 0.f, 0.f, 1.f,
-            1.f, 0.f, 1.f, 1.f
-        };
-
-        glBindVertexArray(mVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-        glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
-
-        glVertexAttribPointer(
-            1,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            4 * sizeof(float),
-            reinterpret_cast<void*>(8)
-        );
-
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 Font::~Font() {
@@ -225,32 +198,17 @@ unsigned int Font::generateTexture(int width, int height,
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_COMPRESSED_LUMINANCE_ALPHA,
-            width,
-            height,
-            0,
-            GL_LUMINANCE_ALPHA,
-            GL_UNSIGNED_BYTE,
-            buffer.data()
-        );
-    }
-    else {
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_COMPRESSED_RG,
-            width,
-            height,
-            0,
-            GL_RG,
-            GL_UNSIGNED_BYTE,
-            buffer.data()
-        );
-    }
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_COMPRESSED_RG,
+        width,
+        height,
+        0,
+        GL_RG,
+        GL_UNSIGNED_BYTE,
+        buffer.data()
+    );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);

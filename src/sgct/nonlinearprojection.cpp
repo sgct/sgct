@@ -132,11 +132,6 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 }
 
 void NonLinearProjection::initTextures() {    
-    if (Engine::instance()->isOpenGLCompatibilityMode()) {
-        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-        glEnable(GL_TEXTURE_2D);
-    }
-    
     generateCubeMap(mTextures.cubeMapColor, mTexInternalFormat, mTexFormat, mTexType);
     if (Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
@@ -267,10 +262,6 @@ void NonLinearProjection::initTextures() {
             );
         }
     }
-
-    if (Engine::instance()->isOpenGLCompatibilityMode()) {
-        glPopAttrib();
-    }
 }
 
 void NonLinearProjection::initFBO() {
@@ -298,13 +289,11 @@ void NonLinearProjection::initVBO() {
     mVerts.resize(20);
     std::fill(mVerts.begin(), mVerts.end(), 0.f);
     
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glGenVertexArrays(1, &mVAO);
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "NonLinearProjection: Generating VAO: %d\n", mVAO
-        );
-    }
+    glGenVertexArrays(1, &mVAO);
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "NonLinearProjection: Generating VAO: %d\n", mVAO
+    );
 
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
@@ -312,37 +301,31 @@ void NonLinearProjection::initVBO() {
         "NonLinearProjection: Generating VBO: %d\n", mVBO
     );
     
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(mVAO);
-    }
+    glBindVertexArray(mVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     // 2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mVerts.data(), GL_STREAM_DRAW);
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(
-            0,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            5 * sizeof(float),
-            reinterpret_cast<void*>(0)
-        );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(float),
+        reinterpret_cast<void*>(0)
+    );
 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            5 * sizeof(float),
-            reinterpret_cast<void*>(8)
-        );
-    }
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(float),
+        reinterpret_cast<void*>(8)
+    );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -372,9 +355,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFor
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    if (Engine::instance()->isOGLPipelineFixed() ||
-        Settings::instance()->getForceGlTexImage2D())
-    {
+    if (Settings::instance()->getForceGlTexImage2D()) {
         for (int side = 0; side < 6; ++side) {
             glTexImage2D(
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,
@@ -446,9 +427,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    if (Engine::instance()->isOGLPipelineFixed() ||
-        Settings::instance()->getForceGlTexImage2D())
-    {
+    if (Settings::instance()->getForceGlTexImage2D()) {
         glTexImage2D(
             GL_TEXTURE_2D,
             0,

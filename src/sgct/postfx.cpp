@@ -45,12 +45,7 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
         return false;
     }
 
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        mRenderFn = &PostFX::internalRenderFixedPipeline;
-    }
-    else {
-        mRenderFn = &PostFX::internalRender;
-    }
+    mRenderFn = &PostFX::internalRender;
 
     return true;
 }

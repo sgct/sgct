@@ -929,17 +929,7 @@ void Window::initNvidiaSwapGroups() {
 void Window::initScreenCapture() {
     auto initializeCapture = [this](core::ScreenCapture& sc) {
         // a workaround for devices that support pbos but not showing it, like OSX (Intel)
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            sc.setUsePBO(
-                // if supported then use them
-                glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
-                Settings::instance()->getUsePBO()
-            );
-        }
-        else {
-            // in modern OpenGL pbos must be supported
-            sc.setUsePBO(Settings::instance()->getUsePBO());
-        }
+        sc.setUsePBO(Settings::instance()->getUsePBO());
 
         const int nCaptureChannels = mAlpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
@@ -1049,11 +1039,6 @@ void Window::createTextures() {
         return;
     }
 
-    if (Engine::instance()->isOpenGLCompatibilityMode()) {
-        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-        glEnable(GL_TEXTURE_2D);
-    }
-
     GLint maxTexSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
     if (mFramebufferRes.x > maxTexSize || mFramebufferRes.y > maxTexSize) {
@@ -1090,10 +1075,6 @@ void Window::createTextures() {
         generateTexture(mFrameBufferTextures.positions, TextureType::Position);
     }
 
-    if (Engine::instance()->isOpenGLCompatibilityMode()) {
-        glPopAttrib();
-    }
-
     if (Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
@@ -1116,12 +1097,6 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     
-    // Disable mipmaps
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    }
-
     // Determine the internal texture format, the texture format, and the pixel type
     const auto [internalFormat, format, pType] =
         [this](Window::TextureType type) -> std::tuple<int, unsigned int, int> {
@@ -1142,9 +1117,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         }(type);
 
     const glm::ivec2 res = mFramebufferRes;
-    const bool fixedPipeline = Engine::instance()->isOGLPipelineFixed();
-    const bool forceGlTex = Settings::instance()->getForceGlTexImage2D();
-    if (fixedPipeline || forceGlTex) {
+    if (Settings::instance()->getForceGlTexImage2D()) {
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, res.x, res.y, 0, format, pType, 0);
     }
     else {
@@ -1197,50 +1170,41 @@ void Window::createFBOs() {
 }
 
 void Window::createVBOs() {
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glGenVertexArrays(1, &mVAO);
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug, "Window: Generating VAO: %d\n", mVAO
-        );
-    }
+    glGenVertexArrays(1, &mVAO);
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug, "Window: Generating VAO: %d\n", mVAO
+    );
 
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug, "Window: Generating VBO: %d\n", mVBO
     );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(mVAO);
-    }
+    glBindVertexArray(mVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     //2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts, GL_STATIC_DRAW);
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(
-            0,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            5 * sizeof(float),
-            reinterpret_cast<void*>(0)
-        );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(float),
+        reinterpret_cast<void*>(0)
+    );
 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(
-            1,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            5 * sizeof(float),
-            reinterpret_cast<void*>(8)
-        );
-    }
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(float),
+        reinterpret_cast<void*>(8)
+    );
 
-    // unbind
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -1255,45 +1219,28 @@ void Window::loadShaders() {
         stereo.shader.deleteProgram();
     }
 
-    const bool fixed = Engine::instance()->isOGLPipelineFixed();
     using namespace core;
 
-    std::string stereoVertShader = fixed ?
-        shaders::AnaglyphVert :
-        shaders_modern::AnaglyphVert;
+    std::string stereoVertShader = shaders_modern::AnaglyphVert;
 
-    std::string stereoFragShader = [this, fixed]() {
+    std::string stereoFragShader = [this]() {
         switch (mStereoMode) {
             case StereoMode::AnaglyphRedCyan:
-                return fixed ?
-                    shaders::AnaglyphRedCyanFrag :
-                    shaders_modern::AnaglyphRedCyanFrag;
+                return shaders_modern::AnaglyphRedCyanFrag;
             case StereoMode::AnaglyphAmberBlue:
-                return fixed ?
-                    shaders::AnaglyphAmberBlueFrag :
-                    shaders_modern::AnaglyphAmberBlueFrag;
+                return shaders_modern::AnaglyphAmberBlueFrag;
             case StereoMode::AnaglyphRedCyanWimmer:
-                return fixed ?
-                    shaders::AnaglyphRedCyanWimmerFrag :
-                    shaders_modern::AnaglyphRedCyanWimmerFrag;
+                return shaders_modern::AnaglyphRedCyanWimmerFrag;
             case StereoMode::Checkerboard:
-                return fixed ?
-                    shaders::CheckerBoardFrag :
-                    shaders_modern::CheckerBoardFrag;
+                return shaders_modern::CheckerBoardFrag;
             case StereoMode::CheckerboardInverted:
-                return fixed ?
-                    shaders::CheckerBoardInvertedFrag :
-                    shaders_modern::CheckerBoardInvertedFrag;
+                return shaders_modern::CheckerBoardInvertedFrag;
             case StereoMode::VerticalInterlaced:
-                return fixed ?
-                    shaders::VerticalInterlacedFrag :
-                    shaders_modern::VerticalInterlacedFrag;
+                return shaders_modern::VerticalInterlacedFrag;
             case StereoMode::VerticalInterlacedInverted:
-                return fixed ?
-                    shaders::VerticalInterlacedInvertedFrag :
-                    shaders_modern::VerticalInterlacedInvertedFrag;
+                return shaders_modern::VerticalInterlacedInvertedFrag;
             default:
-                return fixed ? shaders::DummyStereoFrag : shaders_modern::DummyStereoFrag;
+                return shaders_modern::DummyStereoFrag;
         }
     }();
 
@@ -1328,9 +1275,7 @@ void Window::loadShaders() {
     stereo.shader.setName("StereoShader");
     stereo.shader.createAndLinkProgram();
     stereo.shader.bind();
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        stereo.mvpLoc = stereo.shader.getUniformLocation("MVP");
-    }
+    stereo.mvpLoc = stereo.shader.getUniformLocation("MVP");
     stereo.leftTexLoc = stereo.shader.getUniformLocation("LeftTex");
     stereo.rightTexLoc = stereo.shader.getUniformLocation("RightTex");
     glUniform1i(stereo.leftTexLoc, 0);

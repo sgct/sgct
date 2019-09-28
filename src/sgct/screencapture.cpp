@@ -137,11 +137,6 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     if (mUsePBO) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
         
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-            glEnable(GL_TEXTURE_2D);
-        }
-            
         if (capSrc == CaptureSource::Texture) {
             glBindTexture(GL_TEXTURE_2D, textureId);
             glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
@@ -154,10 +149,6 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, 0);
         }
             
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            glPopAttrib();
-        }
-        
         unsigned char* ptr = reinterpret_cast<unsigned char*>(
             glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
         );
@@ -188,11 +179,6 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     }
     else {
         // no PBO
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-            glEnable(GL_TEXTURE_2D);
-        }
-            
         if (capSrc == CaptureSource::Texture) {
             glBindTexture(GL_TEXTURE_2D, textureId);
             glGetTexImage(
@@ -209,10 +195,6 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
             const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
             glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, imPtr->getData());
-        }
-            
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            glPopAttrib();
         }
         
         if (mCaptureCallbackFn) {
@@ -357,16 +339,15 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::updateDownloadFormat() {
-    const bool fixedPipeline = Engine::instance()->isOGLPipelineFixed();
     switch (mChannels) {
         default:
             mDownloadFormat = mPreferBGR ? GL_BGRA : GL_RGBA;
             break;
         case 1:
-            mDownloadFormat = (fixedPipeline ? GL_LUMINANCE : GL_RED);
+            mDownloadFormat = GL_RED;
             break;
         case 2:
-            mDownloadFormat = (fixedPipeline ? GL_LUMINANCE_ALPHA : GL_RG);
+            mDownloadFormat = GL_RG;
             break;
         case 3:
             mDownloadFormat = mPreferBGR ? GL_BGR : GL_RGB;

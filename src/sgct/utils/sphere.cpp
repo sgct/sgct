@@ -39,12 +39,7 @@ Sphere::~Sphere() {
 }
 
 void Sphere::draw() {
-    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
-        drawVBO();
-    }
-    else {
-        drawVAO();
-    }
+    drawVAO();
 }
 
 void Sphere::drawVBO() {
@@ -142,19 +137,16 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         indices[base + 3 * i + 1] = mNumberOfVertices - 3 - i;
     }
 
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glGenVertexArrays(1, &mVAO);
-        glBindVertexArray(mVAO);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Sphere: Generating VAO: %d\n", mVAO
-        );
-    }
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "Sphere: Generating VAO: %d\n", mVAO
+    );
 
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mIBO);
@@ -171,35 +163,33 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        // texcoords
-        glVertexAttribPointer(
-            0,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(0)
-        );
-        // normals
-        glVertexAttribPointer(
-            1,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(8)
-        );
-        // vert positions
-        glVertexAttribPointer(
-            2,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(20)
-        ); 
-    }
+    // texcoords
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(0)
+    );
+    // normals
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(8)
+    );
+    // vert positions
+    glVertexAttribPointer(
+        2,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(20)
+    ); 
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
     glBufferData(
@@ -209,10 +199,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
-
+    glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

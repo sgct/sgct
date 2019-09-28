@@ -2196,15 +2196,13 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
-        if (!Engine::instance()->isOGLPipelineFixed()) {
-            glGenVertexArrays(1, &(geom.mArrayMeshData));
-            glBindVertexArray(geom.mArrayMeshData);
+        glGenVertexArrays(1, &(geom.mArrayMeshData));
+        glBindVertexArray(geom.mArrayMeshData);
 
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
-                "CorrectionMesh: Generating VAO: %d\n", geom.mArrayMeshData
-            );
-        }
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
+            "CorrectionMesh: Generating VAO: %d\n", geom.mArrayMeshData
+        );
 
         glGenBuffers(1, &geom.mVertexMeshData);
         glGenBuffers(1, &geom.mIndexMeshData);
@@ -2222,37 +2220,35 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
             GL_STATIC_DRAW
         );
 
-        if (!Engine::instance()->isOGLPipelineFixed()) {
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(
-                0,
-                2,
-                GL_FLOAT,
-                GL_FALSE,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(0)
-            );
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(
+            0,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            sizeof(CorrectionMeshVertex),
+            reinterpret_cast<void*>(0)
+        );
 
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(
-                1,
-                2,
-                GL_FLOAT,
-                GL_FALSE,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(8)
-            );
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(
+            1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            sizeof(CorrectionMeshVertex),
+            reinterpret_cast<void*>(8)
+        );
 
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(
-                2,
-                4,
-                GL_FLOAT,
-                GL_FALSE,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(16)
-            );
-        }
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(
+            2,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            sizeof(CorrectionMeshVertex),
+            reinterpret_cast<void*>(16)
+        );
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.mIndexMeshData);
         glBufferData(
@@ -2262,10 +2258,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
             GL_STATIC_DRAW
         );
 
-        if (!Engine::instance()->isOGLPipelineFixed()) {
-            glBindVertexArray(0);
-        }
-        
+        glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
@@ -2387,58 +2380,14 @@ void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
-        if (Engine::instance()->isOGLPipelineFixed()) {
-            glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glClientActiveTexture(GL_TEXTURE0);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glBindBuffer(GL_ARRAY_BUFFER, mt.mVertexMeshData);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mt.mIndexMeshData);
-
-            glVertexPointer(
-                2,
-                GL_FLOAT,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(0)
-            );
-            glTexCoordPointer(
-                2,
-                GL_FLOAT,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(8)
-            );
-            glColorPointer(
-                4,
-                GL_FLOAT,
-                sizeof(CorrectionMeshVertex),
-                reinterpret_cast<void*>(16)
-            );
-
-            glDrawElements(
-                mt.mGeometryType,
-                mt.mNumberOfIndices,
-                GL_UNSIGNED_INT,
-                nullptr
-            );
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-            glPopClientAttrib();
-        }
-        else {
-            glBindVertexArray(mt.mArrayMeshData);
-            glDrawElements(
-                mt.mGeometryType,
-                mt.mNumberOfIndices,
-                GL_UNSIGNED_INT,
-                nullptr
-            );
-            glBindVertexArray(0);
-        }
+        glBindVertexArray(mt.mArrayMeshData);
+        glDrawElements(
+            mt.mGeometryType,
+            mt.mNumberOfIndices,
+            GL_UNSIGNED_INT,
+            nullptr
+        );
+        glBindVertexArray(0);
     }
     else {
         glCallList(mt.mVertexMeshData);

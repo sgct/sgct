@@ -31,12 +31,7 @@ Box::~Box() {
 }
 
 void Box::draw() {
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        drawVBO();
-    }
-    else {
-        drawVAO();
-    }
+    drawVAO();
 }
 
 void Box::drawVBO() {
@@ -213,18 +208,16 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
     }
 
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glGenVertexArrays(1, &mVAO);
-        glBindVertexArray(mVAO);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Box: Generating VAO: %d\n", mVAO
-        );
-    }
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "Box: Generating VAO: %d\n", mVAO
+    );
     
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
@@ -240,41 +233,37 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
         GL_STATIC_DRAW
     );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        // texcoords
-        glVertexAttribPointer(
-            0,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(0)
-        );
+    // texcoords
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(0)
+    );
 
-        // normals
-        glVertexAttribPointer(
-            1,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(8)
-        );
+    // normals
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(8)
+    );
 
-        // vert positions
-        glVertexAttribPointer(
-            2,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(helpers::VertexData),
-            reinterpret_cast<void*>(20)
-        );
-    }
+    // vert positions
+    glVertexAttribPointer(
+        2,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(helpers::VertexData),
+        reinterpret_cast<void*>(20)
+    );
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

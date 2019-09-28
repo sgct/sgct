@@ -81,39 +81,22 @@ void SpoutOutputProjection::update(glm::vec2) {
     mVerts[19] = -1.f;
 
     // update VBO
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(mVAO);
-    }
+    glBindVertexArray(mVAO);
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
     GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
-    else {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
+    glBindVertexArray(0);
 }
 
 void SpoutOutputProjection::render() {
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        renderInternalFixedPipeline();
-    }
-    else {
-        renderInternal();
-    }
+    renderInternal();
 }
 
 void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        renderCubemapInternalFixedPipeline(subViewPortIndex);
-    }
-    else {
-        renderCubemapInternal(subViewPortIndex);
-    }
+    renderCubemapInternal(subViewPortIndex);
 }
 
 void SpoutOutputProjection::setSpoutChannels(const bool channels[NFaces]) {
@@ -138,12 +121,6 @@ void SpoutOutputProjection::initTextures() {
     NonLinearProjection::initTextures();
 
     MessageHandler::instance()->print("SpoutOutputProjection initTextures");
-
-    const bool compat = Engine::instance()->isOpenGLCompatibilityMode();
-    if (compat) {
-        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-        glEnable(GL_TEXTURE_2D);
-    }
 
     switch (mappingType) {
         case Mapping::Cubemap:
@@ -258,10 +235,6 @@ void SpoutOutputProjection::initTextures() {
             );
             break;
         }
-
-    if (compat) {
-        glPopAttrib();
-    }
 }
 
 void SpoutOutputProjection::initViewports() {
@@ -459,167 +432,84 @@ void SpoutOutputProjection::initShaders() {
     std::string fisheyeFragShader;
     std::string fisheyeVertShader;
 
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        fisheyeVertShader = core::shaders_fisheye::FisheyeVert;
+    fisheyeVertShader = shaders_modern_fisheye::FisheyeVert;
 
-        if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
-                    break;
-                default:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
-                    break;
-            }
-        }
-        else  {
-            // no depth
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                default:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFrag;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
-                    break;
-            }
-        }
-
-        //depth correction shader only
-        if (Settings::instance()->useDepthTexture()) {
-            std::string depthCorrFrag = shaders_fisheye::BaseVert;
-            std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
-
-            //replace glsl version
-            helpers::findAndReplace(
-                depthCorrFrag,
-                "**glsl_version**",
-                Engine::instance()->getGLSLVersion()
-            );
-            helpers::findAndReplace(
-                depthCorrVert,
-                "**glsl_version**",
-                Engine::instance()->getGLSLVersion()
-            );
-
-            bool fragShader = mDepthCorrectionShader.addShaderSrc(
-                depthCorrFrag,
-                GL_VERTEX_SHADER,
-                ShaderProgram::ShaderSourceType::String
-            );
-            if (!fragShader) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Failed to load fisheye depth correction vertex shader\n"
-                );
-            }
-            bool vertShader = mDepthCorrectionShader.addShaderSrc(
-                depthCorrVert,
-                GL_FRAGMENT_SHADER,
-                ShaderProgram::ShaderSourceType::String
-            );
-            if (!vertShader) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Failed to load fisheye depth correction fragment shader\n"
-                );
-            }
+    if (Settings::instance()->useDepthTexture()) {
+        switch (Settings::instance()->getCurrentDrawBufferType()) {
+            case Settings::DrawBufferType::Diffuse:
+            default:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
+                break;
+            case Settings::DrawBufferType::DiffuseNormal:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
+                break;
+            case Settings::DrawBufferType::DiffusePosition:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
+                break;
+            case Settings::DrawBufferType::DiffuseNormalPosition:
+                fisheyeFragShader =
+                    shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
+                break;
         }
     }
     else {
-        // modern pipeline
-        fisheyeVertShader = shaders_modern_fisheye::FisheyeVert;
-
-        if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                default:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fisheyeFragShader =
-                        shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
-                    break;
-            }
+        //no depth
+        switch (Settings::instance()->getCurrentDrawBufferType()) {
+            case Settings::DrawBufferType::Diffuse:
+            default:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
+                break;
+            case Settings::DrawBufferType::DiffuseNormal:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
+                break;
+            case Settings::DrawBufferType::DiffusePosition:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
+                break;
+            case Settings::DrawBufferType::DiffuseNormalPosition:
+                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
+                break;
         }
-        else {
-            //no depth
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                default:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
-                    break;
-            }
+    }
+
+    //depth correction shader only
+    if (Settings::instance()->useDepthTexture()) {
+        std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
+        std::string depthCorrVert =
+            shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
+
+        //replace glsl version
+        helpers::findAndReplace(
+            depthCorrFrag,
+            "**glsl_version**",
+            Engine::instance()->getGLSLVersion()
+        );
+        bool fragShader = mDepthCorrectionShader.addShaderSrc(
+            depthCorrFrag,
+            GL_VERTEX_SHADER,
+            ShaderProgram::ShaderSourceType::String
+        );
+        if (!fragShader) {
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
+                "Failed to load fisheye depth correction vertex shader\n"
+            );
         }
 
-        //depth correction shader only
-        if (Settings::instance()->useDepthTexture()) {
-            std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
-            std::string depthCorrVert =
-                shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
-
-            //replace glsl version
-            helpers::findAndReplace(
-                depthCorrFrag,
-                "**glsl_version**",
-                Engine::instance()->getGLSLVersion()
+        helpers::findAndReplace(
+            depthCorrVert,
+            "**glsl_version**",
+            Engine::instance()->getGLSLVersion()
+        );
+        bool vertShader = mDepthCorrectionShader.addShaderSrc(
+            depthCorrVert,
+            GL_FRAGMENT_SHADER,
+            ShaderProgram::ShaderSourceType::String
+        );
+        if (!vertShader) {
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
+                "Failed to load fisheye depth correction fragment shader\n"
             );
-            bool fragShader = mDepthCorrectionShader.addShaderSrc(
-                depthCorrFrag,
-                GL_VERTEX_SHADER,
-                ShaderProgram::ShaderSourceType::String
-            );
-            if (!fragShader) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Failed to load fisheye depth correction vertex shader\n"
-                );
-            }
-
-            helpers::findAndReplace(
-                depthCorrVert,
-                "**glsl_version**",
-                Engine::instance()->getGLSLVersion()
-            );
-            bool vertShader = mDepthCorrectionShader.addShaderSrc(
-                depthCorrVert,
-                GL_FRAGMENT_SHADER,
-                ShaderProgram::ShaderSourceType::String
-            );
-            if (!vertShader) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
-                    "Failed to load fisheye depth correction fragment shader\n"
-                );
-            }
         }
     }
 
@@ -629,27 +519,21 @@ void SpoutOutputProjection::initShaders() {
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                Engine::instance()->isOGLPipelineFixed() ?
-                    shaders_fisheye::SampleFun :
-                    shaders_modern_fisheye::SampleFun
+                shaders_modern_fisheye::SampleFun
             );
             break;
         case Mapping::Equirectangular:
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                Engine::instance()->isOGLPipelineFixed() ?
-                    shaders_fisheye::SampleLatlonFun :
-                    shaders_modern_fisheye::SampleLatlonFun
+                shaders_modern_fisheye::SampleLatlonFun
             );
             break;
         default:
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                Engine::instance()->isOGLPipelineFixed() ?
-                    shaders_fisheye::SampleFun :
-                    shaders_modern_fisheye::SampleFun
+                shaders_modern_fisheye::SampleFun
             );
             break;
     }
@@ -867,17 +751,6 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        glMatrixMode(GL_PROJECTION);
-        Projection& proj = vp.getProjection(Engine::instance()->getCurrentFrustumMode());
-        glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(glm::value_ptr(
-            proj.getViewMatrix() * Engine::instance()->getModelMatrix()
-        ));
-    }
-
-    // render
     Engine::instance()->mDrawFnPtr();
 
     // restore polygon mode

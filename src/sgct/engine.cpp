@@ -1209,29 +1209,15 @@ bool Engine::initWindows() {
 }
 
 void Engine::initOGL() {
-    // Set up function pointers etc. depending on fixed or programmable pipeline
-    if (mRunMode > RunMode::OpenGL_Compatibility_Profile) {
-        mInternalDrawFn = [this]() { draw(); };
-        mInternalRenderFBOFn = [this]() { renderFBOTexture(); };
-        mInternalDrawOverlaysFn = [this]() { drawOverlays(); };
-        mInternalRenderPostFXFn = [this](TextureIndexes idx) { renderPostFX(idx); };
+    mInternalDrawFn = [this]() { draw(); };
+    mInternalRenderFBOFn = [this]() { renderFBOTexture(); };
+    mInternalDrawOverlaysFn = [this]() { drawOverlays(); };
+    mInternalRenderPostFXFn = [this](TextureIndexes idx) { renderPostFX(idx); };
 
-        // force buffer objects since display lists are not supported in core opengl 3.3+
-        core::ClusterManager::instance()->setMeshImplementation(
-            core::ClusterManager::MeshImplementation::BufferObjects
-        );
-        mFixedOGLPipeline = false;
-    }
-    else {
-        mInternalDrawFn = [this]() { drawFixedPipeline(); };
-        mInternalRenderFBOFn = [this]() { renderFBOTextureFixedPipeline(); };
-        mInternalDrawOverlaysFn = [this]() { drawOverlaysFixedPipeline(); };
-        mInternalRenderPostFXFn = [this](TextureIndexes idx) {
-            renderPostFXFixedPipeline(idx);
-        };
-
-        mFixedOGLPipeline = true;
-    }
+    // force buffer objects since display lists are not supported in core opengl 3.3+
+    core::ClusterManager::instance()->setMeshImplementation(
+        core::ClusterManager::MeshImplementation::BufferObjects
+    );
 
     // Get OpenGL version
     int version[3];
@@ -1244,7 +1230,7 @@ void Engine::initOGL() {
         MessageHandler::Level::VersionInfo,
         "OpenGL version %d.%d.%d %s\n",
         version[0], version[1], version[2],
-        mFixedOGLPipeline ? "comp. profile" : "core profile"
+        "core profile"
     );
 
     MessageHandler::instance()->print(
@@ -1293,7 +1279,7 @@ void Engine::initOGL() {
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
     loadShaders();
-    mStatistics->initVBO(mFixedOGLPipeline);
+    mStatistics->initVBO(false);
 
     if (mInitOGLFnPtr) {
         MessageHandler::instance()->print(
@@ -1697,11 +1683,9 @@ void Engine::render() {
     // create OpenGL query objects for Opengl 3.3+
     GLuint timeQueryBegin = 0;
     GLuint timeQueryEnd = 0;
-    if (!mFixedOGLPipeline) {
-        getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
-        glGenQueries(1, &timeQueryBegin);
-        glGenQueries(1, &timeQueryEnd);
-    }
+    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+    glGenQueries(1, &timeQueryBegin);
+    glGenQueries(1, &timeQueryEnd);
 
     while (mRunning) {
         mRenderingOffScreen = false;
@@ -1757,9 +1741,7 @@ void Engine::render() {
         double startFrameTime = glfwGetTime();
         calculateFPS(startFrameTime); // measures time between calls
 
-        if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
-        }
+        glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
 
         // Render Viewports / Draw
         mCurrentDrawBufferIndex = 0;
@@ -1894,9 +1876,7 @@ void Engine::render() {
         checkForOGLErrors();
 #endif
 
-        if (!mFixedOGLPipeline && mShowGraph) {
-            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
-        }
+        glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
 
         double endFrameTime = glfwGetTime();
         updateTimers(endFrameTime);
@@ -1905,10 +1885,7 @@ void Engine::render() {
             mPostDrawFnPtr();
         }
 
-        if (mFixedOGLPipeline) {
-            mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
-        }
-        else if (mShowGraph) {
+        if (mShowGraph) {
             // wait until the query results are available
             GLint done = GL_FALSE;
             while (!done) {
@@ -1957,11 +1934,9 @@ void Engine::render() {
         mTakeScreenshot = false;
     }
 
-    if (!mFixedOGLPipeline) {
-        getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
-        glDeleteQueries(1, &timeQueryBegin);
-        glDeleteQueries(1, &timeQueryEnd);
-    }
+    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+    glDeleteQueries(1, &timeQueryBegin);
+    glDeleteQueries(1, &timeQueryEnd);
 }
 
 void Engine::renderDisplayInfo() {
@@ -2646,9 +2621,6 @@ void Engine::renderViewports(TextureIndexes ti) {
         }
     }
 
-    if (mFixedOGLPipeline) {
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-    }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glDisable(GL_CULL_FACE);
@@ -2688,9 +2660,6 @@ void Engine::renderViewports(TextureIndexes ti) {
     }
 
     glDisable(GL_BLEND);
-    if (mFixedOGLPipeline) {
-        glPopAttrib();
-    }
 }
 
 void Engine::render2D() {
@@ -2988,18 +2957,9 @@ void Engine::updateTimers(double timeStamp) {
 
 void Engine::loadShaders() {
     mShader.fxaa.setName("FXAAShader");
-    std::string fxaaVertShader;
-    std::string fxaaFragShader;
+    std::string fxaaVertShader = core::shaders_modern::FXAAVert;
+    std::string fxaaFragShader = core::shaders_modern::FXAAFrag;
     
-    if (mFixedOGLPipeline) {
-        fxaaVertShader = core::shaders::FXAAVert;
-        fxaaFragShader = core::shaders::FXAAFrag;
-    }
-    else {
-        fxaaVertShader = core::shaders_modern::FXAAVert;
-        fxaaFragShader = core::shaders_modern::FXAAFrag;
-    }
-
     helpers::findAndReplace(fxaaVertShader, "**glsl_version**", getGLSLVersion());
     helpers::findAndReplace(fxaaFragShader, "**glsl_version**", getGLSLVersion());
 
@@ -3048,84 +3008,82 @@ void Engine::loadShaders() {
     ShaderProgram::unbind();
 
     // Used for overlays & mono.
-    if (!mFixedOGLPipeline) {
-        std::string fboQuadVertShader;
-        std::string fboQuadFragShader;
-        fboQuadVertShader = core::shaders_modern::BaseVert;
-        fboQuadFragShader = core::shaders_modern::BaseFrag;
+    std::string fboQuadVertShader;
+    std::string fboQuadFragShader;
+    fboQuadVertShader = core::shaders_modern::BaseVert;
+    fboQuadFragShader = core::shaders_modern::BaseFrag;
         
-        const std::string glslVersion = getGLSLVersion();
+    const std::string glslVersion = getGLSLVersion();
 
-        helpers::findAndReplace(fboQuadVertShader, "**glsl_version**", glslVersion);
-        helpers::findAndReplace(fboQuadFragShader, "**glsl_version**", glslVersion);
+    helpers::findAndReplace(fboQuadVertShader, "**glsl_version**", glslVersion);
+    helpers::findAndReplace(fboQuadFragShader, "**glsl_version**", glslVersion);
         
-        mShader.fboQuad.setName("FBOQuadShader");
-        const bool quadVertSuccess = mShader.fboQuad.addShaderSrc(
-            fboQuadVertShader,
-            GL_VERTEX_SHADER,
-            ShaderProgram::ShaderSourceType::String
+    mShader.fboQuad.setName("FBOQuadShader");
+    const bool quadVertSuccess = mShader.fboQuad.addShaderSrc(
+        fboQuadVertShader,
+        GL_VERTEX_SHADER,
+        ShaderProgram::ShaderSourceType::String
+    );
+    if (!quadVertSuccess) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load FBO quad vertex shader\n"
         );
-        if (!quadVertSuccess) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "Failed to load FBO quad vertex shader\n"
-            );
-        }
-        const bool quadFragSuccess = mShader.fboQuad.addShaderSrc(
-            fboQuadFragShader,
-            GL_FRAGMENT_SHADER,
-            ShaderProgram::ShaderSourceType::String
-        );
-        if (!quadFragSuccess) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "Failed to load FBO quad fragment shader\n"
-            );
-        }
-        mShader.fboQuad.createAndLinkProgram();
-        mShader.fboQuad.bind();
-        mShaderLoc.monoTex = mShader.fboQuad.getUniformLocation("Tex");
-        glUniform1i(mShaderLoc.monoTex, 0);
-        ShaderProgram::unbind();
-        
-        std::string overlayVertShader;
-        std::string overlayFragShader;
-        overlayVertShader = core::shaders_modern::OverlayVert;
-        overlayFragShader = core::shaders_modern::OverlayFrag;
-        
-        //replace glsl version
-        helpers::findAndReplace(overlayVertShader, "**glsl_version**", getGLSLVersion());
-        helpers::findAndReplace(overlayFragShader, "**glsl_version**", getGLSLVersion());
-        
-        mShader.overlay.setName("OverlayShader");
-        const bool overlayVertSuccess = mShader.overlay.addShaderSrc(
-            overlayVertShader,
-            GL_VERTEX_SHADER,
-            ShaderProgram::ShaderSourceType::String
-        );
-        if (!overlayVertSuccess) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "Failed to load overlay vertex shader\n"
-            );
-        }
-        const bool overlayFragSuccess = mShader.overlay.addShaderSrc(
-            overlayFragShader,
-            GL_FRAGMENT_SHADER,
-            ShaderProgram::ShaderSourceType::String
-        );
-        if (!overlayFragSuccess) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "Failed to load overlay fragment shader\n"
-            );
-        }
-        mShader.overlay.createAndLinkProgram();
-        mShader.overlay.bind();
-        mShaderLoc.overlayTex = mShader.overlay.getUniformLocation("Tex");
-        glUniform1i(mShaderLoc.overlayTex, 0);
-        ShaderProgram::unbind();
     }
+    const bool quadFragSuccess = mShader.fboQuad.addShaderSrc(
+        fboQuadFragShader,
+        GL_FRAGMENT_SHADER,
+        ShaderProgram::ShaderSourceType::String
+    );
+    if (!quadFragSuccess) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load FBO quad fragment shader\n"
+        );
+    }
+    mShader.fboQuad.createAndLinkProgram();
+    mShader.fboQuad.bind();
+    mShaderLoc.monoTex = mShader.fboQuad.getUniformLocation("Tex");
+    glUniform1i(mShaderLoc.monoTex, 0);
+    ShaderProgram::unbind();
+        
+    std::string overlayVertShader;
+    std::string overlayFragShader;
+    overlayVertShader = core::shaders_modern::OverlayVert;
+    overlayFragShader = core::shaders_modern::OverlayFrag;
+        
+    //replace glsl version
+    helpers::findAndReplace(overlayVertShader, "**glsl_version**", getGLSLVersion());
+    helpers::findAndReplace(overlayFragShader, "**glsl_version**", getGLSLVersion());
+        
+    mShader.overlay.setName("OverlayShader");
+    const bool overlayVertSuccess = mShader.overlay.addShaderSrc(
+        overlayVertShader,
+        GL_VERTEX_SHADER,
+        ShaderProgram::ShaderSourceType::String
+    );
+    if (!overlayVertSuccess) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load overlay vertex shader\n"
+        );
+    }
+    const bool overlayFragSuccess = mShader.overlay.addShaderSrc(
+        overlayFragShader,
+        GL_FRAGMENT_SHADER,
+        ShaderProgram::ShaderSourceType::String
+    );
+    if (!overlayFragSuccess) {
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Error,
+            "Failed to load overlay fragment shader\n"
+        );
+    }
+    mShader.overlay.createAndLinkProgram();
+    mShader.overlay.bind();
+    mShaderLoc.overlayTex = mShader.overlay.getUniformLocation("Tex");
+    glUniform1i(mShaderLoc.overlayTex, 0);
+    ShaderProgram::unbind();
 }
 
 void Engine::setAndClearBuffer(BufferMode mode) {
@@ -3243,14 +3201,6 @@ glm::mat4 Engine::getCurrentModelViewMatrix() const {
 
 unsigned int Engine::getCurrentFrameNumber() const {
     return mFrameCounter;
-}
-
-bool Engine::isOGLPipelineFixed() const {
-    return mFixedOGLPipeline;
-}
-
-bool Engine::isOpenGLCompatibilityMode() const {
-    return mRunMode <= RunMode::OpenGL_Compatibility_Profile;
 }
 
 const std::string& Engine::getGLSLVersion() const {

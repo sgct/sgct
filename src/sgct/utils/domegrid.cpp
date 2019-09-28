@@ -46,12 +46,7 @@ DomeGrid::~DomeGrid() {
 }
 
 void DomeGrid::draw() {
-    if (Engine::instance()->isOGLPipelineFixed()) {
-        drawVBO();
-    }
-    else {
-        drawVAO();
-    }
+    drawVAO();
 }
 
 void DomeGrid::drawVBO() {
@@ -133,17 +128,13 @@ void DomeGrid::createVBO(float radius, float FOV) {
         }
     }
 
-
-
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glGenVertexArrays(1, &mVAO);
-        glBindVertexArray(mVAO);
-        glEnableVertexAttribArray(0);
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "DomeGrid: Generating VAO: %d\n", mVAO
-        );
-    }
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
+    glEnableVertexAttribArray(0);
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
+        "DomeGrid: Generating VAO: %d\n", mVAO
+    );
 
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
@@ -159,13 +150,8 @@ void DomeGrid::createVBO(float radius, float FOV) {
         GL_STATIC_DRAW
     );
 
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    }
-
-    if (!Engine::instance()->isOGLPipelineFixed()) {
-        glBindVertexArray(0);
-    }
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

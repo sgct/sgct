@@ -613,7 +613,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
     size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
-            config.filename = arg[i + 1];
+            config.configFilename = arg[i + 1];
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
@@ -715,72 +715,117 @@ Configuration parseArguments(std::vector<std::string>& arg) {
     return config;
 }
 
-Engine::Engine(const Configuration& configuration) {
+config::Cluster loadCluster(std::optional<std::string> path) {
+    if (path) {
+        try {
+            return core::readconfig::readConfig(*path);
+        }
+        catch (const std::runtime_error& e) {
+            // fatal error
+            outputHelpMessage();
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Error,
+                "Error in xml config file parsing. %s. "
+                "Application will close in 5 seconds\n",
+                e.what()
+            );
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            throw;
+        }
+    }
+    else {
+        config::Cluster cluster;
+        // Create a default configuration
+        sgct::config::ProjectionPlane proj;
+        proj.lowerLeft = glm::vec3(-1.778f, -1.f, 0.f);
+        proj.upperLeft = glm::vec3(-1.778f, 1.f, 0.f);
+        proj.upperRight = glm::vec3(1.778f, 1.f, 0.f);
+
+        sgct::config::Viewport viewport;
+        viewport.position = glm::vec2(0.f, 0.f);
+        viewport.size = glm::vec2(1.f, 1.f);
+        viewport.projection = proj;
+
+        sgct::config::Window window;
+        window.isFullScreen = false;
+        window.size = glm::ivec2(1280, 720);
+        window.viewports.push_back(viewport);
+
+        sgct::config::Node node;
+        node.address = "localhost";
+        node.port = 20401;
+        node.windows.push_back(window);
+
+        sgct::config::User user;
+        user.eyeSeparation = 0.06f;
+        user.position = glm::vec3(0.f, 0.f, 4.f);
+
+        cluster.masterAddress = "localhost";
+        cluster.nodes.push_back(node);
+        cluster.user = user;
+        return cluster;
+    }
+}
+
+Engine::Engine(Configuration config) {
     mInstance = this;
 
     setClearBufferFunction(clearBuffer);
 
-    if (configuration.filename) {
-        configFilename = *configuration.filename;
-    }
-    if (configuration.isServer) {
+    if (config.isServer) {
         core::ClusterManager::instance()->setNetworkMode(
-            *configuration.isServer ?
+            *config.isServer ?
                 core::NetworkManager::NetworkMode::LocalServer :
                 core::NetworkManager::NetworkMode::LocalClient
         );
     }
-    if (configuration.logPath) {
-        mLogfilePath = *configuration.logPath;
+    if (config.logPath) {
+        mLogfilePath = *config.logPath;
     }
-    if (configuration.logLevel) {
-        MessageHandler::instance()->setNotifyLevel(*configuration.logLevel);
+    if (config.logLevel) {
+        MessageHandler::instance()->setNotifyLevel(*config.logLevel);
     }
-    if (configuration.showHelpText) {
+    if (config.showHelpText) {
         mHelpMode = true;
         outputHelpMessage();
     }
-    if (configuration.nodeId) {
-        core::ClusterManager::instance()->setThisNodeId(*configuration.nodeId);
+    if (config.nodeId) {
+        core::ClusterManager::instance()->setThisNodeId(*config.nodeId);
     }
-    if (configuration.firmSync) {
-        core::ClusterManager::instance()->setFirmFrameLockSyncStatus(
-            *configuration.firmSync
-        );
+    if (config.firmSync) {
+        core::ClusterManager::instance()->setFirmFrameLockSyncStatus(*config.firmSync);
     }
-    if (configuration.ignoreSync) {
-        core::ClusterManager::instance()->setUseIgnoreSync(*configuration.ignoreSync);
+    if (config.ignoreSync) {
+        core::ClusterManager::instance()->setUseIgnoreSync(*config.ignoreSync);
     }
-    if (configuration.forceGlTexImage) {
-        Settings::instance()->setForceGlTexImage2D(*configuration.forceGlTexImage);
+    if (config.forceGlTexImage) {
+        Settings::instance()->setForceGlTexImage2D(*config.forceGlTexImage);
     }
-    if (configuration.fxaa) {
-        Settings::instance()->setDefaultFXAAState(*configuration.fxaa);
+    if (config.fxaa) {
+        Settings::instance()->setDefaultFXAAState(*config.fxaa);
     }
-    if (configuration.msaaSamples) {
-        if (*configuration.msaaSamples <= 0) {
+    if (config.msaaSamples) {
+        if (*config.msaaSamples <= 0) {
             MessageHandler::instance()->print("Only positive MSAA samples are allowed");
         }
         else {
-            Settings::instance()->setDefaultNumberOfAASamples(*configuration.msaaSamples);
+            Settings::instance()->setDefaultNumberOfAASamples(*config.msaaSamples);
         }
     }
-    if (configuration.noFbo) {
-        Settings::instance()->setUseFBO(*configuration.noFbo);
+    if (config.noFbo) {
+        Settings::instance()->setUseFBO(*config.noFbo);
     }
-    if (configuration.captureFormat) {
-        Settings::instance()->setCaptureFormat(*configuration.captureFormat);
+    if (config.captureFormat) {
+        Settings::instance()->setCaptureFormat(*config.captureFormat);
     }
-    if (configuration.nCaptureThreads) {
-        if (*configuration.nCaptureThreads <= 0) {
+    if (config.nCaptureThreads) {
+        if (*config.nCaptureThreads <= 0) {
             MessageHandler::instance()->print(
                 "Only positive number of capture threads allowed"
             );
         }
         else {
-            Settings::instance()->setNumberOfCaptureThreads(
-                *configuration.nCaptureThreads
-            );
+            Settings::instance()->setNumberOfCaptureThreads(*config.nCaptureThreads);
         }
     }
 
@@ -796,12 +841,8 @@ Engine::~Engine() {
     clean();
 }
 
-bool Engine::init(RunMode rm, std::string configurationFile) {
+bool Engine::init(RunMode rm, config::Cluster cluster) {
     mRunMode = rm;
-    if (!configurationFile.empty()) {
-        configFilename = std::move(configurationFile);
-    }
-
     MessageHandler::instance()->print(
         MessageHandler::Level::VersionInfo,
         "%s\n", getVersion().c_str()
@@ -820,60 +861,12 @@ bool Engine::init(RunMode rm, std::string configurationFile) {
         return false;
     }
 
-    try {
-        sgct::config::Cluster cluster;
-        if (configFilename.empty()) {
-            // Create a default configuration
-            sgct::config::ProjectionPlane proj;
-            proj.lowerLeft = glm::vec3(-1.778f, -1.f, 0.f);
-            proj.upperLeft = glm::vec3(-1.778f, 1.f, 0.f);
-            proj.upperRight = glm::vec3(1.778f, 1.f, 0.f);
-
-            sgct::config::Viewport viewport;
-            viewport.position = glm::vec2(0.f, 0.f);
-            viewport.size = glm::vec2(1.f, 1.f);
-            viewport.projection = proj;
-
-            sgct::config::Window window;
-            window.isFullScreen = false;
-            window.size = glm::ivec2(1280, 720);
-            window.viewports.push_back(viewport);
-
-            sgct::config::Node node;
-            node.address = "localhost";
-            node.port = 20401;
-            node.windows.push_back(window);
-         
-            sgct::config::User user;
-            user.eyeSeparation = 0.06f;
-            user.position = glm::vec3(0.f, 0.f, 4.f);
-
-            cluster.masterAddress = "localhost";
-            cluster.nodes.push_back(node);
-            cluster.user = user;
-        }
-        else {
-            cluster = core::readconfig::readConfig(configFilename);
-        }
-
-        const bool validation = sgct::config::validateCluster(cluster);
-        if (!validation) {
-            throw std::runtime_error("Validation of configuration failes");
-        }
-         
-        applyCluster(cluster);
+    const bool validation = sgct::config::validateCluster(cluster);
+    if (!validation) {
+        throw std::runtime_error("Validation of configuration failes");
     }
-    catch (const std::runtime_error& e) {
-        // fatal error
-        outputHelpMessage();
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Error in xml config file parsing. %s. Application will close in 5 seconds\n",
-            e.what()
-        );
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        return false;
-    }
+         
+    applyCluster(cluster);
 
     if (!initNetwork()) {
         MessageHandler::instance()->print(

@@ -39,9 +39,7 @@ class TrackingManager;
 class Window;
 
 struct Configuration {
-    std::optional<config::Cluster> clusterConfig;
-
-    std::optional<std::string> filename; // @TODO (abock, 2019-09-28) remove this
+    std::optional<std::string> configFilename;
     std::optional<bool> isServer;
     std::optional<std::string> logPath;
     std::optional<MessageHandler::Level> logLevel;
@@ -90,6 +88,7 @@ struct Configuration {
  *                                     be used during framecapture (default 8)
  */
 Configuration parseArguments(std::vector<std::string>& arg);
+config::Cluster loadCluster(std::optional<std::string> path);
 
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
@@ -163,7 +162,7 @@ public:
     static Engine* instance();
 
 
-    Engine(const Configuration& arg);
+    Engine(Configuration arg);
 
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
@@ -180,10 +179,9 @@ public:
      *   4.4 Init PBOs
      *
      * \param rm The optional run mode.
-     * \param configurationFile The configuration file that should be loaded. This
-     *        overwrites the value passed from the commandline
+     * \param cluster The cluster setup that should be used for this SGCT run
      */
-    bool init(RunMode rm = RunMode::Default_Mode, std::string configurationFile = "");
+    bool init(RunMode rm, config::Cluster cluster);
 
     /// Terminates SGCT.
     void terminate();
@@ -1254,7 +1252,6 @@ private:
 
     std::unique_ptr<std::thread> mThreadPtr;
 
-    std::string configFilename;
     std::string mLogfilePath;
     bool mRunning = true;
     bool mInitialized = false;

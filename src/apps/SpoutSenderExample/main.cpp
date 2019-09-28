@@ -185,6 +185,7 @@ void cleanUpFun() {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     gEngine->setInitOGLFunction(initOGLFun);
@@ -194,7 +195,7 @@ int main(int argc, char* argv[]) {
     gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setPreWindowFunction(preWindowInitFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

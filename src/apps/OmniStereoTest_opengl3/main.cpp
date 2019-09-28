@@ -426,6 +426,7 @@ void cleanUpFun() {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     for (int i = 0; i < argc; i++) {
@@ -454,7 +455,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPostDrawFunction(postDrawFun);
     gEngine->setCleanUpFunction(cleanUpFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

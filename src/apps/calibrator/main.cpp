@@ -377,6 +377,7 @@ void cleanUp() {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     MessageHandler::instance()->setNotifyLevel(MessageHandler::Level::NotifyAll);
@@ -433,7 +434,7 @@ int main(int argc, char* argv[]) {
     sgct::SharedData::instance()->setDecodeFunction(decode);
 
     // Init the engine
-    if (!gEngine->init()) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

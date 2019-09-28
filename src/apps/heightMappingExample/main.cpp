@@ -243,6 +243,7 @@ void keyCallback(int key, int, int action, int) {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     gEngine->setInitOGLFunction(initOGLFun);
@@ -251,7 +252,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
-    if (!gEngine->init()) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

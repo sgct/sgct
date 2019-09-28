@@ -253,6 +253,7 @@ void decodeFun() {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     // Bind your functions
@@ -261,7 +262,7 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
 
     // Init the engine
-    if (!gEngine->init()) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

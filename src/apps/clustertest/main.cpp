@@ -490,6 +490,7 @@ void externalControlCallback(const char* receivedChars, int size) {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
@@ -498,8 +499,7 @@ int main(int argc, char* argv[]) {
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setDraw2DFunction(myDraw2DFun);
 
-    if (!gEngine->init())
-    {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

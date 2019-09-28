@@ -372,6 +372,7 @@ Sides getSideIndex(size_t index) {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     Configuration config = parseArguments(arguments);
+    config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
     // parse arguments
@@ -553,7 +554,7 @@ int main(int argc, char* argv[]) {
 
     gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
-    if (!gEngine->init()) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

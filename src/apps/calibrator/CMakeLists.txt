@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(calibrator main.cpp dome.h dome.cpp)
+add_executable(calibrator main.cpp simple.frag simple.vert)
 set_compile_options(calibrator)
 target_link_libraries(calibrator PRIVATE sgct)
 
@@ -20,6 +20,8 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_tracked.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/single_Projectionplane_unTracked.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/zero_distortion_mesh.mpcdi"
+  "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
+  "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
 )
 copy_files(calibrator ${files})
 copy_sgct_dynamic_libraries(calibrator)

@@ -29,48 +29,35 @@ namespace {
 
     sgct::SharedBool showId(false);
 
-    bool isTiltSet = false;
     float tilt = 0.f;
     float radius = 7.4f;
 
     struct Vertex {
         float x, y, z;
-        float r, g, b, a;
     };
     int nVertices = 0;
-    GLint tiltLocation = -1;
-    GLint mvpLocation = -1;
+    GLint matrixLocation = -1;
 
-    constexpr const char* vertex = R"(
+    constexpr const char* vertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec3 vertPosition;
-layout(location = 0) in vec4 color;
-
-uniform mat4 mvp;
-uniform mat4 tilt;
-
+uniform mat4 matrix;
 out vec4 trans_color;
 
 void main() {
-  // Output position of the vertex, in clip space : MVP * position
-  gl_Position =  mvp * tilt * vec4(vertPosition, 1.0);
-  //trans_color = color;
-trans_color = vec4(1.0);
+  gl_Position =  matrix * vec4(vertPosition, 1.0);
+  trans_color = vec4(vertPosition, 1.0);
 }
 )";
 
-    constexpr const char* fragment = R"(
+    constexpr const char* fragmentShader = R"(
 #version 330 core
 
 in vec4 trans_color;
-
 out vec4 color;
 
-void main() {
-  color = trans_color;
-}
-
+void main() { color = trans_color; }
 )";
 } // namespace
 
@@ -84,14 +71,12 @@ void draw() {
 
     // Inverting the tilt to keep the backwards compatibility with the previous
     // implementation
-    const glm::mat4 t = glm::rotate(glm::mat4(1.f), -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
+    const glm::mat4 mat = glm::rotate(mvp, -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
 
-    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniformMatrix4fv(tiltLocation, 1, GL_FALSE, glm::value_ptr(t));
+    glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mat));
 
     glBindVertexArray(geometry.vao);
-    glDrawElements(GL_LINE_STRIP, nVertices, GL_UNSIGNED_INT, nullptr);
-    //glDrawArrays(GL_LINE_STRIP, 0, nVertices);
+    glDrawElements(GL_LINE_STRIP, nVertices, GL_UNSIGNED_SHORT, nullptr);
     glBindVertexArray(0);
 
     ShaderManager::instance()->unBindShaderProgram();
@@ -137,12 +122,11 @@ void draw() {
         );
     }
 #endif // SGCT_HAS_TEXT
-
     glDepthMask(GL_TRUE);
 }
 
 void initGL() {
-    constexpr const int RestartIndex = 65535;
+    constexpr const uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
 
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);
@@ -156,30 +140,17 @@ void initGL() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.ibo);
 
     std::vector<Vertex> geoVertices;
-    std::vector<uint32_t> geoIndices;
-    int idx = 0;
+    std::vector<uint16_t> geoIndices;
+    uint16_t idx = 0;
     // First the horizontal lines
     for (float e = 0.f; e <= 90.f; e += 2.25f) {
         Vertex vertex;
 
         const float elevation = glm::radians(e);
 
-        if (static_cast<int>(e) % 9 == 0) {
-            vertex.r = 1.f;
-            vertex.g = 1.f;
-            vertex.b = 0.f;
-            vertex.a = 0.5f;
-        }
-        else {
-            vertex.r = 1.f;
-            vertex.g = 1.f;
-            vertex.b = 1.f;
-            vertex.a = 0.5f;
-        }
-
         const float y = radius * sin(elevation);
 
-        int firstIndex = idx;
+        uint16_t firstIndex = idx;
         for (float a = 0.f; a < 360.f; a += 2.25f) {
             const float azimuth = glm::radians(a);
             const float x = radius * cos(elevation) * sin(azimuth);
@@ -202,26 +173,6 @@ void initGL() {
         Vertex vertex;
 
         const float azimuth = glm::radians(a);
-        if (static_cast<int>(a) % 45 == 0) {
-            vertex.r = 0.f;
-            vertex.g = 1.f;
-            vertex.b = 1.f;
-            vertex.a = 0.5f;
-        }
-        else if (static_cast<int>(a) % 9 == 0) {
-            vertex.r = 1.f;
-            vertex.g = 1.f;
-            vertex.b = 0.f;
-            vertex.a = 0.5f;
-        }
-        else {
-            vertex.r = 1.f;
-            vertex.g = 1.f;
-            vertex.b = 1.f;
-            vertex.a = 0.5f;
-        }
-
-        //const int firstIndex = idx;
         for (float e = 0.f; e <= 90.f; e += 2.25f) {
             const float elevation = glm::radians(e);
             const float x = radius * cos(elevation) * sin(azimuth);
@@ -235,7 +186,6 @@ void initGL() {
             geoIndices.push_back(idx);
             idx++;
         }
-        //geoIndices.push_back(firstIndex);
         geoIndices.push_back(RestartIndex);
     }
 
@@ -250,15 +200,6 @@ void initGL() {
         sizeof(Vertex),
         nullptr
     );
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        4,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(Vertex),
-        nullptr
-    );
 
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -268,7 +209,7 @@ void initGL() {
     );
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        geoIndices.size() * sizeof(uint32_t),
+        geoIndices.size() * sizeof(uint16_t),
         geoIndices.data(),
         GL_STATIC_DRAW
     );
@@ -280,15 +221,20 @@ void initGL() {
 
     ShaderManager::instance()->addShaderProgram(
         "simple",
-        vertex,
-        fragment,
+        vertexShader,
+        fragmentShader,
         ShaderProgram::ShaderSourceType::String
     );
     ShaderManager::instance()->bindShaderProgram("simple");
     const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
-    tiltLocation = gProg.getUniformLocation("tilt");
-    mvpLocation = gProg.getUniformLocation("mvp");
+    matrixLocation = gProg.getUniformLocation("matrix");
     ShaderManager::instance()->unBindShaderProgram();
+}
+
+void keyboardCallback(int key, int, int action, int) {
+    if (key == key::I && action == action::Press) {
+        showId.setVal(!showId.getVal());
+    }
 }
 
 void encode() {
@@ -317,14 +263,10 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
         if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            isTiltSet = true;
-
             MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
         }
         else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            isTiltSet = true;
-
             MessageHandler::instance()->print("Setting radius to: %f\n", radius);
         }
     }
@@ -334,11 +276,12 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(draw);
     gEngine->setInitOGLFunction(initGL);
     gEngine->setCleanUpFunction(cleanUp);
+    gEngine->setKeyboardCallbackFunction(keyboardCallback);
     SharedData::instance()->setEncodeFunction(encode);
     SharedData::instance()->setDecodeFunction(decode);
 
     // Init the engine
-    if (!gEngine->init(Engine::RunMode::OpenGL_4_1_Debug_Core_Profile, cluster)) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

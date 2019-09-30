@@ -48,13 +48,9 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders_cubic.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders_modern.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders_modern_cubic.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalshaders_modern.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalsphericalprojectionshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalsphericalprojectionshaders_modern.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/box.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/dome.h

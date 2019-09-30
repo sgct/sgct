@@ -24,7 +24,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/viewport.h>
 #include <sgct/touch.h>
 #include <sgct/helpers/stringfunctions.h>
-#include <sgct/shaders/internalshaders.h>
 #include <sgct/shaders/internalshaders_modern.h>
 #include <algorithm>
 #include <iostream>

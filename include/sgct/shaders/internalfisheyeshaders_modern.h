@@ -9,9 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
 
 namespace sgct::core::shaders_modern_fisheye {
-/*
-    Contains GLSL 3.3+ shaders
-*/
 
 constexpr const char* SampleFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {

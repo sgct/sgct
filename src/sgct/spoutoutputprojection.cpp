@@ -13,8 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
-#include <sgct/shaders/internalfisheyeshaders_modern.h>
-#include <sgct/shaders/internalfisheyeshaders_modern_cubic.h>
+#include <sgct/shaders/internalfisheyeshaders.h>
+#include <sgct/shaders/internalfisheyeshaders_cubic.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

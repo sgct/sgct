@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/viewport.h>
-#include <sgct/shaders/internalshaders_modern.h>
+#include <sgct/shaders/internalshaders.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>

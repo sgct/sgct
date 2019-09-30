@@ -7,6 +7,9 @@
 #include <sgct/shareddata.h>
 #include <sgct/shareddatatypes.h>
 #include <sgct/texturemanager.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
 #ifdef SGCT_HAS_TEXT
@@ -21,6 +24,7 @@ namespace {
     struct {
         GLuint vao;
         GLuint vbo;
+        GLuint ibo;
     } geometry;
 
     sgct::SharedBool showId(false);
@@ -35,6 +39,39 @@ namespace {
     };
     int nVertices = 0;
     GLint tiltLocation = -1;
+    GLint mvpLocation = -1;
+
+    constexpr const char* vertex = R"(
+#version 330 core
+
+layout(location = 0) in vec3 vertPosition;
+layout(location = 0) in vec4 color;
+
+uniform mat4 mvp;
+uniform mat4 tilt;
+
+out vec4 trans_color;
+
+void main() {
+  // Output position of the vertex, in clip space : MVP * position
+  gl_Position =  mvp * tilt * vec4(vertPosition, 1.0);
+  //trans_color = color;
+trans_color = vec4(1.0);
+}
+)";
+
+    constexpr const char* fragment = R"(
+#version 330 core
+
+in vec4 trans_color;
+
+out vec4 color;
+
+void main() {
+  color = trans_color;
+}
+
+)";
 } // namespace
 
 using namespace sgct;
@@ -43,9 +80,18 @@ void draw() {
     glDepthMask(GL_FALSE);
 
     ShaderManager::instance()->bindShaderProgram("simple");
+    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix();
+
+    // Inverting the tilt to keep the backwards compatibility with the previous
+    // implementation
+    const glm::mat4 t = glm::rotate(glm::mat4(1.f), -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
+
+    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(tiltLocation, 1, GL_FALSE, glm::value_ptr(t));
 
     glBindVertexArray(geometry.vao);
-    glDrawArrays(GL_LINE_LOOP, 0, nVertices);
+    glDrawElements(GL_LINE_STRIP, nVertices, GL_UNSIGNED_INT, nullptr);
+    //glDrawArrays(GL_LINE_STRIP, 0, nVertices);
     glBindVertexArray(0);
 
     ShaderManager::instance()->unBindShaderProgram();
@@ -96,13 +142,23 @@ void draw() {
 }
 
 void initGL() {
+    constexpr const int RestartIndex = 65535;
+
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(RestartIndex);
+
     glGenVertexArrays(1, &geometry.vao);
     glGenBuffers(1, &geometry.vbo);
+    glGenBuffers(1, &geometry.ibo);
 
     glBindVertexArray(geometry.vao);
     glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.ibo);
 
     std::vector<Vertex> geoVertices;
+    std::vector<uint32_t> geoIndices;
+    int idx = 0;
+    // First the horizontal lines
     for (float e = 0.f; e <= 90.f; e += 2.25f) {
         Vertex vertex;
 
@@ -123,6 +179,7 @@ void initGL() {
 
         const float y = radius * sin(elevation);
 
+        int firstIndex = idx;
         for (float a = 0.f; a < 360.f; a += 2.25f) {
             const float azimuth = glm::radians(a);
             const float x = radius * cos(elevation) * sin(azimuth);
@@ -132,9 +189,58 @@ void initGL() {
             vertex.y = y;
             vertex.z = z;
             geoVertices.push_back(vertex);
+            geoIndices.push_back(idx);
+            ++idx;
         }
+        geoIndices.push_back(firstIndex);
+        geoIndices.push_back(RestartIndex);
     }
-    nVertices = static_cast<int>(geoVertices.size());
+    geoIndices.push_back(RestartIndex);
+
+    // Then the vertical lines
+    for (float a = 0.f; a < 360.f; a += 2.25f) {
+        Vertex vertex;
+
+        const float azimuth = glm::radians(a);
+        if (static_cast<int>(a) % 45 == 0) {
+            vertex.r = 0.f;
+            vertex.g = 1.f;
+            vertex.b = 1.f;
+            vertex.a = 0.5f;
+        }
+        else if (static_cast<int>(a) % 9 == 0) {
+            vertex.r = 1.f;
+            vertex.g = 1.f;
+            vertex.b = 0.f;
+            vertex.a = 0.5f;
+        }
+        else {
+            vertex.r = 1.f;
+            vertex.g = 1.f;
+            vertex.b = 1.f;
+            vertex.a = 0.5f;
+        }
+
+        //const int firstIndex = idx;
+        for (float e = 0.f; e <= 90.f; e += 2.25f) {
+            const float elevation = glm::radians(e);
+            const float x = radius * cos(elevation) * sin(azimuth);
+            const float y = radius * sin(elevation);
+            const float z = -radius * cos(elevation) * cos(azimuth);
+
+            vertex.x = x;
+            vertex.y = y;
+            vertex.z = z;
+            geoVertices.push_back(vertex);
+            geoIndices.push_back(idx);
+            idx++;
+        }
+        //geoIndices.push_back(firstIndex);
+        geoIndices.push_back(RestartIndex);
+    }
+
+
+    nVertices = static_cast<int>(geoIndices.size());
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
@@ -142,7 +248,7 @@ void initGL() {
         GL_FLOAT,
         GL_FALSE,
         sizeof(Vertex),
-        0
+        nullptr
     );
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(
@@ -151,24 +257,37 @@ void initGL() {
         GL_FLOAT,
         GL_FALSE,
         sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, r))
+        nullptr
     );
 
     glBufferData(
-        GL_VERTEX_ARRAY,
+        GL_ARRAY_BUFFER,
         geoVertices.size() * sizeof(Vertex),
         geoVertices.data(),
         GL_STATIC_DRAW
     );
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        geoIndices.size() * sizeof(uint32_t),
+        geoIndices.data(),
+        GL_STATIC_DRAW
+    );
+
     glBindVertexArray(0);
     glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 
 
-    ShaderManager::instance()->addShaderProgram("simple", "simple.vert", "simple.frag");
+    ShaderManager::instance()->addShaderProgram(
+        "simple",
+        vertex,
+        fragment,
+        ShaderProgram::ShaderSourceType::String
+    );
     ShaderManager::instance()->bindShaderProgram("simple");
     const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
     tiltLocation = gProg.getUniformLocation("tilt");
+    mvpLocation = gProg.getUniformLocation("mvp");
     ShaderManager::instance()->unBindShaderProgram();
 }
 
@@ -183,6 +302,7 @@ void decode() {
 void cleanUp() {
     glDeleteVertexArrays(1, &geometry.vao);
     glDeleteBuffers(1, &geometry.vbo);
+    glDeleteBuffers(1, &geometry.ibo);
 }
 
 int main(int argc, char* argv[]) {
@@ -218,7 +338,7 @@ int main(int argc, char* argv[]) {
     SharedData::instance()->setDecodeFunction(decode);
 
     // Init the engine
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_4_1_Debug_Core_Profile, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }

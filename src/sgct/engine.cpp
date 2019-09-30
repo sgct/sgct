@@ -1741,7 +1741,9 @@ void Engine::render() {
         double startFrameTime = glfwGetTime();
         calculateFPS(startFrameTime); // measures time between calls
 
-        glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+        if (mShowGraph) {
+            glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+        }
 
         // Render Viewports / Draw
         mCurrentDrawBufferIndex = 0;
@@ -1876,7 +1878,9 @@ void Engine::render() {
         checkForOGLErrors();
 #endif
 
-        glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
+        if (mShowGraph) {
+            glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
+        }
 
         double endFrameTime = glfwGetTime();
         updateTimers(endFrameTime);

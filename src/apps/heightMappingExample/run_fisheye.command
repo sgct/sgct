@@ -1,3 +1,3 @@
 #!/bin/sh
 cd "$(dirname "$0")"
-./heightMappingExample -config fisheye.xml
+./heightMappingExample_opengl3 -config fisheye.xml

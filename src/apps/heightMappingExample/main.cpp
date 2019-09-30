@@ -1,22 +1,41 @@
 #include <sgct.h>
 #include <sgct/clustermanager.h>
 #include <sgct/user.h>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
+    constexpr const int GridSize = 256;
+
     sgct::Engine* gEngine;
 
-    int textureLocations[2];
-    int currTimeLoc;
-    bool mPause = false;
-    GLuint myTerrainDisplayList = 0;
+    // shader data
+    sgct::ShaderProgram mSp;
+    GLint heightTextureLoc = -1;
+    GLint normalTextureLoc = -1;
+    GLint currTimeLoc = -1;
+    GLint MVPLoc = -1;
+    GLint MVLoc = -1;
+    GLint MVLightLoc = -1;
+    GLint NMLoc = -1;
+    GLint lightPosLoc = -1;
+    GLint lightAmbLoc = -1;
+    GLint lightDifLoc = -1;
+    GLint lightSpeLoc = -1;
+
+    // opengl objects
+    GLuint vertexArray = 0;
+    GLuint vertexPositionBuffer = 0;
+    GLuint texCoordBuffer = 0;
 
     // light data
-    glm::vec4 lightPosition = glm::vec4(-2.f, 5.f, 5.f, 1.f);
-    glm::vec4 lightAmbient = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
-    glm::vec4 lightDiffuse = glm::vec4(0.8f, 0.8f, 0.8f, 1.f);
-    glm::vec4 lightSpecular = glm::vec4(1.f, 1.f, 1.f, 1.f);
+    const glm::vec4 lightPosition(-2.f, 5.f, 5.f, 1.f);
+    const glm::vec4 lightAmbient(0.1f, 0.1f, 0.1f, 1.f);
+    const glm::vec4 lightDiffuse(0.8f, 0.8f, 0.8f, 1.f);
+    const glm::vec4 lightSpecular(1.f, 1.f, 1.f, 1.f);
+
+    bool mPause = false;
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
@@ -26,11 +45,18 @@ namespace {
     sgct::SharedBool takeScreenshot(false);
     sgct::SharedBool useTracking(false);
     sgct::SharedObject<sgct::Window::StereoMode> stereoMode;
+
+    struct Geometry {
+        std::vector<float> vertPos;
+        std::vector<float> texCoord;
+        GLsizei numberOfVerts = 0;
+    };
 } // namespace
 
 using namespace sgct;
 
 /**
+ *
  * Will draw a flat surface that can be used for the heightmapped terrain.
  *
  * \param width Width of the surface
@@ -38,12 +64,16 @@ using namespace sgct;
  * \param wRes Width resolution of the surface
  * \param dRes Depth resolution of the surface
  */
-void drawTerrainGrid(float width, float depth, unsigned int wRes, unsigned int dRes) {
+Geometry generateTerrainGrid(float width, float depth, unsigned int wRes, unsigned int
+                             dRes)
+{
     const float wStart = -width * 0.5f;
     const float dStart = -depth * 0.5f;
 
     const float dW = width / static_cast<float>(wRes);
     const float dD = depth / static_cast<float>(dRes);
+
+    Geometry res;
 
     for (unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex) {
         const float dPosLow = dStart + dD * static_cast<float>(depthIndex);
@@ -51,60 +81,92 @@ void drawTerrainGrid(float width, float depth, unsigned int wRes, unsigned int d
         const float dTexCoordLow = depthIndex / static_cast<float>(dRes);
         const float dTexCoordHigh = (depthIndex + 1) / static_cast<float>(dRes);
 
-        glBegin(GL_TRIANGLE_STRIP);
-        glNormal3f(0.f, 1.f, 0.f);
         for (unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex) {
             const float wPos = wStart + dW * static_cast<float>(widthIndex);
             const float wTexCoord = widthIndex / static_cast<float>(wRes);
 
-            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordLow);
-            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordLow);
-            glVertex3f(wPos, 0.f, dPosLow);
+            // p0
+            res.vertPos.push_back(wPos);
+            res.vertPos.push_back(0.f);
+            res.vertPos.push_back(dPosLow);
 
-            glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordHigh);
-            glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordHigh);
-            glVertex3f(wPos, 0.f, dPosHigh);
+            // p1
+            res.vertPos.push_back(wPos);
+            res.vertPos.push_back(0.f);
+            res.vertPos.push_back(dPosHigh);
+
+            // tex0
+            res.texCoord.push_back(wTexCoord);
+            res.texCoord.push_back(dTexCoordLow);
+
+            // tex1
+            res.texCoord.push_back(wTexCoord);
+            res.texCoord.push_back(dTexCoordHigh);
         }
-
-        glEnd();
     }
+
+    // each vertex has three componets (x, y & z)
+    res.numberOfVerts = static_cast<GLsizei>(res.vertPos.size() / 3);
+
+    return res;
 }
 
 void drawFun() {
-    glLightfv(GL_LIGHT0, GL_POSITION, glm::value_ptr(lightPosition));
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
 
-    glTranslatef(0.f, -0.15f, 2.5f);
-    glRotatef(static_cast<float>(currentTime.getVal()) * 8.f, 0.f, 1.f, 0.f);
+    // for wireframe
+    glLineWidth(1.0);
 
-    glColor4f(1.f, 1.f, 1.f, 1.f);
+    constexpr double Speed = 0.14;
+
+    //create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.15f, 2.5f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.getVal() * Speed),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+
+    const glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 MV = gEngine->getCurrentModelViewMatrix() * scene;
+    const glm::mat4 MV_light = gEngine->getCurrentModelViewMatrix();
+    const glm::mat3 NM = glm::inverseTranspose(glm::mat3(MV));
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("heightmap"));
-    glEnable(GL_TEXTURE_2D);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("normalmap"));
-    glEnable(GL_TEXTURE_2D);
 
-    // set current shader program
-    sgct::ShaderManager::instance()->bindShaderProgram("Heightmap");
+    mSp.bind();
+
+    glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(MVLoc, 1, GL_FALSE, glm::value_ptr(MV));
+    glUniformMatrix4fv(MVLightLoc, 1, GL_FALSE, glm::value_ptr(MV_light));
+    glUniformMatrix3fv(NMLoc, 1, GL_FALSE, glm::value_ptr(NM));
     glUniform1f(currTimeLoc, static_cast<float>(currentTime.getVal()));
 
-    glLineWidth(2.0); // for wireframe
-    glCallList(myTerrainDisplayList);
+    glBindVertexArray(vertexArray);
 
-    // unset current shader program
+    // Draw the triangles
+    for (unsigned int i = 0; i < GridSize; i++) {
+        glDrawArrays(GL_TRIANGLE_STRIP, i * GridSize * 2, GridSize * 2);
+    }
+
+    glBindVertexArray(0);
+
     ShaderManager::instance()->unBindShaderProgram();
 
-    glActiveTexture(GL_TEXTURE1);
-    glDisable(GL_TEXTURE_2D);
-
-    glActiveTexture(GL_TEXTURE0);
-    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 }
 
 void preSyncFun() {
     if (gEngine->isMaster() && !mPause) {
-        currentTime.setVal( currentTime.getVal() + gEngine->getAvgDt());
+        currentTime.setVal(currentTime.getVal() + gEngine->getAvgDt());
     }
 }
 
@@ -125,45 +187,73 @@ void postSyncPreDrawFun() {
 void initOGLFun() {
     stereoMode.setVal(gEngine->getWindow(0).getStereoMode());
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_NORMALIZE );
-    glEnable(GL_COLOR_MATERIAL);
-    glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHTING);
-
-    // Set up light 0
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(lightAmbient));
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(lightDiffuse));
-    glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(lightSpecular));
-
-    // create and compile display list
-    myTerrainDisplayList = glGenLists(1);
-    glNewList(myTerrainDisplayList, GL_COMPILE);
-
-    // draw the terrain once to add it to the display list
-    drawTerrainGrid(1.f, 1.f, 256, 256);
-    glEndList();
+    // Set up backface culling
+    glCullFace(GL_BACK);
+    // our polygon winding is counter clockwise
+    glFrontFace(GL_CCW);
+    glDepthFunc(GL_LESS);
 
     TextureManager::instance()->loadTexture("heightmap", "heightmap.png", true, 0);
     TextureManager::instance()->loadTexture("normalmap", "normalmap.png", true, 0);
 
+    // setup shader
     ShaderManager::instance()->addShaderProgram(
+        mSp,
         "Heightmap",
         "heightmap.vert",
         "heightmap.frag"
     );
 
-    ShaderManager::instance()->bindShaderProgram("Heightmap");
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("Heightmap");
-
-    textureLocations[0] = prog.getUniformLocation("hTex");
-    textureLocations[1] = prog.getUniformLocation("nTex");
-    currTimeLoc = prog.getUniformLocation("currTime");
-
-    glUniform1i(textureLocations[0], 0);
-    glUniform1i(textureLocations[1], 1);
+    mSp.bind();
+    heightTextureLoc = mSp.getUniformLocation("hTex");
+    normalTextureLoc = mSp.getUniformLocation("nTex");
+    currTimeLoc = mSp.getUniformLocation("currTime");
+    MVPLoc = mSp.getUniformLocation("mvp");
+    MVLoc = mSp.getUniformLocation("mv");
+    MVLightLoc = mSp.getUniformLocation("mvLight");
+    NMLoc = mSp.getUniformLocation("normalMatrix");
+    lightPosLoc = mSp.getUniformLocation("lightPos");
+    lightAmbLoc = mSp.getUniformLocation("lightAmbient");
+    lightDifLoc = mSp.getUniformLocation("lightDiffuse");
+    lightSpeLoc = mSp.getUniformLocation("lightSpecular");
+    glUniform1i(heightTextureLoc, 0);
+    glUniform1i(normalTextureLoc, 1);
+    glUniform4fv(lightPosLoc, 1, glm::value_ptr(lightPosition));
+    glUniform4fv(lightAmbLoc, 1, glm::value_ptr(lightAmbient));
+    glUniform4fv(lightDifLoc, 1, glm::value_ptr(lightDiffuse));
+    glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
     ShaderManager::instance()->unBindShaderProgram();
+
+    Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);
+
+    glGenVertexArrays(1, &vertexArray);
+    glBindVertexArray(vertexArray);
+
+    glGenBuffers(1, &vertexPositionBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(float) * geometry.vertPos.size(),
+        geometry.vertPos.data(),
+        GL_STATIC_DRAW
+    );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+
+    // generate texture coord buffer
+    glGenBuffers(1, &texCoordBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, texCoordBuffer);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(float) * geometry.texCoord.size(),
+        geometry.texCoord.data(),
+        GL_STATIC_DRAW
+    );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void encodeFun() {
@@ -206,7 +296,7 @@ void keyCallback(int key, int, int action, int) {
                 break;
             case key::E:
                 sgct::core::ClusterManager::instance()->getDefaultUser().setTransform(
-                    glm::translate(glm::dmat4(1.f), glm::dvec3(0.f, 0.f, 4.f))
+                    glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;
             case key::Space:
@@ -220,9 +310,6 @@ void keyCallback(int key, int, int action, int) {
             case key::P:
             case key::F10:
                 takeScreenshot.setVal(true);
-                break;
-            case key::R:
-                sgct::core::ClusterManager::instance()->getThisNode()->showAllWindows();
                 break;
             case key::Left:
                 if (static_cast<int>(stereoMode.getVal()) > 0) {
@@ -240,6 +327,12 @@ void keyCallback(int key, int, int action, int) {
     }
 }
 
+void cleanUpFun() {
+    glDeleteBuffers(1, &vertexPositionBuffer);
+    glDeleteBuffers(1, &texCoordBuffer);
+    glDeleteVertexArrays(1, &vertexArray);
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
@@ -250,9 +343,10 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
 
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }
@@ -261,8 +355,6 @@ int main(int argc, char* argv[]) {
     SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
-
-    glDeleteLists(myTerrainDisplayList, 1);
     delete gEngine;
     exit(EXIT_SUCCESS);
 }

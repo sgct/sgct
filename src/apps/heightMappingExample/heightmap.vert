@@ -1,29 +1,32 @@
-#version 120
+#version 330 core
 
-// Sampler for texture height map
+layout(location = 0) in vec3 vertPositions;
+layout(location = 1) in vec2 texCoords;
+
 uniform sampler2D hTex;
-// Sampler for texture height map
-uniform sampler2D nTex;
-// Time
 uniform float currTime;
-// Height scaling
-varying float vScale;
-// Light direction
-varying vec3 light_dir;
-// Translate vector
-varying vec3 v;
+uniform mat4 mvp;
+uniform mat4 mv;
+uniform mat4 mvLight;
+uniform vec4 lightPos;
+
+out vec2 uv; //texture coords
+out float vScale; // Height scaling
+out vec3 lightDir;
+out vec3 v;
 
 void main() {
-  gl_TexCoord[0] = gl_MultiTexCoord0;
-  gl_TexCoord[1] = gl_MultiTexCoord1;
+  uv = texCoords;
 
   vScale = 0.2 + 0.10 * sin(currTime);
-  float hVal = texture2D(hTex, gl_TexCoord[0].st).x;
-  vec4 vertPos = gl_Vertex + vec4(0.0, hVal * vScale, 0.0, 0.0);
+  float hVal = texture(hTex, uv).r;
+  vec4 transformedVertex = vec4(vertPositions + vec3(0.0, hVal * vScale, 0.0), 1.0);
 
-  // Transform a vertex to eye space
-  v = vec3(gl_ModelViewMatrix * vertPos);
-  light_dir = normalize(gl_LightSource[0].position.xyz - v);
-
-  gl_Position = gl_ModelViewProjectionMatrix * vertPos;
+  // Transform a vertex to model space
+  v = vec3(mv * transformedVertex);
+  vec3 l = vec3(mvLight * lightPos);
+  lightDir = normalize(l - v);
+  
+  // Output position of the vertex, in clip space : MVP * position
+  gl_Position =  mvp * transformedVertex;
 }

@@ -7,102 +7,110 @@
 namespace {
     sgct::Engine* gEngine;
 
-    enum class Rotation { ROT_0_DEG = 0, ROT_90_DEG, ROT_180_DEG, ROT_270_DEG };
+    enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };
     enum class Sides {
-        RIGHT_SIDE_L = 0, BOTTOM_SIDE_L, TOP_SIDE_L, LEFT_SIDE_L,
-        RIGHT_SIDE_R, BOTTOM_SIDE_R, TOP_SIDE_R, LEFT_SIDE_R
+        Right_L = 0, Bottom_L, Top_L, Left_L,
+        Right_R, Bottom_R, Top_R, Left_R
     };
 
     std::string texturePaths[8];
     GLuint textureIndices[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     Rotation sideRotations[] = {
-        Rotation::ROT_0_DEG,
-        Rotation::ROT_0_DEG,
-        Rotation::ROT_0_DEG,
-        Rotation::ROT_0_DEG
+        Rotation::Deg0,
+        Rotation::Deg0,
+        Rotation::Deg0,
+        Rotation::Deg0
     };
     size_t activeTexture = 0;
     size_t numberOfTextures = 0;
 
-    int startIndex;
     int stopIndex;
     int numberOfDigits = 0;
     int iterator;
     bool sequence = false;
-    bool cubic = true;
 
     int counter = 0;
     int startFrame = 0;
-    bool alpha = false;
-    bool stereo = false;
-    bool fxaa = false;
-    int numberOfMSAASamples = 1;
-    int resolution = 512;
-    int cubemapRes = 256;
-    float eyeSeparation = 0.065f;
-    float domeDiameter = 14.8f;
-
-    //sgct::utils::Dome * dome = NULL;
-
-    //variables to share across cluster
+    struct {
+        bool alpha = false;
+        bool stereo = false;
+        bool fxaa = false;
+        bool cubic = true;
+        int numberOfMSAASamples = 1;
+        int resolution = 512;
+        int cubemapRes = 256;
+        float eyeSeparation = 0.065f;
+        float domeDiameter = 14.8f;
+    } settings;
     sgct::SharedBool takeScreenshot(false);
+
+    struct {
+        GLuint vao;
+        GLuint vbo;
+
+        GLuint iboRot0;
+        GLuint iboRot90;
+        GLuint iboRot180;
+        GLuint iboRot270;
+    } geometry;
+    struct Vertex {
+        float x, y;
+        float s, t;
+    };
+
+    constexpr const char* vertexShader = R"(
+#version 330 core
+
+layout(location = 0) in vec2 vertPosition;
+layout(location = 1) in vec2 vertUv;
+
+out vec2 uv;
+
+void main() {
+  gl_Position =  vec4(vertPosition, 0.0, 1.0);
+  uv = vertUv;
+}
+)";
+
+    constexpr const char* fragmentShader = R"(
+#version 330 core
+
+uniform sampler2D tex;
+
+in vec2 uv;
+out vec4 color;
+
+void main() {
+  color = texture(tex, uv);
+}
+)";
 
 } // namespace
 
 using namespace sgct;
 
-void face(Rotation rot) {
+void drawFace(Rotation rot) {
+    glBindVertexArray(geometry.vao);
     switch (rot) {
-        case Rotation::ROT_0_DEG:
+        case Rotation::Deg0:
         default:
-            glBegin(GL_QUADS);
-            glTexCoord2f(0.f, 0.f);
-            glVertex2f(-1.f, -1.f);
-            glTexCoord2f(0.f, 1.f);
-            glVertex2f(-1.f, 1.f);
-            glTexCoord2f(1.f, 1.f);
-            glVertex2f(1.f, 1.f);
-            glTexCoord2f(1.f, 0.f);
-            glVertex2f(1.f, -1.f);
-            glEnd();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
             break;
-        case Rotation::ROT_90_DEG:
-            glBegin(GL_QUADS);
-            glTexCoord2f(1.f, 0.f);
-            glVertex2f(-1.f, -1.f);
-            glTexCoord2f(0.f, 0.f);
-            glVertex2f(-1.f, 1.f);
-            glTexCoord2f(0.f, 1.f);
-            glVertex2f(1.f, 1.f);
-            glTexCoord2f(1.f, 1.f);
-            glVertex2f(1.f, -1.f);
-            glEnd();
+        case Rotation::Deg90:
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot90);
             break;
-        case Rotation::ROT_180_DEG:
-            glBegin(GL_QUADS);
-            glTexCoord2f(1.f, 1.f);
-            glVertex2f(-1.f, -1.f);
-            glTexCoord2f(1.f, 0.f);
-            glVertex2f(-1.f, 1.f);
-            glTexCoord2f(0.f, 0.f);
-            glVertex2f(1.f, 1.f);
-            glTexCoord2f(0.f, 1.f);
-            glVertex2f(1.f, -1.f);
-            glEnd();
+        case Rotation::Deg180:
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot180);
             break;
-        case Rotation::ROT_270_DEG:
-            glBegin(GL_QUADS);
-            glTexCoord2f(0.f, 1.f);
-            glVertex2f(-1.f, -1.f);
-            glTexCoord2f(1.f, 1.f);
-            glVertex2f(-1.f, 1.f);
-            glTexCoord2f(1.f, 0.f);
-            glVertex2f(1.f, 1.f);
-            glTexCoord2f(0.f, 0.f);
-            glVertex2f(1.f, -1.f);
-            glEnd();
+        case Rotation::Deg270:
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot270);
             break;
     }
+
+    sgct::ShaderManager::instance()->bindShaderProgram("simple");
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 
@@ -114,46 +122,29 @@ void drawFun() {
         return;
     }
 
-    // if valid
-    // enter ortho mode
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glPushMatrix();
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
     glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
 
-    glColor3f(1.f, 1.f, 1.f);
-    glEnable(GL_TEXTURE_2D);
-
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureIndices[index]);
 
     Sides side = static_cast<Sides>(index);
-    if (side == Sides::LEFT_SIDE_L || side == Sides::LEFT_SIDE_R) {
-        face(sideRotations[0]);
+    if (side == Sides::Left_L || side == Sides::Left_R) {
+        drawFace(sideRotations[0]);
     }
-    else if (side == Sides::RIGHT_SIDE_L || side == Sides::RIGHT_SIDE_R) {
-        face(sideRotations[1]);
+    else if (side == Sides::Right_L || side == Sides::Right_R) {
+        drawFace(sideRotations[1]);
     }
-    else if (side == Sides::TOP_SIDE_L || side == Sides::TOP_SIDE_R) {
-        face(sideRotations[2]);
+    else if (side == Sides::Top_L || side == Sides::Top_R) {
+        drawFace(sideRotations[2]);
     }
     else {
         // button
-        face(sideRotations[3]);
+        drawFace(sideRotations[3]);
     }
 
-    glDisable(GL_TEXTURE_2D);
-
     glPopAttrib();
-
-    // exit ortho mode
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
 }
 
 void preSyncFun() {
@@ -254,52 +245,44 @@ void myPostSyncPreDrawFun() {
 }
 
 void preWinInitFun() {
-    gEngine->getDefaultUser().setEyeSeparation(eyeSeparation);
+    gEngine->getDefaultUser().setEyeSeparation(settings.eyeSeparation);
     for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
         Window& win = gEngine->getWindow(i);
         gEngine->setScreenShotNumber(startFrame);
-        win.setAlpha(alpha);
+        win.setAlpha(settings.alpha);
 
         for (int j = 0; j < gEngine->getWindow(i).getNumberOfViewports(); j++) {
-            sgct::core::Viewport& vp = win.getViewport(j);
+            core::Viewport& vp = win.getViewport(j);
             if (!vp.hasSubViewports()) {
                 continue;
             }
             vp.getNonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
-            vp.getNonLinearProjection()->setCubemapResolution(cubemapRes);
-            if (cubic) {
-                vp.getNonLinearProjection()->setInterpolationMode(
-                    sgct::core::NonLinearProjection::InterpolationMode::Cubic
-                );
-            }
-            else {
-                vp.getNonLinearProjection()->setInterpolationMode(
-                    sgct::core::NonLinearProjection::InterpolationMode::Linear
-                );
-            }
+            vp.getNonLinearProjection()->setCubemapResolution(settings.cubemapRes);
+            vp.getNonLinearProjection()->setInterpolationMode(
+                settings.cubic ?
+                core::NonLinearProjection::InterpolationMode::Cubic :
+                core::NonLinearProjection::InterpolationMode::Linear
+            );
 
-            sgct::core::FisheyeProjection* p = dynamic_cast<sgct::core::FisheyeProjection*>(
+            core::FisheyeProjection* p = dynamic_cast<core::FisheyeProjection*>(
                 vp.getNonLinearProjection()
             );
             if (p) {
-                p->setDomeDiameter(domeDiameter);
+                p->setDomeDiameter(settings.domeDiameter);
             }
         }
         
-        win.setNumberOfAASamples(numberOfMSAASamples);
-        win.setFramebufferResolution(glm::ivec2(resolution, resolution));
-        win.setUseFXAA(fxaa);
-        if (stereo) {
-            win.setStereoMode(Window::StereoMode::Dummy);
-        }
-        else {
-            win.setStereoMode(Window::StereoMode::NoStereo);
-        }
+        win.setNumberOfAASamples(settings.numberOfMSAASamples);
+        win.setFramebufferResolution(glm::ivec2(settings.resolution, settings.resolution));
+        win.setUseFXAA(settings.fxaa);
+        win.setStereoMode(
+            settings.stereo ? Window::StereoMode::Dummy : Window::StereoMode::NoStereo
+        );
     }
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
     TextureManager::instance()->setOverWriteMode(true);
 
@@ -325,6 +308,112 @@ void initOGLFun() {
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glGenVertexArrays(1, &geometry.vao);
+    glGenBuffers(1, &geometry.vbo);
+    glGenBuffers(1, &geometry.iboRot0);
+    glGenBuffers(1, &geometry.iboRot90);
+    glGenBuffers(1, &geometry.iboRot180);
+    glGenBuffers(1, &geometry.iboRot270);
+
+    glBindVertexArray(geometry.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+
+    std::vector<Vertex> vertices;
+    vertices.push_back({ -1.f, -1.f, 0.f, 0.f }); // 0
+    vertices.push_back({ -1.f,  1.f, 0.f, 1.f }); // 1
+    vertices.push_back({ 1.f,  1.f, 1.f, 1.f }); // 2
+    vertices.push_back({ 1.f, -1.f, 1.f, 0.f }); // 3
+
+    vertices.push_back({ -1.f, -1.f, 1.f, 0.f }); // 4
+    vertices.push_back({ -1.f,  1.f, 0.f, 0.f }); // 5
+    vertices.push_back({ 1.f,  1.f, 0.f, 1.f }); // 6
+    vertices.push_back({ 1.f, -1.f, 1.f, 1.f }); // 7
+
+    vertices.push_back({ -1.f, -1.f, 1.f, 1.f }); // 8
+    vertices.push_back({ -1.f,  1.f, 1.f, 0.f }); // 9
+    vertices.push_back({ 1.f,  1.f, 0.f, 0.f }); // 10
+    vertices.push_back({ 1.f, -1.f, 0.f, 1.f }); // 11
+
+    vertices.push_back({ -1.f, -1.f, 0.f, 1.f }); // 12
+    vertices.push_back({ -1.f,  1.f, 1.f, 1.f }); // 13
+    vertices.push_back({  1.f,  1.f, 1.f, 0.f }); // 14
+    vertices.push_back({  1.f, -1.f, 0.f, 0.f }); // 15
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        nullptr
+    );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<const void*>(2 * sizeof(float))
+    );
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(Vertex),
+        vertices.data(),
+        GL_STATIC_DRAW
+    );
+
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        std::vector<uint8_t> indicesRot0 = { 0, 2, 1, 0, 3, 2 };
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            indicesRot0.size() * sizeof(uint8_t),
+            indicesRot0.data(),
+            GL_STATIC_DRAW
+        );
+    }
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        std::vector<uint8_t> indicesRot90 = { 0, 2, 1, 0, 3, 2 };
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            indicesRot90.size() * sizeof(uint8_t),
+            indicesRot90.data(),
+            GL_STATIC_DRAW
+        );
+    }
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        std::vector<uint8_t> indicesRot180 = { 0, 2, 1, 0, 3, 2 };
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            indicesRot180.size() * sizeof(uint8_t),
+            indicesRot180.data(),
+            GL_STATIC_DRAW
+        );
+    }
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        std::vector<uint8_t> indicesRot270 = { 0, 2, 1, 0, 3, 2 };
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            indicesRot270.size() * sizeof(uint8_t),
+            indicesRot270.data(),
+            GL_STATIC_DRAW
+        );
+    }
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    ShaderManager::instance()->addShaderProgram(
+        "simple",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
 }
 
 void encodeFun() {
@@ -350,21 +439,21 @@ Sides getSideIndex(size_t index) {
     switch (index) {
         case 0:
         default:
-            return Sides::LEFT_SIDE_L;
+            return Sides::Left_L;
         case 1:
-            return Sides::RIGHT_SIDE_L;
+            return Sides::Right_L;
         case 2:
-            return Sides::TOP_SIDE_L;
+            return Sides::Top_L;
         case 3:
-            return Sides::BOTTOM_SIDE_L;
+            return Sides::Bottom_L;
         case 4:
-            return Sides::LEFT_SIDE_R;
+            return Sides::Left_R;
         case 5:
-            return Sides::RIGHT_SIDE_R;
+            return Sides::Right_R;
         case 6:
-            return Sides::TOP_SIDE_R;
+            return Sides::Top_R;
         case 7:
-            return Sides::BOTTOM_SIDE_R;
+            return Sides::Bottom_R;
     }
 }
 
@@ -386,7 +475,7 @@ int main(int argc, char* argv[]) {
                 for (size_t j = found - 1; j != 0; j--) {
                     // if not numerical
                     if (tmpStr[j] < '0' || tmpStr[j] > '9') {
-                        tmpStr = tmpStr.substr(0, i + 1);
+                        tmpStr = tmpStr.substr(0, j + 1);
                         break;
                     }
                     else {
@@ -402,7 +491,7 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "-seq" && argc > (i + 2)) {
             sequence = true;
-            startIndex = atoi(argv[i + 1]);
+            int startIndex = atoi(argv[i + 1]);
             stopIndex = atoi(argv[i + 2]);
             iterator = startIndex;
             MessageHandler::instance()->print(
@@ -425,13 +514,13 @@ int main(int argc, char* argv[]) {
                 switch (v) {
                     case 0:
                     default:
-                        return Rotation::ROT_0_DEG;
+                        return Rotation::Deg0;
                     case 90:
-                        return Rotation::ROT_90_DEG;
+                        return Rotation::Deg90;
                     case 180:
-                        return Rotation::ROT_180_DEG;
+                        return Rotation::Deg180;
                     case 270:
-                        return Rotation::ROT_270_DEG;
+                        return Rotation::Deg270;
                 }
             };
             sideRotations[0] = convertRotations(rotations[0]);
@@ -444,78 +533,78 @@ int main(int argc, char* argv[]) {
             MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
         }
         else if (arg == "-alpha" && argc > (i + 1)) {
-            alpha = std::string_view(argv[i + 1]) == "1";
+            settings.alpha = std::string_view(argv[i + 1]) == "1";
             MessageHandler::instance()->print(
-                "Setting alpha to %s\n", alpha ? "true" : "false"
+                "Setting alpha to %s\n", settings.alpha ? "true" : "false"
             );
         }
         else if (arg == "-stereo" && argc > (i + 1)) {
-            stereo = std::string_view(argv[i + 1]) == "1";
+            settings.stereo = std::string_view(argv[i + 1]) == "1";
             MessageHandler::instance()->print(
-                "Setting stereo to %s\n", stereo ? "true" : "false"
+                "Setting stereo to %s\n", settings.stereo ? "true" : "false"
             );
         }
         else if (arg == "-cubic" && argc > (i + 1)) {
-            cubic = std::string_view(argv[i + 1]) == "1";
+            settings.cubic = std::string_view(argv[i + 1]) == "1";
             MessageHandler::instance()->print(
-                "Setting cubic interpolation to %s\n", cubic ? "true" : "false"
+                "Setting cubic interpolation to %s\n", settings.cubic ? "true" : "false"
             );
         }
         else if (arg == "-fxaa" && argc > (i + 1)) {
-            fxaa = std::string_view(argv[i + 1]) == "1";
+            settings.fxaa = std::string_view(argv[i + 1]) == "1";
             MessageHandler::instance()->print(
-                "Setting fxaa to %s\n", fxaa ? "true" : "false"
+                "Setting fxaa to %s\n", settings.fxaa ? "true" : "false"
             );
         }
         else if (arg == "-eyeSep" && argc > (i + 1)) {
-            eyeSeparation = static_cast<float>(atof(argv[i + 1]));
+            settings.eyeSeparation = static_cast<float>(atof(argv[i + 1]));
             MessageHandler::instance()->print(
-                "Setting eye separation to %f\n", eyeSeparation
+                "Setting eye separation to %f\n", settings.eyeSeparation
             );
         }
         else if (arg == "-diameter" && argc > (i + 1)) {
-            domeDiameter = static_cast<float>(atof(argv[i + 1]));
+            settings.domeDiameter = static_cast<float>(atof(argv[i + 1]));
             MessageHandler::instance()->print(
-                "Setting dome diameter to %f\n", domeDiameter
+                "Setting dome diameter to %f\n", settings.domeDiameter
             );
         }
         else if (arg == "-msaa" && argc > (i + 1)) {
-            numberOfMSAASamples = atoi(argv[i + 1]);
+        settings.numberOfMSAASamples = atoi(argv[i + 1]);
             MessageHandler::instance()->print(
-                "Number of MSAA samples set to %d\n", numberOfMSAASamples
+                "Number of MSAA samples set to %d\n", settings.numberOfMSAASamples
             );
         }
         else if (arg == "-res" && argc > (i + 1)) {
-            resolution = atoi(argv[i + 1]);
-            MessageHandler::instance()->print("Resolution set to %d\n", resolution);
+        settings.resolution = atoi(argv[i + 1]);
+            MessageHandler::instance()->print("Resolution set to %d\n", settings.resolution);
         }
         else if (arg == "-cubemap" && argc > (i + 1)) {
-            cubemapRes = atoi(argv[i + 1]);
+        settings.cubemapRes = atoi(argv[i + 1]);
             MessageHandler::instance()->print(
-                "Cubemap resolution set to %d\n", cubemapRes
+                "Cubemap resolution set to %d\n", settings.cubemapRes
             );
         }
         else if (arg == "-format" && argc > (i + 1)) {
             std::string_view arg2 = argv[i + 1];
-            sgct::Settings::CaptureFormat f = [](std::string_view format) {
+            Settings::CaptureFormat f = [](std::string_view format) {
                 if (format == "png" || format == "PNG") {
-                    return sgct::Settings::CaptureFormat::PNG;
+                    return Settings::CaptureFormat::PNG;
                 }
                 else if (format == "tga" || format == "TGA") {
-                    return sgct::Settings::CaptureFormat::TGA;
+                    return Settings::CaptureFormat::TGA;
                 }
                 else if (format == "jpg" || format == "JPG") {
-                    return sgct::Settings::CaptureFormat::JPG;
+                    return Settings::CaptureFormat::JPG;
                 }
                 else {
-                    sgct::MessageHandler::instance()->print(
+                    MessageHandler::instance()->print(
                         "Unknown capturing format. Using PNG\n"
                     );
-                    return sgct::Settings::CaptureFormat::PNG;
+                    return Settings::CaptureFormat::PNG;
                 }
             } (arg2);
             Settings::instance()->setCaptureFormat(f);
-            sgct::MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
+            MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
         }
         else if (arg == "-leftPath" && argc > (i + 1)) {
             Settings::instance()->setCapturePath(

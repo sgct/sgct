@@ -12,6 +12,8 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/test_mono.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/top.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/fisheye_stereo.xml"
 )
 copy_files(stitcher ${files})
 copy_sgct_dynamic_libraries(stitcher)

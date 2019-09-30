@@ -1181,9 +1181,11 @@ namespace {
         tinyxml2::XMLDocument xmlDoc;
         bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
         if (!s) {
+            std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
+            std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
+            std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
             throw std::runtime_error(
-                "Error loading XML file '" + filename + "'. " + xmlDoc.ErrorName() +
-                xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
+                "Error loading XML file '" + filename + "'. " + s1 + ' ' + s2 + ' ' + s3
             );
         }
 

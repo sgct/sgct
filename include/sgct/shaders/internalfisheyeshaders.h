@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
-#define __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
+#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS__H__
+#define __SGCT__INTERNAL_FISHEYE_SHADERS__H__
 
-namespace sgct::core::shaders_modern_fisheye {
+namespace sgct::core::shaders_fisheye {
 
 constexpr const char* SampleFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
@@ -659,6 +659,6 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
     }
 )";
 
-} // sgct::core::shaders_modern_fisheye
+} // sgct::core::shaders_fisheye
 
-#endif // __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN__H__
+#endif // __SGCT__INTERNAL_FISHEYE_SHADERS__H__

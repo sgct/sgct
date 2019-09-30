@@ -5,13 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN_CUBIC__H__
-#define __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN_CUBIC__H__
+#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
+#define __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
 
-namespace sgct::core::shaders_modern_fisheye_cubic {
-/*
-    Contains GLSL 3.3+ shaders
-*/
+namespace sgct::core::shaders_fisheye_cubic {
 
 constexpr const char* BSplineFun = R"(
     vec4 cubic(float x) {
@@ -811,6 +808,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
     }
 )";
 
-} // sgct::core::shaders_modern_fisheye_cubic
+} // sgct::core::shaders_fisheye_cubic
 
-#endif // __SGCT__INTERNAL_FISHEYE_SHADERS_MODERN_CUBIC__H__
+#endif // __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__

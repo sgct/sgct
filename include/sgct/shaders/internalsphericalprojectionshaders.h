@@ -5,13 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__
-#define __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__
+#ifndef __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__
+#define __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__
 
-namespace sgct::core::shaders_modern {
-/*
-    Contains GLSL 3.3+ shaders
-*/
+namespace sgct::core::shaders {
 
 constexpr const char* SphericalProjectionVert = R"(
     **glsl_version**
@@ -46,6 +43,6 @@ constexpr const char* SphericalProjectionFrag = R"(
     }
 )";
 
-} // sgct::core::shaders_modern
+} // sgct::core::shaders
 
-#endif // __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__
+#endif // __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__

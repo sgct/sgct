@@ -265,11 +265,8 @@ void SphericalMirrorProjection::initShaders() {
         mShader.deleteProgram();
     }
 
-    std::string sphericalMirrorVertexShader =
-        core::shaders_modern::SphericalProjectionVert;
-
-    std::string sphericalMirrorFragmentShader =
-        core::shaders_modern::SphericalProjectionFrag;
+    std::string sphericalMirrorVertexShader = core::shaders::SphericalProjectionVert;
+    std::string sphericalMirrorFragmentShader = core::shaders::SphericalProjectionFrag;
 
     // replace glsl version
     helpers::findAndReplace(

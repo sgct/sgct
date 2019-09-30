@@ -430,23 +430,23 @@ void SpoutOutputProjection::initShaders() {
     std::string fisheyeFragShader;
     std::string fisheyeVertShader;
 
-    fisheyeVertShader = shaders_modern_fisheye::FisheyeVert;
+    fisheyeVertShader = shaders_fisheye::FisheyeVert;
 
     if (Settings::instance()->useDepthTexture()) {
         switch (Settings::instance()->getCurrentDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
                 break;
             case Settings::DrawBufferType::DiffuseNormal:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
                 break;
             case Settings::DrawBufferType::DiffusePosition:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
                 break;
             case Settings::DrawBufferType::DiffuseNormalPosition:
                 fisheyeFragShader =
-                    shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
+                    shaders_fisheye::FisheyeFragDepthNormalPosition;
                 break;
         }
     }
@@ -455,25 +455,24 @@ void SpoutOutputProjection::initShaders() {
         switch (Settings::instance()->getCurrentDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
+                fisheyeFragShader = shaders_fisheye::FisheyeFrag;
                 break;
             case Settings::DrawBufferType::DiffuseNormal:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
                 break;
             case Settings::DrawBufferType::DiffusePosition:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
                 break;
             case Settings::DrawBufferType::DiffuseNormalPosition:
-                fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
                 break;
         }
     }
 
     //depth correction shader only
     if (Settings::instance()->useDepthTexture()) {
-        std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
-        std::string depthCorrVert =
-            shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
+        std::string depthCorrFrag = shaders_fisheye::BaseVert;
+        std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
         //replace glsl version
         helpers::findAndReplace(
@@ -517,21 +516,21 @@ void SpoutOutputProjection::initShaders() {
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                shaders_modern_fisheye::SampleFun
+                shaders_fisheye::SampleFun
             );
             break;
         case Mapping::Equirectangular:
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                shaders_modern_fisheye::SampleLatlonFun
+                shaders_fisheye::SampleLatlonFun
             );
             break;
         default:
             helpers::findAndReplace(
                 fisheyeFragShader,
                 "**sample_fun**",
-                shaders_modern_fisheye::SampleFun
+                shaders_fisheye::SampleFun
             );
             break;
     }

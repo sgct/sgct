@@ -1220,28 +1220,28 @@ void Window::loadShaders() {
 
     using namespace core;
 
-    std::string stereoVertShader = shaders_modern::AnaglyphVert;
+    std::string stereoVertShader = shaders::AnaglyphVert;
 
-    std::string stereoFragShader = [this]() {
-        switch (mStereoMode) {
+    std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
+        switch (mode) {
             case StereoMode::AnaglyphRedCyan:
-                return shaders_modern::AnaglyphRedCyanFrag;
+                return shaders::AnaglyphRedCyanFrag;
             case StereoMode::AnaglyphAmberBlue:
-                return shaders_modern::AnaglyphAmberBlueFrag;
+                return shaders::AnaglyphAmberBlueFrag;
             case StereoMode::AnaglyphRedCyanWimmer:
-                return shaders_modern::AnaglyphRedCyanWimmerFrag;
+                return shaders::AnaglyphRedCyanWimmerFrag;
             case StereoMode::Checkerboard:
-                return shaders_modern::CheckerBoardFrag;
+                return shaders::CheckerBoardFrag;
             case StereoMode::CheckerboardInverted:
-                return shaders_modern::CheckerBoardInvertedFrag;
+                return shaders::CheckerBoardInvertedFrag;
             case StereoMode::VerticalInterlaced:
-                return shaders_modern::VerticalInterlacedFrag;
+                return shaders::VerticalInterlacedFrag;
             case StereoMode::VerticalInterlacedInverted:
-                return shaders_modern::VerticalInterlacedInvertedFrag;
+                return shaders::VerticalInterlacedInvertedFrag;
             default:
-                return shaders_modern::DummyStereoFrag;
+                return shaders::DummyStereoFrag;
         }
-    }();
+    }(mStereoMode);
 
     const std::string glslVersion = Engine::instance()->getGLSLVersion();
 

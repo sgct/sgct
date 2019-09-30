@@ -522,8 +522,8 @@ void FisheyeProjection::initShaders() {
 
     // modern pipeline
     fisheyeVertexShader = isCubic ?
-        shaders_modern_fisheye_cubic::FisheyeVert :
-        shaders_modern_fisheye::FisheyeVert;
+        shaders_fisheye_cubic::FisheyeVert :
+        shaders_fisheye::FisheyeVert;
 
     if (mOffAxis) {
         if (Settings::instance()->useDepthTexture()) {
@@ -531,23 +531,23 @@ void FisheyeProjection::initShaders() {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepth :
-                        shaders_modern_fisheye::FisheyeFragOffAxisDepth;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisDepth :
+                        shaders_fisheye::FisheyeFragOffAxisDepth;
                     break;
                 case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormal :
-                        shaders_modern_fisheye::FisheyeFragOffAxisDepthNormal;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal :
+                        shaders_fisheye::FisheyeFragOffAxisDepthNormal;
                     break;
                 case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthPosition :
-                        shaders_modern_fisheye::FisheyeFragOffAxisDepthPosition;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition :
+                        shaders_fisheye::FisheyeFragOffAxisDepthPosition;
                     break;
                 case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition :
-                        shaders_modern_fisheye::FisheyeFragOffAxisDepthNormalPosition;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition :
+                        shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
                     break;
             }
         }
@@ -557,23 +557,23 @@ void FisheyeProjection::initShaders() {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxis :
-                        shaders_modern_fisheye::FisheyeFragOffAxis;
+                        shaders_fisheye_cubic::FisheyeFragOffAxis :
+                        shaders_fisheye::FisheyeFragOffAxis;
                     break;
                 case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormal :
-                        shaders_modern_fisheye::FisheyeFragOffAxisNormal;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisNormal :
+                        shaders_fisheye::FisheyeFragOffAxisNormal;
                     break;
                 case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisPosition :
-                        shaders_modern_fisheye::FisheyeFragOffAxisPosition;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisPosition :
+                        shaders_fisheye::FisheyeFragOffAxisPosition;
                     break;
                 case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragOffAxisNormalPosition :
-                        shaders_modern_fisheye::FisheyeFragOffAxisNormalPosition;
+                        shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition :
+                        shaders_fisheye::FisheyeFragOffAxisNormalPosition;
                     break;
             }
         }
@@ -585,23 +585,23 @@ void FisheyeProjection::initShaders() {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragDepth :
-                        shaders_modern_fisheye::FisheyeFragDepth;
+                        shaders_fisheye_cubic::FisheyeFragDepth :
+                        shaders_fisheye::FisheyeFragDepth;
                     break;
                 case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragDepthNormal :
-                        shaders_modern_fisheye::FisheyeFragDepthNormal;
+                        shaders_fisheye_cubic::FisheyeFragDepthNormal :
+                        shaders_fisheye::FisheyeFragDepthNormal;
                     break;
                 case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragDepthPosition :
-                        shaders_modern_fisheye::FisheyeFragDepthPosition;
+                        shaders_fisheye_cubic::FisheyeFragDepthPosition :
+                        shaders_fisheye::FisheyeFragDepthPosition;
                     break;
                 case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragDepthNormalPosition :
-                        shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
+                        shaders_fisheye_cubic::FisheyeFragDepthNormalPosition :
+                        shaders_fisheye::FisheyeFragDepthNormalPosition;
                     break;
             }
         }
@@ -611,23 +611,23 @@ void FisheyeProjection::initShaders() {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFrag :
-                        shaders_modern_fisheye::FisheyeFrag;
+                        shaders_fisheye_cubic::FisheyeFrag :
+                        shaders_fisheye::FisheyeFrag;
                     break;
                 case Settings::DrawBufferType::DiffuseNormal:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragNormal :
-                        shaders_modern_fisheye::FisheyeFragNormal;
+                        shaders_fisheye_cubic::FisheyeFragNormal :
+                        shaders_fisheye::FisheyeFragNormal;
                     break;
                 case Settings::DrawBufferType::DiffusePosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragPosition :
-                        shaders_modern_fisheye::FisheyeFragPosition;
+                        shaders_fisheye_cubic::FisheyeFragPosition :
+                        shaders_fisheye::FisheyeFragPosition;
                     break;
                 case Settings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragmentShader = isCubic ?
-                        shaders_modern_fisheye_cubic::FisheyeFragNormalPosition :
-                        shaders_modern_fisheye::FisheyeFragNormalPosition;
+                        shaders_fisheye_cubic::FisheyeFragNormalPosition :
+                        shaders_fisheye::FisheyeFragNormalPosition;
                     break;
             }
         }
@@ -635,9 +635,8 @@ void FisheyeProjection::initShaders() {
 
     // depth correction shader only
     if (Settings::instance()->useDepthTexture()) {
-        std::string depthCorrFragShader = shaders_modern_fisheye::BaseVert;
-        std::string depthCorrVertShader =
-            shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
+        std::string depthCorrFragShader = shaders_fisheye::BaseVert;
+        std::string depthCorrVertShader = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
         const std::string glsl = Engine::instance()->getGLSLVersion();
         // replace glsl version
@@ -673,14 +672,14 @@ void FisheyeProjection::initShaders() {
         helpers::findAndReplace(
             fisheyeFragmentShader,
             "**sample_fun**",
-            shaders_modern_fisheye::SampleOffsetFun
+            shaders_fisheye::SampleOffsetFun
         );
     }
     else {
         helpers::findAndReplace(
             fisheyeFragmentShader,
             "**sample_fun**",
-            shaders_modern_fisheye::SampleFun
+            shaders_fisheye::SampleFun
         );
     }
 
@@ -688,19 +687,19 @@ void FisheyeProjection::initShaders() {
         // add functions to shader
         helpers::findAndReplace(
             fisheyeFragmentShader, "**cubic_fun**",
-            shaders_modern_fisheye_cubic::catmullRomFun
+            shaders_fisheye_cubic::catmullRomFun
         );
         helpers::findAndReplace(
             fisheyeFragmentShader, "**interpolatef**",
-            shaders_modern_fisheye_cubic::interpolate4_f
+            shaders_fisheye_cubic::interpolate4_f
         );
         helpers::findAndReplace(
             fisheyeFragmentShader, "**interpolate3f**",
-            shaders_modern_fisheye_cubic::interpolate4_3f
+            shaders_fisheye_cubic::interpolate4_3f
         );
         helpers::findAndReplace(
             fisheyeFragmentShader, "**interpolate4f**",
-            shaders_modern_fisheye_cubic::interpolate4_4f
+            shaders_fisheye_cubic::interpolate4_4f
         );
 
         helpers::findAndReplace(

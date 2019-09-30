@@ -2960,8 +2960,8 @@ void Engine::updateTimers(double timeStamp) {
 
 void Engine::loadShaders() {
     mShader.fxaa.setName("FXAAShader");
-    std::string fxaaVertShader = core::shaders_modern::FXAAVert;
-    std::string fxaaFragShader = core::shaders_modern::FXAAFrag;
+    std::string fxaaVertShader = core::shaders::FXAAVert;
+    std::string fxaaFragShader = core::shaders::FXAAFrag;
     
     helpers::findAndReplace(fxaaVertShader, "**glsl_version**", getGLSLVersion());
     helpers::findAndReplace(fxaaFragShader, "**glsl_version**", getGLSLVersion());
@@ -3013,8 +3013,8 @@ void Engine::loadShaders() {
     // Used for overlays & mono.
     std::string fboQuadVertShader;
     std::string fboQuadFragShader;
-    fboQuadVertShader = core::shaders_modern::BaseVert;
-    fboQuadFragShader = core::shaders_modern::BaseFrag;
+    fboQuadVertShader = core::shaders::BaseVert;
+    fboQuadFragShader = core::shaders::BaseFrag;
         
     const std::string glslVersion = getGLSLVersion();
 
@@ -3052,8 +3052,8 @@ void Engine::loadShaders() {
         
     std::string overlayVertShader;
     std::string overlayFragShader;
-    overlayVertShader = core::shaders_modern::OverlayVert;
-    overlayFragShader = core::shaders_modern::OverlayFrag;
+    overlayVertShader = core::shaders::OverlayVert;
+    overlayFragShader = core::shaders::OverlayFrag;
         
     //replace glsl version
     helpers::findAndReplace(overlayVertShader, "**glsl_version**", getGLSLVersion());

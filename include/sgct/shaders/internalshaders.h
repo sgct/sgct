@@ -5,13 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef __SGCT__INTERNAL_SHADERS_MODERN__H__
-#define __SGCT__INTERNAL_SHADERS_MODERN__H__
+#ifndef __SGCT__INTERNAL_SHADERS__H__
+#define __SGCT__INTERNAL_SHADERS__H__
 
-namespace sgct::core::shaders_modern {
-/*
-    Contains GLSL 3.3+ shaders
-*/
+namespace sgct::core::shaders {
 
 constexpr const char* BaseVert = R"(
     **glsl_version**
@@ -451,6 +448,6 @@ constexpr const char* FXAAFrag = R"(
     }
 )";
 
-} // namespace sgct::core::shaders_modern
+} // namespace sgct::core::shaders
 
-#endif // __SGCT__INTERNAL_SHADERS_MODERN__H__
+#endif // __SGCT__INTERNAL_SHADERS__H__

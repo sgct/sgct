@@ -1,1 +1,1 @@
-simpleNavigationExample_opengl3.exe -config single_fisheye.xml
+simpleNavigationExample.exe -config single_fisheye.xml

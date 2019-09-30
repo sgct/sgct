@@ -1182,7 +1182,7 @@ namespace {
         bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
         if (!s) {
             throw std::runtime_error(
-                "Error loading XML file '" + filename + "'. " +
+                "Error loading XML file '" + filename + "'. " + xmlDoc.ErrorName() +
                 xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
             );
         }

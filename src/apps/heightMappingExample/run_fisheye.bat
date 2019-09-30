@@ -1,1 +1,1 @@
-heightMappingExample_opengl3.exe -config fisheye.xml
+heightMappingExample.exe -config fisheye.xml

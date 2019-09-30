@@ -1,1 +1,1 @@
-heightMappingNDISenderExample_opengl3.exe -config fisheye.xml
+heightMappingNDISenderExample.exe -config fisheye.xml

@@ -1,1 +1,1 @@
-heightMappingNDISenderExample_opengl3.exe -config ../../config/single.xml
+heightMappingNDISenderExample.exe -config ../../config/single.xml

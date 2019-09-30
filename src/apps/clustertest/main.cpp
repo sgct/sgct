@@ -6,11 +6,23 @@
 #include <sgct/networkmanager.h>
 #include <sgct/window.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     constexpr const int ExtendedSize = 10000;
 
     sgct::Engine* gEngine;
+
+    struct {
+        GLuint vao;
+        GLuint vbo;
+        GLuint ibo;
+    } geometry;
+    struct Vertex {
+        float x, y, z;
+    };
+    int nVertices = 0;
+    GLint matrixLocation = -1;
 
     sgct::SharedDouble dt(0.0);
     sgct::SharedDouble currentTime(0.0);
@@ -25,23 +37,42 @@ namespace {
     sgct::SharedBool frametest(false);
     sgct::SharedFloat speed(5.f);
     sgct::SharedVector<float> extraData;
+
+    constexpr const char* vertexShader = R"(
+#version 330 core
+
+layout(location = 0) in vec3 vertPosition;
+uniform mat4 matrix;
+
+void main() {
+  gl_Position =  matrix * vec4(vertPosition, 1.0);
+}
+)";
+
+    constexpr const char* fragmentShader = R"(
+#version 330 core
+
+out vec4 color;
+
+void main() { color = vec4(1.0); }
+)";
 } // namespace
 
 using namespace sgct;
 
 void myDraw2DFun() {
 #ifdef SGCT_HAS_TEXT
-    sgct::text::print(
-        *sgct::text::FontManager::instance()->getFont("SGCTFont", 24),
-        sgct::text::TextAlignMode::TopLeft,
+    text::print(
+        *text::FontManager::instance()->getFont("SGCTFont", 24),
+        text::TextAlignMode::TopLeft,
         50,
         700, 
         glm::vec4(1.f, 0.f, 0.f, 1.f),
         "Focused: %s", gEngine->getCurrentWindow().isFocused() ? "true" : "false"
     );
-    sgct::text::print(
-        *sgct::text::FontManager::instance()->getFont("SGCTFont", 24),
-        sgct::text::TextAlignMode::TopLeft,
+    text::print(
+        *text::FontManager::instance()->getFont("SGCTFont", 24),
+        text::TextAlignMode::TopLeft,
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),
@@ -50,9 +81,9 @@ void myDraw2DFun() {
     if (extraPackages.getVal() && extraData.getSize() == ExtendedSize) {
         float xPos =
             gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f - 150.f;
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 16),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 16),
+            text::TextAlignMode::TopLeft,
             xPos,
             150.f,
             glm::vec4(0.f, 1.f, 0.5f, 1.f),
@@ -97,75 +128,46 @@ void drawFun() {
         gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
 
-    glPushMatrix();
+    ShaderManager::instance()->bindShaderProgram("simple");
+    glm::mat4 matrix = gEngine->getCurrentModelViewProjectionMatrix();
+    matrix = glm::rotate(
+        matrix,
+        glm::radians(static_cast<float>(currentTime.getVal()) * speed.getVal()),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+    matrix = glm::scale(matrix, glm::vec3(1.f, 0.5f, 1.f));
+    glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(matrix));
 
-    glRotatef(static_cast<float>(currentTime.getVal()) * speed.getVal(), 0.f, 1.f, 0.f);
-    glScalef(1.f, 0.5f, 1.f);
-    glColor3f(1.f, 1.f, 1.f);
-    glLineWidth(3.0);
-
-    // draw a cube
-    // bottom
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(-1.f, -1.f, -1.f);
-    glVertex3f( 1.f, -1.f, -1.f);
-    glVertex3f( 1.f, -1.f,  1.f);
-    glVertex3f(-1.f, -1.f,  1.f);
-    glVertex3f(-1.f, -1.f, -1.f);
-    glEnd();
-
-    // top
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(-1.f, 1.f, -1.f);
-    glVertex3f( 1.f, 1.f, -1.f);
-    glVertex3f( 1.f, 1.f,  1.f);
-    glVertex3f(-1.f, 1.f,  1.f);
-    glVertex3f(-1.f, 1.f, -1.f);
-    glEnd();
-
-    // sides
-    glBegin(GL_LINES);
-    glVertex3f(-1.f, -1.f, -1.f);
-    glVertex3f(-1.f,  1.f, -1.f);
-
-    glVertex3f( 1.f, -1.f, -1.f);
-    glVertex3f( 1.f,  1.f, -1.f);
-
-    glVertex3f( 1.f, -1.f,  1.f);
-    glVertex3f( 1.f,  1.f,  1.f);
-
-    glVertex3f(-1.f, -1.f,  1.f);
-    glVertex3f(-1.f,  1.f,  1.f);
-    glEnd();
-
-    glPopMatrix();
+    glBindVertexArray(geometry.vao);
+    glDrawElements(GL_LINE_STRIP, nVertices, GL_UNSIGNED_BYTE, nullptr);
+    glBindVertexArray(0);
 
 #ifdef SGCT_HAS_TEXT
     float xPos = gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f;
 
     glColor3f(1.f, 1.f, 0.f);
     if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoLeftEye) {
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
-            sgct::text::TextAlignMode::TopRight,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 32),
+            text::TextAlignMode::TopRight,
             xPos,
             200,
             "Left"
         );
     }
     else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 32),
+            text::TextAlignMode::TopLeft,
             xPos,
             150,
             "Right"
         );
     }
     else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::MonoEye) {
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 32),
+            text::TextAlignMode::TopLeft,
             xPos,
             200,
             "Mono"
@@ -180,8 +182,8 @@ void drawFun() {
     wchar_t str5[] = L"한자"; // Korean string
     wchar_t str6[] = L"बईबईसई"; // Hindi string
 
-    sgct::text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
-    sgct::text::FontManager::instance()->setStrokeColor(glm::vec4(1.f, 0.f, 0.f, 0.5f));
+    text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
+    text::FontManager::instance()->setStrokeColor(glm::vec4(1.f, 0.f, 0.f, 0.5f));
     
     // test
     glm::mat4 texMVP = glm::ortho(-1.f, 1.f, -1.f, 1.f);
@@ -192,9 +194,9 @@ void drawFun() {
         glm::vec3(0.f, 1.f, 0.f)
     );
 
-    sgct::text::print(
-        *sgct::text::FontManager::instance()->getFont("SGCTFont", 32),
-        sgct::text::TextAlignMode::TopRight,
+    text::print(
+        *text::FontManager::instance()->getFont("SGCTFont", 32),
+        text::TextAlignMode::TopRight,
         500,
         500,
         L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
@@ -202,35 +204,35 @@ void drawFun() {
     );
 
     if (gEngine->getCurrentWindow().isUsingSwapGroups()) {
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 18),
+            text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
             "Swap group: Active"
         );
 
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 18),
+            text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             500,
             "Press B to toggle barrier and R to reset counter"
         );
 
         if (gEngine->getCurrentWindow().isBarrierActive()) {
-            sgct::text::print(
-                *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-                sgct::text::TextAlignMode::TopLeft,
+            text::print(
+                *text::FontManager::instance()->getFont("SGCTFont", 18),
+                text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
                 "Swap barrier: Active"
             );
         }
         else {
-            sgct::text::print(
-                *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-                sgct::text::TextAlignMode::TopLeft,
+            text::print(
+                *text::FontManager::instance()->getFont("SGCTFont", 18),
+                text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
                 "Swap barrier: Inactive"
@@ -238,18 +240,18 @@ void drawFun() {
         }
 
         if (gEngine->getCurrentWindow().isSwapGroupMaster()) {
-            sgct::text::print(
-                *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-                sgct::text::TextAlignMode::TopLeft,
+            text::print(
+                *text::FontManager::instance()->getFont("SGCTFont", 18),
+                text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
                 "Swap group master: True"
             );
         }
         else {
-            sgct::text::print(
-                *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-                sgct::text::TextAlignMode::TopLeft,
+            text::print(
+                *text::FontManager::instance()->getFont("SGCTFont", 18),
+                text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
                 "Swap group master: False"
@@ -257,25 +259,25 @@ void drawFun() {
         }
 
         unsigned int iFrame = gEngine->getCurrentWindow().getSwapGroupFrameNumber();
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 18),
+            text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             300,
             "Nvidia frame counter: %u", iFrame
         );
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 18),
+            text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             250,
             "Framerate: %.3lf", 1.0 / gEngine->getDt()
         );
     }
     else {
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 18),
-            sgct::text::TextAlignMode::TopLeft,
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 18),
+            text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
             "Swap group: Inactive"
@@ -313,9 +315,9 @@ void postSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(showFPS.getVal());
 
     // barrier is set by swap group not window both windows has the same HDC
-    sgct::Window::setBarrier(barrier.getVal());
+    Window::setBarrier(barrier.getVal());
     if (resetCounter.getVal()) {
-        sgct::Window::resetSwapGroupFrameNumber();
+        Window::resetSwapGroupFrameNumber();
     }
     gEngine->setStatsGraphVisibility(stats.getVal());
 
@@ -338,7 +340,7 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    sgct::core::Node* thisNode = sgct::core::ClusterManager::instance()->getThisNode();
+    core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
     for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
         for (int j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
             if (thisNode->getWindow(i).getViewport(j).isEnabled()) {
@@ -347,9 +349,101 @@ void initOGLFun() {
         }
     }
 
-    sgct::MessageHandler::instance()->print(
+    MessageHandler::instance()->print(
         "Number of active viewports: %d\n", numberOfActiveViewports
     );
+
+    constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
+
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(RestartIndex);
+
+    glGenVertexArrays(1, &geometry.vao);
+    glGenBuffers(1, &geometry.vbo);
+    glGenBuffers(1, &geometry.ibo);
+
+    glBindVertexArray(geometry.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.ibo);
+
+    std::vector<Vertex> vertices;
+    std::vector<uint8_t> indices;
+
+    vertices.push_back({ -1.f, -1.f, -1.f });     // 0: ---
+    vertices.push_back({  1.f, -1.f, -1.f });     // 1: +--
+    vertices.push_back({  1.f, -1.f,  1.f });     // 2: +-+
+    vertices.push_back({ -1.f, -1.f,  1.f });     // 3: --+
+    vertices.push_back({ -1.f,  1.f, -1.f });     // 4: -+-
+    vertices.push_back({  1.f,  1.f, -1.f });     // 5: ++-
+    vertices.push_back({  1.f,  1.f,  1.f });     // 6: +++
+    vertices.push_back({ -1.f,  1.f,  1.f });     // 7: -++
+
+
+    // bottom
+    indices.push_back(0);
+    indices.push_back(1);
+    indices.push_back(2);
+    indices.push_back(3);
+    indices.push_back(0);
+    indices.push_back(RestartIndex);
+
+    // top
+    indices.push_back(4);
+    indices.push_back(5);
+    indices.push_back(6);
+    indices.push_back(7);
+    indices.push_back(4);
+    indices.push_back(RestartIndex);
+
+    // sides
+    indices.push_back(0);
+    indices.push_back(4);
+    indices.push_back(RestartIndex);
+    indices.push_back(1);
+    indices.push_back(5);
+    indices.push_back(RestartIndex);
+    indices.push_back(2);
+    indices.push_back(6);
+    indices.push_back(RestartIndex);
+    indices.push_back(3);
+    indices.push_back(7);
+    indices.push_back(RestartIndex);
+
+    nVertices = static_cast<int>(indices.size());
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        nullptr
+    );
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(Vertex),
+        vertices.data(),
+        GL_STATIC_DRAW
+    );
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        indices.size() * sizeof(uint8_t),
+        indices.data(),
+        GL_STATIC_DRAW
+    );
+    glBindVertexArray(0);
+
+    ShaderManager::instance()->addShaderProgram(
+        "simple",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
+    ShaderManager::instance()->bindShaderProgram("simple");
+    const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
+    matrixLocation = gProg.getUniformLocation("matrix");
+    ShaderManager::instance()->unBindShaderProgram();
+
 }
 
 void encodeFun() {
@@ -510,8 +604,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    SharedData::instance()->setEncodeFunction(encodeFun);
+    SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
@@ -519,7 +613,7 @@ int main(int argc, char* argv[]) {
     gEngine->setPostDrawFunction(postDrawFun);
 
     const std::vector<std::string>& addresses =
-        sgct::core::NetworkManager::instance()->getLocalAddresses();
+        core::NetworkManager::instance()->getLocalAddresses();
     for (unsigned int i = 0; i < addresses.size(); i++) {
         fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
     }

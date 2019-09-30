@@ -1,1 +1,0 @@
-depthBufferExample.exe -config fisheye.xml

@@ -67,7 +67,7 @@ layout(location = 1) in vec2 vertUv;
 out vec2 uv;
 
 void main() {
-  gl_Position =  vec4(vertPosition, 0.0, 1.0);
+  gl_Position = vec4(vertPosition, 0.0, 1.0);
   uv = vertUv;
 }
 )";
@@ -108,7 +108,7 @@ void drawFace(Rotation rot) {
     }
 
     sgct::ShaderManager::instance()->bindShaderProgram("simple");
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
@@ -376,7 +376,7 @@ void initOGLFun() {
         );
     }
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot90);
         std::vector<uint8_t> indicesRot90 = { 0, 2, 1, 0, 3, 2 };
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
@@ -386,7 +386,7 @@ void initOGLFun() {
         );
     }
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot180);
         std::vector<uint8_t> indicesRot180 = { 0, 2, 1, 0, 3, 2 };
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
@@ -396,7 +396,7 @@ void initOGLFun() {
         );
     }
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboRot270);
         std::vector<uint8_t> indicesRot270 = { 0, 2, 1, 0, 3, 2 };
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,

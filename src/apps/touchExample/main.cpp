@@ -59,6 +59,40 @@ namespace {
         float mZ = 0.f;
     };
 
+    constexpr const char* gridVertexShader = R"(
+  #version 330 core
+  layout(location = 0) in vec3 vertPosition;
+  uniform mat4 mvp;
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = mvp * vec4(vertPosition, 1.0);
+  }
+)";
+
+    constexpr const char* gridFragmentShader = R"(
+  #version 330 core
+  out vec4 color;
+  void main() { color = vec4(1.0, 1.0, 1.0, 0.8); }
+)";
+
+    constexpr const char* pyramidVertexShader = R"(
+  #version 330 core
+  layout(location = 0) in vec3 vertPosition;
+  uniform mat4 mvp;
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = mvp * vec4(vertPosition, 1.0);
+  }
+)";
+
+    constexpr const char* pyramidFragmentShader = R"(
+  #version 330 core
+  uniform float alpha;
+  out vec4 color;
+  void main() { color = vec4(1.0, 0.0, 0.5, alpha); }
+)";
+
+
 } // namespace
 
 using namespace sgct;
@@ -244,12 +278,22 @@ void initOGLFun() {
     }
 
     ShaderManager& sm = *ShaderManager::instance();
-    sm.addShaderProgram("gridShader", "gridShader.vert", "gridShader.frag");
+    sm.addShaderProgram(
+        "gridShader",
+        gridVertexShader,
+        gridFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("gridShader");
     grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("mvp");
     sm.unBindShaderProgram();
 
-    sm.addShaderProgram("pyramidShader", "pyramidShader.vert", "pyramidShader.frag");
+    sm.addShaderProgram(
+        "pyramidShader",
+        pyramidVertexShader,
+        pyramidFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("pyramidShader");
     pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("mvp");
     alphaLocation = sm.getShaderProgram("pyramidShader").getUniformLocation("alpha");

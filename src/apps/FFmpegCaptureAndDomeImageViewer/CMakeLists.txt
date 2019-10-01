@@ -25,15 +25,12 @@ target_link_libraries(FFmpegCaptureAndDomeImageViewer PRIVATE
 )
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/chromakey.frag"
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_two_nodes.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_two_nodes.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
 )
 copy_files(FFmpegCaptureAndDomeImageViewer ${files})
 copy_sgct_dynamic_libraries(FFmpegCaptureAndDomeImageViewer)

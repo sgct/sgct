@@ -6,10 +6,6 @@ set_compile_options(OmniStereoTest)
 target_link_libraries(OmniStereoTest PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/base.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/base.vert"
-  "${CMAKE_CURRENT_SOURCE_DIR}/grid.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/grid.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"

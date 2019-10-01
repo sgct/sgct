@@ -9,8 +9,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(dataTransfer ${files})

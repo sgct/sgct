@@ -7,10 +7,6 @@ set_compile_options(touchExample)
 target_link_libraries(touchExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/gridShader.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/gridShader.vert"
-  "${CMAKE_CURRENT_SOURCE_DIR}/pyramidShader.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/pyramidShader.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fisheye.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_two_nodes.bat"

@@ -33,6 +33,54 @@ namespace {
 
     std::string turnMapSrc;
     std::string sepMapSrc;
+
+    constexpr const char* baseVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+  })";
+
+   constexpr const char* baseFragmentShader = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+
+  in vec2 uv;
+  out vec4 color;
+
+  void main() { color = texture(tex, uv); }
+)";
+
+   constexpr const char* gridVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPositions, 1.0);
+  })";
+
+   constexpr const char* gridFragmentShader = R"(
+  #version 330 core
+
+  out vec4 color;
+
+  void main() { color = vec4(1.0, 0.5, 0.0, 1.0); }
+)";
+
 } // namespace
 
 using namespace sgct;
@@ -393,11 +441,21 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager& sm = *ShaderManager::instance();
-    sm.addShaderProgram("grid", "grid.vert", "grid.frag");
+    sm.addShaderProgram(
+        "grid",
+        gridVertexShader,
+        gridFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("grid");
     gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
 
-    sm.addShaderProgram("xform", "base.vert", "base.frag");
+    sm.addShaderProgram(
+        "xform",
+        baseVertexShader,
+        baseFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("xform");
     matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
     GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("tex");

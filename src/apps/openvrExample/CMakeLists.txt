@@ -6,12 +6,8 @@ set_compile_options(openvrExample)
 target_link_libraries(openvrExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/gridShader.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/gridShader.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_window_same_as_hmd.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_with_fullscreen_mono.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/pyramidShader.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/pyramidShader.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_fullscreen.bat"

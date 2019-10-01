@@ -6,8 +6,6 @@ set_compile_options(SpoutSenderExample)
 target_link_libraries(SpoutSenderExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
   "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"
 )
 copy_files(SpoutSenderExample ${files})

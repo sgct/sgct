@@ -13,6 +13,31 @@ namespace {
 
     GLint matrixLoc = -1;
     GLint timeLoc = -1;
+
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+
+  uniform mat4 mvp;
+  uniform float currTime;
+  out vec3 fragColor;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPosition, 1.0);
+    float cVal = abs(sin(currTime * 3.1415926 * 0.2));
+    fragColor = vec3(cVal, 1.0 - cVal, 0.0);
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  in vec3 fragColor;
+  out vec4 color;
+
+  void main() { color = vec4(fragColor, 1.0); }
+)";
 } // namespace
 
 using namespace sgct;
@@ -36,7 +61,12 @@ void initFun() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+    ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
  

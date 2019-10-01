@@ -3,6 +3,30 @@
 
 sgct::Engine * gEngine;
 
+constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+  layout(location = 1) in vec3 vertColor;
+
+  uniform mat4 mvp;
+  out vec3 fragColor;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = mvp * vec4(vertPosition, 1.0);
+    fragColor = vertColor;
+  })";
+
+constexpr const char* fragmentShader R"(
+  #version 330 core
+
+  in vec3 fragColor;
+  out vec4 color;
+
+  void main() { color = vec4(fragColor, 1.0); }
+)";
+
 //sgct callbacks
 void myInitFun();
 void myDrawFun();
@@ -107,13 +131,16 @@ void myInitFun()
     glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
     glBindVertexArray(0); //unbind
 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "simple.vert",
-            "simple.frag" );
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    sgct::ShaderManager::instance()->bindShaderProgram("xform");
  
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "mvp" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("mvp");
  
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }

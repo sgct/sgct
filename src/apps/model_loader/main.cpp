@@ -21,6 +21,37 @@ namespace {
     sgct::SharedDouble currentTime(0.0);
     sgct::SharedBool reloadShader(false);
 
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPositions;
+  layout(location = 1) in vec2 texCoords;
+  layout(location = 2) in vec3 normals;
+
+  uniform mat4 mvp;
+  uniform mat3 nm; //Normal Matrix
+
+  out vec2 uv;
+  out vec3 tnormals; //transformed normals
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+    tnormals = normalize(nm * normals);
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+
+  in vec2 uv;
+  in vec3 tnormals;
+  out vec4 color;
+
+  void main() { color = texture(tex, uv); }
+)";
 } // namespace
 
 using namespace sgct;
@@ -191,7 +222,12 @@ void initOGLFun() {
     // our polygon winding is counter clockwise
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+    ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
 
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");

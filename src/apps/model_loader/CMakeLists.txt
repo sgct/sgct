@@ -6,8 +6,6 @@ set_compile_options(model_loader)
 target_link_libraries(model_loader PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.obj")
 copy_files(model_loader ${files})

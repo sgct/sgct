@@ -28,8 +28,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
 )
 copy_files(FFmpegCaptureExample ${files})
 copy_sgct_dynamic_libraries(FFmpegCaptureExample)

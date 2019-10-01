@@ -19,6 +19,51 @@ namespace {
     int worldMatrixTransposeId = -1;
     int normalMatrixId = -1;
 
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvpMatrix;
+  uniform mat4 worldMatrixTranspose;
+  uniform mat3 normalMatrix;
+
+  out vec2 uv;
+  out vec3 n;
+  out vec4 p;
+
+  void main() {
+    // Move the normals back from the camera space to the world space
+    mat3 worldRotationInverse = mat3(worldMatrixTranspose);
+
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvpMatrix * vec4(vertPositions, 1.0);
+    uv = texCoords;
+    n  = normalize(worldRotationInverse * normalMatrix * normals);
+    p  = gl_Position;
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  layout(location = 0) out vec4 diffuse;
+  layout(location = 1) out vec3 normal;
+  layout(location = 2) out vec3 position;
+
+  uniform sampler2D tDiffuse;
+
+  in vec2 uv;
+  in vec3 n;
+  in vec4 p;
+
+  void main() {
+    diffuse = texture(tDiffuse, uv);
+    normal = n;
+    position = p.xyz;
+  }
+)";
 } // namespace
 
 using namespace sgct;
@@ -78,7 +123,12 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    ShaderManager::instance()->addShaderProgram("MRT", "mrt.vert", "mrt.frag");
+    ShaderManager::instance()->addShaderProgram(
+        "MRT",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     ShaderManager::instance()->bindShaderProgram("MRT");
 
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");

@@ -6,6 +6,36 @@
 namespace {
     sgct::Engine* gEngine;
     Capture* gCapture = nullptr;
+
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+  uniform vec2 scaleUV;
+  uniform vec2 offsetUV;
+
+  in vec2 uv;
+  out vec4 color;
+
+  void main() { color = texture(tex, (uv.st * scaleUV) + offsetUV); }
+)";
 } // namespace
 
 //sgct callbacks
@@ -244,16 +274,18 @@ void myInitOGLFun()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "xform.vert",
-            "xform.frag" );
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
+    sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
-
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "mvp" );
-    ScaleUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("scaleUV");
-    OffsetUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("offsetUV");
-    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "tex" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("mvp");
+    ScaleUV_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("scaleUV");
+    OffsetUV_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("offsetUV");
+    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("tex");
     glUniform1i( Tex_Loc, 0 );
 
     sgct::ShaderManager::instance()->unBindShaderProgram();

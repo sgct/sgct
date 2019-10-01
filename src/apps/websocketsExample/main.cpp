@@ -7,6 +7,30 @@
 
 sgct::Engine * gEngine;
 
+constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+  layout(location = 1) in vec2 texCoord;
+
+  uniform mat4 MVP;
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  MVP * vec4(vertPosition, 1.0);
+    uv = texCoord;
+  })";
+
+constexpr const char* fragmentShader = R"(
+  #version 330 core
+  in vec2 uv;
+  out vec4 color;
+  uniform vec3 FaceColor;
+  uniform sampler2D Tex;
+  void main() { color = vec4(FaceColor, 1.0) * texture(Tex, uv.st); }
+)";
+
 void myInitFun();
 void myDrawFun();
 void myPreSyncFun();
@@ -112,21 +136,22 @@ void myInitFun()
     //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexture("avatar", "avatar.png", true);
 
-    sgct::ShaderManager::instance()->addShaderProgram( "avatar",
-            "avatar.vert",
-            "avatar.frag" );
-
-    sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "avatar",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
+    sgct::ShaderManager::instance()->bindShaderProgram("avatar");
  
-    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
-    Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
-    Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("MVP");
+    Color_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("FaceColor");
+    Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Tex");
  
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
-void myDrawFun()
-{
+void myDrawFun() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -140,8 +165,7 @@ void myDrawFun()
     glDisable(GL_BLEND);
 }
 
-void myPreSyncFun()
-{
+void myPreSyncFun() {
     //set the time only on the master
     if( gEngine->isMaster() )
     {

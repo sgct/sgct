@@ -12,8 +12,6 @@ target_link_libraries(FMOD_example_opengl PRIVATE ${FMOD_LIBRARY})
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/drumloop.wav"
   "${CMAKE_CURRENT_SOURCE_DIR}/jaguar.wav"
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
 )
 copy_files(FMOD_example_opengl3 ${files})
 copy_sgct_dynamic_libraries(FMOD_example_opengl3)

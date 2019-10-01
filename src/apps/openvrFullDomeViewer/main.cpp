@@ -8,6 +8,35 @@
 sgct::Engine * gEngine;
 sgct::SGCTWindow* FirstOpenVRWindow = NULL;
 
+constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+  })";
+
+constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+
+  in vec2 uv;
+  out vec4 color;
+
+  void main() { color = texture(tex, uv); }
+)";
+
+
 void myInitOGLFun();
 void myPreSyncFun();
 void myPostSyncPreDrawFun();
@@ -35,7 +64,7 @@ std::thread * loadThread;
 std::mutex mutex;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
-std::vector<sgct_core::Image *> transImages;
+std::vector<core::Image*> transImages;
 
 //sync variables
 sgct::SharedBool info(false);
@@ -61,7 +90,7 @@ sgct::SharedFloat domeTilt(-27.0f);
 
 enum imageType { IM_JPEG, IM_PNG };
 const int headerSize = 1;
-sgct_utils::SGCTDome * dome = NULL;
+utils::SGCTDome * dome = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
@@ -135,16 +164,18 @@ void myInitOGLFun()
         sgct::SGCTOpenVR::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
     }
 
-    dome = new sgct_utils::SGCTDome(domeDiameter.getVal()*0.5f, 180.0f, 256, 128);
+    dome = new utils::SGCTDome(domeDiameter.getVal()*0.5f, 180.0f, 256, 128);
 
     //Set up backface culling
     glCullFace(GL_BACK);
     glFrontFace(GL_CW); //our polygon winding is clockwise since we are inside of the dome
 
-    sgct::ShaderManager::instance()->addShaderProgram("xform",
-        "xform.vert",
-        "xform.frag");
-
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
     Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("mvp");
@@ -206,7 +237,7 @@ void myDrawFun()
             (FirstOpenVRWindow == gEngine->getCurrentWindowPtr() || gEngine->getCurrentWindowPtr()->checkIfTagExists("OpenVR"))) {
             MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
 
-            if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye) {
+            if (gEngine->getCurrentFrustumMode() == core::Frustum::MonoEye) {
                 //Reversing rotation around z axis (so desktop view is more pleasent to look at).
                 glm::quat inverserotation = sgct::SGCTOpenVR::getInverseRotation(sgct::SGCTOpenVR::getHMDPoseMatrix());
                 inverserotation.x = inverserotation.y = 0.f;
@@ -224,7 +255,7 @@ void myDrawFun()
         glActiveTexture(GL_TEXTURE0);
 
         if ((texIds.getSize() > (texIndex.getVal() + 1))
-            && gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye){
+            && gEngine->getCurrentFrustumMode() == core::Frustum::StereoRightEye){
             glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()+1));
         }
         else{
@@ -293,63 +324,58 @@ void myCleanUpFun()
         glfwDestroyWindow(hiddenWindow);
 }
 
-void keyCallback(int key, int action)
-{
-    if (gEngine->isMaster())
-    {
-        switch (key)
-        {
-        case SGCT_KEY_S:
-            if (action == SGCT_PRESS)
-                stats.toggle();
-            break;
+void keyCallback(int key, int action) {
+    if (gEngine->isMaster()) {
+        switch (key) {
+            case key::S:
+                if (action == action::Press) {
+                    stats.toggle();
+                }
+                break;
+            case key::I:
+                if (action == action::Press) {
+                    info.toggle();
+                }
+                break;
+            case key::W:
+                if (action == action::Press) {
+                    wireframe.toggle();
+                }
+                break;
 
-        case SGCT_KEY_I:
-            if (action == SGCT_PRESS)
-                info.toggle();
-            break;
-                
-        case SGCT_KEY_W:
-            if (action == SGCT_PRESS)
-                wireframe.toggle();
-            break;
-
-        case SGCT_KEY_F:
-            if (action == SGCT_PRESS)
-                wireframe.toggle();
-            break;
-
-        case SGCT_KEY_1:
-            if (action == SGCT_PRESS)
-                incrIndex.setVal(1);
-            break;
-
-        case SGCT_KEY_2:
-            if (action == SGCT_PRESS)
-                incrIndex.setVal(2);
-            break;
-
-        case SGCT_KEY_LEFT:
-            if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
-            {
-                texIndex.getVal() > incrIndex.getVal() - 1 ? texIndex -= incrIndex.getVal() : texIndex.setVal(numSyncedTex.getVal() - 1);
-                //fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
-            }
-            break;
-
-        case SGCT_KEY_RIGHT:
-            if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
-            {
-                texIndex.setVal((texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal());
-                //fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
-            }
-            break;
-        case SGCT_KEY_UP:
-            domeTilt += 0.1f;
-            break;
-        case SGCT_KEY_DOWN:
-            domeTilt -= 0.1f;
-            break;
+            case key::F:
+                if (action == action::Press) {
+                    wireframe.toggle();
+                }
+                break;
+            case key::1:
+                if (action == action::Press) {
+                    incrIndex.setVal(1);
+                }
+                break;
+            case key::2:
+                if (action == action::Press) {
+                    incrIndex.setVal(2);
+                }
+                break;
+            case key::Left:
+                if (action == action::Press && numSyncedTex.getVal() > 0) {
+                    texIndex.getVal() > incrIndex.getVal() - 1 ? texIndex -= incrIndex.getVal() : texIndex.setVal(numSyncedTex.getVal() - 1);
+                    //fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
+                }
+                break;
+            case key::Right:
+                if (action == action::Press && numSyncedTex.getVal() > 0) {
+                    texIndex.setVal((texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal());
+                    //fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
+                }
+                break;
+            case key::Up:
+                domeTilt += 0.1f;
+                break;
+            case key::Down:
+                domeTilt -= 0.1f;
+                break;
         }
     }
 }

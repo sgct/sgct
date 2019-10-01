@@ -6,8 +6,6 @@ set_compile_options(networkExample)
 target_link_libraries(networkExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/box.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/box.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"

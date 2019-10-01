@@ -14,8 +14,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_mono.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
 )
 copy_files(openvrFullDomeViewer ${files})
 copy_sgct_dynamic_libraries(openvrFullDomeViewer)

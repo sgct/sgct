@@ -68,19 +68,19 @@ int main( int argc, char* argv[] )
 {
     gEngine = new sgct::Engine( argc, argv );
 
-	//Sync against NDI instead to prevent wasting time for both syncs
-	sgct::SGCTSettings::instance()->setSwapInterval(0);
-	sgct::SGCTSettings::instance()->setUsePBO(true);
+    //Sync against NDI instead to prevent wasting time for both syncs
+    sgct::SGCTSettings::instance()->setSwapInterval(0);
+    sgct::SGCTSettings::instance()->setUsePBO(true);
 
 
-	gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setInitOGLFunction( myInitOGLFun );
     gEngine->setDrawFunction( myDrawFun );
     gEngine->setPreSyncFunction( myPreSyncFun );
     gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
     gEngine->setCleanUpFunction( myCleanUpFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
-	gEngine->setPreWindowFunction(myPreWindowCreationFun);
-	gEngine->setScreenShotCallback( myScreenShotFun );
+    gEngine->setPreWindowFunction(myPreWindowCreationFun);
+    gEngine->setScreenShotCallback( myScreenShotFun );
 
     if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
     {
@@ -94,9 +94,9 @@ int main( int argc, char* argv[] )
     // Main loop
     gEngine->render();
 
-	// destroy NDI
-	if (gNDISender)
-		delete gNDISender;
+    // destroy NDI
+    if (gNDISender)
+        delete gNDISender;
 
     // Clean up
     delete gEngine;
@@ -169,7 +169,7 @@ void myPostSyncPreDrawFun()
     gEngine->setStatsGraphVisibility(stats.getVal());
     sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 
-	//invoke screenshot callback in order to send NDI
+    //invoke screenshot callback in order to send NDI
     gEngine->takeScreenshot();
 }
 
@@ -408,26 +408,26 @@ void myCleanUpFun()
 
 void myPreWindowCreationFun()
 {
-	std::size_t winIndex = 0; //setup NDI for first window only
-	gEngine->getWindowPtr(winIndex)->setFixResolution(true); //force constant buffer size
-	int NDI_width = gEngine->getWindowPtr(winIndex)->getXFramebufferResolution();
-	int NDI_height = gEngine->getWindowPtr(winIndex)->getYFramebufferResolution();
-	gNDISender = new (std::nothrow) NDISender();
-	gNDISender->init(NDI_width, NDI_height, "HeightMap", NDISender::BGRA);
-	//gNDISender->init(NDI_width, NDI_height, "HeightMap", NDISender::UYVY);
+    std::size_t winIndex = 0; //setup NDI for first window only
+    gEngine->getWindowPtr(winIndex)->setFixResolution(true); //force constant buffer size
+    int NDI_width = gEngine->getWindowPtr(winIndex)->getXFramebufferResolution();
+    int NDI_height = gEngine->getWindowPtr(winIndex)->getYFramebufferResolution();
+    gNDISender = new (std::nothrow) NDISender();
+    gNDISender->init(NDI_width, NDI_height, "HeightMap", NDISender::BGRA);
+    //gNDISender->init(NDI_width, NDI_height, "HeightMap", NDISender::UYVY);
 
-	if(gNDISender->isBGRA())
-		gEngine->getWindowPtr(winIndex)->setAlpha(true); //BGRA
-	else
-		gEngine->getWindowPtr(winIndex)->setAlpha(false); //BGR
+    if(gNDISender->isBGRA())
+        gEngine->getWindowPtr(winIndex)->setAlpha(true); //BGRA
+    else
+        gEngine->getWindowPtr(winIndex)->setAlpha(false); //BGR
 }
 
 void myScreenShotFun(unsigned char * data, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int downloadType)
 {
-	//use only NDI for the first window and left eye
-	if (downloadType == GL_UNSIGNED_BYTE && winIndex == 0 && ei < sgct_core::ScreenCapture::STEREO_RIGHT)
-	{
-		//assume constant windows size and 8-bit color depth
-		gNDISender->submitFrame(data, gEngine->getWindowPtr(0)->getAlpha() ? 4 : 3);
-	}
+    //use only NDI for the first window and left eye
+    if (downloadType == GL_UNSIGNED_BYTE && winIndex == 0 && ei < sgct_core::ScreenCapture::STEREO_RIGHT)
+    {
+        //assume constant windows size and 8-bit color depth
+        gNDISender->submitFrame(data, gEngine->getWindowPtr(0)->getAlpha() ? 4 : 3);
+    }
 }

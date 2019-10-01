@@ -10,6 +10,11 @@ target_link_libraries(websocketsExample PRIVATE sgct)
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
+  "${CMAKE_CURRENT_SOURCE_DIR}/avatar.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/dome.jpg"
+  "${CMAKE_CURRENT_SOURCE_DIR}/dome.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
+  "${CMAKE_CURRENT_SOURCE_DIR}/index.html"
 )
 copy_files(websocketsExample ${files})
 copy_sgct_dynamic_libraries(websocketsExample)

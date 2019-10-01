@@ -19,8 +19,8 @@ namespace {
     sgct::Engine* gEngine;
     Capture gCapture;
 
-    std::unique_ptr<sgct_utils::SGCTPlane> plane;
-    std::unique_ptr<sgct_utils::SGCTDome> dome;
+    std::unique_ptr<sgct::utils::SGCTPlane> plane;
+    std::unique_ptr<sgct::utils::SGCTDome> dome;
 
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
@@ -34,7 +34,7 @@ namespace {
 
     std::unique_ptr<std::thread> loadThread;
     std::mutex mutex;
-    std::vector<sgct_core::Image*> transImages;
+    std::vector<sgct::core::Image*> transImages;
 
     sgct::SharedInt32 texIndex(-1);
     sgct::SharedInt32 incrIndex(1);
@@ -73,6 +73,73 @@ namespace {
     sgct::SharedBool chromaKey(false);
     sgct::SharedInt32 chromaKeyColorIdx(0);
     std::vector<glm::vec3> chromaKeyColors;
+
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+  uniform vec2 scaleUV;
+  uniform vec2 offsetUV;
+
+  in vec2 uv;
+  out vec4 color;
+
+  void main() { color = texture(tex, (uv.st * scaleUV) + offsetUV); }
+)";
+
+    constexpr const char* fragmentChromaKey = R"(
+  #version 330 core
+
+  uniform sampler2D tex;
+  uniform vec2 scaleUV;
+  uniform vec2 offsetUV;
+  uniform float thresholdSensitivity;
+  uniform float smoothing;
+  uniform vec3 chromaKeyColor;
+
+  in vec2 uv;
+  out vec4 color;
+
+  void main() {
+    vec4 texColor = texture(tex, (uv.st * scaleUV) + offsetUV);
+   
+    float maskY = 0.2989 * chromaKeyColor.r + 0.5866 * chromaKeyColor.g +
+                  0.1145 * chromaKeyColor.b;
+    float maskCr = 0.7132 * (chromaKeyColor.r - maskY);
+    float maskCb = 0.5647 * (chromaKeyColor.b - maskY);
+   
+    float Y = 0.2989 * texColor.r + 0.5866 * texColor.g + 0.1145 * texColor.b;
+    float Cr = 0.7132 * (texColor.r - Y);
+    float Cb = 0.5647 * (texColor.b - Y);
+   
+    float blendValue = smoothstep(
+      thresholdSensitivity,
+      thresholdSensitivity + smoothing,
+      distance(vec2(Cr, Cb), vec2(maskCr, maskCb))
+    );
+    if (blendValue > 0.1) {
+      color = vec4(texColor.rgb, texColor.a * blendValue);
+    }
+    else {
+      discard;
+    }
+})";
 } // namespace
 
 using namespace sgct;
@@ -106,7 +173,7 @@ void allocateTexture() {
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(mutex);
 
-    sgct_core::Image* img = new sgct_core::Image();
+    core::Image* img = new core::Image();
 
     char type = static_cast<char>(data[0]);
     assert(type == 0 || type == 1);
@@ -305,7 +372,7 @@ void captureLoop() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (core::ClusterManager::instance()->getNumberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -355,7 +422,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (core::ClusterManager::instance()->getNumberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -529,16 +596,16 @@ void draw2DFun() {
         const unsigned int fontSize = static_cast<unsigned int>(
             9.f * gEngine->getCurrentWindow().getScale().x
         );
-        sgct_text::Font* font = sgct_text::FontManager::instance()->getFont(
+        text::Font* font = text::FontManager::instance()->getFont(
             "SGCTFont",
             fontSize
         );
         constexpr const float padding = 10.0f;
 
         const float resY = gEngine->getCurrentWindow().getFramebufferResolution().y;
-        sgct_text::print(
+        text::print(
             font,
-            sgct_text::TextAlignMode::TopLeft,
+            text::TextAlignMode::TopLeft,
             padding,
             static_cast<float>(resY - fontSize) - padding,
             glm::vec4(1.f, 1.f, 1.f, 1.f), // color
@@ -584,7 +651,7 @@ void initOGLFun() {
     allocateTexture();
 
     // start capture thread if host or load thread if master and not host
-    sgct_core::SGCTNode* thisNode = sgct_core::ClusterManager::instance()->getThisNode();
+    core::SGCTNode* thisNode = core::ClusterManager::instance()->getThisNode();
     if (thisNode->getAddress() == gCapture.getVideoHost()) {
         captureThread = std::make_unique<std::thread>(captureLoop);
     }
@@ -605,13 +672,18 @@ void initOGLFun() {
     const float h = static_cast<float>(gCapture.getHeight());
     const float w = static_cast<float>(gCapture.getWidth());
     float planeHeight = planeWidth * h / w;
-    plane = std::make_unique<sgct_utils::SGCTPlane>(planeWidth, planeHeight);
+    plane = std::make_unique<utils::SGCTPlane>(planeWidth, planeHeight);
 
     // create dome
-    dome = std::make_unique<sgct_utils::SGCTDome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<utils::SGCTDome>(7.4f, 180.f, 256, 128);
 
     ShaderManager& sm = *ShaderManager::instance();
-    sm.addShaderProgram("xform", "xform.vert", "xform.frag");
+    sm.addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("xform");
 
     matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
@@ -621,7 +693,12 @@ void initOGLFun() {
     glUniform1i(textureLocation, 0);
     sm.unBindShaderProgram();
 
-    sm.addShaderProgram("chromakey", "xform.vert", "chromakey.frag");
+    sm.addShaderProgram(
+        "chromakey",
+        vertexShader,
+        fragmentChromaKey,
+        ShaderProgram::ShaderSourceType::String
+    );
     sm.bindShaderProgram("chromakey");
 
     chromaKeyMatrixLoc = sm.getShaderProgram("chromakey").getUniformLocation("mvp");
@@ -683,35 +760,35 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && (action == SGCT_PRESS)) {
+    if (gEngine->isMaster() && (action == action::Press)) {
         switch (key) {
-            case SGCT_KEY_C:
+            case key::C:
                 chromaKey.setVal(!chromaKey.getVal());
                 break;
-            case SGCT_KEY_D:
+            case key::D:
                 renderDome.setVal(true);
                 break;
-            case SGCT_KEY_S:
+            case key::S:
                 stats.setVal(!stats.getVal());
                 break;
-            case SGCT_KEY_I:
+            case key::I:
                 info.setVal(!info.getVal());
                 break;
-            case SGCT_KEY_F:
-            case SGCT_KEY_W:
+            case key::F:
+            case key::W:
                 wireframe.setVal(!wireframe.getVal());
                 break;
-            case SGCT_KEY_1:
+            case key::1:
                 domeCut.setVal(1);
                 break;
-            case SGCT_KEY_2:
+            case key::2:
                 domeCut.setVal(2);
                 break;
-            case SGCT_KEY_P:
+            case key::P:
                 // plane mode
                 renderDome.setVal(false);
                 break;
-            case SGCT_KEY_LEFT:
+            case key::Left:
                 if (numSyncedTex.getVal() > 0) {
                     if (texIndex.getVal() > incrIndex.getVal() - 1) {
                         texIndex.setVal(texIndex.getVal() - incrIndex.getVal());
@@ -721,19 +798,19 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case SGCT_KEY_RIGHT:
+            case key::Right:
                 if (numSyncedTex.getVal() > 0) {
                     texIndex.setVal(
                         (texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal()
                     );
                 }
                 break;
-            case SGCT_KEY_UP:
+            case key::Up:
                 if (chromaKeyColorIdx.getVal() < chromaKeyColors.size()) {
                     chromaKeyColorIdx.setVal(chromaKeyColorIdx.getVal() + 1);
                 }
                 break;
-            case SGCT_KEY_DOWN:
+            case key::Down:
                 if (chromaKeyColorIdx.getVal() > 0) {
                     chromaKeyColorIdx.setVal(chromaKeyColorIdx.getVal() - 1);
                 }
@@ -785,7 +862,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == lastPackage.getVal()) {
         counter++;
-        if (counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
+        if (counter == (core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             

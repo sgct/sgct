@@ -25,6 +25,32 @@ namespace {
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
+
+    constexpr const char* vertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec2 texCoords;
+  layout(location = 1) in vec3 normals;
+  layout(location = 2) in vec3 vertPositions;
+
+  uniform mat4 mvp;
+  uniform int flip;
+
+  out vec2 uv;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPositions, 1.0);
+    uv = texCoords;
+  })";
+
+    constexpr const char* fragmentShader = R"(
+  #version 330 core
+  uniform sampler2D tex;
+  in vec2 uv;
+  out vec4 color;
+  void main() { color = texture(tex, uv); }
+)";
 } // namespace
 
 using namespace sgct;
@@ -151,8 +177,12 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram("xform", "xform.vert", "xform.frag");
-
+    ShaderManager::instance()->addShaderProgram(
+        "xform",
+        vertexShader,
+        fragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
 

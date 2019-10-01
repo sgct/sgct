@@ -6,8 +6,6 @@ set_compile_options(textureExample)
 target_link_libraries(textureExample PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/simple.vert"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(textureExample ${files})

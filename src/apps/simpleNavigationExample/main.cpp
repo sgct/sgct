@@ -55,6 +55,43 @@ namespace {
         float mY = 0.f;
         float mZ = 0.f;
     };
+
+    constexpr const char* gridVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+
+  uniform mat4 mvp;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPosition, 1.0);
+  })";
+
+    constexpr const char* gridFragmentShader = R"(
+  #version 330 core
+  out vec4 color;
+  void main() { color = vec4(1.0, 1.0, 1.0, 0.8); }
+)";
+
+    constexpr const char* pyramidVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+
+  uniform mat4 mvp;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPosition, 1.0);
+  })";
+
+    constexpr const char* pyramidFragmentShader = R"(
+  #version 330 core
+  uniform float alpha;
+  out vec4 color;
+  void main() { color = vec4(1.0, 0.0, 0.5, alpha); }
+)";
 } // namespace
 
 using namespace sgct;
@@ -241,8 +278,9 @@ void initOGLFun() {
 
     ShaderManager::instance()->addShaderProgram(
         "gridShader",
-        "gridShader.vert",
-        "gridShader.frag"
+        gridVertexShader,
+        gridFragmentShader,
+        ShaderProgram::ShaderSourceType::String
     );
     ShaderManager::instance()->bindShaderProgram("gridShader");
     const ShaderProgram& gProg= ShaderManager::instance()->getShaderProgram("gridShader");
@@ -250,9 +288,9 @@ void initOGLFun() {
     ShaderManager::instance()->unBindShaderProgram();
 
     ShaderManager::instance()->addShaderProgram(
-        "pyramidShader",
-        "pyramidShader.vert",
-        "pyramidShader.frag"
+        pyramidVertexShader,
+        pyramidFragmentShader,
+        ShaderProgram::ShaderSourceType::String
     );
     ShaderManager::instance()->bindShaderProgram("pyramidShader");
     const ShaderProgram& pyramidProg =

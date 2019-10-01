@@ -9,6 +9,49 @@
 // This is basically the simpleNavgationExample
 // Extended with only a few lines to support OpenVR
 
+constexpr const char* gridVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+
+  uniform mat4 mvp;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPosition, 1.0);
+  })";
+
+constexpr const char* gridFragmentShader = R"(
+  #version 330 core
+
+  uniform vec4 linecolor;
+  out vec4 color;
+
+  void main() { color = linecolor; }
+)";
+
+constexpr const char* pyramidVertexShader = R"(
+  #version 330 core
+
+  layout(location = 0) in vec3 vertPosition;
+
+  uniform mat4 mvp;
+
+  void main() {
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position =  mvp * vec4(vertPosition, 1.0);
+  })";
+
+constexpr const char* pyramidFragmentShader = R"(
+  #version 330 core
+
+  uniform float alpha;
+
+  out vec4 color;
+
+  void main() { color = vec4(1.0, 0.0, 0.5, alpha); }
+)";
+
 sgct::Engine* gEngine;
 sgct::SGCTWindow* FirstOpenVRWindow = NULL;
 
@@ -143,17 +186,23 @@ void myInitOGLFun()
         pyramidTransforms[i] = glm::translate(glm::mat4(1.0f), glm::vec3(xPos, -1.5f, zPos));
     }
 
-    sgct::ShaderManager::instance()->addShaderProgram("gridShader",
-        "gridShader.vert",
-        "gridShader.frag");
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "gridShader",
+        gridVertexShader,
+        gridFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sgct::ShaderManager::instance()->bindShaderProgram("gridShader");
     Matrix_Locs[GRID] = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("mvp");
     linecolor_loc = sgct::ShaderManager::instance()->getShaderProgram("gridShader").getUniformLocation("linecolor");
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
-    sgct::ShaderManager::instance()->addShaderProgram("pyramidShader",
-        "pyramidShader.vert",
-        "pyramidShader.frag");
+    sgct::ShaderManager::instance()->addShaderProgram(
+        "pyramidShader",
+        pyramidVertexShader,
+        pyramidFragmentShader,
+        ShaderProgram::ShaderSourceType::String
+    );
     sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
     Matrix_Locs[PYRAMID] = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("mvp");
     alpha_Loc = sgct::ShaderManager::instance()->getShaderProgram("pyramidShader").getUniformLocation("alpha");

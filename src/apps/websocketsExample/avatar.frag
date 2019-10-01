@@ -8,5 +8,5 @@ uniform sampler2D Tex;
 
 void main()
 {
-	color = vec4(FaceColor, 1.0) * texture(Tex, uv.st);
+ color = vec4(FaceColor, 1.0) * texture(Tex, uv.st);
 }

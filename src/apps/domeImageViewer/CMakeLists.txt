@@ -12,8 +12,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo_dummy.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes_stereo_dummy.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.frag"
-  "${CMAKE_CURRENT_SOURCE_DIR}/xform.vert"
 )
 copy_files(domeImageViewer ${files})
 copy_sgct_dynamic_libraries(domeImageViewer)

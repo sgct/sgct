@@ -1117,9 +1117,9 @@ void sgct_core::FisheyeProjection::renderInternalFixedPipeline()
     if (alpha)
     {
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
     }
-    else
+    else{}
         glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
@@ -1299,7 +1299,7 @@ void sgct_core::FisheyeProjection::renderCubemapInternalFixedPipeline(std::size_
                 if (alpha)
                 {
                     glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
                 }
                 else
                     glDisable(GL_BLEND);

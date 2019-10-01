@@ -2489,6 +2489,7 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
         glDisable(GL_CULL_FACE);
         glDisable(GL_LIGHTING);
         glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
 
         mShaders[FXAAShader].bind();
         glUniform1f( mShaderLocs[SizeX], static_cast<float>(getCurrentWindowPtr()->getXFramebufferResolution()) );

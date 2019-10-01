@@ -399,7 +399,15 @@ void myPreWinInitFun()
                     fp->setDomeDiameter(domeDiameter);
             }
         
+        std::stringstream ss;
+        ss << resolution;
+        std::string winName;
+        winName.push_back(ss.str().at(0));
+        winName.push_back('K');
+        gEngine->getWindowPtr(i)->setName(winName);
+
         gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
+        gEngine->getWindowPtr(i)->setFixResolution(false);
         gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
         gEngine->getWindowPtr(i)->setUseFXAA(fxaa);
         if (stereo)
@@ -429,8 +437,6 @@ void myInitOGLFun()
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_COLOR_MATERIAL );
     glDisable( GL_LIGHTING );
-    glEnable( GL_BLEND );
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void myEncodeFun()

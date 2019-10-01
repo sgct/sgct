@@ -284,14 +284,15 @@ namespace sgct_core
             \n\
             varying vec2 texcoordOffset[4];\n\
             \n\
-            vec3 antialias() \n\
+            vec4 antialias() \n\
             { \n\
                 float FXAA_REDUCE_MIN = 1.0/128.0; \n\
                 vec3 rgbNW = texture2DLod(tex, texcoordOffset[0], 0.0).xyz; \n\
                 vec3 rgbNE = texture2DLod(tex, texcoordOffset[1], 0.0).xyz; \n\
                 vec3 rgbSW = texture2DLod(tex, texcoordOffset[2], 0.0).xyz; \n\
                 vec3 rgbSE = texture2DLod(tex, texcoordOffset[3], 0.0).xyz; \n\
-                vec3 rgbM  = texture2DLod(tex, gl_TexCoord[0].st, 0.0).xyz;\n\
+                vec4 rgbaM = texture2DLod(tex, gl_TexCoord[0].st, 0.0);\n\
+                vec3 rgbM = rgbaM.xyz;\n\
                 \n\
                 vec3 luma = vec3(0.299, 0.587, 0.114);\n\
                 float lumaNW = dot(rgbNW, luma);\n\
@@ -306,7 +307,7 @@ namespace sgct_core
                 //local contrast check, for not processing homogenius areas \n\
                 if( range < max(FXAA_EDGE_THRESHOLD_MIN, lumaMax * FXAA_EDGE_THRESHOLD)) \n\
                 { \n\
-                    return rgbM; \n\
+                    return rgbaM; \n\
                 } \n\
                 \n\
                 vec2 dir;\n\
@@ -330,19 +331,17 @@ namespace sgct_core
                 \n\
                 if((lumaB < lumaMin) || (lumaB > lumaMax)) \n\
                 { \n\
-                    return rgbA; \n\
-                    //return vec3(1.0, 0.0, 0.0); \n\
+                    return vec4(rgbA, rgbaM.a); \n\
                 } \n\
                 else \n\
                 { \n\
-                    return rgbB; \n\
-                    //return vec3(0.0, 1.0, 0.0); \n\
+                    return vec4(rgbB, rgbaM.a); \n\
                 } \n\
             }\n\
             \n\
             void main(void) \n\
             { \n\
-                gl_FragColor = vec4(antialias(), 1.0); \n\
+                gl_FragColor = antialias(); \n\
             }";
 
     }//end shaders

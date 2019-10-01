@@ -719,8 +719,7 @@
             // cubicCheckBox
             // 
             this.cubicCheckBox.AutoSize = true;
-            this.cubicCheckBox.Checked = true;
-            this.cubicCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cubicCheckBox.Checked = false;
             this.cubicCheckBox.Location = new System.Drawing.Point(303, 85);
             this.cubicCheckBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cubicCheckBox.Name = "cubicCheckBox";
@@ -890,6 +889,7 @@
             // alpha_checkBox
             // 
             this.alpha_checkBox.AutoSize = true;
+            this.alpha_checkBox.Checked = true;
             this.alpha_checkBox.Location = new System.Drawing.Point(303, 49);
             this.alpha_checkBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.alpha_checkBox.Name = "alpha_checkBox";
@@ -1001,6 +1001,7 @@
             // 
             // FXAACheckBox
             // 
+            this.FXAACheckBox.Checked = true;
             this.FXAACheckBox.AutoSize = true;
             this.FXAACheckBox.Location = new System.Drawing.Point(24, 74);
             this.FXAACheckBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);

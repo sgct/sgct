@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(domeImageViewer main.cpp xform.frag xform.vert)
+add_executable(domeImageViewer main.cpp)
 set_compile_options(domeImageViewer)
 target_link_libraries(domeImageViewer PRIVATE sgct)
 

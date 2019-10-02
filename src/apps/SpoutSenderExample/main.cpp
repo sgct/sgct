@@ -108,13 +108,13 @@ void postDrawFun() {
             
         spoutSendersData[i].spoutSender->SendTexture(
             texId,
-            GL_TEXTURE_2D,
+            static_cast<GLuint>(GL_TEXTURE_2D),
             gEngine->getWindow(winIndex).getFramebufferResolution().x,
             gEngine->getWindow(winIndex).getFramebufferResolution().y
         );
     }
 
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void preSyncFun() {

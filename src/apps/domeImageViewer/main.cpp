@@ -155,7 +155,7 @@ void uploadTexture() {
     for (size_t i = 0; i < transImages.size(); i++) {
         if (!transImages[i]) {
             // if invalid load
-            texIds.addVal(GL_FALSE);
+            texIds.addVal(0);
             continue;
         }
 
@@ -208,7 +208,7 @@ void uploadTexture() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // unbind
-        glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         MessageHandler::instance()->print(
             "Texture id %d loaded (%dx%dx%d).\n",
@@ -358,7 +358,7 @@ void cleanUpFun() {
         GLuint tex = texIds.getValAt(i);
         if (tex) {
             glDeleteTextures(1, &tex);
-            texIds.setValAt(i, GL_FALSE);
+            texIds.setValAt(i, 0);
         }
     }
     texIds.clear();
@@ -413,7 +413,7 @@ void keyCallback(int key, int, int action, int) {
 }
 
 void contextCreationCallback(GLFWwindow* win) {
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);

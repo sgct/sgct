@@ -18,9 +18,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
+#ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 // Apple doesn't support advanced sync features
 // Nvidia Quadro Sync technology is only supported in Windows or Linux
-#ifdef __WIN32__
+#ifdef WIN32
 HDC hDC;
 #elif defined __LINUX__
 GLXDrawable hDC;
@@ -31,70 +38,82 @@ GLXEWContext* glxewGetContext();
 #endif
 
 namespace {
+    // abock(2019-10-02); glbinding doesn't come with default bindings against the wgl.xml
+    // file, so we have to resolve these manually
+    bool FunctionsResolved = false;
+    using BindSwapBarrier = BOOL(*)(GLuint group, GLuint barrier);
+    BindSwapBarrier wglBindSwapBarrierNV = nullptr;
+    using JoinSwapGroup = BOOL(*)(HDC hDC, GLuint group);
+    JoinSwapGroup wglJoinSwapGroupNV = nullptr;
+    using QueryMaxSwapGroups = BOOL(*)(HDC hDC, GLuint* maxGroups, GLuint* maxBarriers);
+    QueryMaxSwapGroups wglQueryMaxSwapGroupsNV = nullptr;
+    using QueryFrameCount = BOOL(*)(HDC hDC, GLuint* count);
+    QueryFrameCount wglQueryFrameCountNV = nullptr;
+    using ResetFrameCount = BOOL(*)(HDC hDC);
+    ResetFrameCount wglResetFrameCountNV = nullptr;
 
-constexpr const float QuadVerts[20] = {
-    0.f, 0.f, -1.f, -1.f, -1.f,
-    1.f, 0.f,  1.f, -1.f, -1.f,
-    0.f, 1.f, -1.f,  1.f, -1.f,
-    1.f, 1.f,  1.f,  1.f, -1.f
-};
+    constexpr const float QuadVerts[20] = {
+        0.f, 0.f, -1.f, -1.f, -1.f,
+        1.f, 0.f,  1.f, -1.f, -1.f,
+        0.f, 1.f, -1.f,  1.f, -1.f,
+        1.f, 1.f,  1.f,  1.f, -1.f
+    };
 
-void windowResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-    if (!node) {
-        return;
-    }
+    void windowResizeCallback(GLFWwindow* window, int width, int height) {
+        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
+        if (!node) {
+            return;
+        }
 
-    width = std::max(width, 1);
-    height = std::max(height, 1);
-    for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindow(i).getWindowHandle() == window) {
-            node->getWindow(i).setWindowResolution(glm::ivec2(width, height));
+        width = std::max(width, 1);
+        height = std::max(height, 1);
+        for (int i = 0; i < node->getNumberOfWindows(); i++) {
+            if (node->getWindow(i).getWindowHandle() == window) {
+                node->getWindow(i).setWindowResolution(glm::ivec2(width, height));
+            }
         }
     }
-}
 
-void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-    if (!node) {
-        return;
-    }
+    void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
+        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
+        if (!node) {
+            return;
+        }
 
-    width = std::max(width, 1);
-    height = std::max(height, 1);
-    for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindow(i).getWindowHandle() == window) {
-            node->getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
+        width = std::max(width, 1);
+        height = std::max(height, 1);
+        for (int i = 0; i < node->getNumberOfWindows(); i++) {
+            if (node->getWindow(i).getWindowHandle() == window) {
+                node->getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
+            }
         }
     }
-}
 
-void windowFocusCallback(GLFWwindow* window, int state) {
-    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-    if (!node) {
-        return;
-    }
+    void windowFocusCallback(GLFWwindow* window, int state) {
+        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
+        if (!node) {
+            return;
+        }
 
-    for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindow(i).getWindowHandle() == window) {
-            node->getWindow(i).setFocused(state == GL_TRUE);
+        for (int i = 0; i < node->getNumberOfWindows(); i++) {
+            if (node->getWindow(i).getWindowHandle() == window) {
+                node->getWindow(i).setFocused(state);
+            }
         }
     }
-}
 
-void windowIconifyCallback(GLFWwindow* window, int state) {
-    sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-    if (!node) {
-        return;
-    }
+    void windowIconifyCallback(GLFWwindow* window, int state) {
+        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
+        if (!node) {
+            return;
+        }
 
-    for (int i = 0; i < node->getNumberOfWindows(); i++) {
-        if (node->getWindow(i).getWindowHandle() == window) {
-            node->getWindow(i).setIconified(state == GL_TRUE);
+        for (int i = 0; i < node->getNumberOfWindows(); i++) {
+            if (node->getWindow(i).getWindowHandle() == window) {
+                node->getWindow(i).setIconified(state);
+            }
         }
     }
-}
-
 } // namespace
 
 namespace sgct {
@@ -198,7 +217,7 @@ void Window::close() {
     mViewports.clear();
 
     if (mUseSwapGroups) {
-#ifdef __WIN32__
+#ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglBindSwapBarrierNV(1, 0); // un-bind
             wglJoinSwapGroupNV(hDC, 0); // un-join
@@ -206,6 +225,7 @@ void Window::close() {
 #else
     #ifndef __APPLE__
         if (glfwExtensionSupported("GLX_NV_swap_group")) {
+            
             glXBindSwapBarrierNV(disp, 1, 0); // un-bind
             glXJoinSwapGroupNV(disp, hDC, 0); // un-join
         }
@@ -265,6 +285,34 @@ void Window::initOGL() {
 
         glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
         vp->getNonLinearProjection()->update(std::move(viewport));
+    }
+
+    if (!FunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
+        // abock (2019-10-02); I had to hand-resolve these functions as glbindings does
+        // not come with build-in support for the wgl.xml functions
+        // See https://github.com/cginternals/glbinding/issues/132 for when it is resolved
+        wglBindSwapBarrierNV = reinterpret_cast<BindSwapBarrier>(
+            glfwGetProcAddress("wglBindSwapBarrierNV")
+        );
+        assert(wglBindSwapBarrierNV);
+        wglJoinSwapGroupNV = reinterpret_cast<JoinSwapGroup>(
+            glfwGetProcAddress("wglJoinSwapGroupNV")
+        );
+        assert(wglJoinSwapGroupNV);
+        wglQueryMaxSwapGroupsNV = reinterpret_cast<QueryMaxSwapGroups>(
+            glfwGetProcAddress("wglQueryMaxSwapGroupsNV")
+        );
+        assert(wglQueryMaxSwapGroupsNV);
+        wglQueryFrameCountNV = reinterpret_cast<QueryFrameCount>(
+            glfwGetProcAddress("wglQueryFrameCountNV")
+        );
+        assert(wglQueryFrameCountNV);
+        wglResetFrameCountNV = reinterpret_cast<ResetFrameCount>(
+            glfwGetProcAddress("wglResetFrameCountNV")
+        );
+        assert(wglResetFrameCountNV);
+
+        FunctionsResolved = true;
     }
 }
 
@@ -648,7 +696,7 @@ void Window::setBarrier(bool state) {
             MessageHandler::Level::Info, "Window: Enabling Nvidia swap barrier\n"
         );
 
-#ifdef __WIN32__ //Windows uses wglew.h
+#ifdef WIN32
         mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
@@ -686,7 +734,7 @@ void Window::setUseFXAA(bool state) {
 void Window::setUseQuadbuffer(bool state) {
     mUseQuadBuffer = state;
     if (mUseQuadBuffer) {
-        glfwWindowHint(GLFW_STEREO, GL_TRUE);
+        glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
             "Window %d: Enabling quadbuffered rendering\n", mId
@@ -726,7 +774,7 @@ void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
 
 bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
-    glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
+    glfwWindowHint(GLFW_DECORATED, mDecorated ? GLFW_TRUE : GLFW_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
     if (antiAliasingSamples > 1 && !Settings::instance()->useFBO()) {
@@ -737,11 +785,11 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         glfwWindowHint(GLFW_SAMPLES, 0);
     }
 
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
-    glfwWindowHint(GLFW_FLOATING, mFloating ? GL_TRUE : GL_FALSE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, mDoubleBuffered ? GL_TRUE : GL_FALSE);
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+    glfwWindowHint(GLFW_FLOATING, mFloating ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, mDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
     if (!mVisible) {
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     }
 
     setUseQuadbuffer(mStereoMode == StereoMode::Active);
@@ -819,13 +867,9 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         glfwSetInputMode(mWindowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
-    mFocused = glfwGetWindowAttrib(mWindowHandle, GLFW_FOCUSED) == GL_TRUE;
-    mIconified = glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GL_TRUE;
+    mFocused = glfwGetWindowAttrib(mWindowHandle, GLFW_FOCUSED) == GLFW_TRUE;
+    mIconified = glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
         
-    // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glfwMakeContextCurrent(mSharedHandle);
 
     if (Settings::instance()->useFBO()) {
@@ -842,7 +886,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 }
 
 void Window::initNvidiaSwapGroups() {    
-#ifdef __WIN32__ // Windows uses wglew.h
+#ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
@@ -987,7 +1031,7 @@ unsigned int Window::getSwapGroupFrameNumber() {
     unsigned int frameNumber = 0;
 
     if (mBarrier) {
-    #ifdef __WIN32__ //Windows uses wglew.h
+    #ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglQueryFrameCountNV(hDC, &frameNumber);
         }
@@ -1004,16 +1048,14 @@ unsigned int Window::getSwapGroupFrameNumber() {
 
 void Window::resetSwapGroupFrameNumber() {
     if (mBarrier) {
-#ifdef __WIN32__
+#ifdef WIN32
         bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
                        wglResetFrameCountNV(hDC);
-#else
-    #ifdef __APPLE__
+#elif defined(__APPLE__)
         bool success = false;
-    #else //linux
+#else //linux
         bool success = glfwExtensionSupported("GLX_NV_swap_group") &&
                        glXResetFrameCountNV(disp, hDC);
-    #endif
 #endif
         if (success) {
             mSwapGroupMaster = true;
@@ -1098,7 +1140,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     
     // Determine the internal texture format, the texture format, and the pixel type
     const auto [internalFormat, format, pType] =
-        [this](Window::TextureType type) -> std::tuple<int, unsigned int, int> {
+        [this](Window::TextureType type) -> std::tuple<GLenum, GLenum, GLenum> {
             switch (type) {
                 default:
                 case TextureType::Color:

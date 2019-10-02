@@ -8,7 +8,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
+#include <sgct/ogl_headers.h>
+
+#include <sgct/action.h>
 #include <sgct/config.h>
+#include <sgct/keys.h>
+#include <sgct/mouse.h>
+#include <sgct/joystick.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/fisheyeprojection.h>
 #include <sgct/messagehandler.h>
@@ -18,6 +24,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/spoutoutputprojection.h>
 #include <functional>
 #include <optional>
+
+struct GLFWwindow;
 
 namespace sgct::core {
 class Image;
@@ -328,7 +336,7 @@ public:
 
     /// Don't use this. This function is called internally in SGCT.
     void invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
-        core::ScreenCapture::EyeIndex ei, unsigned int type);
+        core::ScreenCapture::EyeIndex ei, GLenum type);
 
     /**
      * Create a timer that counts down and call the given callback when finished. The
@@ -638,7 +646,7 @@ void sgct::Engine::clearBuffer() {
      *        capture & export
      */
     void setScreenShotCallback(std::function<void(core::Image*, size_t,
-        core::ScreenCapture::EyeIndex, unsigned int type)> fn);
+        core::ScreenCapture::EyeIndex, GLenum type)> fn);
 
 
     /**
@@ -1181,7 +1189,7 @@ private:
     std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
     std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
     std::function<
-        void(core::Image*, size_t, core::ScreenCapture::EyeIndex, unsigned int)
+        void(core::Image*, size_t, core::ScreenCapture::EyeIndex, GLenum)
     > mScreenShotFnPtr;
     std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
@@ -1261,7 +1269,7 @@ private:
 
     RunMode mRunMode = RunMode::Default_Mode;
     std::string mGLSLVersion;
-    int mExitKey = GLFW_KEY_ESCAPE;
+    int mExitKey = key::Escape;
 };
 
 } // namespace sgct

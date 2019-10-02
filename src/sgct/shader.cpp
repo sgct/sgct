@@ -117,7 +117,7 @@ bool Shader::checkCompilationStatus() const {
         return false;
     }
 
-    return compilationStatus == GL_TRUE;
+    return compilationStatus;
 }
 
 std::string Shader::getShaderTypeName(ShaderType shaderType) const {

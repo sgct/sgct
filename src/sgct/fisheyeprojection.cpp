@@ -940,7 +940,7 @@ void FisheyeProjection::renderInternal() {
 
     glBindVertexArray(mVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(GL_FALSE);
+    glBindVertexArray(0);
 
     ShaderProgram::unbind();
 
@@ -1028,7 +1028,7 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     ShaderProgram::unbind();
 

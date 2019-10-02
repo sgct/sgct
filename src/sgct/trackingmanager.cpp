@@ -14,9 +14,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/tracker.h>
 #include <sgct/trackingdevice.h>
 #include <sgct/user.h>
-#include <vrpn/vrpn_Tracker.h>
-#include <vrpn/vrpn_Button.h>
-#include <vrpn/vrpn_Analog.h>
+#ifdef SGCT_HAS_VRPN
+#include <vrpn_Tracker.h>
+#include <vrpn_Button.h>
+#include <vrpn_Analog.h>
+#endif // SGCT_HAS_VRPN
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>

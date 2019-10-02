@@ -172,7 +172,7 @@ bool ShaderProgram::checkLinkStatus() const {
     GLint linkStatus;
     glGetProgramiv(mProgramId, GL_LINK_STATUS, &linkStatus);
 
-    if (linkStatus == GL_FALSE) {
+    if (!linkStatus) {
         GLint logLength;
         glGetProgramiv(mProgramId, GL_INFO_LOG_LENGTH, &logLength);
 

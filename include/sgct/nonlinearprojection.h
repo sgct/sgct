@@ -31,8 +31,8 @@ public:
      * Init the non linear projection. The arguments should match the texture settings for
      * the parent window's FBO target.
      */
-    void init(int internalTextureFormat, unsigned int textureFormat,
-        unsigned int textureType, int samples = 1);
+    void init(GLenum internalTextureFormat, GLenum textureFormat, GLenum textureType,
+        int samples = 1);
 
     virtual void render() = 0;
     virtual void renderCubemap(size_t* subViewPortIndex) = 0;
@@ -103,10 +103,10 @@ protected:
     virtual void initShaders() = 0;
 
     void setupViewport(BaseViewport& vp);
-    void generateMap(unsigned int& texture, int internalFormat, unsigned int format,
-        unsigned int type);
-    void generateCubeMap(unsigned int& texture, int internalFormat, unsigned int format,
-        unsigned int type);
+    void generateMap(unsigned int& texture, GLenum internalFormat, GLenum format,
+        GLenum type);
+    void generateCubeMap(unsigned int& texture, GLenum internalFormat, GLenum format,
+        GLenum type);
 
     struct {
         unsigned int cubeMapColor = 0;
@@ -142,9 +142,9 @@ protected:
     glm::ivec4 mVpCoords = glm::ivec4(0, 0, 0, 0);
     bool mUseDepthTransformation = false;
     bool mStereo = false;
-    int mTexInternalFormat;
-    unsigned int mTexFormat;
-    unsigned int mTexType;
+    GLenum mTexInternalFormat;
+    GLenum mTexFormat;
+    GLenum mTexType;
     int mSamples = 1;
     unsigned int mVBO = 0;
     unsigned int mVAO = 0;

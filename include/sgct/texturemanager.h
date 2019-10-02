@@ -8,9 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TEXTURE_MANAGER__H__
 #define __SGCT__TEXTURE_MANAGER__H__
 
+#include <sgct/ogl_headers.h>
+#include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
-#include <glm/glm.hpp>
 
 namespace sgct::core { class Image; }
 
@@ -92,7 +93,7 @@ public:
      * \param warpS warping parameter along the s-axis (x-axis) 
      * \param warpT warping parameter along the t-axis (y-axis)
      */
-    void setWarpingMode(int warpS, int warpT);
+    void setWarpingMode(GLenum warpS, GLenum warpT);
 
     /// \returns the current compression mode
     CompressionMode getCompression() const;
@@ -167,7 +168,10 @@ private:
     bool mInterpolate = true;
     std::unordered_map<std::string, TextureData> mTextures;
     int mMipmapLevels = 8;
-    glm::ivec2 mWarpMode;
+    struct {
+        GLenum s;
+        GLenum t;
+    } mWarpMode;
 };
 
 } // namespace sgct::core

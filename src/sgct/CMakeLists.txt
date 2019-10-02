@@ -1,5 +1,6 @@
 set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/action.h
   ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/clustermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/config.h
@@ -11,8 +12,11 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
   ${PROJECT_SOURCE_DIR}/include/sgct/frustum.h
   ${PROJECT_SOURCE_DIR}/include/sgct/image.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
   ${PROJECT_SOURCE_DIR}/include/sgct/messagehandler.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mutexmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/network.h
   ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
@@ -123,9 +127,9 @@ target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
 
-if (SGCT_DEP_INCLUDE_GLEW)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLEW)
-  target_link_libraries(sgct PRIVATE glew)
+if (SGCT_DEP_INCLUDE_GLBINDINGS)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLBINDINGS)
+  target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
 endif ()
 
 if (SGCT_DEP_INCLUDE_GLFW)

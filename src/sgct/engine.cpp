@@ -30,6 +30,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 #include <stdexcept>
 #include <glm/gtc/type_ptr.hpp>
+#include <sgct/ogl_headers.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 // Callback wrappers for GLFW
 std::function<void(int, int, int, int)> gKeyboardCallbackFnPtr = nullptr;
@@ -1024,77 +1027,71 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 330 core";
             break;
         case RunMode::OpenGL_4_0_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 400 core";
             break;
 
         case RunMode::OpenGL_4_1_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[ fallthrough ]];
         case RunMode::OpenGL_4_1_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 410 core";
             break;
         case RunMode::OpenGL_4_2_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[fallthrough]];
         case RunMode::OpenGL_4_2_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 420 core";
             break;
         case RunMode::OpenGL_4_3_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[fallthrough]];
         case RunMode::OpenGL_4_3_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 430 core";
             break;
         case RunMode::OpenGL_4_4_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[fallthrough]];
         case RunMode::OpenGL_4_4_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 440 core";
             break;
         case RunMode::OpenGL_4_5_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[fallthrough]];
         case RunMode::OpenGL_4_5_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -1103,20 +1100,18 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 450 core";
             break;
         case RunMode::OpenGL_4_6_Debug_Core_Profile:
-            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[fallthrough]];
         case RunMode::OpenGL_4_6_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glewExperimental = true; // Needed for core profile
             mGLSLVersion = "#version 460 core";
             break;
         default:
@@ -1146,19 +1141,12 @@ bool Engine::initWindows() {
         }
     }
 
-    GLenum err = glewInit();
-    if (GLEW_OK != err) {
-      // Problem: glewInit failed, something is seriously wrong.
-      MessageHandler::instance()->print(
-          MessageHandler::Level::Error,
-          "GLEW error: %s!\n", glewGetErrorString(err)
-      );
-      return false;
-    }
-    MessageHandler::instance()->print(
-        MessageHandler::Level::VersionInfo,
-        "Using GLEW %s.\n", glewGetString(GLEW_VERSION)
-    );
+    glbinding::Binding::initialize(glfwGetProcAddress);
+
+    // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
     if (!checkForOGLErrors()) {
         MessageHandler::instance()->print(
@@ -1301,7 +1289,7 @@ void Engine::initOGL() {
         if (mScreenShotFnPtr) {
             // set callback
             auto callback = [this](core::Image* img, size_t size,
-                                   core::ScreenCapture::EyeIndex idx, unsigned int type)
+                                   core::ScreenCapture::EyeIndex idx, GLenum type)
             {
                 invokeScreenShotCallback(img, size, idx, type);
             };
@@ -1890,7 +1878,7 @@ void Engine::render() {
 
         if (mShowGraph) {
             // wait until the query results are available
-            GLint done = GL_FALSE;
+            GLboolean done = GL_FALSE;
             while (!done) {
                 glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
             }
@@ -3232,7 +3220,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         core::ClusterManager::instance()->getNumberOfNodes() > 1)
     {
         // check if swapgroups are supported
-#ifdef __WIN32__
+#ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info,
@@ -3484,7 +3472,7 @@ void Engine::setContextCreationCallback(std::function<void(GLFWwindow*)> fn) {
 }
 
 void Engine::setScreenShotCallback(std::function<void(core::Image*, size_t,
-                                    core::ScreenCapture::EyeIndex, unsigned int type)> fn)
+                                    core::ScreenCapture::EyeIndex, GLenum type)> fn)
 {
     mScreenShotFnPtr = std::move(fn);
 }
@@ -3800,7 +3788,7 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 }
 
 void Engine::invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
-                                      core::ScreenCapture::EyeIndex ei, unsigned int type)
+                                      core::ScreenCapture::EyeIndex ei, GLenum type)
 {
     if (mScreenShotFnPtr) {
         mScreenShotFnPtr(imPtr, winIndex, ei, type);

@@ -77,7 +77,7 @@ public:
      * Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
      * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
      */
-    void setTextureTransferProperties(unsigned int type, bool preferBGR);
+    void setTextureTransferProperties(GLenum type, bool preferBGR);
 
     /// Set the image format to use
     void setCaptureFormat(CaptureFormat cf);
@@ -104,7 +104,7 @@ public:
      * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
      */
     void setCaptureCallback(
-        std::function<void(Image*, size_t, EyeIndex, unsigned int type)> callback);
+        std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback);
 
 private:
     void addFrameNumberToFilename(unsigned int frameNumber);
@@ -118,15 +118,15 @@ private:
 
     unsigned int mNumberOfThreads;
     unsigned int mPBO = 0;
-    unsigned int mDownloadFormat = GL_BGRA;
-    unsigned int mDownloadType = GL_UNSIGNED_BYTE;
-    unsigned int mDownloadTypeSetByUser = mDownloadType;
+    GLenum mDownloadFormat = GL_BGRA;
+    GLenum mDownloadType = GL_UNSIGNED_BYTE;
+    GLenum mDownloadTypeSetByUser = mDownloadType;
     int mDataSize = 0;
     glm::ivec2 mResolution;
     int mChannels;
     int mBytesPerColor = 1;
 
-    std::function<void(Image*, size_t, EyeIndex, unsigned int type)> mCaptureCallbackFn;
+    std::function<void(Image*, size_t, EyeIndex, GLenum type)> mCaptureCallbackFn;
 
     std::string mFilename;
     std::string mBaseName;

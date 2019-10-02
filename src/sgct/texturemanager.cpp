@@ -95,7 +95,7 @@ void TextureManager::setCompression(CompressionMode cm) {
     mCompression = cm;
 }
 
-void TextureManager::setWarpingMode(int warpS, int warpT) {
+void TextureManager::setWarpingMode(GLenum warpS, GLenum warpT) {
     mWarpMode.s = warpS;
     mWarpMode.t = warpT;
 }
@@ -289,7 +289,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     bool isBGR = imgPtr.getPreferBGRImport();
 
     // if three channels
-    int textureType = isBGR ? GL_BGR : GL_RGB;
+    GLenum textureType = isBGR ? GL_BGR : GL_RGB;
 
     if (imgPtr.getChannels() == 4) {
         textureType = isBGR ? GL_BGRA : GL_RGBA;
@@ -301,7 +301,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
         textureType = GL_RG;
     }
 
-    GLint internalFormat = 0;
+    GLenum internalFormat = {};
     unsigned int bpc = static_cast<unsigned int>(imgPtr.getBytesPerChannel());
 
     if (bpc > 2) {

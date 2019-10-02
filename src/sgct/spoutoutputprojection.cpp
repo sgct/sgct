@@ -21,6 +21,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 
 #ifdef SGCT_HAS_SPOUT
+#define WIN32_LEAN_AND_MEAN
 #include <SpoutLibrary.h>
 #endif
 
@@ -797,7 +798,7 @@ void SpoutOutputProjection::renderInternal() {
     glDisable(GL_SCISSOR_TEST);
 
     if (mappingType != Mapping::Cubemap) {
-        GLint saveBuffer = 0;
+        GLenum saveBuffer = {};
         GLint saveTexture = 0;
         GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_DRAW_BUFFER0, &saveBuffer);
@@ -841,7 +842,7 @@ void SpoutOutputProjection::renderInternal() {
 
         glBindVertexArray(mVAO);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(GL_FALSE);
+        glBindVertexArray(0);
 
         ShaderProgram::unbind();
 
@@ -861,7 +862,7 @@ void SpoutOutputProjection::renderInternal() {
 #ifdef SGCT_HAS_SPOUT
         reinterpret_cast<SPOUTHANDLE>(mappingHandle)->SendTexture(
             mappingTexture,
-            GL_TEXTURE_2D,
+            static_cast<GLuint>(GL_TEXTURE_2D),
             mappingWidth,
             mappingHeight
         );
@@ -887,7 +888,7 @@ void SpoutOutputProjection::renderInternal() {
             glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
             reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
                 mSpout[i].texture,
-                GL_TEXTURE_2D,
+                static_cast<GLuint>(GL_TEXTURE_2D),
                 mappingWidth,
                 mappingHeight
             );
@@ -957,7 +958,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         ShaderProgram::unbind();
         mSpoutFBO->unBind();
@@ -966,7 +967,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
 #ifdef SGCT_HAS_SPOUT
         reinterpret_cast<SPOUTHANDLE>(mappingHandle)->SendTexture(
             mappingTexture,
-            GL_TEXTURE_2D,
+            static_cast<GLuint>(GL_TEXTURE_2D),
             mappingWidth,
             mappingHeight
         );
@@ -985,7 +986,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
             glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
             reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
                 mSpout[i].texture,
-                GL_TEXTURE_2D,
+                static_cast<GLuint>(GL_TEXTURE_2D),
                 mappingWidth,
                 mappingHeight
             );

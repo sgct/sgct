@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__SETTINGS__H__
 
 #include <sgct/config.h>
+#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <atomic>
 #include <mutex>
@@ -213,7 +214,7 @@ public:
     const std::string& getOSDTextFontPath() const;
 
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
-    int getBufferFloatPrecisionAsGLint() const;
+    GLenum getBufferFloatPrecisionAsGLint() const;
 
     /// Get the default MSAA setting
     int getDefaultNumberOfAASamples() const;

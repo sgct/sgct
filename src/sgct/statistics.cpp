@@ -7,13 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/statistics.h>
 
-#include <GL/glew.h>
-#ifdef WIN32
-#include <GL/wglew.h>
-#elif __LINUX__
-#else
-#include <OpenGL/glext.h>
-#endif
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <sgct/clustermanager.h>

@@ -143,7 +143,7 @@ void Network::init(int port, std::string address, bool isServer,
         );
         if (bindResult == SOCKET_ERROR) {
             freeaddrinfo(res);
-#ifdef __WIN32__
+#ifdef WIN32
             closesocket(mListenSocket);
 #else
             close(mListenSocket);
@@ -153,7 +153,7 @@ void Network::init(int port, std::string address, bool isServer,
 
         if (listen(mListenSocket, SOMAXCONN) == SOCKET_ERROR) {
             freeaddrinfo(res);
-#ifdef __WIN32__
+#ifdef WIN32
             closesocket(mListenSocket);
 #else
             close(mListenSocket);
@@ -391,7 +391,7 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
 #endif
     std::unique_lock lock(mConnectionMutex);
 
-#ifdef __WIN32__
+#ifdef WIN32
     shutdown(lSocket, SD_BOTH);
     closesocket(lSocket);
 #else
@@ -678,7 +678,7 @@ _ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, in
         if (tmpRes > 0) {
             iResult += tmpRes;
         }
-#ifdef __WIN32__
+#ifdef WIN32
         else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
 #else
         else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
@@ -844,7 +844,7 @@ int Network::readExternalMessage() {
 
     // if read fails try for x attempts
     int attempts = 1;
-#ifdef __WIN32__
+#ifdef WIN32
     while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
 #else
     while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
@@ -878,7 +878,7 @@ void Network::communicationHandler() {
         mSocket = accept(mListenSocket, nullptr, nullptr);
 
         int accErr = SGCT_ERRNO;
-#ifdef __WIN32__
+#ifdef WIN32
         while (!isTerminated() && mSocket == INVALID_SOCKET && accErr == WSAEINTR)
 #else
         while ( !isTerminated() && mSocket == INVALID_SOCKET && accErr == EINTR)

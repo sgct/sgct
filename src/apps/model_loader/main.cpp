@@ -125,7 +125,7 @@ void loadModel(std::string filename) {
             );
         }
 
-        glBindVertexArray(GL_FALSE);
+        glBindVertexArray(0);
 
         // clear vertex data that is uploaded on GPU
         positions.clear();
@@ -175,7 +175,7 @@ void drawFun() {
 
     glBindVertexArray(VertexArrayID);
     glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
-    glBindVertexArray(GL_FALSE);
+    glBindVertexArray(0);
 
     ShaderManager::instance()->unBindShaderProgram();
 

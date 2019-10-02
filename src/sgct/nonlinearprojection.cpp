@@ -40,8 +40,8 @@ NonLinearProjection::~NonLinearProjection() {
     mDepthCorrectionShader.deleteProgram();
 }
 
-void NonLinearProjection::init(int internalTextureFormat, unsigned int textureFormat,
-                               unsigned int textureType, int samples)
+void NonLinearProjection::init(GLenum internalTextureFormat, GLenum textureFormat,
+                               GLenum textureType, int samples)
 {
     mTexInternalFormat = internalTextureFormat;
     mTexFormat = textureFormat;
@@ -329,8 +329,8 @@ void NonLinearProjection::initVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void NonLinearProjection::generateCubeMap(unsigned int& texture, int internalFormat,
-                                          unsigned int format, unsigned int type)
+void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internalFormat,
+                                          GLenum format, GLenum type)
 {
     glDeleteTextures(1, &texture);
     texture = 0;
@@ -403,8 +403,8 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
     glScissor(mVpCoords.x, mVpCoords.y, mVpCoords.z, mVpCoords.w);
 }
 
-void NonLinearProjection::generateMap(unsigned int& texture, int internalFormat,
-                                      unsigned int format, unsigned int type)
+void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat,
+                                      GLenum format, GLenum type)
 {
     glDeleteTextures(1, &texture);
     texture = 0;

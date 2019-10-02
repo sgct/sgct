@@ -139,8 +139,8 @@ void createXZGrid(int size, float yPos) {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
 
-    glBindVertexArray(GL_FALSE);
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void createPyramid(float width) {
@@ -208,8 +208,8 @@ void createPyramid(float width) {
         reinterpret_cast<void*>(0)
     );
 
-    glBindVertexArray(GL_FALSE);
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     vertData.clear();
 }

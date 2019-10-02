@@ -530,9 +530,9 @@ private:
     bool mUsePostFX = false;
 
     ColorBitDepth mBufferColorBitDepth = ColorBitDepth::Depth8;
-    int mInternalColorFormat;
-    unsigned int mColorFormat;
-    unsigned int mColorDataType;
+    GLenum mInternalColorFormat;
+    GLenum mColorFormat;
+    GLenum mColorDataType;
     bool mPreferBGR = true;
     int mBytesPerColor;
 

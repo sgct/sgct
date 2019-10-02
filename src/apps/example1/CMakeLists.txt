@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(example1 main.cpp simple.frag simple.vert)
+add_executable(example1 main.cpp)
 set_compile_options(example1)
 target_link_libraries(example1 PRIVATE sgct)
 

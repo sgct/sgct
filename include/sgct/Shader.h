@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHADER__H__
 #define __SGCT__SHADER__H__
 
+#include <sgct/ogl_headers.h>
 #include <string>
 
 namespace sgct::core {
@@ -19,7 +20,7 @@ namespace sgct::core {
 class Shader {
 public:
     /// Enum for deciding shader type
-    using ShaderType = int;
+    using ShaderType = GLenum;
 
     Shader() = default;
 

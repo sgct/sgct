@@ -359,7 +359,7 @@ void uploadTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
         
     sgct::MessageHandler::instance()->print(
         "Texture id %d loaded (%dx%dx%d).\n",
@@ -400,7 +400,7 @@ void threadWorker() {
 }
 
 void contextCreationCallback(GLFWwindow* win) {
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);

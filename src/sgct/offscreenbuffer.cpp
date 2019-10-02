@@ -216,13 +216,13 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     createFBO(width, height, samples);
 }
 
-void OffScreenBuffer::setInternalColorFormat(GLint internalFormat) {
+void OffScreenBuffer::setInternalColorFormat(GLenum internalFormat) {
     mInternalColorFormat = internalFormat;
 }
 
 void OffScreenBuffer::bind() {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     if (mIsMultiSampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
@@ -236,7 +236,7 @@ void OffScreenBuffer::bind() {
 
 void OffScreenBuffer::bind(GLsizei n, const GLenum* bufs) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     if (mIsMultiSampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
@@ -250,7 +250,7 @@ void OffScreenBuffer::bind(GLsizei n, const GLenum* bufs) {
 
 void OffScreenBuffer::bind(bool isMultisampled) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     if (isMultisampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
@@ -264,7 +264,7 @@ void OffScreenBuffer::bind(bool isMultisampled) {
 
 void OffScreenBuffer::bind(bool isMultisampled, GLsizei n, const GLenum* bufs) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     if (isMultisampled) {
         glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
@@ -390,7 +390,7 @@ void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int
     );
 }
 
-int OffScreenBuffer::getInternalColorFormat() const {
+GLenum OffScreenBuffer::getInternalColorFormat() const {
     return mInternalColorFormat;
 }
 

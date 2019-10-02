@@ -1,8 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(simpleNavigationExample main.cpp gridShader.frag gridShader.vert
-    pyramidShader.frag pyramidShader.vert)
+add_executable(simpleNavigationExample main.cpp)
 set_compile_options(simpleNavigationExample)
 target_link_libraries(simpleNavigationExample PRIVATE sgct)
 

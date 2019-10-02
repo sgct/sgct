@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(SpoutSenderExample main.cpp xform.frag xform.vert)
+add_executable(SpoutSenderExample main.cpp)
 set_compile_options(SpoutSenderExample)
 target_link_libraries(SpoutSenderExample PRIVATE sgct)
 

@@ -20,7 +20,7 @@ class OffScreenBuffer {
 public:
     void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);
-    void setInternalColorFormat(GLint internalFormat);
+    void setInternalColorFormat(GLenum internalFormat);
 
     /**
      * \param texId GL id of the texture to attach
@@ -71,7 +71,7 @@ public:
     unsigned int getBufferID() const;
     
     /// \return the opengl internal texture format of the color buffer 
-    int getInternalColorFormat() const;
+    GLenum getInternalColorFormat() const;
 
     /// \return true if no errors
     bool checkForErrors();
@@ -83,7 +83,7 @@ private:
     unsigned int mNormalBuffer = 0;
     unsigned int mPositionBuffer = 0;
     unsigned int mDepthBuffer = 0;
-    int mInternalColorFormat = GL_RGBA8;
+    GLenum mInternalColorFormat = GL_RGBA8;
 
     glm::ivec2 mSize = glm::ivec2(-1);
     bool mIsMultiSampled = false;

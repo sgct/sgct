@@ -1896,7 +1896,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     float endiannessIndicator = 0;
 
     // @TODO (abock, 2019-08-30): I do not really understand how any of this works
-#ifdef __WIN32__
+#ifdef WIN32
     _sscanf(
         headerBuffer,
         "%2c\n",
@@ -1941,7 +1941,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     if (isReadingFile) {
         size_t ret = 0;
         for (int i = 0; i < numCorrectionValues; ++i) {
-#ifdef __WIN32__
+#ifdef WIN32
             ret = fread_s(&corrGridX[i], numCorrectionValues, sizeof(int), 1, meshFile);
             ret = fread_s(&corrGridY[i], numCorrectionValues, sizeof(int), 1, meshFile);
             // MPCDI uses the PFM format for correction grid. PFM format is designed for

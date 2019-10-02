@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(textureExample main.cpp simple.frag simple.vert)
+add_executable(textureExample main.cpp)
 set_compile_options(textureExample)
 target_link_libraries(textureExample PRIVATE sgct)
 

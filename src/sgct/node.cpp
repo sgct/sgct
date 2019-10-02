@@ -7,8 +7,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/node.h>
 
+#include <sgct/keys.h>
 #include <sgct/messagehandler.h>
 #include <algorithm>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 namespace sgct::core {
 
@@ -28,7 +31,7 @@ void Node::setUseSwapGroups(bool state) {
 }
 
 bool Node::getKeyPressed(int key) {
-    if (key == GLFW_KEY_UNKNOWN) {
+    if (key == key::Unknown) {
         return false;
     }
 

@@ -285,7 +285,7 @@ const std::string& Settings::getOSDTextFontPath() const {
     return mFontPath;
 }
 
-int Settings::getBufferFloatPrecisionAsGLint() const {
+GLenum Settings::getBufferFloatPrecisionAsGLint() const {
     return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float16Bit ?
         GL_RGB16F :
         GL_RGB32F;

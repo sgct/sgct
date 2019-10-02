@@ -16,6 +16,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#ifdef WIN32
+#include <Windows.h>
+#endif // WIN32
 
 namespace {
     constexpr const char* FontVertShader = R"(

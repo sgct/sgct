@@ -1,9 +1,23 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-if (SGCT_DEP_INCLUDE_GLEW)
-  add_subdirectory(glew)
+if (SGCT_DEP_INCLUDE_GLBINDINGS)
+  set(OPTION_BUILD_GPU_TESTS OFF CACHE BOOL "")
+  set(OPTION_BUILD_TESTS OFF CACHE BOOL "")
+  set(OPTION_BUILD_TOOLS OFF CACHE BOOL "")
+  set(OPTION_BUILD_EXAMPLES OFF CACHE BOOL "")
+  mark_as_advanced(OPTION_BUILD_GPU_TESTS OPTION_BUILD_TESTS OPTION_BUILD_TOOLS
+    OPTION_BUILD_EXAMPLES OPTION_BUILD_CHECK OPTION_BUILD_DOCS
+    OPTION_BUILD_WITH_BOOST_THREAD INSTALL_MSVC_REDIST_FILEPATH)
+  add_subdirectory(glbinding)
+
+  set_property(TARGET glbinding PROPERTY FOLDER "Dependencies")
+  set_property(TARGET glbinding-aux PROPERTY FOLDER "Dependencies")
+  set_property(TARGET pack PROPERTY FOLDER "Dependencies")
+  set_property(TARGET pack-glbinding PROPERTY FOLDER "Dependencies")
+  set_property(TARGET KHRplatform-sources PROPERTY FOLDER "Dependencies")
 endif ()
+
 
 if (SGCT_DEP_INCLUDE_GLFW)
   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")

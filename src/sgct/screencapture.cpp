@@ -107,7 +107,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     }
 }
 
-void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR) {
+void ScreenCapture::setTextureTransferProperties(GLenum type, bool preferBGR) {
     mDownloadType = type;
     mDownloadTypeSetByUser = mDownloadType;
     mPreferBGR = preferBGR;
@@ -406,7 +406,7 @@ Image* ScreenCapture::prepareImage(int index) {
 }
 
 void ScreenCapture::setCaptureCallback(
-                std::function<void(Image*, size_t, EyeIndex, unsigned int type)> callback)
+                      std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback)
 {
     mCaptureCallbackFn = std::move(callback);
 }

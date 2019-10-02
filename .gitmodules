@@ -7,3 +7,6 @@
 [submodule "ext/freetype2"]
 	path = ext/freetype2
 	url = http://git.sv.nongnu.org/r/freetype/freetype2.git
+[submodule "ext/glbinding"]
+	path = ext/glbinding
+	url = https://github.com/cginternals/glbinding.git

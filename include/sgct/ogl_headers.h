@@ -17,12 +17,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 
 
-#ifdef SGCT_HAS_GLBINDINGS
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
 #endif
-
 
 #include <glbinding/gl33core/gl.h>
 #include <glbinding/Binding.h>
@@ -34,8 +32,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 // Evil 'using namespace' in the header to make the transition from GLEW to glbinding
 // as easy as possible
 using namespace gl;
-
-#endif // SGCT_HAS_GLBINDINGS
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

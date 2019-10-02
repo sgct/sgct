@@ -608,7 +608,7 @@ Engine* Engine::instance() {
     return mInstance;
 }
 
-Configuration parseArguments(std::vector<std::string>& arg) {
+Configuration parseArguments(std::vector<std::string> arg) {
     Configuration config;
 
     MessageHandler::instance()->print(MessageHandler::Level::Info, "Parsing arguments\n");

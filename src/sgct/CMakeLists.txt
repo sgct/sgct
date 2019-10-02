@@ -127,10 +127,7 @@ target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
 
-if (SGCT_DEP_INCLUDE_GLBINDINGS)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLBINDINGS)
-  target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
-endif ()
+target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
 
 if (SGCT_DEP_INCLUDE_GLFW)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)

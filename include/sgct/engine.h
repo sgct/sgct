@@ -94,7 +94,7 @@ struct Configuration {
  * -numberOfCaptureThreads <integer> | set the maximum amount of threads that should
  *                                     be used during framecapture (default 8)
  */
-Configuration parseArguments(std::vector<std::string>& arg);
+Configuration parseArguments(std::vector<std::string> arg);
 
 config::Cluster loadCluster(std::optional<std::string> path);
 

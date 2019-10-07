@@ -61,22 +61,17 @@ void parseArguments(int& argc, char**& argv) {
         std::string_view arg(argv[i]);
         if (arg == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
-                "Setting port to: %d\n", port
-            );
+            MessageHandler::instance()->printInfo("Setting port to: %d\n", port);
         }
         else if (arg == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
+            MessageHandler::instance()->printInfo(
                 "Setting address to: %s\n", address.c_str()
             );
         }
         else if (arg == "--server") {
             isServer = true;
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
+            MessageHandler::instance()->printInfo(
                 "This computer will host the connection\n"
             );
         }
@@ -92,38 +87,27 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
 
     connected = conn->isConnected();
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "Network is %s\n", conn->isConnected() ? "connected" : "disconneced"
     );
 }
 
 void networkAck(int packageId, int) {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "Network package %d is received\n", packageId
     );
 
     if (timerData.second == packageId) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "Loop time: %lf ms\n", (sgct::Engine::getTime() - timerData.first) * 1000.0
         );
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
-        "Network decoding package %d...\n", packageId
-    );
-
+    MessageHandler::instance()->printInfo("Network decoding package %d...\n", packageId);
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
-        "Message: \"%s\"\n", test.c_str()
-    );
+    MessageHandler::instance()->printInfo("Message: \"%s\"\n", test.c_str());
 }
 
 void networkLoop() {
@@ -150,10 +134,7 @@ void connect() {
 
     // no need to specify the address on the host/server
     if (!isServer && address.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Network error: No address set\n"
-        );
+        MessageHandler::instance()->printError("Network error: No address set\n");
         return;
     }
 
@@ -161,8 +142,7 @@ void connect() {
 
     // init
     try {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "Initiating network connection at port %d\n", port
         );
 
@@ -179,10 +159,7 @@ void connect() {
         );
     }
     catch (const std::runtime_error& err) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Network error: %s\n", err.what()
-        );
+        MessageHandler::instance()->printError("Network error: %s\n", err.what());
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);

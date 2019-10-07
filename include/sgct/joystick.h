@@ -9,7 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__JOYSTICK__H__
 
 // abock(2019-10-02);  The values here are hardcoded as I don't want to pull in the
-// entirety of GLFW in this header jsut for the definitions.  And they most likely will
+// entirety of GLFW in this header just for the definitions.  And they most likely will
 // not change anytime soon anyway (famous last words)
 
 namespace sgct::joystick {

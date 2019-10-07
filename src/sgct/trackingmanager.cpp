@@ -115,9 +115,7 @@ namespace {
 namespace sgct {
 
 TrackingManager::~TrackingManager() {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info, "Disconnecting VRPN\n"
-    );
+    MessageHandler::instance()->printInfo("Disconnecting VRPN\n");
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Destructing, setting running to false\n");
@@ -136,7 +134,7 @@ TrackingManager::~TrackingManager() {
     _trackers.clear();
     gTrackers.clear();
 
-    MessageHandler::instance()->print(MessageHandler::Level::Debug, "Done.\n");
+    MessageHandler::instance()->printDebug("Done.\n");
 }
 
 
@@ -170,8 +168,7 @@ void TrackingManager::startSampling() {
     }
 
     if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Tracking: Failed to set head tracker to %s@%s\n",
             deviceName.c_str(), trackerName.c_str()
         );
@@ -197,14 +194,12 @@ void TrackingManager::addTracker(std::string name) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.push_back(std::vector<VRPNPointer>());
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "Tracking: Tracker '%s' added succesfully\n", name.c_str()
         );
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
+        MessageHandler::instance()->printWarning(
             "Tracking: Tracker '%s' already exists\n", name.c_str()
         );
     }
@@ -231,8 +226,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         devicePtr->setSensorId(id);
 
         if (retVal.second && ptr.mSensorDevice == nullptr) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Info,
+            MessageHandler::instance()->printInfo(
                 "Tracking: Connecting to sensor '%s'\n", address.c_str()
             );
             ptr.mSensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
@@ -243,8 +237,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         }
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Tracking: Failed to connect to sensor '%s'\n", address.c_str()
         );
     }
@@ -259,8 +252,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "Tracking: Connecting to buttons '%s' on device %s\n",
             address.c_str(), devicePtr->getName().c_str()
         );
@@ -270,8 +262,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
         devicePtr->setNumberOfButtons(nButtons);
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Tracking: Failed to connect to buttons '%s'\n", address.c_str()
         );
     }
@@ -286,10 +277,9 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
 
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "Tracking: Connecting to analogs '%s' on device %s\n",
-                address.c_str(), devicePtr->getName().c_str()
+            address.c_str(), devicePtr->getName().c_str()
         );
 
         ptr.mAnalogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
@@ -297,8 +287,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
         devicePtr->setNumberOfAxes(nAxes);
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Tracking: Failed to connect to analogs '%s'\n", address.c_str()
         );
     }

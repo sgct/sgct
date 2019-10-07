@@ -35,8 +35,7 @@ namespace {
                         size_t srcSize_bytes, int readSize_bytes)
     {
         if ((idx + readSize_bytes) > srcSize_bytes) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
+            sgct::MessageHandler::instance()->printError(
                 "CorrectionMesh: Reached EOF in mesh buffer\n"
             );
             return false;
@@ -85,8 +84,7 @@ namespace {
 namespace sgct::core {
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMeshGeometry: Releasing correction mesh OpenGL data\n"
     );
 
@@ -111,8 +109,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
     
     // generate unwarped mesh for mask
     if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Creating mask mesh\n"
         );
         
@@ -127,8 +124,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
         Buffer buf = setupSimpleMesh(_warpGeometry, parent);
         createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Empty mesh path\n"
         );
         return false;
@@ -190,8 +186,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
     }
     
     if (!loadStatus) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh error: Loading mesh '%s' failed\n", path.c_str()
         );
 
@@ -206,16 +201,14 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
 bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
                                                 const Viewport& parent)
 {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading DomeProjection mesh data from '%s'\n", meshPath.c_str()
     );
 
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -223,8 +216,7 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
 #else
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -319,8 +311,7 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         _warpGeometry.nVertices, _warpGeometry.nIndices
     );
@@ -340,16 +331,14 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
 {
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading scalable mesh data from '%s'\n", path.c_str()
     );
 
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, path.c_str(), "r") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -357,8 +346,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
 #else
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -456,8 +444,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Incorrect mesh data geometry"
         );
         return false;
@@ -487,8 +474,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u\n",
         numOfVerticesRead, numOfFacesRead
     );
@@ -508,16 +494,14 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
 bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading sciss mesh data from '%s'\n", path.c_str()
     );
 
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, path.c_str(), "rb") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -525,8 +509,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 #else
     meshFile = fopen(path.c_str(), "rb");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -546,10 +529,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 
     // check fileID
     if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || ret != 3) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Incorrect file id\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Incorrect file id\n");
         fclose(meshFile);
         return false;
     }
@@ -562,16 +542,12 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     ret = fread(&fileVersion, sizeof(uint8_t), 1, meshFile);
 #endif
     if (ret != 1) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: file version %u\n", fileVersion
         );
     }
@@ -584,16 +560,12 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     ret = fread(&type, sizeof(unsigned int), 1, meshFile);
 #endif
     if (ret != 1) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Mapping type = %s (%u)\n",
             type == 0 ? "planar" : "cube", type
         );
@@ -608,10 +580,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 #endif
     double yaw, pitch, roll;
     if (ret != 1) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
@@ -629,34 +598,28 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
         pitch = angles.y;
         roll = -angles.z;
         
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Rotation quat = [%f %f %f %f]\n"
             "yaw = %lf, pitch = %lf, roll = %lf\n",
             viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Position = [%f %f %f]\n", viewData.x, viewData.y, viewData.z
         );
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: FOV up = %f\n", viewData.fovUp
         );
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: FOV down = %f\n", viewData.fovDown
         );
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: FOV left = %f\n", viewData.fovLeft
         );
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: FOV right = %f\n", viewData.fovRight
         );
     }
@@ -669,25 +632,20 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     ret = fread(size, sizeof(unsigned int), 2, meshFile);
 #endif
     if (ret != 2) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
 
     if (fileVersion == 2) {
         numberOfVertices = size[1];
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Number of vertices = %u\n", numberOfVertices
         );
     }
     else {
         numberOfVertices = size[0] * size[1];
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Number of vertices = %u (%ux%u)\n",
             numberOfVertices, size[0], size[1]
         );
@@ -711,10 +669,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     );
 #endif
     if (ret != numberOfVertices) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
@@ -733,16 +688,12 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 #endif
 
     if (ret != 1) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Error parsing file\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
         fclose(meshFile);
         return false;
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Number of indices = %u\n", numberOfIndices
         );
     }
@@ -767,10 +718,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
         );
 #endif
         if (ret != numberOfIndices) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
-                "CorrectionMesh: Error parsing file\n"
-            );
+            MessageHandler::instance()->printError("CorrectionMesh: Error parsing file\n");
             fclose(meshFile);
             return false;
         }
@@ -822,8 +770,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     
     // test export frustum
     std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n",
         outFrustumFilename.c_str()
     );
@@ -849,8 +796,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 
     // test export mesh
     std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Exporting dome projection mesh file \"%s\"\n",
         outMeshFilename.c_str()
     );
@@ -894,8 +840,7 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         numberOfVertices, numberOfIndices
     );
@@ -920,10 +865,8 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
-        "CorrectionMesh: Reading simcad warp data from '%s'\n",
-        path.c_str()
+    MessageHandler::instance()->printInfo(
+        "CorrectionMesh: Reading simcad warp data from '%s'\n", path.c_str()
     );
 
     tinyxml2::XMLDocument xmlDoc;
@@ -944,8 +887,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
             str = "File not found";
         }
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "ReadConfig: Error occured while reading config file '%s'\nError: %s\n",
             path.c_str(), str.c_str()
         );
@@ -954,8 +896,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "ReadConfig: Error occured while reading config file '%s'\n"
             "Error: Cannot find XML root\n", path.c_str()
         );
@@ -965,8 +906,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement();
     if (element == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "ReadConfig: Error occured while reading config file '%s'\n"
             "Error: Cannot find XML root\n", path.c_str()
         );
@@ -975,8 +915,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 
     std::string_view val = element->Value();
     if (val != "GeometryDefinition") {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "ReadConfig: Error occured while reading config file '%s'\n"
             "Error: Missing value 'GeometryDefinition'\n", path.c_str()
         );
@@ -1015,8 +954,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Not the same x coords as y coords\n"
         );
         return false;
@@ -1026,8 +964,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
     const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Not a valid squared matrix read from SimCAD file\n"
         );
         return false;
@@ -1301,8 +1238,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         _warpGeometry.nVertices, _warpGeometry.nIndices
     );
@@ -1321,16 +1257,14 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading SkySkan mesh data from '%s'\n", meshPath.c_str()
     );
 
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1338,8 +1272,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
 #else
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1427,10 +1360,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
     if (!dimensionsSet || !azimuthSet || !elevationSet || !hFovSet ||
         horizontalFov <= 0.f)
     {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Data reading error\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Data reading error\n");
         return false;
     }
 
@@ -1443,8 +1373,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
         
         verticalFov = 2.f * glm::degrees<float>(atan(hh));
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "HFOV: %f VFOV: %f\n", horizontalFov, verticalFov
         );
     }
@@ -1527,8 +1456,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         _warpGeometry.nVertices, _warpGeometry.nIndices
     );
@@ -1549,8 +1477,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 {
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading Paul Bourke spherical mirror mesh data from '%s'\n",
         meshPath.c_str()
     );
@@ -1558,8 +1485,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1567,8 +1493,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 #else
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1595,10 +1520,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 
     // check if everyting useful is set
     if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Invalid data"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Invalid data");
         return false;
     }
 
@@ -1687,8 +1609,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
         fishPrj->update(glm::ivec2(1.f, 1.f));
     }
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         _warpGeometry.nVertices, _warpGeometry.nIndices
     );
@@ -1707,8 +1628,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
     Buffer buf;
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Reading Maya Wavefront OBJ mesh data from '%s'\n",
         meshPath.c_str()
     );
@@ -1716,8 +1636,7 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
     FILE* meshFile = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1725,8 +1644,7 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
 #else
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Failed to open warping mesh file\n"
         );
         return false;
@@ -1773,8 +1691,7 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
 
     // sanity check
     if (counter != buf.vertices.size() || buf.vertices.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh: Vertex count doesn't match number of texture coordinates\n"
         );
         return false;
@@ -1786,8 +1703,7 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
     _warpGeometry.geometryType = GL_TRIANGLES;
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
         _warpGeometry.nVertices, _warpGeometry.nIndices
     );
@@ -1814,15 +1730,13 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     size_t srcSizeBytes = 0;
     const unsigned char* srcBuff = nullptr;
     if (isReadingFile) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'\n",
             meshPath.c_str()
         );
 #if (_MSC_VER >= 1400)
         if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "CorrectionMesh: Failed to open warping mesh file\n"
             );
             return false;
@@ -1839,8 +1753,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
 #endif
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Info,
+        MessageHandler::instance()->printInfo(
             "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer\n",
             meshPath.c_str()
         );
@@ -1874,8 +1787,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
             }
         }
         if (retval != 1) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "CorrectionMesh: Error reading from file\n"
             );
             if (meshFile) {
@@ -1928,10 +1840,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "CorrectionMesh: Incorrect file type\n"
-        );
+        MessageHandler::instance()->printError("CorrectionMesh: Incorrect file type\n");
     }
     const int numCorrectionValues = numberOfCols * numberOfRows;
     std::vector<float> corrGridX(numCorrectionValues);
@@ -1956,8 +1865,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         }
         fclose(meshFile);
         if (ret != 4) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "CorrectionMesh: Error reading all correction values!\n"
             );
             return false;
@@ -1971,8 +1879,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
             readErr |= !readMeshBuffer(&errorPos, srcIdx, srcBuff, srcSizeBytes, 4);
 
             if (readErr) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
+                MessageHandler::instance()->printError(
                     "CorrectionMesh: Error reading mpcdi correction value at index %d\n",
                     i
                 );
@@ -2071,11 +1978,9 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
 
     createMesh(_warpGeometry, buf.vertices, buf.indices);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "CorrectionMesh: Mpcdi Correction mesh read successfully. "
-        "Vertices=%u, Indices=%u\n",
-        _warpGeometry.nVertices, _warpGeometry.nIndices
+        "Vertices=%u, Indices=%u\n", _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -2199,17 +2104,14 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
         glGenVertexArrays(1, &(geom.arrayData));
         glBindVertexArray(geom.arrayData);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Generating VAO: %d\n", geom.arrayData
         );
 
         glGenBuffers(1, &geom.vertexData);
         glGenBuffers(1, &geom.indexData);
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "CorrectionMesh: Generating VBOs: %d %d\n",
-            geom.vertexData, geom.indexData
+        MessageHandler::instance()->printDebug(
+            "CorrectionMesh: Generating VBOs: %d %d\n", geom.vertexData, geom.indexData
         );
 
         glBindBuffer(GL_ARRAY_BUFFER, geom.vertexData);
@@ -2278,8 +2180,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
         glEnd();
         glEndList();
         
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "CorrectionMesh: Generating display list: %d\n", geom.vertexData
         );
     }
@@ -2292,8 +2193,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
     if (_warpGeometry.geometryType != GL_TRIANGLES &&
         _warpGeometry.geometryType != GL_TRIANGLE_STRIP)
     {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh error: Failed to export '%s'. "
             "Geometry type is not supported!\n", exportMeshPath.c_str()
         );
@@ -2302,8 +2202,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
     
     std::ofstream file(exportMeshPath, std::ios::out);
     if (!file.is_open()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "CorrectionMesh error: Failed to export '%s'\n", exportMeshPath.c_str()
         );
         return;
@@ -2366,8 +2265,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
 
     file.close();
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "CorrectionMesh: Mesh '%s' exported successfully\n", exportMeshPath.c_str()
     );
 }
@@ -2444,8 +2342,7 @@ CorrectionMesh::Hint CorrectionMesh::parseHint(const std::string& hintStr) {
         hint = Hint::Mpcdi;
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
+        MessageHandler::instance()->printWarning(
             "CorrectionMesh: hint '%s' is invalid\n", hintStr.c_str()
         );
     }

@@ -134,15 +134,13 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 void NonLinearProjection::initTextures() {    
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
     if (Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "NonLinearProjection: %dx%d color cube map texture (id: %d) generated\n",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
         );
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "NonLinearProjection: Error occured while generating %dx%d color "
             "cube texture (id: %d)\n",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
@@ -157,15 +155,13 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         if (Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
+            MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
             );
         }
         else {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "NonLinearProjection: Error occured while generating %dx%d depth "
                 "cube texture (id: %d)\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
@@ -181,15 +177,13 @@ void NonLinearProjection::initTextures() {
                 GL_FLOAT
             );
             if (Engine::checkForOGLErrors()) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
+                MessageHandler::instance()->printDebug(
                     "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated\n",
                     _cubemapResolution, _cubemapResolution, _textures.depthSwap
                 );
             }
             else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
+                MessageHandler::instance()->printError(
                     "NonLinearProjection: Error occured while generating %dx%d depth "
                     "swap texture (id: %d)\n",
                     _cubemapResolution, _cubemapResolution, _textures.depthSwap
@@ -198,15 +192,13 @@ void NonLinearProjection::initTextures() {
 
             generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
             if (Engine::checkForOGLErrors()) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
+                MessageHandler::instance()->printDebug(
                     "NonLinearProjection: %dx%d color swap map texture (id: %d) generated\n",
                     _cubemapResolution, _cubemapResolution, _textures.colorSwap
                 );
             }
             else {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Error,
+                MessageHandler::instance()->printError(
                     "NonLinearProjection: Error occured while generating %dx%d color "
                     "swap texture (id: %d)\n",
                     _cubemapResolution, _cubemapResolution, _textures.colorSwap
@@ -223,15 +215,13 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         if (Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
+            MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapNormals
             );
         }
         else {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "NonLinearProjection: Error occured while generating %dx%d normal "
                 "cube texture (id: %d)\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapNormals
@@ -247,15 +237,13 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         if (Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
+            MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d position cube map texture (%d) generated\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapPositions
             );
         }
         else {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "NonLinearProjection: Error occured while generating %dx%d position "
                 "cube texture (id: %d)\n",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapPositions
@@ -270,14 +258,12 @@ void NonLinearProjection::initFBO() {
     _cubeMapFbo->createFBO(_cubemapResolution, _cubemapResolution, _samples);
 
     if (_cubeMapFbo->checkForErrors()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "NonLinearProjection: Cube map FBO created\n"
         );
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "NonLinearProjection: Cube map FBO created with errors\n"
         );
     }
@@ -290,14 +276,12 @@ void NonLinearProjection::initVBO() {
     std::fill(_vertices.begin(), _vertices.end(), 0.f);
     
     glGenVertexArrays(1, &_vao);
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "NonLinearProjection: Generating VAO: %d\n", _vao
     );
 
     glGenBuffers(1, &_vbo);
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "NonLinearProjection: Generating VBO: %d\n", _vbo
     );
     
@@ -341,8 +325,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
     if (_cubemapResolution > MaxCubeMapRes) {
         _cubemapResolution = MaxCubeMapRes;
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "NonLinearProjection: Cubemap size set to max size: %d\n", MaxCubeMapRes
         );
     }
@@ -412,8 +395,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     GLint MaxMapRes;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
     if (_cubemapResolution > MaxMapRes) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "NonLinearProjection: Requested map size is too big (%d > %d)\n",
             _cubemapResolution, MaxMapRes
         );

@@ -36,9 +36,6 @@ public:
 
     void decode(std::vector<char> receivedData, int clientIndex);
 
-    /// Print messages to commandline and share to master
-    void print(const char* fmt, ...);
-
     /**
      * Print messages to command line and share to master for easier debuging on a
      * cluster.
@@ -46,6 +43,13 @@ public:
      * \param nl is the notify level of this message
      */
     void print(Level nl, const char* fmt, ...);
+
+    void printDebug(const char* fmt, ...);
+    void printWarning(const char* fmt, ...);
+    void printInfo(const char* fmt, ...);
+    void printImportant(const char* fmt, ...);
+    void printError(const char* fmt, ...);
+
     void clearBuffer();
 
     /// Set the notify level for displaying messages.
@@ -85,6 +89,7 @@ public:
 private:
     MessageHandler();
 
+    void print(const char* fmt, ...);
     void printv(const char* fmt, va_list ap);
     void logToFile(const std::vector<char>& buffer);
 

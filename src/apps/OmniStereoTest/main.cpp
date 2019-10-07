@@ -94,8 +94,7 @@ void initOmniStereo(bool mask) {
     double t0 = gEngine->getTime();
 
     if (gEngine->getNumberOfWindows() < 2) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Failed to allocate omni stereo in secondary window\n"
         );
         return;
@@ -104,27 +103,20 @@ void initOmniStereo(bool mask) {
     sgct::core::Image turnMap;
     const bool turnMapSuccess = turnMap.load(turnMapSrc);
     if (!turnMapSuccess) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
-            "Failed to load turn map\n"
-        );
+        MessageHandler::instance()->printWarning("Failed to load turn map\n");
     }
 
     sgct::core::Image sepMap;
     const bool sepMapSuccess = sepMap.load(sepMapSrc);
     if (!sepMapSuccess) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
-            "Failed to load separation map\n"
-        );
+        MessageHandler::instance()->printWarning("Failed to load separation map\n");
     }
 
     Window& win = gEngine->getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
-    MessageHandler::instance()->print(
-        "Allocating: %d MB data\n",
-        (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
+    MessageHandler::instance()->printInfo(
+        "Allocating: %d MB data\n", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     );
     omniProjections.resize(res.x);
     for (int i = 0; i < res.x; i++) {
@@ -308,7 +300,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    MessageHandler::instance()->print(
+    MessageHandler::instance()->printInfo(
         "Time to init viewports: %f s\n%d %% will be rendered.\n",
         gEngine->getTime() - t0, percentage
     );
@@ -379,7 +371,7 @@ void drawOmniStereo() {
     }
 
     const double t1 = gEngine->getTime();
-    MessageHandler::instance()->print("Time to draw frame: %f s\n", t1 - t0);
+    MessageHandler::instance()->printInfo("Time to draw frame: %f s\n", t1 - t0);
 }
 
 void drawFun() {
@@ -492,13 +484,13 @@ int main(int argc, char* argv[]) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting turn map path to '%s'\n", turnMapSrc.c_str()
             );
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting separation map path to '%s'\n", sepMapSrc.c_str()
             );
         }

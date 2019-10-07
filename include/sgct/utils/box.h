@@ -42,6 +42,6 @@ private:
     unsigned int _vbo = 0;
 };
 
-} // namespace sgct_utils
+} // namespace sgct::utils
 
 #endif // __SGCT__BOX__H__

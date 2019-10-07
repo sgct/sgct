@@ -140,39 +140,21 @@ void Statistics::initVBO(bool fixedPipeline) {
             glGenVertexArrays(2, &_dynamicVAO[0]);
             glGenVertexArrays(1, &_staticVAO);
 
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
-                "Statistics: Generating VAOs:\n"
-            );
+            MessageHandler::instance()->printDebug("Statistics: Generating VAOs:\n");
             for (unsigned int i = 0; i < 2; i++) {
-                MessageHandler::instance()->print(
-                    MessageHandler::Level::Debug,
-                    "\t%d\n", _dynamicVAO[i]
-                );
+                MessageHandler::instance()->printDebug("\t%d\n", _dynamicVAO[i]);
             }
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
-                "\t%d\n\n", _staticVAO
-            );
+            MessageHandler::instance()->printDebug("\t%d\n\n", _staticVAO);
         }
 
         glGenBuffers(2, &_dynamicVBO[0]);
         glGenBuffers(1, &_staticVBO);
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Statistics: Generating VBOs:\n"
-        );
+        MessageHandler::instance()->printDebug("Statistics: Generating VBOs:\n");
         for (unsigned int i = 0; i < 2; i++) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
-                "\t%d\n", _dynamicVBO[i]
-            );
+            MessageHandler::instance()->printDebug("\t%d\n", _dynamicVBO[i]);
         }
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "\t%d\n\n", _staticVBO
-        );
+        MessageHandler::instance()->printDebug("\t%d\n\n", _staticVBO);
     
         //double buffered VBOs
         for (unsigned int i = 0; i < 2; i++) {
@@ -236,8 +218,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load statistics vertex shader\n"
             );
         }
@@ -247,8 +228,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load statistics fragment shader\n"
             );
         }
@@ -286,8 +266,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load statistics vertex shader\n"
             );
         }
@@ -297,8 +276,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load statistics fragment shader\n"
             );
         }

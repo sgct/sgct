@@ -66,10 +66,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             samples = 0;
         }
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Max samples supported: %d\n", MaxSamples
-        );
+        MessageHandler::instance()->printDebug("Max samples supported: %d\n", MaxSamples);
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -177,8 +174,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     if (_isMultiSampled) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO "
             "id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
             width, height, _frameBuffer, _multiSampledFrameBuffer, _depthBuffer,
@@ -186,7 +182,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         );
     }
     else {
-        MessageHandler::instance()->print(MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n"
             "\tRBO Depth buffer id=%d\n",
             width, height, _frameBuffer, _depthBuffer
@@ -403,58 +399,49 @@ bool OffScreenBuffer::checkForErrors() {
     }
     switch (fboStatus) {
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has incomplete attachments\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has no attachments\n"
             );
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Unsupported FBO format\n"
             );
             break;
         case GL_FRAMEBUFFER_UNDEFINED:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Undefined FBO\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has incomplete draw buffer\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has incomplete read buffer\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has missmatching multisample values\n"
             );
             break;
         case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: FBO has incomplete layer targets\n"
             );
             break;
         case GL_FRAMEBUFFER_COMPLETE: //no error
             break;
         default: // Unknown error
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Unknown FBO error: 0x%X\n", fboStatus
             );
             break;
@@ -462,53 +449,45 @@ bool OffScreenBuffer::checkForErrors() {
 
     switch (glStatus) {
         case GL_INVALID_ENUM:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_ENUM error\n"
             );
             break;
         case GL_INVALID_VALUE:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_VALUE error\n"
             );
             break;
         case GL_INVALID_OPERATION:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_INVALID_OPERATION error\n"
             );
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an "
                 "GL_INVALID_FRAMEBUFFER_OPERATION error\n"
             );
             break;
         case GL_OUT_OF_MEMORY:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_OUT_OF_MEMORY error\n"
             );
             break;
         case GL_STACK_UNDERFLOW:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_STACK_UNDERFLOW error\n"
             );
             break;
         case GL_STACK_OVERFLOW:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an GL_STACK_OVERFLOW error\n"
             );
             break;
         case GL_NO_ERROR:
             break;
         default:
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "OffScreenBuffer: Creating FBO triggered an unknown GL error 0x%X\n",
                 glStatus
             );

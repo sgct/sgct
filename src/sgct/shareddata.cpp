@@ -185,8 +185,7 @@ void SharedData::encode() {
         }
         else {
             MutexManager::instance()->dataSyncMutex.unlock();
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "SharedData: Failed to compress data (error %d)\n", err
             );
             return;

@@ -18,10 +18,7 @@ Box::Box(float size, TextureMappingMode mode) {
     createVBO(size, mode);
 
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "SGCT Utils: Box creation error\n"
-        );
+        MessageHandler::instance()->printError("SGCT Utils: Box creation error\n");
     }
 }
 
@@ -214,16 +211,10 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
-        "Box: Generating VAO: %d\n", _vao
-    );
+    MessageHandler::instance()->printDebug("Box: Generating VAO: %d\n", _vao);
     
     glGenBuffers(1, &_vbo);
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
-        "Box: Generating VBO: %d\n", _vbo
-    );
+    MessageHandler::instance()->printDebug("Box: Generating VBO: %d\n", _vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(

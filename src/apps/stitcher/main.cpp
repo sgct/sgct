@@ -487,14 +487,14 @@ int main(int argc, char* argv[]) {
             texturePaths[static_cast<int>(getSideIndex(numberOfTextures))] = tmpStr;
 
             numberOfTextures++;
-            MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
+            MessageHandler::instance()->printInfo("Adding texture: %s\n", argv[i + 1]);
         }
         else if (arg == "-seq" && argc > (i + 2)) {
             sequence = true;
             int startIndex = atoi(argv[i + 1]);
             stopIndex = atoi(argv[i + 2]);
             iterator = startIndex;
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Loading sequence from %d to %d\n", startIndex, stopIndex
             );
         }
@@ -505,7 +505,7 @@ int main(int argc, char* argv[]) {
                 atoi(argv[i + 3]),
                 atoi(argv[i + 4])
             );
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting image rotations to L: %d, R: %d, T: %d, B: %d\n",
                 rotations.x, rotations.y, rotations.z, rotations.w
             );
@@ -530,57 +530,59 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "-start" && argc > (i + 1)) {
             startFrame = atoi(argv[i + 1]);
-            MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
+            MessageHandler::instance()->printInfo("Start frame set to %d\n", startFrame);
         }
         else if (arg == "-alpha" && argc > (i + 1)) {
             settings.alpha = std::string_view(argv[i + 1]) == "1";
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting alpha to %s\n", settings.alpha ? "true" : "false"
             );
         }
         else if (arg == "-stereo" && argc > (i + 1)) {
             settings.stereo = std::string_view(argv[i + 1]) == "1";
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting stereo to %s\n", settings.stereo ? "true" : "false"
             );
         }
         else if (arg == "-cubic" && argc > (i + 1)) {
             settings.cubic = std::string_view(argv[i + 1]) == "1";
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting cubic interpolation to %s\n", settings.cubic ? "true" : "false"
             );
         }
         else if (arg == "-fxaa" && argc > (i + 1)) {
             settings.fxaa = std::string_view(argv[i + 1]) == "1";
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting fxaa to %s\n", settings.fxaa ? "true" : "false"
             );
         }
         else if (arg == "-eyeSep" && argc > (i + 1)) {
             settings.eyeSeparation = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting eye separation to %f\n", settings.eyeSeparation
             );
         }
         else if (arg == "-diameter" && argc > (i + 1)) {
             settings.domeDiameter = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Setting dome diameter to %f\n", settings.domeDiameter
             );
         }
         else if (arg == "-msaa" && argc > (i + 1)) {
         settings.numberOfMSAASamples = atoi(argv[i + 1]);
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Number of MSAA samples set to %d\n", settings.numberOfMSAASamples
             );
         }
         else if (arg == "-res" && argc > (i + 1)) {
         settings.resolution = atoi(argv[i + 1]);
-            MessageHandler::instance()->print("Resolution set to %d\n", settings.resolution);
+            MessageHandler::instance()->printInfo(
+                "Resolution set to %d\n", settings.resolution
+            );
         }
         else if (arg == "-cubemap" && argc > (i + 1)) {
         settings.cubemapRes = atoi(argv[i + 1]);
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Cubemap resolution set to %d\n", settings.cubemapRes
             );
         }
@@ -597,14 +599,14 @@ int main(int argc, char* argv[]) {
                     return Settings::CaptureFormat::JPG;
                 }
                 else {
-                    MessageHandler::instance()->print(
+                    MessageHandler::instance()->printInfo(
                         "Unknown capturing format. Using PNG\n"
                     );
                     return Settings::CaptureFormat::PNG;
                 }
             } (arg2);
             Settings::instance()->setCaptureFormat(f);
-            MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
+            MessageHandler::instance()->printInfo("Format set to %s\n", argv[i + 1]);
         }
         else if (arg == "-leftPath" && argc > (i + 1)) {
             Settings::instance()->setCapturePath(
@@ -616,7 +618,7 @@ int main(int argc, char* argv[]) {
                 Settings::CapturePath::LeftStereo
             );
 
-            MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
+            MessageHandler::instance()->printInfo("Left path set to %s\n", argv[i + 1]);
         }
         else if (arg == "-rightPath" && argc > (i + 1)) {
             Settings::instance()->setCapturePath(
@@ -624,13 +626,13 @@ int main(int argc, char* argv[]) {
                 Settings::CapturePath::RightStereo
             );
 
-            MessageHandler::instance()->print("Right path set to %s\n", argv[i + 1]);
+            MessageHandler::instance()->printInfo("Right path set to %s\n", argv[i + 1]);
         }
         else if (arg == "-compression" && argc > (i + 1)) {
             int tmpi = atoi(argv[i + 1]);
             Settings::instance()->setPNGCompressionLevel(tmpi);
 
-            MessageHandler::instance()->print("Compression set to %d\n", tmpi);
+            MessageHandler::instance()->printInfo("Compression set to %d\n", tmpi);
         }
     }
 

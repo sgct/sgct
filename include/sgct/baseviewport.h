@@ -60,8 +60,6 @@ public:
     void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
-    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 lowerLeft,
-        glm::vec3 upperLeft, glm::vec3 upperRight, const glm::quat& rot);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
 

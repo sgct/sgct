@@ -52,15 +52,13 @@ void core::SphericalMirrorProjection::initTextures() {
         }
         generateMap(texture, _texInternalFormat, _texFormat, _texType);
         if (Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Debug,
+            MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d cube face texture (id: %d) generated\n",
                 _cubemapResolution, _cubemapResolution, texture
             );
         }
         else {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "NonLinearProjection: Error occured while generating %dx%d cube face "
                 "texture (id: %d)\n", _cubemapResolution, _cubemapResolution, texture
             );
@@ -254,8 +252,7 @@ void SphericalMirrorProjection::initViewports() {
 void SphericalMirrorProjection::initShaders() {
     if (_stereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
+        MessageHandler::instance()->printWarning(
             "Stereo rendering not supported in spherical projection\n"
         );
     }
@@ -286,8 +283,7 @@ void SphericalMirrorProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Failed to load spherical mirror vertex shader:\n%s\n",
             sphericalMirrorVertexShader.c_str()
         );
@@ -298,8 +294,7 @@ void SphericalMirrorProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Failed to load spherical mirror fragment shader\n%s\n",
             sphericalMirrorFragmentShader.c_str()
         );

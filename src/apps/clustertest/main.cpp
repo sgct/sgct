@@ -349,7 +349,7 @@ void initOGLFun() {
         }
     }
 
-    MessageHandler::instance()->print(
+    MessageHandler::instance()->printInfo(
         "Number of active viewports: %d\n", numberOfActiveViewports
     );
 

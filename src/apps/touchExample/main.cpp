@@ -422,25 +422,26 @@ void mouseButtonCallback(int button, int action, int) {
     }
 }
 
-void touchCallback(const sgct::core::Touch* touchPoints) {
-    std::vector<sgct::core::Touch::TouchPoint> latestTouchPoints =
+void touchCallback(const core::Touch* touchPoints) {
+    std::vector<core::Touch::TouchPoint> latestTouchPoints =
         touchPoints->getLatestTouchPoints();
 
     // Do not print info if only stationary touch points
 #ifdef _DEBUG
     if (!touchPoints->areAllPointsStationary()) {
-        MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
-        MessageHandler::instance()->print("TouchPoints %i\n", latestTouchPoints.size());
+        MessageHandler::instance()->printInfo("=========NEW TOUCH POINTS==========\n");
+        MessageHandler::instance()->printInfo(
+            "TouchPoints %i\n", latestTouchPoints.size()
+        );
         for (std::size_t i = 0; i < latestTouchPoints.size(); ++i) {
-            MessageHandler::instance()->print(
-                "TouchPoint: %s\n",
-                sgct::core::getTouchPointInfo(latestTouchPoints[i]).c_str()
+            MessageHandler::instance()->printInfo(
+                "TouchPoint: %s\n", core::getTouchPointInfo(latestTouchPoints[i]).c_str()
             );
         }
     }
 #endif
 
-    using TouchPoint = sgct::core::Touch::TouchPoint;
+    using TouchPoint = core::Touch::TouchPoint;
     if (gEngine->isMaster()) {
         if (latestTouchPoints.size() == 1) {
             oneTouchDown =

@@ -26,14 +26,8 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
 
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
-        "Font: Generating VAO: %u\n", _vao
-    );
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
-        "Font: Generating VBO: %u\n", _vbo
-    );
+    MessageHandler::instance()->printDebug("Font: Generating VAO: %u\n", _vao);
+    MessageHandler::instance()->printDebug("Font: Generating VBO: %u\n", _vbo);
 
     std::array<float, 16> c = {
         0.f, 1.f, 0.f, 0.f,
@@ -128,8 +122,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
 
     FT_UInt charIndex = FT_Get_Char_Index(_face, static_cast<FT_ULong>(c));
     if (charIndex == 0) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
+        MessageHandler::instance()->printDebug(
             "Font %s: Missing face for char %u\n",
             _name.c_str(), static_cast<unsigned int>(c)
         );
@@ -137,8 +130,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
 
     FT_Error loadError = FT_Load_Glyph(_face, charIndex, FT_LOAD_FORCE_AUTOHINT);
     if (loadError) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Font %s: FT_Load_Glyph failed for char %u\n",
             _name.c_str(), static_cast<unsigned int>(c)
         );
@@ -152,8 +144,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     GlyphData gd;
     const bool success = getPixelData(_face, width, height, pixels, gd);
     if (!success) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Font %s: FT_Get_Glyph failed for char %u\n",
             _name.c_str(), static_cast<unsigned int>(c)
         );

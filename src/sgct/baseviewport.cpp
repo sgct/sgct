@@ -12,7 +12,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-BaseViewport::BaseViewport() : _user(ClusterManager::instance()->getDefaultUser()) {}
+BaseViewport::BaseViewport()
+    : _user(ClusterManager::instance()->getDefaultUser())
+{}
 
 void BaseViewport::setName(std::string name) {
     _name = std::move(name);
@@ -120,6 +122,7 @@ void BaseViewport::linkUserName() {
 
 void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
     switch (mode) {
+        default:
         case Frustum::Mode::MonoEye:
             _projections.mono.calculateProjection(
                 _user.getPosMono(),
@@ -150,7 +153,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
 void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                                              float farClip)
 {
-    glm::vec3 eyePos = _user.getPosMono();
+    const glm::vec3& eyePos = _user.getPosMono();
 
     switch (mode) {
         case Frustum::Mode::MonoEye:
@@ -186,7 +189,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
 void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
                                                float right, glm::quat rot, float dist)
 {
-    _rotation = rot;
+    _rotation = std::move(rot);
 
     _fov = glm::vec4(up, down, left, right);
     _distance = dist;
@@ -203,34 +206,18 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
     _viewPlane.upperRight.y = dist * tan(glm::radians<float>(up));
     _viewPlane.upperRight.z = -dist;
 
-    setViewPlaneCoordsFromUnTransformedCoords(
-        _viewPlane.lowerLeft,
-        _viewPlane.upperLeft,
-        _viewPlane.upperRight,
-        rot
-    );
-}
-
-void BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 lowerLeft,
-                                                             glm::vec3 upperLeft,
-                                                             glm::vec3 upperRight,
-                                                             const glm::quat& rot)
-{
-    _projectionPlane.setCoordinateLowerLeft(rot * std::move(lowerLeft));
-    _projectionPlane.setCoordinateUpperLeft(rot * std::move(upperLeft));
-    _projectionPlane.setCoordinateUpperRight(rot * std::move(upperRight));
+    _projectionPlane.setCoordinateLowerLeft(_rotation * _viewPlane.lowerLeft);
+    _projectionPlane.setCoordinateUpperLeft(_rotation * _viewPlane.upperLeft);
+    _projectionPlane.setCoordinateUpperRight(_rotation * _viewPlane.upperRight);
 }
 
 void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
     _viewPlane.lowerLeft.x *= newRatio / oldRatio;
     _viewPlane.upperLeft.x *= newRatio / oldRatio;
     _viewPlane.upperRight.x *= newRatio / oldRatio;
-    setViewPlaneCoordsFromUnTransformedCoords(
-        _viewPlane.lowerLeft,
-        _viewPlane.upperLeft,
-        _viewPlane.upperRight,
-        _rotation
-    );
+    _projectionPlane.setCoordinateLowerLeft(_rotation * _viewPlane.lowerLeft);
+    _projectionPlane.setCoordinateUpperLeft(_rotation * _viewPlane.upperLeft);
+    _projectionPlane.setCoordinateUpperRight(_rotation * _viewPlane.upperRight);
 }
 
 float BaseViewport::getHorizontalFieldOfViewDegrees() const {
@@ -240,21 +227,15 @@ float BaseViewport::getHorizontalFieldOfViewDegrees() const {
     return (glm::degrees(atan(abs(xDist / zDist)))) * 2;
 }
 
-void BaseViewport::setHorizontalFieldOfView(float horizFovDeg, float aspectRatio) {
+void BaseViewport::setHorizontalFieldOfView(float hFov, float aspectRatio) {
+    const float hFov2 = hFov / 2.f;
     const float zDist = abs(_projectionPlane.getCoordinateUpperRight().z);
 
-    const float projDimX = zDist * tan(glm::radians<float>(horizFovDeg) / 2.f);
+    const float projDimX = zDist * tan(glm::radians<float>(hFov2));
     const float projDimY = projDimX / aspectRatio;
-    float vertAngle = glm::degrees(atan(projDimY / zDist));
+    const float vAngle = glm::degrees(atan(projDimY / zDist));
 
-    setViewPlaneCoordsUsingFOVs(
-        vertAngle,
-        -vertAngle,
-        -horizFovDeg / 2.f,
-         horizFovDeg / 2.f,
-         _rotation,
-         zDist
-    );
+    setViewPlaneCoordsUsingFOVs(vAngle, -vAngle, -hFov2, hFov2, _rotation, zDist);
 }
 
 } // namespace sgct::core

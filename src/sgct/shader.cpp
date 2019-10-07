@@ -24,8 +24,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
     std::ifstream shaderFile(file);
 
     if (!shaderFile.is_open()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Could not open %s file[%s]\n",
             getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
@@ -39,8 +38,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
 
     // Make sure the file is not empty
     if (fileSize == 0) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Can't create source for %s: empty file [%s]\n",
             getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
@@ -60,8 +58,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
 bool Shader::setSourceFromString(const std::string& sourceString) {
     // At this point no resetting of shaders are supported
     if (_shaderId > 0) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Warning,
+        MessageHandler::instance()->printWarning(
             "%s is already set for specified shader\n",
             getShaderTypeName(_shaderType).c_str()
         );
@@ -98,8 +95,7 @@ bool Shader::checkCompilationStatus() const {
         glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &logLength);
 
         if (logLength == 0) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "%s compile error: Unknown error\n",
                 getShaderTypeName(_shaderType).c_str()
             );
@@ -108,10 +104,8 @@ bool Shader::checkCompilationStatus() const {
 
         std::vector<GLchar> log(logLength);
         glGetShaderInfoLog(_shaderId, logLength, nullptr, log.data());
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "%s compile error: %s\n",
-            getShaderTypeName(_shaderType).c_str(), log.data()
+        MessageHandler::instance()->printError(
+            "%s compile error: %s\n", getShaderTypeName(_shaderType).c_str(), log.data()
         );
 
         return false;

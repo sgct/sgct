@@ -81,8 +81,7 @@ int ShaderProgram::getId() const {
 
 bool ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "ShaderProgram: No shaders has been added to program '%s'\n", _name.c_str()
         );
         return false;
@@ -109,8 +108,7 @@ bool ShaderProgram::createAndLinkProgram() {
 }
 
 bool ShaderProgram::reload() {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Info,
+    MessageHandler::instance()->printInfo(
         "ShaderProgram: Reloading program '%s'\n", _name.c_str()
     );
     
@@ -126,8 +124,7 @@ bool ShaderProgram::reload() {
         }
 
         if (!success) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "ShaderProgram: Failed to load '%s'\n", sd.source.c_str()
             );
             return false;
@@ -143,8 +140,7 @@ bool ShaderProgram::createProgram() {
         // but should only return true if it hasn't been linked yet.
         // if it has been linked already it can't be reused
         if (_isLinked) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Could not create shader program [%s]: Already linked to shaders\n",
                 _name.c_str()
             );
@@ -158,8 +154,7 @@ bool ShaderProgram::createProgram() {
     _programId = glCreateProgram();
 
     if (_programId == 0) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Could not create shader program [%s]: Unknown error\n", _name.c_str()
         );
         return false;
@@ -179,8 +174,7 @@ bool ShaderProgram::checkLinkStatus() const {
         std::vector<GLchar> log(logLength);
         glGetProgramInfoLog(_programId, logLength, nullptr, log.data());
 
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Shader program[%s] linking error: %s\n", _name.c_str(), log.data()
         );
 

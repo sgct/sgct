@@ -317,8 +317,7 @@ void Viewport::setTracked(bool state) {
 }
 
 void Viewport::loadData() {
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Debug,
+    MessageHandler::instance()->printDebug(
         "Viewport: loading GPU data for '%s'\n", _name.c_str()
     );
         

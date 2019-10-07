@@ -210,7 +210,7 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        MessageHandler::instance()->print(
+        MessageHandler::instance()->printInfo(
             "Texture id %d loaded (%dx%dx%d).\n",
             tex, transImages[i]->getWidth(), transImages[i]->getHeight(),
             transImages[i]->getChannels()
@@ -419,7 +419,7 @@ void contextCreationCallback(GLFWwindow* win) {
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
      
     if (!hiddenWindow) {
-        MessageHandler::instance()->print("Failed to create loader context!\n");
+        MessageHandler::instance()->printInfo("Failed to create loader context!\n");
     }
     
     // restore to normal
@@ -433,7 +433,7 @@ void contextCreationCallback(GLFWwindow* win) {
 void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
                          int clientIndex)
 {
-    MessageHandler::instance()->print(
+    MessageHandler::instance()->printInfo(
         "Decoding %d bytes in transfer id: %d on node %d\n",
         receivedLength, packageId, clientIndex
     );
@@ -446,13 +446,13 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
 }
 
 void dataTransferStatus(bool connected, int clientIndex) {
-    MessageHandler::instance()->print(
+    MessageHandler::instance()->printInfo(
         "Transfer node %d is %s.\n", clientIndex, connected ? "connected" : "disconnected"
     );
 }
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
-    MessageHandler::instance()->print(
+    MessageHandler::instance()->printInfo(
         "Transfer id: %d is completed on node %d.\n", packageId, clientIndex
     );
     
@@ -463,7 +463,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             clientsUploadDone = true;
             counter = 0;
             
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printInfo(
                 "Time to distribute and upload textures on cluster: %f ms\n",
                 (sgct::Engine::getTime() - sendTimer) * 1000.0
             );

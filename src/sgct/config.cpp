@@ -19,10 +19,7 @@ namespace {
 
 
     void printError(std::string_view str) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            str.data()
-        );
+        sgct::MessageHandler::instance()->printError(str.data());
     }
 } // namespace
 

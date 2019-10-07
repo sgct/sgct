@@ -264,11 +264,11 @@ int main(int argc, char* argv[]) {
         std::string_view arg = argv[i];
         if (arg == "-tilt" && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
+            MessageHandler::instance()->printInfo("Setting tilt to: %f\n", tilt);
         }
         else if (arg == "-radius" && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->print("Setting radius to: %f\n", radius);
+            MessageHandler::instance()->printInfo("Setting radius to: %f\n", radius);
         }
     }
 

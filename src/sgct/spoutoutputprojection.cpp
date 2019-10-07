@@ -119,7 +119,7 @@ void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
 void SpoutOutputProjection::initTextures() {
     NonLinearProjection::initTextures();
 
-    MessageHandler::instance()->print("SpoutOutputProjection initTextures");
+    MessageHandler::instance()->printDebug("SpoutOutputProjection initTextures");
 
     switch (_mappingType) {
         case Mapping::Cubemap:
@@ -128,7 +128,7 @@ void SpoutOutputProjection::initTextures() {
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-                MessageHandler::instance()->print(
+                MessageHandler::instance()->printDebug(
                     "SpoutOutputProjection initTextures %d", i
                 );
                 if (!_spout[i].enabled) {
@@ -167,7 +167,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 4;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printDebug(
                 "SpoutOutputProjection initTextures Equirectangular"
             );
             _mappingHandle = GetSpout();
@@ -202,7 +202,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 2;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            MessageHandler::instance()->print(
+            MessageHandler::instance()->printDebug(
                 "SpoutOutputProjection initTextures Fisheye"
             );
             _mappingHandle = GetSpout();
@@ -487,8 +487,7 @@ void SpoutOutputProjection::initShaders() {
             ShaderProgram::ShaderSourceType::String
         );
         if (!fragShader) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load fisheye depth correction vertex shader\n"
             );
         }
@@ -504,8 +503,7 @@ void SpoutOutputProjection::initShaders() {
             ShaderProgram::ShaderSourceType::String
         );
         if (!vertShader) {
-            MessageHandler::instance()->print(
-                MessageHandler::Level::Error,
+            MessageHandler::instance()->printError(
                 "Failed to load fisheye depth correction fragment shader\n"
             );
         }
@@ -587,8 +585,7 @@ void SpoutOutputProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertShader.c_str()
         );
     }
@@ -598,8 +595,7 @@ void SpoutOutputProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "Failed to load fisheye fragment shader\n%s\n", fisheyeFragShader.c_str()
         );
     }
@@ -651,16 +647,10 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 
     if (_spoutFBO->checkForErrors()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Debug,
-            "Spout FBO created\n"
-        );
+        MessageHandler::instance()->printDebug("Spout FBO created\n");
     }
     else {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
-            "Spout FBO created with errors\n"
-        );
+        MessageHandler::instance()->printError("Spout FBO created with errors\n");
     }
 
     OffScreenBuffer::unBind();

@@ -50,8 +50,7 @@ void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     Tracker* parent = cm.getTrackingManager().getTracker(_parentIndex);
 
     if (parent == nullptr) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error,
+        MessageHandler::instance()->printError(
             "TrackingDevice: Error, can't get handle to tracker for device '%s'\n",
             _name.c_str()
         );

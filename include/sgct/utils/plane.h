@@ -38,8 +38,8 @@ private:
     void createVBO(float width, float height);
 
 private:    
-    unsigned int mVBO = 0;
-    unsigned int mVAO = 0;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
 } // namespace sgct::utils

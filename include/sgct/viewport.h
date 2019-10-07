@@ -71,20 +71,20 @@ private:
     void applySpoutOutputProjection(const sgct::config::SpoutOutputProjection& proj);
     void applySphericalMirrorProjection(const sgct::config::SphericalMirrorProjection& proj);
 
-    CorrectionMesh mCM;
-    std::string mOverlayFilename;
-    std::string mBlendMaskFilename;
-    std::string mBlackLevelMaskFilename;
-    std::string mMeshFilename;
-    std::string mMeshHint;
-    bool mCorrectionMesh = false;
-    bool mTracked = false;
-    unsigned int mOverlayTextureIndex = 0;
-    unsigned int mBlendMaskTextureIndex = 0;
-    unsigned int mBlackLevelMaskTextureIndex = 0;
+    CorrectionMesh _mesh;
+    std::string _overlayFilename;
+    std::string _blendMaskFilename;
+    std::string _blackLevelMaskFilename;
+    std::string _meshFilename;
+    std::string _meshHint;
+    bool _correctionMesh = false;
+    bool _tracked = false;
+    unsigned int _overlayTextureIndex = 0;
+    unsigned int _blendMaskTextureIndex = 0;
+    unsigned int _blackLevelMaskTextureIndex = 0;
 
-    std::unique_ptr<NonLinearProjection> mNonLinearProjection;
-    std::vector<unsigned char> mMpcdiWarpMesh;
+    std::unique_ptr<NonLinearProjection> _nonLinearProjection;
+    std::vector<unsigned char> _mpcdiWarpMesh;
 };
 
 } // namespace sgct::core

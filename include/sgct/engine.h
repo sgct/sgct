@@ -1172,64 +1172,64 @@ private:
     static void clearBuffer();
 
 
-    static Engine* mInstance;
+    static Engine* _instance;
 
-    std::function<void()> mDrawFnPtr;
-    std::function<void()> mPreSyncFnPtr;
-    std::function<void()> mPostSyncPreDrawFnPtr;
-    std::function<void()> mPostDrawFnPtr;
-    std::function<void()> mPreWindowFnPtr;
-    std::function<void()> mInitOGLFnPtr;
-    std::function<void()> mClearBufferFnPtr;
-    std::function<void()> mCleanUpFnPtr;
-    std::function<void()> mDraw2DFnPtr;
-    std::function<void(const char*, int)> mExternalDecodeCallbackFnPtr;
-    std::function<void(bool)> mExternalStatusCallbackFnPtr;
-    std::function<void(void*, int, int, int)> mDataTransferDecodeCallbackFnPtr;
-    std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
-    std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
+    std::function<void()> _drawFn;
+    std::function<void()> _preSyncFn;
+    std::function<void()> _postSyncPreDrawFn;
+    std::function<void()> _postDrawFn;
+    std::function<void()> _preWindowFn;
+    std::function<void()> _initOpenGLFn;
+    std::function<void()> _clearBufferFn;
+    std::function<void()> _cleanUpFn;
+    std::function<void()> _draw2DFn;
+    std::function<void(const char*, int)> _externalDecodeCallbackFn;
+    std::function<void(bool)> _externalStatusCallbackFn;
+    std::function<void(void*, int, int, int)> _dataTransferDecodeCallbackFn;
+    std::function<void(bool, int)> _dataTransferStatusCallbackFn;
+    std::function<void(int, int)> _dataTransferAcknowledgeCallbackFn;
     std::function<
         void(core::Image*, size_t, core::ScreenCapture::EyeIndex, GLenum)
-    > mScreenShotFnPtr;
-    std::function<void(GLFWwindow*)> mContextCreationFnPtr;
+    > _screenShotFn;
+    std::function<void(GLFWwindow*)> _contextCreationFn;
     
-    std::function<void()> mInternalDrawFn;
-    std::function<void()> mInternalRenderFBOFn;
-    std::function<void()> mInternalDrawOverlaysFn;
-    std::function<void(TextureIndexes)> mInternalRenderPostFXFn;
+    std::function<void()> _internalDrawFn;
+    std::function<void()> _internalRenderFBOFn;
+    std::function<void()> _internalDrawOverlaysFn;
+    std::function<void(TextureIndexes)> _internalRenderPostFXFn;
 
-    float mNearClippingPlaneDist = 0.1f;
-    float mFarClippingPlaneDist = 100.f;
-    glm::vec4 mClearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    float _nearClippingPlaneDist = 0.1f;
+    float _farClippingPlaneDist = 100.f;
+    glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    core::Frustum::Mode mCurrentFrustumMode = core::Frustum::Mode::MonoEye;
-    glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
-    std::vector<glm::ivec2> mDrawBufferResolutions;
-    size_t mCurrentDrawBufferIndex = 0;
+    core::Frustum::Mode _currentFrustumMode = core::Frustum::Mode::MonoEye;
+    glm::ivec4 _currentViewportCoords = glm::ivec4(0, 0, 640, 480);
+    std::vector<glm::ivec2> _drawBufferResolutions;
+    size_t _currentDrawBufferIndex = 0;
 
     struct {
         size_t main = 0;
         size_t sub = 0;
-    } mCurrentViewportIndex;
-    RenderTarget mCurrentRenderTarget = RenderTarget::WindowBuffer;
-    core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
+    } _currentViewportIndex;
+    RenderTarget _currentRenderTarget = RenderTarget::WindowBuffer;
+    core::OffScreenBuffer* _currentOffScreenBuffer = nullptr;
 
-    bool mShowInfo = false;
-    bool mShowGraph = false;
-    bool mShowWireframe = false;
-    bool mTakeScreenshot = false;
-    bool mTerminate = false;
-    bool mRenderingOffScreen = false;
-    bool mHelpMode = false;
+    bool _showInfo = false;
+    bool _showGraph = false;
+    bool _showWireframe = false;
+    bool _takeScreenshot = false;
+    bool _shouldTerminate = false;
+    bool _renderingOffScreen = false;
+    bool _helpMode = false;
 
-    bool mPrintSyncMessage = true;
-    float mSyncTimeout = 60.f;
+    bool _printSyncMessage = true;
+    float _syncTimeout = 60.f;
 
     struct {
         ShaderProgram fboQuad;
         ShaderProgram fxaa;
         ShaderProgram overlay;
-    } mShader;
+    } _shader;
 
     struct {
         int monoTex = -1;
@@ -1239,37 +1239,37 @@ private:
         int fxaaSubPixTrim = -1;
         int fxaaSubPixOffset = -1;
         int fxaaTexture = -1;
-    } mShaderLoc;
+    } _shaderLoc;
 
-    std::unique_ptr<core::NetworkManager> mNetworkConnections;
-    std::unique_ptr<core::Statistics> mStatistics;
-    core::Node* mThisNode = nullptr;
+    std::unique_ptr<core::NetworkManager> _networkConnections;
+    std::unique_ptr<core::Statistics> _statistics;
+    core::Node* _thisNode = nullptr;
 
-    std::unique_ptr<std::thread> mThreadPtr;
+    std::unique_ptr<std::thread> _thread;
 
-    std::string mLogfilePath;
-    bool mRunning = true;
-    bool mInitialized = false;
-    std::string mAAInfo;
+    std::string _logfilePath;
+    bool _isRunning = true;
+    bool _isInitialized = false;
+    std::string _aaInfo;
 
-    unsigned int mFrameCounter = 0;
-    unsigned int mShotCounter = 0;
+    unsigned int _frameCounter = 0;
+    unsigned int _shotCounter = 0;
 
     struct TimerInformation {
-        int mId = 0;
-        double mLastFired = 0.0;
-        double mInterval = 0.0;
-        std::function<void(int)> mCallback;
+        int id = 0;
+        double lastFired = 0.0;
+        double interval = 0.0;
+        std::function<void(int)> callback;
     };
 
     /// stores all active timers
-    std::vector<TimerInformation> mTimers;
+    std::vector<TimerInformation> _timers;
     /// the timer created next will use this ID
-    int mTimerID = 0;
+    int _timerID = 0;
 
-    RunMode mRunMode = RunMode::Default_Mode;
-    std::string mGLSLVersion;
-    int mExitKey = key::Escape;
+    RunMode _runMode = RunMode::Default_Mode;
+    std::string _glslVersion;
+    int _exitKey = key::Escape;
 };
 
 } // namespace sgct

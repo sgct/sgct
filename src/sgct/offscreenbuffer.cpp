@@ -51,14 +51,14 @@ namespace {
 namespace sgct::core {
 
 void OffScreenBuffer::createFBO(int width, int height, int samples) {
-    glGenFramebuffers(1, &mFrameBuffer);
-    glGenRenderbuffers(1, &mDepthBuffer);
+    glGenFramebuffers(1, &_frameBuffer);
+    glGenRenderbuffers(1, &_depthBuffer);
 
-    mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && Settings::instance()->useFBO());
+    _size = glm::ivec2(width, height);
+    _isMultiSampled = (samples > 1 && Settings::instance()->useFBO());
 
     // create a multisampled buffer
-    if (mIsMultiSampled) {
+    if (_isMultiSampled) {
         GLint MaxSamples;
         glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
         samples = std::max(samples, MaxSamples);
@@ -72,36 +72,36 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         );
 
         // generate the multisample buffer
-        glGenFramebuffers(1, &mMultiSampledFrameBuffer);
+        glGenFramebuffers(1, &_multiSampledFrameBuffer);
 
         // generate render buffer for intermediate diffuse color storage
-        glGenRenderbuffers(1, &mColorBuffer);
+        glGenRenderbuffers(1, &_colorBuffer);
 
         // generate render buffer for intermediate normal storage
         if (Settings::instance()->useNormalTexture()) {
-            glGenRenderbuffers(1, &mNormalBuffer);
+            glGenRenderbuffers(1, &_normalBuffer);
         }
 
         // generate render buffer for intermediate position storage
         if (Settings::instance()->usePositionTexture()) {
-            glGenRenderbuffers(1, &mPositionBuffer);
+            glGenRenderbuffers(1, &_positionBuffer);
         }
         
         // Bind FBO
         // Setup Render Buffers for multisample FBO
-        glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
 
-        glBindRenderbuffer(GL_RENDERBUFFER, mColorBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
         glRenderbufferStorageMultisample(
             GL_RENDERBUFFER,
             samples,
-            mInternalColorFormat,
+            _internalColorFormat,
             width,
             height
         );
 
         if (Settings::instance()->useNormalTexture()) {
-            glBindRenderbuffer(GL_RENDERBUFFER, mNormalBuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, _normalBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
@@ -112,7 +112,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         }
 
         if (Settings::instance()->usePositionTexture()) {
-            glBindRenderbuffer(GL_RENDERBUFFER, mPositionBuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, _positionBuffer);
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
@@ -123,12 +123,12 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         }
     }
     else {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
     }
 
     // Setup depth render buffer
-    glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffer);
-    if (mIsMultiSampled) {
+    glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
+    if (_isMultiSampled) {
         glRenderbufferStorageMultisample(
             GL_RENDERBUFFER,
             samples,
@@ -142,19 +142,19 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
    }
 
     // It's time to attach the RBs to the FBO
-    if (mIsMultiSampled) {
+    if (_isMultiSampled) {
         glFramebufferRenderbuffer(
             GL_FRAMEBUFFER,
             GL_COLOR_ATTACHMENT0,
             GL_RENDERBUFFER,
-            mColorBuffer
+            _colorBuffer
         );
         if (Settings::instance()->useNormalTexture()) {
             glFramebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT1,
                 GL_RENDERBUFFER,
-                mNormalBuffer
+                _normalBuffer
             );
         }
         if (Settings::instance()->usePositionTexture()) {
@@ -162,7 +162,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT2,
                 GL_RENDERBUFFER,
-                mPositionBuffer
+                _positionBuffer
             );
         }
     }
@@ -171,64 +171,64 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         GL_FRAMEBUFFER,
         GL_DEPTH_ATTACHMENT,
         GL_RENDERBUFFER,
-        mDepthBuffer
+        _depthBuffer
     );
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    if (mIsMultiSampled) {
+    if (_isMultiSampled) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO "
             "id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
-            width, height, mFrameBuffer, mMultiSampledFrameBuffer, mDepthBuffer,
-            mColorBuffer
+            width, height, _frameBuffer, _multiSampledFrameBuffer, _depthBuffer,
+            _colorBuffer
         );
     }
     else {
         MessageHandler::instance()->print(MessageHandler::Level::Debug,
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n"
             "\tRBO Depth buffer id=%d\n",
-            width, height, mFrameBuffer, mDepthBuffer
+            width, height, _frameBuffer, _depthBuffer
         );
     }
 }
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
-    mSize = glm::ivec2(width, height);
-    mIsMultiSampled = (samples > 1 && Settings::instance()->useFBO());
+    _size = glm::ivec2(width, height);
+    _isMultiSampled = (samples > 1 && Settings::instance()->useFBO());
 
-    glDeleteFramebuffers(1, &mFrameBuffer);
-    glDeleteRenderbuffers(1, &mDepthBuffer);
-    glDeleteFramebuffers(1, &mMultiSampledFrameBuffer);
-    glDeleteRenderbuffers(1, &mColorBuffer);
-    glDeleteRenderbuffers(1, &mNormalBuffer);
-    glDeleteRenderbuffers(1, &mPositionBuffer);
+    glDeleteFramebuffers(1, &_frameBuffer);
+    glDeleteRenderbuffers(1, &_depthBuffer);
+    glDeleteFramebuffers(1, &_multiSampledFrameBuffer);
+    glDeleteRenderbuffers(1, &_colorBuffer);
+    glDeleteRenderbuffers(1, &_normalBuffer);
+    glDeleteRenderbuffers(1, &_positionBuffer);
 
     // init
-    mFrameBuffer = 0;
-    mMultiSampledFrameBuffer = 0;
-    mColorBuffer = 0;
-    mDepthBuffer = 0;
-    mNormalBuffer = 0;
-    mPositionBuffer = 0;
+    _frameBuffer = 0;
+    _multiSampledFrameBuffer = 0;
+    _colorBuffer = 0;
+    _depthBuffer = 0;
+    _normalBuffer = 0;
+    _positionBuffer = 0;
 
     createFBO(width, height, samples);
 }
 
 void OffScreenBuffer::setInternalColorFormat(GLenum internalFormat) {
-    mInternalColorFormat = internalFormat;
+    _internalColorFormat = internalFormat;
 }
 
 void OffScreenBuffer::bind() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if (mIsMultiSampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
+    if (_isMultiSampled) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
     }
     else {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
     }
 
     setDrawBuffers();
@@ -238,11 +238,11 @@ void OffScreenBuffer::bind(GLsizei n, const GLenum* bufs) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if (mIsMultiSampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
+    if (_isMultiSampled) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
     }
     else {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
     }
 
     glDrawBuffers(n, bufs);
@@ -253,10 +253,10 @@ void OffScreenBuffer::bind(bool isMultisampled) {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     if (isMultisampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
     }
     else {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
     }
 
     setDrawBuffers();
@@ -267,18 +267,18 @@ void OffScreenBuffer::bind(bool isMultisampled, GLsizei n, const GLenum* bufs) {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     if (isMultisampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
     }
     else {
-        glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
     }
 
     glDrawBuffers(n, bufs);
 }
 
 void OffScreenBuffer::bindBlit() {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _multiSampledFrameBuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _frameBuffer);
     setDrawBuffers();
 }
 
@@ -292,15 +292,15 @@ void OffScreenBuffer::blit() {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     if (Settings::instance()->useDepthTexture()) {
         glBlitFramebuffer(
-            0, 0, mSize.x, mSize.y,
-            0, 0, mSize.x, mSize.y,
+            0, 0, _size.x, _size.y,
+            0, 0, _size.x, _size.y,
             GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST
         );
     }
     else {
         glBlitFramebuffer(
-            0, 0, mSize.x, mSize.y,
-            0, 0, mSize.x, mSize.y,
+            0, 0, _size.x, _size.y,
+            0, 0, _size.x, _size.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }
@@ -310,8 +310,8 @@ void OffScreenBuffer::blit() {
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
         glBlitFramebuffer(
-            0, 0, mSize.x, mSize.y,
-            0, 0, mSize.x, mSize.y,
+            0, 0, _size.x, _size.y,
+            0, 0, _size.x, _size.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }
@@ -321,43 +321,43 @@ void OffScreenBuffer::blit() {
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 
         glBlitFramebuffer(
-            0, 0, mSize.x, mSize.y,
-            0, 0, mSize.x, mSize.y,
+            0, 0, _size.x, _size.y,
+            0, 0, _size.x, _size.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }
 }
 
 void OffScreenBuffer::destroy() {
-    glDeleteFramebuffers(1, &mFrameBuffer);
-    glDeleteRenderbuffers(1, &mDepthBuffer);
+    glDeleteFramebuffers(1, &_frameBuffer);
+    glDeleteRenderbuffers(1, &_depthBuffer);
     
-    if (mIsMultiSampled) {
-        glDeleteFramebuffers(1, &mMultiSampledFrameBuffer);
-        glDeleteRenderbuffers(1, &mColorBuffer);
+    if (_isMultiSampled) {
+        glDeleteFramebuffers(1, &_multiSampledFrameBuffer);
+        glDeleteRenderbuffers(1, &_colorBuffer);
 
         if (Settings::instance()->useNormalTexture()) {
-            glDeleteRenderbuffers(1, &mNormalBuffer);
+            glDeleteRenderbuffers(1, &_normalBuffer);
         }
         if (Settings::instance()->usePositionTexture()) {
-            glDeleteRenderbuffers(1, &mPositionBuffer);
+            glDeleteRenderbuffers(1, &_positionBuffer);
         }
     }
 
-    mFrameBuffer = 0;
-    mMultiSampledFrameBuffer = 0;
-    mColorBuffer = 0;
-    mDepthBuffer = 0;
-    mNormalBuffer = 0;
-    mPositionBuffer = 0;
+    _frameBuffer = 0;
+    _multiSampledFrameBuffer = 0;
+    _colorBuffer = 0;
+    _depthBuffer = 0;
+    _normalBuffer = 0;
+    _positionBuffer = 0;
 }
 
 bool OffScreenBuffer::isMultiSampled() const {
-    return mIsMultiSampled;
+    return _isMultiSampled;
 }
 
 unsigned int OffScreenBuffer::getBufferID() const {
-    return mIsMultiSampled ? mMultiSampledFrameBuffer : mFrameBuffer;
+    return _isMultiSampled ? _multiSampledFrameBuffer : _frameBuffer;
 }
 
 void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) {
@@ -391,7 +391,7 @@ void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int
 }
 
 GLenum OffScreenBuffer::getInternalColorFormat() const {
-    return mInternalColorFormat;
+    return _internalColorFormat;
 }
 
 bool OffScreenBuffer::checkForErrors() {

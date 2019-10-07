@@ -77,16 +77,16 @@ public:
     bool checkForErrors();
 
 private:
-    unsigned int mFrameBuffer = 0;
-    unsigned int mMultiSampledFrameBuffer = 0;
-    unsigned int mColorBuffer = 0;
-    unsigned int mNormalBuffer = 0;
-    unsigned int mPositionBuffer = 0;
-    unsigned int mDepthBuffer = 0;
-    GLenum mInternalColorFormat = GL_RGBA8;
+    unsigned int _frameBuffer = 0;
+    unsigned int _multiSampledFrameBuffer = 0;
+    unsigned int _colorBuffer = 0;
+    unsigned int _normalBuffer = 0;
+    unsigned int _positionBuffer = 0;
+    unsigned int _depthBuffer = 0;
+    GLenum _internalColorFormat = GL_RGBA8;
 
-    glm::ivec2 mSize = glm::ivec2(-1);
-    bool mIsMultiSampled = false;
+    glm::ivec2 _size = glm::ivec2(-1);
+    bool _isMultiSampled = false;
 };
 
 } // namespace sgct::core

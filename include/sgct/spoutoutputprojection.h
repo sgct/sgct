@@ -70,30 +70,30 @@ private:
     void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
     // shader locations
-    int mCubemapLoc = -1;
-    int mHalfFovLoc = -1;
-    int mSwapColorLoc = -1;
-    int mSwapDepthLoc = -1;
-    int mSwapNearLoc = -1;
-    int mSwapFarLoc = -1;
+    int _cubemapLoc = -1;
+    int _halfFovLoc = -1;
+    int _swapColorLoc = -1;
+    int _swapDepthLoc = -1;
+    int _swapNearLoc = -1;
+    int _swapFarLoc = -1;
 
-    std::unique_ptr<OffScreenBuffer> mSpoutFBO = nullptr;
+    std::unique_ptr<OffScreenBuffer> _spoutFBO = nullptr;
 
     struct SpoutInfo {
         bool enabled = true;
         void* handle = nullptr;
         GLuint texture = 0;
     };
-    SpoutInfo mSpout[NFaces];
+    SpoutInfo _spout[NFaces];
 
-    void* mappingHandle = nullptr;
-    GLuint mappingTexture = 0;
-    Mapping mappingType = Mapping::Cubemap;
-    std::string mappingName = "SPOUT_OS_MAPPING";
-    glm::vec3 rigOrientation = glm::vec3(0.f);
+    void* _mappingHandle = nullptr;
+    GLuint _mappingTexture = 0;
+    Mapping _mappingType = Mapping::Cubemap;
+    std::string _mappingName = "SPOUT_OS_MAPPING";
+    glm::vec3 _rigOrientation = glm::vec3(0.f);
 
-    int mappingWidth;
-    int mappingHeight;
+    int _mappingWidth;
+    int _mappingHeight;
 };
 
 } // namespace sgct::core

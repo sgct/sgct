@@ -16,18 +16,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::core {
 
 void Node::addWindow(Window window) {
-    mWindows.emplace_back(std::move(window));
+    _windows.emplace_back(std::move(window));
 }
 
 // @TODO (abock, 2019-08-29): I think this state of 'current window index' can probably go
 // away. It seems like an extra state machine that is not worth carrying around for the
 // few use cases that it has
 void Node::setCurrentWindowIndex(int index) {
-    mCurrentWindowIndex = index;
+    _currentWindowIndex = index;
 }
 
 void Node::setUseSwapGroups(bool state) {
-    mUseSwapGroups = state;
+    _useSwapGroups = state;
 }
 
 bool Node::getKeyPressed(int key) {
@@ -35,7 +35,7 @@ bool Node::getKeyPressed(int key) {
         return false;
     }
 
-    for (const Window& window : mWindows) {
+    for (const Window& window : _windows) {
         if (glfwGetKey(window.getWindowHandle(), key)) {
             return true;
         }
@@ -44,23 +44,23 @@ bool Node::getKeyPressed(int key) {
 }
 
 int Node::getNumberOfWindows() {
-    return static_cast<int>(mWindows.size());
+    return static_cast<int>(_windows.size());
 }
 
 Window& Node::getWindow(int index) {
-    return mWindows[index];
+    return _windows[index];
 }
 
 Window& Node::getCurrentWindow() {
-    return mWindows[mCurrentWindowIndex];
+    return _windows[_currentWindowIndex];
 }
 
 int Node::getCurrentWindowIndex() const {
-    return mCurrentWindowIndex;
+    return _currentWindowIndex;
 }
 
 bool Node::shouldAllWindowsClose() {
-    for (Window& window : mWindows) {
+    for (Window& window : _windows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {
             window.setVisibility(false);
             glfwSetWindowShouldClose(window.getWindowHandle(), 0);
@@ -68,29 +68,29 @@ bool Node::shouldAllWindowsClose() {
     }
 
     size_t counter = 0;
-    for (const Window& window : mWindows) {
+    for (const Window& window : _windows) {
         if (!(window.isVisible() || window.isRenderingWhileHidden())) {
             counter++;
         }
     }
 
-    return (counter == mWindows.size());
+    return (counter == _windows.size());
 }
 
 void Node::showAllWindows() {
-    for (Window& window : mWindows) {
+    for (Window& window : _windows) {
         window.setVisibility(true);
     }
 }
 
 void Node::hideAllWindows() {
-    for (Window& window : mWindows) {
+    for (Window& window : _windows) {
         window.setVisibility(false);
     }
 }
 
 bool Node::isUsingSwapGroups() const {
-    return mUseSwapGroups;
+    return _useSwapGroups;
 }
 
 void Node::setAddress(std::string address) {
@@ -100,50 +100,50 @@ void Node::setAddress(std::string address) {
         address.begin(),
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
-    mAddress = std::move(address);
+    _address = std::move(address);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Node: Setting address to %s\n", mAddress.c_str()
+        "Node: Setting address to %s\n", _address.c_str()
     );
 }
 
 void Node::setSyncPort(int port) {
-    mSyncPort = port;
+    _syncPort = port;
     
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Node: Setting sync port to %d\n", mSyncPort
+        "Node: Setting sync port to %d\n", _syncPort
     );
 }
 
 void Node::setDataTransferPort(int port) {
-    mDataTransferPort = port;
+    _dataTransferPort = port;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Node: Setting data transfer port to %d\n", mDataTransferPort
+        "Node: Setting data transfer port to %d\n", _dataTransferPort
     );
 }
 
 void Node::setName(std::string name) {
-    mName = std::move(name);
+    _name = std::move(name);
 }
 
 const std::string& Node::getAddress() const {
-    return mAddress;
+    return _address;
 }
 
 int Node::getSyncPort() const {
-    return mSyncPort;
+    return _syncPort;
 }
 
 int Node::getDataTransferPort() const {
-    return mDataTransferPort;
+    return _dataTransferPort;
 }
 
 const std::string& Node::getName() const {
-    return mName;
+    return _name;
 }
 
 } // namespace sgct::core

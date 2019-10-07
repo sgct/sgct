@@ -34,9 +34,9 @@ public:
     glm::vec3 getCoordinateUpperRight() const;
 
 protected:
-    glm::vec3 lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
-    glm::vec3 upperLeft = glm::vec3(-1.f, 1.f, -2.f);
-    glm::vec3 upperRight = glm::vec3(1.f, 1.f, -2.f);
+    glm::vec3 _lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    glm::vec3 _upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    glm::vec3 _upperRight = glm::vec3(1.f, 1.f, -2.f);
 };
 
 } // namespace sgct::core

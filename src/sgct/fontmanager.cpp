@@ -74,23 +74,23 @@ void main() {
 
 namespace sgct::text {
 
-FontManager* FontManager::mInstance = nullptr;
+FontManager* FontManager::_instance = nullptr;
 
 FontManager* FontManager::instance() {
-    if (mInstance == nullptr) {
-        mInstance = new FontManager();
+    if (_instance == nullptr) {
+        _instance = new FontManager();
     }
 
-    return mInstance;
+    return _instance;
 }
 
 void FontManager::destroy() {
-    delete mInstance;
-    mInstance = nullptr;
+    delete _instance;
+    _instance = nullptr;
 }
 
 FontManager::FontManager() {
-    FT_Error error = FT_Init_FreeType(&mFTLibrary);
+    FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
         MessageHandler::instance()->print(
@@ -105,14 +105,14 @@ FontManager::FontManager() {
     char FontDir[128];
     const UINT success = GetWindowsDirectory(FontDir, 128);
     if (success > 0) {
-        mDefaultFontPath = FontDir;
-        mDefaultFontPath += "\\Fonts\\";
+        _defaultFontPath = FontDir;
+        _defaultFontPath += "\\Fonts\\";
     }
 #elif defined(__APPLE__)
     //System Fonts
-    mDefaultFontPath = "/Library/Fonts/";
+    _defaultFontPath = "/Library/Fonts/";
 #else
-    mDefaultFontPath = "/usr/share/fonts/truetype/freefont/";
+    _defaultFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif
 }
 
@@ -120,54 +120,54 @@ FontManager::~FontManager() {
     // We need to delete all of the fonts before destroying the FreeType library or else
     // the destructor of the Font classes will access the library after it has been
     // destroyed
-    mFontMap.clear();
+    _fontMap.clear();
 
-    if (mFTLibrary) {
-        FT_Done_FreeType(mFTLibrary);
+    if (_library) {
+        FT_Done_FreeType(_library);
     }
 
-    mShader.deleteProgram();
+    _shader.deleteProgram();
 }
 
 void FontManager::setDefaultFontPath(std::string path) {
-    mDefaultFontPath = std::move(path);
+    _defaultFontPath = std::move(path);
 }
 
 void FontManager::setStrokeColor(glm::vec4 color) {
-    mStrokeColor = std::move(color);
+    _strokeColor = std::move(color);
 }
 
 glm::vec4 FontManager::getStrokeColor() const {
-    return mStrokeColor;
+    return _strokeColor;
 }
 
 const ShaderProgram& FontManager::getShader() const {
-    return mShader;
+    return _shader;
 }
 
 unsigned int FontManager::getMVPLocation() const {
-    return mMVPLocation;
+    return _mvpLocation;
 }
 
 unsigned int FontManager::getColorLocation() const {
-    return mColorLocation;
+    return _colorLocation;
 }
 
 unsigned int FontManager::getStrokeLocation() const {
-    return mStrokeLocation;
+    return _strokeLocation;
 }
 
 unsigned int FontManager::getTextureLoc() const {
-    return mTextureLocation;
+    return _textureLocation;
 }
 
 bool FontManager::addFont(std::string fontName, std::string path, FontPath fontPath) {
     // Perform file exists check
     if (fontPath == FontPath::Default) {
-        path = mDefaultFontPath + path;
+        path = _defaultFontPath + path;
     }
 
-    bool inserted = mFontPaths.insert({ std::move(fontName), std::move(path) }).second;
+    bool inserted = _fontPaths.insert({ std::move(fontName), std::move(path) }).second;
 
     if (!inserted) {
         MessageHandler::instance()->print(
@@ -180,15 +180,15 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
 }
 
 Font* FontManager::getFont(const std::string& fontName, unsigned int height) {
-    if (mFontMap.count({ fontName, height }) == 0) {
+    if (_fontMap.count({ fontName, height }) == 0) {
         std::unique_ptr<Font> f = createFont(fontName, height);
         if (f == nullptr) {
             return nullptr;
         }
-        mFontMap[{ fontName, height }] = std::move(f);
+        _fontMap[{ fontName, height }] = std::move(f);
     }
 
-    return mFontMap[{ fontName, height }].get();
+    return _fontMap[{ fontName, height }].get();
 }
 
 Font* FontManager::getDefaultFont(unsigned int height) {
@@ -198,9 +198,9 @@ Font* FontManager::getDefaultFont(unsigned int height) {
 std::unique_ptr<Font> FontManager::createFont(const std::string& name,
                                               unsigned int height)
 {
-    std::map<std::string, std::string>::const_iterator it = mFontPaths.find(name);
+    std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
-    if (it == mFontPaths.end()) {
+    if (it == _fontPaths.end()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "FontManager: No font file specified for font [%s].\n", name.c_str()
@@ -208,7 +208,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         return nullptr;
     }
 
-    if (mFTLibrary == nullptr) {
+    if (_library == nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "FontManager: Freetype library is not initialized, can't create font [%s].\n",
@@ -218,7 +218,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     }
 
     FT_Face face;
-    FT_Error error = FT_New_Face(mFTLibrary, it->second.c_str(), 0, &face);
+    FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
         MessageHandler::instance()->print(
@@ -246,12 +246,12 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     }
 
     // Create the font when all error tests are done
-    std::unique_ptr<Font> font = std::make_unique<Font>(mFTLibrary, face, name, height);
+    std::unique_ptr<Font> font = std::make_unique<Font>(_library, face, name, height);
 
     static bool shaderCreated = false;
 
     if (!shaderCreated) {
-        mShader.setName("FontShader");
+        _shader.setName("FontShader");
         std::string vertShader = FontVertShader;
         std::string fragShader = FontFragShader;
 
@@ -267,7 +267,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
             Engine::instance()->getGLSLVersion()
         );
 
-        const bool vert = mShader.addShaderSrc(
+        const bool vert = _shader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -278,7 +278,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
                 "Failed to load font vertex shader\n"
             );
         }
-        const bool frag = mShader.addShaderSrc(
+        const bool frag = _shader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -289,14 +289,14 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
                 "Failed to load font fragment shader\n"
             );
         }
-        mShader.createAndLinkProgram();
-        mShader.bind();
+        _shader.createAndLinkProgram();
+        _shader.bind();
 
-        mMVPLocation = mShader.getUniformLocation("MVP");
-        mColorLocation = mShader.getUniformLocation("Col");
-        mStrokeLocation = mShader.getUniformLocation("StrokeCol");
-        mTextureLocation = mShader.getUniformLocation("Tex");
-        mShader.unbind();
+        _mvpLocation = _shader.getUniformLocation("MVP");
+        _colorLocation = _shader.getUniformLocation("Col");
+        _strokeLocation = _shader.getUniformLocation("StrokeCol");
+        _textureLocation = _shader.getUniformLocation("Tex");
+        _shader.unbind();
 
         shaderCreated = true;
     }

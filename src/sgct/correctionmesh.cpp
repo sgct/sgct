@@ -93,20 +93,20 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::DisplayList)
     {
-        glDeleteLists(mVertexMeshData, 1);
+        glDeleteLists(vertexData, 1);
     }
     else {
-        glDeleteVertexArrays(1, &mArrayMeshData);
-        glDeleteBuffers(1, &mVertexMeshData);
-        glDeleteBuffers(1, &mIndexMeshData);
+        glDeleteVertexArrays(1, &arrayData);
+        glDeleteBuffers(1, &vertexData);
+        glDeleteBuffers(1, &indexData);
     }
 }
 
 bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hint hint) {
     // generate unwarped mask
     {
-        Buffer buf = setupSimpleMesh(mQuadGeometry, parent);
-        createMesh(mQuadGeometry, buf.vertices, buf.indices);
+        Buffer buf = setupSimpleMesh(_quadGeometry, parent);
+        createMesh(_quadGeometry, buf.vertices, buf.indices);
     }
     
     // generate unwarped mesh for mask
@@ -119,13 +119,13 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
         bool flipX = false;
         bool flipY = false;
         Buffer buf = setupMaskMesh(parent, flipX, flipY);
-        createMesh(mMaskGeometry, buf.vertices, buf.indices);
+        createMesh(_maskGeometry, buf.vertices, buf.indices);
     }
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        Buffer buf = setupSimpleMesh(mWarpGeometry, parent);
-        createMesh(mWarpGeometry, buf.vertices, buf.indices);
+        Buffer buf = setupSimpleMesh(_warpGeometry, parent);
+        createMesh(_warpGeometry, buf.vertices, buf.indices);
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
@@ -195,8 +195,8 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Hin
             "CorrectionMesh error: Loading mesh '%s' failed\n", path.c_str()
         );
 
-        Buffer buf = setupSimpleMesh(mWarpGeometry, parent);
-        createMesh(mWarpGeometry, buf.vertices, buf.indices);
+        Buffer buf = setupSimpleMesh(_warpGeometry, parent);
+        createMesh(_warpGeometry, buf.vertices, buf.indices);
         return false;
     }
 
@@ -286,7 +286,7 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
     numberOfCols++;
     numberOfRows++;
 
-    mWarpGeometry.mNumberOfVertices = numberOfCols * numberOfRows;
+    _warpGeometry.nVertices = numberOfCols * numberOfRows;
 
     for (unsigned int c = 0; c < (numberOfCols - 1); c++) {
         for (unsigned int r = 0; r < (numberOfRows - 1); r++) {
@@ -314,15 +314,15 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
         }
     }
 
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.geometryType = GL_TRIANGLES;
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
     
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -481,11 +481,11 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
 
     fclose(meshFile);
 
-    mWarpGeometry.mNumberOfVertices = numberOfVertices;
-    mWarpGeometry.mNumberOfIndices = numberOfIndices;
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
+    _warpGeometry.nVertices = numberOfVertices;
+    _warpGeometry.nIndices = numberOfIndices;
+    _warpGeometry.geometryType = GL_TRIANGLES;
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
@@ -875,24 +875,24 @@ bool CorrectionMesh::generateScissMesh(const std::string& path, Viewport& parent
     outMeshFile.close();
 #endif
 
-    mWarpGeometry.mNumberOfVertices = numberOfVertices;
-    mWarpGeometry.mNumberOfIndices = numberOfIndices;
+    _warpGeometry.nVertices = numberOfVertices;
+    _warpGeometry.nIndices = numberOfIndices;
     
     if (fileVersion == '2' && size[0] == 4) {
-        mWarpGeometry.mGeometryType = GL_TRIANGLES;
+        _warpGeometry.geometryType = GL_TRIANGLES;
     }
     else if (fileVersion == '2' && size[0] == 5) {
-        mWarpGeometry.mGeometryType = GL_TRIANGLE_STRIP;
+        _warpGeometry.geometryType = GL_TRIANGLE_STRIP;
     }
     else { // assume v1
         //GL_QUAD_STRIP removed in OpenGL 3.3+
-        //mGeometries[WARP_MESH].mGeometryType = GL_QUAD_STRIP;
-        mWarpGeometry.mGeometryType = GL_TRIANGLE_STRIP;
+        //mGeometries[WARP_MESH].geometryType = GL_QUAD_STRIP;
+        _warpGeometry.geometryType = GL_TRIANGLE_STRIP;
     }
 
     texturedVertexList.clear();
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
@@ -1251,7 +1251,7 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 
     // copy vertices
     unsigned int numberOfVertices = numberOfCols * numberOfRows;
-    mWarpGeometry.mNumberOfVertices = numberOfVertices;
+    _warpGeometry.nVertices = numberOfVertices;
 
     // Make a triangle strip index list
     buf.indices.reserve(4 * numberOfRows * numberOfCols);
@@ -1295,16 +1295,16 @@ bool CorrectionMesh::generateSimCADMesh(const std::string& path, const Viewport&
 #endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
 
     // allocate and copy indices
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
 
-    mWarpGeometry.mGeometryType = GL_TRIANGLE_STRIP;
+    _warpGeometry.geometryType = GL_TRIANGLE_STRIP;
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -1395,7 +1395,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
             {
                 dimensionsSet = true;
                 buf.vertices.resize(size[0] * size[1]);
-                mWarpGeometry.mNumberOfVertices = size[0] * size[1];
+                _warpGeometry.nVertices = size[0] * size[1];
             }
             else if (dimensionsSet &&
                      _sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
@@ -1509,7 +1509,7 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
         }
     }
 
-    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+    for (unsigned int i = 0; i < _warpGeometry.nVertices; i++) {
         const glm::vec2& s = parent.getSize();
         const glm::vec2& p = parent.getPosition();
 
@@ -1522,15 +1522,15 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
     }
 
     // allocate and copy indices
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.geometryType = GL_TRIANGLES;
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -1577,7 +1577,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 
     char lineBuffer[MaxLineLength];
 
-    // get the fist line containing the mapping type id
+    // get the fist line containing the mapping type _id
     int mappingType = -1;
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         _sscanf(lineBuffer, "%d", &mappingType);
@@ -1588,7 +1588,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         if (_sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
             buf.vertices.reserve(meshSize.x * meshSize.y);
-            mWarpGeometry.mNumberOfVertices =
+            _warpGeometry.nVertices =
                 static_cast<unsigned int>(meshSize.x * meshSize.y);
         }
     }
@@ -1655,7 +1655,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     float aspect = Engine::instance()->getCurrentWindow().getAspectRatio() *
                    (parent.getSize().x / parent.getSize().y);
     
-    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+    for (unsigned int i = 0; i < _warpGeometry.nVertices; i++) {
         const glm::vec2& size = parent.getSize();
         const glm::vec2& pos = parent.getPosition();
 
@@ -1674,9 +1674,9 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     }
 
     // allocate and copy indices
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.geometryType = GL_TRIANGLES;
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     // force regeneration of dome render quad
     FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
@@ -1690,7 +1690,7 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -1781,15 +1781,15 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
     }
 
     // allocate and copy indices
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
-    mWarpGeometry.mNumberOfVertices = static_cast<unsigned int>(buf.vertices.size());
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.nVertices = static_cast<unsigned int>(buf.vertices.size());
+    _warpGeometry.geometryType = GL_TRIANGLES;
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -2034,7 +2034,7 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     warpedPos.clear();
     smoothPos.clear();
 
-    mWarpGeometry.mNumberOfVertices = numberOfCols * numberOfRows;
+    _warpGeometry.nVertices = numberOfCols * numberOfRows;
 
     buf.indices.reserve(numberOfCols * numberOfRows * 6);
     for (unsigned int c = 0; c < (numberOfCols - 1); c++) {
@@ -2066,16 +2066,16 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
     }
 
     // allocate and copy indices
-    mWarpGeometry.mNumberOfIndices = static_cast<unsigned int>(buf.indices.size());
-    mWarpGeometry.mGeometryType = GL_TRIANGLES;
+    _warpGeometry.nIndices = static_cast<unsigned int>(buf.indices.size());
+    _warpGeometry.geometryType = GL_TRIANGLES;
 
-    createMesh(mWarpGeometry, buf.vertices, buf.indices);
+    createMesh(_warpGeometry, buf.vertices, buf.indices);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "CorrectionMesh: Mpcdi Correction mesh read successfully. "
         "Vertices=%u, Indices=%u\n",
-        mWarpGeometry.mNumberOfVertices, mWarpGeometry.mNumberOfIndices
+        _warpGeometry.nVertices, _warpGeometry.nIndices
     );
 
     if (Settings::instance()->getExportWarpingMeshes()) {
@@ -2092,9 +2092,9 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
 CorrectionMesh::Buffer CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry& geomPtr,
                                                        const Viewport& parent)
 {
-    geomPtr.mNumberOfVertices = 4;
-    geomPtr.mNumberOfIndices = 4;
-    geomPtr.mGeometryType = GL_TRIANGLE_STRIP;
+    geomPtr.nVertices = 4;
+    geomPtr.nIndices = 4;
+    geomPtr.geometryType = GL_TRIANGLE_STRIP;
 
     Buffer buff;
     buff.indices = { 0, 3, 1, 2 };
@@ -2142,9 +2142,9 @@ CorrectionMesh::Buffer CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry& g
 CorrectionMesh::Buffer CorrectionMesh::setupMaskMesh(const Viewport& parent,
                                                      bool flipX, bool flipY)
 {
-    mMaskGeometry.mNumberOfVertices = 4;
-    mMaskGeometry.mNumberOfIndices = 4;
-    mMaskGeometry.mGeometryType = GL_TRIANGLE_STRIP;
+    _maskGeometry.nVertices = 4;
+    _maskGeometry.nIndices = 4;
+    _maskGeometry.geometryType = GL_TRIANGLE_STRIP;
 
     Buffer buff;
     buff.indices = { 0, 3, 1, 2 };
@@ -2196,26 +2196,26 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
-        glGenVertexArrays(1, &(geom.mArrayMeshData));
-        glBindVertexArray(geom.mArrayMeshData);
+        glGenVertexArrays(1, &(geom.arrayData));
+        glBindVertexArray(geom.arrayData);
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "CorrectionMesh: Generating VAO: %d\n", geom.mArrayMeshData
+            "CorrectionMesh: Generating VAO: %d\n", geom.arrayData
         );
 
-        glGenBuffers(1, &geom.mVertexMeshData);
-        glGenBuffers(1, &geom.mIndexMeshData);
+        glGenBuffers(1, &geom.vertexData);
+        glGenBuffers(1, &geom.indexData);
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "CorrectionMesh: Generating VBOs: %d %d\n",
-            geom.mVertexMeshData, geom.mIndexMeshData
+            geom.vertexData, geom.indexData
         );
 
-        glBindBuffer(GL_ARRAY_BUFFER, geom.mVertexMeshData);
+        glBindBuffer(GL_ARRAY_BUFFER, geom.vertexData);
         glBufferData(
             GL_ARRAY_BUFFER,
-            geom.mNumberOfVertices * sizeof(CorrectionMeshVertex),
+            geom.nVertices * sizeof(CorrectionMeshVertex),
             vertices.data(),
             GL_STATIC_DRAW
         );
@@ -2250,10 +2250,10 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
             reinterpret_cast<void*>(16)
         );
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.mIndexMeshData);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.indexData);
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
-            geom.mNumberOfIndices * sizeof(unsigned int),
+            geom.nIndices * sizeof(unsigned int),
             indices.data(),
             GL_STATIC_DRAW
         );
@@ -2264,11 +2264,11 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     }
     else {
         // display lists
-        geom.mVertexMeshData = glGenLists(1);
-        glNewList(geom.mVertexMeshData, GL_COMPILE);
-        glBegin(geom.mGeometryType);
+        geom.vertexData = glGenLists(1);
+        glNewList(geom.vertexData, GL_COMPILE);
+        glBegin(geom.geometryType);
         
-        for (unsigned int i = 0; i < geom.mNumberOfIndices; i++) {
+        for (unsigned int i = 0; i < geom.nIndices; i++) {
             const CorrectionMeshVertex& vertex = vertices[indices[i]];
 
             glColor4f(vertex.r, vertex.g, vertex.b, vertex.a);
@@ -2280,7 +2280,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
         
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "CorrectionMesh: Generating display list: %d\n", geom.mVertexMeshData
+            "CorrectionMesh: Generating display list: %d\n", geom.vertexData
         );
     }
 }
@@ -2289,8 +2289,8 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
                                 const std::vector<CorrectionMeshVertex>& vertices,
                                 const std::vector<unsigned int>& indices)
 {
-    if (mWarpGeometry.mGeometryType != GL_TRIANGLES &&
-        mWarpGeometry.mGeometryType != GL_TRIANGLE_STRIP)
+    if (_warpGeometry.geometryType != GL_TRIANGLES &&
+        _warpGeometry.geometryType != GL_TRIANGLE_STRIP)
     {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
@@ -2313,28 +2313,28 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
     file << std::setprecision(6);
         
     file << "# SGCT warping mesh\n";
-    file << "# Number of vertices: " << mWarpGeometry.mNumberOfVertices << "\n";
+    file << "# Number of vertices: " << _warpGeometry.nVertices << "\n";
         
     // export vertices
-    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+    for (unsigned int i = 0; i < _warpGeometry.nVertices; i++) {
         file << "v " << vertices[i].x << ' ' << vertices[i].y << " 0\n";
     }
 
     // export texture coords
-    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+    for (unsigned int i = 0; i < _warpGeometry.nVertices; i++) {
         file << "vt " << vertices[i].s << ' ' << vertices[i].t << " 0\n";
     }
 
     // export generated normals
-    for (unsigned int i = 0; i < mWarpGeometry.mNumberOfVertices; i++) {
+    for (unsigned int i = 0; i < _warpGeometry.nVertices; i++) {
         file << "vn 0 0 1\n";
     }
 
-    file << "# Number of faces: " << mWarpGeometry.mNumberOfIndices / 3 << '\n';
+    file << "# Number of faces: " << _warpGeometry.nIndices / 3 << '\n';
 
     // export face indices
-    if (mWarpGeometry.mGeometryType == GL_TRIANGLES) {
-        for (unsigned int i = 0; i < mWarpGeometry.mNumberOfIndices; i += 3) {
+    if (_warpGeometry.geometryType == GL_TRIANGLES) {
+        for (unsigned int i = 0; i < _warpGeometry.nIndices; i += 3) {
             file << "f " << indices[i] + 1 << '/' << indices[i] + 1 << '/'
                  << indices[i] + 1 << ' ';
             file << indices[i + 1] + 1 << '/' << indices[i + 1] + 1 << '/'
@@ -2354,7 +2354,7 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
         file << indices[2] + 1 << '/' << indices[2] + 1 << '/'
              << indices[2] + 1 << '\n';
 
-        for (unsigned int i = 2; i < mWarpGeometry.mNumberOfIndices; i++) {
+        for (unsigned int i = 2; i < _warpGeometry.nIndices; i++) {
             file << "f " << indices[i] + 1 << '/' << indices[i] + 1 << '/'
                  << indices[i] + 1 << ' ';
             file << indices[i - 1] + 1 << '/' << indices[i - 1] + 1 << '/'
@@ -2380,17 +2380,17 @@ void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
-        glBindVertexArray(mt.mArrayMeshData);
+        glBindVertexArray(mt.arrayData);
         glDrawElements(
-            mt.mGeometryType,
-            mt.mNumberOfIndices,
+            mt.geometryType,
+            mt.nIndices,
             GL_UNSIGNED_INT,
             nullptr
         );
         glBindVertexArray(0);
     }
     else {
-        glCallList(mt.mVertexMeshData);
+        glCallList(mt.vertexData);
     }
 
     if (Settings::instance()->getShowWarpingWireframe()) {
@@ -2399,15 +2399,15 @@ void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
 }
 
 void CorrectionMesh::renderQuadMesh() const {
-    render(mQuadGeometry);
+    render(_quadGeometry);
 }
 
 void CorrectionMesh::renderWarpMesh() const {
-    render(mWarpGeometry);
+    render(_warpGeometry);
 }
 
 void CorrectionMesh::renderMaskMesh() const {
-    render(mMaskGeometry);
+    render(_maskGeometry);
 }
 
 CorrectionMesh::Hint CorrectionMesh::parseHint(const std::string& hintStr) {

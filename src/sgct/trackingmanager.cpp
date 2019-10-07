@@ -123,17 +123,17 @@ TrackingManager::~TrackingManager() {
     fprintf(stderr, "Destructing, setting running to false\n");
 #endif
     {
-        std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
-        mRunning = false;
+        std::unique_lock lock(MutexManager::instance()->trackingMutex);
+        _isRunning = false;
     }
 
     // destroy thread
-    if (mSamplingThread) {
-        mSamplingThread->join();
-        mSamplingThread = nullptr;
+    if (_samplingThread) {
+        _samplingThread->join();
+        _samplingThread = nullptr;
     }
 
-    mTrackers.clear();
+    _trackers.clear();
     gTrackers.clear();
 
     MessageHandler::instance()->print(MessageHandler::Level::Debug, "Done.\n");
@@ -144,32 +144,32 @@ bool TrackingManager::isRunning() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
-    return mRunning;
+    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    return _isRunning;
 }
 
 void TrackingManager::startSampling() {
-    if (mTrackers.empty()) {
+    if (_trackers.empty()) {
         return;
     }
     // find user with headtracking
-    mHeadUser = core::ClusterManager::instance()->getTrackedUser();
+    _headUser = core::ClusterManager::instance()->getTrackedUser();
 
     // if tracked user not found
-    if (mHeadUser == nullptr) {
-        mHeadUser = &core::ClusterManager::instance()->getDefaultUser();
+    if (_headUser == nullptr) {
+        _headUser = &core::ClusterManager::instance()->getDefaultUser();
     }
         
     // link the head tracker
-    const std::string& trackerName = mHeadUser->getHeadTrackerName();
+    const std::string& trackerName = _headUser->getHeadTrackerName();
     Tracker* trackerPtr = getTracker(trackerName);
 
-    const std::string& deviceName = mHeadUser->getHeadTrackerDeviceName();
+    const std::string& deviceName = _headUser->getHeadTrackerDeviceName();
     if (trackerPtr) {
-        mHead = trackerPtr->getDevice(deviceName);
+        _head = trackerPtr->getDevice(deviceName);
     }
 
-    if (mHead == nullptr && !trackerName.empty() && !deviceName.empty()) {
+    if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Tracking: Failed to set head tracker to %s@%s\n",
@@ -178,15 +178,15 @@ void TrackingManager::startSampling() {
         return;
     }
 
-    mSamplingThread = std::make_unique<std::thread>(samplingLoop, this);
+    _samplingThread = std::make_unique<std::thread>(samplingLoop, this);
 }
 
 void TrackingManager::updateTrackingDevices() {
-    for (const std::unique_ptr<Tracker>& tracker : mTrackers) {
+    for (const std::unique_ptr<Tracker>& tracker : _trackers) {
         for (int j = 0; j < tracker->getNumberOfDevices(); j++) {
             TrackingDevice* tdPtr = tracker->getDevice(j);
-            if (tdPtr->isEnabled() && tdPtr == mHead && mHeadUser) {
-                mHeadUser->setTransform(tdPtr->getWorldTransform());
+            if (tdPtr->isEnabled() && tdPtr == _head && _headUser) {
+                _headUser->setTransform(tdPtr->getWorldTransform());
             }
         }
     }
@@ -194,7 +194,7 @@ void TrackingManager::updateTrackingDevices() {
 
 void TrackingManager::addTracker(std::string name) {
     if (!getTracker(name)) {
-        mTrackers.push_back(std::make_unique<Tracker>(name));
+        _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.push_back(std::vector<VRPNPointer>());
 
         MessageHandler::instance()->print(
@@ -211,9 +211,9 @@ void TrackingManager::addTracker(std::string name) {
 }
 
 void TrackingManager::addDeviceToCurrentTracker(std::string name) {
-    mNumberOfDevices++;
+    _nDevices++;
 
-    mTrackers.back()->addDevice(std::move(name), mTrackers.size() - 1);
+    _trackers.back()->addDevice(std::move(name), _trackers.size() - 1);
     gTrackers.back().push_back(VRPNPointer());
 }
 
@@ -222,10 +222,10 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         return;
     }
 
-    std::pair<std::set<std::string>::iterator, bool> retVal = mAddresses.insert(address);
+    std::pair<std::set<std::string>::iterator, bool> retVal = _addresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
 
     if (devicePtr) {
         devicePtr->setSensorId(id);
@@ -237,7 +237,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
             );
             ptr.mSensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
             ptr.mSensorDevice->register_change_handler(
-                mTrackers.back().get(),
+                _trackers.back().get(),
                 updateTracker
             );
         }
@@ -256,7 +256,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
@@ -283,7 +283,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = mTrackers.back()->getLastDevice();
+    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
 
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
         MessageHandler::instance()->print(
@@ -305,34 +305,34 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
 }
 
 int TrackingManager::getNumberOfTrackers() const {
-    return static_cast<int>(mTrackers.size());
+    return static_cast<int>(_trackers.size());
 }
 
 int TrackingManager::getNumberOfDevices() const {
-    return mNumberOfDevices;
+    return _nDevices;
 }
 
 TrackingDevice* TrackingManager::getHeadDevice() const {
-    return mHead;
+    return _head;
 }
 
 Tracker* TrackingManager::getLastTracker() const {
-    return !mTrackers.empty() ? mTrackers.back().get() : nullptr;
+    return !_trackers.empty() ? _trackers.back().get() : nullptr;
 }
 
 Tracker* TrackingManager::getTracker(size_t index) const {
-    return index < mTrackers.size() ? mTrackers[index].get() : nullptr;
+    return index < _trackers.size() ? _trackers[index].get() : nullptr;
 }
 
 Tracker* TrackingManager::getTracker(const std::string& name) const {
     auto it = std::find_if(
-        mTrackers.cbegin(),
-        mTrackers.cend(),
+        _trackers.cbegin(),
+        _trackers.cend(),
         [name](const std::unique_ptr<Tracker>& tracker) {
             return tracker->getName() == name;
         }
     );
-    if (it != mTrackers.cend()) {
+    if (it != _trackers.cend()) {
         return it->get();
     }
     else {
@@ -341,7 +341,7 @@ Tracker* TrackingManager::getTracker(const std::string& name) const {
 }
 
 void TrackingManager::setEnabled(bool state) {
-    for (std::unique_ptr<Tracker>& tracker : mTrackers) {
+    for (std::unique_ptr<Tracker>& tracker : _trackers) {
         tracker->setEnabled(state);
     }
 }
@@ -350,16 +350,16 @@ void TrackingManager::setSamplingTime(double t) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
-    mSamplingTime = t;
+    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    _samplingTime = t;
 }
 
 double TrackingManager::getSamplingTime() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->mTrackingMutex);
-    return mSamplingTime;
+    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    return _samplingTime;
 }
 
 } // namespace sgct

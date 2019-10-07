@@ -121,7 +121,7 @@ protected:
         unsigned int cubeFaceTop = 0;
         unsigned int cubeFaceFront = 0;
         unsigned int cubeFaceBack = 0;
-    } mTextures;
+    } _textures;
 
     struct {
         BaseViewport right;
@@ -130,28 +130,28 @@ protected:
         BaseViewport top;
         BaseViewport front;
         BaseViewport back;
-    } mSubViewports;
+    } _subViewports;
 
-    std::vector<float> mVerts;
+    std::vector<float> _vertices;
 
-    InterpolationMode mInterpolationMode = InterpolationMode::Linear;
-    Frustum::Mode mPreferedMonoFrustumMode = Frustum::Mode::MonoEye;
+    InterpolationMode _interpolationMode = InterpolationMode::Linear;
+    Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
-    int mCubemapResolution = 512;
-    glm::vec4 mClearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
-    glm::ivec4 mVpCoords = glm::ivec4(0, 0, 0, 0);
-    bool mUseDepthTransformation = false;
-    bool mStereo = false;
-    GLenum mTexInternalFormat;
-    GLenum mTexFormat;
-    GLenum mTexType;
-    int mSamples = 1;
-    unsigned int mVBO = 0;
-    unsigned int mVAO = 0;
+    int _cubemapResolution = 512;
+    glm::vec4 _clearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
+    glm::ivec4 _vpCoords = glm::ivec4(0, 0, 0, 0);
+    bool _useDepthTransformation = false;
+    bool _stereo = false;
+    GLenum _texInternalFormat;
+    GLenum _texFormat;
+    GLenum _texType;
+    int _samples = 1;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 
-    ShaderProgram mShader;
-    ShaderProgram mDepthCorrectionShader;
-    std::unique_ptr<OffScreenBuffer> mCubeMapFbo;
+    ShaderProgram _shader;
+    ShaderProgram _depthCorrectionShader;
+    std::unique_ptr<OffScreenBuffer> _cubeMapFbo;
 };
 
 } // namespace sgct::core

@@ -13,25 +13,25 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-ShaderManager* ShaderManager::mInstance = nullptr;
+ShaderManager* ShaderManager::_instance = nullptr;
 
 ShaderManager* ShaderManager::instance() {
-    if (mInstance == nullptr) {
-        mInstance = new ShaderManager();
+    if (_instance == nullptr) {
+        _instance = new ShaderManager();
     }
 
-    return mInstance;
+    return _instance;
 }
 
 void ShaderManager::destroy() {
-    if (mInstance != nullptr) {
-        delete mInstance;
-        mInstance = nullptr;
+    if (_instance != nullptr) {
+        delete _instance;
+        _instance = nullptr;
     }
 }
 
 ShaderManager::~ShaderManager() {
-    for (ShaderProgram& p : mShaderPrograms) {
+    for (ShaderProgram& p : _shaderPrograms) {
         p.deleteProgram();
     }
 }
@@ -50,8 +50,8 @@ bool ShaderManager::addShaderProgram(const std::string& name,
 
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
-    mShaderPrograms.push_back(sp);
-    shaderProgram = mShaderPrograms.back();
+    _shaderPrograms.push_back(sp);
+    shaderProgram = _shaderPrograms.back();
 
     return true;
 }
@@ -84,7 +84,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     }
 
     if (sp.createAndLinkProgram()) {
-        mShaderPrograms.push_back(sp);
+        _shaderPrograms.push_back(sp);
         return true;
     }
 
@@ -124,8 +124,8 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     }
 
     if (sp.createAndLinkProgram()) {
-        mShaderPrograms.push_back(sp);
-        shaderProgram = mShaderPrograms.back();
+        _shaderPrograms.push_back(sp);
+        shaderProgram = _shaderPrograms.back();
         return true;
     }
 
@@ -168,7 +168,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     }
 
     if (sp.createAndLinkProgram()) {
-        mShaderPrograms.push_back(sp);
+        _shaderPrograms.push_back(sp);
         return true;
     }
 
@@ -215,8 +215,8 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     }
 
     if (sp.createAndLinkProgram()) {
-        mShaderPrograms.push_back(sp);
-        shaderProgram = mShaderPrograms.back();
+        _shaderPrograms.push_back(sp);
+        shaderProgram = _shaderPrograms.back();
         return true;
     }
 
@@ -227,12 +227,12 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
 
 bool ShaderManager::reloadShaderProgram(const std::string& name) {
     std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
-        mShaderPrograms.begin(),
-        mShaderPrograms.end(),
+        _shaderPrograms.begin(),
+        _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
-    if (shaderIt == mShaderPrograms.end()) {
+    if (shaderIt == _shaderPrograms.end()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Unable to reload shader program [%s]: Not found in current bin\n",
@@ -248,12 +248,12 @@ bool ShaderManager::reloadShaderProgram(const std::string& name) {
 
 bool ShaderManager::removeShaderProgram(const std::string& name) {
     std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
-        mShaderPrograms.begin(),
-        mShaderPrograms.end(),
+        _shaderPrograms.begin(),
+        _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
-    if (shaderIt == mShaderPrograms.end()) {
+    if (shaderIt == _shaderPrograms.end()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Unable to remove shader program [%s]: Not found in current bin\n",
@@ -263,7 +263,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     }
 
     shaderIt->deleteProgram();
-    mShaderPrograms.erase(shaderIt);
+    _shaderPrograms.erase(shaderIt);
 
     return true;
 }
@@ -303,11 +303,11 @@ void ShaderManager::unBindShaderProgram() {
 
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
     std::vector<ShaderProgram>::const_iterator shaderIt = std::find_if(
-        mShaderPrograms.begin(),
-        mShaderPrograms.end(),
+        _shaderPrograms.begin(),
+        _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
-    if (shaderIt != mShaderPrograms.end()) {
+    if (shaderIt != _shaderPrograms.end()) {
         return *shaderIt;
     }
     else {
@@ -317,12 +317,12 @@ const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) co
 
 bool ShaderManager::shaderProgramExists(const std::string& name) const {
     std::vector<ShaderProgram>::const_iterator exists = std::find_if(
-        mShaderPrograms.begin(),
-        mShaderPrograms.end(),
+        _shaderPrograms.begin(),
+        _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
-    return exists != mShaderPrograms.end();
+    return exists != _shaderPrograms.end();
 }
 
 } // namespace sgct

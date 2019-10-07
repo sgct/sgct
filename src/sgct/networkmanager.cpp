@@ -67,18 +67,18 @@ const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
 
 namespace sgct::core {
 
-std::condition_variable NetworkManager::gCond;
-NetworkManager* NetworkManager::mInstance = nullptr;
+std::condition_variable NetworkManager::cond;
+NetworkManager* NetworkManager::_instance = nullptr;
 
 NetworkManager* NetworkManager::instance() {
-    return mInstance;
+    return _instance;
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) 
-    : mCompressionLevel(Z_BEST_SPEED)
-    , mMode(nm)
+    : _compressionLevel(Z_BEST_SPEED)
+    , _mode(nm)
 {
-    mInstance = this;
+    _instance = this;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
@@ -93,17 +93,17 @@ NetworkManager::NetworkManager(NetworkMode nm)
     );
     getHostInfo();
 
-    if (mMode == NetworkMode::Remote) {
-        mIsServer = matchAddress(ClusterManager::instance()->getMasterAddress());
+    if (_mode == NetworkMode::Remote) {
+        _isServer = matchAddress(ClusterManager::instance()->getMasterAddress());
     }
-    else if (mMode == NetworkMode::LocalServer) {
-        mIsServer = true;
+    else if (_mode == NetworkMode::LocalServer) {
+        _isServer = true;
     }
     else {
-        mIsServer = false;
+        _isServer = false;
     }
 
-    if (mIsServer) {
+    if (_isServer) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
             "NetworkManager: This computer is the network server\n"
@@ -133,7 +133,7 @@ bool NetworkManager::init() {
     }
 
     std::string remoteAddress;
-    if (mMode == NetworkMode::Remote) {
+    if (_mode == NetworkMode::Remote) {
         remoteAddress = cm.getMasterAddress();
 
         if (remoteAddress.empty()) {
@@ -150,15 +150,15 @@ bool NetworkManager::init() {
     }
 
     // if faking an address (running local) then add it to the search list
-    if (mMode != NetworkMode::Remote) {
-        mLocalAddresses.push_back(cm.getThisNode()->getAddress());
+    if (_mode != NetworkMode::Remote) {
+        _localAddresses.push_back(cm.getThisNode()->getAddress());
     }
 
     // Add Cluster Functionality
     if (ClusterManager::instance()->getNumberOfNodes() > 1) {
         // sanity check if port is used somewhere else
-        for (size_t i = 0; i < mNetworkConnections.size(); i++) {
-            const int port = mNetworkConnections[i]->getPort();
+        for (size_t i = 0; i < _networkConnections.size(); i++) {
+            const int port = _networkConnections[i]->getPort();
             if (port == cm.getThisNode()->getSyncPort() ||
                 port == cm.getThisNode()->getDataTransferPort() ||
                 port == cm.getExternalControlPort())
@@ -173,13 +173,13 @@ bool NetworkManager::init() {
         }
 
         // if client
-        if (!mIsServer) {
+        if (!_isServer) {
             const bool addSyncPort = addConnection(
                 cm.getThisNode()->getSyncPort(),
                 remoteAddress
             );
             if (addSyncPort) {
-                mNetworkConnections.back()->setDecodeFunction(
+                _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
                         SharedData::instance()->decode(data, length, index);
                     }
@@ -201,7 +201,7 @@ bool NetworkManager::init() {
                 Network::ConnectionType::DataTransfer
             );
             if (addTransferPort) {
-                mNetworkConnections.back()->setPackageDecodeFunction(
+                _networkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
                         Engine::instance()->invokeDecodeCallbackForDataTransfer(
                             data,
@@ -213,7 +213,7 @@ bool NetworkManager::init() {
                 );
 
                 // acknowledge callback
-                mNetworkConnections.back()->setAcknowledgeFunction(
+                _networkConnections.back()->setAcknowledgeFunction(
                     [](int packageId, int clientId) {
                         Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
@@ -227,7 +227,7 @@ bool NetworkManager::init() {
         // add all connections from config file
         for (int i = 0; i < cm.getNumberOfNodes(); i++) {
             // don't add itself if server
-            if (mIsServer && !matchAddress(cm.getNode(i)->getAddress())) {
+            if (_isServer && !matchAddress(cm.getNode(i)->getAddress())) {
                 const bool addSyncPort = addConnection(
                     cm.getNode(i)->getSyncPort(),
                     remoteAddress
@@ -241,7 +241,7 @@ bool NetworkManager::init() {
                     return false;
                 }
                 else {
-                    mNetworkConnections.back()->setDecodeFunction(
+                    _networkConnections.back()->setDecodeFunction(
                         [](const char* data, int length, int index) {
                             MessageHandler::instance()->decode(
                                 std::vector<char>(data, data + length),
@@ -258,7 +258,7 @@ bool NetworkManager::init() {
                     Network::ConnectionType::DataTransfer
                 );
                 if (addTransferPort) {
-                    mNetworkConnections.back()->setPackageDecodeFunction(
+                    _networkConnections.back()->setPackageDecodeFunction(
                         [](void* data, int length, int packageId, int clientId) {
                             Engine::instance()->invokeDecodeCallbackForDataTransfer(
                                 data,
@@ -270,7 +270,7 @@ bool NetworkManager::init() {
                     );
 
                     // acknowledge callback
-                    mNetworkConnections.back()->setAcknowledgeFunction(
+                    _networkConnections.back()->setAcknowledgeFunction(
                         [](int packageId, int clientId) {
                             Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
@@ -284,7 +284,7 @@ bool NetworkManager::init() {
     }
 
     // add connection for external communication
-    if (mIsServer) {
+    if (_isServer) {
         const bool addExternalPort = addConnection(
             cm.getExternalControlPort(),
             "127.0.0.1",
@@ -293,7 +293,7 @@ bool NetworkManager::init() {
                 Network::ConnectionType::ExternalRawConnection
         );
         if (addExternalPort) {
-            mNetworkConnections.back()->setDecodeFunction(
+            _networkConnections.back()->setDecodeFunction(
                 [](const char* data, int length, int client) {
                     Engine::instance()->invokeDecodeCallbackForExternalControl(
                         data,
@@ -319,7 +319,7 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
         double maxTime = -std::numeric_limits<double>::max();
         double minTime = std::numeric_limits<double>::max();
 
-        for (Network* connection : mSyncConnections) {
+        for (Network* connection : _syncConnections) {
             if (!connection->isServer() || !connection->isConnected()) {
                 continue;
             }
@@ -350,7 +350,7 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
         }
     }
     else if (sm == SyncMode::AcknowledgeData) {
-        for (Network* connection : mSyncConnections) {
+        for (Network* connection : _syncConnections) {
             // Client
             if (!connection->isServer() && connection->isConnected()) {
                 // The servers's render function is locked until a message starting with
@@ -365,8 +365,8 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
 bool NetworkManager::isSyncComplete() const {
     unsigned int counter = static_cast<unsigned int>(
         std::count_if(
-            mSyncConnections.cbegin(),
-            mSyncConnections.cend(),
+            _syncConnections.cbegin(),
+            _syncConnections.cend(),
             [](Network* n) { return n->isUpdated(); }
         )
     );
@@ -382,14 +382,14 @@ bool NetworkManager::isSyncComplete() const {
 }
 
 Network* NetworkManager::getExternalControlConnection() {
-    return mExternalControlConnection;
+    return _externalControlConnection;
 }
 
 void NetworkManager::transferData(const void* data, int length, int packageId) {
     std::vector<char> buffer;
     const bool success = prepareTransferData(data, buffer, length, packageId);
     if (success) {
-        for (Network* connection : mDataTransferConnections) {
+        for (Network* connection : _dataTransferConnections) {
             if (connection->isConnected()) {
                 connection->sendData(buffer.data(), length);
             }
@@ -398,8 +398,8 @@ void NetworkManager::transferData(const void* data, int length, int packageId) {
 }
 
 void NetworkManager::transferData(const void* data, int length, int id, size_t node) {
-    if (node >= mDataTransferConnections.size() ||
-        !mDataTransferConnections[node]->isConnected())
+    if (node >= _dataTransferConnections.size() ||
+        !_dataTransferConnections[node]->isConnected())
     {
         return;
 
@@ -407,7 +407,7 @@ void NetworkManager::transferData(const void* data, int length, int id, size_t n
     std::vector<char> buffer;
     const bool success = prepareTransferData(data, buffer, length, id);
     if (success) {
-        mDataTransferConnections[node]->sendData(buffer.data(), length);
+        _dataTransferConnections[node]->sendData(buffer.data(), length);
     }
 }
 
@@ -428,7 +428,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 {
     int messageLength = length;
 
-    if (mCompress) {
+    if (_compress) {
         length = static_cast<int>(compressBound(static_cast<uLong>(length)));
     }
     length += static_cast<int>(Network::HeaderSize);
@@ -436,11 +436,11 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     buffer.resize(length);
 
     buffer[0] = static_cast<char>(
-        mCompress ? Network::CompressedDataId : Network::DataId
+        _compress ? Network::CompressedDataId : Network::DataId
     );
     memcpy(buffer.data() + 1, &packageId, sizeof(int));
 
-    if (mCompress) {
+    if (_compress) {
         char* compDataPtr = buffer.data() + Network::HeaderSize;
         uLong compressedSize = static_cast<uLongf>(length - Network::HeaderSize);
         int err = compress2(
@@ -448,7 +448,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
             &compressedSize,
             reinterpret_cast<const Bytef*>(data),
             static_cast<uLong>(length),
-            mCompressionLevel
+            _compressionLevel
         );
 
         if (err != Z_OK) {
@@ -496,50 +496,50 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 }
 
 void NetworkManager::setDataTransferCompression(bool state, int level) {
-    mCompress = state;
-    mCompressionLevel = level;
+    _compress = state;
+    _compressionLevel = level;
 }
 
 unsigned int NetworkManager::getActiveConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return mNumberOfActiveConnections;
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return _nActiveConnections;
 }
 
 unsigned int NetworkManager::getActiveSyncConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return mNumberOfActiveSyncConnections;
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return _nActiveSyncConnections;
 }
 
 unsigned int NetworkManager::getActiveDataTransferConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return mNumberOfActiveDataTransferConnections;
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return _nActiveDataTransferConnections;
 }
 
 int NetworkManager::getConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return static_cast<int>(mNetworkConnections.size());
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::getSyncConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return static_cast<int>(mSyncConnections.size());
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return static_cast<int>(_syncConnections.size());
 }
 
 int NetworkManager::getDataTransferConnectionsCount() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return static_cast<int>(mDataTransferConnections.size());
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return static_cast<int>(_dataTransferConnections.size());
 }
 
 const Network& NetworkManager::getConnectionByIndex(unsigned int index) const {
-    return *mNetworkConnections[index];
+    return *_networkConnections[index];
 }
 
 Network* NetworkManager::getSyncConnectionByIndex(unsigned int index) const {
-    return mSyncConnections[index];
+    return _syncConnections[index];
 }
 
 const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
-    return mLocalAddresses;
+    return _localAddresses;
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
@@ -552,17 +552,17 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     unsigned int nConnectedSyncNodesCounter = 0;
     unsigned int nConnectedDataTransferNodesCounter = 0;
 
-    MutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->dataSyncMutex.lock();
     unsigned int totalNumberOfConnections =
-        static_cast<unsigned int>(mNetworkConnections.size());
+        static_cast<unsigned int>(_networkConnections.size());
     unsigned int totalNumberOfSyncConnections =
-        static_cast<unsigned int>(mSyncConnections.size());
+        static_cast<unsigned int>(_syncConnections.size());
     unsigned int totalNumberOfTransferConnections =
-        static_cast<unsigned int>(mDataTransferConnections.size());
-    MutexManager::instance()->mDataSyncMutex.unlock();
+        static_cast<unsigned int>(_dataTransferConnections.size());
+    MutexManager::instance()->dataSyncMutex.unlock();
 
     // count connections
-    for (const std::unique_ptr<Network>& conn : mNetworkConnections) {
+    for (const std::unique_ptr<Network>& conn : _networkConnections) {
         if (conn->isConnected()) {
             numberOfConnectionsCounter++;
             if (conn->getType() == Network::ConnectionType::SyncConnection) {
@@ -590,32 +590,32 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         nConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
-    MutexManager::instance()->mDataSyncMutex.lock();
-    mNumberOfActiveConnections = numberOfConnectionsCounter;
-    mNumberOfActiveSyncConnections = nConnectedSyncNodesCounter;
-    mNumberOfActiveDataTransferConnections = nConnectedDataTransferNodesCounter;
+    MutexManager::instance()->dataSyncMutex.lock();
+    _nActiveConnections = numberOfConnectionsCounter;
+    _nActiveSyncConnections = nConnectedSyncNodesCounter;
+    _nActiveDataTransferConnections = nConnectedDataTransferNodesCounter;
 
 
     // if client disconnects then it cannot run anymore
-    if (mNumberOfActiveSyncConnections == 0 && !mIsServer) {
-        mIsRunning = false;
+    if (_nActiveSyncConnections == 0 && !_isServer) {
+        _isRunning = false;
     }
-    MutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->dataSyncMutex.unlock();
 
-    if (mIsServer) {
-        MutexManager::instance()->mDataSyncMutex.lock();
+    if (_isServer) {
+        MutexManager::instance()->dataSyncMutex.lock();
         // local copy (thread safe)
         bool allNodesConnectedCopy =
             (nConnectedSyncNodesCounter == totalNumberOfSyncConnections) &&
             (nConnectedDataTransferNodesCounter == totalNumberOfTransferConnections);
 
-        mAllNodesConnected = allNodesConnectedCopy;
-        MutexManager::instance()->mDataSyncMutex.unlock();
+        _allNodesConnected = allNodesConnectedCopy;
+        MutexManager::instance()->dataSyncMutex.unlock();
 
         // send cluster connected message to nodes/slaves
         if (allNodesConnectedCopy) {
-            for (unsigned int i = 0; i < mSyncConnections.size(); i++) {
-                if (!mSyncConnections[i]->isConnected()) {
+            for (unsigned int i = 0; i < _syncConnections.size(); i++) {
+                if (!_syncConnections[i]->isConnected()) {
                     continue;
                 }
                 char data[Network::HeaderSize];
@@ -626,10 +626,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 );
                 data[0] = Network::ConnectedId;
 
-                mSyncConnections[i]->sendData(&data, Network::HeaderSize);
+                _syncConnections[i]->sendData(&data, Network::HeaderSize);
             }
-            for (unsigned int i = 0; i < mDataTransferConnections.size(); i++) {
-                if (mDataTransferConnections[i]->isConnected()) {
+            for (unsigned int i = 0; i < _dataTransferConnections.size(); i++) {
+                if (_dataTransferConnections[i]->isConnected()) {
                     char data[Network::HeaderSize];
                     std::fill(
                         std::begin(data),
@@ -637,7 +637,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                         static_cast<char>(Network::DefaultId)
                     );
                     data[0] = Network::ConnectedId;
-                    mDataTransferConnections[i]->sendData(&data, Network::HeaderSize);
+                    _dataTransferConnections[i]->sendData(&data, Network::HeaderSize);
                 }
             }
         }
@@ -661,7 +661,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 
         // wake up the connection handler thread on server
         // if node disconnects to enable reconnection
-        connection->mStartConnectionCond.notify_all();
+        connection->_startConnectionCond.notify_all();
     }
 
     if (connection->getType() == Network::ConnectionType::DataTransfer) {
@@ -673,29 +673,29 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
     // signal done to caller
-    gCond.notify_all();
+    cond.notify_all();
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
 
-    if (!mIsServer) {
+    if (!_isServer) {
         unsigned int totalNumberOfTransferConnections = static_cast<unsigned int>(
-            mDataTransferConnections.size()
+            _dataTransferConnections.size()
         );
-        mAllNodesConnected = (mNumberOfActiveSyncConnections == 1) &&
-            (mNumberOfActiveDataTransferConnections == totalNumberOfTransferConnections);
+        _allNodesConnected = (_nActiveSyncConnections == 1) &&
+            (_nActiveDataTransferConnections == totalNumberOfTransferConnections);
     }
 }
 
 void NetworkManager::close() {
-    mIsRunning = false;
+    _isRunning = false;
 
     // release condition variables
-    gCond.notify_all();
+    cond.notify_all();
 
     // signal to terminate
-    for (std::unique_ptr<Network>& connection : mNetworkConnections) {
+    for (std::unique_ptr<Network>& connection : _networkConnections) {
         connection->initShutdown();
     }
 
@@ -703,13 +703,13 @@ void NetworkManager::close() {
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
     // wait for threads to die
-    for (std::unique_ptr<Network>& connection : mNetworkConnections) {
+    for (std::unique_ptr<Network>& connection : _networkConnections) {
         connection->closeNetwork(false);
     }
 
-    mNetworkConnections.clear();
-    mSyncConnections.clear();
-    mDataTransferConnections.clear();
+    _networkConnections.clear();
+    _syncConnections.clear();
+    _dataTransferConnections.clear();
 
 #ifdef _WIN_PLATFORM
     WSACleanup();
@@ -746,14 +746,14 @@ bool NetworkManager::addConnection(int port, const std::string& address,
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "NetworkManager: Initiating network connection %d at port %d\n",
-            mNetworkConnections.size(), port
+            _networkConnections.size(), port
         );
         netPtr->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
         netPtr->setConnectedFunction([this]() { setAllNodesConnected(); });
 
         // must be initialized after binding
-        netPtr->init(port, address, mIsServer, connectionType);
-        mNetworkConnections.push_back(std::move(netPtr));
+        netPtr->init(port, address, _isServer, connectionType);
+        _networkConnections.push_back(std::move(netPtr));
     }
     catch (const std::runtime_error& e) {
         MessageHandler::instance()->print(
@@ -764,20 +764,20 @@ bool NetworkManager::addConnection(int port, const std::string& address,
     }
 
     // Update the previously existing shortcuts (maybe remove them altogether?)
-    mSyncConnections.clear();
-    mDataTransferConnections.clear();
-    mExternalControlConnection = nullptr;
+    _syncConnections.clear();
+    _dataTransferConnections.clear();
+    _externalControlConnection = nullptr;
 
-    for (std::unique_ptr<Network>& connection : mNetworkConnections) {
+    for (std::unique_ptr<Network>& connection : _networkConnections) {
         switch (connection->getType()) {
             case Network::ConnectionType::SyncConnection:
-                mSyncConnections.push_back(connection.get());
+                _syncConnections.push_back(connection.get());
                 break;
             case Network::ConnectionType::DataTransfer:
-                mDataTransferConnections.push_back(connection.get());
+                _dataTransferConnections.push_back(connection.get());
                 break;
             default:
-                mExternalControlConnection = connection.get();
+                _externalControlConnection = connection.get();
                 break;
         }
     }
@@ -811,15 +811,15 @@ void NetworkManager::getHostInfo() {
         throw std::runtime_error("Failed to get host name");
     }
 
-    mHostName = tmpStr;
+    _hostName = tmpStr;
     // add hostname and adress in lower case
     std::transform(
-        mHostName.cbegin(),
-        mHostName.cend(),
-        mHostName.begin(),
+        _hostName.cbegin(),
+        _hostName.cend(),
+        _hostName.begin(),
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
-    mLocalAddresses.push_back(mHostName);
+    _localAddresses.push_back(_hostName);
 
     addrinfo hints;
     sockaddr_in* sockaddr_ipv4;
@@ -844,46 +844,46 @@ void NetworkManager::getHostInfo() {
             sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
             inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
             if (p->ai_canonname) {
-                mDNSNames.push_back(p->ai_canonname);
+                _dnsNames.push_back(p->ai_canonname);
             }
-            mLocalAddresses.push_back(addr_str);
+            _localAddresses.push_back(addr_str);
         }
     }
 
     freeaddrinfo(info);
 
-    for (std::string& dns : mDNSNames) {
+    for (std::string& dns : _dnsNames) {
         std::transform(
             dns.cbegin(),
             dns.cend(),
             dns.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
-        mLocalAddresses.push_back(dns);
+        _localAddresses.push_back(dns);
     }
 
     // add the loop-back
-    mLocalAddresses.push_back("127.0.0.1");
-    mLocalAddresses.push_back("localhost");
+    _localAddresses.push_back("127.0.0.1");
+    _localAddresses.push_back("localhost");
 }
 
 bool NetworkManager::matchAddress(const std::string& address) const {
-    auto it = std::find(mLocalAddresses.cbegin(), mLocalAddresses.cend(), address);
-    return it != mLocalAddresses.cend();
+    auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);
+    return it != _localAddresses.cend();
 }
 
 bool NetworkManager::isComputerServer() const {
-    return mIsServer;
+    return _isServer;
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return mIsRunning;
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    return mAllNodesConnected;
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    return _allNodesConnected;
 }
 
 void NetworkManager::retrieveNodeId() const {

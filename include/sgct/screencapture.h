@@ -49,10 +49,10 @@ public:
     };
 
     struct ScreenCaptureThreadInfo {
-        std::unique_ptr<Image> mFrameBufferImage;
-        std::unique_ptr<std::thread> mFrameCaptureThread;
-        std::mutex* mMutex = nullptr;
-        bool mRunning = false; // needed for test if running without join
+        std::unique_ptr<Image> frameBufferImage;
+        std::unique_ptr<std::thread> captureThread;
+        std::mutex* mutex = nullptr;
+        bool isRunning = false; // needed for test if running without join
     };
 
     ScreenCapture();
@@ -113,29 +113,29 @@ private:
     void checkImageBuffer(CaptureSource CapSrc);
     Image* prepareImage(int index);
 
-    std::mutex mMutex;
-    std::vector<ScreenCaptureThreadInfo> mSCTIs;
+    std::mutex _mutex;
+    std::vector<ScreenCaptureThreadInfo> _captureInfos;
 
-    unsigned int mNumberOfThreads;
-    unsigned int mPBO = 0;
-    GLenum mDownloadFormat = GL_BGRA;
-    GLenum mDownloadType = GL_UNSIGNED_BYTE;
-    GLenum mDownloadTypeSetByUser = mDownloadType;
-    int mDataSize = 0;
-    glm::ivec2 mResolution;
-    int mChannels;
-    int mBytesPerColor = 1;
+    unsigned int _nThreads;
+    unsigned int _pbo = 0;
+    GLenum _downloadFormat = GL_BGRA;
+    GLenum _downloadType = GL_UNSIGNED_BYTE;
+    GLenum _downloadTypeSetByUser = _downloadType;
+    int _dataSize = 0;
+    glm::ivec2 _resolution;
+    int _nChannels;
+    int _bytesPerColor = 1;
 
-    std::function<void(Image*, size_t, EyeIndex, GLenum type)> mCaptureCallbackFn;
+    std::function<void(Image*, size_t, EyeIndex, GLenum type)> _captureCallback;
 
-    std::string mFilename;
-    std::string mBaseName;
-    std::string mPath;
-    bool mUsePBO = true;
-    bool mPreferBGR = true;
-    EyeIndex mEyeIndex = EyeIndex::Mono;
-    CaptureFormat mFormat = CaptureFormat::PNG;
-    int mWindowIndex = 0;
+    std::string _filename;
+    std::string _baseName;
+    std::string _path;
+    bool _usePBO = true;
+    bool _preferBGR = true;
+    EyeIndex _eyeIndex = EyeIndex::Mono;
+    CaptureFormat _format = CaptureFormat::PNG;
+    int _windowIndex = 0;
 };
 
 } // namespace sgct::core

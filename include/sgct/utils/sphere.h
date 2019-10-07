@@ -33,12 +33,12 @@ private:
 
     void createVBO(float radius, unsigned int segments);
 
-    unsigned int mNumberOfVertices = 0;
-    unsigned int mNumberOfFaces = 0;
+    unsigned int _nVertices = 0;
+    unsigned int _nFaces = 0;
 
-    unsigned int mVBO = 0;
-    unsigned int mIBO = 0;
-    unsigned int mVAO = 0;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
+    unsigned int _ibo = 0;
 };
 
 } // namespace sgct::utils

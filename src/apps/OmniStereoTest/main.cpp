@@ -21,7 +21,7 @@ namespace {
     sgct::SharedBool takeScreenshot(true);
 
     struct OmniData {
-        std::map<sgct::core::Frustum::Mode, glm::mat4> mViewProjectionMatrix;
+        std::map<sgct::core::Frustum::Mode, glm::mat4> viewProjectionMatrix;
         bool enabled = false;
     };
     std::vector<std::vector<OmniData>> omniProjections;
@@ -299,7 +299,7 @@ void initOmniStereo(bool mask) {
                     );
 
                     omniProjections[x][y].enabled = true;
-                    omniProjections[x][y].mViewProjectionMatrix[fm] =
+                    omniProjections[x][y].viewProjectionMatrix[fm] =
                         proj.getViewProjectionMatrix();
                     VPCounter++;
                 }
@@ -359,7 +359,7 @@ void drawOmniStereo() {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
-                const glm::mat4 vp = omniProjections[x][y].mViewProjectionMatrix[fm];
+                const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
 
                 renderBoxes(vp * gEngine->getModelMatrix());
             }
@@ -371,7 +371,7 @@ void drawOmniStereo() {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
-                const glm::mat4 vp = omniProjections[x][y].mViewProjectionMatrix[fm];
+                const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
 
                 renderGrid(vp);
             }

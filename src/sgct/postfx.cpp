@@ -18,34 +18,34 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
                   const std::string& fragShaderSrc,
                   ShaderProgram::ShaderSourceType srcType)
 {
-    mName = std::move(name);
-    mShaderProgram.setName(mName);
+    _name = std::move(name);
+    _shaderProgram.setName(_name);
 
-    if (!mShaderProgram.addShaderSrc(vertShaderSrc, GL_VERTEX_SHADER, srcType)) {
+    if (!_shaderProgram.addShaderSrc(vertShaderSrc, GL_VERTEX_SHADER, srcType)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to load or set vertex shader\n", mName.c_str()
+            "PostFX: Pass '%s' failed to load or set vertex shader\n", _name.c_str()
         );
         return false;
     }
 
-    if (!mShaderProgram.addShaderSrc(fragShaderSrc, GL_FRAGMENT_SHADER, srcType)) {
+    if (!_shaderProgram.addShaderSrc(fragShaderSrc, GL_FRAGMENT_SHADER, srcType)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to load or set fragment shader\n", mName.c_str()
+            "PostFX: Pass '%s' failed to load or set fragment shader\n", _name.c_str()
         );
         return false;
     }
 
-    if (!mShaderProgram.createAndLinkProgram()) {
+    if (!_shaderProgram.createAndLinkProgram()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to link shader\n", mName.c_str()
+            "PostFX: Pass '%s' failed to link shader\n", _name.c_str()
         );
         return false;
     }
 
-    mRenderFn = &PostFX::internalRender;
+    _renderFn = &PostFX::internalRender;
 
     return true;
 }
@@ -54,75 +54,75 @@ void PostFX::destroy() {
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
         "PostFX: Pass '%s' destroying shader and texture...\n",
-        mName.c_str()
+        _name.c_str()
     );
 
-    mRenderFn = nullptr;
-    mUpdateFn = nullptr;
+    _renderFn = nullptr;
+    _updateFn = nullptr;
 
-    if (!mDeleted) {
-        mShaderProgram.deleteProgram();
-        mDeleted = true;
+    if (!_deleted) {
+        _shaderProgram.deleteProgram();
+        _deleted = true;
     }
 }
 
 void PostFX::render() {
-    if (mRenderFn) {
-        (this->*mRenderFn)();
+    if (_renderFn) {
+        (this->*_renderFn)();
     }
 }
 
 void PostFX::setUpdateUniformsFunction(void(*fnPtr)()) {
-    mUpdateFn = fnPtr;
+    _updateFn = fnPtr;
 }
 
 void PostFX::setInputTexture(unsigned int inputTex) {
-    mInputTexture = inputTex;
+    _inputTexture = inputTex;
 }
 
 void PostFX::setOutputTexture(unsigned int outputTex) {
-    mOutputTexture = outputTex;
+    _outputTexture = outputTex;
 }
 
 unsigned int PostFX::getOutputTexture() const {
-    return mOutputTexture;
+    return _outputTexture;
 }
 
 unsigned int PostFX::getInputTexture() const {
-    return mInputTexture;
+    return _inputTexture;
 }
 
 ShaderProgram& PostFX::getShaderProgram() {
-    return mShaderProgram;
+    return _shaderProgram;
 }
 
 const ShaderProgram& PostFX::getShaderProgram() const {
-    return mShaderProgram;
+    return _shaderProgram;
 }
 
 const std::string& PostFX::getName() const {
-    return mName;
+    return _name;
 }
 
 void PostFX::internalRender() {
     Window& win = core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO
-    win.getFBO()->attachColorTexture(mOutputTexture);
+    win.getFBO()->attachColorTexture(_outputTexture);
 
-    mSize = win.getFramebufferResolution();
+    _size = win.getFramebufferResolution();
 
-    glViewport(0, 0, mSize.x, mSize.y);
+    glViewport(0, 0, _size.x, _size.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mInputTexture);
+    glBindTexture(GL_TEXTURE_2D, _inputTexture);
 
-    mShaderProgram.bind();
+    _shaderProgram.bind();
 
-    if (mUpdateFn) {
-        mUpdateFn();
+    if (_updateFn) {
+        _updateFn();
     }
 
     win.bindVAO();
@@ -136,9 +136,9 @@ void PostFX::internalRenderFixedPipeline() {
     Window& win = core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
 
     // bind target FBO
-    win.getFBO()->attachColorTexture(mOutputTexture);
+    win.getFBO()->attachColorTexture(_outputTexture);
     
-    mSize = win.getFramebufferResolution();
+    _size = win.getFramebufferResolution();
 
     // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
@@ -148,17 +148,17 @@ void PostFX::internalRenderFixedPipeline() {
     glMatrixMode(GL_MODELVIEW);
 
     // if for some reson the active texture has been reset
-    glViewport(0, 0, mSize.x, mSize.y);
+    glViewport(0, 0, _size.x, _size.y);
     
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindTexture(GL_TEXTURE_2D, mInputTexture );
+    glBindTexture(GL_TEXTURE_2D, _inputTexture );
 
-    mShaderProgram.bind();
+    _shaderProgram.bind();
 
-    if (mUpdateFn) {
-        mUpdateFn();
+    if (_updateFn) {
+        _updateFn();
     }
 
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);

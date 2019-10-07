@@ -83,16 +83,16 @@ private:
      */
     void updateEyeTransform();
 
-    glm::vec3 mPosMono = glm::vec3(0.f);
-    glm::vec3 mPosLeftEye = glm::vec3(0.f);
-    glm::vec3 mPosRightEye = glm::vec3(0.f);
+    glm::vec3 _posMono = glm::vec3(0.f);
+    glm::vec3 _posLeftEye = glm::vec3(0.f);
+    glm::vec3 _posRightEye = glm::vec3(0.f);
 
-    glm::mat4 mTransform = glm::mat4(1.0);
-    float mEyeSeparation = 0.06f;
+    glm::mat4 _transform = glm::mat4(1.0);
+    float _eyeSeparation = 0.06f;
 
-    std::string mName;
-    std::string mHeadTrackerDeviceName;
-    std::string mHeadTrackerName;
+    std::string _name;
+    std::string _headTrackerDeviceName;
+    std::string _headTrackerName;
 };
 
 } // sgct_core

@@ -52,13 +52,13 @@ public:
 private:
     void calculateTransform();
 
-    std::vector<std::unique_ptr<TrackingDevice>> mTrackingDevices;
-    std::string mName;
+    std::vector<std::unique_ptr<TrackingDevice>> _trackingDevices;
+    std::string _name;
 
-    double mScale = 1.0;
-    glm::mat4 mXform = glm::mat4(1.f);
-    glm::mat4 mOrientation;
-    glm::vec3 mOffset = glm::vec3(0.f);
+    double _scale = 1.0;
+    glm::mat4 _transform = glm::mat4(1.f);
+    glm::mat4 _orientation;
+    glm::vec3 _offset = glm::vec3(0.f);
 };
 
 } // namespace sgct

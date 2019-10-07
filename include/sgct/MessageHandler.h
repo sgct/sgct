@@ -88,25 +88,25 @@ private:
     void printv(const char* fmt, va_list ap);
     void logToFile(const std::vector<char>& buffer);
 
-    static MessageHandler* mInstance;
+    static MessageHandler* _instance;
 
-    std::vector<char> mParseBuffer;
-    std::vector<char> mCombinedBuffer;
+    std::vector<char> _parseBuffer;
+    std::vector<char> _combinedBuffer;
     
-    std::vector<char> mBuffer;
-    std::vector<char> mRecBuffer;
-    std::vector<char> headerSpace;
+    std::vector<char> _buffer;
+    std::vector<char> _recBuffer;
+    std::vector<char> _headerSpace;
 
-    std::atomic<Level> mLevel;
-    std::atomic_bool mShowTime = true;
-    std::atomic_bool mLogToConsole = true;
-    std::atomic_bool mLogToFile = false;
-    std::atomic_bool mLogToCallback = false;
+    std::atomic<Level> _level;
+    std::atomic_bool _showTime = true;
+    std::atomic_bool _logToConsole = true;
+    std::atomic_bool _logToFile = false;
+    std::atomic_bool _logToCallback = false;
 
-    std::function<void(const char *)> mMessageCallback;
-    std::string mFilename;
-    size_t mMaxMessageSize = 2048;
-    size_t mCombinedMessageSize = mMaxMessageSize + 32;
+    std::function<void(const char*)> _messageCallback;
+    std::string _filename;
+    size_t _maxMessageSize = 2048;
+    size_t _combinedMessageSize = _maxMessageSize + 32;
 };
 
 } // namespace sgct

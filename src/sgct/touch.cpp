@@ -48,11 +48,11 @@ std::string getTouchPointInfo(const Touch::TouchPoint& tp) {
 
 
 std::vector<Touch::TouchPoint> Touch::getLatestTouchPoints() const {
-    return mTouchPoints;
+    return _touchPoints;
 }
 
 void Touch::setLatestPointsHandled() {
-    mTouchPoints.clear();
+    _touchPoints.clear();
 }
 
 void Touch::processPoint(int id, int action, double xpos, double ypos, int windowWidth,
@@ -87,28 +87,28 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     glm::vec2 prevPos = pos;
 
     std::unordered_map<int, glm::vec2>::iterator prevPosMapIt =
-        mPreviousTouchPositions.find(id);
-    if (prevPosMapIt != mPreviousTouchPositions.end()) {
+        _previousTouchPositions.find(id);
+    if (prevPosMapIt != _previousTouchPositions.end()) {
         prevPos = prevPosMapIt->second;
         if (touchAction == TouchAction::Released) {
-            mPreviousTouchPositions.erase(prevPosMapIt);
+            _previousTouchPositions.erase(prevPosMapIt);
         }
         else {
             prevPosMapIt->second = pos;
         }
     }
     else {
-        mPreviousTouchPositions.insert(std::pair<int, glm::ivec2>(id, pos));
+        _previousTouchPositions.insert(std::pair<int, glm::ivec2>(id, pos));
     }
 
     // Add to end of corrected ordered vector if new touch point
     std::vector<int>::const_iterator lastIdIdx = std::find(
-        mPrevTouchIds.begin(),
-        mPrevTouchIds.end(),
+        _prevTouchIds.begin(),
+        _prevTouchIds.end(),
         id
     );
-    if (lastIdIdx == mPrevTouchIds.end()) {
-        mPrevTouchIds.push_back(id);
+    if (lastIdIdx == _prevTouchIds.end()) {
+        _prevTouchIds.push_back(id);
     }
 
     // Check if position has not changed and make the point stationary then
@@ -116,7 +116,7 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
         touchAction = TouchAction::Stationary;
     }
 
-    mTouchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / windowSize});
+    _touchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / windowSize});
 }
 
 void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
@@ -149,27 +149,27 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
     //                       1
 
     int touchIndex = 0; // Index to first unsorted element in touchPoints array
-    for (int prevTouchPointId : mPrevTouchIds) {
+    for (int prevTouchPointId : _prevTouchIds) {
         const auto touchPointIt = std::find_if(
-            mTouchPoints.begin(),
-            mTouchPoints.end(),
+            _touchPoints.begin(),
+            _touchPoints.end(),
             [prevTouchPointId](const TouchPoint& p) { return p.id == prevTouchPointId; }
         );
         // Swap current container location with the location it was in last touch event
-        if (touchPointIt != mTouchPoints.end() &&
-            std::distance(mTouchPoints.begin(), touchPointIt) != touchIndex)
+        if (touchPointIt != _touchPoints.end() &&
+            std::distance(_touchPoints.begin(), touchPointIt) != touchIndex)
         {
-            std::swap(*(mTouchPoints.begin() + touchIndex), *touchPointIt);
+            std::swap(*(_touchPoints.begin() + touchIndex), *touchPointIt);
             ++touchIndex;
         }
     }
 
     // Ignore stationary state and count none ended points
-    mAllPointsStationary = true;
+    _allPointsStationary = true;
     std::vector<int> endedTouchIds;
-    for (const TouchPoint& touchPoint : mTouchPoints) {
+    for (const TouchPoint& touchPoint : _touchPoints) {
         if (touchPoint.action != TouchPoint::TouchAction::Stationary) {
-            mAllPointsStationary = false;
+            _allPointsStationary = false;
         }
 
         if (touchPoint.action == TouchPoint::TouchAction::Released) {
@@ -179,18 +179,18 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
 
     for (int endedId : endedTouchIds) {
         std::vector<int>::const_iterator foundIdx = std::find(
-            mPrevTouchIds.begin(),
-            mPrevTouchIds.end(),
+            _prevTouchIds.begin(),
+            _prevTouchIds.end(),
             endedId
         );
-        if (foundIdx != mPrevTouchIds.end()) {
-            mPrevTouchIds.erase(foundIdx);
+        if (foundIdx != _prevTouchIds.end()) {
+            _prevTouchIds.erase(foundIdx);
         }
     }
 }
 
 bool Touch::areAllPointsStationary() const {
-    return mAllPointsStationary;
+    return _allPointsStationary;
 }
 
 } // namespace sgct::core

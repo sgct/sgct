@@ -16,77 +16,77 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-MessageHandler* MessageHandler::mInstance = nullptr;
+MessageHandler* MessageHandler::_instance = nullptr;
 
 MessageHandler* MessageHandler::instance() {
-    if (mInstance == nullptr) {
-        mInstance = new MessageHandler();
+    if (_instance == nullptr) {
+        _instance = new MessageHandler();
     }
 
-    return mInstance;
+    return _instance;
 }
 
 void MessageHandler::destroy() {
-    delete mInstance;
-    mInstance = nullptr;
+    delete _instance;
+    _instance = nullptr;
 }
 
 MessageHandler::MessageHandler() {
-    mRecBuffer.reserve(mMaxMessageSize);
-    mBuffer.reserve(mMaxMessageSize);
+    _recBuffer.reserve(_maxMessageSize);
+    _buffer.reserve(_maxMessageSize);
 
-    mParseBuffer.resize(mMaxMessageSize);
-    mCombinedBuffer.resize(mCombinedMessageSize);
-    headerSpace.resize(core::Network::HeaderSize, core::Network::DefaultId);
-    headerSpace[0] = core::Network::DataId;
-    mBuffer.insert(mBuffer.begin(), headerSpace.begin(), headerSpace.end());
+    _parseBuffer.resize(_maxMessageSize);
+    _combinedBuffer.resize(_combinedMessageSize);
+    _headerSpace.resize(core::Network::HeaderSize, core::Network::DefaultId);
+    _headerSpace[0] = core::Network::DataId;
+    _buffer.insert(_buffer.begin(), _headerSpace.begin(), _headerSpace.end());
 
 #ifdef __SGCT_DEBUG__
-    mLevel = Level::Debug;
+    _level = Level::Debug;
 #else
-    mLevel = Level::Warning;
+    _level = Level::Warning;
 #endif
 
     setLogPath(nullptr);
 }
 
 void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    mRecBuffer = std::move(receivedData);
-    mRecBuffer.push_back('\0');
-    print("\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    _recBuffer = std::move(receivedData);
+    _recBuffer.push_back('\0');
+    print("\n[client %d]: %s [end]\n", clientIndex, &_recBuffer[0]);
 }
 
 void MessageHandler::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
-    std::unique_lock lock(MutexManager::instance()->mConsoleMutex);
+    std::unique_lock lock(MutexManager::instance()->consoleMutex);
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
-    if (size > mMaxMessageSize) {
-        mParseBuffer.resize(size);
-        std::fill(mParseBuffer.begin(), mParseBuffer.end(), char(0));
+    if (size > _maxMessageSize) {
+        _parseBuffer.resize(size);
+        std::fill(_parseBuffer.begin(), _parseBuffer.end(), char(0));
         
-        mMaxMessageSize = size;
-        mCombinedMessageSize = mMaxMessageSize + 32;
+        _maxMessageSize = size;
+        _combinedMessageSize = _maxMessageSize + 32;
 
-        mCombinedBuffer.resize(mCombinedMessageSize);
-        std::fill(mCombinedBuffer.begin(), mCombinedBuffer.end(), char(0));
-        mRecBuffer.resize(mMaxMessageSize);
-        mBuffer.resize(mMaxMessageSize);
+        _combinedBuffer.resize(_combinedMessageSize);
+        std::fill(_combinedBuffer.begin(), _combinedBuffer.end(), char(0));
+        _recBuffer.resize(_maxMessageSize);
+        _buffer.resize(_maxMessageSize);
     }
         
-    mParseBuffer[0] = '\0';
+    _parseBuffer[0] = '\0';
     
 #if (_MSC_VER >= 1400)
     // And Converts Symbols To Actual Numbers
-    vsprintf_s(mParseBuffer.data(), mMaxMessageSize, fmt, ap);
+    vsprintf_s(_parseBuffer.data(), _maxMessageSize, fmt, ap);
 #else
-    vsprintf(mParseBuffer.data(), fmt, ap);
+    vsprintf(_parseBuffer.data(), fmt, ap);
 #endif
     va_end(ap); // Results Are Stored In Text
 
     // print local
-    if (mShowTime) {
+    if (_showTime) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
         time_t now = time(nullptr);
@@ -104,48 +104,48 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
 
 #if (_MSC_VER >= 1400)
         sprintf_s(
-            mCombinedBuffer.data(),
-            mCombinedMessageSize,
+            _combinedBuffer.data(),
+            _combinedMessageSize,
             "%s| %s",
             TimeBuffer,
-            mParseBuffer.data()
+            _parseBuffer.data()
         );
 #else
-        sprintf(mCombinedBuffer.data(), "%s| %s", TimeBuffer, mParseBuffer.data());
+        sprintf(_combinedBuffer.data(), "%s| %s", TimeBuffer, _parseBuffer.data());
 #endif
-        if (mLogToConsole) {
-            std::cerr << mCombinedBuffer.data();
+        if (_logToConsole) {
+            std::cerr << _combinedBuffer.data();
         }
 
-        if (mLogToFile) {
-            logToFile(mCombinedBuffer);
+        if (_logToFile) {
+            logToFile(_combinedBuffer);
         }
-        if (mLogToCallback && mMessageCallback) {
-            mMessageCallback(mCombinedBuffer.data());
+        if (_logToCallback && _messageCallback) {
+            _messageCallback(_combinedBuffer.data());
         }
     }
     else {
-        if (mLogToConsole) {
-            std::cerr << mParseBuffer.data();
+        if (_logToConsole) {
+            std::cerr << _parseBuffer.data();
         }
 
-        if (mLogToFile) {
-            logToFile(mParseBuffer);
+        if (_logToFile) {
+            logToFile(_parseBuffer);
         }
-        if (mLogToCallback && mMessageCallback) {
-            mMessageCallback(mParseBuffer.data());
+        if (_logToCallback && _messageCallback) {
+            _messageCallback(_parseBuffer.data());
         }
     }
 }
 
 void MessageHandler::logToFile(const std::vector<char>& buffer) {
-    if (mFilename.empty()) {
+    if (_filename.empty()) {
         return;
     }
     
-    std::ofstream file(mFilename, 'a');
+    std::ofstream file(_filename, 'a');
     if (!file.good()) {
-        std::cerr << "Failed to open '" << mFilename << "'!" << std::endl;
+        std::cerr << "Failed to open '" << _filename << "'!" << std::endl;
         return;
     }
 
@@ -187,13 +187,13 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
     }
 #endif
 
-    mFilename = ss.str();
+    _filename = ss.str();
 }
 
 void MessageHandler::print(const char* fmt, ...) {
     if (fmt == nullptr) {
         // If There's No Text
-        mParseBuffer[0] = 0;    // Do Nothing
+        _parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
@@ -206,7 +206,7 @@ void MessageHandler::print(const char* fmt, ...) {
 void MessageHandler::print(Level nl, const char* fmt, ...) {
     if (nl > getNotifyLevel() || fmt == nullptr) {
         // If There's No Text
-        mParseBuffer[0] = 0;    // Do Nothing
+        _parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
@@ -217,44 +217,44 @@ void MessageHandler::print(Level nl, const char* fmt, ...) {
 }
 
 void MessageHandler::clearBuffer() {
-    std::unique_lock lock(MutexManager::instance()->mDataSyncMutex);
-    mBuffer.clear();
+    std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
+    _buffer.clear();
 }
 
 void MessageHandler::setNotifyLevel(Level nl) {
-    mLevel = nl;
+    _level = nl;
 }
 
 MessageHandler::Level MessageHandler::getNotifyLevel() {
-    return static_cast<Level>(mLevel.load());
+    return static_cast<Level>(_level.load());
 }
 
 void MessageHandler::setShowTime(bool state) {
-    mShowTime = state;
+    _showTime = state;
 }
 
 void MessageHandler::setLogToConsole(bool state) {
-    mLogToConsole = state;
+    _logToConsole = state;
 }
 
 void MessageHandler::setLogToFile(bool state) {
-    mLogToFile = state;
+    _logToFile = state;
 }
 
 void MessageHandler::setLogToCallback(bool state) {
-    mLogToCallback = state;
+    _logToCallback = state;
 }
 
 void MessageHandler::setLogCallback(std::function<void(const char *)> fn) {
-    mMessageCallback = std::move(fn);
+    _messageCallback = std::move(fn);
 }
 
 size_t MessageHandler::getDataSize() {
-    return mBuffer.size();
+    return _buffer.size();
 }
 
 char* MessageHandler::getMessage() {
-    return mBuffer.data();
+    return _buffer.data();
 }
 
 } // namespace sgct

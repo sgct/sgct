@@ -280,9 +280,9 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
             return false;
         }
 
-        bool suc = processSubFile(mXmlFileContents, "xml", fileName, zipfile, fileInfo);
+        bool suc = processSubFile(_xmlFileContents, "xml", fileName, zipfile, fileInfo);
         if (!suc) {
-            suc = processSubFile(mPfmFileContents, "pfm", fileName, zipfile, fileInfo);
+            suc = processSubFile(_pfmFileContents, "pfm", fileName, zipfile, fileInfo);
         }
         if (!suc) {
             unzClose(zipfile);
@@ -299,7 +299,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         }
     }
     unzClose(zipfile);
-    if (!mXmlFileContents.isFound && !mPfmFileContents.isFound) {
+    if (!_xmlFileContents.isFound && !_pfmFileContents.isFound) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file\n",
@@ -350,13 +350,13 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
 }
 
 bool Mpcdi::readAndParseString(Node& node, Window& win) {
-    if (mXmlFileContents.buffer.empty()) {
+    if (_xmlFileContents.buffer.empty()) {
         return false;
     }
     tinyxml2::XMLDocument xmlDoc;
     tinyxml2::XMLError result = xmlDoc.Parse(
-        mXmlFileContents.buffer.data(),
-        mXmlFileContents.buffer.size()
+        _xmlFileContents.buffer.data(),
+        _xmlFileContents.buffer.size()
     );
 
     if (result != tinyxml2::XML_NO_ERROR) {
@@ -464,7 +464,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
 bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Window& win,
                                 MpcdiFoundItems& parsedItems)
 {
-    if (parsedItems.haveDisplayElem) {
+    if (parsedItems.hasDisplayElem) {
         MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "parseMpcdiXml: Multiple 'display' elements not supported\n"
@@ -472,7 +472,7 @@ bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Windo
         return false;
     }
     else {
-        parsedItems.haveDisplayElem = true;
+        parsedItems.hasDisplayElem = true;
     }
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
@@ -536,7 +536,7 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
         std::string_view val = child->Value();
         if (val == "path") {
             warp->pathWarpFile = child->GetText();
-            warp->haveFoundPath = true;
+            warp->hasFoundPath = true;
         }
         else if (val == "interpolation") {
             std::string_view interpolation = child->GetText();
@@ -546,21 +546,21 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
                     "parseMpcdiXml: only linear interpolation is supported\n"
                 );
             }
-            warp->haveFoundInterpolation = true;
+            warp->hasFoundInterpolation = true;
         }
         child = child->NextSiblingElement();
     }
-    if (warp->haveFoundPath && warp->haveFoundInterpolation) {
+    if (warp->hasFoundPath && warp->hasFoundInterpolation) {
         // Look for matching MPCDI region (SGCT viewport) to pass
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
             const std::string& winName = win.getViewport(i).getName();
             const std::string& warpName = warp->id;
-            if (winName == warpName && warp->pathWarpFile == mPfmFileContents.fileName) {
+            if (winName == warpName && warp->pathWarpFile == _pfmFileContents.fileName) {
                 std::vector<unsigned char> meshData(
-                    mPfmFileContents.buffer.begin(),
-                    mPfmFileContents.buffer.end()
+                    _pfmFileContents.buffer.begin(),
+                    _pfmFileContents.buffer.end()
                 );
                 win.getViewport(i).setMpcdiWarpMesh(std::move(meshData));
                 foundMatchingPfmBuffer = true;
@@ -582,14 +582,14 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
         return false;
     }
 
-    mWarp.push_back(std::move(warp));
+    _warp.push_back(std::move(warp));
     return true;
 }
 
 bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
                                MpcdiFoundItems& parsedItems)
 {
-    if (parsedItems.haveBufferElem) {
+    if (parsedItems.hasBufferElem) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "parseMpcdiXml: Multiple 'buffer' elements unsupported\n"
@@ -597,7 +597,7 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
         return false;
     }
     else {
-        parsedItems.haveBufferElem = true;
+        parsedItems.hasBufferElem = true;
     }
     if (element->Attribute("xResolution")) {
         element->QueryAttribute("xResolution", &parsedItems.resolution.x);
@@ -639,11 +639,11 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
                                MpcdiFoundItems&)
 {
     // Require an 'id' attribute for each region. These will be compared later to the
-    // fileset, in which there must be a matching 'id'. The mBufferRegions vector is
+    // fileset, in which there must be a matching 'id'. The _bufferRegions vector is
     // intended for use with MPCDI files containing multiple regions, but currently
     // only is tested with single region files.
     if (element->Attribute("id")) {
-        mBufferRegions.push_back(element->Attribute("id"));
+        _bufferRegions.push_back(element->Attribute("id"));
     }
     else {
         MessageHandler::instance()->print(

@@ -127,13 +127,13 @@ public:
     /// \return the connection type as string
     static std::string getTypeStr(ConnectionType ct);
 
-    std::function<void(const char*, int, int)> mDecoderCallbackFn;
-    std::function<void(void*, int, int, int)> mPackageDecoderCallbackFn;
-    std::function<void(Network*)> mUpdateCallbackFn;
-    std::function<void(void)> mConnectedCallbackFn;
-    std::function<void(int, int)> mAcknowledgeCallbackFn;
+    std::function<void(const char*, int, int)> decoderCallback;
+    std::function<void(void*, int, int, int)> _packageDecoderCallback;
+    std::function<void(Network*)> _updateCallback;
+    std::function<void(void)> _connectedCallback;
+    std::function<void(int, int)> _acknowledgeCallback;
 
-    std::condition_variable mStartConnectionCond;
+    std::condition_variable _startConnectionCond;
 
 private:
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
@@ -147,37 +147,37 @@ private:
     void communicationHandler();
     void connectionHandler();
 
-    SGCT_SOCKET mSocket;
-    SGCT_SOCKET mListenSocket;
+    SGCT_SOCKET _socket;
+    SGCT_SOCKET _listenSocket;
 
-    ConnectionType mConnectionType = ConnectionType::SyncConnection;
-    std::atomic_bool mServer;
-    std::atomic_bool mConnected = false;
-    std::atomic_bool mUpdated = false;
-    std::atomic<int32_t> mSendFrameCurrent = 0;
-    std::atomic<int32_t> mSendFramePrevious = 0;
-    std::atomic<int32_t> mRecvFrameCurrent = 0;
-    std::atomic<int32_t> mRecvFramePrevious = -1;
-    std::atomic_bool mTerminate = false; //set to true upon exit
+    ConnectionType _connectionType = ConnectionType::SyncConnection;
+    std::atomic_bool _isServer;
+    std::atomic_bool _isConnected = false;
+    std::atomic_bool _isUpdated = false;
+    std::atomic<int32_t> _currentSendFrame = 0;
+    std::atomic<int32_t> _previousSendFrame = 0;
+    std::atomic<int32_t> _currentRecvFrame = 0;
+    std::atomic<int32_t> _previousRecvFrame = -1;
+    std::atomic_bool _shouldTerminate = false; // set to true upon exit
 
-    mutable std::mutex mConnectionMutex;
-    std::unique_ptr<std::thread> mCommThread;
-    std::unique_ptr<std::thread> mMainThread;
+    mutable std::mutex _connectionMutex;
+    std::unique_ptr<std::thread> _commThread;
+    std::unique_ptr<std::thread> _mainThread;
 
-    double mTimeStampSend = 0.0;
-    double mTimeStampTotal = 0.0;
-    int mId;
-    uint32_t mBufferSize = 1024;
-    uint32_t mUncompressedBufferSize = mBufferSize;
-    std::atomic<uint32_t> mRequestedSize = mBufferSize;
-    int mPort;
-    std::string mAddress;
+    double _timeStampSend = 0.0;
+    double _timeStampTotal = 0.0;
+    int _id;
+    uint32_t _bufferSize = 1024;
+    uint32_t _uncompressedBufferSize = _bufferSize;
+    std::atomic<uint32_t> _requestedSize = _bufferSize;
+    int _port;
+    std::string _address;
 
-    std::vector<char> mRecvBuf;
-    std::vector<char> mUncompressBuf;
-    char mHeaderId;
+    std::vector<char> _recvBuffer;
+    std::vector<char> _uncompressBuffer;
+    char _headerId;
 
-    bool mUseNaglesAlgorithmInTransfer = false;
+    bool _useNaglesAlgorithmInTransfer = false;
 };
 
 } // namespace sgct::core

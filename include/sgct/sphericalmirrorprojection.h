@@ -62,26 +62,26 @@ private:
     void renderCubemapInternal(size_t* subViewPortIndex);
     void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
-    float mTilt = 0.f;
-    float mDiameter = 2.4f;
+    float _tilt = 0.f;
+    float _diameter = 2.4f;
         
-    //mesh data
+    // mesh data
     struct {
         CorrectionMesh bottom;
         CorrectionMesh left;
         CorrectionMesh right;
         CorrectionMesh top;
-    } mMeshes;
+    } _meshes;
     struct {
         std::string bottom;
         std::string left;
         std::string right;
         std::string top;
-    } mMeshPaths;
+    } _meshPaths;
 
-    //shader locations
-    int mTexLoc = -1;
-    int mMatrixLoc = -1;
+    // shader locations
+    int _texLoc = -1;
+    int _matrixLoc = -1;
 };
 
 } // namespace sgct::core

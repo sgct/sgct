@@ -71,74 +71,74 @@ namespace sgct::core {
 
 Statistics::Statistics() {
     for (unsigned int i = 0; i < StatsHistoryLength; i++) {
-        mDynamicVertexList.frameTime[i].x = static_cast<float>(i);
-        mDynamicVertexList.frameTime[i].y = 0.f;
-        mDynamicVertexList.drawTime[i].x = static_cast<float>(i);
-        mDynamicVertexList.drawTime[i].y = 0.f;
-        mDynamicVertexList.syncTime[i].x = static_cast<float>(i);
-        mDynamicVertexList.syncTime[i].y = 0.f;
-        mDynamicVertexList.loopTimeMax[i].x = static_cast<float>(i);
-        mDynamicVertexList.loopTimeMax[i].y = 0.f;
-        mDynamicVertexList.loopTimeMin[i].x = static_cast<float>(i);
-        mDynamicVertexList.loopTimeMin[i].y = 0.f;
+        _dynamicVertexList.frameTime[i].x = static_cast<float>(i);
+        _dynamicVertexList.frameTime[i].y = 0.f;
+        _dynamicVertexList.drawTime[i].x = static_cast<float>(i);
+        _dynamicVertexList.drawTime[i].y = 0.f;
+        _dynamicVertexList.syncTime[i].x = static_cast<float>(i);
+        _dynamicVertexList.syncTime[i].y = 0.f;
+        _dynamicVertexList.loopTimeMax[i].x = static_cast<float>(i);
+        _dynamicVertexList.loopTimeMax[i].y = 0.f;
+        _dynamicVertexList.loopTimeMin[i].x = static_cast<float>(i);
+        _dynamicVertexList.loopTimeMin[i].y = 0.f;
     }
 }
 
 Statistics::~Statistics() {
-    mShader.deleteProgram();
+    _shader.deleteProgram();
     
-    glDeleteBuffers(2, &mDynamicVBO[0]);
-    glDeleteVertexArrays(2, &mDynamicVAO[0]);
-    glDeleteBuffers(1, &mStaticVBO);
-    glDeleteBuffers(1, &mStaticVAO);
+    glDeleteBuffers(2, &_dynamicVBO[0]);
+    glDeleteVertexArrays(2, &_dynamicVAO[0]);
+    glDeleteBuffers(1, &_staticVBO);
+    glDeleteBuffers(1, &_staticVAO);
 }
 
 void Statistics::initVBO(bool fixedPipeline) {
-    mFixedPipeline = fixedPipeline;
+    _fixedPipeline = fixedPipeline;
 
     // STATIC BACKGROUND QUAD
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(1.f / 30.f);
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-    mStaticVerts.push_back(1.f / 30.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(1.f / 30.f);
+    _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    _staticVerts.push_back(1.f / 30.f);
     
     // STATIC 1 ms LINES
-    mNumberOfLines = 0;
+    _nLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
-        mStaticVerts.push_back(0.f);
-        mStaticVerts.push_back(f);
-        mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-        mStaticVerts.push_back(f);
+        _staticVerts.push_back(0.f);
+        _staticVerts.push_back(f);
+        _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+        _staticVerts.push_back(f);
 
-        mNumberOfLines++;
+        _nLines++;
     }
 
     // STATIC 0, 30 & 60 FPS LINES
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-    mStaticVerts.push_back(0.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    _staticVerts.push_back(0.f);
 
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(1.f / 30.f);
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-    mStaticVerts.push_back(1.f / 30.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(1.f / 30.f);
+    _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    _staticVerts.push_back(1.f / 30.f);
 
-    mStaticVerts.push_back(0.f);
-    mStaticVerts.push_back(1.f / 60.f);
-    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
-    mStaticVerts.push_back(1.f / 60.f);
+    _staticVerts.push_back(0.f);
+    _staticVerts.push_back(1.f / 60.f);
+    _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
+    _staticVerts.push_back(1.f / 60.f);
 
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
-        if (!mFixedPipeline) {
-            glGenVertexArrays(2, &mDynamicVAO[0]);
-            glGenVertexArrays(1, &mStaticVAO);
+        if (!_fixedPipeline) {
+            glGenVertexArrays(2, &_dynamicVAO[0]);
+            glGenVertexArrays(1, &_staticVAO);
 
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
@@ -147,17 +147,17 @@ void Statistics::initVBO(bool fixedPipeline) {
             for (unsigned int i = 0; i < 2; i++) {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
-                    "\t%d\n", mDynamicVAO[i]
+                    "\t%d\n", _dynamicVAO[i]
                 );
             }
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
-                "\t%d\n\n", mStaticVAO
+                "\t%d\n\n", _staticVAO
             );
         }
 
-        glGenBuffers(2, &mDynamicVBO[0]);
-        glGenBuffers(1, &mStaticVBO);
+        glGenBuffers(2, &_dynamicVBO[0]);
+        glGenBuffers(1, &_staticVBO);
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
@@ -166,54 +166,54 @@ void Statistics::initVBO(bool fixedPipeline) {
         for (unsigned int i = 0; i < 2; i++) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
-                "\t%d\n", mDynamicVBO[i]
+                "\t%d\n", _dynamicVBO[i]
             );
         }
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "\t%d\n\n", mStaticVBO
+            "\t%d\n\n", _staticVBO
         );
     
         //double buffered VBOs
         for (unsigned int i = 0; i < 2; i++) {
-            if (!mFixedPipeline) {
-                glBindVertexArray(mDynamicVAO[i]);
+            if (!_fixedPipeline) {
+                glBindVertexArray(_dynamicVAO[i]);
                 glEnableVertexAttribArray(0);
             }
-            glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[i]);
+            glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[i]);
             glBufferData(
                 GL_ARRAY_BUFFER,
                 StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs,
-                &mDynamicVertexList,
+                &_dynamicVertexList,
                 GL_STREAM_DRAW
             );
     
-            if (!mFixedPipeline) {
+            if (!_fixedPipeline) {
                 glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
             }
         }
 
-        if (!mFixedPipeline) {
-            glBindVertexArray(mStaticVAO);
+        if (!_fixedPipeline) {
+            glBindVertexArray(_staticVAO);
             glEnableVertexAttribArray(0);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, mStaticVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, _staticVBO);
         glBufferData(
             GL_ARRAY_BUFFER,
-            mStaticVerts.size() * sizeof(float),
-            mStaticVerts.data(),
+            _staticVerts.size() * sizeof(float),
+            _staticVerts.data(),
             GL_STATIC_DRAW
         );
-        if (!mFixedPipeline) {
+        if (!_fixedPipeline) {
             glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
         }
     }
     
     // SETUP SHADERS
-    if (mFixedPipeline) {
+    if (_fixedPipeline) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        mShader.setName("StatsShader");
+        _shader.setName("StatsShader");
         
         std::string vertShader = Stats_Vert_Shader_Legacy;
         std::string fragShader = Stats_Frag_Shader_Legacy;
@@ -230,7 +230,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             Engine::instance()->getGLSLVersion()
         );
         
-        bool vert = mShader.addShaderSrc(
+        bool vert = _shader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -241,7 +241,7 @@ void Statistics::initVBO(bool fixedPipeline) {
                 "Failed to load statistics vertex shader\n"
             );
         }
-        bool frag = mShader.addShaderSrc(
+        bool frag = _shader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -252,18 +252,18 @@ void Statistics::initVBO(bool fixedPipeline) {
                 "Failed to load statistics fragment shader\n"
             );
         }
-        mShader.createAndLinkProgram();
-        mShader.bind();
+        _shader.createAndLinkProgram();
+        _shader.bind();
 
-        mColLoc = mShader.getUniformLocation("Col");
+        _colorLoc = _shader.getUniformLocation("Col");
 
-        mShader.unbind();
+        _shader.unbind();
     }
     else {
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        mShader.setName("StatsShader");
+        _shader.setName("StatsShader");
 
         std::string vertShader = Stats_Vert_Shader;
         std::string fragShader = Stats_Frag_Shader;
@@ -280,7 +280,7 @@ void Statistics::initVBO(bool fixedPipeline) {
             Engine::instance()->getGLSLVersion()
         );
 
-        bool vert = mShader.addShaderSrc(
+        bool vert = _shader.addShaderSrc(
             vertShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -291,7 +291,7 @@ void Statistics::initVBO(bool fixedPipeline) {
                 "Failed to load statistics vertex shader\n"
             );
         }
-        bool frag = mShader.addShaderSrc(
+        bool frag = _shader.addShaderSrc(
             fragShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -302,103 +302,103 @@ void Statistics::initVBO(bool fixedPipeline) {
                 "Failed to load statistics fragment shader\n"
             );
         }
-        mShader.createAndLinkProgram();
-        mShader.bind();
+        _shader.createAndLinkProgram();
+        _shader.bind();
 
-        mMVPLoc = mShader.getUniformLocation("MVP");
-        mColLoc = mShader.getUniformLocation("Col");
+        _mvpLoc = _shader.getUniformLocation("MVP");
+        _colorLoc = _shader.getUniformLocation("Col");
 
-        mShader.unbind();
+        _shader.unbind();
     }
 }
 
 void Statistics::setAvgFPS(float afps) {
-    mAvgFPS = afps;
+    _avgFPS = afps;
 }
 
 void Statistics::setFrameTime(float t) {
-    mAvgFrameTime = 0.f;
-    mMaxFrameTime = 0.f;
-    mMinFrameTime = std::numeric_limits<float>::max();
+    _avgFrameTime = 0.f;
+    _maxFrameTime = 0.f;
+    _minFrameTime = std::numeric_limits<float>::max();
 
     for (int i = StatsHistoryLength - 2; i >= 0; i--) {
-        mDynamicVertexList.frameTime[i + 1].y = mDynamicVertexList.frameTime[i].y;
+        _dynamicVertexList.frameTime[i + 1].y = _dynamicVertexList.frameTime[i].y;
         if (i < (StatsAverageLength - 1)) {
-            mAvgFrameTime += mDynamicVertexList.frameTime[i].y;
-            mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList.frameTime[i].y);
-            mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList.frameTime[i].y);
+            _avgFrameTime += _dynamicVertexList.frameTime[i].y;
+            _maxFrameTime = glm::max(_maxFrameTime, _dynamicVertexList.frameTime[i].y);
+            _minFrameTime = glm::min(_minFrameTime, _dynamicVertexList.frameTime[i].y);
         }
     }
-    mDynamicVertexList.frameTime[0].y = t;
+    _dynamicVertexList.frameTime[0].y = t;
     
-    mAvgFrameTime += mDynamicVertexList.frameTime[0].y;
-    mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList.frameTime[0].y);
-    mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList.frameTime[0].y);
+    _avgFrameTime += _dynamicVertexList.frameTime[0].y;
+    _maxFrameTime = glm::max(_maxFrameTime, _dynamicVertexList.frameTime[0].y);
+    _minFrameTime = glm::min(_minFrameTime, _dynamicVertexList.frameTime[0].y);
 
-    mAvgFrameTime /= static_cast<float>(StatsAverageLength);
+    _avgFrameTime /= static_cast<float>(StatsAverageLength);
 
     float sumSquaredDeviation = 0.f;
     for (int i = 0; i < StatsAverageLength; ++i) {
         sumSquaredDeviation += std::pow(
-            mDynamicVertexList.frameTime[i].y - mAvgFrameTime,
+            _dynamicVertexList.frameTime[i].y - _avgFrameTime,
             2.f
         );
     }
 
-    mStdDevFrameTime = glm::sqrt(
+    _stdDevFrameTime = glm::sqrt(
         sumSquaredDeviation / static_cast<float>(StatsAverageLength)
     );
 }
 
 void Statistics::setDrawTime(float t) {
-    mAvgDrawTime = 0.f;
+    _avgDrawTime = 0.f;
 
     for (int i = StatsHistoryLength - 2; i >= 0; i--) {
-        mDynamicVertexList.drawTime[i + 1].y = mDynamicVertexList.drawTime[i].y;
+        _dynamicVertexList.drawTime[i + 1].y = _dynamicVertexList.drawTime[i].y;
         if (i < (StatsAverageLength - 1)) {
-            mAvgDrawTime += mDynamicVertexList.drawTime[i].y;
+            _avgDrawTime += _dynamicVertexList.drawTime[i].y;
         }
     }
-    mDynamicVertexList.drawTime[0].y = t;
+    _dynamicVertexList.drawTime[0].y = t;
     
-    mAvgDrawTime += mDynamicVertexList.drawTime[0].y;
-    mAvgDrawTime /= static_cast<float>(StatsAverageLength);
+    _avgDrawTime += _dynamicVertexList.drawTime[0].y;
+    _avgDrawTime /= static_cast<float>(StatsAverageLength);
 }
 
 void Statistics::setSyncTime(float t) {
-    mAvgSyncTime = 0.f;
+    _avgSyncTime = 0.f;
     
     for (int i = StatsHistoryLength - 2; i >= 0; i--) {
-        mDynamicVertexList.syncTime[i + 1].y = mDynamicVertexList.syncTime[i].y;
+        _dynamicVertexList.syncTime[i + 1].y = _dynamicVertexList.syncTime[i].y;
         if (i < (StatsAverageLength - 1)) {
-            mAvgSyncTime += mDynamicVertexList.syncTime[i].y;
+            _avgSyncTime += _dynamicVertexList.syncTime[i].y;
         }
     }
-    mDynamicVertexList.syncTime[0].y = t;
+    _dynamicVertexList.syncTime[0].y = t;
     
-    mAvgSyncTime += mDynamicVertexList.syncTime[0].y;
-    mAvgSyncTime /= static_cast<float>(StatsAverageLength);
+    _avgSyncTime += _dynamicVertexList.syncTime[0].y;
+    _avgSyncTime /= static_cast<float>(StatsAverageLength);
 }
 
 void Statistics::setLoopTime(float min, float max) {
     std::rotate(
-        std::rbegin(mDynamicVertexList.loopTimeMax),
-        std::rbegin(mDynamicVertexList.loopTimeMax) + 1,
-        std::rend(mDynamicVertexList.loopTimeMax)
+        std::rbegin(_dynamicVertexList.loopTimeMax),
+        std::rbegin(_dynamicVertexList.loopTimeMax) + 1,
+        std::rend(_dynamicVertexList.loopTimeMax)
     );
-    mDynamicVertexList.loopTimeMax[0].y = max;
+    _dynamicVertexList.loopTimeMax[0].y = max;
     
     std::rotate(
-        std::rbegin(mDynamicVertexList.loopTimeMin),
-        std::rbegin(mDynamicVertexList.loopTimeMin) + 1,
-        std::rend(mDynamicVertexList.loopTimeMin)
+        std::rbegin(_dynamicVertexList.loopTimeMin),
+        std::rbegin(_dynamicVertexList.loopTimeMin) + 1,
+        std::rend(_dynamicVertexList.loopTimeMin)
     );
-    mDynamicVertexList.loopTimeMin[0].y = min;
+    _dynamicVertexList.loopTimeMin[0].y = min;
 }
 
 void Statistics::addSyncTime(float t) {
-    mDynamicVertexList.syncTime[StatsHistoryLength - 1].y += t;
-    mAvgSyncTime += (t / static_cast<float>(StatsAverageLength));
+    _dynamicVertexList.syncTime[StatsHistoryLength - 1].y += t;
+    _avgSyncTime += (t / static_cast<float>(StatsAverageLength));
 }
 
 void Statistics::update() {
@@ -408,14 +408,14 @@ void Statistics::update() {
         return;
     }
 
-    mVBOIndex = 1 - mVBOIndex; //ping-pong
-    glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
+    _vboIndex = 1 - _vboIndex; //ping-pong
+    glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[_vboIndex]);
     size_t size = StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs;
 
     GLvoid* positionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
     if (positionBuffer) {
-        memcpy(positionBuffer, &mDynamicVertexList, size);
+        memcpy(positionBuffer, &_dynamicVertexList, size);
         glUnmapBuffer(GL_ARRAY_BUFFER);
     }
 
@@ -423,9 +423,9 @@ void Statistics::update() {
 }
 
 void Statistics::draw(float lineWidth) {
-    mShader.bind();
+    _shader.bind();
 
-    if (mFixedPipeline) {
+    if (_fixedPipeline) {
         // enter ortho mode
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -453,38 +453,38 @@ void Statistics::draw(float lineWidth) {
             glEnableClientState(GL_VERTEX_ARRAY);
         
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ARRAY_BUFFER, mStaticVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, _staticVBO);
             glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
             // draw background (1024x1024 canvas)
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorBackground));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
             // 1 ms lines
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
-            glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorGrid));
+            glDrawArrays(GL_LINES, 4, _nLines * 2);
 
             // zero line, 60hz & 30hz
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
-            glDrawArrays(GL_LINES, 4+mNumberOfLines * 2, 6);
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorFrequency));
+            glDrawArrays(GL_LINES, 4+_nLines * 2, 6);
 
-            glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
+            glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[_vboIndex]);
             glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
             // frametime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.frameTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.frameTime));
             glDrawArrays(GL_LINE_STRIP, 0 * StatsHistoryLength, StatsHistoryLength);
             // drawtime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.drawTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.drawTime));
             glDrawArrays(GL_LINE_STRIP, 1 * StatsHistoryLength, StatsHistoryLength);
             // synctime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.syncTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.syncTime));
             glDrawArrays(GL_LINE_STRIP, 2 * StatsHistoryLength, StatsHistoryLength);
             // looptimemax
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMax));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMax));
             glDrawArrays(GL_LINE_STRIP, 3 * StatsHistoryLength, StatsHistoryLength);
             // looptimemin
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMin));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMin));
             glDrawArrays(GL_LINE_STRIP, 4 * StatsHistoryLength, StatsHistoryLength);
 
             // unbind
@@ -494,88 +494,88 @@ void Statistics::draw(float lineWidth) {
         else {
             // old-school rendering for OSG compability
             // draw background (1024x1024 canvas)
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorBackground));
             glBegin(GL_TRIANGLE_STRIP);
-            glVertex2f(mStaticVerts[0], mStaticVerts[1]);
-            glVertex2f(mStaticVerts[2], mStaticVerts[3]);
-            glVertex2f(mStaticVerts[4], mStaticVerts[5]);
-            glVertex2f(mStaticVerts[6], mStaticVerts[7]);
+            glVertex2f(_staticVerts[0], _staticVerts[1]);
+            glVertex2f(_staticVerts[2], _staticVerts[3]);
+            glVertex2f(_staticVerts[4], _staticVerts[5]);
+            glVertex2f(_staticVerts[6], _staticVerts[7]);
             glEnd();
 
             // 1 ms lines
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorGrid));
             glBegin(GL_LINES);
-            for (int i = 0; i < mNumberOfLines * 4; i += 4) {
-                glVertex2f(mStaticVerts[i + 8], mStaticVerts[i + 9]);
-                glVertex2f(mStaticVerts[i + 10], mStaticVerts[i + 11]);
+            for (int i = 0; i < _nLines * 4; i += 4) {
+                glVertex2f(_staticVerts[i + 8], _staticVerts[i + 9]);
+                glVertex2f(_staticVerts[i + 10], _staticVerts[i + 11]);
             }
             glEnd();
 
             // zero line, 60hz & 30hz
-            int offset = mNumberOfLines * 4 + 8;
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
+            int offset = _nLines * 4 + 8;
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorFrequency));
             glBegin(GL_LINES);
-            glVertex2f(mStaticVerts[offset], mStaticVerts[offset + 1]);
-            glVertex2f(mStaticVerts[offset + 2], mStaticVerts[offset + 3]);
+            glVertex2f(_staticVerts[offset], _staticVerts[offset + 1]);
+            glVertex2f(_staticVerts[offset + 2], _staticVerts[offset + 3]);
 
-            glVertex2f(mStaticVerts[offset+4], mStaticVerts[offset+5]);
-            glVertex2f(mStaticVerts[offset+6], mStaticVerts[offset+7]);
+            glVertex2f(_staticVerts[offset+4], _staticVerts[offset+5]);
+            glVertex2f(_staticVerts[offset+6], _staticVerts[offset+7]);
 
-            glVertex2f(mStaticVerts[offset+8], mStaticVerts[offset+9]);
-            glVertex2f(mStaticVerts[offset+10], mStaticVerts[offset+11]);
+            glVertex2f(_staticVerts[offset+8], _staticVerts[offset+9]);
+            glVertex2f(_staticVerts[offset+10], _staticVerts[offset+11]);
             glEnd();
 
             // frametime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.frameTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.frameTime));
             glBegin(GL_LINE_STRIP);
             for (unsigned int j = 0; j < StatsHistoryLength; j++) {
                 glVertex2f(
-                    mDynamicVertexList.frameTime[j].x,
-                    mDynamicVertexList.frameTime[j].y
+                    _dynamicVertexList.frameTime[j].x,
+                    _dynamicVertexList.frameTime[j].y
                 );
             }
             glEnd();
 
             // drawtime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.drawTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.drawTime));
             glBegin(GL_LINE_STRIP);
             for (unsigned int j = 0; j < StatsHistoryLength; j++) {
                 glVertex2f(
-                    mDynamicVertexList.drawTime[j].x,
-                    mDynamicVertexList.drawTime[j].y
+                    _dynamicVertexList.drawTime[j].x,
+                    _dynamicVertexList.drawTime[j].y
                 );
             }
             glEnd();
 
             // synctime
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.syncTime));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.syncTime));
             glBegin(GL_LINE_STRIP);
             for (unsigned int j = 0; j < StatsHistoryLength; j++) {
                 glVertex2f(
-                    mDynamicVertexList.syncTime[j].x,
-                    mDynamicVertexList.syncTime[j].y
+                    _dynamicVertexList.syncTime[j].x,
+                    _dynamicVertexList.syncTime[j].y
                 );
             }
             glEnd();
 
             // looptimemax
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMax));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMax));
             glBegin(GL_LINE_STRIP);
             for (unsigned int j = 0; j < StatsHistoryLength; j++) {
                 glVertex2f(
-                    mDynamicVertexList.loopTimeMax[j].x,
-                    mDynamicVertexList.loopTimeMax[j].y
+                    _dynamicVertexList.loopTimeMax[j].x,
+                    _dynamicVertexList.loopTimeMax[j].y
                 );
             }
             glEnd();
 
             // looptimemin
-            glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMin));
+            glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMin));
             glBegin(GL_LINE_STRIP);
             for (unsigned int j = 0; j < StatsHistoryLength; j++) {
                 glVertex2f(
-                    mDynamicVertexList.loopTimeMin[j].x,
-                    mDynamicVertexList.loopTimeMin[j].y
+                    _dynamicVertexList.loopTimeMin[j].x,
+                    _dynamicVertexList.loopTimeMin[j].y
                 );
             }
             glEnd();
@@ -598,88 +598,88 @@ void Statistics::draw(float lineWidth) {
         orthoMat = glm::translate(orthoMat, glm::vec3(0.f, size / 4.f, 0.f));
         orthoMat = glm::scale(orthoMat, glm::vec3(1.f, VertScale, 1.f));
         
-        glUniformMatrix4fv(mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
+        glUniformMatrix4fv(_mvpLoc, 1, GL_FALSE, &orthoMat[0][0]);
         
-        glBindVertexArray(mStaticVAO);
+        glBindVertexArray(_staticVAO);
 
         // draw background (1024x1024 canvas)
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorBackground));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorBackground));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         // 1 ms lines
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorGrid));
-        glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorGrid));
+        glDrawArrays(GL_LINES, 4, _nLines * 2);
         
         // zero line, 60hz & 30hz
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColorFrequency));
-        glDrawArrays(GL_LINES, 4 + mNumberOfLines * 2, 6);
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_staticColorFrequency));
+        glDrawArrays(GL_LINES, 4 + _nLines * 2, 6);
         
-        glBindVertexArray(mDynamicVAO[mVBOIndex]);
+        glBindVertexArray(_dynamicVAO[_vboIndex]);
 
         // frametime
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.frameTime));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.frameTime));
         glDrawArrays(GL_LINE_STRIP, 0 * StatsHistoryLength, StatsHistoryLength);
 
         // drawtime
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.drawTime));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.drawTime));
         glDrawArrays(GL_LINE_STRIP, 1 * StatsHistoryLength, StatsHistoryLength);
 
         // synctime
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.syncTime));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.syncTime));
         glDrawArrays(GL_LINE_STRIP, 2 * StatsHistoryLength, StatsHistoryLength);
 
         // looptimemax
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMax));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMax));
         glDrawArrays(GL_LINE_STRIP, 3 * StatsHistoryLength, StatsHistoryLength);
 
         // looptimemin
-        glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors.loopTimeMin));
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(_dynamicColors.loopTimeMin));
         glDrawArrays(GL_LINE_STRIP, 4 * StatsHistoryLength, StatsHistoryLength);
 
         glBindVertexArray(0);
     }
 
-    mShader.unbind();
+    _shader.unbind();
 }
 
 float Statistics::getAvgFPS() const {
-    return mAvgFPS;
+    return _avgFPS;
 }
 
 float Statistics::getAvgDrawTime() const {
-    return mAvgDrawTime;
+    return _avgDrawTime;
 }
 
 float Statistics::getAvgSyncTime() const {
-    return mAvgSyncTime;
+    return _avgSyncTime;
 }
 
 float Statistics::getAvgFrameTime() const {
-    return mAvgFrameTime;
+    return _avgFrameTime;
 }
 
 float Statistics::getMinFrameTime() const {
-    return mMinFrameTime;
+    return _minFrameTime;
 }
 
 float Statistics::getMaxFrameTime() const {
-    return mMaxFrameTime;
+    return _maxFrameTime;
 }
 
 float Statistics::getFrameTimeStandardDeviation() const {
-    return mStdDevFrameTime;
+    return _stdDevFrameTime;
 }
 
 float Statistics::getFrameTime() const {
-    return mDynamicVertexList.frameTime[0].y;
+    return _dynamicVertexList.frameTime[0].y;
 }
 
 float Statistics::getDrawTime() const {
-    return mDynamicVertexList.drawTime[0].y;
+    return _dynamicVertexList.drawTime[0].y;
 }
 
 float Statistics::getSyncTime() const {
-    return mDynamicVertexList.syncTime[0].y;
+    return _dynamicVertexList.syncTime[0].y;
 }
 
 } // namespace sgct::core

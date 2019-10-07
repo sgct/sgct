@@ -10,39 +10,39 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::core {
 
 void ProjectionPlane::reset() {
-    lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
-    upperLeft = glm::vec3(-1.f, 1.f, -2.f);
-    upperRight = glm::vec3(1.f, 1.f, -2.f);
+    _lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    _upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    _upperRight = glm::vec3(1.f, 1.f, -2.f);
 }
 
 void ProjectionPlane::offset(const glm::vec3& p) {
-    lowerLeft += p;
-    upperLeft += p;
-    upperRight += p;
+    _lowerLeft += p;
+    _upperLeft += p;
+    _upperRight += p;
 }
 
 void ProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
-    lowerLeft = std::move(coordinate);
+    _lowerLeft = std::move(coordinate);
 }
 
 void ProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
-    upperLeft = std::move(coordinate);
+    _upperLeft = std::move(coordinate);
 }
 
 void ProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
-    upperRight = std::move(coordinate);
+    _upperRight = std::move(coordinate);
 }
 
 glm::vec3 ProjectionPlane::getCoordinateLowerLeft() const {
-    return lowerLeft;
+    return _lowerLeft;
 }
 
 glm::vec3 ProjectionPlane::getCoordinateUpperLeft() const {
-    return upperLeft;
+    return _upperLeft;
 }
 
 glm::vec3 ProjectionPlane::getCoordinateUpperRight() const {
-    return upperRight;
+    return _upperRight;
 }
 
 } // namespace sgct::core

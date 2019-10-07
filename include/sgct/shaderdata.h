@@ -13,9 +13,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::core {
 
 struct ShaderData {
-    Shader mShader;
-    std::string mShaderSrc;
-    bool mIsSrcFile;
+    Shader shader;
+    std::string source;
+    bool isSrcFile;
 };
 
 } // namespace sgct::core

@@ -140,11 +140,11 @@ private:
      */
     bool checkLinkStatus() const;
 
-    std::string mName = "SGCT_NULL"; /// Name of the program, has to be unique
-    bool mIsLinked = false;          /// If this program has been linked
-    int mProgramId = 0;              /// Unique program id
+    std::string _name = "SGCT_NULL"; /// Name of the program, has to be unique
+    bool _isLinked = false;          /// If this program has been linked
+    int _programId = 0;              /// Unique program _id
 
-    std::vector<core::ShaderData> mShaders;
+    std::vector<core::ShaderData> _shaders;
 };
 
 } // namespace sgct

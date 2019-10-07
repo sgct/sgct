@@ -89,14 +89,14 @@ public:
     const std::string& getName() const;
 
 private:
-    std::string mName;
-    std::string mAddress;
-    int mSyncPort = 0;
-    int mDataTransferPort = 0;
+    std::string _name;
+    std::string _address;
+    int _syncPort = 0;
+    int _dataTransferPort = 0;
 
-    int mCurrentWindowIndex = 0;
-    std::vector<Window> mWindows;
-    bool mUseSwapGroups = false;
+    int _currentWindowIndex = 0;
+    std::vector<Window> _windows;
+    bool _useSwapGroups = false;
 };
 
 } // namespace sgct::core

@@ -142,11 +142,11 @@ public:
 
 private:
     struct TextureData {
-        std::string mPath = "NOTSET";
-        unsigned int mId = 0;
-        int mWidth = -1;
-        int mHeight = -1;
-        int mChannels = -1;
+        std::string path = "NOTSET";
+        unsigned int id = 0;
+        int width = -1;
+        int height = -1;
+        int nChannels = -1;
     };
 
     TextureManager();
@@ -159,19 +159,19 @@ private:
     bool uploadImage(const core::Image& imgPtr, unsigned int& texPtr);
     void freeTextureData();
 
-    static TextureManager* mInstance;
+    static TextureManager* _instance;
     
-    float mAnisotropicFilterSize;
-    CompressionMode mCompression = CompressionMode::None;
-    bool mAlphaMode = false;
-    bool mOverWriteMode = true;
-    bool mInterpolate = true;
-    std::unordered_map<std::string, TextureData> mTextures;
-    int mMipmapLevels = 8;
+    float _anisotropicFilterSize;
+    CompressionMode _compression = CompressionMode::None;
+    bool _alphaMode = false;
+    bool _overWriteMode = true;
+    bool _interpolate = true;
+    std::unordered_map<std::string, TextureData> _textures;
+    int _mipmapLevels = 8;
     struct {
         GLenum s;
         GLenum t;
-    } mWarpMode;
+    } _warpMode;
 };
 
 } // namespace sgct::core

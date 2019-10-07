@@ -16,27 +16,27 @@ namespace sgct::utils {
 
 Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
            unsigned int elevationSteps)
-    : mElevationSteps(elevationSteps)
-    , mAzimuthSteps(azimuthSteps)
+    : _elevationSteps(elevationSteps)
+    , _azimuthSteps(azimuthSteps)
 {
     std::vector<helpers::VertexData> vertices;
 
     // must be four or higher
-    if (mAzimuthSteps < 4) {
+    if (_azimuthSteps < 4) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Warning: Dome geometry azimuth steps must be exceed 4\n"
         );
-        mAzimuthSteps = 4;
+        _azimuthSteps = 4;
     }
 
     // must be four or higher
-    if (mElevationSteps < 4)  {
+    if (_elevationSteps < 4)  {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Warning: Dome geometry elevation steps must be exceed 4\n"
         );
-        mElevationSteps = 4;
+        _elevationSteps = 4;
     }
 
 
@@ -51,9 +51,9 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
 }
 
 Dome::~Dome() {
-    glDeleteBuffers(1, &mVBO);
-    glDeleteBuffers(1, &mIBO);
-    glDeleteVertexArrays(1, &mVAO);
+    glDeleteBuffers(1, &_vbo);
+    glDeleteBuffers(1, &_ibo);
+    glDeleteVertexArrays(1, &_vao);
 }
 
 void Dome::draw() {
@@ -66,13 +66,13 @@ void Dome::drawVBO() {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 
     glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
     
-    for (int i = 0; i < mElevationSteps - 1; i++) {
-        const unsigned int size = (2 * mAzimuthSteps + 2);
+    for (int i = 0; i < _elevationSteps - 1; i++) {
+        const unsigned int size = (2 * _azimuthSteps + 2);
         const unsigned int offset = i * size;
         glDrawElements(
             GL_TRIANGLE_STRIP,
@@ -83,8 +83,8 @@ void Dome::drawVBO() {
     }
 
     // one extra for the cap vertex and one extra for duplication of last index
-    const unsigned int size = mAzimuthSteps + 2;
-    const unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+    const unsigned int size = _azimuthSteps + 2;
+    const unsigned int offset = (2 * _azimuthSteps + 2) * (_elevationSteps - 1);
     glDrawElements(
         GL_TRIANGLE_FAN,
         size,
@@ -99,10 +99,10 @@ void Dome::drawVBO() {
 }
 
 void Dome::drawVAO() {
-    glBindVertexArray(mVAO);
+    glBindVertexArray(_vao);
 
-    for (int i = 0; i < mElevationSteps - 1; i++) {
-        const unsigned int size = (2 * mAzimuthSteps + 2);
+    for (int i = 0; i < _elevationSteps - 1; i++) {
+        const unsigned int size = (2 * _azimuthSteps + 2);
         const unsigned int offset = i * size;
         glDrawElements(
             GL_TRIANGLE_STRIP,
@@ -113,8 +113,8 @@ void Dome::drawVAO() {
     }
 
     // one extra for the cap vertex and one extra for duplication of last index
-    const unsigned int size = mAzimuthSteps + 2; 
-    const unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+    const unsigned int size = _azimuthSteps + 2; 
+    const unsigned int offset = (2 * _azimuthSteps + 2) * (_elevationSteps - 1);
     glDrawElements(
         GL_TRIANGLE_FAN,
         size,
@@ -130,9 +130,9 @@ void Dome::createVBO(float radius, float FOV) {
     std::vector<helpers::VertexData> verts;
     std::vector<unsigned int> indices;
 
-    for (int a = 0; a < mAzimuthSteps; a++) {
+    for (int a = 0; a < _azimuthSteps; a++) {
         const float azimuth = glm::radians(
-            static_cast<float>(a * 360.f) / static_cast<float>(mAzimuthSteps)
+            static_cast<float>(a * 360.f) / static_cast<float>(_azimuthSteps)
         );
 
         const float elevation = glm::radians(lift);
@@ -150,24 +150,24 @@ void Dome::createVBO(float radius, float FOV) {
     }
 
     int numVerts = 0;
-    for (int e = 1; e <= mElevationSteps - 1; e++) {
-        const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+    for (int e = 1; e <= _elevationSteps - 1; e++) {
+        const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
         const float elevation = glm::radians(lift + de * (90.0f - lift));
 
         const float y = sin(elevation);
 
-        for (int a = 0; a < mAzimuthSteps; a++) {
+        for (int a = 0; a < _azimuthSteps; a++) {
             const float azimuth = glm::radians(
-                static_cast<float>(a * 360.f) / static_cast<float>(mAzimuthSteps)
+                static_cast<float>(a * 360.f) / static_cast<float>(_azimuthSteps)
             );
 
             const float x = cos(elevation) * sin(azimuth);
             const float z = -cos(elevation) * cos(azimuth);
 
-            float s = (static_cast<float>(mElevationSteps - e) /
-                       static_cast<float>(mElevationSteps)) * sin(azimuth);
-            float t = (static_cast<float>(mElevationSteps - e) /
-                       static_cast<float>(mElevationSteps)) * -cos(azimuth);
+            float s = (static_cast<float>(_elevationSteps - e) /
+                       static_cast<float>(_elevationSteps)) * sin(azimuth);
+            float t = (static_cast<float>(_elevationSteps - e) /
+                       static_cast<float>(_elevationSteps)) * -cos(azimuth);
             s = s * 0.5f + 0.5f;
             t = t * 0.5f + 0.5f;
 
@@ -178,16 +178,16 @@ void Dome::createVBO(float radius, float FOV) {
             });
 
             indices.push_back(numVerts);
-            indices.push_back(mAzimuthSteps + numVerts);
+            indices.push_back(_azimuthSteps + numVerts);
             ++numVerts;
         }
 
-        indices.push_back(numVerts - mAzimuthSteps);
+        indices.push_back(numVerts - _azimuthSteps);
         indices.push_back(numVerts);
     }
 
-    const int e = mElevationSteps;
-    const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+    const int e = _elevationSteps;
+    const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
     const float elevation = glm::radians(lift + de * (90.f - lift));
     const float y = sin(elevation);
     verts.push_back({
@@ -197,31 +197,31 @@ void Dome::createVBO(float radius, float FOV) {
     });
 
 
-    indices.push_back(numVerts + mAzimuthSteps);
-    for (int a = 1; a <= mAzimuthSteps; a++) {
-        indices.push_back(numVerts + mAzimuthSteps - a);
+    indices.push_back(numVerts + _azimuthSteps);
+    for (int a = 1; a <= _azimuthSteps; a++) {
+        indices.push_back(numVerts + _azimuthSteps - a);
     }
-    indices.push_back(numVerts + mAzimuthSteps - 1);
+    indices.push_back(numVerts + _azimuthSteps - 1);
 
 
-    glGenVertexArrays(1, &mVAO);
-    glBindVertexArray(mVAO);
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Dome: Generating VAO: %d\n", mVAO
+        "Dome: Generating VAO: %d\n", _vao
     );
 
-    glGenBuffers(2, &mVBO);
+    glGenBuffers(2, &_vbo);
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Dome: Generating VBOs: %d %d\n", mVBO, mIBO
+        "Dome: Generating VBOs: %d %d\n", _vbo, _ibo
     );
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
         static_cast<int>(verts.size()) * sizeof(helpers::VertexData),
@@ -257,7 +257,7 @@ void Dome::createVBO(float radius, float FOV) {
         reinterpret_cast<void*>(20)
     );
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
         static_cast<int>(indices.size()) * sizeof(unsigned int),

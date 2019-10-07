@@ -184,31 +184,32 @@ private:
      */
     void calculateSceneTransform();
 
-    static ClusterManager* mInstance;
+    static ClusterManager* _instance;
 
     // @TODO (abock 2019-09-02): I tried changing this to a std::vector<Node>, but
     // this class is handing out pointers to external classes left and right, so we can't
     // have a datastructure that will willynilly move its contents around in memory.
     // #sadface
-    std::vector<std::unique_ptr<Node>> nodes;
+    std::vector<std::unique_ptr<Node>> _nodes;
 
-    int mThisNodeId = -1;
-    bool mFirmFrameLockSync = false;
-    bool mIgnoreSync = false;
-    std::string mMasterAddress;
-    int mExternalControlPort = 0;
-    bool mUseASCIIForExternalControl = true;
+    int _thisNodeId = -1;
+    bool _firmFrameLockSync = false;
+    bool _ignoreSync = false;
+    std::string _masterAddress;
+    int _externalControlPort = 0;
+    bool _useASCIIForExternalControl = true;
 
     // @TODO (abock, 2019-09-02): See nodes
-    std::vector<std::unique_ptr<User>> mUsers;
-    TrackingManager mTrackingManager;
+    std::vector<std::unique_ptr<User>> _users;
+    TrackingManager _trackingManager;
 
-    glm::mat4 mSceneTransform = glm::mat4(1.f);
-    glm::mat4 mSceneScale = glm::mat4(1.f);
-    glm::mat4 mSceneTranslate = glm::mat4(1.f);
-    glm::mat4 mSceneRotation = glm::mat4(1.f);
-    MeshImplementation mMeshImpl = MeshImplementation::BufferObjects;
-    NetworkManager::NetworkMode mNetMode = NetworkManager::NetworkMode::Remote;
+    glm::mat4 _sceneTransform = glm::mat4(1.f);
+    glm::mat4 _sceneScale = glm::mat4(1.f);
+    glm::mat4 _sceneTranslate = glm::mat4(1.f);
+    glm::mat4 _sceneRotation = glm::mat4(1.f);
+    // @TODO (abock, 2019-10-07); Is this still necessary/used?
+    MeshImplementation _meshImpl = MeshImplementation::BufferObjects;
+    NetworkManager::NetworkMode _netMode = NetworkManager::NetworkMode::Remote;
 };
 
 } // namespace sgct::core

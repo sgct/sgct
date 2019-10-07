@@ -13,10 +13,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-Shader::Shader(ShaderType shaderType) : mShaderType(shaderType) {}
+Shader::Shader(ShaderType shaderType) : _shaderType(shaderType) {}
 
 void Shader::setShaderType(ShaderType shaderType) {
-    mShaderType = shaderType;
+    _shaderType = shaderType;
 }
 
 bool Shader::setSourceFromFile(const std::string& file) {
@@ -27,7 +27,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Could not open %s file[%s]\n",
-            getShaderTypeName(mShaderType).c_str(), file.c_str()
+            getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
         return false;
     }
@@ -42,7 +42,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Can't create source for %s: empty file [%s]\n",
-            getShaderTypeName(mShaderType).c_str(), file.c_str()
+            getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
         return false;
     }
@@ -59,11 +59,11 @@ bool Shader::setSourceFromFile(const std::string& file) {
 
 bool Shader::setSourceFromString(const std::string& sourceString) {
     // At this point no resetting of shaders are supported
-    if (mShaderId > 0) {
+    if (_shaderId > 0) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "%s is already set for specified shader\n",
-            getShaderTypeName(mShaderType).c_str()
+            getShaderTypeName(_shaderType).c_str()
         );
         return false;
     }
@@ -71,47 +71,47 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
     // Prepare source code for shader
     const char* shaderSrc[] = { sourceString.c_str() };
 
-    mShaderId = glCreateShader(mShaderType);
-    glShaderSource(mShaderId, 1, shaderSrc, nullptr);
+    _shaderId = glCreateShader(_shaderType);
+    glShaderSource(_shaderId, 1, shaderSrc, nullptr);
 
     // Compile and check status
-    glCompileShader(mShaderId);
+    glCompileShader(_shaderId);
 
     return checkCompilationStatus();
 }
 
 void Shader::deleteShader() {
-    glDeleteShader(mShaderId);
-    mShaderId = 0;
+    glDeleteShader(_shaderId);
+    _shaderId = 0;
 }
 
 int Shader::getId() const {
-    return mShaderId;
+    return _shaderId;
 }
 
 bool Shader::checkCompilationStatus() const {
     GLint compilationStatus;
-    glGetShaderiv(mShaderId, GL_COMPILE_STATUS, &compilationStatus);
+    glGetShaderiv(_shaderId, GL_COMPILE_STATUS, &compilationStatus);
 
     if (compilationStatus == 0) {
         GLint logLength;
-        glGetShaderiv(mShaderId, GL_INFO_LOG_LENGTH, &logLength);
+        glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &logLength);
 
         if (logLength == 0) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
                 "%s compile error: Unknown error\n",
-                getShaderTypeName(mShaderType).c_str()
+                getShaderTypeName(_shaderType).c_str()
             );
             return false;
         }
 
         std::vector<GLchar> log(logLength);
-        glGetShaderInfoLog(mShaderId, logLength, nullptr, log.data());
+        glGetShaderInfoLog(_shaderId, logLength, nullptr, log.data());
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "%s compile error: %s\n",
-            getShaderTypeName(mShaderType).c_str(), log.data()
+            getShaderTypeName(_shaderType).c_str(), log.data()
         );
 
         return false;

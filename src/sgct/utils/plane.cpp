@@ -26,8 +26,8 @@ Plane::Plane(float width, float height) {
 }
 
 Plane::~Plane() {
-    glDeleteBuffers(1, &mVBO);
-    glDeleteVertexArrays(1, &mVAO);
+    glDeleteBuffers(1, &_vbo);
+    glDeleteVertexArrays(1, &_vao);
 }
 
 void Plane::draw() {
@@ -40,7 +40,7 @@ void Plane::drawVBO() {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     
     glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -51,7 +51,7 @@ void Plane::drawVBO() {
 }
 
 void Plane::drawVAO() {
-    glBindVertexArray(mVAO);
+    glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
@@ -63,22 +63,22 @@ void Plane::createVBO(float width, float height) {
     verts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
     verts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
 
-    glGenVertexArrays(1, &mVAO);
-    glBindVertexArray(mVAO);
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "Plane: Generating VAO: %d\n", mVAO
+        MessageHandler::Level::Debug, "Plane: Generating VAO: %d\n", _vao
     );
     
-    glGenBuffers(1, &mVBO);
+    glGenBuffers(1, &_vbo);
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "Plane: Generating VBO: %d\n", mVBO
+        MessageHandler::Level::Debug, "Plane: Generating VBO: %d\n", _vbo
     );
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
         4 * sizeof(helpers::VertexData),

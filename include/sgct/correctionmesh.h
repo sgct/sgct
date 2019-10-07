@@ -74,12 +74,12 @@ private:
     struct CorrectionMeshGeometry {
         ~CorrectionMeshGeometry();
 
-        GLenum mGeometryType = GL_TRIANGLE_STRIP;
-        unsigned int mNumberOfVertices = 0;
-        unsigned int mNumberOfIndices = 0;
-        unsigned int mVertexMeshData = 0;
-        unsigned int mIndexMeshData = 0;
-        unsigned int mArrayMeshData = 0;
+        GLenum geometryType = GL_TRIANGLE_STRIP;
+        unsigned int nVertices = 0;
+        unsigned int nIndices = 0;
+        unsigned int vertexData = 0;
+        unsigned int indexData = 0;
+        unsigned int arrayData = 0;
     };
 
     struct CorrectionMeshVertex {
@@ -115,9 +115,9 @@ private:
 
     void render(const CorrectionMeshGeometry& mt) const;
 
-    CorrectionMeshGeometry mQuadGeometry;
-    CorrectionMeshGeometry mWarpGeometry;
-    CorrectionMeshGeometry mMaskGeometry;
+    CorrectionMeshGeometry _quadGeometry;
+    CorrectionMeshGeometry _warpGeometry;
+    CorrectionMeshGeometry _maskGeometry;
 };
     
 } // namespace sgct::core

@@ -35,12 +35,12 @@ private:
     void drawVAO();
     void createVBO(float radius, float FOV);
 
-    int mElevationSteps;
-    int mAzimuthSteps;
+    int _elevationSteps;
+    int _azimuthSteps;
 
-    unsigned int mVBO = 0;
-    unsigned int mIBO = 0;
-    unsigned int mVAO = 0;
+    unsigned int _vbo = 0;
+    unsigned int _ibo = 0;
+    unsigned int _vao = 0;
 };
 
 } // namespace sgct::utils

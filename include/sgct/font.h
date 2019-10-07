@@ -28,11 +28,11 @@ namespace sgct::text {
 class Font {
 public:
     struct FontFaceData {
-        unsigned int mTexId = 0;
-        float mDistToNextChar = 0.f;
-        glm::vec2 mPos;
-        glm::vec2 mSize;
-        FT_Glyph mGlyph;
+        unsigned int texId = 0;
+        float distToNextChar = 0.f;
+        glm::vec2 pos;
+        glm::vec2 size;
+        FT_Glyph glyph;
     };
 
     /**
@@ -79,13 +79,13 @@ public:
 
 private:
     struct GlyphData {
-        FT_Glyph mGlyph;
-        FT_Glyph mStrokeGlyph;
-        FT_Stroker mStroker;
-        FT_BitmapGlyph mBitmapGlyph;
-        FT_BitmapGlyph mBitmapStrokeGlyph;
-        FT_Bitmap* mBitmapPtr;
-        FT_Bitmap* mStrokeBitmapPtr;
+        FT_Glyph glyph;
+        FT_Glyph strokeGlyph;
+        FT_Stroker stroker;
+        FT_BitmapGlyph bitmapGlyph;
+        FT_BitmapGlyph bitmapStrokeGlyph;
+        FT_Bitmap* bitmap;
+        FT_Bitmap* strokeBitmap;
     };
 
     void createCharacter(wchar_t c);
@@ -96,18 +96,18 @@ private:
     bool getPixelData(FT_Face face, int& width, int& height,
         std::vector<unsigned char>& pixels, GlyphData& gd);
     
-    std::string mName;
-    float mHeight;
-    unsigned int mListId = 0;
-    unsigned int mVBO = 0;
-    unsigned int mVAO = 0;
-    FT_Face	mFace;
-    FT_Library mFTLibrary;
-    FT_Fixed mStrokeSize = 1;
-    std::unordered_map<wchar_t, FontFaceData> mFontFaceDataMap;
+    std::string _name;
+    float _height;
+    unsigned int _listId = 0;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
+    FT_Face	_face;
+    FT_Library _library;
+    FT_Fixed _strokeSize = 1;
+    std::unordered_map<wchar_t, FontFaceData> _fontFaceData;
 };
 
-} // sgct
+} // namespace sgct
 
 #endif // SGCT_HAS_TEXT
 #endif // __SGCT__FREETYPE_FONT__H__

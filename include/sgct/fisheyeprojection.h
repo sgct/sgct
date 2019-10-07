@@ -102,24 +102,24 @@ private:
     void renderCubemapInternal(size_t* subViewPortIndex);
     void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
-    float mFOV = 180.f;
-    float mTilt = 0.f;
-    float mDiameter = 14.8f;
+    float _fov = 180.f;
+    float _tilt = 0.f;
+    float _diameter = 14.8f;
     struct {
         float left = 0.f;
         float right = 0.f;
         float bottom = 0.f;
         float top = 0.f;
-    } mCropFactor;
+    } _cropFactor;
 
-    bool mOffAxis = false;
-    bool mIgnoreAspectRatio = false;
+    bool _offAxis = false;
+    bool _ignoreAspectRatio = false;
         
-    glm::vec3 mOffset = glm::vec3(0.f);
-    glm::vec3 mBaseOffset = glm::vec3(0.f);
-    glm::vec3 mTotalOffset = mBaseOffset + mOffset;
+    glm::vec3 _offset = glm::vec3(0.f);
+    glm::vec3 _baseOffset = glm::vec3(0.f);
+    glm::vec3 _totalOffset = _baseOffset + _offset;
 
-    FisheyeMethod mMethod = FisheyeMethod::FourFaceCube;
+    FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 
     // shader locations
     struct {
@@ -133,7 +133,7 @@ private:
         int swapDepthLoc = -1;
         int swapNearLoc = -1;
         int swapFarLoc = -1;
-    } mShaderLoc;
+    } _shaderLoc;
 };
 
 } // namespace sgct::core

@@ -129,6 +129,7 @@ public:
 
     /// Set to true if warping meshes should be exported as OBJ files.
     void setExportWarpingMeshes(bool state);
+
     /**
      * Controls removal of sub-pixel aliasing.
      *   1/2 - low removal
@@ -295,53 +296,53 @@ public:
 private:
     Settings() = default;
 
-    static Settings* mInstance;
+    static Settings* _instance;
 
-    std::atomic<CaptureFormat> mCaptureFormat = CaptureFormat::PNG;
-    int mSwapInterval = 1;
-    int mRefreshRate = 0;
-    int mNumberOfCaptureThreads = std::thread::hardware_concurrency();
-    std::atomic_int mPNGCompressionLevel = 1;
-    std::atomic_int mJPEGQuality = 100;
-    int mDefaultNumberOfAASamples = 1;
+    std::atomic<CaptureFormat> _captureFormat = CaptureFormat::PNG;
+    int _swapInterval = 1;
+    int _refreshRate = 0;
+    int _nCaptureThreads = std::thread::hardware_concurrency();
+    std::atomic_int _pngCompressionLevel = 1;
+    std::atomic_int _jpegQuality = 100;
+    int _defaultNumberOfAASamples = 1;
     
-    bool mUseDepthTexture = false;
-    bool mUseNormalTexture = false;
-    bool mUsePositionTexture = false;
-    bool mUseFBO = true;
-    bool mDefaultFXAA = false;
-    bool mForceGlTexImage2D = false;
-    bool mUsePBO = true;
-    std::atomic_bool mUseRLE = false;
-    bool mUseWarping = true;
-    bool mShowWarpingWireframe = false;
-    bool mCaptureBackBuffer = false;
-    bool mTryMaintainAspectRatio = true;
-    bool mExportWarpingMeshes = false;
+    bool _useDepthTexture = false;
+    bool _useNormalTexture = false;
+    bool _usePositionTexture = false;
+    bool _useFBO = true;
+    bool _defaultFXAA = false;
+    bool _forceGlTexImage2D = false;
+    bool _usePBO = true;
+    std::atomic_bool _useRLE = false;
+    bool _useWarping = true;
+    bool _showWarpingWireframe = false;
+    bool _captureBackBuffer = false;
+    bool _tryMaintainAspectRatio = true;
+    bool _exportWarpingMeshes = false;
 
-    glm::vec2 mOSDTextOffset = glm::vec2(0.05f, 0.05f);
-    float mFXAASubPixTrim = 1.f / 4.f;
-    float mFXAASubPixOffset = 1.f / 2.f;
+    glm::vec2 _osdTextOffset = glm::vec2(0.05f, 0.05f);
+    float _fxaaSubPixTrim = 1.f / 4.f;
+    float _fxaaSubPixOffset = 1.f / 2.f;
 
     struct {
         std::string mono = "SGCT";
         std::string left = "SGCT";
         std::string right = "SGCT";
-    } mCapturePath;
+    } _capturePath;
 
-    //fontdata
+    // fontdata
 #ifdef WIN32
-    std::string mFontName = "verdanab.ttf";
+    std::string _fontName = "verdanab.ttf";
 #elif __APPLE__
-    std::string mFontName = "Tahoma Bold.ttf";
+    std::string _fontName = "Tahoma Bold.ttf";
 #else
-    std::string mFontName = "FreeSansBold.ttf";
+    std::string _fontName = "FreeSansBold.ttf";
 
 #endif
-    std::string mFontPath;
-    unsigned int mFontSize = 10;
+    std::string _fontPath;
+    unsigned int _fontSize = 10;
 
-    BufferFloatPrecision mCurrentBufferFloatPrecision = BufferFloatPrecision::Float16Bit;
+    BufferFloatPrecision _currentBufferFloatPrecision = BufferFloatPrecision::Float16Bit;
 };
 
 } // namespace sgct

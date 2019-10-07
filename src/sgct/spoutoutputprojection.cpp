@@ -31,60 +31,60 @@ namespace sgct::core {
 
 SpoutOutputProjection::~SpoutOutputProjection() {
     for (int i = 0; i < NFaces; i++) {
-        if (mSpout[i].handle) {
+        if (_spout[i].handle) {
 #ifdef SGCT_HAS_SPOUT
-            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->ReleaseSender();
-            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->Release();
+            reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->ReleaseSender();
+            reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->Release();
 #endif
         }
     }
 
-    if (mappingHandle) {
+    if (_mappingHandle) {
 #ifdef SGCT_HAS_SPOUT
-        reinterpret_cast<SPOUTHANDLE>(mappingHandle)->ReleaseSender();
-        reinterpret_cast<SPOUTHANDLE>(mappingHandle)->Release();
+        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->ReleaseSender();
+        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->Release();
 #endif
     }
 
-    glDeleteTextures(1, &mappingTexture);
+    glDeleteTextures(1, &_mappingTexture);
 
-    if (mSpoutFBO) {
-        mSpoutFBO->destroy();
-        mSpoutFBO = nullptr;
+    if (_spoutFBO) {
+        _spoutFBO->destroy();
+        _spoutFBO = nullptr;
     }
 }
 
 void SpoutOutputProjection::update(glm::vec2) {
-    mVerts[0] = 0.f;
-    mVerts[1] = 0.f;
-    mVerts[2] = -1.f;
-    mVerts[3] = -1.f;
-    mVerts[4] = -1.f;
+    _vertices[0] = 0.f;
+    _vertices[1] = 0.f;
+    _vertices[2] = -1.f;
+    _vertices[3] = -1.f;
+    _vertices[4] = -1.f;
 
-    mVerts[5] = 0.f;
-    mVerts[6] = 1.f;
-    mVerts[7] = -1.f;
-    mVerts[8] = 1.f;
-    mVerts[9] = -1.f;
+    _vertices[5] = 0.f;
+    _vertices[6] = 1.f;
+    _vertices[7] = -1.f;
+    _vertices[8] = 1.f;
+    _vertices[9] = -1.f;
 
-    mVerts[10] = 1.f;
-    mVerts[11] = 0.f;
-    mVerts[12] = 1.f;
-    mVerts[13] = -1.f;
-    mVerts[14] = -1.f;
+    _vertices[10] = 1.f;
+    _vertices[11] = 0.f;
+    _vertices[12] = 1.f;
+    _vertices[13] = -1.f;
+    _vertices[14] = -1.f;
 
-    mVerts[15] = 1.f;
-    mVerts[16] = 1.f;
-    mVerts[17] = 1.f;
-    mVerts[18] = 1.f;
-    mVerts[19] = -1.f;
+    _vertices[15] = 1.f;
+    _vertices[16] = 1.f;
+    _vertices[17] = 1.f;
+    _vertices[18] = 1.f;
+    _vertices[19] = -1.f;
 
     // update VBO
-    glBindVertexArray(mVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
+    memcpy(PositionBuffer, _vertices.data(), 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
     glBindVertexArray(0);
@@ -100,20 +100,20 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
 
 void SpoutOutputProjection::setSpoutChannels(const bool channels[NFaces]) {
     for (size_t i = 0; i < NFaces; i++) {
-        mSpout[i].enabled = channels[i];
+        _spout[i].enabled = channels[i];
     }
 }
 
 void SpoutOutputProjection::setSpoutMappingName(std::string name) {
-    mappingName = std::move(name);
+    _mappingName = std::move(name);
 }
 
 void SpoutOutputProjection::setSpoutMapping(Mapping type) {
-    mappingType = type;
+    _mappingType = type;
 }
 
 void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
-    rigOrientation = std::move(orientation);
+    _rigOrientation = std::move(orientation);
 }
 
 void SpoutOutputProjection::initTextures() {
@@ -121,27 +121,27 @@ void SpoutOutputProjection::initTextures() {
 
     MessageHandler::instance()->print("SpoutOutputProjection initTextures");
 
-    switch (mappingType) {
+    switch (_mappingType) {
         case Mapping::Cubemap:
-            mappingWidth = mCubemapResolution;
-            mappingHeight = mCubemapResolution;
+            _mappingWidth = _cubemapResolution;
+            _mappingHeight = _cubemapResolution;
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
                 MessageHandler::instance()->print(
                     "SpoutOutputProjection initTextures %d", i
                 );
-                if (!mSpout[i].enabled) {
+                if (!_spout[i].enabled) {
                     continue;
                 }
-                mSpout[i].handle = GetSpout();
-                if (mSpout[i].handle) {
-                    SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle);
-                    h->CreateSender(CubeMapFaceName[i], mappingWidth, mappingHeight);
+                _spout[i].handle = GetSpout();
+                if (_spout[i].handle) {
+                    SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle);
+                    h->CreateSender(CubeMapFaceName[i], _mappingWidth, _mappingHeight);
                 }
 #endif
-                glGenTextures(1, &mSpout[i].texture);
-                glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
+                glGenTextures(1, &_spout[i].texture);
+                glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -153,31 +153,31 @@ void SpoutOutputProjection::initTextures() {
                 glTexImage2D(
                     GL_TEXTURE_2D,
                     0,
-                    mTexInternalFormat,
-                    mappingWidth,
-                    mappingHeight,
+                    _texInternalFormat,
+                    _mappingWidth,
+                    _mappingHeight,
                     0,
-                    mTexFormat,
-                    mTexType,
+                    _texFormat,
+                    _texType,
                     nullptr
                 );
             }
             break;
         case Mapping::Equirectangular:
-            mappingWidth = mCubemapResolution * 4;
-            mappingHeight = mCubemapResolution * 2;
+            _mappingWidth = _cubemapResolution * 4;
+            _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
             MessageHandler::instance()->print(
                 "SpoutOutputProjection initTextures Equirectangular"
             );
-            mappingHandle = GetSpout();
-            if (mappingHandle) {
-                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(mappingHandle);
-                h->CreateSender(mappingName.c_str(), mappingWidth, mappingHeight);
+            _mappingHandle = GetSpout();
+            if (_mappingHandle) {
+                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
+                h->CreateSender(_mappingName.c_str(), _mappingWidth, _mappingHeight);
             }
 #endif
-            glGenTextures(1, &mappingTexture);
-            glBindTexture(GL_TEXTURE_2D, mappingTexture);
+            glGenTextures(1, &_mappingTexture);
+            glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -189,30 +189,30 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                mTexInternalFormat,
-                mappingWidth,
-                mappingHeight,
+                _texInternalFormat,
+                _mappingWidth,
+                _mappingHeight,
                 0,
-                mTexFormat,
-                mTexType,
+                _texFormat,
+                _texType,
                 nullptr
             );
             break;
         case Mapping::Fisheye:
-            mappingWidth = mCubemapResolution * 2;
-            mappingHeight = mCubemapResolution * 2;
+            _mappingWidth = _cubemapResolution * 2;
+            _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
             MessageHandler::instance()->print(
                 "SpoutOutputProjection initTextures Fisheye"
             );
-            mappingHandle = GetSpout();
-            if (mappingHandle) {
-                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(mappingHandle);
-                h->CreateSender(mappingName.c_str(), mappingWidth, mappingHeight);
+            _mappingHandle = GetSpout();
+            if (_mappingHandle) {
+                SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
+                h->CreateSender(_mappingName.c_str(), _mappingWidth, _mappingHeight);
             }
 #endif
-            glGenTextures(1, &mappingTexture);
-            glBindTexture(GL_TEXTURE_2D, mappingTexture);
+            glGenTextures(1, &_mappingTexture);
+            glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -224,12 +224,12 @@ void SpoutOutputProjection::initTextures() {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
-                mTexInternalFormat,
-                mappingWidth,
-                mappingHeight,
+                _texInternalFormat,
+                _mappingWidth,
+                _mappingHeight,
                 0,
-                mTexFormat,
-                mTexType,
+                _texFormat,
+                _texType,
                 nullptr
             );
             break;
@@ -250,23 +250,23 @@ void SpoutOutputProjection::initViewports() {
 
     const glm::mat4 pitchRot = glm::rotate(
         glm::mat4(1.f),
-        glm::radians(-rigOrientation.x),
+        glm::radians(-_rigOrientation.x),
         glm::vec3(0.f, 1.f, 0.f)
     );
     const glm::mat4 yawRot = glm::rotate(
         pitchRot,
-        glm::radians(rigOrientation.y),
+        glm::radians(_rigOrientation.y),
         glm::vec3(1.f, 0.f, 0.f)
     );
     const glm::mat4 rollRot = glm::rotate(
         yawRot,
-        glm::radians(-rigOrientation.z),
+        glm::radians(-_rigOrientation.z),
         glm::vec3(0.f, 0.f, 1.f)
     );
 
     // right, left, bottom, top, front, back
     {
-        mSubViewports.right.setName("SpoutOutput 0");
+        _subViewports.right.setName("SpoutOutput 0");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -278,22 +278,22 @@ void SpoutOutputProjection::initViewports() {
             glm::vec3(0.f, 1.f, 0.f)
         );
         upperRight.x = radius;
-        mSubViewports.right.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.right.setSize(glm::vec2(1.f, 1.f));
 
-        mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
 
     // left
     {
-        mSubViewports.left.setName("SpoutOutput 1");
+        _subViewports.left.setName("SpoutOutput 1");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -306,23 +306,23 @@ void SpoutOutputProjection::initViewports() {
         );
         lowerLeft.x = -radius;
         upperLeft.x = -radius;
-        mSubViewports.left.setPos(glm::vec2(0.f, 0.f));
-        mSubViewports.left.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.left.setPos(glm::vec2(0.f, 0.f));
+        _subViewports.left.setSize(glm::vec2(1.f, 1.f));
 
-        mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
 
     // bottom
     {
-        mSubViewports.bottom.setName("SpoutOutput 2");
+        _subViewports.bottom.setName("SpoutOutput 2");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -334,23 +334,23 @@ void SpoutOutputProjection::initViewports() {
             glm::vec3(1.f, 0.f, 0.f)
         );
         lowerLeft.y = -radius;
-        mSubViewports.bottom.setPos(glm::vec2(0.f, 0.f));
-        mSubViewports.bottom.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
+        _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
 
-        mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
 
     // top
     {
-        mSubViewports.top.setName("SpoutOutput 3");
+        _subViewports.top.setName("SpoutOutput 3");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -363,22 +363,22 @@ void SpoutOutputProjection::initViewports() {
         );
         upperLeft.y = radius;
         upperRight.y = radius;
-        mSubViewports.top.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.top.setSize(glm::vec2(1.f, 1.f));
 
-        mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
 
     // front
     {
-        mSubViewports.front.setName("SpoutOutput 4");
+        _subViewports.front.setName("SpoutOutput 4");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -386,20 +386,20 @@ void SpoutOutputProjection::initViewports() {
 
         glm::mat4 rotMat = rollRot;
 
-        mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.front.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.front.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.front.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
 
     // back
     {
-        mSubViewports.back.setName("SpoutOutput 5");
+        _subViewports.back.setName("SpoutOutput 5");
 
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
@@ -410,13 +410,13 @@ void SpoutOutputProjection::initViewports() {
             glm::vec3(0.f, 1.f, 0.f)
         );
 
-        mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
+        _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
+        _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
             glm::vec3(rotMat * upperRight)
         );
     }
@@ -424,8 +424,8 @@ void SpoutOutputProjection::initViewports() {
 
 void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
-    if (mShader.isLinked()) {
-        mShader.deleteProgram();
+    if (_shader.isLinked()) {
+        _shader.deleteProgram();
     }
 
     std::string fisheyeFragShader;
@@ -481,7 +481,7 @@ void SpoutOutputProjection::initShaders() {
             "**glsl_version**",
             Engine::instance()->getGLSLVersion()
         );
-        bool fragShader = mDepthCorrectionShader.addShaderSrc(
+        bool fragShader = _depthCorrectionShader.addShaderSrc(
             depthCorrFrag,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -498,7 +498,7 @@ void SpoutOutputProjection::initShaders() {
             "**glsl_version**",
             Engine::instance()->getGLSLVersion()
         );
-        bool vertShader = mDepthCorrectionShader.addShaderSrc(
+        bool vertShader = _depthCorrectionShader.addShaderSrc(
             depthCorrVert,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -512,7 +512,7 @@ void SpoutOutputProjection::initShaders() {
     }
 
     // add functions to shader
-    switch (mappingType) {
+    switch (_mappingType) {
         case Mapping::Fisheye:
             helpers::findAndReplace(
                 fisheyeFragShader,
@@ -538,17 +538,17 @@ void SpoutOutputProjection::initShaders() {
 
     glm::mat4 pitchRot = glm::rotate(
         glm::mat4(1.f),
-        glm::radians(rigOrientation.x),
+        glm::radians(_rigOrientation.x),
         glm::vec3(0.f, 1.f, 0.f)
     );
     glm::mat4 yawRot = glm::rotate(
         pitchRot,
-        glm::radians(rigOrientation.y),
+        glm::radians(_rigOrientation.y),
         glm::vec3(1.f, 0.f, 0.f)
     );
     glm::mat4 rollRot = glm::rotate(
         yawRot,
-        glm::radians(rigOrientation.z),
+        glm::radians(_rigOrientation.z),
         glm::vec3(0.f, 0.f, 1.f)
     );
 
@@ -577,11 +577,11 @@ void SpoutOutputProjection::initShaders() {
     // replace color
     std::stringstream ssColor;
     ssColor.precision(2);
-    ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g
-            << ", " << mClearColor.b << ", " << mClearColor.a << ")";
+    ssColor << std::fixed << "vec4(" << _clearColor.r << ", " << _clearColor.g
+            << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
 
-    bool vertShader = mShader.addShaderSrc(
+    bool vertShader = _shader.addShaderSrc(
         fisheyeVertShader,
         GL_VERTEX_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -592,7 +592,7 @@ void SpoutOutputProjection::initShaders() {
             "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertShader.c_str()
         );
     }
-    bool fragShader = mShader.addShaderSrc(
+    bool fragShader = _shader.addShaderSrc(
         fisheyeFragShader,
         GL_FRAGMENT_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -605,39 +605,39 @@ void SpoutOutputProjection::initShaders() {
     }
 
 
-    switch (mappingType) {
+    switch (_mappingType) {
         case Mapping::Fisheye:
-            mShader.setName("FisheyeShader");
+            _shader.setName("FisheyeShader");
             break;
         case Mapping::Equirectangular:
-            mShader.setName("EquirectangularShader");
+            _shader.setName("EquirectangularShader");
             break;
         case Mapping::Cubemap:
-            mShader.setName("None");
+            _shader.setName("None");
             break;
     }
-    mShader.createAndLinkProgram();
-    mShader.bind();
+    _shader.createAndLinkProgram();
+    _shader.bind();
 
-    mCubemapLoc = mShader.getUniformLocation("cubemap");
-    glUniform1i(mCubemapLoc, 0);
+    _cubemapLoc = _shader.getUniformLocation("cubemap");
+    glUniform1i(_cubemapLoc, 0);
 
-    mHalfFovLoc = mShader.getUniformLocation("halfFov");
-    glUniform1f(mHalfFovLoc, glm::half_pi<float>());
+    _halfFovLoc = _shader.getUniformLocation("halfFov");
+    glUniform1f(_halfFovLoc, glm::half_pi<float>());
 
     ShaderProgram::unbind();
 
     if (Settings::instance()->useDepthTexture()) {
-        mDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
-        mDepthCorrectionShader.createAndLinkProgram();
-        mDepthCorrectionShader.bind();
+        _depthCorrectionShader.setName("FisheyeDepthCorrectionShader");
+        _depthCorrectionShader.createAndLinkProgram();
+        _depthCorrectionShader.bind();
 
-        mSwapColorLoc = mDepthCorrectionShader.getUniformLocation("cTex");
-        glUniform1i(mSwapColorLoc, 0);
-        mSwapDepthLoc = mDepthCorrectionShader.getUniformLocation("dTex");
-        glUniform1i(mSwapDepthLoc, 1);
-        mSwapNearLoc = mDepthCorrectionShader.getUniformLocation("near");
-        mSwapFarLoc = mDepthCorrectionShader.getUniformLocation("far");
+        _swapColorLoc = _depthCorrectionShader.getUniformLocation("cTex");
+        glUniform1i(_swapColorLoc, 0);
+        _swapDepthLoc = _depthCorrectionShader.getUniformLocation("dTex");
+        glUniform1i(_swapDepthLoc, 1);
+        _swapNearLoc = _depthCorrectionShader.getUniformLocation("near");
+        _swapFarLoc = _depthCorrectionShader.getUniformLocation("far");
 
         ShaderProgram::unbind();
     }
@@ -646,11 +646,11 @@ void SpoutOutputProjection::initShaders() {
 void SpoutOutputProjection::initFBO() {
     NonLinearProjection::initFBO();
 
-    mSpoutFBO = std::make_unique<core::OffScreenBuffer>();
-    mSpoutFBO->setInternalColorFormat(mTexInternalFormat);
-    mSpoutFBO->createFBO(mappingWidth, mappingHeight, 1);
+    _spoutFBO = std::make_unique<core::OffScreenBuffer>();
+    _spoutFBO->setInternalColorFormat(_texInternalFormat);
+    _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 
-    if (mSpoutFBO->checkForErrors()) {
+    if (_spoutFBO->checkForErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "Spout FBO created\n"
@@ -670,12 +670,12 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     BaseViewport& vp = [this](int face) -> BaseViewport& {
         switch (face) {
             default:
-            case 0: return mSubViewports.right;
-            case 1: return mSubViewports.left;
-            case 2: return mSubViewports.bottom;
-            case 3: return mSubViewports.top;
-            case 4: return mSubViewports.front;
-            case 5: return mSubViewports.back;
+            case 0: return _subViewports.right;
+            case 1: return _subViewports.left;
+            case 2: return _subViewports.bottom;
+            case 3: return _subViewports.top;
+            case 4: return _subViewports.front;
+            case 5: return _subViewports.back;
         }
     }(face);
 
@@ -737,8 +737,8 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (Engine::instance()->mClearBufferFnPtr) {
-        Engine::instance()->mClearBufferFnPtr();
+    if (Engine::instance()->_clearBufferFn) {
+        Engine::instance()->_clearBufferFn();
     }
     else {
         glm::vec4 color = Engine::instance()->getClearColor();
@@ -749,7 +749,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()->mDrawFnPtr();
+    Engine::instance()->_drawFn();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -759,31 +759,31 @@ void SpoutOutputProjection::blitCubeFace(int face) {
     // copy AA-buffer to "regular"/non-AA buffer
 
     // bind separate read and draw buffers to prepare blit operation
-    mCubeMapFbo->bindBlit();
+    _cubeMapFbo->bindBlit();
     attachTextures(face);
-    mCubeMapFbo->blit();
+    _cubeMapFbo->blit();
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
     if (Settings::instance()->useDepthTexture()) {
-        mCubeMapFbo->attachDepthTexture(mTextures.depthSwap);
-        mCubeMapFbo->attachColorTexture(mTextures.colorSwap);
+        _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
+        _cubeMapFbo->attachColorTexture(_textures.colorSwap);
     }
     else {
-        mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, face);
+        _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
     }
 
     if (Settings::instance()->useNormalTexture()) {
-        mCubeMapFbo->attachCubeMapTexture(
-            mTextures.cubeMapNormals,
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapNormals,
             face,
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance()->usePositionTexture()) {
-        mCubeMapFbo->attachCubeMapTexture(
-            mTextures.cubeMapPositions,
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapPositions,
             face,
             GL_COLOR_ATTACHMENT2
         );
@@ -793,11 +793,11 @@ void SpoutOutputProjection::attachTextures(int face) {
 void SpoutOutputProjection::renderInternal() {
     glEnable(GL_SCISSOR_TEST);
     Engine::instance()->enterCurrentViewport();
-    glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    if (mappingType != Mapping::Cubemap) {
+    if (_mappingType != Mapping::Cubemap) {
         GLenum saveBuffer = {};
         GLint saveTexture = 0;
         GLint saveFrameBuffer = 0;
@@ -807,18 +807,18 @@ void SpoutOutputProjection::renderInternal() {
 
 
         GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-        mSpoutFBO->bind(false, 1, buffers); //bind no multi-sampled
-        mSpoutFBO->attachColorTexture(mappingTexture);
+        _spoutFBO->bind(false, 1, buffers); //bind no multi-sampled
+        _spoutFBO->attachColorTexture(_mappingTexture);
 
-        mShader.bind();
+        _shader.bind();
 
-        glViewport(0, 0, mappingWidth, mappingHeight);
-        glScissor(0, 0, mappingWidth, mappingHeight);
+        glViewport(0, 0, _mappingWidth, _mappingHeight);
+        glScissor(0, 0, _mappingWidth, _mappingHeight);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
         //if for some reson the active texture has been reset
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
         bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -832,15 +832,15 @@ void SpoutOutputProjection::renderInternal() {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
-        glUniform1i(mCubemapLoc, 0);
-        if (mappingType == Mapping::Fisheye) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(180.f / 2.f));
+        glUniform1i(_cubemapLoc, 0);
+        if (_mappingType == Mapping::Fisheye) {
+            glUniform1f(_halfFovLoc, glm::radians<float>(180.f / 2.f));
         }
-        else if (mappingType == Mapping::Equirectangular) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(360.f / 2.f));
+        else if (_mappingType == Mapping::Equirectangular) {
+            glUniform1f(_halfFovLoc, glm::radians<float>(360.f / 2.f));
         }
 
-        glBindVertexArray(mVAO);
+        glBindVertexArray(_vao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray(0);
 
@@ -856,15 +856,15 @@ void SpoutOutputProjection::renderInternal() {
         // restore depth func
         glDepthFunc(GL_LESS);
 
-        mSpoutFBO->unBind();
+        _spoutFBO->unBind();
 
-        glBindTexture(GL_TEXTURE_2D, mappingTexture);
+        glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 #ifdef SGCT_HAS_SPOUT
-        reinterpret_cast<SPOUTHANDLE>(mappingHandle)->SendTexture(
-            mappingTexture,
+        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->SendTexture(
+            _mappingTexture,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            mappingWidth,
-            mappingHeight
+            _mappingWidth,
+            _mappingHeight
         );
 #endif
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -882,15 +882,15 @@ void SpoutOutputProjection::renderInternal() {
 
 #ifdef SGCT_HAS_SPOUT
         for (int i = 0; i < NFaces; i++) {
-            if (!mSpout[i].enabled) {
+            if (!_spout[i].enabled) {
                 continue;
             }
-            glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
-            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
-                mSpout[i].texture,
+            glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
+            reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
+                _spout[i].texture,
                 static_cast<GLuint>(GL_TEXTURE_2D),
-                mappingWidth,
-                mappingHeight
+                _mappingWidth,
+                _mappingHeight
             );
         }
 #endif
@@ -903,16 +903,16 @@ void SpoutOutputProjection::renderInternal() {
 void SpoutOutputProjection::renderInternalFixedPipeline() {
     glEnable(GL_SCISSOR_TEST);
     Engine::instance()->enterCurrentViewport();
-    glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    if (mappingType != Mapping::Cubemap) {
+    if (_mappingType != Mapping::Cubemap) {
         GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-        mSpoutFBO->bind(false, 1, buffers); //bind no multi-sampled
-        mSpoutFBO->attachColorTexture(mappingTexture);
+        _spoutFBO->bind(false, 1, buffers); //bind no multi-sampled
+        _spoutFBO->attachColorTexture(_mappingTexture);
 
-        mShader.bind();
+        _shader.bind();
 
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -925,7 +925,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glMatrixMode(GL_MODELVIEW); //restore
 
         glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
         bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -939,16 +939,16 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
-        glUniform1i(mCubemapLoc, 0);
-        if (mappingType == Mapping::Fisheye) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(180.f / 2.f));
-        } else if (mappingType == Mapping::Equirectangular) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(360.f / 2.f));
+        glUniform1i(_cubemapLoc, 0);
+        if (_mappingType == Mapping::Fisheye) {
+            glUniform1f(_halfFovLoc, glm::radians<float>(180.f / 2.f));
+        } else if (_mappingType == Mapping::Equirectangular) {
+            glUniform1f(_halfFovLoc, glm::radians<float>(360.f / 2.f));
         }
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
         // make sure that VBOs are unbound, to not mess up the vertex array
-        glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glClientActiveTexture(GL_TEXTURE0);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -961,15 +961,15 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         ShaderProgram::unbind();
-        mSpoutFBO->unBind();
+        _spoutFBO->unBind();
 
-        glBindTexture(GL_TEXTURE_2D, mappingTexture);
+        glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 #ifdef SGCT_HAS_SPOUT
-        reinterpret_cast<SPOUTHANDLE>(mappingHandle)->SendTexture(
-            mappingTexture,
+        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->SendTexture(
+            _mappingTexture,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            mappingWidth,
-            mappingHeight
+            _mappingWidth,
+            _mappingHeight
         );
 #endif
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -980,15 +980,15 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
     else {
 #ifdef SGCT_HAS_SPOUT
         for (int i = 0; i < NFaces; i++) {
-            if (!mSpout[i].enabled) {
+            if (!_spout[i].enabled) {
                 continue;
             }
-            glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
-            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
-                mSpout[i].texture,
+            glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
+            reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
+                _spout[i].texture,
                 static_cast<GLuint>(GL_TEXTURE_2D),
-                mappingWidth,
-                mappingHeight
+                _mappingWidth,
+                _mappingHeight
             );
         }
 #endif
@@ -1002,24 +1002,24 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         BaseViewport& vp = [this](int face) -> BaseViewport& {
             switch (face) {
                 default:
-                case 0: return mSubViewports.right;
-                case 1: return mSubViewports.left;
-                case 2: return mSubViewports.bottom;
-                case 3: return mSubViewports.top;
-                case 4: return mSubViewports.front;
-                case 5: return mSubViewports.back;
+                case 0: return _subViewports.right;
+                case 1: return _subViewports.left;
+                case 2: return _subViewports.bottom;
+                case 3: return _subViewports.top;
+                case 4: return _subViewports.front;
+                case 5: return _subViewports.back;
             }
         }(i);
         *subViewPortIndex = i;
         unsigned int idx = static_cast<unsigned int>(i);
 
-        if (!mSpout[i].enabled || !vp.isEnabled()) {
+        if (!_spout[i].enabled || !vp.isEnabled()) {
             continue;
         }
 
         // bind & attach buffer
-        mCubeMapFbo->bind();
-        if (!mCubeMapFbo->isMultiSampled()) {
+        _cubeMapFbo->bind();
+        if (!_cubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1027,23 +1027,23 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
-        if (mCubeMapFbo->isMultiSampled()) {
+        if (_cubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
+            _cubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
-            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
-            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
-            glViewport(0, 0, mappingWidth, mappingHeight);
-            glScissor(0, 0, mappingWidth, mappingHeight);
+            glViewport(0, 0, _mappingWidth, _mappingHeight);
+            glScissor(0, 0, _mappingWidth, _mappingHeight);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::instance()->mClearBufferFnPtr();
+            Engine::instance()->_clearBufferFn();
 
             glDisable(GL_CULL_FACE);
             const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -1059,17 +1059,17 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glDepthFunc(GL_ALWAYS);
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
 
             // bind shader
-            mDepthCorrectionShader.bind();
-            glUniform1i(mSwapColorLoc, 0);
-            glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, Engine::instance()->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, Engine::instance()->mFarClippingPlaneDist);
+            _depthCorrectionShader.bind();
+            glUniform1i(_swapColorLoc, 0);
+            glUniform1i(_swapDepthLoc, 1);
+            glUniform1f(_swapNearLoc, Engine::instance()->_nearClippingPlaneDist);
+            glUniform1f(_swapFarLoc, Engine::instance()->_farClippingPlaneDist);
 
             Engine::instance()->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1089,26 +1089,26 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glDisable(GL_SCISSOR_TEST);
         }
 
-        if (mappingType == Mapping::Cubemap) {
-            mCubeMapFbo->unBind();
+        if (_mappingType == Mapping::Cubemap) {
+            _cubeMapFbo->unBind();
 
-            if (mSpout[i].handle) {
+            if (_spout[i].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glCopyImageSubData(
-                    mTextures.cubeMapColor,
+                    _textures.cubeMapColor,
                     GL_TEXTURE_CUBE_MAP,
                     0,
                     0,
                     0,
                     idx,
-                    mSpout[i].texture,
+                    _spout[i].texture,
                     GL_TEXTURE_2D,
                     0,
                     0,
                     0,
                     0,
-                    mappingWidth,
-                    mappingHeight,
+                    _mappingWidth,
+                    _mappingHeight,
                     1
                 );
             }
@@ -1121,24 +1121,24 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         BaseViewport& vp = [this](int face) -> BaseViewport& {
             switch (face) {
                 default:
-                case 0: return mSubViewports.right;
-                case 1: return mSubViewports.left;
-                case 2: return mSubViewports.bottom;
-                case 3: return mSubViewports.top;
-                case 4: return mSubViewports.front;
-                case 5: return mSubViewports.back;
+                case 0: return _subViewports.right;
+                case 1: return _subViewports.left;
+                case 2: return _subViewports.bottom;
+                case 3: return _subViewports.top;
+                case 4: return _subViewports.front;
+                case 5: return _subViewports.back;
             }
         }(i);
         *subViewPortIndex = i;
         unsigned int idx = static_cast<unsigned int>(i);
 
-        if (!mSpout[i].enabled || !vp.isEnabled()) {
+        if (!_spout[i].enabled || !vp.isEnabled()) {
             continue;
         }
 
         // bind & attach buffer
-        mCubeMapFbo->bind();
-        if (!mCubeMapFbo->isMultiSampled()) {
+        _cubeMapFbo->bind();
+        if (!_cubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1146,25 +1146,25 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
-        if (mCubeMapFbo->isMultiSampled()) {
+        if (_cubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
-            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
-            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
-            glViewport(0, 0, mappingWidth, mappingHeight);
-            glScissor(0, 0, mappingWidth, mappingHeight);
+            glViewport(0, 0, _mappingWidth, _mappingHeight);
+            glScissor(0, 0, _mappingWidth, _mappingHeight);
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::instance()->mClearBufferFnPtr();
+            Engine::instance()->_clearBufferFn();
 
             glActiveTexture(GL_TEXTURE0);
             glMatrixMode(GL_TEXTURE);
@@ -1173,11 +1173,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glMatrixMode(GL_MODELVIEW); //restore
 
             // bind shader
-            mDepthCorrectionShader.bind();
-            glUniform1i(mSwapColorLoc, 0);
-            glUniform1i(mSwapDepthLoc, 1);
-            glUniform1f(mSwapNearLoc, Engine::instance()->mNearClippingPlaneDist);
-            glUniform1f(mSwapFarLoc, Engine::instance()->mFarClippingPlaneDist);
+            _depthCorrectionShader.bind();
+            glUniform1i(_swapColorLoc, 0);
+            glUniform1i(_swapDepthLoc, 1);
+            glUniform1f(_swapNearLoc, Engine::instance()->_nearClippingPlaneDist);
+            glUniform1f(_swapFarLoc, Engine::instance()->_farClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
             bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -1193,11 +1193,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glDepthFunc(GL_ALWAYS);
 
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             Engine::instance()->getCurrentWindow().bindVBO();
@@ -1217,26 +1217,26 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glPopAttrib();
         }
 
-        if (mappingType == Mapping::Cubemap) {
-            mCubeMapFbo->unBind();
+        if (_mappingType == Mapping::Cubemap) {
+            _cubeMapFbo->unBind();
 
-            if (mSpout[i].handle) {
+            if (_spout[i].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glCopyImageSubData(
-                    mTextures.cubeMapColor,
+                    _textures.cubeMapColor,
                     GL_TEXTURE_CUBE_MAP,
                     0,
                     0,
                     0,
                     idx,
-                    mSpout[i].texture,
+                    _spout[i].texture,
                     GL_TEXTURE_2D,
                     0,
                     0,
                     0,
                     0,
-                    mappingWidth,
-                    mappingHeight,
+                    _mappingWidth,
+                    _mappingHeight,
                     1
                 );
             }

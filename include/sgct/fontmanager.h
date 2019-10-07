@@ -163,29 +163,28 @@ private:
     FontManager(const FontManager & fm) = delete;
     const FontManager& operator=(const FontManager& rhs) = delete;
 
-    static FontManager* mInstance;
+    static FontManager* _instance;
 
     // The default font path from where to look for font files
-    std::string mDefaultFontPath;
+    std::string _defaultFontPath;
 
-    FT_Library mFTLibrary;
-    glm::vec4 mStrokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
+    FT_Library _library;
+    glm::vec4 _strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
 
     // Holds all predefined font paths for generating font glyphs
-    std::map<std::string, std::string> mFontPaths; 
+    std::map<std::string, std::string> _fontPaths; 
 
     // All generated fonts
-    std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> mFontMap;
+    std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> _fontMap;
 
-    ShaderProgram mShader;
-    int mMVPLocation = -1;
-    int mColorLocation = -1;
-    int mStrokeLocation = -1;
-    int mTextureLocation = -1;
+    ShaderProgram _shader;
+    int _mvpLocation = -1;
+    int _colorLocation = -1;
+    int _strokeLocation = -1;
+    int _textureLocation = -1;
 };
 
 } // namespace sgct
 
 #endif // SGCT_HAS_TEXT
-
 #endif // __SGCT__FONT_MANAGER__H__

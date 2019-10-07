@@ -189,9 +189,9 @@ public:
     static void destroy();
 
 private:
-    static ShaderManager* mInstance;
+    static ShaderManager* _instance;
     // Active shaders in the manager
-    std::vector<ShaderProgram> mShaderPrograms;
+    std::vector<ShaderProgram> _shaderPrograms;
 };
 
 } // namespace sgct

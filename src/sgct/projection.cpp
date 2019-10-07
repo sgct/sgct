@@ -47,42 +47,42 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     // nearFactor = near clipping plane / focus plane dist
     const float nearF = abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
 
-    mFrustum.left = (viewPlaneLowerLeft.x - eyePos.x) * nearF;
-    mFrustum.right = (viewPlaneUpperRight.x - eyePos.x) * nearF;
-    mFrustum.bottom = (viewPlaneLowerLeft.y - eyePos.y) * nearF;
-    mFrustum.top = (viewPlaneUpperRight.y - eyePos.y) * nearF;
-    mFrustum.nearPlane = nearClip;
-    mFrustum.farPlane = farClip;
+    _frustum.left = (viewPlaneLowerLeft.x - eyePos.x) * nearF;
+    _frustum.right = (viewPlaneUpperRight.x - eyePos.x) * nearF;
+    _frustum.bottom = (viewPlaneLowerLeft.y - eyePos.y) * nearF;
+    _frustum.top = (viewPlaneUpperRight.y - eyePos.y) * nearF;
+    _frustum.nearPlane = nearClip;
+    _frustum.farPlane = farClip;
 
-    mViewMatrix = glm::mat4(invDCM) * glm::translate(glm::mat4(1.f), -(base + offset));
+    _viewMatrix = glm::mat4(invDCM) * glm::translate(glm::mat4(1.f), -(base + offset));
 
     //calc frustum matrix
-    mProjectionMatrix = glm::frustum(
-        mFrustum.left,
-        mFrustum.right,
-        mFrustum.bottom,
-        mFrustum.top,
-        mFrustum.nearPlane,
-        mFrustum.farPlane
+    _projectionMatrix = glm::frustum(
+        _frustum.left,
+        _frustum.right,
+        _frustum.bottom,
+        _frustum.top,
+        _frustum.nearPlane,
+        _frustum.farPlane
     );
 
-    mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
+    _viewProjectionMatrix = _projectionMatrix * _viewMatrix;
 }
 
 Frustum& Projection::getFrustum() {
-    return mFrustum;
+    return _frustum;
 }
 
 const glm::mat4& Projection::getViewProjectionMatrix() const {
-    return mViewProjectionMatrix;
+    return _viewProjectionMatrix;
 }
 
 const glm::mat4& Projection::getViewMatrix() const {
-    return mViewMatrix;
+    return _viewMatrix;
 }
 
 const glm::mat4& Projection::getProjectionMatrix() const {
-    return mProjectionMatrix;
+    return _projectionMatrix;
 }
 
 } // namespace sgct::core

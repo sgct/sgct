@@ -12,6 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
+// @TODO (abock, 2019-10-07) move these out of the struct
+
 /**
  * This singleton class manages SGCTs mutexes
  */
@@ -22,17 +24,17 @@ struct MutexManager {
     /// Destroy the Settings instance
     static void destroy();
 
-    std::mutex mDataSyncMutex;
-    std::mutex mFrameSyncMutex;
-    std::mutex mTrackingMutex;
-    std::mutex mConsoleMutex;
-    std::mutex mTransferMutex;
+    std::mutex dataSyncMutex;
+    std::mutex frameSyncMutex;
+    std::mutex trackingMutex;
+    std::mutex consoleMutex;
+    std::mutex transferMutex;
 
 private:
     MutexManager() = default;
     ~MutexManager() = default;
 
-    static MutexManager* mInstance;
+    static MutexManager* _instance;
 };
 
 } // namespace sgct

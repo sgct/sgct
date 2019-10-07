@@ -28,14 +28,14 @@ Sphere::Sphere(float radius, unsigned int segments) {
 }
 
 Sphere::~Sphere() {
-    glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
+    glDeleteBuffers(1, &_vbo);
+    _vbo = 0;
 
-    glDeleteBuffers(1, &mIBO);
-    mIBO = 0;
+    glDeleteBuffers(1, &_ibo);
+    _ibo = 0;
 
-    glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
+    glDeleteVertexArrays(1, &_vao);
+    _vao = 0;
 }
 
 void Sphere::draw() {
@@ -48,11 +48,11 @@ void Sphere::drawVBO() {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 
     glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
-    glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -61,24 +61,24 @@ void Sphere::drawVBO() {
 }
 
 void Sphere::drawVAO() {
-    glBindVertexArray(mVAO);
-    glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(_vao);
+    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
 void Sphere::createVBO(float radius, unsigned int segments) {
     unsigned int vsegs = std::max<unsigned int>(segments, 2);
     unsigned int hsegs = vsegs * 2;
-    mNumberOfVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
-    mNumberOfFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
+    _nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
+    _nFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
 
-    std::vector<helpers::VertexData> verts(mNumberOfVertices);
+    std::vector<helpers::VertexData> verts(_nVertices);
 
     // First vertex: top pole (+y is "up" in object local coords)
     verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
 
     // Last vertex: bottom pole
-    verts[mNumberOfVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
+    verts[_nVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
 
     // All other vertices:
     // vsegs-1 latitude rings of hsegs+1 vertices each
@@ -108,7 +108,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         }
     }
 
-    std::vector<unsigned int> indices(mNumberOfFaces * 3, 0);
+    std::vector<unsigned int> indices(_nFaces * 3, 0);
     // The index array: triplets of integers, one for each triangle
     // Top cap
     for (unsigned int i = 0; i < hsegs; i++) {
@@ -132,33 +132,33 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     // Bottom cap
     for (unsigned int i = 0; i < hsegs; i++) {
         const unsigned int base = 3 * (hsegs + 2 * (vsegs - 2) * hsegs);
-        indices[base + 3 * i] = mNumberOfVertices - 1;
-        indices[base + 3 * i + 2] = mNumberOfVertices - 2 - i;
-        indices[base + 3 * i + 1] = mNumberOfVertices - 3 - i;
+        indices[base + 3 * i] = _nVertices - 1;
+        indices[base + 3 * i + 2] = _nVertices - 2 - i;
+        indices[base + 3 * i + 1] = _nVertices - 3 - i;
     }
 
-    glGenVertexArrays(1, &mVAO);
-    glBindVertexArray(mVAO);
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Sphere: Generating VAO: %d\n", mVAO
+        "Sphere: Generating VAO: %d\n", _vao
     );
 
-    glGenBuffers(1, &mVBO);
-    glGenBuffers(1, &mIBO);
+    glGenBuffers(1, &_vbo);
+    glGenBuffers(1, &_ibo);
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Sphere: Generating VBOs: %d %d\n", mVBO, mIBO
+        "Sphere: Generating VBOs: %d %d\n", _vbo, _ibo
     );
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        mNumberOfVertices * sizeof(helpers::VertexData),
+        _nVertices * sizeof(helpers::VertexData),
         verts.data(),
         GL_STATIC_DRAW
     );
@@ -191,10 +191,10 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         reinterpret_cast<void*>(20)
     ); 
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        mNumberOfFaces * 3 * sizeof(unsigned int),
+        _nFaces * 3 * sizeof(unsigned int),
         indices.data(),
         GL_STATIC_DRAW
     );

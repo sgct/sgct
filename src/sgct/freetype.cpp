@@ -181,12 +181,12 @@ float getLineWidth(sgct::text::Font& font, const std::wstring& line) {
     for (size_t j = 0; j < line.length() - 1; ++j) {
         wchar_t c = line.c_str()[j];
         const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
-        lineWidth += ffd.mDistToNextChar;
+        lineWidth += ffd.distToNextChar;
     }
     // add last char width
     wchar_t c = line.c_str()[line.length() - 1];
     const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
-    lineWidth += ffd.mSize.x;
+    lineWidth += ffd.size.x;
 
     return lineWidth;
 }
@@ -239,14 +239,14 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
             glm::mat4 trans = glm::translate(
                 projectionMat,
-                glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
+                glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );
             glm::mat4 scale = glm::scale(
                 trans,
-                glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
+                glm::vec3(ffd.size.x, ffd.size.y, 1.f)
             );
 
-            glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+            glBindTexture(GL_TEXTURE_2D, ffd.texId);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glUniform1i(FontManager::instance()->getTextureLoc(), 0);
@@ -260,7 +260,7 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-            offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
+            offset += glm::vec3(ffd.distToNextChar, 0.f, 0.f);
         }
     }
 
@@ -315,14 +315,14 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
             const glm::mat4 trans = glm::translate(
                 textScaleMat,
-                glm::vec3(offset.x + ffd.mPos.x, offset.y + ffd.mPos.y, offset.z)
+                glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );
             const glm::mat4 scale = glm::scale(
                 trans,
-                glm::vec3(ffd.mSize.x, ffd.mSize.y, 1.f)
+                glm::vec3(ffd.size.x, ffd.size.y, 1.f)
             );
 
-            glBindTexture(GL_TEXTURE_2D, ffd.mTexId);
+            glBindTexture(GL_TEXTURE_2D, ffd.texId);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -336,7 +336,7 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-            offset += glm::vec3(ffd.mDistToNextChar, 0.f, 0.f);
+            offset += glm::vec3(ffd.distToNextChar, 0.f, 0.f);
         }
     }
 

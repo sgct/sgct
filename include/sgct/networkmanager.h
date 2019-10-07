@@ -25,7 +25,7 @@ public:
     enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
     enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
 
-    static std::condition_variable gCond;
+    static std::condition_variable cond;
 
     NetworkManager(NetworkMode nm);
     ~NetworkManager();
@@ -85,28 +85,28 @@ private:
     bool prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
         int packageId);
 
-    static NetworkManager* mInstance;
+    static NetworkManager* _instance;
 
     // This could be a std::vector<Network>, but Network is not move-constructible
     // because of the std::condition_variable in it
-    std::vector<std::unique_ptr<Network>> mNetworkConnections;
-    std::vector<Network*> mSyncConnections;
-    std::vector<Network*> mDataTransferConnections;
-    Network* mExternalControlConnection = nullptr;
+    std::vector<std::unique_ptr<Network>> _networkConnections;
+    std::vector<Network*> _syncConnections;
+    std::vector<Network*> _dataTransferConnections;
+    Network* _externalControlConnection = nullptr;
 
-    std::string mHostName; // stores this computers hostname
-    std::vector<std::string> mDNSNames;
-    std::vector<std::string> mLocalAddresses; // stores this computers ip addresses
+    std::string _hostName; // stores this computers hostname
+    std::vector<std::string> _dnsNames;
+    std::vector<std::string> _localAddresses; // stores this computers ip addresses
 
-    bool mIsServer = true;
-    bool mIsRunning = true;
-    bool mAllNodesConnected = false;
-    std::atomic_bool mCompress = false;
-    std::atomic_int mCompressionLevel;
-    NetworkMode mMode;
-    unsigned int mNumberOfActiveConnections = 0;
-    unsigned int mNumberOfActiveSyncConnections = 0;
-    unsigned int mNumberOfActiveDataTransferConnections = 0;
+    bool _isServer = true;
+    bool _isRunning = true;
+    bool _allNodesConnected = false;
+    std::atomic_bool _compress = false;
+    std::atomic_int _compressionLevel;
+    NetworkMode _mode;
+    unsigned int _nActiveConnections = 0;
+    unsigned int _nActiveSyncConnections = 0;
+    unsigned int _nActiveDataTransferConnections = 0;
 };
 
 } // namespace sgct::core

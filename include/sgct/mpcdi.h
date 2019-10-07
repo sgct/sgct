@@ -29,16 +29,16 @@ public:
 
 private:
     struct MpcdiFoundItems {
-        bool haveDisplayElem = false;
-        bool haveBufferElem = false;
+        bool hasDisplayElem = false;
+        bool hasBufferElem = false;
         glm::ivec2 resolution = glm::ivec2(-1);
     };
 
     struct MpcdiWarp {
         std::string id;
         std::string pathWarpFile;
-        bool haveFoundPath = false;
-        bool haveFoundInterpolation = false;
+        bool hasFoundPath = false;
+        bool hasFoundInterpolation = false;
     };
 
     bool readAndParseString(Node& node, Window& win);
@@ -62,11 +62,11 @@ private:
     bool processSubFile(SubFile& sf, const std::string& suffix,
         const std::string& filename, unzFile zipfile, const unz_file_info& fileInfo);
 
-    SubFile mXmlFileContents;
-    SubFile mPfmFileContents;
+    SubFile _xmlFileContents;
+    SubFile _pfmFileContents;
 
-    std::vector<std::string> mBufferRegions;
-    std::vector<std::unique_ptr<MpcdiWarp>> mWarp;
+    std::vector<std::string> _bufferRegions;
+    std::vector<std::unique_ptr<MpcdiWarp>> _warp;
 };
 
 } //namespace sgct::core

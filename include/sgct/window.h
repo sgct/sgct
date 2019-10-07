@@ -488,53 +488,53 @@ private:
     void updateColorBufferData();
     bool useRightEyeTexture() const;
 
-    std::string mName;
-    std::vector<std::string> mTags;
+    std::string _name;
+    std::vector<std::string> _tags;
 
-    bool mVisible = true;
-    bool mRenderWhileHidden = false;
-    bool mFocused = false;
-    bool mIconified = false;
-    bool mUseFixResolution = false;
-    bool mIsWindowResSet = false;
-    bool mAllowCapture = true;
-    bool mCallDraw2DFunction = true;
-    bool mCallDraw3DFunction = true;
-    bool mCopyPreviousWindowToCurrentWindow = false;
-    bool mUseQuadBuffer = false;
-    bool mFullScreen = false;
-    bool mFloating = false;
-    bool mDoubleBuffered = true;
-    bool mSetWindowPos = false;
-    bool mDecorated = true;
-    bool mAlpha = false;
-    glm::ivec2 mFramebufferRes = glm::ivec2(512, 256);
-    glm::ivec2 mWindowInitialRes = glm::ivec2(640, 480);
-    bool mHasPendingWindowRes = false;
-    glm::ivec2 mPendingWindowRes = glm::ivec2(0, 0);
-    bool mHasPendingFramebufferRes = false;
-    glm::ivec2 mPendingFramebufferRes = glm::ivec2(0, 0);
-    glm::ivec2 mWindowRes = glm::ivec2(640, 480);
-    glm::ivec2 mWindowPos = glm::ivec2(0, 0);
-    glm::ivec2 mWindowResOld = glm::ivec2(640, 480);
-    int mMonitorIndex = 0;
-    GLFWmonitor* mMonitor = nullptr;
-    GLFWwindow* mWindowHandle = nullptr;
-    float mAspectRatio = 1.f;
-    float mGamma = 1.f;
-    float mContrast = 1.f;
-    float mBrightness = 1.f;
-    glm::vec2 mScale = glm::vec2(0.f, 0.f);
+    bool _visible = true;
+    bool _renderWhileHidden = false;
+    bool _focused = false;
+    bool _iconified = false;
+    bool _useFixResolution = false;
+    bool _isWindowResSet = false;
+    bool _allowCapture = true;
+    bool _callDraw2DFunction = true;
+    bool _callDraw3DFunction = true;
+    bool _copyPreviousWindowToCurrentWindow = false;
+    bool _useQuadBuffer = false;
+    bool _fullScreen = false;
+    bool _floating = false;
+    bool _doubleBuffered = true;
+    bool _setWindowPos = false;
+    bool _decorated = true;
+    bool _alpha = false;
+    glm::ivec2 _framebufferRes = glm::ivec2(512, 256);
+    glm::ivec2 _windowInitialRes = glm::ivec2(640, 480);
+    bool _hasPendingWindowRes = false;
+    glm::ivec2 _pendingWindowRes = glm::ivec2(0, 0);
+    bool _hasPendingFramebufferRes = false;
+    glm::ivec2 _pendingFramebufferRes = glm::ivec2(0, 0);
+    glm::ivec2 _windowRes = glm::ivec2(640, 480);
+    glm::ivec2 _windowPos = glm::ivec2(0, 0);
+    glm::ivec2 _windowResOld = glm::ivec2(640, 480);
+    int _monitorIndex = 0;
+    GLFWmonitor* _monitor = nullptr;
+    GLFWwindow* _windowHandle = nullptr;
+    float _aspectRatio = 1.f;
+    float _gamma = 1.f;
+    float _contrast = 1.f;
+    float _brightness = 1.f;
+    glm::vec2 _scale = glm::vec2(0.f, 0.f);
 
-    bool mUseFXAA;
-    bool mUsePostFX = false;
+    bool _useFXAA;
+    bool _usePostFX = false;
 
-    ColorBitDepth mBufferColorBitDepth = ColorBitDepth::Depth8;
-    GLenum mInternalColorFormat;
-    GLenum mColorFormat;
-    GLenum mColorDataType;
-    bool mPreferBGR = true;
-    int mBytesPerColor;
+    ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
+    GLenum _internalColorFormat;
+    GLenum _colorFormat;
+    GLenum _colorDataType;
+    bool _preferBGR = true;
+    int _bytesPerColor;
 
     struct {
         unsigned int leftEye = 0;
@@ -545,17 +545,17 @@ private:
         unsigned int intermediate = 0;
         unsigned int normals = 0;
         unsigned int positions = 0;
-    } mFrameBufferTextures;
+    } _frameBufferTextures;
 
-    std::unique_ptr<core::ScreenCapture> mScreenCaptureLeftOrMono;
-    std::unique_ptr<core::ScreenCapture> mScreenCaptureRight;
+    std::unique_ptr<core::ScreenCapture> _screenCaptureLeftOrMono;
+    std::unique_ptr<core::ScreenCapture> _screenCaptureRight;
 
-    StereoMode mStereoMode = StereoMode::NoStereo;
-    int mNumberOfAASamples;
-    int mId;
+    StereoMode _stereoMode = StereoMode::NoStereo;
+    int _nAASamples;
+    int _id;
 
-    unsigned int mVAO = 0;
-    unsigned int mVBO = 0;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 
     //Shaders
     struct {
@@ -563,20 +563,20 @@ private:
         int mvpLoc = -1;
         int leftTexLoc = -1;
         int rightTexLoc = -1;
-    } stereo;
+    } _stereo;
 
-    bool mHasAnyMasks = false;
+    bool _hasAnyMasks = false;
 
-    core::BaseViewport* mCurrentViewport = nullptr;
-    std::vector<std::unique_ptr<core::Viewport>> mViewports;
-    std::vector<PostFX> mPostFXPasses;
-    std::unique_ptr<core::OffScreenBuffer> mFinalFBO;
+    core::BaseViewport* _currentViewport = nullptr;
+    std::vector<std::unique_ptr<core::Viewport>> _viewports;
+    std::vector<PostFX> _postFXPasses;
+    std::unique_ptr<core::OffScreenBuffer> _finalFBO;
 
-    static GLFWwindow* mSharedHandle;
-    static GLFWwindow* mCurrentContextOwner;
-    static bool mUseSwapGroups;
-    static bool mBarrier;
-    static bool mSwapGroupMaster;
+    static GLFWwindow* _sharedHandle;
+    static GLFWwindow* _currentContextOwner;
+    static bool _useSwapGroups;
+    static bool _barrier;
+    static bool _swapGroupMaster;
 };
 
 } // namespace sgct

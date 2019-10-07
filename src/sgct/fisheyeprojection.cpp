@@ -27,13 +27,13 @@ namespace sgct::core {
 
 void FisheyeProjection::update(glm::vec2 size) {
     float cropAspect =
-        ((1.f - 2.f * mCropFactor.bottom) + (1.f - 2.f * mCropFactor.top)) /
-        ((1.f - 2.f * mCropFactor.left) + (1.f - 2.f * mCropFactor.right));
+        ((1.f - 2.f * _cropFactor.bottom) + (1.f - 2.f * _cropFactor.top)) /
+        ((1.f - 2.f * _cropFactor.left) + (1.f - 2.f * _cropFactor.right));
 
     float x = 1.f;
     float y = 1.f;
 
-    float frameBufferAspect = mIgnoreAspectRatio ? 1.f : (size.x / size.y);
+    float frameBufferAspect = _ignoreAspectRatio ? 1.f : (size.x / size.y);
 
     if (Settings::instance()->getTryMaintainAspectRatio()) {
         float aspect = frameBufferAspect * cropAspect;
@@ -45,36 +45,36 @@ void FisheyeProjection::update(glm::vec2 size) {
         }
     }
 
-    mVerts[0] = mCropFactor.left;
-    mVerts[1] = mCropFactor.bottom;
-    mVerts[2] = -x;
-    mVerts[3] = -y;
-    mVerts[4] = -1.f;
+    _vertices[0] = _cropFactor.left;
+    _vertices[1] = _cropFactor.bottom;
+    _vertices[2] = -x;
+    _vertices[3] = -y;
+    _vertices[4] = -1.f;
 
-    mVerts[5] = mCropFactor.left;
-    mVerts[6] = 1.f - mCropFactor.top;
-    mVerts[7] = -x;
-    mVerts[8] = y;
-    mVerts[9] = -1.f;
+    _vertices[5] = _cropFactor.left;
+    _vertices[6] = 1.f - _cropFactor.top;
+    _vertices[7] = -x;
+    _vertices[8] = y;
+    _vertices[9] = -1.f;
 
-    mVerts[10] = 1.f - mCropFactor.right;
-    mVerts[11] = mCropFactor.bottom;
-    mVerts[12] = x;
-    mVerts[13] = -y;
-    mVerts[14] = -1.f;
+    _vertices[10] = 1.f - _cropFactor.right;
+    _vertices[11] = _cropFactor.bottom;
+    _vertices[12] = x;
+    _vertices[13] = -y;
+    _vertices[14] = -1.f;
 
-    mVerts[15] = 1.f - mCropFactor.right;
-    mVerts[16] = 1.f - mCropFactor.top;
-    mVerts[17] = x;
-    mVerts[18] = y;
-    mVerts[19] = -1.f;
+    _vertices[15] = 1.f - _cropFactor.right;
+    _vertices[16] = 1.f - _cropFactor.top;
+    _vertices[17] = x;
+    _vertices[18] = y;
+    _vertices[19] = -1.f;
 
     // update VBO
-    glBindVertexArray(mVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
+    memcpy(PositionBuffer, _vertices.data(), 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
     glBindVertexArray(0);
@@ -91,14 +91,14 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
             break;
         case Frustum::Mode::StereoLeftEye:
             setOffset(glm::vec3(
-                -eng.getDefaultUser().getEyeSeparation() / mDiameter,
+                -eng.getDefaultUser().getEyeSeparation() / _diameter,
                 0.f,
                 0.f
             ));
             break;
         case Frustum::Mode::StereoRightEye:
             setOffset(glm::vec3(
-                eng.getDefaultUser().getEyeSeparation() / mDiameter,
+                eng.getDefaultUser().getEyeSeparation() / _diameter,
                 0.f,
                 0.f
             ));
@@ -109,54 +109,54 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
 }
 
 void FisheyeProjection::setDomeDiameter(float diameter) {
-    mDiameter = diameter;
+    _diameter = diameter;
     //generateCubeMapViewports();
 }
 
 void FisheyeProjection::setTilt(float angle) {
-    mTilt = angle;
+    _tilt = angle;
 }
 
 void FisheyeProjection::setFOV(float angle) {
-    mFOV = angle;
+    _fov = angle;
 }
 
 void FisheyeProjection::setRenderingMethod(FisheyeMethod method) {
-    mMethod = method;
+    _method = method;
 }
 
 void FisheyeProjection::setCropFactors(float left, float right, float bottom, float top) {
-    mCropFactor.left = glm::clamp(left, 0.f, 1.f);
-    mCropFactor.right = glm::clamp(right, 0.f, 1.f);
-    mCropFactor.bottom = glm::clamp(bottom, 0.f, 1.f);
-    mCropFactor.top = glm::clamp(top, 0.f, 1.f);
+    _cropFactor.left = glm::clamp(left, 0.f, 1.f);
+    _cropFactor.right = glm::clamp(right, 0.f, 1.f);
+    _cropFactor.bottom = glm::clamp(bottom, 0.f, 1.f);
+    _cropFactor.top = glm::clamp(top, 0.f, 1.f);
 }
 
 void FisheyeProjection::setOffset(glm::vec3 offset) {
-    mOffset = std::move(offset);
-    mTotalOffset = mBaseOffset + mOffset;
+    _offset = std::move(offset);
+    _totalOffset = _baseOffset + _offset;
 
-    mOffAxis = glm::length(mTotalOffset) > 0.f;
+    _offAxis = glm::length(_totalOffset) > 0.f;
 }
 
 void FisheyeProjection::setBaseOffset(glm::vec3 offset) {
-    mBaseOffset = std::move(offset);
-    mTotalOffset = mBaseOffset + mOffset;
+    _baseOffset = std::move(offset);
+    _totalOffset = _baseOffset + _offset;
 
-    mOffAxis = glm::length(mTotalOffset) > 0.f;
+    _offAxis = glm::length(_totalOffset) > 0.f;
 }
 
 void FisheyeProjection::setIgnoreAspectRatio(bool state) {
-    mIgnoreAspectRatio = state;
+    _ignoreAspectRatio = state;
 }
 
 glm::vec3 FisheyeProjection::getOffset() const {
-    return mTotalOffset;
+    return _totalOffset;
 }
 
 void FisheyeProjection::initViewports() {
     // radius is needed to calculate the distance to all view planes
-    const float radius = mDiameter / 2.f;
+    const float radius = _diameter / 2.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
@@ -171,19 +171,19 @@ void FisheyeProjection::initViewports() {
 
 
     // four faces doesn't cover more than 180 degrees
-    if (mFOV > 180.f && mFOV <= fiveFaceLimit) {
-        mMethod = FisheyeMethod::FiveFaceCube;
+    if (_fov > 180.f && _fov <= fiveFaceLimit) {
+        _method = FisheyeMethod::FiveFaceCube;
     }
 
     float cropLevel = 0.5f; // how much of the side faces that are used
     float projectionOffset = 0.f;
-    if (mMethod == FisheyeMethod::FiveFaceCube &&
-        mFOV >= topFaceLimit && mFOV <= fiveFaceLimit)
+    if (_method == FisheyeMethod::FiveFaceCube &&
+        _fov >= topFaceLimit && _fov <= fiveFaceLimit)
     {
-        float cosAngle = cos(glm::radians(mFOV / 2.f));
+        float cosAngle = cos(glm::radians(_fov / 2.f));
         float normalizedProjectionOffset = 0.f;
-        if (mFOV < 180.f) {
-            normalizedProjectionOffset = 1.f - mFOV / 180.f; // [-1, 0]
+        if (_fov < 180.f) {
+            normalizedProjectionOffset = 1.f - _fov / 180.f; // [-1, 0]
         }
         else {
             normalizedProjectionOffset = sqrt((2.f * cosAngle * cosAngle) /
@@ -193,19 +193,19 @@ void FisheyeProjection::initViewports() {
         projectionOffset = normalizedProjectionOffset * radius;
         cropLevel = (1.f - normalizedProjectionOffset) / 2.f;
     }
-    else if (mFOV > fiveFaceLimit) {
-        mMethod = FisheyeMethod::SixFaceCube;
+    else if (_fov > fiveFaceLimit) {
+        _method = FisheyeMethod::SixFaceCube;
         cropLevel = 0.f;
         projectionOffset = radius;
     }
 
     const glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
-        glm::radians(90.f - mTilt),
+        glm::radians(90.f - _tilt),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    if (mMethod == FisheyeMethod::FiveFaceCube || mMethod == FisheyeMethod::SixFaceCube) {
+    if (_method == FisheyeMethod::FiveFaceCube || _method == FisheyeMethod::SixFaceCube) {
         const glm::mat4 rollRot = glm::rotate(
             tiltMat,
             glm::radians(45.f),
@@ -214,7 +214,7 @@ void FisheyeProjection::initViewports() {
 
         // +X face
         {
-            mSubViewports.right.setName("Fisheye +X");
+            _subViewports.right.setName("Fisheye +X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -227,22 +227,22 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
 
-            mSubViewports.right.setSize(glm::vec2(1.f - cropLevel, 1.f));
+            _subViewports.right.setSize(glm::vec2(1.f - cropLevel, 1.f));
 
-            mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // -X face
         {
-            mSubViewports.left.setName("Fisheye -X");
+            _subViewports.left.setName("Fisheye -X");
 
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -256,23 +256,23 @@ void FisheyeProjection::initViewports() {
             upperLeft.x = -projectionOffset;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports.left.setPos(glm::vec2(cropLevel, 0.f));
-            mSubViewports.left.setSize(glm::vec2(1.f - cropLevel, 1.f));
+            _subViewports.left.setPos(glm::vec2(cropLevel, 0.f));
+            _subViewports.left.setSize(glm::vec2(1.f - cropLevel, 1.f));
 
-            mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // +Y face
         {
-            mSubViewports.bottom.setName("Fisheye +Y");
+            _subViewports.bottom.setName("Fisheye +Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -285,23 +285,23 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
 
-            mSubViewports.bottom.setPos(glm::vec2(0.f, cropLevel));
-            mSubViewports.bottom.setSize(glm::vec2(1.f, 1.f - cropLevel));
+            _subViewports.bottom.setPos(glm::vec2(0.f, cropLevel));
+            _subViewports.bottom.setSize(glm::vec2(1.f, 1.f - cropLevel));
 
-            mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // -Y face
         {
-            mSubViewports.top.setName("Fisheye -Y");
+            _subViewports.top.setName("Fisheye -Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
@@ -315,39 +315,39 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
 
-            mSubViewports.top.setSize(glm::vec2(1.f, 1.f - cropLevel));
+            _subViewports.top.setSize(glm::vec2(1.f, 1.f - cropLevel));
 
-            mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
 
         // +Z face
         {
-            mSubViewports.front.setName("Fisheye +Z");
+            _subViewports.front.setName("Fisheye +Z");
             
-            mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.front.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rollRot * lowerLeftBase)
             );
-            mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.front.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rollRot * upperLeftBase)
             );
-            mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.front.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rollRot * upperRightBase)
             );
         }
 
         // -Z face
         {
-            mSubViewports.back.setName("Fisheye -Z");
-            if (mMethod == FisheyeMethod::FiveFaceCube) {
-                mSubViewports.back.setEnabled(false);
+            _subViewports.back.setName("Fisheye -Z");
+            if (_method == FisheyeMethod::FiveFaceCube) {
+                _subViewports.back.setEnabled(false);
             }
 
             const glm::mat4 rotMat = glm::rotate(
@@ -356,13 +356,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
@@ -377,7 +377,7 @@ void FisheyeProjection::initViewports() {
 
         // +X face
         {
-            mSubViewports.right.setName("Fisheye +X");
+            _subViewports.right.setName("Fisheye +X");
             
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -385,21 +385,21 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports.right.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports.right.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports.right.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -X face
         {
-            mSubViewports.left.setName("Fisheye -X");
-            mSubViewports.left.setEnabled(false);
+            _subViewports.left.setName("Fisheye -X");
+            _subViewports.left.setEnabled(false);
 
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -407,20 +407,20 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports.left.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports.left.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports.left.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Y face
         {
-            mSubViewports.bottom.setName("Fisheye +Y");
+            _subViewports.bottom.setName("Fisheye +Y");
 
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -428,20 +428,20 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            mSubViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // -Y face
         {
-            mSubViewports.top.setName("Fisheye -Y");
+            _subViewports.top.setName("Fisheye -Y");
             
             const glm::mat4 rotMat = glm::rotate(
                 panRot,
@@ -449,28 +449,28 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
-            mSubViewports.top.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeftBase)
             );
-            mSubViewports.top.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeftBase)
             );
-            mSubViewports.top.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRightBase)
             );
         }
 
         // +Z face
         {
-            mSubViewports.front.setName("Fisheye +Z");
+            _subViewports.front.setName("Fisheye +Z");
             
-            mSubViewports.front.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.front.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(panRot * lowerLeftBase)
             );
-            mSubViewports.front.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.front.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(panRot * upperLeftBase)
             );
-            mSubViewports.front.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.front.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(panRot * upperRightBase)
             );
 
@@ -478,9 +478,9 @@ void FisheyeProjection::initViewports() {
 
         // -Z face
         {
-            mSubViewports.back.setName("Fisheye -Z");
+            _subViewports.back.setName("Fisheye -Z");
             
-            mSubViewports.back.setEnabled(false);
+            _subViewports.back.setEnabled(false);
             glm::vec4 lowerLeft = lowerLeftBase;
             glm::vec4 upperLeft = upperLeftBase;
             glm::vec4 upperRight = upperRightBase;
@@ -491,13 +491,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
-            mSubViewports.back.getProjectionPlane().setCoordinateLowerLeft(
+            _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports.back.getProjectionPlane().setCoordinateUpperLeft(
+            _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports.back.getProjectionPlane().setCoordinateUpperRight(
+            _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
@@ -505,27 +505,27 @@ void FisheyeProjection::initViewports() {
 }
 
 void FisheyeProjection::initShaders() {
-    if (mStereo || mPreferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_stereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        mOffAxis = true;
+        _offAxis = true;
     }
 
     // reload shader program if it exists
-    if (mShader.isLinked()) {
-        mShader.deleteProgram();
+    if (_shader.isLinked()) {
+        _shader.deleteProgram();
     }
 
     std::string fisheyeFragmentShader;
     std::string fisheyeVertexShader;
 
-    const bool isCubic = (mInterpolationMode == InterpolationMode::Cubic);
+    const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
 
     // modern pipeline
     fisheyeVertexShader = isCubic ?
         shaders_fisheye_cubic::FisheyeVert :
         shaders_fisheye::FisheyeVert;
 
-    if (mOffAxis) {
+    if (_offAxis) {
         if (Settings::instance()->useDepthTexture()) {
             switch (Settings::instance()->getCurrentDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
@@ -643,7 +643,7 @@ void FisheyeProjection::initShaders() {
         helpers::findAndReplace(depthCorrFragShader, "**glsl_version**", glsl);
         helpers::findAndReplace(depthCorrVertShader, "**glsl_version**", glsl);
 
-        bool depthCorrFrag = mDepthCorrectionShader.addShaderSrc(
+        bool depthCorrFrag = _depthCorrectionShader.addShaderSrc(
             depthCorrFragShader,
             GL_VERTEX_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -654,7 +654,7 @@ void FisheyeProjection::initShaders() {
                 "Failed to load fisheye depth correction vertex shader\n"
             );
         }
-        bool depthCorrVert = mDepthCorrectionShader.addShaderSrc(
+        bool depthCorrVert = _depthCorrectionShader.addShaderSrc(
             depthCorrVertShader,
             GL_FRAGMENT_SHADER,
             ShaderProgram::ShaderSourceType::String
@@ -668,7 +668,7 @@ void FisheyeProjection::initShaders() {
     }
 
     // add functions to shader
-    if (mOffAxis) {
+    if (_offAxis) {
         helpers::findAndReplace(
             fisheyeFragmentShader,
             "**sample_fun**",
@@ -705,14 +705,14 @@ void FisheyeProjection::initShaders() {
         helpers::findAndReplace(
             fisheyeFragmentShader,
             "**size**",
-            std::to_string(mCubemapResolution) + ".0"
+            std::to_string(_cubemapResolution) + ".0"
         );
 
         helpers::findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
     }
 
     // replace add correct transform in the fragment shader
-    if (mMethod == FisheyeMethod::FourFaceCube) {
+    if (_method == FisheyeMethod::FourFaceCube) {
         helpers::findAndReplace(
             fisheyeFragmentShader,
             "**rotVec**",
@@ -745,11 +745,11 @@ void FisheyeProjection::initShaders() {
     // replace color
     std::stringstream ssColor;
     ssColor.precision(2);
-    ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g
-            << ", " << mClearColor.b << ", " << mClearColor.a << ")";
+    ssColor << std::fixed << "vec4(" << _clearColor.r << ", " << _clearColor.g
+            << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
-    bool fisheyeVertex = mShader.addShaderSrc(
+    bool fisheyeVertex = _shader.addShaderSrc(
         fisheyeVertexShader,
         GL_VERTEX_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -761,7 +761,7 @@ void FisheyeProjection::initShaders() {
             fisheyeVertexShader.c_str()
         );
     }
-    bool fisheyeFragment = mShader.addShaderSrc(
+    bool fisheyeFragment = _shader.addShaderSrc(
         fisheyeFragmentShader,
         GL_FRAGMENT_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -774,49 +774,49 @@ void FisheyeProjection::initShaders() {
         );
     }
 
-    mShader.setName("FisheyeShader");
-    mShader.createAndLinkProgram();
-    mShader.bind();
+    _shader.setName("FisheyeShader");
+    _shader.createAndLinkProgram();
+    _shader.bind();
 
-    mShaderLoc.cubemapLoc = mShader.getUniformLocation("cubemap");
-    glUniform1i(mShaderLoc.cubemapLoc, 0);
+    _shaderLoc.cubemapLoc = _shader.getUniformLocation("cubemap");
+    glUniform1i(_shaderLoc.cubemapLoc, 0);
 
     if (Settings::instance()->useDepthTexture()) {
-        mShaderLoc.depthCubemapLoc = mShader.getUniformLocation("depthmap");
-        glUniform1i(mShaderLoc.depthCubemapLoc, 1);
+        _shaderLoc.depthCubemapLoc = _shader.getUniformLocation("depthmap");
+        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
     }
 
     if (Settings::instance()->useNormalTexture()) {
-        mShaderLoc.normalCubemapLoc = mShader.getUniformLocation("normalmap");
-        glUniform1i(mShaderLoc.normalCubemapLoc, 2);
+        _shaderLoc.normalCubemapLoc = _shader.getUniformLocation("normalmap");
+        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
     }
     
     if (Settings::instance()->usePositionTexture()) {
-        mShaderLoc.positionCubemapLoc = mShader.getUniformLocation("positionmap");
-        glUniform1i(mShaderLoc.positionCubemapLoc, 3);
+        _shaderLoc.positionCubemapLoc = _shader.getUniformLocation("positionmap");
+        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
 
-    mShaderLoc.halfFovLoc = mShader.getUniformLocation("halfFov");
-    glUniform1f(mShaderLoc.halfFovLoc, glm::half_pi<float>());
+    _shaderLoc.halfFovLoc = _shader.getUniformLocation("halfFov");
+    glUniform1f(_shaderLoc.halfFovLoc, glm::half_pi<float>());
 
-    if (mOffAxis) {
-        mShaderLoc.offsetLoc = mShader.getUniformLocation("offset");
-        glUniform3f(mShaderLoc.offsetLoc, mTotalOffset.x, mTotalOffset.y, mTotalOffset.z);
+    if (_offAxis) {
+        _shaderLoc.offsetLoc = _shader.getUniformLocation("offset");
+        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
     }
 
     ShaderProgram::unbind();
 
     if (Settings::instance()->useDepthTexture()) {
-        mDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
-        mDepthCorrectionShader.createAndLinkProgram();
-        mDepthCorrectionShader.bind();
+        _depthCorrectionShader.setName("FisheyeDepthCorrectionShader");
+        _depthCorrectionShader.createAndLinkProgram();
+        _depthCorrectionShader.bind();
 
-        mShaderLoc.swapColorLoc = mDepthCorrectionShader.getUniformLocation("cTex");
-        glUniform1i(mShaderLoc.swapColorLoc, 0);
-        mShaderLoc.swapDepthLoc = mDepthCorrectionShader.getUniformLocation("dTex");
-        glUniform1i(mShaderLoc.swapDepthLoc, 1);
-        mShaderLoc.swapNearLoc = mDepthCorrectionShader.getUniformLocation("near");
-        mShaderLoc.swapFarLoc = mDepthCorrectionShader.getUniformLocation("far");
+        _shaderLoc.swapColorLoc = _depthCorrectionShader.getUniformLocation("cTex");
+        glUniform1i(_shaderLoc.swapColorLoc, 0);
+        _shaderLoc.swapDepthLoc = _depthCorrectionShader.getUniformLocation("dTex");
+        glUniform1i(_shaderLoc.swapDepthLoc, 1);
+        _shaderLoc.swapNearLoc = _depthCorrectionShader.getUniformLocation("near");
+        _shaderLoc.swapFarLoc = _depthCorrectionShader.getUniformLocation("far");
 
         ShaderProgram::unbind();
     }
@@ -836,8 +836,8 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
     glEnable(GL_SCISSOR_TEST);
     setupViewport(face);
 
-    if (Engine::instance()->mClearBufferFnPtr) {
-        Engine::instance()->mClearBufferFnPtr();
+    if (Engine::instance()->_clearBufferFn) {
+        Engine::instance()->_clearBufferFn();
     }
     else {
         glm::vec4 color = Engine::instance()->getClearColor();
@@ -847,7 +847,7 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()->mDrawFnPtr();
+    Engine::instance()->_drawFn();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -855,31 +855,31 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
 void FisheyeProjection::blitCubeFace(int face) {
     // copy AA-buffer to "regular"/non-AA buffer
     // bind separate read and draw buffers to prepare blit operation
-    mCubeMapFbo->bindBlit();
+    _cubeMapFbo->bindBlit();
     attachTextures(face);
-    mCubeMapFbo->blit();
+    _cubeMapFbo->blit();
 }
 
 void FisheyeProjection::attachTextures(int face) {
     if (Settings::instance()->useDepthTexture()) {
-        mCubeMapFbo->attachDepthTexture(mTextures.depthSwap);
-        mCubeMapFbo->attachColorTexture(mTextures.colorSwap);
+        _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
+        _cubeMapFbo->attachColorTexture(_textures.colorSwap);
     }
     else {
-        mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, face);
+        _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
     }
 
     if (Settings::instance()->useNormalTexture()) {
-        mCubeMapFbo->attachCubeMapTexture(
-            mTextures.cubeMapNormals,
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapNormals,
             face,
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance()->usePositionTexture()) {
-        mCubeMapFbo->attachCubeMapTexture(
-            mTextures.cubeMapPositions,
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapPositions,
             face,
             GL_COLOR_ATTACHMENT2
         );
@@ -889,34 +889,34 @@ void FisheyeProjection::attachTextures(int face) {
 void FisheyeProjection::renderInternal() {
     glEnable(GL_SCISSOR_TEST);
     Engine::instance()->enterCurrentViewport();
-    glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    mShader.bind();
+    _shader.bind();
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
     if (Settings::instance()->useDepthTexture()) {
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapDepth);
-        glUniform1i(mShaderLoc.depthCubemapLoc, 1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
+        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
     }
 
     if (Settings::instance()->useNormalTexture()) {
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapNormals);
-        glUniform1i(mShaderLoc.normalCubemapLoc, 2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
+        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
     }
 
     if (Settings::instance()->usePositionTexture()) {
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapPositions);
-        glUniform1i(mShaderLoc.positionCubemapLoc, 3);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
+        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
 
     glDisable(GL_CULL_FACE);
@@ -931,14 +931,14 @@ void FisheyeProjection::renderInternal() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(mShaderLoc.cubemapLoc, 0);
-    glUniform1f(mShaderLoc.halfFovLoc, glm::radians<float>(mFOV / 2.f));
+    glUniform1i(_shaderLoc.cubemapLoc, 0);
+    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
 
-    if (mOffAxis) {
-        glUniform3f(mShaderLoc.offsetLoc, mTotalOffset.x, mTotalOffset.y, mTotalOffset.z);
+    if (_offAxis) {
+        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
     }
 
-    glBindVertexArray(mVAO);
+    glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
@@ -957,12 +957,12 @@ void FisheyeProjection::renderInternal() {
 
 void FisheyeProjection::renderInternalFixedPipeline() {
     glEnable(GL_SCISSOR_TEST);
-    Engine::mInstance->enterCurrentViewport();
-    glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
+    Engine::_instance->enterCurrentViewport();
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    mShader.bind();
+    _shader.bind();
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -974,27 +974,27 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     glMatrixMode(GL_MODELVIEW);
 
     glEnable(GL_TEXTURE_CUBE_MAP);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
     if (Settings::instance()->useDepthTexture()) {
         glActiveTexture(GL_TEXTURE1);
         glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapDepth);
-        glUniform1i(mShaderLoc.depthCubemapLoc, 1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
+        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
     }
 
     if (Settings::instance()->useNormalTexture()) {
         glActiveTexture(GL_TEXTURE2);
         glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapNormals);
-        glUniform1i(mShaderLoc.normalCubemapLoc, 2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
+        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
     }
 
     if (Settings::instance()->usePositionTexture()) {
         glActiveTexture(GL_TEXTURE3);
         glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapPositions);
-        glUniform1i(mShaderLoc.positionCubemapLoc, 3);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
+        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
 
     glDisable(GL_CULL_FACE);
@@ -1009,16 +1009,16 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(mShaderLoc.cubemapLoc, 0);
-    glUniform1f(mShaderLoc.halfFovLoc, glm::radians<float>(mFOV / 2.f));
+    glUniform1i(_shaderLoc.cubemapLoc, 0);
+    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
 
-    if (mOffAxis) {
-        glUniform3f(mShaderLoc.offsetLoc, mTotalOffset.x, mTotalOffset.y, mTotalOffset.z);
+    if (_offAxis) {
+        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
     }
 
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     //make sure that VBOs are unbound; to not mess up the vertex array
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glClientActiveTexture(GL_TEXTURE0);
 
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1044,8 +1044,8 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             return;
         }
 
-        mCubeMapFbo->bind();
-        if (!mCubeMapFbo->isMultiSampled()) {
+        _cubeMapFbo->bind();
+        if (!_cubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1053,23 +1053,23 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
-        if (mCubeMapFbo->isMultiSampled()) {
+        if (_cubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
-            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
-            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
-            glViewport(0, 0, mCubemapResolution, mCubemapResolution);
-            glScissor(0, 0, mCubemapResolution, mCubemapResolution);
+            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
+            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::instance()->mClearBufferFnPtr();
+            Engine::instance()->_clearBufferFn();
 
             glDisable(GL_CULL_FACE);
             const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -1085,19 +1085,19 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glDepthFunc(GL_ALWAYS);
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
 
-            mDepthCorrectionShader.bind();
-            glUniform1i(mShaderLoc.swapColorLoc, 0);
-            glUniform1i(mShaderLoc.swapDepthLoc, 1);
+            _depthCorrectionShader.bind();
+            glUniform1i(_shaderLoc.swapColorLoc, 0);
+            glUniform1i(_shaderLoc.swapDepthLoc, 1);
             glUniform1f(
-                mShaderLoc.swapNearLoc,
-                Engine::instance()->mNearClippingPlaneDist
+                _shaderLoc.swapNearLoc,
+                Engine::instance()->_nearClippingPlaneDist
             );
-            glUniform1f(mShaderLoc.swapFarLoc, Engine::instance()->mFarClippingPlaneDist);
+            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->_farClippingPlaneDist);
 
             Engine::instance()->getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1116,12 +1116,12 @@ void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         }
     };
 
-    internalRender(mSubViewports.right, 0);
-    internalRender(mSubViewports.left, 1);
-    internalRender(mSubViewports.bottom, 2);
-    internalRender(mSubViewports.top, 3);
-    internalRender(mSubViewports.front, 4);
-    internalRender(mSubViewports.back, 5);
+    internalRender(_subViewports.right, 0);
+    internalRender(_subViewports.left, 1);
+    internalRender(_subViewports.bottom, 2);
+    internalRender(_subViewports.top, 3);
+    internalRender(_subViewports.front, 4);
+    internalRender(_subViewports.back, 5);
 }
 
 void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
@@ -1131,8 +1131,8 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
         if (!vp.isEnabled()) {
             return;
         }
-        mCubeMapFbo->bind();
-        if (!mCubeMapFbo->isMultiSampled()) {
+        _cubeMapFbo->bind();
+        if (!_cubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1140,25 +1140,25 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
-        if (mCubeMapFbo->isMultiSampled()) {
+        if (_cubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
-            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
-            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
+            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
-            glViewport(0, 0, mCubemapResolution, mCubemapResolution);
-            glScissor(0, 0, mCubemapResolution, mCubemapResolution);
+            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
+            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::instance()->mClearBufferFnPtr();
+            Engine::instance()->_clearBufferFn();
 
             glActiveTexture(GL_TEXTURE0);
             glMatrixMode(GL_TEXTURE);
@@ -1166,14 +1166,14 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
 
             glMatrixMode(GL_MODELVIEW);
 
-            mDepthCorrectionShader.bind();
-            glUniform1i(mShaderLoc.swapColorLoc, 0);
-            glUniform1i(mShaderLoc.swapDepthLoc, 1);
+            _depthCorrectionShader.bind();
+            glUniform1i(_shaderLoc.swapColorLoc, 0);
+            glUniform1i(_shaderLoc.swapDepthLoc, 1);
             glUniform1f(
-                mShaderLoc.swapNearLoc,
-                Engine::instance()->mNearClippingPlaneDist
+                _shaderLoc.swapNearLoc,
+                Engine::instance()->_nearClippingPlaneDist
             );
-            glUniform1f(mShaderLoc.swapFarLoc, Engine::instance()->mFarClippingPlaneDist);
+            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->_farClippingPlaneDist);
 
             glDisable(GL_CULL_FACE);
             bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -1189,11 +1189,11 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
             glDepthFunc(GL_ALWAYS);
 
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
+            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             Engine::instance()->getCurrentWindow().bindVBO();
@@ -1213,12 +1213,12 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
         }
     };
 
-    internalRender(mSubViewports.right, 0);
-    internalRender(mSubViewports.left, 1);
-    internalRender(mSubViewports.bottom, 2);
-    internalRender(mSubViewports.top, 3);
-    internalRender(mSubViewports.front, 4);
-    internalRender(mSubViewports.back, 5);
+    internalRender(_subViewports.right, 0);
+    internalRender(_subViewports.left, 1);
+    internalRender(_subViewports.bottom, 2);
+    internalRender(_subViewports.top, 3);
+    internalRender(_subViewports.front, 4);
+    internalRender(_subViewports.back, 5);
 }
 
 } // namespace sgct::core

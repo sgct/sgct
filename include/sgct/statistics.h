@@ -51,13 +51,13 @@ private:
     static inline const int StatsNumberOfDynamicObjs = 5;
     static inline const int StatsNumberOfStaticObjs = 3;
 
-    float mAvgFPS = 0.f;
-    float mAvgDrawTime = 0.f;
-    float mAvgSyncTime = 0.f;
-    float mAvgFrameTime = 0.f;
-    float mMinFrameTime = std::numeric_limits<float>::max();
-    float mMaxFrameTime = -std::numeric_limits<float>::max();
-    float mStdDevFrameTime = 0.f;
+    float _avgFPS = 0.f;
+    float _avgDrawTime = 0.f;
+    float _avgSyncTime = 0.f;
+    float _avgFrameTime = 0.f;
+    float _minFrameTime = std::numeric_limits<float>::max();
+    float _maxFrameTime = -std::numeric_limits<float>::max();
+    float _stdDevFrameTime = 0.f;
 
     struct StatsVertex {
         float x;
@@ -69,37 +69,37 @@ private:
         StatsVertex syncTime[StatsHistoryLength];
         StatsVertex loopTimeMax[StatsHistoryLength];
         StatsVertex loopTimeMin[StatsHistoryLength];
-    } mDynamicVertexList;
+    } _dynamicVertexList;
     struct {
         glm::vec4 frameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
         glm::vec4 drawTime = glm::vec4(1.f, 0.f, 1.f, 0.8f);
         glm::vec4 syncTime = glm::vec4(0.f, 1.f, 1.f, 0.8f);
         glm::vec4 loopTimeMax = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
         glm::vec4 loopTimeMin = glm::vec4(0.f, 0.f, 0.8f, 0.8f);
-    } mDynamicColors;
+    } _dynamicColors;
 
-    glm::vec4 mStaticColorGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
-    glm::vec4 mStaticColorFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
-    glm::vec4 mStaticColorBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
+    glm::vec4 _staticColorGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
+    glm::vec4 _staticColorFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    glm::vec4 _staticColorBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
 
-    //VBOs
-    unsigned int mVBOIndex = 0;
+    // VBOs
+    unsigned int _vboIndex = 0;
     // double buffered for ping-pong
-    unsigned int mDynamicVBO[2] = { 0, 0 };
-    unsigned int mDynamicVAO[2] = { 0, 0 };
-    unsigned int mStaticVBO = 0;
-    unsigned int mStaticVAO = 0;
+    unsigned int _dynamicVAO[2] = { 0, 0 };
+    unsigned int _dynamicVBO[2] = { 0, 0 };
+    unsigned int _staticVAO = 0;
+    unsigned int _staticVBO = 0;
 
-    int mNumberOfLines = 0;
-    bool mFixedPipeline = true;
+    int _nLines = 0;
+    bool _fixedPipeline = true;
 
-    ShaderProgram mShader;
-    int mMVPLoc = -1;
-    int mColLoc = -1;
+    ShaderProgram _shader;
+    int _mvpLoc = -1;
+    int _colorLoc = -1;
 
-    std::vector<float> mStaticVerts;
+    std::vector<float> _staticVerts;
 };
 
-} //sgct_core
+} // namespace sgct_core
 
 #endif // __SGCT__STATISTICS__H__

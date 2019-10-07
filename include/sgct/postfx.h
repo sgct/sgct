@@ -49,16 +49,16 @@ private:
     void internalRender();
     void internalRenderFixedPipeline();
 
-    void (*mUpdateFn)() = nullptr;
-    void (PostFX::*mRenderFn)() = nullptr;
+    void (*_updateFn)() = nullptr;
+    void (PostFX::*_renderFn)() = nullptr;
 
-    ShaderProgram mShaderProgram;
-    unsigned int mInputTexture = 0;
-    unsigned int mOutputTexture = 0;
+    ShaderProgram _shaderProgram;
+    unsigned int _inputTexture = 0;
+    unsigned int _outputTexture = 0;
     
-    glm::ivec2 mSize = glm::ivec2(1, 1);
-    std::string mName;
-    inline static bool mDeleted = false;
+    glm::ivec2 _size = glm::ivec2(1, 1);
+    std::string _name;
+    inline static bool _deleted = false;
 };
 
 } // namespace sgct

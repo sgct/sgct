@@ -30,11 +30,11 @@ public:
     const glm::mat4& getProjectionMatrix() const;
     
 protected:
-    glm::mat4 mViewMatrix = glm::mat4(1.f);
-    glm::mat4 mViewProjectionMatrix = glm::mat4(1.f);
-    glm::mat4 mProjectionMatrix = glm::mat4(1.f);
+    glm::mat4 _viewMatrix = glm::mat4(1.f);
+    glm::mat4 _viewProjectionMatrix = glm::mat4(1.f);
+    glm::mat4 _projectionMatrix = glm::mat4(1.f);
 
-    Frustum mFrustum;
+    Frustum _frustum;
 };
 
 } // namespace sgct::core

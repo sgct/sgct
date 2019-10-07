@@ -128,38 +128,38 @@ private:
     void setAnalogTimeStamp();
     void setButtonTimeStamp(size_t index);
 
-    bool mEnabled = true;
-    std::string mName;
-    size_t mParentIndex; //the index of parent Tracker
-    int mNumberOfButtons = 0;
-    int mNumberOfAxes = 0;
-    int mSensorId = -1;
+    bool _enabled = true;
+    std::string _name;
+    size_t _parentIndex; // the index of parent Tracker
+    int _nButtons = 0;
+    int _nAxes = 0;
+    int _sensorId = -1;
 
-    glm::mat4 mDeviceTransform = glm::mat4(1.f);
+    glm::mat4 _deviceTransform = glm::mat4(1.f);
 
-    glm::mat4 mWorldTransform = glm::mat4(1.f);
-    glm::mat4 mWorldTransformPrevious = glm::mat4(1.f);
+    glm::mat4 _worldTransform = glm::mat4(1.f);
+    glm::mat4 _worldTransformPrevious = glm::mat4(1.f);
 
-    glm::dquat mSensorRotation = glm::dquat(0.0, 0.0, 0.0, 0.0);
-    glm::dquat mSensorRotationPrevious = glm::dquat(0.0, 0.0, 0.0, 0.0);
+    glm::dquat _sensorRotation = glm::dquat(0.0, 0.0, 0.0, 0.0);
+    glm::dquat _sensorRotationPrevious = glm::dquat(0.0, 0.0, 0.0, 0.0);
 
-    glm::dvec3 mSensorPos = glm::dvec3(0.0);
-    glm::dvec3 mSensorPosPrevious = glm::dvec3(0.0);
-    glm::quat mOrientation;
-    glm::vec3 mOffset;
+    glm::dvec3 _sensorPos = glm::dvec3(0.0);
+    glm::dvec3 _sensorPosPrevious = glm::dvec3(0.0);
+    glm::quat _orientation;
+    glm::vec3 _offset;
 
-    double mTrackerTime = 0.0;
-    double mTrackerTimePrevious = 0.0;
+    double _trackerTime = 0.0;
+    double _trackerTimePrevious = 0.0;
 
-    double mAnalogTime = 0.0;
-    double mAnalogTimePrevious = 0.0;
+    double _analogTime = 0.0;
+    double _analogTimePrevious = 0.0;
 
-    std::vector<double> mButtonTime;
-    std::vector<double> mButtonTimePrevious;
-    std::vector<bool> mButtons;
-    std::vector<bool> mButtonsPrevious;
-    std::vector<double> mAxes;
-    std::vector<double> mAxesPrevious;
+    std::vector<double> _buttonTime;
+    std::vector<double> _buttonTimePrevious;
+    std::vector<bool> _buttons;
+    std::vector<bool> _buttonsPrevious;
+    std::vector<double> _axes;
+    std::vector<double> _axesPrevious;
 };
 
 } // namespace sgct

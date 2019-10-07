@@ -56,11 +56,11 @@ public:
     bool areAllPointsStationary() const;
 
 private:
-    std::vector<TouchPoint> mTouchPoints;
-    std::vector<TouchPoint> mPreviousTouchPoints;
-    std::unordered_map<int, glm::vec2> mPreviousTouchPositions;
-    std::vector<int> mPrevTouchIds;
-    bool mAllPointsStationary = true;
+    std::vector<TouchPoint> _touchPoints;
+    std::vector<TouchPoint> _previousTouchPoints;
+    std::unordered_map<int, glm::vec2> _previousTouchPositions;
+    std::vector<int> _prevTouchIds;
+    bool _allPointsStationary = true;
 };
 
 std::string getTouchPointInfo(const Touch::TouchPoint& tp);

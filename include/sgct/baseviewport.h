@@ -70,26 +70,26 @@ protected:
         Projection mono;
         Projection stereoLeft;
         Projection stereoRight;
-    } mProjections;
+    } _projections;
     
-    ProjectionPlane mProjectionPlane;
-    Frustum::Mode mEye = Frustum::Mode::MonoEye;
+    ProjectionPlane _projectionPlane;
+    Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
-    User& mUser;
-    std::string mName = "NoName";
-    std::string mUserName;
-    bool mEnabled = true;
-    glm::vec2 mPosition = glm::vec2(0.f, 0.f);
-    glm::vec2 mSize = glm::vec2(1.f, 1.f);
+    User& _user;
+    std::string _name = "NoName";
+    std::string _userName;
+    bool _enabled = true;
+    glm::vec2 _position = glm::vec2(0.f, 0.f);
+    glm::vec2 _size = glm::vec2(1.f, 1.f);
 
     struct {
         glm::vec3 lowerLeft;
         glm::vec3 upperLeft;
         glm::vec3 upperRight;
-    } mUnTransformedViewPlaneCoords;
-    glm::quat mRot;
-    float mDistance = 10.f;
-    glm::vec4 mFOV;
+    } _viewPlane;
+    glm::quat _rotation;
+    float _distance = 10.f;
+    glm::vec4 _fov;
 };
 
 } // namespace sgct::core

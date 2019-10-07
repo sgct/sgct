@@ -100,17 +100,17 @@ private:
     bool decodeTGARLE(unsigned char* data, size_t len);
     size_t getTGAPackageLength(unsigned char* row, size_t pos, bool rle);
     
-    size_t mChannels = 0;
-    size_t mSizeX = 0;
-    size_t mSizeY = 0;
-    size_t mDataSize = 0;
-    size_t mBytesPerChannel = 1;
-    std::string mFilename;
-    unsigned char* mData = nullptr;
-    png_bytep* mRowPtrs = nullptr;
-    bool mPreferBGRForExport = true;
-    bool mPreferBGRForImport = true;
-    bool mExternalData = false;
+    size_t _nChannels = 0;
+    size_t _sizeX = 0;
+    size_t _sizeY = 0;
+    size_t _dataSize = 0;
+    size_t _bytesPerChannel = 1;
+    std::string _filename;
+    unsigned char* _data = nullptr;
+    png_bytep* _rowPtrs = nullptr;
+    bool _preferBGRForExport = true;
+    bool _preferBGRForImport = true;
+    bool _externalData = false;
 };
 
 } // namespace sgct::core

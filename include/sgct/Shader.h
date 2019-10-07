@@ -95,8 +95,8 @@ private:
      */
     bool checkCompilationStatus() const;
 
-    ShaderType mShaderType;    // The shader type
-    int mShaderId = 0;        // The shader id used for reference
+    ShaderType _shaderType; // The shader type
+    int _shaderId = 0;      // The shader _id used for reference
 };
 
 } // sgct_core

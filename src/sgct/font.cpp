@@ -17,22 +17,22 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct::text {
 
 Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
-    : mName(std::move(name))
-    , mHeight(static_cast<float>(height))
-    , mFace(face)
-    , mFTLibrary(lib)
+    : _name(std::move(name))
+    , _height(static_cast<float>(height))
+    , _face(face)
+    , _library(lib)
 {
     // setup geometry
-    glGenVertexArrays(1, &mVAO);
-    glGenBuffers(1, &mVBO);
+    glGenVertexArrays(1, &_vao);
+    glGenBuffers(1, &_vbo);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Font: Generating VAO: %u\n", mVAO
+        "Font: Generating VAO: %u\n", _vao
     );
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Font: Generating VBO: %u\n", mVBO
+        "Font: Generating VBO: %u\n", _vbo
     );
 
     std::array<float, 16> c = {
@@ -42,8 +42,8 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
         1.f, 0.f, 1.f, 1.f
     };
 
-    glBindVertexArray(mVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -65,59 +65,59 @@ Font::Font(FT_Library lib, FT_Face face, std::string name, unsigned int height)
 }
 
 Font::~Font() {
-    if (!mFontFaceDataMap.empty()) {
-        glDeleteLists(mListId, 1);
-        glDeleteVertexArrays(1, &mVAO);
-        glDeleteBuffers(1, &mVBO);
+    if (!_fontFaceData.empty()) {
+        glDeleteLists(_listId, 1);
+        glDeleteVertexArrays(1, &_vao);
+        glDeleteBuffers(1, &_vbo);
 
-        for (const std::pair<const wchar_t, FontFaceData>& n : mFontFaceDataMap) {
-            glDeleteTextures(1, &(n.second.mTexId));
-            FT_Done_Glyph(n.second.mGlyph);
+        for (const std::pair<const wchar_t, FontFaceData>& n : _fontFaceData) {
+            glDeleteTextures(1, &(n.second.texId));
+            FT_Done_Glyph(n.second.glyph);
         }
     }
 
     // This needs to be cleared before the face is destroyed
-    mFontFaceDataMap.clear();
-    FT_Done_Face(mFace);
+    _fontFaceData.clear();
+    FT_Done_Face(_face);
 }
 
 long Font::getStrokeSize() const {
-    return mStrokeSize;
+    return _strokeSize;
 }
 
 void Font::setStrokeSize(long size) {
-    mStrokeSize = size;
+    _strokeSize = size;
 };
 
 const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
-    if (mFontFaceDataMap.count(c) == 0) {
+    if (_fontFaceData.count(c) == 0) {
         // check if c does not exist in map
         createCharacter(c);
     }
-    return mFontFaceDataMap[c];
+    return _fontFaceData[c];
 }
 
 unsigned int Font::getVAO() const {
-    return mVAO;
+    return _vao;
 }
 
 unsigned int Font::getVBO() const {
-    return mVBO;
+    return _vbo;
 }
 
 unsigned int Font::getDisplayList() const {
-    return mListId;
+    return _listId;
 }
 
 float Font::getHeight() const {
-    return mHeight;
+    return _height;
 }
 
 void Font::createCharacter(wchar_t c) {
     FontFaceData ffd;
     const bool success = createGlyph(c, ffd);
     if (success) {
-        mFontFaceDataMap[c] = std::move(ffd);
+        _fontFaceData[c] = std::move(ffd);
     }
 }
 
@@ -126,21 +126,21 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     // Hints:
     // www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
 
-    FT_UInt charIndex = FT_Get_Char_Index(mFace, static_cast<FT_ULong>(c));
+    FT_UInt charIndex = FT_Get_Char_Index(_face, static_cast<FT_ULong>(c));
     if (charIndex == 0) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "Font %s: Missing face for char %u\n",
-            mName.c_str(), static_cast<unsigned int>(c)
+            _name.c_str(), static_cast<unsigned int>(c)
         );
     }
 
-    FT_Error loadError = FT_Load_Glyph(mFace, charIndex, FT_LOAD_FORCE_AUTOHINT);
+    FT_Error loadError = FT_Load_Glyph(_face, charIndex, FT_LOAD_FORCE_AUTOHINT);
     if (loadError) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Font %s: FT_Load_Glyph failed for char %u\n",
-            mName.c_str(), static_cast<unsigned int>(c)
+            _name.c_str(), static_cast<unsigned int>(c)
         );
         return false;
     }
@@ -150,40 +150,40 @@ bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     int height;
     std::vector<unsigned char> pixels;
     GlyphData gd;
-    const bool success = getPixelData(mFace, width, height, pixels, gd);
+    const bool success = getPixelData(_face, width, height, pixels, gd);
     if (!success) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Font %s: FT_Get_Glyph failed for char %u\n",
-            mName.c_str(), static_cast<unsigned int>(c)
+            _name.c_str(), static_cast<unsigned int>(c)
         );
         return false;
     }
 
     // create texture
     if (charIndex > 0) {
-        ffd.mTexId = generateTexture(width, height, pixels);
+        ffd.texId = generateTexture(width, height, pixels);
     }
     else {
-        ffd.mTexId = 0;
+        ffd.texId = 0;
     }
 
     // With the texture created, we don't need to expanded data anymore
     pixels.clear();
 
     // setup geometry data
-    ffd.mPos.x = static_cast<float>(gd.mBitmapGlyph->left);
-    ffd.mPos.y = static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows);
-    ffd.mSize.x = static_cast<float>(width);
-    ffd.mSize.y = static_cast<float>(height);
+    ffd.pos.x = static_cast<float>(gd.bitmapGlyph->left);
+    ffd.pos.y = static_cast<float>(gd.bitmapGlyph->top - gd.bitmap->rows);
+    ffd.size.x = static_cast<float>(width);
+    ffd.size.y = static_cast<float>(height);
 
     // delete the stroke glyph
-    FT_Stroker_Done(gd.mStroker);
-    FT_Done_Glyph(gd.mStrokeGlyph);
+    FT_Stroker_Done(gd.stroker);
+    FT_Done_Glyph(gd.strokeGlyph);
     
     // Can't delete them while they are used, delete when font is cleaned
-    ffd.mGlyph = gd.mGlyph;
-    ffd.mDistToNextChar = static_cast<float>(mFace->glyph->advance.x / 64);
+    ffd.glyph = gd.glyph;
+    ffd.distToNextChar = static_cast<float>(_face->glyph->advance.x / 64);
 
     return true;
 }
@@ -225,41 +225,41 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
                         std::vector<unsigned char>& pixels, GlyphData& gd)
 {
     // Move the face's glyph into a Glyph object
-    FT_Error glyphErr = FT_Get_Glyph(face->glyph, &(gd.mGlyph));
-    FT_Error strokeErr = FT_Get_Glyph(face->glyph, &(gd.mStrokeGlyph));
+    FT_Error glyphErr = FT_Get_Glyph(face->glyph, &(gd.glyph));
+    FT_Error strokeErr = FT_Get_Glyph(face->glyph, &(gd.strokeGlyph));
     if (glyphErr || strokeErr) {
         return false;
     }
 
-    gd.mStroker = nullptr;
-    FT_Error error = FT_Stroker_New(mFTLibrary, &(gd.mStroker));
+    gd.stroker = nullptr;
+    FT_Error error = FT_Stroker_New(_library, &(gd.stroker));
     if (!error) {
         FT_Stroker_Set(
-            gd.mStroker,
-            64 * mStrokeSize,
+            gd.stroker,
+            64 * _strokeSize,
             FT_STROKER_LINECAP_ROUND,
             FT_STROKER_LINEJOIN_ROUND,
             0
         );
 
-        error = FT_Glyph_Stroke(&(gd.mStrokeGlyph), gd.mStroker, 1);
+        error = FT_Glyph_Stroke(&(gd.strokeGlyph), gd.stroker, 1);
     }
 
     // Convert the glyph to a bitmap
-    FT_Glyph_To_Bitmap(&(gd.mGlyph), ft_render_mode_normal, 0, 1);
-    gd.mBitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.mGlyph);
+    FT_Glyph_To_Bitmap(&(gd.glyph), ft_render_mode_normal, 0, 1);
+    gd.bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.glyph);
 
-    FT_Glyph_To_Bitmap(&(gd.mStrokeGlyph), ft_render_mode_normal, 0, 1);
-    gd.mBitmapStrokeGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.mStrokeGlyph);
+    FT_Glyph_To_Bitmap(&(gd.strokeGlyph), ft_render_mode_normal, 0, 1);
+    gd.bitmapStrokeGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.strokeGlyph);
 
     // This pointer will make accessing the bitmap easier
-    gd.mBitmapPtr = &(gd.mBitmapGlyph->bitmap);
-    gd.mStrokeBitmapPtr = &(gd.mBitmapStrokeGlyph->bitmap);
+    gd.bitmap = &(gd.bitmapGlyph->bitmap);
+    gd.strokeBitmap = &(gd.bitmapStrokeGlyph->bitmap);
 
     // Use our helper function to get the widths of the bitmap data that we will need in
     // order to create our texture
-    width = gd.mStrokeBitmapPtr->width;
-    height = gd.mStrokeBitmapPtr->rows;
+    width = gd.strokeBitmap->width;
+    height = gd.strokeBitmap->rows;
 
     // Allocate memory for the texture data
     pixels.resize(2 * width * height);
@@ -268,28 +268,28 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
     // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
     // operator so that value which we use will be 0 if we are in the padding zone, and
     // whatever is the the Freetype bitmap otherwise
-    const int offsetWidth = (gd.mStrokeBitmapPtr->width - gd.mBitmapPtr->width) / 2;
-    const int offsetRows = (gd.mStrokeBitmapPtr->rows - gd.mBitmapPtr->rows) / 2;
+    const int offsetWidth = (gd.strokeBitmap->width - gd.bitmap->width) / 2;
+    const int offsetRows = (gd.strokeBitmap->rows - gd.bitmap->rows) / 2;
     for (int j = 0; j < height; ++j) {
         for (int i = 0; i < width; ++i) {
             const int k = i - offsetWidth;
             const int l = j - offsetRows;
 
             const int idx = 2 * (i + j * width);
-            if (k >= static_cast<int>(gd.mBitmapPtr->width) ||
-                l >= static_cast<int>(gd.mBitmapPtr->rows) || k < 0 || l < 0)
+            if (k >= static_cast<int>(gd.bitmap->width) ||
+                l >= static_cast<int>(gd.bitmap->rows) || k < 0 || l < 0)
             {
                 pixels[idx] = 0;
             }
             else {
-                pixels[idx] = gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
+                pixels[idx] = gd.bitmap->buffer[k + gd.bitmap->width * l];
             }
 
             const bool strokeInRange =
-                i >= static_cast<int>(gd.mStrokeBitmapPtr->width) ||
-                j >= static_cast<int>(gd.mStrokeBitmapPtr->rows);
+                i >= static_cast<int>(gd.strokeBitmap->width) ||
+                j >= static_cast<int>(gd.strokeBitmap->rows);
             unsigned char strokeVal = strokeInRange ?
-                0 : gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
+                0 : gd.strokeBitmap->buffer[i + gd.strokeBitmap->width * j];
 
             pixels[idx + 1] = strokeVal < pixels[idx] ? pixels[idx] : strokeVal;
         }

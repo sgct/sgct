@@ -34,15 +34,15 @@ namespace sgct::core {
 Viewport::Viewport() : Viewport(0.f, 0.f, 0.f, 0.f) {}
 
 Viewport::Viewport(float x, float y, float xSize, float ySize) {
-    mPosition = glm::vec2(x, y);
-    mSize = glm::vec2(xSize, ySize);
-    mProjectionPlane.reset();
+    _position = glm::vec2(x, y);
+    _size = glm::vec2(xSize, ySize);
+    _projectionPlane.reset();
 }
 
 Viewport::~Viewport() {
-    glDeleteTextures(1, &mOverlayTextureIndex);
-    glDeleteTextures(1, &mBlendMaskTextureIndex);
-    glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
+    glDeleteTextures(1, &_overlayTextureIndex);
+    glDeleteTextures(1, &_blendMaskTextureIndex);
+    glDeleteTextures(1, &_blackLevelMaskTextureIndex);
 }
 
 void Viewport::applySettings(const config::Viewport& viewport) {
@@ -65,7 +65,7 @@ void Viewport::applySettings(const config::Viewport& viewport) {
         setCorrectionMesh(*viewport.correctionMeshTexture);
     }
     if (viewport.meshHint) {
-        mMeshHint = *viewport.meshHint;
+        _meshHint = *viewport.meshHint;
     }
     if (viewport.isTracked) {
         setTracked(*viewport.isTracked);
@@ -103,12 +103,12 @@ void Viewport::applySettings(const config::Viewport& viewport) {
             applySpoutOutputProjection(proj);
         },
         [this](const config::ProjectionPlane& proj) {
-            mProjectionPlane.setCoordinateLowerLeft(*proj.lowerLeft);
-            mUnTransformedViewPlaneCoords.lowerLeft = *proj.lowerLeft;
-            mProjectionPlane.setCoordinateUpperLeft(*proj.upperLeft);
-            mUnTransformedViewPlaneCoords.upperLeft = *proj.upperLeft;
-            mProjectionPlane.setCoordinateUpperRight(*proj.upperRight);
-            mUnTransformedViewPlaneCoords.upperRight = *proj.upperRight;
+            _projectionPlane.setCoordinateLowerLeft(*proj.lowerLeft);
+            _viewPlane.lowerLeft = *proj.lowerLeft;
+            _projectionPlane.setCoordinateUpperLeft(*proj.upperLeft);
+            _viewPlane.upperLeft = *proj.upperLeft;
+            _projectionPlane.setCoordinateUpperRight(*proj.upperRight);
+            _viewPlane.upperRight = *proj.upperRight;
         },
     }, viewport.projection);
 }
@@ -132,7 +132,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& proj) {
             *proj.orientation,
             *proj.distance
         );
-        mProjectionPlane.offset(*proj.offset);
+        _projectionPlane.offset(*proj.offset);
     }
 }
 
@@ -146,13 +146,13 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
         proj.fov.distance.value_or(10.f)
     );
     if (proj.offset) {
-        mProjectionPlane.offset(*proj.offset);
+        _projectionPlane.offset(*proj.offset);
     }
 }
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     std::unique_ptr<FisheyeProjection> fishProj = std::make_unique<FisheyeProjection>();
-    fishProj->setUser(mUser);
+    fishProj->setUser(_user);
     
     if (proj.fov) {
         fishProj->setFOV(*proj.fov);
@@ -207,7 +207,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setClearColor(*proj.background);
     }
     fishProj->setUseDepthTransformation(true);
-    mNonLinearProjection = std::move(fishProj);
+    _nonLinearProjection = std::move(fishProj);
 }
 
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& proj) {
@@ -222,7 +222,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
    
     std::unique_ptr<SpoutOutputProjection> spoutProj =
         std::make_unique<SpoutOutputProjection>();
-    spoutProj->setUser(mUser);
+    spoutProj->setUser(_user);
     if (proj.quality) {
         spoutProj->setCubemapResolution(*proj.quality);
     }
@@ -260,7 +260,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     }
 
     spoutProj->setUseDepthTransformation(true);
-    mNonLinearProjection = std::move(spoutProj);
+    _nonLinearProjection = std::move(spoutProj);
 #endif
 }
 
@@ -270,7 +270,7 @@ void Viewport::applySphericalMirrorProjection(
     std::unique_ptr<SphericalMirrorProjection> sphericalMirrorProj =
         std::make_unique<SphericalMirrorProjection>();
 
-    sphericalMirrorProj->setUser(mUser);
+    sphericalMirrorProj->setUser(_user);
     if (proj.quality) {
         sphericalMirrorProj->setCubemapResolution(*proj.quality);
     }
@@ -289,147 +289,147 @@ void Viewport::applySphericalMirrorProjection(
         proj.mesh.top
     );
     sphericalMirrorProj->setUseDepthTransformation(false);
-    mNonLinearProjection = std::move(sphericalMirrorProj);
+    _nonLinearProjection = std::move(sphericalMirrorProj);
 }
 
 void Viewport::setOverlayTexture(std::string texturePath) {
-    mOverlayFilename = std::move(texturePath);
+    _overlayFilename = std::move(texturePath);
 }
 
 void Viewport::setBlendMaskTexture(std::string texturePath) {
-    mBlendMaskFilename = std::move(texturePath);
+    _blendMaskFilename = std::move(texturePath);
 }
 
 void Viewport::setBlackLevelMaskTexture(std::string texturePath) {
-    mBlackLevelMaskFilename = std::move(texturePath);
+    _blackLevelMaskFilename = std::move(texturePath);
 }
 
 void Viewport::setCorrectionMesh(std::string meshPath) {
-    mMeshFilename = std::move(meshPath);
+    _meshFilename = std::move(meshPath);
 }
 
 void Viewport::setMpcdiWarpMesh(std::vector<unsigned char> data) {
-    mMpcdiWarpMesh = std::move(data);
+    _mpcdiWarpMesh = std::move(data);
 }
 
 void Viewport::setTracked(bool state) {
-    mTracked = state;
+    _tracked = state;
 }
 
 void Viewport::loadData() {
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Viewport: loading GPU data for '%s'\n", mName.c_str()
+        "Viewport: loading GPU data for '%s'\n", _name.c_str()
     );
         
-    if (!mOverlayFilename.empty()) {
+    if (!_overlayFilename.empty()) {
         TextureManager::instance()->loadUnManagedTexture(
-            mOverlayTextureIndex,
-            mOverlayFilename,
+            _overlayTextureIndex,
+            _overlayFilename,
             true,
             1
         );
     }
 
-    if (!mBlendMaskFilename.empty()) {
+    if (!_blendMaskFilename.empty()) {
         TextureManager::instance()->loadUnManagedTexture(
-            mBlendMaskTextureIndex,
-            mBlendMaskFilename,
+            _blendMaskTextureIndex,
+            _blendMaskFilename,
             true,
             1
         );
     }
 
-    if (!mBlackLevelMaskFilename.empty()) {
+    if (!_blackLevelMaskFilename.empty()) {
         TextureManager::instance()->loadUnManagedTexture(
-            mBlackLevelMaskTextureIndex,
-            mBlackLevelMaskFilename,
+            _blackLevelMaskTextureIndex,
+            _blackLevelMaskFilename,
             true,
             1
         );
     }
 
-    if (!mMpcdiWarpMesh.empty()) {
-        mCorrectionMesh = mCM.readAndGenerateMesh(
+    if (!_mpcdiWarpMesh.empty()) {
+        _correctionMesh = _mesh.readAndGenerateMesh(
             "mesh.mpcdi",
             *this,
             CorrectionMesh::parseHint("mpcdi")
         );
     }
     else {
-        // load default if mMeshFilename is empty
-        mCorrectionMesh = mCM.readAndGenerateMesh(
-            mMeshFilename,
+        // load default if _meshFilename is empty
+        _correctionMesh = _mesh.readAndGenerateMesh(
+            _meshFilename,
             *this,
-            CorrectionMesh::parseHint(mMeshHint)
+            CorrectionMesh::parseHint(_meshHint)
         );
     }
 }
 
 void Viewport::renderQuadMesh() const {
-    if (mEnabled) {
-        mCM.renderQuadMesh();
+    if (_enabled) {
+        _mesh.renderQuadMesh();
     }
 }
 
 void Viewport::renderWarpMesh() const {
-    if (mEnabled) {
-        mCM.renderWarpMesh();
+    if (_enabled) {
+        _mesh.renderWarpMesh();
     }
 }
 
 void Viewport::renderMaskMesh() const {
-    if (mEnabled) {
-        mCM.renderMaskMesh();
+    if (_enabled) {
+        _mesh.renderMaskMesh();
     }
 }
 
 bool Viewport::hasOverlayTexture() const {
-    return mOverlayTextureIndex != 0;
+    return _overlayTextureIndex != 0;
 }
 
 bool Viewport::hasBlendMaskTexture() const {
-    return mBlendMaskTextureIndex != 0;
+    return _blendMaskTextureIndex != 0;
 }
 
 bool Viewport::hasBlackLevelMaskTexture() const {
-    return mBlackLevelMaskTextureIndex != 0;
+    return _blackLevelMaskTextureIndex != 0;
 }
 
 bool Viewport::hasSubViewports() const {
-    return mNonLinearProjection != nullptr;
+    return _nonLinearProjection != nullptr;
 }
 
 bool Viewport::hasCorrectionMesh() const {
-    return mCorrectionMesh;
+    return _correctionMesh;
 }
 
 bool Viewport::isTracked() const {
-    return mTracked;
+    return _tracked;
 }
 
 unsigned int Viewport::getOverlayTextureIndex() const {
-    return mOverlayTextureIndex;
+    return _overlayTextureIndex;
 }
 
 unsigned int Viewport::getBlendMaskTextureIndex() const {
-    return mBlendMaskTextureIndex;
+    return _blendMaskTextureIndex;
 }
 
 unsigned int Viewport::getBlackLevelMaskTextureIndex() const {
-    return mBlackLevelMaskTextureIndex;
+    return _blackLevelMaskTextureIndex;
 }
 
 CorrectionMesh& Viewport::getCorrectionMeshPtr() {
-    return mCM;
+    return _mesh;
 }
 
 NonLinearProjection* Viewport::getNonLinearProjection() const {
-    return mNonLinearProjection.get();
+    return _nonLinearProjection.get();
 }
 
 const std::vector<unsigned char>& Viewport::mpcdiWarpMesh() const {
-    return mMpcdiWarpMesh;
+    return _mpcdiWarpMesh;
 }
 
 } // namespace sgct::core

@@ -38,10 +38,10 @@ private:
     void drawVAO();
     void createVBO(float size, TextureMappingMode tmm);
 
-    unsigned int mVBO = 0;
-    unsigned int mVAO = 0;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
-} // sgct_utils
+} // namespace sgct_utils
 
 #endif // __SGCT__BOX__H__

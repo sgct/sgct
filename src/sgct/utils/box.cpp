@@ -26,8 +26,8 @@ Box::Box(float size, TextureMappingMode mode) {
 }
 
 Box::~Box() {
-    glDeleteBuffers(1, &mVBO);
-    glDeleteVertexArrays(1, &mVAO);
+    glDeleteBuffers(1, &_vbo);
+    glDeleteVertexArrays(1, &_vao);
 }
 
 void Box::draw() {
@@ -40,7 +40,7 @@ void Box::drawVBO() {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     
     glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -51,7 +51,7 @@ void Box::drawVBO() {
 }
 
 void Box::drawVAO() {
-    glBindVertexArray(mVAO);
+    glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
@@ -208,24 +208,24 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
     }
 
 
-    glGenVertexArrays(1, &mVAO);
-    glBindVertexArray(mVAO);
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Box: Generating VAO: %d\n", mVAO
+        "Box: Generating VAO: %d\n", _vao
     );
     
-    glGenBuffers(1, &mVBO);
+    glGenBuffers(1, &_vbo);
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Box: Generating VBO: %d\n", mVBO
+        "Box: Generating VBO: %d\n", _vbo
     );
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
         v.size() * sizeof(helpers::VertexData),

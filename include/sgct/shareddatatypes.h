@@ -21,36 +21,36 @@ template <class T>
 class SharedObject {
 public:
     SharedObject() = default;
-    explicit SharedObject(T val) : mVal(std::move(val)) {}
+    explicit SharedObject(T val) : _value(std::move(val)) {}
 
     T getVal() const {
-        mMutex.lock();
-        T tmpT = mVal;
-        mMutex.unlock();
+        _mutex.lock();
+        T tmpT = _value;
+        _mutex.unlock();
         return tmpT;
     }
 
     void setVal(T val) {
-        mMutex.lock();
-        mVal = std::move(val);
-        mMutex.unlock();
+        _mutex.lock();
+        _value = std::move(val);
+        _mutex.unlock();
     }
 
     void operator=(const SharedObject<T>& so) {
-        mMutex.lock();
-        mVal = so.mVal;
-        mMutex.unlock();
+        _mutex.lock();
+        _value = so._value;
+        _mutex.unlock();
     }
 
     void operator=(T val) {
-        mMutex.lock();
-        mVal = std::move(val);
-        mMutex.unlock();
+        _mutex.lock();
+        _value = std::move(val);
+        _mutex.unlock();
     }
 
 private:
-    T mVal;
-    mutable std::mutex mMutex;
+    T _value;
+    mutable std::mutex _mutex;
 };
 
 using SharedFloat = SharedObject<float>;
@@ -93,43 +93,43 @@ public:
     }
 
     T getValAt(size_t index) const {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         return mVector[index];
     }
 
     std::vector<T> getVal() const {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         return mVector;
     }
 
     void setValAt(size_t index, T val) {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         mVector[index] = val;
     }
 
     void addVal(T val) {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         mVector.push_back(val);
     }
 
     void setVal(std::vector<T> mCopy) {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         mVector = std::move(mCopy);
     }
 
     void clear() {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         mVector.clear();
     }
 
     size_t getSize() const {
-        std::unique_lock lock(mMutex);
+        std::unique_lock lock(_mutex);
         return mVector.size();
     }
 
 private:
     std::vector<T> mVector;
-    mutable std::mutex mMutex;
+    mutable std::mutex _mutex;
 };
 
 } // namespace sgct

@@ -131,36 +131,36 @@ private:
     SharedData();
 
     // function pointers
-    void (*mEncodeFn)() = nullptr;
-    void (*mDecodeFn)() = nullptr;
+    void (*_encodeFn)() = nullptr;
+    void (*_decodeFn)() = nullptr;
 
-    static SharedData* mInstance;
-    std::vector<unsigned char> dataBlock;
-    std::vector<unsigned char> dataBlockToCompress;
-    std::vector<unsigned char>* currentStorage;
-    std::vector<unsigned char> mCompressedBuffer;
-    std::array<unsigned char, core::Network::HeaderSize> headerSpace;
-    unsigned int pos;
-    int mCompressionLevel;
-    float mCompressionRatio = 1.f;
-    bool mUseCompression = false;
+    static SharedData* _instance;
+    std::vector<unsigned char> _dataBlock;
+    std::vector<unsigned char> _dataBlockToCompress;
+    std::vector<unsigned char>* _currentStorage;
+    std::vector<unsigned char> _compressedBuffer;
+    std::array<unsigned char, core::Network::HeaderSize> _headerSpace;
+    unsigned int _pos;
+    int _compressionLevel;
+    float _compressionRatio = 1.f;
+    bool _useCompression = false;
 };
 
 template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
     T val = sobj.getVal();
     
-    std::unique_lock lk(MutexManager::instance()->mDataSyncMutex);
+    std::unique_lock lk(MutexManager::instance()->dataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
-    currentStorage->insert(currentStorage->end(), p, p + sizeof(T));
+    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(T));
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T>& sobj) {
-    MutexManager::instance()->mDataSyncMutex.lock();
-    T val = *reinterpret_cast<T*>(&dataBlock[pos]);
-    pos += sizeof(T);
-    MutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->dataSyncMutex.lock();
+    T val = *reinterpret_cast<T*>(&_dataBlock[_pos]);
+    _pos += sizeof(T);
+    MutexManager::instance()->dataSyncMutex.unlock();
 
     sobj.setVal(val);
 }
@@ -170,28 +170,28 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     std::vector<T> tmpVec = vector.getVal();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
-    MutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->dataSyncMutex.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
-    currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
-    MutexManager::instance()->mDataSyncMutex.unlock();
+    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
+    MutexManager::instance()->dataSyncMutex.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
-        MutexManager::instance()->mDataSyncMutex.lock();
-        currentStorage->insert(currentStorage->end(), c, c + length);
-        MutexManager::instance()->mDataSyncMutex.unlock();
+        MutexManager::instance()->dataSyncMutex.lock();
+        _currentStorage->insert(_currentStorage->end(), c, c + length);
+        MutexManager::instance()->dataSyncMutex.unlock();
     }
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T>& vector) {
-    MutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->dataSyncMutex.lock();
 
-    uint32_t size = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
-    pos += sizeof(uint32_t);
+    uint32_t size = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
+    _pos += sizeof(uint32_t);
 
-    MutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->dataSyncMutex.unlock();
 
     if (size == 0) {
         vector.clear();
@@ -202,12 +202,12 @@ void SharedData::readVector(SharedVector<T>& vector) {
     uint32_t totalSize = size * sizeof(T);
     //unsigned char* data = new unsigned char[totalSize];
 
-    MutexManager::instance()->mDataSyncMutex.lock();
+    MutexManager::instance()->dataSyncMutex.lock();
 
-    unsigned char* c = &dataBlock[pos];
-    pos += totalSize;
+    unsigned char* c = &_dataBlock[_pos];
+    _pos += totalSize;
 
-    MutexManager::instance()->mDataSyncMutex.unlock();
+    MutexManager::instance()->dataSyncMutex.unlock();
 
     //memcpy(data, c, totalSize);
 

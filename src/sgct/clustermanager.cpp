@@ -14,44 +14,44 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct::core {
 
-ClusterManager* ClusterManager::mInstance = nullptr;
+ClusterManager* ClusterManager::_instance = nullptr;
 
 ClusterManager* ClusterManager::instance()  {
-    if (!mInstance) {
-        mInstance = new ClusterManager();
+    if (!_instance) {
+        _instance = new ClusterManager();
     }
 
-    return mInstance;
+    return _instance;
 }
 
 void ClusterManager::destroy() {
-    delete mInstance;
-    mInstance = nullptr;
+    delete _instance;
+    _instance = nullptr;
 }
 
 ClusterManager::ClusterManager() {
-    mUsers.push_back(std::make_unique<User>("default"));
+    _users.push_back(std::make_unique<User>("default"));
 }
 
 void ClusterManager::addNode(std::unique_ptr<Node> node) {
-    nodes.push_back(std::move(node));
+    _nodes.push_back(std::move(node));
 }
 
 void ClusterManager::addUser(std::unique_ptr<User> userPtr) {
-    mUsers.push_back(std::move(userPtr));
+    _users.push_back(std::move(userPtr));
 }
 
 Node* ClusterManager::getNode(size_t index) {
-    return (index < nodes.size()) ? nodes[index].get() : nullptr;
+    return (index < _nodes.size()) ? _nodes[index].get() : nullptr;
 }
 
 Node* ClusterManager::getNode(const std::string& name) {
     auto it = std::find_if(
-        nodes.begin(),
-        nodes.end(),
+        _nodes.begin(),
+        _nodes.end(),
         [&name](const std::unique_ptr<Node>& n) { return n->getName() == name; }
     );
-    if (it != nodes.end()) {
+    if (it != _nodes.end()) {
         return it->get();
     }
     else {
@@ -60,22 +60,22 @@ Node* ClusterManager::getNode(const std::string& name) {
 }
 
 Node* ClusterManager::getThisNode() {
-    return mThisNodeId < 0 ? nullptr : nodes[mThisNodeId].get();
+    return _thisNodeId < 0 ? nullptr : _nodes[_thisNodeId].get();
 }
 
 User& ClusterManager::getDefaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
     // possible to clear the mUsers list
-    return *mUsers[0];
+    return *_users[0];
 }
 
 User* ClusterManager::getUser(const std::string& name) {
     auto it = std::find_if(
-        mUsers.begin(),
-        mUsers.end(),
+        _users.begin(),
+        _users.end(),
         [&name](const std::unique_ptr<User>& user) { return user->getName() == name; }
     );
-    if (it != mUsers.end()) {
+    if (it != _users.end()) {
         return it->get();
     }
     else {
@@ -85,11 +85,11 @@ User* ClusterManager::getUser(const std::string& name) {
 
 User* ClusterManager::getTrackedUser() {
     auto it = std::find_if(
-        mUsers.begin(),
-        mUsers.end(),
+        _users.begin(),
+        _users.end(),
         [](const std::unique_ptr<User>& u) { return u->isTracked(); }
     );
-    if (it != mUsers.end()) {
+    if (it != _users.end()) {
         return it->get();
     }
     else {
@@ -98,59 +98,59 @@ User* ClusterManager::getTrackedUser() {
 }
 
 NetworkManager::NetworkMode ClusterManager::getNetworkMode() const {
-    return mNetMode;
+    return _netMode;
 }
 
 void ClusterManager::setNetworkMode(NetworkManager::NetworkMode nm) {
-    mNetMode = nm;
+    _netMode = nm;
 }
 
 void ClusterManager::setSceneTransform(glm::mat4 mat) {
-    mSceneTransform = std::move(mat);
+    _sceneTransform = std::move(mat);
 }
 
 void ClusterManager::setSceneOffset(glm::vec3 offset) {
-    mSceneTranslate = glm::translate(glm::mat4(1.f), std::move(offset));
+    _sceneTranslate = glm::translate(glm::mat4(1.f), std::move(offset));
     calculateSceneTransform();
 }
 
 void ClusterManager::setSceneRotation(float yaw, float pitch, float roll) {
-    mSceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
+    _sceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
     calculateSceneTransform();
 }
 
 void ClusterManager::setSceneRotation(glm::mat4 mat) {
-    mSceneRotation = std::move(mat);
+    _sceneRotation = std::move(mat);
     calculateSceneTransform();
 }
 
 bool ClusterManager::getIgnoreSync() const {
-    return mIgnoreSync;
+    return _ignoreSync;
 }
 
 void ClusterManager::setUseIgnoreSync(bool state) {
-    mIgnoreSync = state;
+    _ignoreSync = state;
 }
 
 void ClusterManager::setUseASCIIForExternalControl(bool useASCII) {
-    mUseASCIIForExternalControl = useASCII;
+    _useASCIIForExternalControl = useASCII;
 }
 
 bool ClusterManager::getUseASCIIForExternalControl() const {
-    return mUseASCIIForExternalControl;
+    return _useASCIIForExternalControl;
 }
 
 void ClusterManager::setSceneScale(float scale) {
-    mSceneScale = glm::scale(glm::mat4(1.f), glm::vec3(scale));
+    _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(scale));
     calculateSceneTransform();
 }
 
 void ClusterManager::calculateSceneTransform() {
-    mSceneTransform = mSceneRotation * mSceneTranslate * mSceneScale;
+    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
 const std::string& ClusterManager::getMasterAddress() const {
-    return mMasterAddress;
+    return _masterAddress;
 }
 
 void ClusterManager::setMasterAddress(std::string address) {
@@ -160,51 +160,51 @@ void ClusterManager::setMasterAddress(std::string address) {
         address.begin(),
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
-    mMasterAddress = std::move(address);
+    _masterAddress = std::move(address);
 }
 
 int ClusterManager::getExternalControlPort() const {
-    return mExternalControlPort;
+    return _externalControlPort;
 }
 
 void ClusterManager::setExternalControlPort(int port) {
-    mExternalControlPort = port;
+    _externalControlPort = port;
 }
 
 int ClusterManager::getNumberOfNodes() const {
-    return static_cast<int>(nodes.size());
+    return static_cast<int>(_nodes.size());
 }
 
 const glm::mat4& ClusterManager::getSceneTransform() const {
-    return mSceneTransform;
+    return _sceneTransform;
 }
 
 void ClusterManager::setThisNodeId(int id) {
-    mThisNodeId = id;
+    _thisNodeId = id;
 }
 
 int ClusterManager::getThisNodeId() const {
-    return mThisNodeId;
+    return _thisNodeId;
 }
 
 bool ClusterManager::getFirmFrameLockSyncStatus() const {
-    return mFirmFrameLockSync;
+    return _firmFrameLockSync;
 }
 
 void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
-    mFirmFrameLockSync = state;
+    _firmFrameLockSync = state;
 }
 
 void ClusterManager::setMeshImplementation(MeshImplementation impl) {
-    mMeshImpl = impl;
+    _meshImpl = impl;
 }
 
 ClusterManager::MeshImplementation ClusterManager::getMeshImplementation() const {
-    return mMeshImpl;
+    return _meshImpl;
 }
 
 TrackingManager& ClusterManager::getTrackingManager() {
-    return mTrackingManager;
+    return _trackingManager;
 }
 
 } // namespace sgct::core

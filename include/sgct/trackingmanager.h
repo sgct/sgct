@@ -55,15 +55,15 @@ public:
     bool isRunning() const;
 
 private:
-    std::unique_ptr<std::thread> mSamplingThread;
-    std::vector<std::unique_ptr<Tracker>> mTrackers;
-    std::set<std::string> mAddresses;
-    double mSamplingTime = 0.0;
-    bool mRunning = true;
+    std::unique_ptr<std::thread> _samplingThread;
+    std::vector<std::unique_ptr<Tracker>> _trackers;
+    std::set<std::string> _addresses;
+    double _samplingTime = 0.0;
+    bool _isRunning = true;
 
-    core::User* mHeadUser = nullptr;
-    TrackingDevice* mHead = nullptr;
-    int mNumberOfDevices = 0;
+    core::User* _headUser = nullptr;
+    TrackingDevice* _head = nullptr;
+    int _nDevices = 0;
 };
 
 } // namespace sgct

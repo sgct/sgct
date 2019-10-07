@@ -118,105 +118,105 @@ namespace {
 
 namespace sgct {
 
-bool Window::mUseSwapGroups = false;
-bool Window::mBarrier = false;
-bool Window::mSwapGroupMaster = false;
-GLFWwindow* Window::mCurrentContextOwner = nullptr;
-GLFWwindow* Window::mSharedHandle = nullptr;
+bool Window::_useSwapGroups = false;
+bool Window::_barrier = false;
+bool Window::_swapGroupMaster = false;
+GLFWwindow* Window::_currentContextOwner = nullptr;
+GLFWwindow* Window::_sharedHandle = nullptr;
 
 Window::Window(int id)
-    : mId(id)
+    : _id(id)
 {
-    mUseFXAA = Settings::instance()->getDefaultFXAAState();
-    mNumberOfAASamples = Settings::instance()->getDefaultNumberOfAASamples();
+    _useFXAA = Settings::instance()->getDefaultFXAAState();
+    _nAASamples = Settings::instance()->getDefaultNumberOfAASamples();
 
     // pointers
-    mSharedHandle = nullptr;
+    _sharedHandle = nullptr;
 }
 
 void Window::setName(std::string name) {
-    mName = std::move(name);
+    _name = std::move(name);
 }
 
 void Window::setTags(std::vector<std::string> tags) {
-    mTags = std::move(tags);
+    _tags = std::move(tags);
 }
 
 const std::string& Window::getName() const {
-    return mName;
+    return _name;
 }
 
 const std::vector<std::string>& Window::getTags() const {
-    return mTags;
+    return _tags;
 }
 
 bool Window::hasTag(const std::string& tag) const {
-    return std::find(mTags.cbegin(), mTags.cend(), tag) != mTags.cend();
+    return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
 }
 
 int Window::getId() const {
-    return mId;
+    return _id;
 }
 
 bool Window::isFocused() const {
-    return mFocused;
+    return _focused;
 }
 
 bool Window::isIconified() const {
-    return mIconified;
+    return _iconified;
 }
 
 void Window::close() {
     makeOpenGLContextCurrent(Context::Shared);
 
-    for (PostFX& pfx : mPostFXPasses) {
+    for (PostFX& pfx : _postFXPasses) {
         pfx.destroy();
     }
-    mPostFXPasses.clear();
+    _postFXPasses.clear();
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "Deleting screen capture data for window %d...\n", mId
+        "Deleting screen capture data for window %d...\n", _id
     );
-    mScreenCaptureLeftOrMono = nullptr;
-    mScreenCaptureRight = nullptr;
+    _screenCaptureLeftOrMono = nullptr;
+    _screenCaptureRight = nullptr;
 
     // delete FBO stuff
-    if (mFinalFBO != nullptr && Settings::instance()->useFBO()) {
+    if (_finalFBO != nullptr && Settings::instance()->useFBO()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Releasing OpenGL buffers for window %d...\n", mId
+            "Releasing OpenGL buffers for window %d...\n", _id
         );
-        mFinalFBO->destroy();
-        mFinalFBO = nullptr;
+        _finalFBO->destroy();
+        _finalFBO = nullptr;
 
         destroyFBOs();
     }
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "Deleting VBOs for window %d...\n", mId
+        "Deleting VBOs for window %d...\n", _id
     );
-    glDeleteBuffers(1, &mVBO);
-    mVBO = 0;
+    glDeleteBuffers(1, &_vbo);
+    _vbo = 0;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "Deleting VAOs for window %d...\n", mId
+        "Deleting VAOs for window %d...\n", _id
     );
-    glDeleteVertexArrays(1, &mVAO);
-    mVAO = 0;
+    glDeleteVertexArrays(1, &_vao);
+    _vao = 0;
 
     // delete shaders
-    stereo.shader.deleteProgram();
+    _stereo.shader.deleteProgram();
 
     // Current handle must be set at the end to propely destroy the window
     makeOpenGLContextCurrent(Context::Window);
 
-    mCurrentViewport = nullptr;
-    mViewports.clear();
+    _currentViewport = nullptr;
+    _viewports.clear();
 
-    if (mUseSwapGroups) {
+    if (_useSwapGroups) {
 #ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglBindSwapBarrierNV(1, 0); // un-bind
@@ -235,26 +235,26 @@ void Window::close() {
 }
 
 void Window::init() {
-    if (!mFullScreen) {
-        if (mSetWindowPos) {
-            glfwSetWindowPos(mWindowHandle, mWindowPos.x, mWindowPos.y);
+    if (!_fullScreen) {
+        if (_setWindowPos) {
+            glfwSetWindowPos(_windowHandle, _windowPos.x, _windowPos.y);
         }
-        glfwSetWindowSizeCallback(mWindowHandle, windowResizeCallback);
-        glfwSetFramebufferSizeCallback(mWindowHandle, frameBufferResizeCallback);
-        glfwSetWindowFocusCallback(mWindowHandle, windowFocusCallback);
-        glfwSetWindowIconifyCallback(mWindowHandle, windowIconifyCallback);
+        glfwSetWindowSizeCallback(_windowHandle, windowResizeCallback);
+        glfwSetFramebufferSizeCallback(_windowHandle, frameBufferResizeCallback);
+        glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
+        glfwSetWindowIconifyCallback(_windowHandle, windowIconifyCallback);
     }
 
     using namespace core;
     std::string title = "SGCT node: " +
         ClusterManager::instance()->getThisNode()->getAddress() +
         " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
-        + ": " + std::to_string(mId) + ")";
+        + ": " + std::to_string(_id) + ")";
 
-    setWindowTitle(mName.empty() ? title.c_str() : mName.c_str());
+    setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
     // swap the buffers and update the window
-    glfwSwapBuffers(mWindowHandle);
+    glfwSwapBuffers(_windowHandle);
 
     // initNvidiaSwapGroups();
 }
@@ -268,22 +268,22 @@ void Window::initOGL() {
     initScreenCapture();
     loadShaders();
 
-    for (const std::unique_ptr<core::Viewport>& vp : mViewports) {
+    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
         if (!vp->hasSubViewports()) {
             continue;
         }
 
         setCurrentViewport(vp.get());
-        vp->getNonLinearProjection()->setStereo(mStereoMode != StereoMode::NoStereo);
+        vp->getNonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
         vp->getNonLinearProjection()->setPreferedMonoFrustumMode(vp->getEye());
         vp->getNonLinearProjection()->init(
-            mInternalColorFormat,
-            mColorFormat,
-            mColorDataType,
-            mNumberOfAASamples
+            _internalColorFormat,
+            _colorFormat,
+            _colorDataType,
+            _nAASamples
         );
 
-        glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
+        glm::vec2 viewport = glm::vec2(_framebufferRes) * vp->getSize();
         vp->getNonLinearProjection()->update(std::move(viewport));
     }
 
@@ -326,7 +326,7 @@ void Window::initContextSpecificOGL() {
         core::Viewport& vp = getViewport(j);
         vp.loadData();
         if (vp.hasBlendMaskTexture() || vp.hasBlackLevelMaskTexture()) {
-            mHasAnyMasks = true;
+            _hasAnyMasks = true;
         }
     }
 
@@ -337,45 +337,45 @@ void Window::initContextSpecificOGL() {
 unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
     switch (index) {
         case Engine::LeftEye:
-            if (mFrameBufferTextures.leftEye == 0) {
-                generateTexture(mFrameBufferTextures.leftEye, TextureType::Color);
+            if (_frameBufferTextures.leftEye == 0) {
+                generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
             }
-            return mFrameBufferTextures.leftEye;
+            return _frameBufferTextures.leftEye;
         case Engine::RightEye:
-            if (mFrameBufferTextures.rightEye == 0) {
-                generateTexture(mFrameBufferTextures.rightEye, TextureType::Color);
+            if (_frameBufferTextures.rightEye == 0) {
+                generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
             }
-            return mFrameBufferTextures.rightEye;
+            return _frameBufferTextures.rightEye;
         case Engine::Intermediate:
-            if (mFrameBufferTextures.intermediate == 0) {
-                generateTexture(mFrameBufferTextures.intermediate, TextureType::Color);
+            if (_frameBufferTextures.intermediate == 0) {
+                generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
             }
-            return mFrameBufferTextures.intermediate;
+            return _frameBufferTextures.intermediate;
         case Engine::FX1:
-            if (mFrameBufferTextures.fx1 == 0) {
-                generateTexture(mFrameBufferTextures.fx1, TextureType::Color);
+            if (_frameBufferTextures.fx1 == 0) {
+                generateTexture(_frameBufferTextures.fx1, TextureType::Color);
             }
-            return mFrameBufferTextures.fx1;
+            return _frameBufferTextures.fx1;
         case Engine::FX2:
-            if (mFrameBufferTextures.fx2 == 0) {
-                generateTexture(mFrameBufferTextures.fx2, TextureType::Color);
+            if (_frameBufferTextures.fx2 == 0) {
+                generateTexture(_frameBufferTextures.fx2, TextureType::Color);
             }
-            return mFrameBufferTextures.fx2;
+            return _frameBufferTextures.fx2;
         case Engine::Depth:
-            if (mFrameBufferTextures.depth == 0) {
-                generateTexture(mFrameBufferTextures.depth, TextureType::Depth);
+            if (_frameBufferTextures.depth == 0) {
+                generateTexture(_frameBufferTextures.depth, TextureType::Depth);
             }
-            return mFrameBufferTextures.depth;
+            return _frameBufferTextures.depth;
         case Engine::Normals:
-            if (mFrameBufferTextures.normals == 0) {
-                generateTexture(mFrameBufferTextures.normals, TextureType::Normal);
+            if (_frameBufferTextures.normals == 0) {
+                generateTexture(_frameBufferTextures.normals, TextureType::Normal);
             }
-            return mFrameBufferTextures.normals;
+            return _frameBufferTextures.normals;
         case Engine::Positions:
-            if (mFrameBufferTextures.positions == 0) {
-                generateTexture(mFrameBufferTextures.positions, TextureType::Position);
+            if (_frameBufferTextures.positions == 0) {
+                generateTexture(_frameBufferTextures.positions, TextureType::Position);
             }
-            return mFrameBufferTextures.positions;
+            return _frameBufferTextures.positions;
         default:
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
@@ -387,33 +387,33 @@ unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
 }
 
 void Window::setVisibility(bool state) {
-    if (state != mVisible) {
-        if (mWindowHandle) {
+    if (state != _visible) {
+        if (_windowHandle) {
             if (state) {
-                glfwShowWindow(mWindowHandle);
+                glfwShowWindow(_windowHandle);
             }
             else {
-                glfwHideWindow(mWindowHandle);
+                glfwHideWindow(_windowHandle);
             }
         }
-        mVisible = state;
+        _visible = state;
     }
 }
 
 void Window::setRenderWhileHidden(bool state) {
-    mRenderWhileHidden = state;
+    _renderWhileHidden = state;
 }
 
 void Window::setFocused(bool state) {
-    mFocused = state;
+    _focused = state;
 }
 
 void Window::setIconified(bool state) {
-    mIconified = state;
+    _iconified = state;
 }
 
 void Window::setWindowTitle(const char* title) {
-    glfwSetWindowTitle(mWindowHandle, title);
+    glfwSetWindowTitle(_windowHandle, title);
 }
 
 void Window::setWindowResolution(glm::ivec2 resolution) {
@@ -421,68 +421,66 @@ void Window::setWindowResolution(glm::ivec2 resolution) {
     // want to make sure the actual resizing is deferred to the end of the frame. This can
     // happen if some other library pulls events from the operating system for example by
     // calling nextEventMatchingMask (MacOS) or PeekMessageW (Windows). If we were to set
-    // the actual mWindowRes directly, we may render half a frame with resolution and the
+    // the actual _windowRes directly, we may render half a frame with resolution and the
     // other half with resolution b, which is undefined behaviour. mHasNewPendingWindowRes
     // is checked in Window::updateResolution, which is called from SGCTEngine's
     // render loop after glfwPollEvents.
 
-    mHasPendingWindowRes = true;
-    mPendingWindowRes = std::move(resolution);
+    _hasPendingWindowRes = true;
+    _pendingWindowRes = std::move(resolution);
 }
 
 void Window::setFramebufferResolution(glm::ivec2 resolution) {
     // Defer actual update of framebuffer resolution until next call to updateResolutions.
     // (Same reason as described for setWindowResolution above.)
-    if (!mUseFixResolution) {
-        mHasPendingFramebufferRes = true;
-        mPendingFramebufferRes = std::move(resolution);
+    if (!_useFixResolution) {
+        _hasPendingFramebufferRes = true;
+        _pendingFramebufferRes = std::move(resolution);
     }
 }
 
 void Window::swap(bool takeScreenshot) {
-    if (!((mVisible || mRenderWhileHidden) && mAllowCapture)) {
+    if (!((_visible || _renderWhileHidden) && _allowCapture)) {
         return;
     }
 
     makeOpenGLContextCurrent(Context::Window);
         
     if (takeScreenshot) {
-        if (Settings::instance()->getCaptureFromBackBuffer() && mDoubleBuffered) {
-            if (mScreenCaptureLeftOrMono != nullptr) {
-                mScreenCaptureLeftOrMono->saveScreenCapture(
+        if (Settings::instance()->getCaptureFromBackBuffer() && _doubleBuffered) {
+            if (_screenCaptureLeftOrMono != nullptr) {
+                _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
-                    mStereoMode == StereoMode::Active ?
+                    _stereoMode == StereoMode::Active ?
                         core::ScreenCapture::CaptureSource::LeftBackBuffer :
                         core::ScreenCapture::CaptureSource::BackBuffer
                 );
             }
 
-            if (mScreenCaptureRight && mStereoMode == StereoMode::Active) {
-                // @TODO(abock) This was mScreenCapture[0] before, but it seems like
-                //              it should have been mScreenCapture[1] instead?!
-                mScreenCaptureLeftOrMono->saveScreenCapture(
+            if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
+                _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
                     core::ScreenCapture::CaptureSource::RightBackBuffer
                 );
             }
         }
         else {
-            if (mScreenCaptureLeftOrMono) {
-                mScreenCaptureLeftOrMono->saveScreenCapture(mFrameBufferTextures.leftEye);
+            if (_screenCaptureLeftOrMono) {
+                _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
             }
-            if (mScreenCaptureRight && mStereoMode > StereoMode::NoStereo &&
-                mStereoMode < Window::StereoMode::SideBySide)
+            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
+                _stereoMode < Window::StereoMode::SideBySide)
             {
-                mScreenCaptureRight->saveScreenCapture(mFrameBufferTextures.rightEye);
+                _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
             }
         }
     }
 
     // swap
-    mWindowResOld = mWindowRes;
+    _windowResOld = _windowRes;
 
-    if (mDoubleBuffered) {
-        glfwSwapBuffers(mWindowHandle);
+    if (_doubleBuffered) {
+        glfwSwapBuffers(_windowHandle);
     }
     else {
         glFinish();
@@ -490,48 +488,48 @@ void Window::swap(bool takeScreenshot) {
 }
 
 void Window::updateResolutions() {
-    if (mHasPendingWindowRes) {
-        mWindowRes = mPendingWindowRes;
+    if (_hasPendingWindowRes) {
+        _windowRes = _pendingWindowRes;
         float newAspectRatio =
-            static_cast<float>(mWindowRes.x) / static_cast<float>(mWindowRes.y);
+            static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
 
         // Set field of view of each of this window's viewports to match new
         // aspect ratio, adjusting only the horizontal (x) values.
         for (int j = 0; j < getNumberOfViewports(); ++j) {
             core::Viewport& vp = getViewport(j);
-            vp.updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
+            vp.updateFovToMatchAspectRatio(_aspectRatio, newAspectRatio);
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
                 "Window: update aspect ratio in viewport# %d (%f --> %f)\n",
-                j, mAspectRatio, newAspectRatio
+                j, _aspectRatio, newAspectRatio
             );
         }
-        mAspectRatio = newAspectRatio;
+        _aspectRatio = newAspectRatio;
 
         // Redraw window
-        if (mWindowHandle) {
-            glfwSetWindowSize(mWindowHandle, mWindowRes.x, mWindowRes.y);
+        if (_windowHandle) {
+            glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "Window: Resolution changed to %dx%d in window %d\n",
-            mWindowRes.x, mWindowRes.y, mId
+            _windowRes.x, _windowRes.y, _id
         );
 
-        mHasPendingWindowRes = false;
+        _hasPendingWindowRes = false;
     }
 
-    if (mHasPendingFramebufferRes) {
-        mFramebufferRes = mPendingFramebufferRes;
+    if (_hasPendingFramebufferRes) {
+        _framebufferRes = _pendingFramebufferRes;
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "Window: Framebuffer resolution changed to %dx%d for window %d\n",
-            mFramebufferRes.x, mFramebufferRes.y, mId
+            _framebufferRes.x, _framebufferRes.y, _id
         );
 
-        mHasPendingFramebufferRes = false;
+        _hasPendingFramebufferRes = false;
     }
 }
 
@@ -540,29 +538,29 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
         core::Viewport& vp = getViewport(j);
-        vp.setHorizontalFieldOfView(hFovDeg, mAspectRatio);
+        vp.setHorizontalFieldOfView(hFovDeg, _aspectRatio);
     }
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "Window: Horizontal FOV changed to %f deg. in %d viewports for window %d "
         "using aspect ratio %f\n",
-        hFovDeg, getNumberOfViewports(), mId, mAspectRatio
+        hFovDeg, getNumberOfViewports(), _id, _aspectRatio
     );
 }
 
 void Window::initWindowResolution(glm::ivec2 resolution) {
-    mWindowRes = resolution;
-    mWindowResOld = mWindowRes;
-    mAspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
-    mIsWindowResSet = true;
+    _windowRes = resolution;
+    _windowResOld = _windowRes;
+    _aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
+    _isWindowResSet = true;
 
-    if (!mUseFixResolution) {
-        mFramebufferRes = resolution;
+    if (!_useFixResolution) {
+        _framebufferRes = resolution;
     }
 }
 
 bool Window::update() {
-    if (!mVisible || !isWindowResized()) {
+    if (!_visible || !isWindowResized()) {
         return false;
     }
     makeOpenGLContextCurrent(Context::Window);
@@ -570,31 +568,31 @@ bool Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](core::ScreenCapture& sc) {
-        const int nCaptureChannels = mAlpha ? 4 : 3;
+        const int nCaptureChannels = _alpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
-            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
+            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, _preferBGR);
             const glm::ivec2 res = getResolution();
             sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
-            sc.setTextureTransferProperties(mColorDataType, mPreferBGR);
+            sc.setTextureTransferProperties(_colorDataType, _preferBGR);
             const glm::ivec2 res = getFramebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, mBytesPerColor);
+            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
     };
-    if (mScreenCaptureLeftOrMono) {
-        resizePBO(*mScreenCaptureLeftOrMono);
+    if (_screenCaptureLeftOrMono) {
+        resizePBO(*_screenCaptureLeftOrMono);
     }
-    if (mScreenCaptureRight) {
-        resizePBO(*mScreenCaptureRight);
+    if (_screenCaptureRight) {
+        resizePBO(*_screenCaptureRight);
     }
 
     // resize non linear projection buffers
-    for (const std::unique_ptr<core::Viewport>& vp : mViewports) {
+    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
         if (vp->hasSubViewports()) {
-            glm::vec2 viewport = glm::vec2(mFramebufferRes) * vp->getSize();
+            glm::vec2 viewport = glm::vec2(_framebufferRes) * vp->getSize();
             vp->getNonLinearProjection()->update(std::move(viewport));
         }
     }
@@ -603,178 +601,178 @@ bool Window::update() {
 }
 
 void Window::makeOpenGLContextCurrent(Context context) {
-    if (context == Context::Shared && mCurrentContextOwner != mSharedHandle) {
-        glfwMakeContextCurrent(mSharedHandle);
-        mCurrentContextOwner = mSharedHandle;
+    if (context == Context::Shared && _currentContextOwner != _sharedHandle) {
+        glfwMakeContextCurrent(_sharedHandle);
+        _currentContextOwner = _sharedHandle;
     }
-    else if (context == Context::Window && mCurrentContextOwner != mWindowHandle) {
-        glfwMakeContextCurrent(mWindowHandle);
-        mCurrentContextOwner = mWindowHandle;
+    else if (context == Context::Window && _currentContextOwner != _windowHandle) {
+        glfwMakeContextCurrent(_windowHandle);
+        _currentContextOwner = _windowHandle;
     }
 }
 
 void Window::restoreSharedContext() {
-    glfwMakeContextCurrent(mSharedHandle);
+    glfwMakeContextCurrent(_sharedHandle);
 }
 
 bool Window::isWindowResized() const {
-    return (mWindowRes.x != mWindowResOld.x || mWindowRes.y != mWindowResOld.y);
+    return (_windowRes.x != _windowResOld.x || _windowRes.y != _windowResOld.y);
 }
 
 bool Window::isBarrierActive() {
-    return mBarrier;
+    return _barrier;
 }
 
 bool Window::isUsingSwapGroups() {
-    return mUseSwapGroups;
+    return _useSwapGroups;
 }
 
 bool Window::isSwapGroupMaster() {
-    return mSwapGroupMaster;
+    return _swapGroupMaster;
 }
 
 bool Window::isFullScreen() const {
-    return mFullScreen;
+    return _fullScreen;
 }
 
 bool Window::isFloating() const {
-    return mFloating;
+    return _floating;
 }
 
 bool Window::isDoubleBuffered() const {
-    return mDoubleBuffered;
+    return _doubleBuffered;
 }
 
 bool Window::isVisible() const {
-    return mVisible;
+    return _visible;
 }
 
 bool Window::isRenderingWhileHidden() const {
-    return mRenderWhileHidden;
+    return _renderWhileHidden;
 }
 
 bool Window::isFixResolution() const {
-    return mUseFixResolution;
+    return _useFixResolution;
 }
 
 bool Window::isWindowResolutionSet() const {
-    return mIsWindowResSet;
+    return _isWindowResSet;
 }
 
 bool Window::isStereo() const {
-    return mStereoMode != StereoMode::NoStereo;
+    return _stereoMode != StereoMode::NoStereo;
 }
 
 void Window::setWindowPosition(glm::ivec2 positions) {
-    mWindowPos = std::move(positions);
-    mSetWindowPos = true;
+    _windowPos = std::move(positions);
+    _setWindowPos = true;
 }
 
 void Window::setWindowMode(bool fullscreen) {
-    mFullScreen = fullscreen;
+    _fullScreen = fullscreen;
 }
 
 void Window::setFloating(bool floating) {
-    mFloating = floating;
+    _floating = floating;
 }
 
 void Window::setDoubleBuffered(bool doubleBuffered) {
-    mDoubleBuffered = doubleBuffered;
+    _doubleBuffered = doubleBuffered;
 }
 
 void Window::setWindowDecoration(bool state) {
-    mDecorated = state;
+    _decorated = state;
 }
 
 void Window::setFullScreenMonitorIndex(int index) {
-    mMonitorIndex = index;
+    _monitorIndex = index;
 }
 
 void Window::setBarrier(bool state) {
-    if (mUseSwapGroups && state != mBarrier) {
+    if (_useSwapGroups && state != _barrier) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info, "Window: Enabling Nvidia swap barrier\n"
         );
 
 #ifdef WIN32
-        mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
+        _barrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
-        mBarrier = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0);
+        _barrier = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0);
     #endif
 #endif
     }
 }
 
 void Window::setFixResolution(bool state) {
-    mUseFixResolution = state;
+    _useFixResolution = state;
 }
 
 void Window::setUsePostFX(bool state) {
-    mUsePostFX = state;
+    _usePostFX = state;
     if (!state) {
-        mUseFXAA = false;
+        _useFXAA = false;
     }
 }
 
 void Window::setUseFXAA(bool state) {
-    mUseFXAA = state;
-    if (mUseFXAA) {
-        mUsePostFX = true;
+    _useFXAA = state;
+    if (_useFXAA) {
+        _usePostFX = true;
     }
     else {
-        mUsePostFX = !mPostFXPasses.empty();
+        _usePostFX = !_postFXPasses.empty();
     }
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId
+        "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", _id
     );
 }
 
 void Window::setUseQuadbuffer(bool state) {
-    mUseQuadBuffer = state;
-    if (mUseQuadBuffer) {
+    _useQuadBuffer = state;
+    if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Window %d: Enabling quadbuffered rendering\n", mId
+            "Window %d: Enabling quadbuffered rendering\n", _id
         );
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
-    mCallDraw2DFunction = state;
-    if (!mCallDraw2DFunction) {
+    _callDraw2DFunction = state;
+    if (!_callDraw2DFunction) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Window %d: Draw 2D function disabled for this window\n", mId
+            "Window %d: Draw 2D function disabled for this window\n", _id
         );
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
-    mCallDraw3DFunction = state;
-    if (!mCallDraw3DFunction) {
+    _callDraw3DFunction = state;
+    if (!_callDraw3DFunction) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Window %d: Draw (3D) function disabled for this window\n", mId
+            "Window %d: Draw (3D) function disabled for this window\n", _id
         );
     }
 }
 
 void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
-    mCopyPreviousWindowToCurrentWindow = state;
-    if (mCopyPreviousWindowToCurrentWindow) {
+    _copyPreviousWindowToCurrentWindow = state;
+    if (_copyPreviousWindowToCurrentWindow) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window\n", mId
+            "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window\n", _id
         );
     }
 }
 
 bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
-    glfwWindowHint(GLFW_DECORATED, mDecorated ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, _decorated ? GLFW_TRUE : GLFW_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
     if (antiAliasingSamples > 1 && !Settings::instance()->useFBO()) {
@@ -786,15 +784,15 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     }
 
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-    glfwWindowHint(GLFW_FLOATING, mFloating ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, mDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
-    if (!mVisible) {
+    glfwWindowHint(GLFW_FLOATING, _floating ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, _doubleBuffered ? GLFW_TRUE : GLFW_FALSE);
+    if (!_visible) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     }
 
-    setUseQuadbuffer(mStereoMode == StereoMode::Active);
+    setUseQuadbuffer(_stereoMode == StereoMode::Active);
 
-    if (mFullScreen) {
+    if (_fullScreen) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
@@ -803,42 +801,42 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
             glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
         }
         
-        if (mMonitorIndex > 0 && mMonitorIndex < count) {
-            mMonitor = monitors[mMonitorIndex];
+        if (_monitorIndex > 0 && _monitorIndex < count) {
+            _monitor = monitors[_monitorIndex];
         }
         else {
-            mMonitor = glfwGetPrimaryMonitor();
-            if (mMonitorIndex >= count) {
+            _monitor = glfwGetPrimaryMonitor();
+            if (_monitorIndex >= count) {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
                     "Window(%d): Invalid monitor index (%d). "
                     "This computer has %d monitors.\n",
-                    mId, mMonitorIndex, count);
+                    _id, _monitorIndex, count);
             }
         }
 
-        if (!mIsWindowResSet) {
-            const GLFWvidmode* currentMode = glfwGetVideoMode(mMonitor);
-            mWindowRes = glm::ivec2(currentMode->width, currentMode->height);
+        if (!_isWindowResSet) {
+            const GLFWvidmode* currentMode = glfwGetVideoMode(_monitor);
+            _windowRes = glm::ivec2(currentMode->width, currentMode->height);
         }
     }
 
-    mWindowHandle = glfwCreateWindow(mWindowRes.x, mWindowRes.y, "SGCT", mMonitor, share);
-    if (mWindowHandle == nullptr) {
+    _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", _monitor, share);
+    if (_windowHandle == nullptr) {
         return false;
     }
 
-    mSharedHandle = share != nullptr ? share : mWindowHandle;
-    glfwMakeContextCurrent(mWindowHandle);
+    _sharedHandle = share != nullptr ? share : _windowHandle;
+    glfwMakeContextCurrent(_windowHandle);
 
     // Mac for example scales the window size != frame buffer size
     glm::ivec2 bufferSize;
-    glfwGetFramebufferSize(mWindowHandle, &bufferSize[0], &bufferSize[1]);
+    glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);
 
-    mWindowInitialRes = mWindowRes;
-    mScale = glm::vec2(bufferSize) / glm::vec2(mWindowRes);
-    if (!mUseFixResolution) {
-        mFramebufferRes = bufferSize;
+    _windowInitialRes = _windowRes;
+    _scale = glm::vec2(bufferSize) / glm::vec2(_windowRes);
+    if (!_useFixResolution) {
+        _framebufferRes = bufferSize;
     }
         
     //
@@ -864,23 +862,23 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 
     //if slave disable mouse pointer
     if (!Engine::instance()->isMaster()) {
-        glfwSetInputMode(mWindowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
-    mFocused = glfwGetWindowAttrib(mWindowHandle, GLFW_FOCUSED) == GLFW_TRUE;
-    mIconified = glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
+    _focused = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
+    _iconified = glfwGetWindowAttrib(_windowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
         
-    glfwMakeContextCurrent(mSharedHandle);
+    glfwMakeContextCurrent(_sharedHandle);
 
     if (Settings::instance()->useFBO()) {
-        mScreenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
+        _screenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
 
         if (useRightEyeTexture()) {
-            mScreenCaptureRight = std::make_unique<core::ScreenCapture>();
+            _screenCaptureRight = std::make_unique<core::ScreenCapture>();
         }
     }
 
-    mFinalFBO = std::make_unique<core::OffScreenBuffer>();
+    _finalFBO = std::make_unique<core::OffScreenBuffer>();
 
     return true;
 }
@@ -916,17 +914,17 @@ void Window::initNvidiaSwapGroups() {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info, "Window: Joining swapgroup 1 [ok]\n"
             );
-            mUseSwapGroups = true;
+            _useSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info, "Window: Joining swapgroup 1 [failed]\n"
             );
-            mUseSwapGroups = false;
+            _useSwapGroups = false;
         }
     }
     else {
-        mUseSwapGroups = false;
+        _useSwapGroups = false;
     }
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
@@ -953,17 +951,17 @@ void Window::initNvidiaSwapGroups() {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info, "Window: Joining swapgroup 1 [ok]\n"
             );
-            mUseSwapGroups = true;
+            _useSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info, "Window: Joining swapgroup 1 [failed]\n"
             );
-            mUseSwapGroups = false;
+            _useSwapGroups = false;
         }
     }
     else {
-        mUseSwapGroups = false;
+        _useSwapGroups = false;
     }
     #endif
 #endif
@@ -974,18 +972,18 @@ void Window::initScreenCapture() {
         // a workaround for devices that support pbos but not showing it, like OSX (Intel)
         sc.setUsePBO(Settings::instance()->getUsePBO());
 
-        const int nCaptureChannels = mAlpha ? 4 : 3;
+        const int nCaptureChannels = _alpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
-            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
+            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, _preferBGR);
             const glm::ivec2 res = getResolution();
             sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
-            sc.setTextureTransferProperties(mColorDataType, mPreferBGR);
+            sc.setTextureTransferProperties(_colorDataType, _preferBGR);
             const glm::ivec2 res = getFramebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, mBytesPerColor);
+            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
 
         Settings::CaptureFormat format = Settings::instance()->getCaptureFormat();
@@ -1004,33 +1002,33 @@ void Window::initScreenCapture() {
         if (!Engine::checkForOGLErrors()) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "Window %d: OpenGL error occured in screen capture init\n", mId
+                "Window %d: OpenGL error occured in screen capture init\n", _id
             );
         }
     };
 
 
-    if (mScreenCaptureLeftOrMono) {
+    if (_screenCaptureLeftOrMono) {
         using namespace core;
         if (useRightEyeTexture()) {
-            mScreenCaptureLeftOrMono->init(mId, ScreenCapture::EyeIndex::StereoLeft);
+            _screenCaptureLeftOrMono->init(_id, ScreenCapture::EyeIndex::StereoLeft);
         }
         else {
-            mScreenCaptureLeftOrMono->init(mId, ScreenCapture::EyeIndex::Mono);
+            _screenCaptureLeftOrMono->init(_id, ScreenCapture::EyeIndex::Mono);
         }
-        initializeCapture(*mScreenCaptureLeftOrMono);
+        initializeCapture(*_screenCaptureLeftOrMono);
     }
 
-    if (mScreenCaptureRight) {
-        mScreenCaptureRight->init(mId, core::ScreenCapture::EyeIndex::StereoRight);
-        initializeCapture(*mScreenCaptureRight);
+    if (_screenCaptureRight) {
+        _screenCaptureRight->init(_id, core::ScreenCapture::EyeIndex::StereoRight);
+        initializeCapture(*_screenCaptureRight);
     }
 }
 
 unsigned int Window::getSwapGroupFrameNumber() {
     unsigned int frameNumber = 0;
 
-    if (mBarrier) {
+    if (_barrier) {
     #ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglQueryFrameCountNV(hDC, &frameNumber);
@@ -1047,7 +1045,7 @@ unsigned int Window::getSwapGroupFrameNumber() {
 }
 
 void Window::resetSwapGroupFrameNumber() {
-    if (mBarrier) {
+    if (_barrier) {
 #ifdef WIN32
         bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
                        wglResetFrameCountNV(hDC);
@@ -1058,14 +1056,14 @@ void Window::resetSwapGroupFrameNumber() {
                        glXResetFrameCountNV(disp, hDC);
 #endif
         if (success) {
-            mSwapGroupMaster = true;
+            _swapGroupMaster = true;
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info,
                 "Resetting frame counter. This computer is the master\n"
             );
         }
         else {
-            mSwapGroupMaster = false;
+            _swapGroupMaster = false;
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info,
                 "Resetting frame counter failed. This computer is the slave\n"
@@ -1082,50 +1080,50 @@ void Window::createTextures() {
 
     GLint maxTexSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
-    if (mFramebufferRes.x > maxTexSize || mFramebufferRes.y > maxTexSize) {
+    if (_framebufferRes.x > maxTexSize || _framebufferRes.y > maxTexSize) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Window %d: Requested framebuffer is to big (Max: %dx%d)\n",
-            mId, maxTexSize, maxTexSize
+            _id, maxTexSize, maxTexSize
         );
         return;
     }
 
     // Create left and right color & depth textures; don't allocate the right eye image if
     // stereo is not used create a postFX texture for effects
-    generateTexture(mFrameBufferTextures.leftEye, TextureType::Color);
+    generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
     if (useRightEyeTexture()) {
-        generateTexture(mFrameBufferTextures.rightEye, TextureType::Color);
+        generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
     if (Settings::instance()->useDepthTexture()) {
-        generateTexture(mFrameBufferTextures.depth, TextureType::Depth);
+        generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
-    if (!mPostFXPasses.empty()) {
-        generateTexture(mFrameBufferTextures.fx1, TextureType::Color);
+    if (!_postFXPasses.empty()) {
+        generateTexture(_frameBufferTextures.fx1, TextureType::Color);
     }
-    if (mPostFXPasses.size() > 1) {
-        generateTexture(mFrameBufferTextures.fx2, TextureType::Color);
+    if (_postFXPasses.size() > 1) {
+        generateTexture(_frameBufferTextures.fx2, TextureType::Color);
     }
-    if (mUsePostFX) {
-        generateTexture(mFrameBufferTextures.intermediate, TextureType::Color);
+    if (_usePostFX) {
+        generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
     if (Settings::instance()->useNormalTexture()) {
-        generateTexture(mFrameBufferTextures.normals, TextureType::Normal);
+        generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
     if (Settings::instance()->usePositionTexture()) {
-        generateTexture(mFrameBufferTextures.positions, TextureType::Position);
+        generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
     if (Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "Texture targets initialized successfully for window %d\n", mId
+            "Texture targets initialized successfully for window %d\n", _id
         );
     }
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Texture targets failed to initialize for window %d\n", mId
+            "Texture targets failed to initialize for window %d\n", _id
         );
     }
 }
@@ -1144,7 +1142,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
             switch (type) {
                 default:
                 case TextureType::Color:
-                    return { mInternalColorFormat, mColorFormat, mColorDataType };
+                    return { _internalColorFormat, _colorFormat, _colorDataType };
                 case TextureType::Depth:
                     return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
                 case TextureType::Normal:
@@ -1157,7 +1155,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
             }
         }(type);
 
-    const glm::ivec2 res = mFramebufferRes;
+    const glm::ivec2 res = _framebufferRes;
     if (Settings::instance()->getForceGlTexImage2D()) {
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, res.x, res.y, 0, format, pType, 0);
     }
@@ -1168,7 +1166,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "%dx%d texture (id: %d) generated for window %d!\n",
-        mFramebufferRes.x, mFramebufferRes.y, id, mId
+        _framebufferRes.x, _framebufferRes.y, id, id
     );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1180,8 +1178,8 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 void Window::createFBOs() {
     if (!Settings::instance()->useFBO()) {
         // disable anaglyph & checkerboard stereo if FBOs are not used
-        if (mStereoMode > StereoMode::Active) {
-            mStereoMode = StereoMode::NoStereo;
+        if (_stereoMode > StereoMode::Active) {
+            _stereoMode = StereoMode::NoStereo;
         }
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -1191,38 +1189,38 @@ void Window::createFBOs() {
         return;
     }
 
-    mFinalFBO->setInternalColorFormat(mInternalColorFormat);
-    mFinalFBO->createFBO(mFramebufferRes.x, mFramebufferRes.y, mNumberOfAASamples);
+    _finalFBO->setInternalColorFormat(_internalColorFormat);
+    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
             
-    if (mFinalFBO->checkForErrors()) {
+    if (_finalFBO->checkForErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "Window %d: FBO initiated successfully. Number of samples: %d\n",
-            mId, mFinalFBO->isMultiSampled() ? mNumberOfAASamples : 1
+            _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
         );
     }
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Window %d: FBO initiated with errors! Number of samples: %d\n",
-            mId, mFinalFBO->isMultiSampled() ? mNumberOfAASamples : 1
+            _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
         );
     }
 }
 
 void Window::createVBOs() {
-    glGenVertexArrays(1, &mVAO);
+    glGenVertexArrays(1, &_vao);
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "Window: Generating VAO: %d\n", mVAO
+        MessageHandler::Level::Debug, "Window: Generating VAO: %d\n", _vao
     );
 
-    glGenBuffers(1, &mVBO);
+    glGenBuffers(1, &_vbo);
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "Window: Generating VBO: %d\n", mVBO
+        MessageHandler::Level::Debug, "Window: Generating VBO: %d\n", _vbo
     );
 
-    glBindVertexArray(mVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     //2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
@@ -1251,13 +1249,13 @@ void Window::createVBOs() {
 
 void Window::loadShaders() {
     // load shaders
-    if (mStereoMode <= StereoMode::Active || mStereoMode >= StereoMode::SideBySide) {
+    if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
         return;
     }
 
     // reload shader program if it exists
-    if (stereo.shader.isLinked()) {
-        stereo.shader.deleteProgram();
+    if (_stereo.shader.isLinked()) {
+        _stereo.shader.deleteProgram();
     }
 
     using namespace core;
@@ -1283,12 +1281,12 @@ void Window::loadShaders() {
             default:
                 return shaders::DummyStereoFrag;
         }
-    }(mStereoMode);
+    }(_stereoMode);
 
     const std::string glslVersion = Engine::instance()->getGLSLVersion();
 
     helpers::findAndReplace(stereoVertShader, "**glsl_version**", glslVersion);
-    const bool vertShader = stereo.shader.addShaderSrc(
+    const bool vertShader = _stereo.shader.addShaderSrc(
         stereoVertShader,
         GL_VERTEX_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -1301,7 +1299,7 @@ void Window::loadShaders() {
     }
 
     helpers::findAndReplace(stereoFragShader, "**glsl_version**", glslVersion);
-    const bool fragShader = stereo.shader.addShaderSrc(
+    const bool fragShader = _stereo.shader.addShaderSrc(
         stereoFragShader,
         GL_FRAGMENT_SHADER,
         ShaderProgram::ShaderSourceType::String
@@ -1313,30 +1311,30 @@ void Window::loadShaders() {
         );
     }
 
-    stereo.shader.setName("StereoShader");
-    stereo.shader.createAndLinkProgram();
-    stereo.shader.bind();
-    stereo.mvpLoc = stereo.shader.getUniformLocation("MVP");
-    stereo.leftTexLoc = stereo.shader.getUniformLocation("LeftTex");
-    stereo.rightTexLoc = stereo.shader.getUniformLocation("RightTex");
-    glUniform1i(stereo.leftTexLoc, 0);
-    glUniform1i(stereo.rightTexLoc, 1);
+    _stereo.shader.setName("StereoShader");
+    _stereo.shader.createAndLinkProgram();
+    _stereo.shader.bind();
+    _stereo.mvpLoc = _stereo.shader.getUniformLocation("MVP");
+    _stereo.leftTexLoc = _stereo.shader.getUniformLocation("LeftTex");
+    _stereo.rightTexLoc = _stereo.shader.getUniformLocation("RightTex");
+    glUniform1i(_stereo.leftTexLoc, 0);
+    glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
 
     if (!Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Window %d: OpenGL error occured while loading shaders\n", mId
+            "Window %d: OpenGL error occured while loading shaders\n", _id
         );
     }
 }
 
 void Window::bindVAO() const {
-    glBindVertexArray(mVAO);
+    glBindVertexArray(_vao);
 }
 
 void Window::bindVBO() const {
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 }
 
 void Window::unbindVBO() const {
@@ -1348,27 +1346,27 @@ void Window::unbindVAO() const {
 }
 
 core::OffScreenBuffer* Window::getFBO() const {
-    return mFinalFBO.get();
+    return _finalFBO.get();
 }
 
 GLFWmonitor* Window::getMonitor() const {
-    return mMonitor;
+    return _monitor;
 }
 
 GLFWwindow* Window::getWindowHandle() const {
-    return mWindowHandle;
+    return _windowHandle;
 }
 
 glm::ivec2 Window::getFinalFBODimensions() const {
-    return mFramebufferRes;
+    return _framebufferRes;
 }
 
 void Window::addPostFX(PostFX fx) {
-    mPostFXPasses.push_back(std::move(fx));
+    _postFXPasses.push_back(std::move(fx));
 }
 
 void Window::resizeFBOs() {
-    if (mUseFixResolution || !Settings::instance()->useFBO()) {
+    if (_useFixResolution || !Settings::instance()->useFBO()) {
         return;
     }
 
@@ -1376,104 +1374,104 @@ void Window::resizeFBOs() {
     destroyFBOs();
     createTextures();
 
-    mFinalFBO->resizeFBO(mFramebufferRes.x, mFramebufferRes.y, mNumberOfAASamples);
+    _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
         
-    if (!mFinalFBO->isMultiSampled()) {
+    if (!_finalFBO->isMultiSampled()) {
         //attatch color buffer to prevent GL errors
-        mFinalFBO->bind();
-        mFinalFBO->attachColorTexture(mFrameBufferTextures.leftEye);
-        mFinalFBO->unBind();
+        _finalFBO->bind();
+        _finalFBO->attachColorTexture(_frameBufferTextures.leftEye);
+        _finalFBO->unBind();
     }
 
-    if (mFinalFBO->checkForErrors()) {
+    if (_finalFBO->checkForErrors()) {
         MessageHandler::instance()->print(
-            MessageHandler::Level::Debug, "Window %d: FBOs resized successfully\n", mId
+            MessageHandler::Level::Debug, "Window %d: FBOs resized successfully\n", _id
         );
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::Level::Error, "Window %d: FBOs resized with GL errors\n", mId
+            MessageHandler::Level::Error, "Window %d: FBOs resized with GL errors\n", _id
         );
     }
 }
 
 void Window::destroyFBOs() {
-    glDeleteTextures(1, &mFrameBufferTextures.leftEye);
-    mFrameBufferTextures.leftEye = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.rightEye);
-    mFrameBufferTextures.rightEye = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.depth);
-    mFrameBufferTextures.depth = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.fx1);
-    mFrameBufferTextures.fx1 = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.fx2);
-    mFrameBufferTextures.fx2 = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.intermediate);
-    mFrameBufferTextures.intermediate = 0;
-    glDeleteTextures(1, &mFrameBufferTextures.positions);
-    mFrameBufferTextures.positions = 0;
+    glDeleteTextures(1, &_frameBufferTextures.leftEye);
+    _frameBufferTextures.leftEye = 0;
+    glDeleteTextures(1, &_frameBufferTextures.rightEye);
+    _frameBufferTextures.rightEye = 0;
+    glDeleteTextures(1, &_frameBufferTextures.depth);
+    _frameBufferTextures.depth = 0;
+    glDeleteTextures(1, &_frameBufferTextures.fx1);
+    _frameBufferTextures.fx1 = 0;
+    glDeleteTextures(1, &_frameBufferTextures.fx2);
+    _frameBufferTextures.fx2 = 0;
+    glDeleteTextures(1, &_frameBufferTextures.intermediate);
+    _frameBufferTextures.intermediate = 0;
+    glDeleteTextures(1, &_frameBufferTextures.positions);
+    _frameBufferTextures.positions = 0;
 }
 
 Window::StereoMode Window::getStereoMode() const {
-    return mStereoMode;
+    return _stereoMode;
 }
 
 void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
-    mViewports.push_back(std::move(vpPtr));
+    _viewports.push_back(std::move(vpPtr));
     MessageHandler::instance()->print(
-        MessageHandler::Level::Debug, "Adding viewport (total %d)\n", mViewports.size()
+        MessageHandler::Level::Debug, "Adding viewport (total %d)\n", _viewports.size()
     );
 }
 
 core::BaseViewport* Window::getCurrentViewport() const {
-    if (mCurrentViewport == nullptr) {
+    if (_currentViewport == nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Window %d error: Current viewport is nullptr\n", mId
+            "Window %d error: Current viewport is nullptr\n", _id
         );
     }
-    return mCurrentViewport;
+    return _currentViewport;
 }
 
 const core::Viewport& Window::getViewport(size_t index) const {
-    return *mViewports[index];
+    return *_viewports[index];
 }
 
 core::Viewport& Window::getViewport(size_t index) {
-    return *mViewports[index];
+    return *_viewports[index];
 }
 
 glm::ivec4 Window::getCurrentViewportPixelCoords() const {
     return glm::ivec4(
-        static_cast<int>(getCurrentViewport()->getPosition().x * mFramebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getPosition().y * mFramebufferRes.y),
-        static_cast<int>(getCurrentViewport()->getSize().x * mFramebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getSize().y * mFramebufferRes.y)
+        static_cast<int>(getCurrentViewport()->getPosition().x * _framebufferRes.x),
+        static_cast<int>(getCurrentViewport()->getPosition().y * _framebufferRes.y),
+        static_cast<int>(getCurrentViewport()->getSize().x * _framebufferRes.x),
+        static_cast<int>(getCurrentViewport()->getSize().y * _framebufferRes.y)
     );
 }
 
 int Window::getNumberOfViewports() const {
-    return static_cast<int>(mViewports.size());
+    return static_cast<int>(_viewports.size());
 }
 
 void Window::setNumberOfAASamples(int samples) {
-    mNumberOfAASamples = samples;
+    _nAASamples = samples;
 }
 
 int Window::getNumberOfAASamples() const {
-    return mNumberOfAASamples;
+    return _nAASamples;
 }
 
 void Window::setStereoMode(StereoMode sm) {
-    mStereoMode = sm;
+    _stereoMode = sm;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
         "Window: Setting stereo mode to '%s' for window %d\n",
-        getStereoModeStr().c_str(), mId
+        getStereoModeStr().c_str(), _id
     );
 
-    if (mWindowHandle) {
+    if (_windowHandle) {
         loadShaders();
     }
 }
@@ -1481,24 +1479,24 @@ void Window::setStereoMode(StereoMode sm) {
 core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
         case Eye::MonoOrLeft:
-            return mScreenCaptureLeftOrMono.get();
+            return _screenCaptureLeftOrMono.get();
         case Eye::Right:
-            return mScreenCaptureRight.get();
+            return _screenCaptureRight.get();
         default:
             return nullptr;
     }
 }
 
 void Window::setCurrentViewport(size_t index) {
-    mCurrentViewport = mViewports[index].get();
+    _currentViewport = _viewports[index].get();
 }
 
 void Window::setCurrentViewport(core::BaseViewport* vp) {
-    mCurrentViewport = vp;
+    _currentViewport = vp;
 }
 
 std::string Window::getStereoModeStr() const {
-    switch (mStereoMode) {
+    switch (_stereoMode) {
         case StereoMode::Active:
             return "active";
         case StereoMode::AnaglyphRedCyan:
@@ -1531,7 +1529,7 @@ std::string Window::getStereoModeStr() const {
 }
 
 void Window::updateTransferCurve() {
-    if (!mMonitor) {
+    if (!_monitor) {
         return;
     }
 
@@ -1545,11 +1543,11 @@ void Window::updateTransferCurve() {
     ramp.green = green;
     ramp.blue = blue;
 
-    float gammaExp = 1.f / mGamma;
+    float gammaExp = 1.f / _gamma;
 
     for (unsigned int i = 0; i < ramp.size; i++) {
-        float c = ((static_cast<float>(i) / 255.f) - 0.5f) * mContrast + 0.5f;
-        float b = c + (mBrightness - 1.f);
+        float c = ((static_cast<float>(i) / 255.f) - 0.5f) * _contrast + 0.5f;
+        float b = c + (_brightness - 1.f);
         float g = powf(b, gammaExp);
 
         //transform back
@@ -1564,194 +1562,194 @@ void Window::updateTransferCurve() {
         ramp.blue[i] = t;
     }
 
-    glfwSetGammaRamp(mMonitor, &ramp);
+    glfwSetGammaRamp(_monitor, &ramp);
 }
 
 void Window::updateColorBufferData() {
-    mColorFormat = GL_BGRA;
+    _colorFormat = GL_BGRA;
     
-    switch (mBufferColorBitDepth) {
+    switch (_bufferColorBitDepth) {
         default:
         case ColorBitDepth::Depth8:
-            mInternalColorFormat = GL_RGBA8;
-            mColorDataType = GL_UNSIGNED_BYTE;
-            mBytesPerColor = 1;
+            _internalColorFormat = GL_RGBA8;
+            _colorDataType = GL_UNSIGNED_BYTE;
+            _bytesPerColor = 1;
             break;
         case ColorBitDepth::Depth16:
-            mInternalColorFormat = GL_RGBA16;
-            mColorDataType = GL_UNSIGNED_SHORT;
-            mBytesPerColor = 2;
+            _internalColorFormat = GL_RGBA16;
+            _colorDataType = GL_UNSIGNED_SHORT;
+            _bytesPerColor = 2;
             break;
         case ColorBitDepth::Depth16Float:
-            mInternalColorFormat = GL_RGBA16F;
-            mColorDataType = GL_HALF_FLOAT;
-            mBytesPerColor = 2;
+            _internalColorFormat = GL_RGBA16F;
+            _colorDataType = GL_HALF_FLOAT;
+            _bytesPerColor = 2;
             break;
         case ColorBitDepth::Depth32Float:
-            mInternalColorFormat = GL_RGBA32F;
-            mColorDataType = GL_FLOAT;
-            mBytesPerColor = 4;
+            _internalColorFormat = GL_RGBA32F;
+            _colorDataType = GL_FLOAT;
+            _bytesPerColor = 4;
             break;
         case ColorBitDepth::Depth16Int:
-            mInternalColorFormat = GL_RGBA16I;
-            mColorDataType = GL_SHORT;
-            mBytesPerColor = 2;
+            _internalColorFormat = GL_RGBA16I;
+            _colorDataType = GL_SHORT;
+            _bytesPerColor = 2;
             break;
         case ColorBitDepth::Depth32Int:
-            mInternalColorFormat = GL_RGBA32I;
-            mColorDataType = GL_INT;
-            mBytesPerColor = 2;
+            _internalColorFormat = GL_RGBA32I;
+            _colorDataType = GL_INT;
+            _bytesPerColor = 2;
             break;
         case ColorBitDepth::Depth16UInt:
-            mInternalColorFormat = GL_RGBA16UI;
-            mColorDataType = GL_UNSIGNED_SHORT;
-            mBytesPerColor = 2;
+            _internalColorFormat = GL_RGBA16UI;
+            _colorDataType = GL_UNSIGNED_SHORT;
+            _bytesPerColor = 2;
             break;
         case ColorBitDepth::Depth32UInt:
-            mInternalColorFormat = GL_RGBA32UI;
-            mColorDataType = GL_UNSIGNED_INT;
-            mBytesPerColor = 4;
+            _internalColorFormat = GL_RGBA32UI;
+            _colorDataType = GL_UNSIGNED_INT;
+            _bytesPerColor = 4;
             break;
     }
 }
 
 bool Window::useRightEyeTexture() const {
-    return mStereoMode != StereoMode::NoStereo && mStereoMode < StereoMode::SideBySide;
+    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
 }
 
 void Window::setAlpha(bool state) {
-    mAlpha = state;
+    _alpha = state;
 }
 
 bool Window::getAlpha() const {
-    return mAlpha;
+    return _alpha;
 }
 
 void Window::setGamma(float gamma) {
-    mGamma = gamma;
+    _gamma = gamma;
     updateTransferCurve();
 }
 
 float Window::getGamma() const {
-    return mGamma;
+    return _gamma;
 }
 
 void Window::setContrast(float contrast) {
-    mContrast = contrast;
+    _contrast = contrast;
     updateTransferCurve();
 }
 
 float Window::getContrast() const {
-    return mContrast;
+    return _contrast;
 }
 
 void Window::setBrightness(float brightness) {
-    mBrightness = brightness;
+    _brightness = brightness;
     updateTransferCurve();
 }
 
 void Window::setColorBitDepth(ColorBitDepth cbd) {
-    mBufferColorBitDepth = cbd;
+    _bufferColorBitDepth = cbd;
 }
 
 Window::ColorBitDepth Window::getColorBitDepth() const {
-    return mBufferColorBitDepth;
+    return _bufferColorBitDepth;
 }
 
 void Window::setPreferBGR(bool state) {
-    mPreferBGR = state;
+    _preferBGR = state;
 }
 
 void Window::setAllowCapture(bool state) {
-    mAllowCapture = state;
+    _allowCapture = state;
 }
 
 bool Window::isBGRPreferred() const {
-    return mPreferBGR;
+    return _preferBGR;
 }
 
 bool Window::isCapturingAllowed() const {
-    return mAllowCapture;
+    return _allowCapture;
 }
 
 float Window::getBrightness() const {
-    return mBrightness;
+    return _brightness;
 }
 
 float Window::getHorizFieldOfViewDegrees() const {
-    return mViewports[0]->getHorizontalFieldOfViewDegrees();
+    return _viewports[0]->getHorizontalFieldOfViewDegrees();
 }
 
 PostFX& Window::getPostFX(size_t index) {
-    return mPostFXPasses[index];
+    return _postFXPasses[index];
 }
 
 size_t Window::getNumberOfPostFXs() const {
-    return mPostFXPasses.size();
+    return _postFXPasses.size();
 }
 
 glm::ivec2 Window::getResolution() const {
-    return mWindowRes;
+    return _windowRes;
 }
 
 glm::ivec2 Window::getFramebufferResolution() const {
-    return mFramebufferRes;
+    return _framebufferRes;
 }
 
 glm::ivec2 Window::getInitialResolution() const {
-    return mWindowInitialRes;
+    return _windowInitialRes;
 }
 
 glm::vec2 Window::getScale() const {
-    return mScale;
+    return _scale;
 }
 
 float Window::getAspectRatio() const {
-    return mAspectRatio;
+    return _aspectRatio;
 }
 
 int Window::getFramebufferBPCC() const {
-    return mBytesPerColor;
+    return _bytesPerColor;
 }
 
 bool Window::hasAnyMasks() const {
-    return mHasAnyMasks;
+    return _hasAnyMasks;
 }
 
 bool Window::useFXAA() const {
-    return mUseFXAA;
+    return _useFXAA;
 }
 
 bool Window::usePostFX() const {
-    return mUsePostFX;
+    return _usePostFX;
 }
 
 void Window::bindStereoShaderProgram() const {
-    stereo.shader.bind();
+    _stereo.shader.bind();
 }
 
 int Window::getStereoShaderMVPLoc() const {
-    return stereo.mvpLoc;
+    return _stereo.mvpLoc;
 }
 
 int Window::getStereoShaderLeftTexLoc() const {
-    return stereo.leftTexLoc;
+    return _stereo.leftTexLoc;
 }
 
 int Window::getStereoShaderRightTexLoc() const {
-    return stereo.rightTexLoc;
+    return _stereo.rightTexLoc;
 }
 
 bool Window::getCallDraw2DFunction() const {
-    return mCallDraw2DFunction;
+    return _callDraw2DFunction;
 }
 
 bool Window::getCallDraw3DFunction() const {
-    return mCallDraw3DFunction;
+    return _callDraw3DFunction;
 }
 
 bool Window::getCopyPreviousWindowToCurrentWindow() const {
-    return mCopyPreviousWindowToCurrentWindow;
+    return _copyPreviousWindowToCurrentWindow;
 }
 
 } // namespace sgct

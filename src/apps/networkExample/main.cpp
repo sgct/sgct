@@ -87,7 +87,7 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
-        conn->mStartConnectionCond.notify_all();
+        conn->_startConnectionCond.notify_all();
     }
 
     connected = conn->isConnected();

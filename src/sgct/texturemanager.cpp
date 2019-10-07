@@ -13,30 +13,30 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-TextureManager* TextureManager::mInstance = nullptr;
+TextureManager* TextureManager::_instance = nullptr;
 
 TextureManager* TextureManager::instance() {
-    if (mInstance == nullptr) {
-        mInstance = new TextureManager();
+    if (_instance == nullptr) {
+        _instance = new TextureManager();
     }
 
-    return mInstance;
+    return _instance;
 }
 
 void TextureManager::destroy() {
-    if (mInstance != nullptr) {
-        delete mInstance;
-        mInstance = nullptr;
+    if (_instance != nullptr) {
+        delete _instance;
+        _instance = nullptr;
     }
 }
 
 TextureManager::TextureManager() {
     setAnisotropicFilterSize(1.f);
-    mWarpMode.s = GL_CLAMP_TO_EDGE;
-    mWarpMode.t = GL_CLAMP_TO_EDGE;
+    _warpMode.s = GL_CLAMP_TO_EDGE;
+    _warpMode.t = GL_CLAMP_TO_EDGE;
 
     TextureData tmpTexture;
-    mTextures["NOTSET"] = tmpTexture;
+    _textures["NOTSET"] = tmpTexture;
 }
 
 TextureManager::~TextureManager() {
@@ -44,21 +44,21 @@ TextureManager::~TextureManager() {
 }
 
 unsigned int TextureManager::getTextureId(const std::string& name) {
-    return mTextures.count(name) > 0 ? mTextures[name].mId : 0;
+    return _textures.count(name) > 0 ? _textures[name].id : 0;
 }
 
 std::string TextureManager::getTexturePath(const std::string& name) {
-    return mTextures.count(name) > 0 ? mTextures[name].mPath : "NOT_FOUND";
+    return _textures.count(name) > 0 ? _textures[name].path : "NOT_FOUND";
 }
 
 void TextureManager::getDimensions(const std::string& name, int& width, int& height,
                                    int& channels) const
 {
-    if (mTextures.count(name) > 0) {
-        const TextureData& texData = mTextures.at(name);
-        width = texData.mWidth;
-        height = texData.mWidth;
-        channels = texData.mWidth;
+    if (_textures.count(name) > 0) {
+        const TextureData& texData = _textures.at(name);
+        width = texData.width;
+        height = texData.width;
+        channels = texData.width;
     }
     else {
         width = -1;
@@ -68,11 +68,11 @@ void TextureManager::getDimensions(const std::string& name, int& width, int& hei
 }
 
 void TextureManager::setAlphaModeForSingleChannelTextures(bool alpha) {
-    mAlphaMode = alpha;
+    _alphaMode = alpha;
 }
 
 void TextureManager::setOverWriteMode(bool mode) {
-    mOverWriteMode = mode;
+    _overWriteMode = mode;
 }
 
 void TextureManager::setAnisotropicFilterSize(float fval) {
@@ -80,7 +80,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAnistropy);
 
     if (fval >= 1.f && fval <= maximumAnistropy) {
-        mAnisotropicFilterSize = fval;
+        _anisotropicFilterSize = fval;
     }
     else {
         MessageHandler::instance()->print(
@@ -92,23 +92,23 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
 }
 
 void TextureManager::setCompression(CompressionMode cm) {
-    mCompression = cm;
+    _compression = cm;
 }
 
 void TextureManager::setWarpingMode(GLenum warpS, GLenum warpT) {
-    mWarpMode.s = warpS;
-    mWarpMode.t = warpT;
+    _warpMode.s = warpS;
+    _warpMode.t = warpT;
 }
 
 TextureManager::CompressionMode TextureManager::getCompression() const {
-    return mCompression;
+    return _compression;
 }
 
 bool TextureManager::loadTexture(const std::string& name, const std::string& filename,
                                  bool interpolate, int mipmapLevels)
 {
-    mInterpolate = interpolate;
-    mMipmapLevels = mipmapLevels;
+    _interpolate = interpolate;
+    _mipmapLevels = mipmapLevels;
 
     GLuint texID = 0;
     bool reload = false;
@@ -116,7 +116,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         return true;
     }
     
-    std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
+    std::unordered_map<std::string, TextureData>::iterator textureItem = _textures.end();
 
     // load image
     core::Image img;
@@ -133,14 +133,14 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         }
 
         TextureData tmpTexture;
-        tmpTexture.mId = texID;
-        tmpTexture.mPath.assign(filename);
-        tmpTexture.mWidth = static_cast<int>(img.getWidth());
-        tmpTexture.mHeight = static_cast<int>(img.getHeight());
-        tmpTexture.mChannels = static_cast<int>(img.getChannels());
+        tmpTexture.id = texID;
+        tmpTexture.path = filename;
+        tmpTexture.width = static_cast<int>(img.getWidth());
+        tmpTexture.height = static_cast<int>(img.getHeight());
+        tmpTexture.nChannels = static_cast<int>(img.getChannels());
 
         if (!reload) {
-            mTextures[name] = std::move(tmpTexture);
+            _textures[name] = std::move(tmpTexture);
         }
 
         MessageHandler::instance()->print(
@@ -169,8 +169,8 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
         return false;
     }
     
-    mInterpolate = interpolate;
-    mMipmapLevels = mipmapLevels;
+    _interpolate = interpolate;
+    _mipmapLevels = mipmapLevels;
 
     GLuint texID = 0;
     bool reload = false;
@@ -184,14 +184,14 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
         }
 
         TextureData tmpTexture;
-        tmpTexture.mId = texID;
-        tmpTexture.mPath.assign("NOTSET");
-        tmpTexture.mWidth = static_cast<int>(imgPtr->getWidth());
-        tmpTexture.mHeight = static_cast<int>(imgPtr->getHeight());
-        tmpTexture.mChannels = static_cast<int>(imgPtr->getChannels());
+        tmpTexture.id = texID;
+        tmpTexture.path = "NOTSET";
+        tmpTexture.width = static_cast<int>(imgPtr->getWidth());
+        tmpTexture.height = static_cast<int>(imgPtr->getHeight());
+        tmpTexture.nChannels = static_cast<int>(imgPtr->getChannels());
 
         if (!reload) {
-            mTextures[name] = tmpTexture;
+            _textures[name] = tmpTexture;
         }
 
         MessageHandler::instance()->print(
@@ -212,8 +212,8 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
                                           int mipmapLevels)
 {
     unsigned int tmpTexID = 0;
-    mInterpolate = interpolate;
-    mMipmapLevels = mipmapLevels;
+    _interpolate = interpolate;
+    _mipmapLevels = mipmapLevels;
 
     if (texID != 0) {
         glDeleteTextures(1, &texID);
@@ -250,15 +250,15 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
                                    bool& reload)
 {
     // check if texture exits in manager
-    bool exist = mTextures.count(name) > 0;
-    std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
+    bool exist = _textures.count(name) > 0;
+    std::unordered_map<std::string, TextureData>::iterator textureItem = _textures.end();
 
     if (exist) {
         // get it
-        textureItem = mTextures.find(name);
-        texPtr = textureItem->second.mId;
+        textureItem = _textures.find(name);
+        texPtr = textureItem->second.id;
 
-        if (mOverWriteMode) {
+        if (_overWriteMode) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
                 "TextureManager: Reloading texture '%s'! [id=%d]\n", name.c_str(), texPtr
@@ -319,15 +319,15 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             "TextureManager: Compression is not supported for bit depths higher than "
             "16-bit per channel\n"
         );
-        mCompression = CompressionMode::None;
+        _compression = CompressionMode::None;
     }
 
     switch (imgPtr.getChannels()) {
         case 1:
-            if (mCompression == CompressionMode::None) {
+            if (_compression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
             }
-            else if (mCompression == CompressionMode::Generic) {
+            else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RED;
             }
             else {
@@ -335,10 +335,10 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             }
             break;
         case 2:
-            if (mCompression == CompressionMode::None) {
+            if (_compression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
             }
-            else if (mCompression == CompressionMode::Generic) {
+            else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RG;
             }
             else {
@@ -346,10 +346,10 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             }
             break;
         case 3:
-            if (mCompression == CompressionMode::None) {
+            if (_compression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
             }
-            else if (mCompression == CompressionMode::Generic) {
+            else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGB;
             }
             else {
@@ -357,10 +357,10 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             }
             break;
         case 4:
-            if (mCompression == CompressionMode::None) {
+            if (_compression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
             }
-            else if (mCompression == CompressionMode::Generic) {
+            else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGBA;
             }
             else {
@@ -376,9 +376,9 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
         imgPtr.getWidth(),
         imgPtr.getHeight(),
         imgPtr.getChannels(),
-        (mCompression == CompressionMode::None) ?
+        (_compression == CompressionMode::None) ?
             "none" :
-            ((mCompression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
+            ((_compression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
         textureType,
         internalFormat
     );
@@ -386,7 +386,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    mMipmapLevels = glm::max(mMipmapLevels, 1);
+    _mipmapLevels = glm::max(_mipmapLevels, 1);
 
     GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
     glTexImage2D(
@@ -401,9 +401,9 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
         imgPtr.getData()
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mMipmapLevels - 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipmapLevels - 1);
 
-    if (mMipmapLevels > 1) {
+    if (_mipmapLevels > 1) {
         glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
 
         GLfloat maxAni;
@@ -413,34 +413,34 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MIN_FILTER,
-            mInterpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
+            _interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
         );
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
-            mInterpolate ? GL_LINEAR : GL_NEAREST
+            _interpolate ? GL_LINEAR : GL_NEAREST
         );
         glTexParameterf(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAX_ANISOTROPY_EXT,
-            mAnisotropicFilterSize > maxAni ? maxAni : mAnisotropicFilterSize
+            _anisotropicFilterSize > maxAni ? maxAni : _anisotropicFilterSize
         );
     }
     else {
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MIN_FILTER,
-            mInterpolate ? GL_LINEAR : GL_NEAREST
+            _interpolate ? GL_LINEAR : GL_NEAREST
         );
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
-            mInterpolate ? GL_LINEAR : GL_NEAREST
+            _interpolate ? GL_LINEAR : GL_NEAREST
         );
     }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode.s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode.t);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _warpMode.s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _warpMode.t);
 
     return true;
 }
@@ -448,12 +448,12 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 void TextureManager::freeTextureData() {
     // the textures might not be stored in a sequence so
     // let's erase them one by one
-    for (const std::pair<const std::string, TextureData>& p : mTextures) {
-        if (p.second.mId) {
-            glDeleteTextures(1, &p.second.mId);
+    for (const std::pair<const std::string, TextureData>& p : _textures) {
+        if (p.second.id) {
+            glDeleteTextures(1, &p.second.id);
         }
     }
-     mTextures.clear();
+     _textures.clear();
 }
 
 } // namespace sgct::core

@@ -19,15 +19,15 @@ namespace {
         using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
-        const bool saveSuccess = ptr->mFrameBufferImage->save();
+        const bool saveSuccess = ptr->frameBufferImage->save();
         if (!saveSuccess) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Error: Failed to save '%s'\n",
-                ptr->mFrameBufferImage->getFilename().c_str()
+                ptr->frameBufferImage->getFilename().c_str()
             );
         }
-        ptr->mRunning = false;
+        ptr->isRunning = false;
     }
 
     GLenum sourceForCaptureSource(sgct::core::ScreenCapture::CaptureSource source) {
@@ -44,7 +44,7 @@ namespace {
 namespace sgct::core {
 
 ScreenCapture::ScreenCapture()
-    : mNumberOfThreads(Settings::instance()->getNumberOfCaptureThreads())
+    : _nThreads(Settings::instance()->getNumberOfCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
@@ -53,73 +53,73 @@ ScreenCapture::~ScreenCapture() {
         "Clearing screen capture buffers...\n"
     );
 
-    for (ScreenCaptureThreadInfo& info : mSCTIs) {
+    for (ScreenCaptureThreadInfo& info : _captureInfos) {
         // kill threads that are still running
-        if (info.mFrameCaptureThread) {
-            info.mFrameCaptureThread->join();
-            info.mFrameCaptureThread = nullptr;
+        if (info.captureThread) {
+            info.captureThread->join();
+            info.captureThread = nullptr;
         }
 
-        std::unique_lock lock(mMutex);
-        info.mFrameBufferImage = nullptr;
-        info.mRunning = false;
+        std::unique_lock lock(_mutex);
+        info.frameBufferImage = nullptr;
+        info.isRunning = false;
     }
 
-    glDeleteBuffers(1, &mPBO);
+    glDeleteBuffers(1, &_pbo);
 }
 
 void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor) {
-    glDeleteBuffers(1, &mPBO);
-    mPBO = 0;
+    glDeleteBuffers(1, &_pbo);
+    _pbo = 0;
 
-    mResolution = resolution;
-    mBytesPerColor = bytesPerColor;
+    _resolution = resolution;
+    _bytesPerColor = bytesPerColor;
     
-    mChannels = channels;
-    mDataSize = mResolution.x * mResolution.y * mChannels * mBytesPerColor;
+    _nChannels = channels;
+    _dataSize = _resolution.x * _resolution.y * _nChannels * _bytesPerColor;
 
     updateDownloadFormat();
 
-    std::unique_lock lock(mMutex);
-    for (ScreenCaptureThreadInfo& info : mSCTIs) {
-        if (info.mFrameBufferImage) {
+    std::unique_lock lock(_mutex);
+    for (ScreenCaptureThreadInfo& info : _captureInfos) {
+        if (info.frameBufferImage) {
             // kill threads that are still running
-            if (info.mFrameCaptureThread) {
-                info.mFrameCaptureThread->join();
-                info.mFrameCaptureThread = nullptr;
+            if (info.captureThread) {
+                info.captureThread->join();
+                info.captureThread = nullptr;
             }
-            info.mFrameBufferImage = nullptr;
+            info.frameBufferImage = nullptr;
         }
-        info.mRunning = false;
+        info.isRunning = false;
     }
 
-    if (mUsePBO) {
-        glGenBuffers(1, &mPBO);
+    if (_usePBO) {
+        glGenBuffers(1, &_pbo);
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
             "ScreenCapture: Generating %dx%dx%d PBO: %u\n",
-            mResolution.x, mResolution.y, mChannels, mPBO
+            _resolution.x, _resolution.y, _nChannels, _pbo
         );
 
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
-        glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
+        glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, 0, GL_STATIC_READ);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     }
 }
 
 void ScreenCapture::setTextureTransferProperties(GLenum type, bool preferBGR) {
-    mDownloadType = type;
-    mDownloadTypeSetByUser = mDownloadType;
-    mPreferBGR = preferBGR;
+    _downloadType = type;
+    _downloadTypeSetByUser = _downloadType;
+    _preferBGR = preferBGR;
     updateDownloadFormat();
 }
 
 void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
-    mFormat = cf;
+    _format = cf;
 }
 
 ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
-    return mFormat;
+    return _format;
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
@@ -134,36 +134,36 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     
     glPixelStorei(GL_PACK_ALIGNMENT, 1); // byte alignment
 
-    if (mUsePBO) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
+    if (_usePBO) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
         
         if (capSrc == CaptureSource::Texture) {
             glBindTexture(GL_TEXTURE_2D, textureId);
-            glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
+            glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, 0);
         }
         else {
             // set the target framebuffer to read
             glReadBuffer(sourceForCaptureSource(capSrc));
             const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
             const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
-            glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, 0);
+            glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
         }
             
         unsigned char* ptr = reinterpret_cast<unsigned char*>(
             glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
         );
         if (ptr) {
-            memcpy(imPtr->getData(), ptr, mDataSize);
+            memcpy(imPtr->getData(), ptr, _dataSize);
                 
-            if (mCaptureCallbackFn) {
-                mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+            if (_captureCallback) {
+                _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
             }
-            else if (mBytesPerColor <= 2) {
+            else if (_bytesPerColor <= 2) {
                 // save the image
-                mSCTIs[threadIndex].mRunning = true;
-                mSCTIs[threadIndex].mFrameCaptureThread = std::make_unique<std::thread>(
+                _captureInfos[threadIndex].isRunning = true;
+                _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
                     screenCaptureHandler,
-                    &mSCTIs[threadIndex]
+                    &_captureInfos[threadIndex]
                 );
             }
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -184,8 +184,8 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             glGetTexImage(
                 GL_TEXTURE_2D,
                 0,
-                mDownloadFormat,
-                mDownloadType,
+                _downloadFormat,
+                _downloadType,
                 imPtr->getData()
             );
         }
@@ -194,30 +194,30 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             glReadBuffer(sourceForCaptureSource(capSrc));
             const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
             const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
-            glReadPixels(0, 0, w, h, mDownloadFormat, mDownloadType, imPtr->getData());
+            glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, imPtr->getData());
         }
         
-        if (mCaptureCallbackFn) {
-            mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+        if (_captureCallback) {
+            _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
         }
-        else if (mBytesPerColor <= 2) {
+        else if (_bytesPerColor <= 2) {
             // save the image
-            mSCTIs[threadIndex].mRunning = true;
-            mSCTIs[threadIndex].mFrameCaptureThread = std::make_unique<std::thread>(
+            _captureInfos[threadIndex].isRunning = true;
+            _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
                 screenCaptureHandler,
-                &mSCTIs[threadIndex]
+                &_captureInfos[threadIndex]
             );
         }
     }
 }
 
 void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
-    mPath = std::move(path);
-    mBaseName = std::move(filename);
+    _path = std::move(path);
+    _baseName = std::move(filename);
 }
 
 void ScreenCapture::setUsePBO(bool state) {
-    mUsePBO = state;
+    _usePBO = state;
     
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
@@ -226,20 +226,20 @@ void ScreenCapture::setUsePBO(bool state) {
 }
 
 void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
-    mEyeIndex = ei;
+    _eyeIndex = ei;
     
-    mSCTIs.resize(mNumberOfThreads);
-    for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-        mSCTIs[i].mFrameBufferImage = nullptr;
-        mSCTIs[i].mFrameCaptureThread = nullptr;
-        mSCTIs[i].mMutex = &mMutex;
-        mSCTIs[i].mRunning = false;
+    _captureInfos.resize(_nThreads);
+    for (unsigned int i = 0; i < _nThreads; i++) {
+        _captureInfos[i].frameBufferImage = nullptr;
+        _captureInfos[i].captureThread = nullptr;
+        _captureInfos[i].mutex = &_mutex;
+        _captureInfos[i].isRunning = false;
     }
-    mWindowIndex = windowIndex;
+    _windowIndex = windowIndex;
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Debug,
-        "Number of screen capture threads is set to %d\n", mNumberOfThreads
+        "Number of screen capture threads is set to %d\n", _nThreads
     );
 }
 
@@ -254,16 +254,16 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
             case CaptureFormat::JPEG:
                 return "jpg";
         }
-    }(mFormat);
+    }(_format);
 
     // use default settings if path is empty
     std::string filename;
     std::string eye;
-    bool useDefaultSettings = mPath.empty() && mBaseName.empty();
+    bool useDefaultSettings = _path.empty() && _baseName.empty();
     if (useDefaultSettings) {
         std::string tmpPath;
         using CapturePath = Settings::CapturePath;
-        switch (mEyeIndex) {
+        switch (_eyeIndex) {
             case EyeIndex::Mono:
             default:
                 tmpPath = Settings::instance()->getCapturePath(CapturePath::Mono);
@@ -278,17 +278,17 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 break;
         }
         filename = tmpPath;
-        Window& win = Engine::instance()->getWindow(mWindowIndex);
+        Window& win = Engine::instance()->getWindow(_windowIndex);
         
         if (win.getName().empty()) {
-            filename += "_win" + std::to_string(mWindowIndex);
+            filename += "_win" + std::to_string(_windowIndex);
         }
         else {
             filename += '_' + win.getName();
         }
     }
     else {
-        filename = mPath.empty() ? mBaseName : mPath + '/' + mBaseName;
+        filename = _path.empty() ? _baseName : _path + '/' + _baseName;
     }
 
     filename += eye;
@@ -314,21 +314,21 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     }
 
     filename += '.' + suffix;
-    mFilename = std::move(filename);
+    _filename = std::move(filename);
 }
 
 int ScreenCapture::getAvailableCaptureThread() {
     while (true) {
-        for (unsigned int i = 0; i < mSCTIs.size(); i++) {
+        for (unsigned int i = 0; i < _captureInfos.size(); i++) {
             // check if thread is dead
-            if (mSCTIs[i].mFrameCaptureThread == nullptr) {
+            if (_captureInfos[i].captureThread == nullptr) {
                 return i;
             }
 
-            bool running = mSCTIs[i].mRunning;
+            bool running = _captureInfos[i].isRunning;
             if (!running) {
-                mSCTIs[i].mFrameCaptureThread->join();
-                mSCTIs[i].mFrameCaptureThread = nullptr;
+                _captureInfos[i].captureThread->join();
+                _captureInfos[i].captureThread = nullptr;
 
                 return i;
             }
@@ -339,37 +339,37 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::updateDownloadFormat() {
-    switch (mChannels) {
+    switch (_nChannels) {
         default:
-            mDownloadFormat = mPreferBGR ? GL_BGRA : GL_RGBA;
+            _downloadFormat = _preferBGR ? GL_BGRA : GL_RGBA;
             break;
         case 1:
-            mDownloadFormat = GL_RED;
+            _downloadFormat = GL_RED;
             break;
         case 2:
-            mDownloadFormat = GL_RG;
+            _downloadFormat = GL_RG;
             break;
         case 3:
-            mDownloadFormat = mPreferBGR ? GL_BGR : GL_RGB;
+            _downloadFormat = _preferBGR ? GL_BGR : GL_RGB;
             break;
     }
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
-    Window& win = Engine::instance()->getWindow(mWindowIndex);
+    Window& win = Engine::instance()->getWindow(_windowIndex);
     
     if (CapSrc == CaptureSource::Texture) {
-        if (mResolution != win.getFramebufferResolution()) {
-            mDownloadType = mDownloadTypeSetByUser;
+        if (_resolution != win.getFramebufferResolution()) {
+            _downloadType = _downloadTypeSetByUser;
             const int bytesPerColor = win.getFramebufferBPCC();
-            initOrResize(win.getFramebufferResolution(), mChannels, bytesPerColor);
+            initOrResize(win.getFramebufferResolution(), _nChannels, bytesPerColor);
         }
     }
     else {
         // capture directly from back buffer (no HDR support)
-        if (mResolution != win.getResolution()) {
-            mDownloadType = GL_UNSIGNED_BYTE;
-            initOrResize(win.getResolution(), mChannels, 1);
+        if (_resolution != win.getResolution()) {
+            _downloadType = GL_UNSIGNED_BYTE;
+            initOrResize(win.getResolution(), _nChannels, 1);
         }
     }
 }
@@ -388,27 +388,27 @@ Image* ScreenCapture::prepareImage(int index) {
         "Starting thread for screenshot/capture [%d]\n", index
     );
 
-    if (mSCTIs[index].mFrameBufferImage == nullptr) {
-        mSCTIs[index].mFrameBufferImage = std::make_unique<core::Image>();
-        mSCTIs[index].mFrameBufferImage->setBytesPerChannel(mBytesPerColor);
-        mSCTIs[index].mFrameBufferImage->setPreferBGRExport(mPreferBGR);
-        mSCTIs[index].mFrameBufferImage->setChannels(mChannels);
-        mSCTIs[index].mFrameBufferImage->setSize(mResolution.x, mResolution.y);
-        const bool success = mSCTIs[index].mFrameBufferImage->allocateOrResizeData();
+    if (_captureInfos[index].frameBufferImage == nullptr) {
+        _captureInfos[index].frameBufferImage = std::make_unique<core::Image>();
+        _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
+        _captureInfos[index].frameBufferImage->setPreferBGRExport(_preferBGR);
+        _captureInfos[index].frameBufferImage->setChannels(_nChannels);
+        _captureInfos[index].frameBufferImage->setSize(_resolution.x, _resolution.y);
+        const bool success = _captureInfos[index].frameBufferImage->allocateOrResizeData();
         if (!success) {
-            mSCTIs[index].mFrameBufferImage = nullptr;
+            _captureInfos[index].frameBufferImage = nullptr;
             return nullptr;
         }
     }
-    mSCTIs[index].mFrameBufferImage->setFilename(mFilename);
+    _captureInfos[index].frameBufferImage->setFilename(_filename);
 
-    return mSCTIs[index].mFrameBufferImage.get();
+    return _captureInfos[index].frameBufferImage.get();
 }
 
 void ScreenCapture::setCaptureCallback(
                       std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback)
 {
-    mCaptureCallbackFn = std::move(callback);
+    _captureCallback = std::move(callback);
 }
 
 } // namespace sgct::core

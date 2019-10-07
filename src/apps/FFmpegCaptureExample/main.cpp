@@ -401,7 +401,7 @@ void contextCreationCallback(GLFWwindow * win)
 
     if (!hiddenWindow)
     {
-        sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
+        sgct::MessageHandler::instance()->printInfo("Failed to create loader context!\n");
     }
 
     //restore to normal

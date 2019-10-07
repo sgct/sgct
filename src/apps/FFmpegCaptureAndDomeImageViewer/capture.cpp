@@ -115,7 +115,7 @@ bool Capture::init() {
     // success
     mInited = true;
 
-    sgct::MessageHandler::instance()->print("Capture init complete\n");
+    sgct::MessageHandler::instance()->printInfo("Capture init complete\n");
 
     return true;
 }

@@ -2,11 +2,16 @@
 #include <sgct.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/Image.h>
-#include <sgct/SGCTWindow.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <fstream>
+
+#ifdef SGCT_HAS_TEXT
+#include <sgct/Font.h>
+#include <sgct/FontManager.h>
+#include <sgct/freetype.h>
+#endif // SGCT_HAS_TEXT
 
 // abock (2019-09-08);  I fixed up and converted this file blind as I didn't have a way
 // to test it properly.  So no guarantee that this is actually working
@@ -19,8 +24,8 @@ namespace {
     sgct::Engine* gEngine;
     Capture gCapture;
 
-    std::unique_ptr<sgct::utils::SGCTPlane> plane;
-    std::unique_ptr<sgct::utils::SGCTDome> dome;
+    std::unique_ptr<sgct::utils::Plane> plane;
+    std::unique_ptr<sgct::utils::Dome> dome;
 
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
@@ -57,7 +62,7 @@ namespace {
     GLint chromaKeyUvScaleLoc = -1;
     GLint chromaKeyUvOffsetLoc = -1;
     GLint chromaKeyColorLoc = -1;
-    GLuint texId = GL_FALSE;
+    GLuint texId = 0;
 
     std::unique_ptr<std::thread> captureThread;
     bool flipFrame = false;
@@ -327,7 +332,7 @@ void uploadTexture() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // unbind
-        glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         MessageHandler::instance()->print(
             "Texture id %d loaded (%dx%dx%d)\n",
@@ -604,7 +609,7 @@ void draw2DFun() {
 
         const float resY = gEngine->getCurrentWindow().getFramebufferResolution().y;
         text::print(
-            font,
+            *font,
             text::TextAlignMode::TopLeft,
             padding,
             static_cast<float>(resY - fontSize) - padding,
@@ -651,7 +656,7 @@ void initOGLFun() {
     allocateTexture();
 
     // start capture thread if host or load thread if master and not host
-    core::SGCTNode* thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
     if (thisNode->getAddress() == gCapture.getVideoHost()) {
         captureThread = std::make_unique<std::thread>(captureLoop);
     }
@@ -672,10 +677,10 @@ void initOGLFun() {
     const float h = static_cast<float>(gCapture.getHeight());
     const float w = static_cast<float>(gCapture.getWidth());
     float planeHeight = planeWidth * h / w;
-    plane = std::make_unique<utils::SGCTPlane>(planeWidth, planeHeight);
+    plane = std::make_unique<utils::Plane>(planeWidth, planeHeight);
 
     // create dome
-    dome = std::make_unique<utils::SGCTDome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
 
     ShaderManager& sm = *ShaderManager::instance();
     sm.addShaderProgram(
@@ -713,7 +718,7 @@ void initOGLFun() {
     Engine::checkForOGLErrors();
 }
 
-void encodeFun() {
+void encode() {
     SharedData::instance()->writeDouble(currTime);
     SharedData::instance()->writeBool(info);
     SharedData::instance()->writeBool(stats);
@@ -727,7 +732,7 @@ void encodeFun() {
     SharedData::instance()->writeInt32(chromaKeyColorIdx);
 }
 
-void decodeFun() {
+void decode() {
     SharedData::instance()->readDouble(currTime);
     SharedData::instance()->readBool(info);
     SharedData::instance()->readBool(stats);
@@ -778,10 +783,10 @@ void keyCallback(int key, int, int action, int) {
             case key::W:
                 wireframe.setVal(!wireframe.getVal());
                 break;
-            case key::1:
+            case key::Key1:
                 domeCut.setVal(1);
                 break;
-            case key::2:
+            case key::Key2:
                 domeCut.setVal(2);
                 break;
             case key::P:
@@ -820,7 +825,7 @@ void keyCallback(int key, int, int action, int) {
 }
 
 void contextCreationCallback(GLFWwindow* win) {
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
@@ -944,7 +949,9 @@ void parseArguments(int& argc, char**& argv) {
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
-    gEngine = new sgct::Engine(arg);
+    Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
+    gEngine = new Engine(config);
 
     // arguments:
     //   -host <host which should capture>
@@ -975,7 +982,7 @@ int main(int argc, char* argv[]) {
     gEngine->setContextCreationCallback(contextCreationCallback);
     gEngine->setDropCallbackFunction(dropCallback);
 
-    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile)) {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)){
         delete gEngine;
         return EXIT_FAILURE;
     }
@@ -984,8 +991,8 @@ int main(int argc, char* argv[]) {
     gEngine->setDataTransferStatusCallback(dataTransferStatus);
     gEngine->setDataAcknowledgeCallback(dataTransferAcknowledge);
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encode);
+    sgct::SharedData::instance()->setDecodeFunction(decode);
 
     gEngine->render();
 

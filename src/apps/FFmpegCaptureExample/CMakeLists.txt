@@ -4,6 +4,7 @@
 add_executable(FFmpegCaptureExample main.cpp capture.h capture.cpp xform.frag xform.vert)
 set_compile_options(FFmpegCaptureExample)
 target_link_libraries(FFmpegCaptureExample PRIVATE sgct)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/user_cmake/Modules)
 
 find_package(FFmpeg REQUIRED)
 target_include_directories(FFmpegCaptureExample PRIVATE

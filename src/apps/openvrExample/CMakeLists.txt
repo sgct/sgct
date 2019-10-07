@@ -4,6 +4,16 @@
 add_executable(openvrExample main.cpp gridShader.frag gridShader.vert pyramidShader.frag pyramidShader.vert)
 set_compile_options(openvrExample)
 target_link_libraries(openvrExample PRIVATE sgct)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/support/cmake/modules/")
+
+# OpenVR Specific
+find_package(OpenVR REQUIRED)
+target_include_directories(openvrExample PRIVATE
+  ${OPENVR_INCLUDE_DIRS}
+)
+target_link_libraries(openvrExample PRIVATE
+  ${OPENVR_LIBRARY}
+)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_window_same_as_hmd.xml"

@@ -1,4 +1,8 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/readconfig.h>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "webserver.h"
 #include "userdata.h"
 #include "quad.h"
@@ -38,7 +42,7 @@ void myPostSyncFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
-void keyCallback(int key, int action);
+void myKeyCallback(int key, int, int action, int);
 
 void renderAvatars();
 
@@ -59,6 +63,8 @@ GLint Color_Loc = -1;
 GLint Avatar_Tex_Loc = -1;
 
 Quad avatar;
+
+using namespace sgct;
 
 void webDecoder(const char * msg, size_t len)
 {
@@ -90,7 +96,10 @@ void webDecoder(const char * msg, size_t len)
 int main( int argc, char* argv[] )
 {
     // Allocate
-    gEngine = new sgct::Engine( argc, argv );
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
+    gEngine = new Engine(config);
 
     // Bind your functions
     gEngine->setInitOGLFunction( myInitFun );
@@ -98,12 +107,12 @@ int main( int argc, char* argv[] )
     gEngine->setPreSyncFunction( myPreSyncFun );
     gEngine->setPostSyncPreDrawFunction( myPostSyncFun );
     gEngine->setCleanUpFunction( myCleanUpFun );
-    gEngine->setKeyboardCallbackFunction( keyCallback );
+    gEngine->setKeyboardCallbackFunction(myKeyCallback);
     sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
     sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
     // Init the engine
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster))
     {
         delete gEngine;
         return EXIT_FAILURE;
@@ -200,14 +209,14 @@ void myPostSyncFun()
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeFloat( &curr_time );
-    sgct::SharedData::instance()->writeVector(&sharedUserData);
+    sgct::SharedData::instance()->writeFloat(curr_time);
+    sgct::SharedData::instance()->writeVector(sharedUserData);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readFloat( &curr_time );
-    sgct::SharedData::instance()->readVector(&sharedUserData);
+    sgct::SharedData::instance()->readFloat(curr_time);
+    sgct::SharedData::instance()->readVector(sharedUserData);
 }
 
 void myCleanUpFun()
@@ -215,17 +224,15 @@ void myCleanUpFun()
     avatar.clear();
 }
 
-void keyCallback(int key, int action)
-{
-    if( gEngine->isMaster() )
-    {
-        switch( key )
-        {
-            case SGCT_KEY_P:
-            case SGCT_KEY_F10:
-                if(action == SGCT_PRESS)
-                    takeScreenShot = true;
-                break;
+void myKeyCallback(int key, int, int action, int) {
+    if (gEngine->isMaster()) {
+        switch (key) {
+        case key::P:
+        case key::F10:
+            if (action == action::Press) {
+                takeScreenShot = true;
+            }
+            break;
         }
     }
 }

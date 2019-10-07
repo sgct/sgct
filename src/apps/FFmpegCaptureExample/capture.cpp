@@ -75,7 +75,7 @@ bool Capture::init()
 {
     if (mVideoDevice.empty())
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "No video device specified!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "No video device specified!\n");
         cleanup();
         return false;
     }
@@ -102,7 +102,7 @@ bool Capture::init()
 
     if (avformat_open_input(&mFMTContext, inputName.c_str(), iformat, &mOptions) < 0)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not open capture input!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not open capture input!\n");
         cleanup();
         return false;
     }
@@ -110,7 +110,7 @@ bool Capture::init()
     /* retrieve stream information */
     if (avformat_find_stream_info(mFMTContext, nullptr) < 0)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not find stream information!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find stream information!\n");
         cleanup();
         return false;
     }
@@ -182,7 +182,7 @@ bool Capture::poll()
             ret = decodePacket(&gotVideoFrame);
             if (ret < 0)
             {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to decode package!\n");
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to decode package!\n");
                 all_ok = false;
                 break;
             }
@@ -255,7 +255,7 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, nullptr, 0);
     if (ret < 0)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not find %s stream!\n", av_get_media_type_string(type));
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find %s stream!\n", av_get_media_type_string(type));
         return ret;
     }
     else
@@ -273,7 +273,7 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
 
         if (!dec)
         {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not find %s codec!\n", av_get_media_type_string(type));
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find %s codec!\n", av_get_media_type_string(type));
             return AVERROR(EINVAL);
         }
 
@@ -285,7 +285,7 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
 #endif
         if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0)
         {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not open %s codec!\n", av_get_media_type_string(type));
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not open %s codec!\n", av_get_media_type_string(type));
             return ret;
         }
     }
@@ -312,7 +312,7 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
         if (found != std::string::npos)
             mVideoDstFormat = mVideoDstFormat.substr(0, found); //delate inrelevant data
 
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating video scaling context (%s->%s)\n", mVideoStrFormat.c_str(), mVideoDstFormat.c_str());
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Info, "Creating video scaling context (%s->%s)\n", mVideoStrFormat.c_str(), mVideoDstFormat.c_str());
 
         //create context for frame convertion
         mVideoScaleContext = sws_getContext(mWidth, mHeight, pix_fmt,
@@ -320,7 +320,7 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
             SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
         if (!mVideoScaleContext)
         {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not allocate frame convertion context!\n");
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate frame convertion context!\n");
             return false;
         }
     }
@@ -328,7 +328,7 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
     mTempFrame = av_frame_alloc();
     if (!mTempFrame)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not allocate temp frame data!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate temp frame data!\n");
         return false;
     }
 
@@ -339,7 +339,7 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
     ret = av_image_alloc(mTempFrame->data, mTempFrame->linesize, mWidth, mHeight, mDstPixFmt, 1);
     if (ret < 0)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not allocate temp frame buffer!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate temp frame buffer!\n");
         return false;
     }
 
@@ -348,7 +348,7 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
 
     if (!mFrame)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not allocate frame data!\n");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate frame data!\n");
         return false;
     }
 
@@ -370,7 +370,7 @@ int Capture::decodePacket(int * gotVideoPtr)
 
         if (ret < 0)
         {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Video decoding error: %s!\n", av_err2str(ret));
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Video decoding error: %s!\n", av_err2str(ret));
             return ret;
         }
 
@@ -385,7 +385,7 @@ int Capture::decodePacket(int * gotVideoPtr)
                 ret = sws_scale(mVideoScaleContext, mFrame->data, mFrame->linesize, 0, mHeight, mTempFrame->data, mTempFrame->linesize);
                 if (ret < 0)
                 {
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to convert decoded frame to %s!\n", mVideoDstFormat.c_str());
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to convert decoded frame to %s!\n", mVideoDstFormat.c_str());
                     return ret;
                 }
             }
@@ -394,7 +394,7 @@ int Capture::decodePacket(int * gotVideoPtr)
                 ret = av_frame_copy(mTempFrame, mFrame);
                 if (ret < 0)
                 {
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to copy frame!\n");
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to copy frame!\n");
                     return ret;
                 }
             }

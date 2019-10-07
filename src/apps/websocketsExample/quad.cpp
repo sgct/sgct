@@ -3,9 +3,9 @@
 
 Quad::Quad()
 {
-    mVertexArray = GL_FALSE;
-    mVertexPositionBuffer = GL_FALSE;
-    mVertexTextureCoordBuffer = GL_FALSE;
+    mVertexArray = 0;
+    mVertexPositionBuffer = 0;
+    mVertexTextureCoordBuffer = 0;
 }
 
 Quad::~Quad()

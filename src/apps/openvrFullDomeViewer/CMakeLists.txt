@@ -4,6 +4,16 @@
 add_executable(openvrFullDomeViewer main.cpp xform.frag xform.vert)
 set_compile_options(openvrFullDomeViewer)
 target_link_libraries(openvrFullDomeViewer PRIVATE sgct)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/support/cmake/modules/")
+
+# OpenVR Specific
+find_package(OpenVR REQUIRED)
+target_include_directories(openvrFullDomeViewer PRIVATE
+  ${OPENVR_INCLUDE_DIRS}
+)
+target_link_libraries(openvrFullDomeViewer PRIVATE
+  ${OPENVR_LIBRARY}
+)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye_left.jpg"

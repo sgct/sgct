@@ -4,6 +4,7 @@
 add_executable(FFmpegCaptureAndDomeImageViewer main.cpp capture.h capture.cpp chromakey.frag xform.frag xform.vert)
 set_compile_options(FFmpegCaptureAndDomeImageViewer)
 target_link_libraries(FFmpegCaptureAndDomeImageViewer PRIVATE sgct)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/user_cmake/Modules)
 
 find_package(FFmpeg REQUIRED)
 target_include_directories(FFmpegCaptureAndDomeImageViewer PRIVATE

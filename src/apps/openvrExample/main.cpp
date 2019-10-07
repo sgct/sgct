@@ -1,10 +1,12 @@
-#include "sgct.h"
+#include <sgct.h>
+#include <sgct/user.h>
+#include <sgct/window.h>
 #include <stdio.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <SGCTOpenVR.h>
+#include <sgct/openvr.h>
 
 // This is basically the simpleNavgationExample
 // Extended with only a few lines to support OpenVR
@@ -53,7 +55,7 @@ constexpr const char* pyramidFragmentShader = R"(
 )";
 
 sgct::Engine* gEngine;
-sgct::SGCTWindow* FirstOpenVRWindow = NULL;
+sgct::Window* FirstOpenVRWindow = NULL;
 
 void myInitOGLFun();
 void myPreSyncFun();
@@ -65,7 +67,7 @@ void myDecodeFun();
 void myCleanUpFun();
 
 //input callbacks
-void keyCallback(int key, int action);
+void keyCallback(int key, int, int action, int);
 void mouseButtonCallback(int button, int action, int mods);
 
 void drawXZGrid(glm::mat4& MVP);
@@ -98,14 +100,16 @@ sgct::SharedObject<glm::mat4> xform;
 glm::mat4 pyramidTransforms[numberOfPyramids];
 
 enum geometryType { PYRAMID = 0, GRID };
-GLuint VAOs[2] = { GL_FALSE, GL_FALSE };
-GLuint VBOs[2] = { GL_FALSE, GL_FALSE };
+GLuint VAOs[2] = { 0, 0 };
+GLuint VBOs[2] = { 0, 0 };
 //shader locations
 GLint Matrix_Locs[2] = { -1, -1 };
 GLint linecolor_loc = -1;
 GLint alpha_Loc = -1;
 
 int numberOfVerts[2] = { 0, 0 };
+
+using namespace sgct;
 
 class Vertex
 {
@@ -117,7 +121,10 @@ public:
 
 int main( int argc, char* argv[] )
 {
-    gEngine = new sgct::Engine( argc, argv );
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
+    gEngine = new Engine(config);
 
     gEngine->setInitOGLFunction( myInitOGLFun );
     gEngine->setPostSyncPreDrawFunction( myPreDrawFun );
@@ -126,14 +133,13 @@ int main( int argc, char* argv[] )
     gEngine->setPreSyncFunction( myPreSyncFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
     gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
-    gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     gEngine->setCleanUpFunction( myCleanUpFun );
 
     for(int i=0; i<4; i++)
         arrowButtons[i] = false;
 
-    if (!gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ))
-    {
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }
@@ -145,7 +151,7 @@ int main( int argc, char* argv[] )
     gEngine->render();
 
     // Clean up OpenVR
-    sgct::SGCTOpenVR::shutdown();
+    sgct::openvr::shutdown();
 
     delete gEngine;
 
@@ -158,14 +164,14 @@ void myInitOGLFun()
     //Find if we have at least one OpenVR window
     //Save reference to first OpenVR window, which is the one we will copy to the HMD.
     for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-        if (gEngine->getWindowPtr(i)->checkIfTagExists("OpenVR")) {
-            FirstOpenVRWindow = gEngine->getWindowPtr(i);
+        if (gEngine->getWindow(i).hasTag("OpenVR")) {
+            FirstOpenVRWindow = &gEngine->getWindow(i);
             break;
         }
     }
     //If we have an OpenVRWindow, initialize OpenVR.
     if (FirstOpenVRWindow) {
-        sgct::SGCTOpenVR::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
+        sgct::openvr::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
     }
 
     //generate the VAOs
@@ -262,13 +268,13 @@ void myPreSyncFun()
 
         glm::mat4 result;
         //4. transform user back to original position
-        result = glm::translate(glm::mat4(1.0f), sgct::Engine::getDefaultUserPtr()->getPos());
+        result = glm::translate(glm::mat4(1.0f), Engine::getDefaultUser().getPosMono());
         //3. apply view rotation
         result *= ViewRotateX;
         //2. apply navigation translation
         result *= glm::translate(glm::mat4(1.0f), pos);
         //1. transform user to coordinate system origin
-        result *= glm::translate(glm::mat4(1.0f), -sgct::Engine::getDefaultUserPtr()->getPos());
+        result *= glm::translate(glm::mat4(1.0f), -Engine::getDefaultUser().getPosMono());
 
         xform.setVal( result );
     }
@@ -278,7 +284,7 @@ void myPreDrawFun()
 {
     if (FirstOpenVRWindow) {
         //Update pose matrices for all tracked OpenVR devices once per frame
-        sgct::SGCTOpenVR::updatePoses();
+        sgct::openvr::updatePoses();
     }
 }
 
@@ -288,13 +294,13 @@ void myDrawFun()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glm::mat4 MVP;
-    if (sgct::SGCTOpenVR::isHMDActive() && 
-        (FirstOpenVRWindow == gEngine->getCurrentWindowPtr() || gEngine->getCurrentWindowPtr()->checkIfTagExists("OpenVR"))) {
-        MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
+    if (sgct::openvr::isHMDActive() &&
+        (FirstOpenVRWindow == &gEngine->getCurrentWindow() || gEngine->getCurrentWindow().hasTag("OpenVR"))) {
+        MVP = sgct::openvr::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
 
-        if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye) {
+        if (gEngine->getCurrentFrustumMode() == sgct::core::Frustum::Mode::MonoEye) {
             //Reversing rotation around z axis (so desktop view is more pleasent to look at).
-            glm::quat inverserotation = sgct::SGCTOpenVR::getInverseRotation(sgct::SGCTOpenVR::getHMDPoseMatrix());
+            glm::quat inverserotation = sgct::openvr::getInverseRotation(sgct::openvr::getHMDPoseMatrix());
             inverserotation.x = inverserotation.y = 0.f;
             MVP *= glm::mat4_cast(inverserotation);
         }
@@ -316,44 +322,40 @@ void myPostDrawFun()
 {
     if (FirstOpenVRWindow) {
         //Copy the first OpenVR window to the HMD
-        sgct::SGCTOpenVR::copyWindowToHMD(FirstOpenVRWindow);
+        sgct::openvr::copyWindowToHMD(FirstOpenVRWindow);
     }
 }
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeObj( &xform );
+    SharedData::instance()->writeObj(xform);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readObj( &xform );
+    SharedData::instance()->readObj(xform);
 }
 
-void keyCallback(int key, int action)
+void keyCallback(int key, int, int action, int)
 {
     if( gEngine->isMaster() )
     {
-        switch( key )
-        {
-        case SGCT_KEY_UP:
-        case SGCT_KEY_W:
-            arrowButtons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+        switch (key) {
+        case key::Up:
+        case key::W:
+            arrowButtons[FORWARD] = (action == action::Repeat || action == action::Press);
             break;
-
-        case SGCT_KEY_DOWN:
-        case SGCT_KEY_S:
-            arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+        case key::Down:
+        case key::S:
+            arrowButtons[BACKWARD] = (action == action::Repeat || action == action::Press);
             break;
-
-        case SGCT_KEY_LEFT:
-        case SGCT_KEY_A:
-            arrowButtons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+        case key::Left:
+        case key::A:
+            arrowButtons[LEFT] = (action == action::Repeat || action == action::Press);
             break;
-
-        case SGCT_KEY_RIGHT:
-        case SGCT_KEY_D:
-            arrowButtons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
+        case key::Right:
+        case key::D:
+            arrowButtons[RIGHT] = (action == action::Repeat || action == action::Press);
             break;
         }
     }
@@ -365,8 +367,8 @@ void mouseButtonCallback(int button, int action, int mods)
     {
         switch( button )
         {
-        case SGCT_MOUSE_BUTTON_LEFT:
-            mouseLeftButton = (action == SGCT_PRESS ? true : false);
+        case mouse::ButtonLeft:
+            mouseLeftButton = (action == action::Press ? true : false);
             double tmpYPos;
             //set refPos
             sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[1], &tmpYPos );
@@ -465,8 +467,8 @@ void createXZGrid(int size, float yPos)
         );
 
     //unbind
-    glBindVertexArray(GL_FALSE);
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //clean up
     delete[] vertData;
@@ -535,8 +537,8 @@ void createPyramid(float width)
         );
 
     //unbind
-    glBindVertexArray(GL_FALSE);
-    glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //clean up
     vertData.clear();

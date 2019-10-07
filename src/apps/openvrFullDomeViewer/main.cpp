@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <fstream>
 #include <algorithm> //used for transform string to lowercase
-#include "sgct.h"
-#include <SGCTOpenVR.h>
+#include <sgct.h>
+#include <sgct/window.h>
+#include <sgct/openvr.h>
+#include <sgct/image.h>
+#include <sgct/ClusterManager.h>
 
 sgct::Engine * gEngine;
-sgct::SGCTWindow* FirstOpenVRWindow = NULL;
+sgct::Window* FirstOpenVRWindow = NULL;
 
 constexpr const char* vertexShader = R"(
   #version 330 core
@@ -45,7 +48,7 @@ void myPostDrawFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
-void keyCallback(int key, int action);
+void keyCallback(int key, int, int action, int);
 void contextCreationCallback(GLFWwindow * win);
 
 //drag and drop files to window
@@ -64,7 +67,7 @@ std::thread * loadThread;
 std::mutex mutex;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
-std::vector<core::Image*> transImages;
+std::vector<sgct::core::Image*> transImages;
 
 //sync variables
 sgct::SharedBool info(false);
@@ -90,17 +93,20 @@ sgct::SharedFloat domeTilt(-27.0f);
 
 enum imageType { IM_JPEG, IM_PNG };
 const int headerSize = 1;
-utils::SGCTDome * dome = NULL;
+sgct::utils::Dome * dome = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
 
+using namespace sgct;
+
 int main( int argc, char* argv[] )
 {
-    //sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
-    
-    gEngine = new sgct::Engine( argc, argv );
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
+    gEngine = new Engine(config);
     
     gEngine->setInitOGLFunction( myInitOGLFun );
     gEngine->setPreSyncFunction( myPreSyncFun );
@@ -112,8 +118,7 @@ int main( int argc, char* argv[] )
     gEngine->setContextCreationCallback( contextCreationCallback );
     gEngine->setDropCallbackFunction(myDropCallback);
 
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-    {
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         delete gEngine;
         return EXIT_FAILURE;
     }
@@ -131,7 +136,7 @@ int main( int argc, char* argv[] )
     gEngine->render();
 
     // Clean up OpenVR
-    sgct::SGCTOpenVR::shutdown();
+    sgct::openvr::shutdown();
 
     running.setVal(false);
 
@@ -153,18 +158,18 @@ void myInitOGLFun()
     //Find if we have at least one OpenVR window
     //Save reference to first OpenVR window, which is the one we will copy to the HMD.
     for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
-        if (gEngine->getWindowPtr(i)->checkIfTagExists("OpenVR")) {
-            FirstOpenVRWindow = gEngine->getWindowPtr(i);
+        if (gEngine->getWindow(i).hasTag("OpenVR")) {
+            FirstOpenVRWindow = &gEngine->getWindow(i);
             break;
         }
     }
     //If we have an OpenVRWindow, initialize OpenVR.
     if (FirstOpenVRWindow) {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "OpenVR Initalized!\n");
-        sgct::SGCTOpenVR::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error , "OpenVR Initalized!\n");
+        sgct::openvr::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
     }
 
-    dome = new utils::SGCTDome(domeDiameter.getVal()*0.5f, 180.0f, 256, 128);
+    dome = new utils::Dome(domeDiameter.getVal()*0.5f, 180.0f, 256, 128);
 
     //Set up backface culling
     glCullFace(GL_BACK);
@@ -197,7 +202,7 @@ void myPreSyncFun()
             numSyncedTex = static_cast<int32_t>(texIds.getSize());
 
             //only iterate up to the first new image, even if multiple images was added
-            texIndex = numSyncedTex - serverUploadCount.getVal();
+            texIndex = numSyncedTex.getVal() - serverUploadCount.getVal();
 
             serverUploadDone = false;
             clientsUploadDone = false;
@@ -209,7 +214,7 @@ void myPostSyncPreDrawFun()
 {
     if (FirstOpenVRWindow) {
         //Update pose matrices for all tracked OpenVR devices once per frame
-        sgct::SGCTOpenVR::updatePoses();
+        sgct::openvr::updatePoses();
     }
 
     gEngine->setDisplayInfoVisibility(info.getVal());
@@ -221,7 +226,7 @@ void myPreDrawFun()
 {
     if (FirstOpenVRWindow) {
         //Update pose matrices for all tracked OpenVR devices once per frame
-        sgct::SGCTOpenVR::updatePoses();
+        sgct::openvr::updatePoses();
     }
 }
 
@@ -233,13 +238,13 @@ void myDrawFun()
         glEnable(GL_CULL_FACE);
 
         glm::mat4 MVP;
-        if (sgct::SGCTOpenVR::isHMDActive() &&
-            (FirstOpenVRWindow == gEngine->getCurrentWindowPtr() || gEngine->getCurrentWindowPtr()->checkIfTagExists("OpenVR"))) {
-            MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
+        if (sgct::openvr::isHMDActive() &&
+            (FirstOpenVRWindow == &gEngine->getCurrentWindow() || gEngine->getCurrentWindow().hasTag("OpenVR"))) {
+            MVP = sgct::openvr::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
 
-            if (gEngine->getCurrentFrustumMode() == core::Frustum::MonoEye) {
+            if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::MonoEye) {
                 //Reversing rotation around z axis (so desktop view is more pleasent to look at).
-                glm::quat inverserotation = sgct::SGCTOpenVR::getInverseRotation(sgct::SGCTOpenVR::getHMDPoseMatrix());
+                glm::quat inverserotation = sgct::openvr::getInverseRotation(sgct::openvr::getHMDPoseMatrix());
                 inverserotation.x = inverserotation.y = 0.f;
                 MVP *= glm::mat4_cast(inverserotation);
             }
@@ -255,7 +260,7 @@ void myDrawFun()
         glActiveTexture(GL_TEXTURE0);
 
         if ((texIds.getSize() > (texIndex.getVal() + 1))
-            && gEngine->getCurrentFrustumMode() == core::Frustum::StereoRightEye){
+            && gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye){
             glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()+1));
         }
         else{
@@ -279,28 +284,28 @@ void myPostDrawFun()
 {
     if (FirstOpenVRWindow) {
         //Copy the first OpenVR window to the HMD
-        sgct::SGCTOpenVR::copyWindowToHMD(FirstOpenVRWindow);
+        sgct::openvr::copyWindowToHMD(FirstOpenVRWindow);
     }
 }
 
 void myEncodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
-    sgct::SharedData::instance()->writeBool(&info);
-    sgct::SharedData::instance()->writeBool(&stats);
-    sgct::SharedData::instance()->writeBool(&wireframe);
-    sgct::SharedData::instance()->writeInt32(&texIndex);
-    sgct::SharedData::instance()->writeInt32(&incrIndex);
+    SharedData::instance()->writeDouble(curr_time);
+    SharedData::instance()->writeBool(info);
+    SharedData::instance()->writeBool(stats);
+    SharedData::instance()->writeBool(wireframe);
+    SharedData::instance()->writeInt32(texIndex);
+    SharedData::instance()->writeInt32(incrIndex);
 }
 
 void myDecodeFun()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
-    sgct::SharedData::instance()->readBool(&info);
-    sgct::SharedData::instance()->readBool(&stats);
-    sgct::SharedData::instance()->readBool(&wireframe);
-    sgct::SharedData::instance()->readInt32(&texIndex);
-    sgct::SharedData::instance()->readInt32(&incrIndex);
+    SharedData::instance()->readDouble(curr_time);
+    SharedData::instance()->readBool(info);
+    SharedData::instance()->readBool(stats);
+    SharedData::instance()->readBool(wireframe);
+    SharedData::instance()->readInt32(texIndex);
+    SharedData::instance()->readInt32(incrIndex);
 }
 
 void myCleanUpFun()
@@ -314,7 +319,7 @@ void myCleanUpFun()
         if (tex)
         {
             glDeleteTextures(1, &tex);
-            texIds.setValAt(i, GL_FALSE);
+            texIds.setValAt(i, 0);
         }
     }
     texIds.clear();
@@ -324,43 +329,43 @@ void myCleanUpFun()
         glfwDestroyWindow(hiddenWindow);
 }
 
-void keyCallback(int key, int action) {
+void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
             case key::S:
                 if (action == action::Press) {
-                    stats.toggle();
+                    stats.setVal(!stats.getVal());
                 }
                 break;
             case key::I:
                 if (action == action::Press) {
-                    info.toggle();
+                    info.setVal(!info.getVal());
                 }
                 break;
             case key::W:
                 if (action == action::Press) {
-                    wireframe.toggle();
+                    wireframe.setVal(!wireframe.getVal());
                 }
                 break;
 
             case key::F:
                 if (action == action::Press) {
-                    wireframe.toggle();
+                    wireframe.setVal(!wireframe.getVal());
                 }
                 break;
-            case key::1:
+            case key::Key1:
                 if (action == action::Press) {
                     incrIndex.setVal(1);
                 }
                 break;
-            case key::2:
+            case key::Key2:
                 if (action == action::Press) {
                     incrIndex.setVal(2);
                 }
                 break;
             case key::Left:
                 if (action == action::Press && numSyncedTex.getVal() > 0) {
-                    texIndex.getVal() > incrIndex.getVal() - 1 ? texIndex -= incrIndex.getVal() : texIndex.setVal(numSyncedTex.getVal() - 1);
+                    texIndex.getVal() > incrIndex.getVal() - 1 ? texIndex.setVal(texIndex.getVal()-incrIndex.getVal()) : texIndex.setVal(numSyncedTex.getVal() - 1);
                     //fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
                 }
                 break;
@@ -371,10 +376,10 @@ void keyCallback(int key, int action) {
                 }
                 break;
             case key::Up:
-                domeTilt += 0.1f;
+                domeTilt.setVal(domeTilt.getVal() + 0.1f);
                 break;
             case key::Down:
-                domeTilt -= 0.1f;
+                domeTilt.setVal(domeTilt.getVal() - 0.1f);
                 break;
         }
     }
@@ -382,7 +387,7 @@ void keyCallback(int key, int action) {
 
 void contextCreationCallback(GLFWwindow * win)
 {
-    glfwWindowHint( GLFW_VISIBLE, GL_FALSE );
+    glfwWindowHint( GLFW_VISIBLE, GLFW_FALSE );
     
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow( 1, 1, "Thread Window", NULL, sharedWindow );
@@ -423,7 +428,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
     if( packageId == lastPackage.getVal())
     {
         counter++;
-        if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
+        if( counter == (core::ClusterManager::instance()->getNumberOfNodes()-1) )
         {
             clientsUploadDone = true;
             counter = 0;
@@ -447,13 +452,13 @@ void threadWorker()
             uploadTexture();
             serverUploadDone = true;
             
-            if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
+            if(core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
             {
                 clientsUploadDone = true;
             }
         }
 
-        sgct::Engine::sleep(0.1); //ten iteration per second
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); //ten iteration per second
     }
 }
 
@@ -503,7 +508,7 @@ void readImage(unsigned char * data, int len)
 {
     mutex.lock();
     
-    sgct_core::Image * img = new (std::nothrow) sgct_core::Image();
+    core::Image * img = new (std::nothrow) core::Image();
     
     char type = static_cast<char>(data[0]);
     
@@ -594,7 +599,7 @@ void uploadTexture()
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
                 //unbind
-                glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+                glBindTexture(GL_TEXTURE_2D, 0);
 
                 sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImages[i]->getWidth(), transImages[i]->getHeight(), transImages[i]->getChannels());
 
@@ -605,7 +610,7 @@ void uploadTexture()
             }
             else //if invalid load
             {
-                texIds.addVal(GL_FALSE);
+                texIds.addVal(0);
             }
         }//end for
 
@@ -653,7 +658,7 @@ void myDropCallback(int count, const char** paths)
             {
                 imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_JPEG));
                 transfer.setVal(true); //tell transfer thread to start processing data
-                serverUploadCount++;
+                serverUploadCount.setVal(serverUploadCount.getVal()+1);
             }
             else
             {
@@ -662,7 +667,7 @@ void myDropCallback(int count, const char** paths)
                 {
                     imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_JPEG));
                     transfer.setVal(true); //tell transfer thread to start processing data
-                    serverUploadCount++;
+                    serverUploadCount.setVal(serverUploadCount.getVal() + 1);
                 }
                 else
                 {
@@ -671,7 +676,7 @@ void myDropCallback(int count, const char** paths)
                     {
                         imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_PNG));
                         transfer.setVal(true); //tell transfer thread to start processing data
-                        serverUploadCount++;
+                        serverUploadCount.setVal(serverUploadCount.getVal() + 1);
                     }
                 }
             }

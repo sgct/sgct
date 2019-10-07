@@ -1,7 +1,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sgct.h>
+#include <sgct/clustermanager.h>
 #include "capture.h"
+
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#ifdef SGCT_HAS_TEXT
+#include <sgct/Font.h>
+#include <sgct/FontManager.h>
+#include <sgct/freetype.h>
+#endif // SGCT_HAS_TEXT
 
 namespace {
     sgct::Engine* gEngine;
@@ -39,16 +50,16 @@ namespace {
 } // namespace
 
 //sgct callbacks
-void myDraw3DFun();
-void myDraw2DFun();
-void myPreSyncFun();
-void myPostSyncPreDrawFun();
+void draw3D();
+void draw2D();
+void preSync();
+void postSyncPreDraw();
 void myInitOGLFun();
-void myEncodeFun();
-void myDecodeFun();
-void myCleanUpFun();
-void myKeyCallback(int key, int action);
-void myContextCreationCallback(GLFWwindow* win);
+void encode();
+void decode();
+void cleanUp();
+void keyCallback(int key, int, int action, int);
+void contextCreationCallback(GLFWwindow* win);
 
 //other callbacks
 void uploadData(uint8_t** data, int width, int height);
@@ -59,13 +70,13 @@ void allocateTexture();
 void captureLoop();
 void calculateStats();
 
-sgct_utils::SGCTPlane * myPlane = NULL;
-sgct_utils::SGCTDome * myDome = NULL;
+sgct::utils::Plane* myPlane = NULL;
+sgct::utils::Dome* myDome = NULL;
 
 GLint Matrix_Loc = -1;
 GLint ScaleUV_Loc = -1;
 GLint OffsetUV_Loc = -1;
-GLuint texId = GL_FALSE;
+GLuint texId = 0;
 
 std::thread * workerThread;
 GLFWwindow * hiddenWindow;
@@ -88,9 +99,15 @@ sgct::SharedBool renderDome(fulldomeMode);
 sgct::SharedDouble captureRate(0.0);
 sgct::SharedInt32 domeCut(2);
 
+using namespace sgct;
+
 int main( int argc, char* argv[] )
 {    
-    gEngine = new sgct::Engine( argc, argv );
+    std::vector<std::string> arg(argv + 1, argv + argc);
+    Configuration config = parseArguments(arg);
+    config::Cluster cluster = loadCluster(config.configFilename);
+    gEngine = new Engine(config);
+
     gCapture = new Capture();
 
     // arguments:
@@ -113,22 +130,22 @@ int main( int argc, char* argv[] )
     parseArguments(argc, argv);
 
     gEngine->setInitOGLFunction( myInitOGLFun );
-    gEngine->setDrawFunction( myDraw3DFun );
-    gEngine->setDraw2DFunction( myDraw2DFun );
-    gEngine->setPreSyncFunction( myPreSyncFun );
-    gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
-    gEngine->setCleanUpFunction( myCleanUpFun );
-    gEngine->setKeyboardCallbackFunction( myKeyCallback );
-    gEngine->setContextCreationCallback( myContextCreationCallback );
+    gEngine->setDrawFunction( draw3D );
+    gEngine->setDraw2DFunction( draw2D );
+    gEngine->setPreSyncFunction( preSync );
+    gEngine->setPostSyncPreDrawFunction( postSyncPreDraw );
+    gEngine->setCleanUpFunction( cleanUp );
+    gEngine->setKeyboardCallbackFunction( keyCallback );
+    gEngine->setContextCreationCallback( contextCreationCallback );
 
-    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
+    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster))
     {
         delete gEngine;
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(encode);
+    sgct::SharedData::instance()->setDecodeFunction(decode);
 
     // Main loop
     gEngine->render();
@@ -149,7 +166,7 @@ int main( int argc, char* argv[] )
     exit( EXIT_SUCCESS );
 }
 
-void myDraw3DFun()
+void draw3D()
 {
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
@@ -206,16 +223,16 @@ void myDraw3DFun()
     glDisable( GL_DEPTH_TEST );
 }
 
-void myDraw2DFun()
+void draw2D()
 {
     if (info.getVal())
     {
-        unsigned int font_size = static_cast<unsigned int>(9.0f*gEngine->getCurrentWindowPtr()->getXScale());
-        sgct_text::Font * font = sgct_text::FontManager::instance()->getFont("SGCTFont", font_size);
+        unsigned int font_size = static_cast<unsigned int>(9.0f*gEngine->getCurrentWindow().getScale().x);
+        text::Font * font = text::FontManager::instance()->getFont("SGCTFont", font_size);
         float padding = 10.0f;
 
-        sgct_text::print(font, sgct_text::TOP_LEFT,
-            padding, static_cast<float>(gEngine->getCurrentWindowPtr()->getYFramebufferResolution() - font_size) - padding, //x and y pos
+        text::print(*font, text::TextAlignMode::TopLeft,
+            padding, static_cast<float>(gEngine->getCurrentWindow().getFramebufferResolution().y - font_size) - padding, //x and y pos
             glm::vec4(1.0, 1.0, 1.0, 1.0), //color
             "Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",
             gCapture->getFormat(),
@@ -225,7 +242,7 @@ void myDraw2DFun()
     }
 }
 
-void myPreSyncFun()
+void preSync()
 {
     if( gEngine->isMaster() )
     {
@@ -233,7 +250,7 @@ void myPreSyncFun()
     }
 }
 
-void myPostSyncPreDrawFun()
+void postSyncPreDraw()
 {
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
@@ -255,7 +272,7 @@ void myInitOGLFun()
     allocateTexture();
 
     //start capture thread
-    sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    sgct::core::Node * thisNode = sgct::core::ClusterManager::instance()->getThisNode();
     if (thisNode->getAddress() == gCapture->getVideoHost())
         workerThread = new (std::nothrow) std::thread(captureLoop);
 
@@ -265,10 +282,10 @@ void myInitOGLFun()
     //create plane
     float planeWidth = 8.0f;
     float planeHeight = planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
-    myPlane = new sgct_utils::SGCTPlane(planeWidth, planeHeight);
+    myPlane = new utils::Plane(planeWidth, planeHeight);
     
     //create dome
-    myDome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
+    myDome = new utils::Dome(7.4f, 180.0f, 256, 128);
 
     //Set up backface culling
     glCullFace(GL_BACK);
@@ -293,27 +310,27 @@ void myInitOGLFun()
     sgct::Engine::checkForOGLErrors();
 }
 
-void myEncodeFun()
+void encode()
 {
-    sgct::SharedData::instance()->writeDouble(&curr_time);
-    sgct::SharedData::instance()->writeBool(&info);
-    sgct::SharedData::instance()->writeBool(&stats);
-    sgct::SharedData::instance()->writeBool(&takeScreenshot);
-    sgct::SharedData::instance()->writeBool(&renderDome);
-    sgct::SharedData::instance()->writeInt32(&domeCut);
+    sgct::SharedData::instance()->writeDouble(curr_time);
+    sgct::SharedData::instance()->writeBool(info);
+    sgct::SharedData::instance()->writeBool(stats);
+    sgct::SharedData::instance()->writeBool(takeScreenshot);
+    sgct::SharedData::instance()->writeBool(renderDome);
+    sgct::SharedData::instance()->writeInt32(domeCut);
 }
 
-void myDecodeFun()
+void decode()
 {
-    sgct::SharedData::instance()->readDouble(&curr_time);
-    sgct::SharedData::instance()->readBool(&info);
-    sgct::SharedData::instance()->readBool(&stats);
-    sgct::SharedData::instance()->readBool(&takeScreenshot);
-    sgct::SharedData::instance()->readBool(&renderDome);
-    sgct::SharedData::instance()->readInt32(&domeCut);
+    sgct::SharedData::instance()->readDouble(curr_time);
+    sgct::SharedData::instance()->readBool(info);
+    sgct::SharedData::instance()->readBool(stats);
+    sgct::SharedData::instance()->readBool(takeScreenshot);
+    sgct::SharedData::instance()->readBool(renderDome);
+    sgct::SharedData::instance()->readInt32(domeCut);
 }
 
-void myCleanUpFun()
+void cleanUp()
 {
     if (myPlane)
         delete myPlane;
@@ -324,60 +341,60 @@ void myCleanUpFun()
     if (texId)
     {
         glDeleteTextures(1, &texId);
-        texId = GL_FALSE;
+        texId = 0;
     }
 }
 
-void myKeyCallback(int key, int action)
+void keyCallback(int key, int, int action, int)
 {
     if (gEngine->isMaster())
     {
         switch (key)
         {
         //dome mode
-        case SGCT_KEY_D:
-            if (action == SGCT_PRESS)
+        case key::D:
+            if (action == action::Press)
                 renderDome.setVal(true);
             break;
         
-        case SGCT_KEY_S:
-            if (action == SGCT_PRESS)
-                stats.toggle();
+        case key::S:
+            if (action == action::Press)
+                stats.setVal(!stats.getVal());
             break;
 
-        case SGCT_KEY_I:
-            if (action == SGCT_PRESS)
-                info.toggle();
+        case key::I:
+            if (action == action::Press)
+                info.setVal(!info.getVal());
             break;
 
-        case SGCT_KEY_1:
-            if (action == SGCT_PRESS)
+        case key::Key1:
+            if (action == action::Press)
                 domeCut.setVal(1);
             break;
 
-        case SGCT_KEY_2:
-            if (action == SGCT_PRESS)
+        case key::Key2:
+            if (action == action::Press)
                 domeCut.setVal(2);
             break;
 
         //plane mode
-        case SGCT_KEY_P:
-            if (action == SGCT_PRESS)
+        case key::P:
+            if (action == action::Press)
                 renderDome.setVal(false);
             break;
             
-        case SGCT_KEY_PRINT_SCREEN:
-        case SGCT_KEY_F10:
-            if (action == SGCT_PRESS)
+        case key::PrintScreen:
+        case key::F10:
+            if (action == action::Press)
                 takeScreenshot.setVal(true);
             break;
         }
     }
 }
 
-void myContextCreationCallback(GLFWwindow * win)
+void contextCreationCallback(GLFWwindow * win)
 {
-    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", NULL, sharedWindow);
@@ -431,7 +448,7 @@ void allocateTexture()
 
     if (w * h <= 0)
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Invalid texture size (%dx%d)!\n", w, h);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Invalid texture size (%dx%d)!\n", w, h);
         return;
     }
     
@@ -509,7 +526,7 @@ void captureLoop()
         //sgct::Engine::sleep(0.02); //take a short break to offload the cpu
     }
 
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, GL_FALSE);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glDeleteBuffers(1, &PBO);
 
     glfwMakeContextCurrent(NULL); //detach context

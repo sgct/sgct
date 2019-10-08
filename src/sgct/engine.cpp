@@ -733,8 +733,6 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         proj.upperRight = glm::vec3(1.778f, 1.f, 0.f);
 
         sgct::config::Viewport viewport;
-        //viewport.position = glm::vec2(0.f, 0.f);
-        //viewport.size = glm::vec2(1.f, 1.f);
         viewport.projection = proj;
 
         sgct::config::Window window;

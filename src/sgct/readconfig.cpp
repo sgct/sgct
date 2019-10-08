@@ -414,7 +414,7 @@ namespace {
                 }
                 else {
                     sgct::MessageHandler::instance()->printError(
-                        "Viewport: Failed to parse planar projection FOV from XML\n"
+                        "Viewport: Failed to parse planar projection FOV from XML"
                     );
                 }
                 proj.fov.distance = parseValue<float>(*subElement, "distance");
@@ -628,7 +628,7 @@ namespace {
                 }
                 else {
                     sgct::MessageHandler::instance()->printError(
-                        "ProjectionPlane: Failed to parse coordinates from XML\n"
+                        "ProjectionPlane: Failed to parse coordinates from XML"
                     );
                 }
             }
@@ -700,7 +700,7 @@ namespace {
                 }
                 else {
                     sgct::MessageHandler::instance()->printError(
-                        "Viewport: Failed to parse position from XML\n"
+                        "Viewport: Failed to parse position from XML"
                     );
                 }
             }
@@ -711,7 +711,7 @@ namespace {
                 }
                 else {
                     sgct::MessageHandler::instance()->printError(
-                        "Viewport: Failed to parse size from XML!\n"
+                        "Viewport: Failed to parse size from XML"
                     );
                 }
             }
@@ -992,8 +992,7 @@ namespace {
                     }
                     else {
                         sgct::MessageHandler::instance()->printWarning(
-                            "ReadConfig: Wrong precision value (%d). Must be 16 or 32\n",
-                            *f
+                            "ReadConfig: Wrong precision value (%d). Must be 16 or 32", *f
                         );
                     }
                 }
@@ -1068,7 +1067,7 @@ namespace {
                 }
                 else {
                     sgct::MessageHandler::instance()->printWarning(
-                        "ReadConfig: Unknown capturing format. Using PNG\n"
+                        "ReadConfig: Unknown capturing format. Using PNG"
                     );
                     return sgct::config::Capture::Format::PNG;
                 }
@@ -1230,7 +1229,7 @@ namespace {
         size_t foundPercentage = filename.find('%');
         if (foundPercentage != std::string::npos) {
             sgct::MessageHandler::instance()->printError(
-                "ReadConfig: SGCT doesn't support the usage of '%%' in the path\n"
+                "ReadConfig: SGCT doesn't support the usage of '%%' in the path"
             );
             return "";
         }
@@ -1254,7 +1253,7 @@ namespace {
 
         if (beginEnvVar.size() != endEnvVar.size()) {
             sgct::MessageHandler::instance()->printError(
-                "ReadConfig: Error: Bad configuration path string\n"
+                "ReadConfig: Error: Bad configuration path string"
             );
             return std::string();
         }
@@ -1273,7 +1272,7 @@ namespace {
                 errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
                 if (err) {
                     sgct::MessageHandler::instance()->printError(
-                        "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
+                        "ReadConfig: Error: Cannot fetch environment variable '%s'",
                         envVar.c_str()
                     );
                     return std::string();
@@ -1282,7 +1281,7 @@ namespace {
                 char* fetchedEnvVar = getenv(envVar.c_str());
                 if (fetchedEnvVar == nullptr) {
                     sgct::MessageHandler::instance()->printError(
-                        "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
+                        "ReadConfig: Error: Cannot fetch environment variable '%s'",
                         envVar.c_str()
                     );
                     return std::string();
@@ -1319,7 +1318,7 @@ glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll) {
 sgct::config::Cluster readConfig(const std::string& filename) {
     std::string f = filename;
     MessageHandler::instance()->printDebug(
-        "ReadConfig: Parsing XML config '%s'\n", f.c_str()
+        "ReadConfig: Parsing XML config '%s'", f.c_str()
     );
 
     f = replaceEnvVars(f);
@@ -1330,16 +1329,16 @@ sgct::config::Cluster readConfig(const std::string& filename) {
     sgct::config::Cluster cluster = readAndParseXMLFile(f);
 
     MessageHandler::instance()->printDebug(
-        "ReadConfig: Config file '%s' read successfully\n", f.c_str()
+        "ReadConfig: Config file '%s' read successfully", f.c_str()
     );
     MessageHandler::instance()->printInfo(
-        "ReadConfig: Number of nodes in cluster: %d\n", cluster.nodes.size()
+        "ReadConfig: Number of nodes in cluster: %d", cluster.nodes.size()
     );
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
+        const sgct::config::Node& node = cluster.nodes[i];
         MessageHandler::instance()->printInfo(
-            "\tNode(%d) address: %s [%d]\n", i,
-            cluster.nodes[i].address.c_str(), cluster.nodes[i].port
+            "\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port
         );
     }
 

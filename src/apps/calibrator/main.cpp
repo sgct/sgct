@@ -261,14 +261,14 @@ int main(int argc, char* argv[]) {
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
-        std::string_view arg = argv[i];
-        if (arg == "-tilt" && argc > (i + 1)) {
+        std::string_view argg = argv[i];
+        if (argg == "-tilt" && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->printInfo("Setting tilt to: %f\n", tilt);
+            MessageHandler::instance()->printInfo("Setting tilt to: %f", tilt);
         }
-        else if (arg == "-radius" && argc > (i + 1)) {
+        else if (argg == "-radius" && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->printInfo("Setting radius to: %f\n", radius);
+            MessageHandler::instance()->printInfo("Setting radius to: %f", radius);
         }
     }
 

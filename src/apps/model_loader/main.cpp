@@ -102,7 +102,7 @@ void loadModel(std::string filename) {
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
         }
         else {
-            MessageHandler::instance()->printInfo("Warning: Model is missing UV data\n");
+            MessageHandler::instance()->printInfo("Warning: Model is missing UV data");
         }
 
         if (!normals.empty()) {
@@ -119,7 +119,7 @@ void loadModel(std::string filename) {
         }
         else {
             MessageHandler::instance()->printInfo(
-                "Warning: Model is missing normal data\n"
+                "Warning: Model is missing normal data"
             );
         }
 
@@ -132,14 +132,14 @@ void loadModel(std::string filename) {
 
         //print some usefull info
         sgct::MessageHandler::instance()->printInfo(
-            "Model '%s' loaded successfully (%u vertices, VAO: %u, VBOs: %u %u %u).\n",
+            "Model '%s' loaded successfully (%u vertices, VAO: %u, VBOs: %u %u %u).",
             filename.c_str(), numberOfVertices, VertexArrayID,
             vboPositions, vboUvs, vboNormals
         );
     }
     else {
         sgct::MessageHandler::instance()->printInfo(
-            "Failed to load model '%s'!\n", filename.c_str()
+            "Failed to load model '%s'!", filename.c_str()
         );
     }
 }

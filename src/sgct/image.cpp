@@ -126,7 +126,7 @@ Image::~Image() {
 
 bool Image::load(std::string filename) {
     if (filename.empty()) {
-        MessageHandler::instance()->printError("Image error: Cannot load emtpy filepath\n");
+        MessageHandler::instance()->printError("Image error: Cannot load empty filepath");
         return false;
     }
 
@@ -138,7 +138,7 @@ bool Image::load(std::string filename) {
             res = loadPNG(filename);
             if (res) {
                 MessageHandler::instance()->printDebug(
-                    "Image: '%s' was loaded successfully (%.2f ms)\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)",
                     filename.c_str(), (Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -148,7 +148,7 @@ bool Image::load(std::string filename) {
             res = loadJPEG(filename);
             if (res) {
                 MessageHandler::instance()->printDebug(
-                    "Image: '%s' was loaded successfully (%.2f ms)\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)",
                     filename.c_str(), (Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -158,7 +158,7 @@ bool Image::load(std::string filename) {
             res = loadTGA(filename);
             if (res) {
                 MessageHandler::instance()->printDebug(
-                    "Image: '%s' was loaded successfully (%.2f ms)\n",
+                    "Image: '%s' was loaded successfully (%.2f ms)",
                     filename.c_str(), (Engine::getTime() - t0) * 1000.0
                 );
             }
@@ -166,7 +166,7 @@ bool Image::load(std::string filename) {
 
         default:
             MessageHandler::instance()->printError(
-                "Image error: Unknown file '%s'\n", filename.c_str()
+                "Image error: Unknown file '%s'", filename.c_str()
             );
             break;
     }
@@ -192,7 +192,7 @@ bool Image::loadJPEG(std::string filename) {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     if (fopen_s(&fp, _filename.c_str(), "rbS") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open JPEG texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open JPEG texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -200,7 +200,7 @@ bool Image::loadJPEG(std::string filename) {
     fp = fopen(_filename.c_str(), "rb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open JPEG texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open JPEG texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -218,7 +218,7 @@ bool Image::loadJPEG(std::string filename) {
         jpeg_destroy_decompress(&cinfo);
         fclose(fp);
         MessageHandler::instance()->printError(
-            "Image error: Can't open JPEG texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open JPEG texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -266,13 +266,13 @@ bool Image::loadJPEG(std::string filename) {
     fclose(fp);
 
     MessageHandler::instance()->printInfo(
-        "Image: Loaded %s (%dx%d).\n", _filename.c_str(), _sizeX, _sizeY
+        "Image: Loaded %s (%dx%d)", _filename.c_str(), _sizeX, _sizeY
     );
 
     return true;
 #else
     MessageHandler::instance()->printError(
-        "SGCT was compiled without support for TurbJPEG, which prevents loading of %s",
+        "SGCT was compiled without support for TurboJPEG, which prevents loading of %s",
         _filename.c_str()
     );
     return false;
@@ -306,7 +306,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     );
     if (decompress < 0) {
         MessageHandler::instance()->printError(
-            "Image: failed to load JPEG from memory. Error: %s\n", tjGetErrorStr()
+            "Image: failed to load JPEG from memory. Error: %s", tjGetErrorStr()
         );
         tjDestroy(turbo_jpeg_handle);
         return false;
@@ -332,8 +332,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     
     if (_nChannels < 1) {
         MessageHandler::instance()->printError(
-            "Image: failed to load JPEG from memory. Unsupported chrominance "
-            "subsampling\n"
+            "Image: failed to load JPEG from memory. Unsupported chrominance subsampling"
         );
         tjDestroy(turbo_jpeg_handle);
         return false;
@@ -363,7 +362,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     );
     if (decompress < 0) {
         MessageHandler::instance()->printError(
-            "Image: failed to load JPEG from memory. Error: %s\n", tjGetErrorStr()
+            "Image: failed to load JPEG from memory. Error: %s", tjGetErrorStr()
         );
         tjDestroy(turbo_jpeg_handle);
         
@@ -374,7 +373,7 @@ bool Image::loadJPEG(unsigned char* data, size_t len) {
     }
     
     MessageHandler::instance()->printError(
-        "Image: Loaded %dx%d JPEG from memory\n", _sizeX, _sizeY
+        "Image: Loaded %dx%d JPEG from memory", _sizeX, _sizeY
     );
     
     tjDestroy(turbo_jpeg_handle);
@@ -405,7 +404,7 @@ bool Image::loadPNG(std::string filename) {
     #if (_MSC_VER >= 1400)
     if (fopen_s(&fp, _filename.c_str(), "rbS") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open PNG texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open PNG texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -413,7 +412,7 @@ bool Image::loadPNG(std::string filename) {
     fp = fopen(_filename.c_str(), "rb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open PNG texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open PNG texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -424,7 +423,7 @@ bool Image::loadPNG(std::string filename) {
         png_sig_cmp(reinterpret_cast<png_byte*>(&header[0]), 0, PngBytesToCheck))
     {
         MessageHandler::instance()->printError(
-            "Image error: file '%s' is not in PNG format\n", _filename.c_str()
+            "Image error: file '%s' is not in PNG format", _filename.c_str()
         );
         fclose(fp);
         return false;
@@ -433,7 +432,7 @@ bool Image::loadPNG(std::string filename) {
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png_ptr == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't initialize PNG file for reading: %s\n", _filename.c_str()
+            "Image error: Can't initialize PNG file for reading: %s", _filename.c_str()
         );
         fclose(fp);
         return false;
@@ -444,7 +443,7 @@ bool Image::loadPNG(std::string filename) {
         fclose(fp);
         png_destroy_read_struct(&png_ptr, nullptr, nullptr);
         MessageHandler::instance()->printError(
-            "Image error: Can't allocate memory to read PNG file: %s\n", _filename.c_str()
+            "Image error: Can't allocate memory to read PNG file: %s", _filename.c_str()
         );
         return false;
     }
@@ -453,8 +452,7 @@ bool Image::loadPNG(std::string filename) {
         png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
         fclose(fp);
         MessageHandler::instance()->printError(
-            "Image error: Exception occurred while reading PNG file: %s\n",
-            _filename.c_str()
+            "Image error: Error occurred while reading PNG file: %s", _filename.c_str()
         );
         return false;
     }
@@ -512,7 +510,7 @@ bool Image::loadPNG(std::string filename) {
     }
     else {
         MessageHandler::instance()->printError(
-            "Image error: Unsupported format '%s'\n", _filename.c_str()
+            "Image error: Unsupported format '%s'", _filename.c_str()
         );
         fclose(fp);
         return false;
@@ -534,7 +532,7 @@ bool Image::loadPNG(std::string filename) {
     fclose(fp);
 
     MessageHandler::instance()->printInfo(
-        "Image: Loaded %s (%dx%d %d-bit).\n",
+        "Image: Loaded %s (%dx%d %d-bit).",
         _filename.c_str(), _sizeX, _sizeY, _bytesPerChannel * 8
     );
 
@@ -557,13 +555,13 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     //get header
     memcpy(header, data, PngBytesToCheck);
     if (!png_check_sig( header, PngBytesToCheck)) {
-        MessageHandler::instance()->printError("Image error: Invalid PNG file header\n");
+        MessageHandler::instance()->printError("Image error: Invalid PNG file header");
         return false;
     }
     
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png_ptr == nullptr) {
-        MessageHandler::instance()->printError("Image error: Can't initialize PNG\n");
+        MessageHandler::instance()->printError("Image error: Can't initialize PNG");
         return false;
     }
     
@@ -571,7 +569,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     if (info_ptr == nullptr) {
         png_destroy_read_struct(&png_ptr, nullptr, nullptr);
         MessageHandler::instance()->printError(
-            "Image error: Can't allocate memory to read PNG data\n"
+            "Image error: Can't allocate memory to read PNG data"
         );
         return false;
     }
@@ -585,7 +583,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
         MessageHandler::instance()->printError(
-            "Image error: Exception occurred while reading PNG data\n"
+            "Image error: Exception occurred while reading PNG data"
         );
         return false;
     }
@@ -640,7 +638,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     }
     else {
         MessageHandler::instance()->printError(
-            "Image error: Unsupported format '%s'\n", _filename.c_str()
+            "Image error: Unsupported format '%s'", _filename.c_str()
         );
         return false;
     }
@@ -659,7 +657,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
     
     MessageHandler::instance()->printInfo(
-        "Image: Loaded %dx%d %d-bit PNG from memory\n",
+        "Image: Loaded %dx%d %d-bit PNG from memory",
         _sizeX, _sizeY, _bytesPerChannel * 8
     );
     
@@ -680,7 +678,7 @@ bool Image::loadTGA(std::string filename) {
 #if (_MSC_VER >= 1400)
     if (fopen_s(&fp, _filename.c_str(), "rbS") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open TGA texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open TGA texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -688,7 +686,7 @@ bool Image::loadTGA(std::string filename) {
     fp = fopen(_filename.c_str(), "rb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't open TGA texture file '%s'\n", _filename.c_str()
+            "Image error: Can't open TGA texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -697,7 +695,7 @@ bool Image::loadTGA(std::string filename) {
     size_t result = fread(header, 1, TgaBytesToCheck, fp);
     if (result != TgaBytesToCheck) {
         MessageHandler::instance()->printError(
-            "Image error: file '%s' is not in TGA format\n", _filename.c_str()
+            "Image error: file '%s' is not in TGA format", _filename.c_str()
         );
         fclose(fp);
         return false;
@@ -717,7 +715,7 @@ bool Image::loadTGA(std::string filename) {
         // RGB rle
         if (!decodeTGARLE(fp)) {
             MessageHandler::instance()->printError(
-                "Image error: file '%s' is corrupted\n", _filename.c_str()
+                "Image error: file '%s' is corrupted", _filename.c_str()
             );
             fclose(fp);
             return false;
@@ -728,7 +726,7 @@ bool Image::loadTGA(std::string filename) {
 
         if (result != _dataSize) {
             MessageHandler::instance()->printError(
-                "Image error: file '%s' is corrupted\n", _filename.c_str()
+                "Image error: file '%s' is corrupted", _filename.c_str()
             );
             fclose(fp);
             return false;
@@ -739,7 +737,7 @@ bool Image::loadTGA(std::string filename) {
     fclose(fp);
 
     MessageHandler::instance()->printInfo(
-        "Image: Loaded %s (%dx%d %d-bit).\n",
+        "Image: Loaded %s (%dx%d %d-bit)",
         _filename.c_str(), _sizeX, _sizeY, _bytesPerChannel * 8
     );
     return true;
@@ -766,7 +764,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
         //RGB rle
         if (!decodeTGARLE(&data[TgaBytesToCheck], len - TgaBytesToCheck)) {
             MessageHandler::instance()->printError(
-                "Image error: data is corrupted or insufficent\n"
+                "Image error: data is corrupted or insufficent"
             );
             return false;
         }
@@ -774,7 +772,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
     else {
         if (len < (_dataSize + TgaBytesToCheck)) {
             MessageHandler::instance()->printError(
-                "Image error: data is corrupted or insufficent\n"
+                "Image error: data is corrupted or insufficent"
             );
             return false;
         }
@@ -783,7 +781,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
     }
     
     MessageHandler::instance()->printInfo(
-        "Image: Loaded %dx%d TGA from memory\n", _sizeX, _sizeY
+        "Image: Loaded %dx%d TGA from memory", _sizeX, _sizeY
     );
 
     return true;
@@ -917,7 +915,7 @@ bool Image::decodeTGARLE(unsigned char* data, size_t len) {
 bool Image::save() {
     if (_filename.empty()) {
         MessageHandler::instance()->printError(
-            "Image error: Filename not set for saving image\n"
+            "Image error: Filename not set for saving image"
         );
         return false;
     }
@@ -935,7 +933,7 @@ bool Image::save() {
         default:
             // not found
             MessageHandler::instance()->printError(
-                "Image error: Cannot save file '%s'\n", _filename.c_str()
+                "Image error: Cannot save file '%s'", _filename.c_str()
             );
             return false;
     }
@@ -953,7 +951,7 @@ bool Image::savePNG(int compressionLevel) {
 
     if (_bytesPerChannel > 2) {
         MessageHandler::instance()->printError(
-            "Image error: Cannot save %d-bit PNG\n", _bytesPerChannel * 8
+            "Image error: Cannot save %d-bit PNG", _bytesPerChannel * 8
         );
         return false;
     }
@@ -964,7 +962,7 @@ bool Image::savePNG(int compressionLevel) {
 #if (_MSC_VER >= 1400)
     if (fopen_s( &fp, _filename.c_str(), "wb") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create PNG file '%s'\n", _filename.c_str()
+            "Image error: Can't create PNG file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -972,7 +970,7 @@ bool Image::savePNG(int compressionLevel) {
     fp = fopen(_filename.c_str(), "wb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create PNG file '%s'\n", _filename.c_str()
+            "Image error: Can't create PNG file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -1088,7 +1086,7 @@ bool Image::savePNG(int compressionLevel) {
     fclose(fp);
 
     MessageHandler::instance()->printDebug(
-        "Image: '%s' was saved successfully (%.2f ms)\n",
+        "Image: '%s' was saved successfully (%.2f ms)",
         _filename.c_str(), (Engine::getTime() - t0) * 1000.0
     );
 
@@ -1103,7 +1101,7 @@ bool Image::saveJPEG(int quality) {
 
     if (_bytesPerChannel > 1) {
         MessageHandler::instance()->printError(
-            "Image error: Cannot save %d-bit JPEG\n", _bytesPerChannel * 8
+            "Image error: Cannot save %d-bit JPEG", _bytesPerChannel * 8
         );
         return false;
     }
@@ -1114,7 +1112,7 @@ bool Image::saveJPEG(int quality) {
 #if (_MSC_VER >= 1400)
     if (fopen_s(&fp, _filename.c_str(), "wb") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create JPEG file '%s'\n", _filename.c_str()
+            "Image error: Can't create JPEG file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -1122,7 +1120,7 @@ bool Image::saveJPEG(int quality) {
     fp = fopen(_filename.c_str(), "wb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create JPEG file '%s'\n", _filename.c_str()
+            "Image error: Can't create JPEG file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -1160,7 +1158,7 @@ bool Image::saveJPEG(int quality) {
 
     if (cinfo.in_color_space == JCS_UNKNOWN) {
         MessageHandler::instance()->printError(
-            "Image error: JPEG doesn't support two channel output\n"
+            "Image error: JPEG doesn't support two channel output"
         );
         return false;
     }
@@ -1185,7 +1183,7 @@ bool Image::saveJPEG(int quality) {
     jpeg_destroy_compress(&cinfo);
 
     MessageHandler::instance()->printDebug(
-        "Image: '%s' was saved successfully (%.2f ms)\n",
+        "Image: '%s' was saved successfully (%.2f ms)",
         _filename.c_str(), (Engine::getTime() - t0) * 1000.0
     );
     return true;
@@ -1205,7 +1203,7 @@ bool Image::saveTGA() {
 
     if (_bytesPerChannel > 1) {
         MessageHandler::instance()->printError(
-            "Image error: Cannot save %d-bit TGA\n", _bytesPerChannel * 8
+            "Image error: Cannot save %d-bit TGA", _bytesPerChannel * 8
         );
         return false;
     }
@@ -1216,7 +1214,7 @@ bool Image::saveTGA() {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     if (fopen_s(&fp, _filename.c_str(), "wb") != 0 || !fp) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create TGA texture file '%s'\n", _filename.c_str()
+            "Image error: Can't create TGA texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -1224,7 +1222,7 @@ bool Image::saveTGA() {
     fp = fopen(_filename.c_str(), "wb");
     if (fp == nullptr) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create TGA texture file '%s'\n", _filename.c_str()
+            "Image error: Can't create TGA texture file '%s'", _filename.c_str()
         );
         return false;
     }
@@ -1232,8 +1230,8 @@ bool Image::saveTGA() {
 
     if (_nChannels == 2) {
         MessageHandler::instance()->printError(
-            "Image error: Can't create TGA texture file '%s'.\n"
-            "Luminance alpha not supported by the TGA format\n", _filename.c_str()
+            "Image error: Can't create TGA texture file '%s'. "
+            "Luminance alpha not supported by the TGA format", _filename.c_str()
         );
         return false;
     }
@@ -1329,7 +1327,7 @@ bool Image::saveTGA() {
     fclose(fp);
 
     MessageHandler::instance()->printDebug(
-        "Image: '%s' was saved successfully (%.2f ms)\n",
+        "Image: '%s' was saved successfully (%.2f ms)",
         _filename.c_str(), (Engine::getTime() - t0) * 1000.0
     );
 
@@ -1392,7 +1390,7 @@ size_t Image::getTGAPackageLength(unsigned char* row, size_t pos, bool rle) {
 void Image::setFilename(std::string filename) {
     if (filename.empty() || filename.length() < 5) {
         // one char + dot and suffix and is 5 char
-        MessageHandler::instance()->printError("Image error: Invalid filename\n");
+        MessageHandler::instance()->printError("Image error: Invalid filename");
         return;
     }
 
@@ -1546,7 +1544,7 @@ bool Image::allocateOrResizeData() {
 
     if (dataSize <= 0) {
         MessageHandler::instance()->printError(
-            "Image error: Invalid image size %dx%d %d channels\n",
+            "Image error: Invalid image size %dx%d %d channels",
             _sizeX, _sizeY, _nChannels
         );
         return false;
@@ -1565,7 +1563,7 @@ bool Image::allocateOrResizeData() {
         }
         catch (std::bad_alloc& ba) {
             MessageHandler::instance()->printError(
-                "Image error: Failed to allocate %d bytes of image data (%s)\n",
+                "Image error: Failed to allocate %d bytes of image data (%s)",
                 dataSize, ba.what()
             );
             _data = nullptr;
@@ -1578,7 +1576,7 @@ bool Image::allocateOrResizeData() {
         }
 
         MessageHandler::instance()->printDebug(
-            "Image: Allocated %d bytes for image data (%.2f ms)\n",
+            "Image: Allocated %d bytes for image data (%.2f ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
         );
     }
@@ -1597,7 +1595,7 @@ bool Image::allocateRowPtrs() {
     }
     catch (std::bad_alloc& ba) {
         MessageHandler::instance()->printError(
-            "Image error: Failed to allocate pointers for image data (%s)\n", ba.what()
+            "Image error: Failed to allocate pointers for image data (%s)", ba.what()
         );
         _rowPtrs = nullptr;
         return false;

@@ -28,7 +28,7 @@ void Tracker::addDevice(std::string name, size_t index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
 
     MessageHandler::instance()->printInfo(
-        "%s: Adding device '%s'\n", _name.c_str(), name.c_str()
+        "%s: Adding device '%s'", _name.c_str(), name.c_str()
     );
 }
 

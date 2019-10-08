@@ -20,7 +20,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
     createVBO(radius, segments);
 
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printError("SGCT Utils: Sphere creation error\n");
+        MessageHandler::instance()->printError("SGCT Utils: Sphere creation error");
     }
 }
 
@@ -140,11 +140,11 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    MessageHandler::instance()->printDebug("Sphere: Generating VAO: %d\n", _vao);
+    MessageHandler::instance()->printDebug("Sphere: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
     glGenBuffers(1, &_ibo);
-    MessageHandler::instance()->printDebug("Sphere: Generating VBOs: %d %d\n", _vbo, _ibo);
+    MessageHandler::instance()->printDebug("Sphere: Generating VBOs: %d %d", _vbo, _ibo);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(

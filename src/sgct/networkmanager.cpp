@@ -80,10 +80,10 @@ NetworkManager::NetworkManager(NetworkMode nm)
 {
     _instance = this;
 
-    MessageHandler::instance()->printDebug("NetworkManager: Initiating network API...\n");
+    MessageHandler::instance()->printDebug("NetworkManager: Initiating network API");
     initAPI();
 
-    MessageHandler::instance()->printDebug("NetworkManager: Getting host info...\n");
+    MessageHandler::instance()->printDebug("NetworkManager: Getting host info");
     getHostInfo();
 
     if (_mode == NetworkMode::Remote) {
@@ -98,12 +98,12 @@ NetworkManager::NetworkManager(NetworkMode nm)
 
     if (_isServer) {
         MessageHandler::instance()->printInfo(
-            "NetworkManager: This computer is the network server\n"
+            "NetworkManager: This computer is the network server"
         );
     }
     else {
         MessageHandler::instance()->printInfo(
-            "NetworkManager: This computer is the network client\n"
+            "NetworkManager: This computer is the network client"
         );
     }
 }
@@ -117,7 +117,7 @@ bool NetworkManager::init() {
     const std::string& thisAddress = cm.getThisNode()->getAddress();
     if (thisAddress.empty()) {
         MessageHandler::instance()->printError(
-            "NetworkManager: No address information for this node available\n"
+            "NetworkManager: No address information for this node available"
         );
         return false;
     }
@@ -128,7 +128,7 @@ bool NetworkManager::init() {
 
         if (remoteAddress.empty()) {
             MessageHandler::instance()->printError(
-                "NetworkManager: No address information for master/host availible\n"
+                "NetworkManager: No address information for master/host availible"
             );
             return false;
         }
@@ -153,7 +153,7 @@ bool NetworkManager::init() {
                 port == cm.getExternalControlPort())
             {
                 MessageHandler::instance()->printError(
-                    "NetworkManager: Port %d is already used by connection %u\n",
+                    "NetworkManager: Port %d is already used by connection %u",
                     cm.getThisNode()->getSyncPort(), i
                 );
                 return false;
@@ -175,7 +175,7 @@ bool NetworkManager::init() {
             }
             else {
                 MessageHandler::instance()->printError(
-                    "NetworkManager: Failed to add network connection to %s\n",
+                    "NetworkManager: Failed to add network connection to %s",
                     cm.getMasterAddress().c_str()
                 );
                 return false;
@@ -221,7 +221,7 @@ bool NetworkManager::init() {
                 );
                 if (!addSyncPort) {
                     MessageHandler::instance()->printError(
-                        "NetworkManager: Failed to add network connection to %s!\n",
+                        "NetworkManager: Failed to add network connection to %s",
                         cm.getNode(i)->getAddress().c_str()
                     );
                     return false;
@@ -292,7 +292,7 @@ bool NetworkManager::init() {
     }
 
     MessageHandler::instance()->printDebug(
-        "NetworkManager: Cluster sync is set to %s\n",
+        "NetworkManager: Cluster sync is set to %s",
         cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
 
@@ -357,7 +357,7 @@ bool NetworkManager::isSyncComplete() const {
     );
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
-        "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
+        "SGCTNetworkManager::isSyncComplete: counter %u of %u",
         counter, getSyncConnectionsCount()
     );
 #endif
@@ -453,7 +453,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
             }
 
             MessageHandler::instance()->printError(
-                "NetworkManager: Failed to compress data! Error: %s\n", errStr.c_str()
+                "NetworkManager: Failed to compress data! Error: %s", errStr.c_str()
             );
             return false;
         }
@@ -527,7 +527,7 @@ const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
     MessageHandler::instance()->printDebug(
-        "NetworkManager: Updating status for connection %d\n", connection->getId()
+        "NetworkManager: Updating status for connection %d", connection->getId()
     );
 
     unsigned int numberOfConnectionsCounter = 0;
@@ -557,15 +557,15 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
     MessageHandler::instance()->printInfo(
-        "NetworkManager: Number of active connections %u of %u\n",
+        "NetworkManager: Number of active connections %u of %u",
         numberOfConnectionsCounter, totalNumberOfConnections
     );
     MessageHandler::instance()->printDebug(
-        "NetworkManager: Number of connected sync nodes %u of %u\n",
+        "NetworkManager: Number of connected sync nodes %u of %u",
         nConnectedSyncNodesCounter, totalNumberOfSyncConnections
     );
     MessageHandler::instance()->printDebug(
-        "NetworkManager: Number of connected data transfer nodes %u of %u\n",
+        "NetworkManager: Number of connected data transfer nodes %u of %u",
         nConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
@@ -693,7 +693,7 @@ void NetworkManager::close() {
 #ifdef _WIN_PLATFORM
     WSACleanup();
 #endif
-    MessageHandler::instance()->printInfo("NetworkManager: Network API closed\n");
+    MessageHandler::instance()->printInfo("NetworkManager: Network API closed");
 }
 
 bool NetworkManager::addConnection(int port, const std::string& address,
@@ -701,7 +701,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
 {
     if (port == 0) {
         sgct::MessageHandler::instance()->printInfo(
-            "NetworkManager: No port set for %s!\n",
+            "NetworkManager: No port set for %s",
             Network::getTypeStr(connectionType).c_str()
         );
         return false;
@@ -709,7 +709,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
 
     if (address.empty()) {
         MessageHandler::instance()->printError(
-            "NetworkManager: Error: No address set for %s\n",
+            "NetworkManager: Error: No address set for %s",
             Network::getTypeStr(connectionType).c_str()
         );
         return false;
@@ -718,7 +718,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
     try {
         std::unique_ptr<Network> netPtr = std::make_unique<Network>();
         MessageHandler::instance()->printDebug(
-            "NetworkManager: Initiating network connection %d at port %d\n",
+            "NetworkManager: Initiating network connection %d at port %d",
             _networkConnections.size(), port
         );
         netPtr->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
@@ -730,7 +730,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
     }
     catch (const std::runtime_error& e) {
         MessageHandler::instance()->printError(
-            "NetworkManager: Network error: %s\n", e.what()
+            "NetworkManager: Network error: %s", e.what()
         );
         return false;
     }
@@ -805,7 +805,7 @@ void NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         MessageHandler::instance()->printError(
-            "NetworkManager: Failed to get address info (error %d)\n",
+            "NetworkManager: Failed to get address info (error %d)",
             Network::getLastError()
         );
     }
@@ -863,7 +863,7 @@ void NetworkManager::retrieveNodeId() const {
         if (matchAddress(ClusterManager::instance()->getNode(i)->getAddress())) {
             ClusterManager::instance()->setThisNodeId(static_cast<int>(i));
             MessageHandler::instance()->printDebug(
-                "NetworkManager: Running in cluster mode as node %d\n",
+                "NetworkManager: Running in cluster mode as node %d",
                 ClusterManager::instance()->getThisNodeId()
             );
             break;

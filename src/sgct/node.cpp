@@ -103,21 +103,21 @@ void Node::setAddress(std::string address) {
     _address = std::move(address);
 
     MessageHandler::instance()->printDebug(
-        "Node: Setting address to %s\n", _address.c_str()
+        "Node: Setting address to %s", _address.c_str()
     );
 }
 
 void Node::setSyncPort(int port) {
     _syncPort = port;
     
-    MessageHandler::instance()->printDebug("Node: Setting sync port to %d\n", _syncPort);
+    MessageHandler::instance()->printDebug("Node: Setting sync port to %d", _syncPort);
 }
 
 void Node::setDataTransferPort(int port) {
     _dataTransferPort = port;
 
     MessageHandler::instance()->printDebug(
-        "Node: Setting data transfer port to %d\n", _dataTransferPort
+        "Node: Setting data transfer port to %d", _dataTransferPort
     );
 }
 

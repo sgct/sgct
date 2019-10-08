@@ -54,7 +54,7 @@ void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
     std::unique_lock lock(MutexManager::instance()->dataSyncMutex);
     _recBuffer = std::move(receivedData);
     _recBuffer.push_back('\0');
-    print("\n[client %d]: %s [end]\n", clientIndex, &_recBuffer[0]);
+    print("[client %d]: %s [end]", clientIndex, &_recBuffer[0]);
 }
 
 void MessageHandler::printv(const char* fmt, va_list ap) {
@@ -113,8 +113,9 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
 #else
         sprintf(_combinedBuffer.data(), "%s| %s", TimeBuffer, _parseBuffer.data());
 #endif
+
         if (_logToConsole) {
-            std::cerr << _combinedBuffer.data();
+            std::cout << _combinedBuffer.data() << '\n';
         }
 
         if (_logToFile) {
@@ -126,7 +127,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
     }
     else {
         if (_logToConsole) {
-            std::cerr << _parseBuffer.data();
+            std::cout << _parseBuffer.data() << '\n';
         }
 
         if (_logToFile) {
@@ -149,7 +150,7 @@ void MessageHandler::logToFile(const std::vector<char>& buffer) {
         return;
     }
 
-    file << std::string(buffer.begin(), buffer.end());
+    file << std::string(buffer.begin(), buffer.end()) << '\n';
 }
 
 void MessageHandler::setLogPath(const char* path, int nodeId) {

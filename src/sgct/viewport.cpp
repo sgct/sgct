@@ -215,7 +215,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     (void)proj;
     MessageHandler::instance()->print(
         MessageHandler::Level::Warning,
-        "ReadConfig: Spout library not added to SGCT\n"
+        "ReadConfig: Spout library not added to SGCT"
     );
     return;
 #else
@@ -318,7 +318,7 @@ void Viewport::setTracked(bool state) {
 
 void Viewport::loadData() {
     MessageHandler::instance()->printDebug(
-        "Viewport: loading GPU data for '%s'\n", _name.c_str()
+        "Viewport: loading GPU data for '%s'", _name.c_str()
     );
         
     if (!_overlayFilename.empty()) {

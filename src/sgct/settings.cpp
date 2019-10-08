@@ -199,7 +199,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
     }
     else {
         MessageHandler::instance()->printWarning(
-            "Settings: Number of default MSAA samples must be a power of two\n", samples
+            "Settings: Number of default MSAA samples must be a power of two", samples
         );
     }
 }

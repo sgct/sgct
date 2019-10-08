@@ -23,7 +23,7 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
     // must be four or higher
     if (_resolution < 4) {
         MessageHandler::instance()->printWarning(
-            "Warning: Dome geometry resolution must be higher than 4\n"
+            "Warning: Dome geometry resolution must be higher than 4"
         );
         _resolution = 4;
     }
@@ -32,7 +32,7 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
 
     // if error occured
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printError("SGCT Utils: Dome creation error\n");
+        MessageHandler::instance()->printError("SGCT Utils: Dome creation error");
     }
 }
 
@@ -127,10 +127,10 @@ void DomeGrid::createVBO(float radius, float FOV) {
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
     glEnableVertexAttribArray(0);
-    MessageHandler::instance()->printDebug("DomeGrid: Generating VAO: %d\n", _vao);
+    MessageHandler::instance()->printDebug("DomeGrid: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    MessageHandler::instance()->printDebug("DomeGrid: Generating VBO: %d\n", _vbo);
+    MessageHandler::instance()->printDebug("DomeGrid: Generating VBO: %d", _vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(

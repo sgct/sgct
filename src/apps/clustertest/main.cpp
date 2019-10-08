@@ -350,7 +350,7 @@ void initOGLFun() {
     }
 
     MessageHandler::instance()->printInfo(
-        "Number of active viewports: %d\n", numberOfActiveViewports
+        "Number of active viewports: %d", numberOfActiveViewports
     );
 
     constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();

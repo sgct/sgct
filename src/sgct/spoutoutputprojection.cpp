@@ -488,7 +488,7 @@ void SpoutOutputProjection::initShaders() {
         );
         if (!fragShader) {
             MessageHandler::instance()->printError(
-                "Failed to load fisheye depth correction vertex shader\n"
+                "Failed to load fisheye depth correction vertex shader"
             );
         }
 
@@ -504,7 +504,7 @@ void SpoutOutputProjection::initShaders() {
         );
         if (!vertShader) {
             MessageHandler::instance()->printError(
-                "Failed to load fisheye depth correction fragment shader\n"
+                "Failed to load fisheye depth correction fragment shader"
             );
         }
     }
@@ -586,7 +586,7 @@ void SpoutOutputProjection::initShaders() {
     );
     if (!vertShader) {
         MessageHandler::instance()->printError(
-            "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertShader.c_str()
+            "Failed to load fisheye vertex shader: %s", fisheyeVertShader.c_str()
         );
     }
     bool fragShader = _shader.addShaderSrc(
@@ -596,7 +596,7 @@ void SpoutOutputProjection::initShaders() {
     );
     if (!fragShader) {
         MessageHandler::instance()->printError(
-            "Failed to load fisheye fragment shader\n%s\n", fisheyeFragShader.c_str()
+            "Failed to load fisheye fragment shader %s", fisheyeFragShader.c_str()
         );
     }
 
@@ -647,10 +647,10 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 
     if (_spoutFBO->checkForErrors()) {
-        MessageHandler::instance()->printDebug("Spout FBO created\n");
+        MessageHandler::instance()->printDebug("Spout FBO created");
     }
     else {
-        MessageHandler::instance()->printError("Spout FBO created with errors\n");
+        MessageHandler::instance()->printError("Spout FBO created with errors");
     }
 
     OffScreenBuffer::unBind();

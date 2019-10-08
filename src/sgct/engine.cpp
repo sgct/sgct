@@ -101,10 +101,8 @@ namespace {
         }
     }
 
-    void glfwErrorCallback(int error, const char* description) {
-        sgct::MessageHandler::instance()->printError(
-            "GLFW error (%i): %s\n", error, description
-        );
+    void glfwErrorCallback(int error, const char* desc) {
+        sgct::MessageHandler::instance()->printError("GLFW error (%i): %s", error, desc);
     }
 
     void dropCallback(GLFWwindow*, int count, const char** paths) {
@@ -194,7 +192,7 @@ Parameters:
             usrPtr = usr.get();
             ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->printInfo(
-                "ReadConfig: Adding user '%s'\n", user.name->c_str()
+                "ReadConfig: Adding user '%s'", user.name->c_str()
             );
         }
         else {
@@ -609,7 +607,7 @@ Engine* Engine::instance() {
 Configuration parseArguments(std::vector<std::string> arg) {
     Configuration config;
 
-    MessageHandler::instance()->printInfo("Parsing arguments\n");
+    MessageHandler::instance()->printInfo("Parsing arguments");
     size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
@@ -723,12 +721,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         catch (const std::runtime_error& e) {
             // fatal error
             outputHelpMessage();
-            MessageHandler::instance()->printError(
-                "Error in xml config file parsing. %s. "
-                "Application will close in 5 seconds\n",
-                e.what()
-            );
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            MessageHandler::instance()->printError("Configuration error. %s", e.what());
             throw;
         }
     }
@@ -844,7 +837,7 @@ Engine::~Engine() {
 
 bool Engine::init(RunMode rm, config::Cluster cluster) {
     _runMode = rm;
-    MessageHandler::instance()->printInfo("%s\n", getVersion().c_str());
+    MessageHandler::instance()->printInfo("%s", getVersion().c_str());
 
     if (_helpMode) {
         return false;
@@ -852,7 +845,7 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
 
     if (_shouldTerminate) {
         MessageHandler::instance()->printError(
-            "Failed to init GLFW! Application will close in 5 seconds\n"
+            "Failed to init GLFW! Application will close in 5 seconds"
         );
         std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
@@ -867,7 +860,7 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
 
     if (!initNetwork()) {
         MessageHandler::instance()->printError(
-            "Network init error. Application will close in 5 seconds\n"
+            "Network init error. Application will close in 5 seconds"
         );
         std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
@@ -875,7 +868,7 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
 
     if (!initWindows()) {
         MessageHandler::instance()->printError(
-            "Window init error. Application will close in 5 seconds\n"
+            "Window init error. Application will close in 5 seconds"
         );
         std::this_thread::sleep_for(std::chrono::seconds(5));
         return false;
@@ -941,7 +934,7 @@ bool Engine::initNetwork() {
     }
     catch (const std::runtime_error& e) {
         MessageHandler::instance()->printError(
-            "Initiating network connections failed! Error: '%s'\n", e.what()
+            "Initiating network connections failed! Error: '%s'", e.what()
         );
         return false;
     }
@@ -951,13 +944,13 @@ bool Engine::initNetwork() {
         core::NetworkManager::NetworkMode::Remote)
     {
         MessageHandler::instance()->printDebug(
-            "Matching ip address to find node in configuration\n"
+            "Matching ip address to find node in configuration"
         );
         _networkConnections->retrieveNodeId();
     }
     else {
         MessageHandler::instance()->printDebug(
-            "Running locally as node %d\n",
+            "Running locally as node %d",
             core::ClusterManager::instance()->getThisNodeId()
         );
     }
@@ -969,7 +962,7 @@ bool Engine::initNetwork() {
         core::ClusterManager::instance()->getThisNodeId() < 0)
     {
         MessageHandler::instance()->printError(
-            "This computer is not a part of the cluster configuration\n"
+            "This computer is not a part of the cluster configuration"
         );
         _networkConnections->close();
         return false;
@@ -995,9 +988,7 @@ bool Engine::initNetwork() {
 
 bool Engine::initWindows() {
     if (_thisNode->getNumberOfWindows() == 0) {
-        MessageHandler::instance()->printError(
-            "No windows exist in configuration\n"
-        );
+        MessageHandler::instance()->printError("No windows exist in configuration");
         return false;
     }
 
@@ -1005,7 +996,7 @@ bool Engine::initWindows() {
         int tmpGlfwVer[3];
         glfwGetVersion(&tmpGlfwVer[0], &tmpGlfwVer[1], &tmpGlfwVer[2]);
         MessageHandler::instance()->printInfo(
-            "Using GLFW version %d.%d.%d\n", tmpGlfwVer[0], tmpGlfwVer[1], tmpGlfwVer[2]
+            "Using GLFW version %d.%d.%d", tmpGlfwVer[0], tmpGlfwVer[1], tmpGlfwVer[2]
         );
     }
 
@@ -1120,7 +1111,7 @@ bool Engine::initWindows() {
         }
         
         if (!_thisNode->getWindow(i).openWindow(share, lastWindowIdx)) {
-            MessageHandler::instance()->printError("Failed to open window %d\n", i);
+            MessageHandler::instance()->printError("Failed to open window %d", i);
             return false;
         }
     }
@@ -1133,7 +1124,7 @@ bool Engine::initWindows() {
 
 
     if (!checkForOGLErrors()) {
-        MessageHandler::instance()->printError("GLEW init triggered an OpenGL error\n");
+        MessageHandler::instance()->printError("GLEW init triggered an OpenGL error");
     }
 
     // Window/Contexty creation callback
@@ -1145,7 +1136,7 @@ bool Engine::initWindows() {
         }
     }
     else {
-        MessageHandler::instance()->printError("No windows created on this node!\n");
+        MessageHandler::instance()->printError("No windows created on this node");
         return false;
     }
 
@@ -1192,30 +1183,11 @@ void Engine::initOGL() {
     version[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
 
     MessageHandler::instance()->printInfo(
-        "OpenGL version %d.%d.%d %s\n", version[0], version[1], version[2], "core profile"
+        "OpenGL version %d.%d.%d %s", version[0], version[1], version[2], "core profile"
     );
 
-    MessageHandler::instance()->printInfo("Vendor: %s\n", glGetString(GL_VENDOR));
-    MessageHandler::instance()->printInfo("Renderer: %s\n", glGetString(GL_RENDERER));
-
-    if (!glfwExtensionSupported("GL_EXT_framebuffer_object") && version[0] < 2) {
-        MessageHandler::instance()->printError(
-            "Warning! Frame buffer objects are not supported! "
-            "A lot of features in SGCT will not work!\n"
-        );
-        Settings::instance()->setUseFBO(false);
-    }
-    else if (!glfwExtensionSupported("GL_EXT_framebuffer_multisample") && version[0] < 2)
-    {
-        MessageHandler::instance()->printWarning(
-            "Warning! FBO multisampling is not supported!\n"
-        );
-        Settings::instance()->setUseFBO(true);
-
-        for (int i = 0; i < _thisNode->getNumberOfWindows(); i++) {
-            _thisNode->getWindow(i).setNumberOfAASamples(1);
-        }
-    }
+    MessageHandler::instance()->printInfo("Vendor: %s", glGetString(GL_VENDOR));
+    MessageHandler::instance()->printInfo("Renderer: %s", glGetString(GL_RENDERER));
 
     if (core::ClusterManager::instance()->getNumberOfNodes() > 1) {
         std::string path = Settings::instance()->getCapturePath();
@@ -1235,9 +1207,9 @@ void Engine::initOGL() {
     _statistics->initVBO(false);
 
     if (_initOpenGLFn) {
-        MessageHandler::instance()->printInfo("Calling init callback\n");
+        MessageHandler::instance()->printInfo("Calling init callback");
         _initOpenGLFn();
-        MessageHandler::instance()->printInfo("-------------------------------\n");
+        MessageHandler::instance()->printInfo("-------------------------------");
     }
 
     // create all textures, etc
@@ -1325,11 +1297,11 @@ void Engine::initOGL() {
     // check for errors
     checkForOGLErrors();
 
-    MessageHandler::instance()->printInfo("Ready to render\n");
+    MessageHandler::instance()->printInfo("Ready to render");
 }
 
 void Engine::clean() {
-    MessageHandler::instance()->printInfo("Cleaning up\n");
+    MessageHandler::instance()->printInfo("Cleaning up");
 
     if (_cleanUpFn) {
         if (_thisNode && _thisNode->getNumberOfWindows() > 0) {
@@ -1338,12 +1310,12 @@ void Engine::clean() {
         _cleanUpFn();
     }
 
-    MessageHandler::instance()->printInfo("Clearing all callbacks\n");
+    MessageHandler::instance()->printInfo("Clearing all callbacks");
     clearAllCallbacks();
 
     // kill thread
     if (_thread) {
-        MessageHandler::instance()->printDebug("Waiting for frameLock thread to finish\n");
+        MessageHandler::instance()->printDebug("Waiting for frameLock thread to finish");
 
         MutexManager::instance()->frameSyncMutex.lock();
         sRunUpdateFrameLockLoop = false;
@@ -1351,7 +1323,7 @@ void Engine::clean() {
 
         _thread->join();
         _thread = nullptr;
-        MessageHandler::instance()->printDebug("Done.\n");
+        MessageHandler::instance()->printDebug("Done");
     }
 
     // de-init window and unbind swapgroups
@@ -1372,7 +1344,7 @@ void Engine::clean() {
     _statistics = nullptr;
 
     MessageHandler::instance()->printInfo(
-        "Destroying shader manager and internal shaders\n"
+        "Destroying shader manager and internal shaders"
     );
     ShaderManager::destroy();
 
@@ -1380,11 +1352,11 @@ void Engine::clean() {
     _shader.fxaa.deleteProgram();
     _shader.overlay.deleteProgram();
 
-    MessageHandler::instance()->printInfo("Destroying texture manager\n");
+    MessageHandler::instance()->printInfo("Destroying texture manager");
     TextureManager::destroy();
 
 #ifdef SGCT_HAS_TEXT
-    MessageHandler::instance()->printInfo("Destroying font manager\n");
+    MessageHandler::instance()->printInfo("Destroying font manager");
     sgct::text::FontManager::destroy();
 #endif // SGCT_HAS_TEXT
 
@@ -1393,27 +1365,27 @@ void Engine::clean() {
         _thisNode->getWindow(0).makeOpenGLContextCurrent(Window::Context::Window);
     }
     
-    MessageHandler::instance()->printInfo("Destroying shared data\n");
+    MessageHandler::instance()->printInfo("Destroying shared data");
     SharedData::destroy();
     
-    MessageHandler::instance()->printInfo("Destroying cluster manager\n");
+    MessageHandler::instance()->printInfo("Destroying cluster manager");
     core::ClusterManager::destroy();
     
-    MessageHandler::instance()->printInfo("Destroying settings\n");
+    MessageHandler::instance()->printInfo("Destroying settings");
     Settings::destroy();
 
-    MessageHandler::instance()->printInfo("Destroying message handler\n");
+    MessageHandler::instance()->printInfo("Destroying message handler");
     MessageHandler::destroy();
 
 
-    MessageHandler::instance()->printInfo("Destroying mutexes\n");
+    MessageHandler::instance()->printInfo("Destroying mutexes");
     MutexManager::destroy();
 
     // Close window and terminate GLFW
-    MessageHandler::instance()->printInfo("Terminating glfw\n");
+    MessageHandler::instance()->printInfo("Terminating glfw");
     glfwTerminate();
  
-    MessageHandler::instance()->printDebug("Finished cleaning\n");
+    MessageHandler::instance()->printDebug("Finished cleaning");
 }
 
 void Engine::clearAllCallbacks() {
@@ -1491,7 +1463,7 @@ bool Engine::frameLockPreStage() {
                     "Slave: waiting for master... send frame %d != previous recv "
                     "frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: "
                     "%s\n\tNvidia universal frame number: %u\n\tSGCT frame "
-                    "number: %u\n",
+                    "number: %u",
                     conn->getSendFrameCurrent(),
                     conn->getRecvFramePrevious(),
                     getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
@@ -1503,8 +1475,8 @@ bool Engine::frameLockPreStage() {
             if (glfwGetTime() - t0 > _syncTimeout) {
                 // more than a minute
                 MessageHandler::instance()->printError(
-                    "Slave: no sync signal from master after %.1f seconds! "
-                    "Exiting...", _syncTimeout
+                    "Slave: no sync signal from master after %.1f seconds! Exiting...",
+                    _syncTimeout
                 );
                 return false;
             }
@@ -1557,7 +1529,7 @@ bool Engine::frameLockPostStage() {
                     "Waiting for slave%d: send frame %d != recv frame %d\n\t"
                     "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
                     "Nvidia universal frame number: %u\n\t"
-                    "SGCT frame number: %u\n",
+                    "SGCT frame number: %u",
                     i,
                     _networkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
                     _networkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
@@ -1571,7 +1543,7 @@ bool Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
             MessageHandler::instance()->printError(
-                "Master: no sync signal from all slaves after %.1f seconds. Exiting\n",
+                "Master: no sync signal from all slaves after %.1f seconds. Exiting",
                 _syncTimeout
             );
 
@@ -1586,7 +1558,7 @@ bool Engine::frameLockPostStage() {
 void Engine::render() {
     if (!_isInitialized) {
         MessageHandler::instance()->printError(
-            "Render function called before initialization\n"
+            "Render function called before initialization"
         );
         return;
     }
@@ -1618,7 +1590,7 @@ void Engine::render() {
         }
         else if (!_networkConnections->isRunning())  {
             // exit if not running
-            MessageHandler::instance()->printError("Network disconnected! Exiting\n");
+            MessageHandler::instance()->printError("Network disconnected! Exiting");
             break;
         }
 
@@ -2883,7 +2855,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fxaaVertSuccess) {
-        MessageHandler::instance()->printError("Failed to load FXAA vertex shader\n");
+        MessageHandler::instance()->printError("Failed to load FXAA vertex shader");
     }
 
     const bool fxaaFragSuccess = _shader.fxaa.addShaderSrc(
@@ -2892,7 +2864,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fxaaFragSuccess) {
-        MessageHandler::instance()->printError("Failed to load FXAA fragment shader\n");
+        MessageHandler::instance()->printError("Failed to load FXAA fragment shader");
     }
     _shader.fxaa.createAndLinkProgram();
     _shader.fxaa.bind();
@@ -2933,7 +2905,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!quadVertSuccess) {
-        MessageHandler::instance()->printError("Failed to load FBO quad vertex shader\n");
+        MessageHandler::instance()->printError("Failed to load FBO quad vertex shader");
     }
     const bool quadFragSuccess = _shader.fboQuad.addShaderSrc(
         fboQuadFragShader,
@@ -2941,7 +2913,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!quadFragSuccess) {
-        MessageHandler::instance()->printError("Failed to load FBO quad fragment shader\n");
+        MessageHandler::instance()->printError("Failed to load FBO quad fragment shader");
     }
     _shader.fboQuad.createAndLinkProgram();
     _shader.fboQuad.bind();
@@ -2965,7 +2937,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!overlayVertSuccess) {
-        MessageHandler::instance()->printError("Failed to load overlay vertex shader\n");
+        MessageHandler::instance()->printError("Failed to load overlay vertex shader");
     }
     const bool overlayFragSuccess = _shader.overlay.addShaderSrc(
         overlayFragShader,
@@ -2973,7 +2945,7 @@ void Engine::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!overlayFragSuccess) {
-        MessageHandler::instance()->printError("Failed to load overlay fragment shader\n");
+        MessageHandler::instance()->printError("Failed to load overlay fragment shader");
     }
     _shader.overlay.createAndLinkProgram();
     _shader.overlay.bind();
@@ -3020,28 +2992,28 @@ bool Engine::checkForOGLErrors() {
     const GLenum oglError = glGetError();
     switch (oglError) {
         case GL_INVALID_ENUM:
-            mh.printError("OpenGL error: GL_INVALID_ENUM\n");
+            mh.printError("OpenGL error: GL_INVALID_ENUM");
             break;
         case GL_INVALID_VALUE:
-            mh.printError("OpenGL error: GL_INVALID_VALUE\n");
+            mh.printError("OpenGL error: GL_INVALID_VALUE");
             break;
         case GL_INVALID_OPERATION:
-            mh.printError("OpenGL error: GL_INVALID_OPERATION\n");
+            mh.printError("OpenGL error: GL_INVALID_OPERATION");
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            mh.printError("OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n");
+            mh.printError("OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION");
             break;
         case GL_STACK_OVERFLOW:
-            mh.printError("OpenGL error: GL_STACK_OVERFLOW\n");
+            mh.printError("OpenGL error: GL_STACK_OVERFLOW");
             break;
         case GL_STACK_UNDERFLOW:
-            mh.printError("OpenGL error: GL_STACK_UNDERFLOW\n");
+            mh.printError("OpenGL error: GL_STACK_UNDERFLOW");
             break;
         case GL_OUT_OF_MEMORY:
-            mh.printError("OpenGL error: GL_OUT_OF_MEMORY\n");
+            mh.printError("OpenGL error: GL_OUT_OF_MEMORY");
             break;
         case GL_TABLE_TOO_LARGE:
-            mh.printError("OpenGL error: GL_TABLE_TOO_LARGE\n");
+            mh.printError("OpenGL error: GL_TABLE_TOO_LARGE");
             break;
     }
 
@@ -3128,28 +3100,28 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 #ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             MessageHandler::instance()->printInfo(
-                "Swap groups are supported by hardware\n"
+                "Swap groups are supported by hardware"
             );
         }
         else {
             MessageHandler::instance()->printInfo(
-                "Swap groups are not supported by hardware\n"
+                "Swap groups are not supported by hardware"
             );
         }
 #else
         if (glfwExtensionSupported("GLX_NV_swap_group")) {
             MessageHandler::instance()->printInfo(
-                "Swap groups are supported by hardware\n"
+                "Swap groups are supported by hardware"
             );
         }
         else {
             MessageHandler::instance()->printInfo(
-                "Swap groups are not supported by hardware\n"
+                "Swap groups are not supported by hardware"
             );
         }
 #endif
 
-        MessageHandler::instance()->printInfo("Waiting for all nodes to connect\n");
+        MessageHandler::instance()->printInfo("Waiting for all nodes to connect");
         MessageHandler::instance()->setShowTime(false);
         
         while (_networkConnections->isRunning() && !_thisNode->getKeyPressed(_exitKey) &&
@@ -3257,7 +3229,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
     // Check that we have a previous window
     if (getCurrentWindowIndex() < 1) {
         MessageHandler::instance()->printWarning(
-            "Could not copy from previous window, as this window is the first one\n"
+            "Could not copy from previous window, as this window is the first one"
         );
         return;
     }
@@ -3406,7 +3378,7 @@ void Engine::clearBuffer() {
 }
 
 void Engine::printNodeInfo(unsigned int nodeId) {
-    MessageHandler::instance()->printDebug("This node has index %d.\n", nodeId);
+    MessageHandler::instance()->printDebug("This node has index %d", nodeId);
 }
 
 void Engine::enterCurrentViewport() {

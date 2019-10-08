@@ -80,17 +80,17 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
         }
 
         MessageHandler::instance()->printInfo(
-            "Message: '%s', size: %d\n", receivedChars, size
+            "Message: '%s', size: %d", receivedChars, size
         );
     }
 }
 
 void externalControlStatusCallback(bool connected) {
     if (connected) {
-        MessageHandler::instance()->printInfo("External control connected\n");
+        MessageHandler::instance()->printInfo("External control connected");
     }
     else {
-        MessageHandler::instance()->printInfo("External control disconnected\n");
+        MessageHandler::instance()->printInfo("External control disconnected");
     }
 }
 

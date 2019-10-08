@@ -93,7 +93,7 @@ FontManager::FontManager() {
     FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
-        MessageHandler::instance()->printError("Could not initiate Freetype library\n");
+        MessageHandler::instance()->printError("Could not initiate Freetype library");
         return;
     }
 
@@ -168,7 +168,7 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
 
     if (!inserted) {
         MessageHandler::instance()->printWarning(
-            "Font with name '%s' already specified.\n", fontName.c_str()
+            "Font with name '%s' already specified", fontName.c_str()
         );
     }
 
@@ -198,14 +198,14 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
     if (it == _fontPaths.end()) {
         MessageHandler::instance()->printError(
-            "FontManager: No font file specified for font [%s].\n", name.c_str()
+            "FontManager: No font file specified for font [%s]", name.c_str()
         );
         return nullptr;
     }
 
     if (_library == nullptr) {
         MessageHandler::instance()->printError(
-            "FontManager: Freetype library is not initialized, can't create font [%s].\n",
+            "FontManager: Freetype library is not initialized, can't create font [%s]",
             name.c_str()
         );
         return nullptr;
@@ -216,14 +216,14 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
     if (error == FT_Err_Unknown_File_Format) {
         MessageHandler::instance()->printError(
-            "FontManager: Unsopperted file format [%s] for font [%s].\n",
+            "FontManager: Unsopperted file format [%s] for font [%s]",
             it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
         MessageHandler::instance()->printError(
-            "FontManager: Font '%s' not found!\n", it->second.c_str()
+            "FontManager: Font '%s' not found!", it->second.c_str()
         );
         return nullptr;
     }
@@ -231,7 +231,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
         MessageHandler::instance()->printError(
-            "FontManager: Could not set pixel size for font[%s].\n", name.c_str()
+            "FontManager: Could not set pixel size for font[%s]", name.c_str()
         );
         return nullptr;
     }
@@ -264,7 +264,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
             ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
-            MessageHandler::instance()->printError("Failed to load font vertex shader\n");
+            MessageHandler::instance()->printError("Failed to load font vertex shader");
         }
         const bool frag = _shader.addShaderSrc(
             fragShader,
@@ -272,7 +272,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
             ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
-            MessageHandler::instance()->printError("Failed to load font fragment shader\n");
+            MessageHandler::instance()->printError("Failed to load font fragment shader");
         }
         _shader.createAndLinkProgram();
         _shader.bind();

@@ -84,8 +84,8 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
     }
     else {
         MessageHandler::instance()->printWarning(
-            "TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and "
-            "min values for your hardware is %.1f and 1.0\n", maximumAnistropy
+            "TextureManager warning: Anisotropic filtersize=%.2f is incorrect. Max and "
+            "min values for your hardware is %.1f and 1.0", maximumAnistropy
         );
     }
 }
@@ -143,7 +143,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         }
 
         MessageHandler::instance()->printDebug(
-            "TextureManager: Texture created from '%s' [id=%d]\n", filename.c_str(), texID
+            "TextureManager: Texture created from '%s' [id=%d]", filename.c_str(), texID
         );
     }
     else {
@@ -159,7 +159,7 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
 {
     if (!imgPtr) {
         MessageHandler::instance()->printDebug(
-            "TextureManager: Cannot create texture '%s' from invalid image\n", name.c_str()
+            "TextureManager: Cannot create texture '%s' from invalid image", name.c_str()
         );
         return false;
     }
@@ -190,7 +190,7 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
         }
 
         MessageHandler::instance()->printDebug(
-            "TextureManager: Texture created from image [id=%d]\n", texID
+            "TextureManager: Texture created from image [id=%d]", texID
         );
     }
     else {
@@ -226,7 +226,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
         }
 
         MessageHandler::instance()->printDebug(
-            "TextureManager: Unmanaged texture created from '%s' [id=%d]\n",
+            "TextureManager: Unmanaged texture created from '%s' [id=%d]",
             filename.c_str(), tmpTexID
         );
     }
@@ -253,7 +253,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
 
         if (_overWriteMode) {
             MessageHandler::instance()->printDebug(
-                "TextureManager: Reloading texture '%s'! [id=%d]\n", name.c_str(), texPtr
+                "TextureManager: Reloading texture '%s'! [id=%d]", name.c_str(), texPtr
             );
 
             if (texPtr != 0) {
@@ -264,7 +264,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
         }
         else {
             MessageHandler::instance()->printWarning(
-                "TextureManager: '%s' exists already! [id=%d]\n", name.c_str(), texPtr
+                "TextureManager: '%s' exists already! [id=%d]", name.c_str(), texPtr
             );
             return false;
         }
@@ -297,7 +297,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 
     if (bpc > 2) {
         MessageHandler::instance()->printError(
-            "TextureManager: %d-bit per channel is not supported\n", bpc * 8
+            "TextureManager: %d-bit per channel is not supported", bpc * 8
         );
         return false;
     }
@@ -305,7 +305,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
         // turn of compression if 16-bit per color
         MessageHandler::instance()->printWarning(
             "TextureManager: Compression is not supported for bit depths higher than "
-            "16-bit per channel\n"
+            "16-bit per channel"
         );
         _compression = CompressionMode::None;
     }
@@ -359,7 +359,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 
     MessageHandler::instance()->printDebug(
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
-        "Type: %#04x, Format: %#04x\n",
+        "Type: %#04x, Format: %#04x",
         imgPtr.getWidth(), imgPtr.getHeight(), imgPtr.getChannels(),
         (_compression == CompressionMode::None) ?
             "none" :
@@ -392,7 +392,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 
         GLfloat maxAni;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-        // MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
+        // MessageHandler::instance()->print("Max anisotropy: %f", maxAni);
 
         glTexParameteri(
             GL_TEXTURE_2D,

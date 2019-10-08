@@ -22,8 +22,7 @@ namespace {
         const bool saveSuccess = ptr->frameBufferImage->save();
         if (!saveSuccess) {
             sgct::MessageHandler::instance()->printError(
-                "Error: Failed to save '%s'\n",
-                ptr->frameBufferImage->getFilename().c_str()
+                "Error: Failed to save '%s'", ptr->frameBufferImage->getFilename().c_str()
             );
         }
         ptr->isRunning = false;
@@ -47,7 +46,7 @@ ScreenCapture::ScreenCapture()
 {}
 
 ScreenCapture::~ScreenCapture() {
-    MessageHandler::instance()->printInfo("Clearing screen capture buffers...\n");
+    MessageHandler::instance()->printInfo("Clearing screen capture buffers");
 
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         // kill threads that are still running
@@ -92,7 +91,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     if (_usePBO) {
         glGenBuffers(1, &_pbo);
         MessageHandler::instance()->printDebug(
-            "ScreenCapture: Generating %dx%dx%d PBO: %u\n",
+            "ScreenCapture: Generating %dx%dx%d PBO: %u",
             _resolution.x, _resolution.y, _nChannels, _pbo
         );
 
@@ -165,7 +164,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         }
         else {
             MessageHandler::instance()->printError(
-                "Error: Can't map data (0) from GPU in frame capture\n"
+                "Error: Can't map data (0) from GPU in frame capture"
             );
         }
         
@@ -214,7 +213,7 @@ void ScreenCapture::setUsePBO(bool state) {
     _usePBO = state;
     
     MessageHandler::instance()->printInfo(
-        "ScreenCapture: PBO rendering %s\n", state ? "enabled" : "disabled"
+        "ScreenCapture: PBO rendering %s", state ? "enabled" : "disabled"
     );
 }
 
@@ -231,7 +230,7 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     _windowIndex = windowIndex;
 
     MessageHandler::instance()->printDebug(
-        "Number of screen capture threads is set to %d\n", _nThreads
+        "Number of screen capture threads is set to %d", _nThreads
     );
 }
 
@@ -369,13 +368,13 @@ void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
         MessageHandler::instance()->printError(
-            "Error in finding availible thread for screenshot/capture\n"
+            "Error in finding availible thread for screenshot/capture"
         );
         return nullptr;
     }
 
     MessageHandler::instance()->printDebug(
-        "Starting thread for screenshot/capture [%d]\n", index
+        "Starting thread for screenshot/capture [%d]", index
     );
 
     if (_captureInfos[index].frameBufferImage == nullptr) {

@@ -82,7 +82,7 @@ int ShaderProgram::getId() const {
 bool ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
         MessageHandler::instance()->printError(
-            "ShaderProgram: No shaders has been added to program '%s'\n", _name.c_str()
+            "ShaderProgram: No shaders has been added to program '%s'", _name.c_str()
         );
         return false;
     }
@@ -109,7 +109,7 @@ bool ShaderProgram::createAndLinkProgram() {
 
 bool ShaderProgram::reload() {
     MessageHandler::instance()->printInfo(
-        "ShaderProgram: Reloading program '%s'\n", _name.c_str()
+        "ShaderProgram: Reloading program '%s'", _name.c_str()
     );
     
     deleteProgram();
@@ -125,7 +125,7 @@ bool ShaderProgram::reload() {
 
         if (!success) {
             MessageHandler::instance()->printError(
-                "ShaderProgram: Failed to load '%s'\n", sd.source.c_str()
+                "ShaderProgram: Failed to load '%s'", sd.source.c_str()
             );
             return false;
         }
@@ -141,7 +141,7 @@ bool ShaderProgram::createProgram() {
         // if it has been linked already it can't be reused
         if (_isLinked) {
             MessageHandler::instance()->printError(
-                "Could not create shader program [%s]: Already linked to shaders\n",
+                "Could not create shader program [%s]: Already linked to shaders",
                 _name.c_str()
             );
             return false;
@@ -155,7 +155,7 @@ bool ShaderProgram::createProgram() {
 
     if (_programId == 0) {
         MessageHandler::instance()->printError(
-            "Could not create shader program [%s]: Unknown error\n", _name.c_str()
+            "Could not create shader program [%s]: Unknown error", _name.c_str()
         );
         return false;
     }
@@ -175,7 +175,7 @@ bool ShaderProgram::checkLinkStatus() const {
         glGetProgramInfoLog(_programId, logLength, nullptr, log.data());
 
         MessageHandler::instance()->printError(
-            "Shader program[%s] linking error: %s\n", _name.c_str(), log.data()
+            "Shader program[%s] linking error: %s", _name.c_str(), log.data()
         );
 
         return false;

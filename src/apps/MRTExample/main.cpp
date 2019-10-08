@@ -150,7 +150,7 @@ void initOGLFun() {
     std::string path = TextureManager::instance()->getTexturePath("box");
     TextureManager::instance()->getDimensions("box", sizeX, sizeY, sizeC);
     MessageHandler::instance()->printInfo(
-        "Texture info, x=%d, y=%d, c=%d, path=%s\n", sizeX, sizeY, sizeC, path.c_str()
+        "Texture info, x=%d, y=%d, c=%d, path=%s", sizeX, sizeY, sizeC, path.c_str()
     );
 
     box = std::make_unique<sgct::utils::Box>(

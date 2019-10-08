@@ -33,7 +33,7 @@ namespace {
         }
         else {
             sgct::MessageHandler::instance()->printError(
-                "Viewport: Failed to parse position from XML\n"
+                "Viewport: Failed to parse position from XML"
             );
         }
 
@@ -45,7 +45,7 @@ namespace {
         }
         else {
             sgct::MessageHandler::instance()->printError(
-                "Viewport: Failed to parse size from XML\n"
+                "Viewport: Failed to parse size from XML"
             );
         }
 
@@ -60,17 +60,15 @@ namespace {
         //    if (expectedResolutionX != vpResolution.x ||
         //        expectedResolutionY != vpResolution.y)
         //    {
-        //        MessageHandler::instance()->print(
-        //            MessageHandler::Level::Warning,
-        //            "Viewport: MPCDI region expected resolution does not match window\n"
+        //        MessageHandler::instance()->printWarning(
+        //            "Viewport: MPCDI region expected resolution does not match window"
         //        );
         //    }
 
         //}
         //else {
-        //    MessageHandler::instance()->print(
-        //        MessageHandler::Level::Error,
-        //        "Viewport: Failed to parse resolution from XML\n"
+        //    MessageHandler::instance()->printError(
+        //        "Viewport: Failed to parse resolution from XML"
         //    );
         //}
 
@@ -124,7 +122,7 @@ namespace {
                     }
                     catch (const std::invalid_argument&) {
                         sgct::MessageHandler::instance()->printError(
-                            "Viewport: Failed to parse frustum element from MPCDI XML\n"
+                            "Viewport: Failed to parse frustum element from MPCDI XML"
                         );
                     }
 
@@ -137,7 +135,7 @@ namespace {
 
                 if (hasMissingField) {
                     sgct::MessageHandler::instance()->printError(
-                        "Viewport: Failed to parse mpcdi projection FOV from XML\n"
+                        "Viewport: Failed to parse mpcdi projection FOV from XML"
                     );
                     return {};
                 }
@@ -170,7 +168,7 @@ namespace {
 #endif
         if (!success) {
             sgct::MessageHandler::instance()->printError(
-                "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath.c_str()
+                "parseMpcdiConfiguration: Failed to open file %s", cfgFilePath.c_str()
             );
             return false;
         }
@@ -178,7 +176,7 @@ namespace {
         *zipfile = unzOpen(cfgFilePath.c_str());
         if (zipfile == nullptr) {
             sgct::MessageHandler::instance()->printError(
-                "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n",
+                "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s",
                 cfgFilePath.c_str()
             );
             return false;
@@ -188,7 +186,7 @@ namespace {
 
     void unsupportedFeatureCheck(std::string_view tag, const std::string& feature) {
         if (feature == tag) {
-            std::string warn = "ReadConfigMpcdi: Unsupported feature: " + feature + " \n";
+            std::string warn = "ReadConfigMpcdi: Unsupported feature: " + feature;
             sgct::MessageHandler::instance()->printWarning(warn.c_str());
         }
     }
@@ -201,14 +199,14 @@ namespace {
         const char* attr = elem->Attribute(attrRequired.c_str());
         if (attr == nullptr) {
             sgct::MessageHandler::instance()->printError(
-                ("parseMpcdiXml: No " + tagDescription + " attribute found\n").c_str()
+                ("parseMpcdiXml: No " + tagDescription + " attribute found").c_str()
             );
             return false;
         }
 
         if (expectedTag != attr) {
             std::string errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
-                expectedTag + "' is supported.\n";
+                expectedTag + "' is supported";
             sgct::MessageHandler::instance()->printError(errorMsg.c_str());
             return false;
         }
@@ -228,7 +226,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
     bool fileOpenSuccess = openZipFile(cfgFile, filenameMpcdi, &zipfile);
     if (!fileOpenSuccess) {
         MessageHandler::instance()->printError(
-            "parseMpcdiConfiguration: Unable to open zip archive file %s\n",
+            "parseMpcdiConfiguration: Unable to open zip archive file %s",
             filenameMpcdi.c_str()
         );
         return false;
@@ -238,7 +236,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
     int globalInfoRet = unzGetGlobalInfo(zipfile, &globalInfo);
     if (globalInfoRet != UNZ_OK) {
         MessageHandler::instance()->printError(
-            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
+            "parseMpcdiConfiguration: Unable to get zip archive info from %s",
             filenameMpcdi.c_str()
         );
         unzClose(zipfile);
@@ -262,7 +260,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         );
         if (getCurrentFileInfo != UNZ_OK) {
             MessageHandler::instance()->printError(
-                "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i
+                "parseMpcdiConfiguration: Unable to get info on compressed file #%d", i
             );
             unzClose(zipfile);
             return false;
@@ -280,7 +278,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
             int goToNextFileStatus = unzGoToNextFile(zipfile);
             if (goToNextFileStatus != UNZ_OK) {
                 MessageHandler::instance()->printWarning(
-                    "parseMpcdiConfiguration: Unable to get next file in archive\n"
+                    "parseMpcdiConfiguration: Unable to get next file in archive"
                 );
             }
         }
@@ -288,7 +286,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
     unzClose(zipfile);
     if (!_xmlFileContents.isFound && !_pfmFileContents.isFound) {
         MessageHandler::instance()->printError(
-            "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file\n",
+            "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file",
             filenameMpcdi.c_str()
         );
         return false;
@@ -311,7 +309,7 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     int openCurrentFile = unzOpenCurrentFile(zipfile);
     if (openCurrentFile != UNZ_OK) {
         MessageHandler::instance()->printError(
-            "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
+            "parseMpcdiConfiguration: Unable to open %s", filename.c_str()
         );
         unzClose(zipfile);
         return false;
@@ -324,7 +322,7 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     );
     if (err < 0) {
         MessageHandler::instance()->printError(
-            "parseMpcdiConfiguration: %s read from %s failed\n",
+            "parseMpcdiConfiguration: %s read from %s failed",
             suffix.c_str(), filename.c_str()
         );
         unzClose(zipfile);
@@ -361,7 +359,7 @@ bool Mpcdi::readAndParseString(Node& node, Window& win) {
         }
 
         MessageHandler::instance()->printError(
-            "readAndParseXMLString: error parsing file %s\n", str.c_str()
+            "readAndParseXMLString: error parsing file %s", str.c_str()
         );
         return false;
     }
@@ -374,9 +372,7 @@ bool Mpcdi::readAndParseString(Node& node, Window& win) {
 bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window& win) {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
     if (XMLroot == nullptr) {
-        MessageHandler::instance()->printError(
-            "readAndParseMpcdi: Cannot find XML root"
-        );
+        MessageHandler::instance()->printError("readAndParseMpcdi: Cannot find XML root");
         return false;
     }
 
@@ -388,7 +384,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
     );
     if (!hasProfile) {
         MessageHandler::instance()->printError(
-            "readAndParseMpcdi: Problem with 'MPCDI' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'MPCDI' attribute in XML"
         );
         return false;
     }
@@ -400,7 +396,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
     );
     if (!hasGeometry) {
         MessageHandler::instance()->printError(
-            "readAndParseMpcdi: Problem with 'geometry' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'geometry' attribute in XML"
         );
         return false;
     }
@@ -412,7 +408,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
     );
     if (!hasVersion) {
         MessageHandler::instance()->printError(
-            "readAndParseMpcdi: Problem with 'version' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'version' attribute in XML"
         );
         return false;
     }
@@ -445,7 +441,7 @@ bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Windo
 {
     if (parsedItems.hasDisplayElem) {
         MessageHandler::instance()->printError(
-            "parseMpcdiXml: Multiple 'display' elements not supported\n"
+            "parseMpcdiXml: Multiple 'display' elements not supported"
         );
         return false;
     }
@@ -520,7 +516,7 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
             std::string_view interpolation = child->GetText();
             if (interpolation != "linear") {
                 MessageHandler::instance()->printWarning(
-                    "parseMpcdiXml: only linear interpolation is supported\n"
+                    "parseMpcdiXml: only linear interpolation is supported"
                 );
             }
             warp->hasFoundInterpolation = true;
@@ -545,14 +541,14 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
         }
         if (!foundMatchingPfmBuffer) {
             MessageHandler::instance()->printError(
-                "parseMpcdiXml: matching geometryWarpFile not found\n"
+                "parseMpcdiXml: matching geometryWarpFile not found"
             );
             return false;
         }
     }
     else {
         MessageHandler::instance()->printError(
-            "parseMpcdiXml: geometryWarpFile requires both path and interpolation\n"
+            "parseMpcdiXml: geometryWarpFile requires both path and interpolation"
         );
         return false;
     }
@@ -566,7 +562,7 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
 {
     if (parsedItems.hasBufferElem) {
         MessageHandler::instance()->printError(
-            "parseMpcdiXml: Multiple 'buffer' elements unsupported\n"
+            "parseMpcdiXml: Multiple 'buffer' elements unsupported"
         );
         return false;
     }
@@ -586,7 +582,7 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
     }
     else {
         MessageHandler::instance()->printError(
-            "parseMpcdiXml: Require both xResolution and yResolution values\n"
+            "parseMpcdiXml: Require both xResolution and yResolution values"
         );
         return false;
     }
@@ -620,7 +616,7 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
     }
     else {
         MessageHandler::instance()->printError(
-            "parseMpcdiXml: No 'id' attribute provided for region\n"
+            "parseMpcdiXml: No 'id' attribute provided for region"
         );
         return false;
     }

@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     joyStick1Name = Engine::getJoystickName(joystick::Joystick1);
     if (joyStick1Name) {
         MessageHandler::instance()->printInfo(
-            "Joystick 1 '%s' is present\n", joyStick1Name
+            "Joystick 1 '%s' is present", joyStick1Name
         );
 
         int numberOfAxes = 0;
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
         Engine::getJoystickButtons(joystick::Joystick1, &numberOfButtons);
 
         MessageHandler::instance()->printInfo(
-            "Number of axes %d\nNumber of buttons %d\n", numberOfAxes, numberOfButtons
+            "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons
         );
     }
 

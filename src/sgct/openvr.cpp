@@ -93,7 +93,7 @@ namespace sgct::openvr {
 
 void initialize(float nearClip, float farClip) {
     if (isOpenVRInitalized) {
-        MessageHandler::instance()->printInfo("OpenVR has already been initialized\n");
+        MessageHandler::instance()->printInfo("OpenVR has already been initialized");
         return;
     }
         
@@ -122,7 +122,7 @@ void initialize(float nearClip, float farClip) {
         HMD->GetRecommendedRenderTargetSize(&renderWidth, &renderHeight);
 
         MessageHandler::instance()->printInfo(
-            "OpenVR render dimensions per eye: %d x %d\n", renderWidth, renderHeight
+            "OpenVR render dimensions per eye: %d x %d", renderWidth, renderHeight
         );
 
         // Create FBO and Texture used for sending data top HMD
@@ -136,7 +136,7 @@ void initialize(float nearClip, float farClip) {
             nullptr
         );
         MessageHandler::instance()->printInfo(
-            "OpenVR Device Name: %s\n", HMDDevice.c_str()
+            "OpenVR Device Name: %s", HMDDevice.c_str()
         );
 
         std::string HMDNumber = getTrackedDeviceString(
@@ -146,7 +146,7 @@ void initialize(float nearClip, float farClip) {
             nullptr
         );
         MessageHandler::instance()->printInfo(
-            "OpenVR Device Number: %s\n", HMDNumber.c_str()
+            "OpenVR Device Number: %s", HMDNumber.c_str()
         );
 
         vr::IVRRenderModels* renderModels = reinterpret_cast<vr::IVRRenderModels*>(
@@ -155,7 +155,7 @@ void initialize(float nearClip, float farClip) {
         if (!renderModels) {
             shutdown();
             MessageHandler::instance()->printError(
-                "VR_Init Failed. Unable to get render model interface: %s\n",
+                "VR_Init Failed. Unable to get render model interface: %s",
                 vr::VR_GetVRInitErrorAsEnglishDescription(eError)
             );
         }

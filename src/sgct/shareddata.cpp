@@ -86,10 +86,7 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void)) {
 
 void SharedData::decode(const char* receivedData, int receivedLength, int) {
 #ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::NotifyAll,
-        "SharedData::decode\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::decode");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
 
@@ -111,10 +108,7 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 
 void SharedData::encode() {
 #ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Levek::NotifyAll,
-        "SharedData::encode\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::encode");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
 
@@ -186,7 +180,7 @@ void SharedData::encode() {
         else {
             MutexManager::instance()->dataSyncMutex.unlock();
             MessageHandler::instance()->printError(
-                "SharedData: Failed to compress data (error %d)\n", err
+                "SharedData: Failed to compress data (error %d)", err
             );
             return;
         }
@@ -229,8 +223,7 @@ void SharedData::writeFloat(const SharedFloat& sf) {
 void SharedData::writeDouble(const SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeDouble\nDouble = %f\n", sd->getVal()
+        "SharedData::writeDouble. Double = %f", sd->getVal()
     );
 #endif
 
@@ -244,8 +237,7 @@ void SharedData::writeDouble(const SharedDouble& sd) {
 void SharedData::writeInt64(const SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeInt64\nInt = %ld\n", si->getVal()
+        "SharedData::writeInt64. Int = %ld", si->getVal()
     );
 #endif
 
@@ -259,8 +251,7 @@ void SharedData::writeInt64(const SharedInt64& si) {
 void SharedData::writeInt32(const SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeInt32\nInt = %d\n", si->getVal()
+        "SharedData::writeInt32. Int = %d", si->getVal()
     );
 #endif
 
@@ -274,8 +265,7 @@ void SharedData::writeInt32(const SharedInt32& si) {
 void SharedData::writeInt16(const SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeInt16\nInt = %d\n", si->getVal()
+        "SharedData::writeInt16. Int = %d", si->getVal()
     );
 #endif
 
@@ -289,8 +279,7 @@ void SharedData::writeInt16(const SharedInt16& si) {
 void SharedData::writeInt8(const SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeInt8\nInt = %d\n", si->getVal()
+        "SharedData::writeInt8. Int = %d", si->getVal()
     );
 #endif
 
@@ -303,9 +292,8 @@ void SharedData::writeInt8(const SharedInt8& si) {
 
 void SharedData::writeUInt64(const SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->pruintDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeUInt64\nUInt = %lu\n", si->getVal()
+    MessageHandler::instance()->printDebug(
+        "SharedData::writeUInt64. UInt = %lu", si->getVal()
     );
 #endif
 
@@ -319,8 +307,7 @@ void SharedData::writeUInt64(const SharedUInt64& si) {
 void SharedData::writeUInt32(const SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeUInt32\nUInt = %u\n", si->getVal()
+        "SharedData::writeUInt32. UInt = %u", si->getVal()
     );
 #endif
 
@@ -335,7 +322,7 @@ void SharedData::writeUInt16(const SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
         MessageHandler::Level::Info,
-        "SharedData::writeUInt16\nUInt = %u\n", si->getVal()
+        "SharedData::writeUInt16. UInt = %u", si->getVal()
     );
 #endif
 
@@ -350,8 +337,7 @@ void SharedData::writeUInt8(const SharedUInt8& si)
 {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeUInt8\nUInt = %u\n", si->getVal()
+        "SharedData::writeUInt8. UInt = %u", si->getVal()
     );
 #endif
 
@@ -364,10 +350,7 @@ void SharedData::writeUInt8(const SharedUInt8& si)
 
 void SharedData::writeUChar(const SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeUChar\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::writeUChar");
 #endif
 
     unsigned char val = suc.getVal();
@@ -378,10 +361,7 @@ void SharedData::writeUChar(const SharedUChar& suc) {
 
 void SharedData::writeBool(const SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeBool\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::writeBool");
 #endif
     
     bool val = sb.getVal();
@@ -392,10 +372,7 @@ void SharedData::writeBool(const SharedBool& sb) {
 
 void SharedData::writeString(const SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeString\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::writeString");
 #endif
     
     std::string tmpStr = ss.getVal();
@@ -411,10 +388,7 @@ void SharedData::writeString(const SharedString& ss) {
 
 void SharedData::writeWString(const SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::writeWString\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::writeWString");
 #endif
 
     std::wstring tmpStr = ss.getVal();
@@ -431,10 +405,7 @@ void SharedData::writeWString(const SharedWString& ss) {
 
 void SharedData::readFloat(SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readFloat\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readFloat");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     
@@ -443,10 +414,7 @@ void SharedData::readFloat(SharedFloat& sf) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Float = %f\n", val
-    );
+    MessageHandler::instance()->printDebug("Float = %f", val);
 #endif
 
     sf.setVal(val);
@@ -454,10 +422,7 @@ void SharedData::readFloat(SharedFloat& sf) {
 
 void SharedData::readDouble(SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readDouble\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readDouble");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     double val = *reinterpret_cast<double*>(&_dataBlock[_pos]);
@@ -465,10 +430,7 @@ void SharedData::readDouble(SharedDouble& sd) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Double = %lf\n", val
-    );
+    MessageHandler::instance()->printDebug("Double = %lf", val);
 #endif
 
     sd.setVal(val);
@@ -476,10 +438,7 @@ void SharedData::readDouble(SharedDouble& sd) {
 
 void SharedData::readInt64(SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readInt64\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readInt64");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     int64_t val = *reinterpret_cast<int64_t*>(&_dataBlock[_pos]);
@@ -487,10 +446,7 @@ void SharedData::readInt64(SharedInt64& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Int64 = %ld\n", val
-    );
+    MessageHandler::instance()->printDebug("Int64 = %ld", val);
 #endif
 
     si.setVal(val);
@@ -498,10 +454,7 @@ void SharedData::readInt64(SharedInt64& si) {
 
 void SharedData::readInt32(SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readInt32\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readInt32");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     int32_t val = *reinterpret_cast<int32_t*>(&_dataBlock[_pos]);
@@ -509,10 +462,7 @@ void SharedData::readInt32(SharedInt32& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Int32 = %d\n", val
-    );
+    MessageHandler::instance()->printDebug("Int32 = %d", val);
 #endif
 
     si.setVal(val);
@@ -520,10 +470,7 @@ void SharedData::readInt32(SharedInt32& si) {
 
 void SharedData::readInt16(SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readInt16\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readInt16");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     int16_t val = *reinterpret_cast<int16_t*>(&_dataBlock[_pos]);
@@ -531,10 +478,7 @@ void SharedData::readInt16(SharedInt16& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Int16 = %d\n", val
-    );
+    MessageHandler::instance()->printDebug("Int16 = %d", val);
 #endif
 
     si.setVal(val);
@@ -542,10 +486,7 @@ void SharedData::readInt16(SharedInt16& si) {
 
 void SharedData::readInt8(SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readInt8\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readInt8");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     int8_t val = *reinterpret_cast<int8_t*>(&_dataBlock[_pos]);
@@ -553,10 +494,7 @@ void SharedData::readInt8(SharedInt8& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "Int8 = %d\n", val
-    );
+    MessageHandler::instance()->printDebug("Int8 = %d", val);
 #endif
 
     si.setVal(val);
@@ -564,10 +502,7 @@ void SharedData::readInt8(SharedInt8& si) {
 
 void SharedData::readUInt64(SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readUInt64\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readUInt64");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     uint64_t val = *reinterpret_cast<uint64_t*>(&_dataBlock[_pos]);
@@ -575,10 +510,7 @@ void SharedData::readUInt64(SharedUInt64& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "UInt64 = %lu\n", val
-    );
+    MessageHandler::instance()->printDebug("UInt64 = %lu", val);
 #endif
 
     si.setVal(val);
@@ -586,10 +518,7 @@ void SharedData::readUInt64(SharedUInt64& si) {
 
 void SharedData::readUInt32(SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readUInt32\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readUInt32");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     uint32_t val = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
@@ -597,10 +526,7 @@ void SharedData::readUInt32(SharedUInt32& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "UInt32 = %u\n", val
-    );
+    MessageHandler::instance()->printDebug("UInt32 = %u", val);
 #endif
 
     si.setVal(val);
@@ -608,10 +534,7 @@ void SharedData::readUInt32(SharedUInt32& si) {
 
 void SharedData::readUInt16(SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readUInt16\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readUInt16");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     uint16_t val = *reinterpret_cast<uint16_t*>(&_dataBlock[_pos]);
@@ -619,10 +542,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "UInt16 = %u\n", val
-    );
+    MessageHandler::instance()->printDebug("UInt16 = %u", val);
 #endif
 
     si.setVal(val);
@@ -630,10 +550,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
 
 void SharedData::readUInt8(SharedUInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readUInt8\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readUInt8");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     uint8_t val = *reinterpret_cast<uint8_t*>(&_dataBlock[_pos]);
@@ -641,10 +558,7 @@ void SharedData::readUInt8(SharedUInt8& si) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "UInt8 = %u\n", val
-    );
+    MessageHandler::instance()->printDebug("UInt8 = %u", val);
 #endif
 
     si.setVal(val);
@@ -652,10 +566,7 @@ void SharedData::readUInt8(SharedUInt8& si) {
 
 void SharedData::readUChar(SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readUChar\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readUChar");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     unsigned char c = _dataBlock[_pos];
@@ -663,20 +574,14 @@ void SharedData::readUChar(SharedUChar& suc) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "UChar = %d\n", c
-    );
+    MessageHandler::instance()->printDebug("UChar = %d", c);
 #endif
     suc.setVal(c);
 }
 
 void SharedData::readBool(SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readBool\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readBool");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     bool b = _dataBlock[_pos] == 1;
@@ -684,17 +589,14 @@ void SharedData::readBool(SharedBool& sb) {
     MutexManager::instance()->dataSyncMutex.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(MessageHandler::Level::Info, "Bool = %d\n", b);
+    MessageHandler::instance()->printDebug(MessageHandler::Level::Info, "Bool = %d", b);
 #endif
     sb.setVal(b);
 }
 
 void SharedData::readString(SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readString\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readString");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
     
@@ -711,10 +613,7 @@ void SharedData::readString(SharedString& ss) {
     MutexManager::instance()->dataSyncMutex.unlock();
     
 #ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "String = '%s'\n", stringData
-    );
+    MessageHandler::instance()->printDebug("String = '%s'", stringData);
 #endif
 
     ss.setVal(std::move(stringData));
@@ -722,10 +621,7 @@ void SharedData::readString(SharedString& ss) {
 
 void SharedData::readWString(SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::Level::Info,
-        "SharedData::readWString\n"
-    );
+    MessageHandler::instance()->printDebug("SharedData::readWString");
 #endif
     MutexManager::instance()->dataSyncMutex.lock();
 

@@ -19,7 +19,7 @@
 bool loadOBJ(const std::string& path, std::vector<glm::vec3>& vertices, 
              std::vector<glm::vec2>& uvs, std::vector<glm::vec3>& normals)
 {
-    printf("Loading OBJ file %s\n", path.c_str());
+    printf("Loading OBJ file %s", path.c_str());
 
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
     struct {

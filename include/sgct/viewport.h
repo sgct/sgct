@@ -25,11 +25,6 @@ class NonLinearProjection;
  */
 class Viewport : public BaseViewport {
 public:
-    Viewport();
-
-    /// Create a viewport coordinates are relative to the window size [0, 1]
-    Viewport(float x, float y, float xSize, float ySize);
-
     /// Destructor that deletes any overlay or mask textures
     ~Viewport();
 

@@ -31,14 +31,6 @@ namespace {
 
 namespace sgct::core {
 
-Viewport::Viewport() : Viewport(0.f, 0.f, 0.f, 0.f) {}
-
-Viewport::Viewport(float x, float y, float xSize, float ySize) {
-    _position = glm::vec2(x, y);
-    _size = glm::vec2(xSize, ySize);
-    _projectionPlane.reset();
-}
-
 Viewport::~Viewport() {
     glDeleteTextures(1, &_overlayTextureIndex);
     glDeleteTextures(1, &_blendMaskTextureIndex);
@@ -85,8 +77,12 @@ void Viewport::applySettings(const config::Viewport& viewport) {
         setEye(e);
     }
 
-    setPos(viewport.position);
-    setSize(viewport.size);
+    if (viewport.position) {
+        setPos(*viewport.position);
+    }
+    if (viewport.size) {
+        setSize(*viewport.size);
+    }
 
     std::visit(overloaded {
         [](const config::NoProjection&) {},

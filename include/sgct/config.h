@@ -224,9 +224,9 @@ struct Viewport {
     std::optional<std::string> meshHint;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
-
-    glm::vec2 position;
-    glm::vec2 size;
+    std::optional<glm::vec2> position;
+    std::optional<glm::vec2> size;
+    
     std::variant<NoProjection, PlanarProjection, FisheyeProjection,
         SphericalMirrorProjection, SpoutOutputProjection, ProjectionPlane> projection;
 };

@@ -453,12 +453,11 @@ Parameters:
             win.setFixResolution(true);
         }
 
-        if (!window.viewports.empty()) {
-            for (const sgct::config::Viewport& viewport : window.viewports) {
-                std::unique_ptr<sgct::core::Viewport> vp = std::make_unique<sgct::core::Viewport>();
-                vp->applySettings(viewport);
-                win.addViewport(std::move(vp));
-            }
+        for (const sgct::config::Viewport& viewport : window.viewports) {
+            std::unique_ptr<sgct::core::Viewport> vp =
+                std::make_unique<sgct::core::Viewport>();
+            vp->applySettings(viewport);
+            win.addViewport(std::move(vp));
         }
         node.addWindow(std::move(win));
     }
@@ -734,8 +733,8 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         proj.upperRight = glm::vec3(1.778f, 1.f, 0.f);
 
         sgct::config::Viewport viewport;
-        viewport.position = glm::vec2(0.f, 0.f);
-        viewport.size = glm::vec2(1.f, 1.f);
+        //viewport.position = glm::vec2(0.f, 0.f);
+        //viewport.size = glm::vec2(1.f, 1.f);
         viewport.projection = proj;
 
         sgct::config::Window window;

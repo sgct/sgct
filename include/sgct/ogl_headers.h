@@ -1,9 +1,10 @@
-/*************************************************************************
-Copyright (c) 2012-2015 Miroslav Andel
-All rights reserved.
-
-For conditions of distribution and use, see copyright notice in sgct.h
-*************************************************************************/
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2019                                                               *
+ * For conditions of distribution and use, see copyright notice in sgct.h                *
+ ****************************************************************************************/
 
 #ifndef __SGCT__OGL_HEADERS__H__
 #define __SGCT__OGL_HEADERS__H__
@@ -36,19 +37,5 @@ using namespace gl;
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // WIN32_LEAN_AND_MEAN
-
-//#ifdef _WIN32
-//#define GLFW_EXPOSE_NATIVE_WIN32
-//#define GLFW_EXPOSE_NATIVE_WGL
-//#elif defined __linux__
-//#define GLFW_EXPOSE_NATIVE_X11
-//#define GLFW_EXPOSE_NATIVE_GLX
-//#elif defined __APPLE__
-//#define GLFW_EXPOSE_NATIVE_COCOA
-//#define GLFW_EXPOSE_NATIVE_NSGL
-//#endif
-//
-//#include <GLFW/glfw3.h>
-//#include <GLFW/glfw3native.h>
 
 #endif // __SGCT__OGL_HEADERS__H__

@@ -1,9 +1,10 @@
-/*************************************************************************
-Copyright (c) 2012-2015 Miroslav Andel
-All rights reserved.
-
-For conditions of distribution and use, see copyright notice in sgct.h
-*************************************************************************/
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2019                                                               *
+ * For conditions of distribution and use, see copyright notice in sgct.h                *
+ ****************************************************************************************/
 
 #include <sgct/window.h>
 
@@ -283,6 +284,7 @@ void Window::initOGL() {
         // abock (2019-10-02); I had to hand-resolve these functions as glbindings does
         // not come with build-in support for the wgl.xml functions
         // See https://github.com/cginternals/glbinding/issues/132 for when it is resolved
+
         wglBindSwapBarrierNV = reinterpret_cast<BindSwapBarrier>(
             glfwGetProcAddress("wglBindSwapBarrierNV")
         );
@@ -303,6 +305,20 @@ void Window::initOGL() {
             glfwGetProcAddress("wglResetFrameCountNV")
         );
         assert(wglResetFrameCountNV);
+
+        if (!wglBindSwapBarrierNV || !wglJoinSwapGroupNV || !wglQueryMaxSwapGroupsNV ||
+            !wglQueryFrameCountNV || !wglResetFrameCountNV)
+        {
+            MessageHandler::instance()->printError("Error resolving swapgroup functions");
+            MessageHandler::instance()->printImportant(
+                "wglBindSwapBarrierNV(: %p\twglJoinSwapGroupNV: %p\t"
+                "wglQueryMaxSwapGroupsNV: %p\twglQueryFrameCountNV: %p\t"
+                "wglResetFrameCountNV: %p",
+                wglBindSwapBarrierNV, wglJoinSwapGroupNV, wglQueryMaxSwapGroupsNV,
+                wglQueryFrameCountNV,wglResetFrameCountNV
+            );
+            throw std::runtime_error("Error resolving swapgroup functions");
+        };
 
         FunctionsResolved = true;
     }

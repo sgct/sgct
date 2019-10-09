@@ -573,13 +573,13 @@ bool Window::update() {
         const int nCaptureChannels = _alpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
-            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, _preferBGR);
+            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
             sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
-            sc.setTextureTransferProperties(_colorDataType, _preferBGR);
+            sc.setTextureTransferProperties(_colorDataType);
             const glm::ivec2 res = getFramebufferResolution();
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
@@ -951,13 +951,13 @@ void Window::initScreenCapture() {
         const int nCaptureChannels = _alpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
-            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, _preferBGR);
+            sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
             sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
-            sc.setTextureTransferProperties(_colorDataType, _preferBGR);
+            sc.setTextureTransferProperties(_colorDataType);
             const glm::ivec2 res = getFramebufferResolution();
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
@@ -1610,16 +1610,8 @@ Window::ColorBitDepth Window::getColorBitDepth() const {
     return _bufferColorBitDepth;
 }
 
-void Window::setPreferBGR(bool state) {
-    _preferBGR = state;
-}
-
 void Window::setAllowCapture(bool state) {
     _allowCapture = state;
-}
-
-bool Window::isBGRPreferred() const {
-    return _preferBGR;
 }
 
 bool Window::isCapturingAllowed() const {

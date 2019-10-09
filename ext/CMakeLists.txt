@@ -47,10 +47,6 @@ if (SGCT_DEP_INCLUDE_FREETYPE AND SGCT_FREETYPE_SUPPORT)
   disable_external_warnings(freetype)
 endif ()
 
-if (SGCT_DEP_INCLUDE_TURBOJPEG)
-  add_subdirectory(libjpeg-turbo)
-endif ()
-
 if (SGCT_DEP_INCLUDE_TINYXML)
   add_subdirectory(tinyxml2)
 endif ()

@@ -135,8 +135,8 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         TextureData tmpTexture;
         tmpTexture.id = texID;
         tmpTexture.path = filename;
-        tmpTexture.width = static_cast<int>(img.getWidth());
-        tmpTexture.height = static_cast<int>(img.getHeight());
+        tmpTexture.width = static_cast<int>(img.getSize().x);
+        tmpTexture.height = static_cast<int>(img.getSize().y);
         tmpTexture.nChannels = static_cast<int>(img.getChannels());
 
         if (!reload) {
@@ -182,8 +182,8 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
         TextureData tmpTexture;
         tmpTexture.id = texID;
         tmpTexture.path = "NOTSET";
-        tmpTexture.width = static_cast<int>(imgPtr->getWidth());
-        tmpTexture.height = static_cast<int>(imgPtr->getHeight());
+        tmpTexture.width = static_cast<int>(imgPtr->getSize().x);
+        tmpTexture.height = static_cast<int>(imgPtr->getSize().y);
         tmpTexture.nChannels = static_cast<int>(imgPtr->getChannels());
 
         if (!reload) {
@@ -278,13 +278,11 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     glGenTextures(1, &texPtr);
     glBindTexture(GL_TEXTURE_2D, texPtr);
 
-    bool isBGR = imgPtr.getPreferBGRImport();
-
     // if three channels
-    GLenum textureType = isBGR ? GL_BGR : GL_RGB;
+    GLenum textureType = GL_BGR;
 
     if (imgPtr.getChannels() == 4) {
-        textureType = isBGR ? GL_BGRA : GL_RGBA;
+        textureType = GL_BGRA;
     }
     else if (imgPtr.getChannels() == 1) {
         textureType = GL_RED;
@@ -294,27 +292,10 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     }
 
     GLenum internalFormat = {};
-    unsigned int bpc = static_cast<unsigned int>(imgPtr.getBytesPerChannel());
-
-    if (bpc > 2) {
-        MessageHandler::instance()->printError(
-            "TextureManager: %d-bit per channel is not supported", bpc * 8
-        );
-        return false;
-    }
-    else if (bpc == 2) {
-        // turn of compression if 16-bit per color
-        MessageHandler::instance()->printWarning(
-            "TextureManager: Compression is not supported for bit depths higher than "
-            "16-bit per channel"
-        );
-        _compression = CompressionMode::None;
-    }
-
     switch (imgPtr.getChannels()) {
         case 1:
             if (_compression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
+                internalFormat = GL_R8;
             }
             else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RED;
@@ -325,7 +306,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             break;
         case 2:
             if (_compression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
+                internalFormat = GL_RG8;
             }
             else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RG;
@@ -336,7 +317,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             break;
         case 3:
             if (_compression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+                internalFormat = GL_RGB8;
             }
             else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGB;
@@ -347,7 +328,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             break;
         case 4:
             if (_compression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+                internalFormat = GL_RGBA8;
             }
             else if (_compression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGBA;
@@ -361,7 +342,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     MessageHandler::instance()->printDebug(
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
         "Type: %#04x, Format: %#04x",
-        imgPtr.getWidth(), imgPtr.getHeight(), imgPtr.getChannels(),
+        imgPtr.getSize().x, imgPtr.getSize().y, imgPtr.getChannels(),
         (_compression == CompressionMode::None) ?
             "none" :
             ((_compression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
@@ -373,13 +354,13 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
 
     _mipmapLevels = glm::max(_mipmapLevels, 1);
 
-    GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+    GLenum format = GL_UNSIGNED_BYTE;
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         internalFormat,
-        static_cast<GLsizei>(imgPtr.getWidth()),
-        static_cast<GLsizei>(imgPtr.getHeight()),
+        static_cast<GLsizei>(imgPtr.getSize().x),
+        static_cast<GLsizei>(imgPtr.getSize().y),
         0,
         textureType, 
         format,

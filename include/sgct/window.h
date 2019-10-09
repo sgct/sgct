@@ -268,13 +268,6 @@ public:
     /// Set the color bit depth of the FBO and Screencapture.
     void setColorBitDepth(ColorBitDepth cbd);
 
-    /**
-     * Set if BGR(A) or RGB(A) rendering should be used. Default is BGR(A), which is
-     * usually the native order on GPU hardware. This setting affects the screencapture
-     * which will return the prefered color order.
-     */
-    void setPreferBGR(bool state);
-
     /// Set if screen capturing is allowed.
     void setAllowCapture(bool state);
 
@@ -313,9 +306,6 @@ public:
 
     /// \returns true if this window is resized
     bool isWindowResized() const;
-
-    /// Get if buffer is rendered using BGR(A) or RGB(A).
-    bool isBGRPreferred() const;
 
     /// Get if (screen) capturing is allowed.
     bool isCapturingAllowed() const;
@@ -534,7 +524,6 @@ private:
     GLenum _internalColorFormat;
     GLenum _colorFormat;
     GLenum _colorDataType;
-    bool _preferBGR = true;
     int _bytesPerColor;
 
     struct {

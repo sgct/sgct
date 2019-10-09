@@ -327,10 +327,6 @@ Parameters:
             win.setColorBitDepth(bd);
         }
 
-        if (window.preferBGR) {
-            win.setPreferBGR(*window.preferBGR);
-        }
-
         if (window.isFullScreen) {
             win.setWindowMode(*window.isFullScreen);
         }

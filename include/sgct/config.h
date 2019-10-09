@@ -265,7 +265,6 @@ struct Window {
     std::optional<std::string> name;
     std::vector<std::string> tags;
     std::optional<ColorBitDepth> bufferBitDepth;
-    std::optional<bool> preferBGR;
     std::optional<bool> isFullScreen;
     std::optional<bool> isFloating;
     std::optional<bool> alwaysRender;

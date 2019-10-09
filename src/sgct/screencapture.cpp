@@ -20,10 +20,10 @@ namespace {
         using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
-        const bool saveSuccess = ptr->frameBufferImage->save();
+        const bool saveSuccess = ptr->frameBufferImage->save(ptr->filename);
         if (!saveSuccess) {
             sgct::MessageHandler::instance()->printError(
-                "Error: Failed to save '%s'", ptr->frameBufferImage->getFilename().c_str()
+                "Error: Failed to save '%s'", ptr->filename.c_str()
             );
         }
         ptr->isRunning = false;
@@ -102,10 +102,9 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     }
 }
 
-void ScreenCapture::setTextureTransferProperties(GLenum type, bool preferBGR) {
+void ScreenCapture::setTextureTransferProperties(GLenum type) {
     _downloadType = type;
     _downloadTypeSetByUser = _downloadType;
-    _preferBGR = preferBGR;
     updateDownloadFormat();
 }
 
@@ -139,8 +138,9 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         else {
             // set the target framebuffer to read
             glReadBuffer(sourceForCaptureSource(capSrc));
-            const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
-            const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
+            const glm::ivec2& s = imPtr->getSize();
+            const GLsizei w = static_cast<GLsizei>(s.x);
+            const GLsizei h = static_cast<GLsizei>(s.y);
             glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
         }
             
@@ -186,8 +186,9 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         else {
             // set the target framebuffer to read
             glReadBuffer(sourceForCaptureSource(capSrc));
-            const GLsizei w = static_cast<GLsizei>(imPtr->getWidth());
-            const GLsizei h = static_cast<GLsizei>(imPtr->getHeight());
+            const glm::ivec2& s = imPtr->getSize();
+            const GLsizei w = static_cast<GLsizei>(s.x);
+            const GLsizei h = static_cast<GLsizei>(s.y);
             glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, imPtr->getData());
         }
         
@@ -333,7 +334,7 @@ int ScreenCapture::getAvailableCaptureThread() {
 void ScreenCapture::updateDownloadFormat() {
     switch (_nChannels) {
         default:
-            _downloadFormat = _preferBGR ? GL_BGRA : GL_RGBA;
+            _downloadFormat = GL_BGRA;
             break;
         case 1:
             _downloadFormat = GL_RED;
@@ -342,7 +343,7 @@ void ScreenCapture::updateDownloadFormat() {
             _downloadFormat = GL_RG;
             break;
         case 3:
-            _downloadFormat = _preferBGR ? GL_BGR : GL_RGB;
+            _downloadFormat = GL_BGR;
             break;
     }
 }
@@ -381,16 +382,15 @@ Image* ScreenCapture::prepareImage(int index) {
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<core::Image>();
         _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
-        _captureInfos[index].frameBufferImage->setPreferBGRExport(_preferBGR);
         _captureInfos[index].frameBufferImage->setChannels(_nChannels);
-        _captureInfos[index].frameBufferImage->setSize(_resolution.x, _resolution.y);
+        _captureInfos[index].frameBufferImage->setSize(_resolution);
         const bool success = _captureInfos[index].frameBufferImage->allocateOrResizeData();
         if (!success) {
             _captureInfos[index].frameBufferImage = nullptr;
             return nullptr;
         }
     }
-    _captureInfos[index].frameBufferImage->setFilename(_filename);
+    _captureInfos[index].filename = _filename;
 
     return _captureInfos[index].frameBufferImage.get();
 }

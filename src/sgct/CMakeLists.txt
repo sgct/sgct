@@ -123,10 +123,11 @@ set_compile_options(sgct)
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/include)
+target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+
 target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
 
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
-
 target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
 
 if (SGCT_DEP_INCLUDE_GLFW)
@@ -137,11 +138,6 @@ endif ()
 if (SGCT_DEP_INCLUDE_LIBPNG)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_LIBPNG)
   target_link_libraries(sgct PRIVATE png16_static)
-endif ()
-
-if (SGCT_DEP_INCLUDE_TURBOJPEG)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_TURBOJPEG)
-  target_link_libraries(sgct PRIVATE turbojpeg-static)
 endif ()
 
 if (SGCT_DEP_INCLUDE_TINYXML)

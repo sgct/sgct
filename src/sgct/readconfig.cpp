@@ -786,8 +786,6 @@ namespace {
             );
         }
 
-        window.preferBGR = parseValue<bool>(*element, "preferBGR");
-
         // compatibility with older versions
         if (element->Attribute("fullScreen")) {
             window.isFullScreen = parseValue<bool>(*element, "fullScreen");

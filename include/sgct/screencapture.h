@@ -50,6 +50,7 @@ public:
     };
 
     struct ScreenCaptureThreadInfo {
+        std::string filename;
         std::unique_ptr<Image> frameBufferImage;
         std::unique_ptr<std::thread> captureThread;
         std::mutex* mutex = nullptr;
@@ -78,7 +79,7 @@ public:
      * Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
      * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
      */
-    void setTextureTransferProperties(GLenum type, bool preferBGR);
+    void setTextureTransferProperties(GLenum type);
 
     /// Set the image format to use
     void setCaptureFormat(CaptureFormat cf);
@@ -133,7 +134,6 @@ private:
     std::string _baseName;
     std::string _path;
     bool _usePBO = true;
-    bool _preferBGR = true;
     EyeIndex _eyeIndex = EyeIndex::Mono;
     CaptureFormat _format = CaptureFormat::PNG;
     int _windowIndex = 0;

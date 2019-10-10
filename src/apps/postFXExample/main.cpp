@@ -1,4 +1,5 @@
 #include <sgct.h>
+#include <sgct/commandline.h>
 #include <sgct/postfx.h>
 #include <sgct/window.h>
 #include <glm/gtc/matrix_transform.hpp>

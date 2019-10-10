@@ -1,5 +1,6 @@
 #include <sgct.h>
 #include <sgct/clustermanager.h>
+#include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/messagehandler.h>

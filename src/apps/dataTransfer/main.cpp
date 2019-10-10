@@ -1,6 +1,7 @@
 #include <sgct.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/Image.h>
+#include <sgct/clustermanager.h>
+#include <sgct/commandline.h>
+#include <sgct/image.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>

@@ -1,5 +1,6 @@
 #include <sgct.h>
 #include <sgct/clustermanager.h>
+#include <sgct/commandline.h>
 #include <sgct/user.h>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -1,4 +1,5 @@
 #include <sgct.h>
+#include <sgct/commandline.h>
 #include <sgct/image.h>
 #include <sgct/window.h>
 #include <sgct/user.h>

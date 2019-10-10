@@ -1,4 +1,5 @@
 #include <sgct.h>
+#include <sgct/commandline.h>
 #include "objloader.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>

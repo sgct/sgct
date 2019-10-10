@@ -1,4 +1,5 @@
 #include <sgct.h>
+#include <sgct/commandline.h>
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

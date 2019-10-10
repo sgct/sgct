@@ -43,31 +43,10 @@ class Touch;
  */
 namespace sgct {
 
+struct Configuration;
 class PostFX;
 class TrackingManager;
 class Window;
-
-struct Configuration {
-    std::optional<std::string> configFilename;
-    std::optional<bool> isServer;
-    std::optional<std::string> logPath;
-    std::optional<MessageHandler::Level> logLevel;
-    std::optional<bool> showHelpText;
-    std::optional<int> nodeId;
-    std::optional<bool> firmSync;
-    std::optional<bool> ignoreSync;
-    std::optional<bool> fxaa;
-    std::optional<int> msaaSamples;
-    std::optional<Settings::CaptureFormat> captureFormat;
-    std::optional<int> nCaptureThreads;
-};
-
-/**
- * Command line parameters are used to load a configuration file and settings. Note that
- * parameter with one '\-' are followed by arguments but parameters with '\-\-' are just
- * options without arguments.
- */
-Configuration parseArguments(std::vector<std::string> arg);
 
 config::Cluster loadCluster(std::optional<std::string> path);
 
@@ -139,7 +118,7 @@ public:
     /// \returns the static pointer to the engine instance
     static Engine* instance();
 
-    Engine(Configuration arg);
+    Engine(const Configuration& arg);
 
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();

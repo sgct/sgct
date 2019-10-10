@@ -133,7 +133,7 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 }
 
 void NonLinearProjection::initTextures() {    
-    generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
+    generateCubeMap(_textures.cubeMapColor, _texInternalFormat);
     if (Engine::checkForOGLErrors()) {
         MessageHandler::instance()->printDebug(
             "NonLinearProjection: %dx%d color cube map texture (id: %d) generated",
@@ -149,12 +149,7 @@ void NonLinearProjection::initTextures() {
     }
     
     if (Settings::instance()->useDepthTexture()) {
-        generateCubeMap(
-            _textures.cubeMapDepth,
-            GL_DEPTH_COMPONENT32,
-            GL_DEPTH_COMPONENT,
-            GL_FLOAT
-        );
+        generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32);
         if (Engine::checkForOGLErrors()) {
             MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated",
@@ -171,12 +166,7 @@ void NonLinearProjection::initTextures() {
 
         if (_useDepthTransformation) {
             // generate swap textures
-            generateMap(
-                _textures.depthSwap,
-                GL_DEPTH_COMPONENT32,
-                GL_DEPTH_COMPONENT,
-                GL_FLOAT
-            );
+            generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
             if (Engine::checkForOGLErrors()) {
                 MessageHandler::instance()->printDebug(
                     "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated",
@@ -191,7 +181,7 @@ void NonLinearProjection::initTextures() {
                 );
             }
 
-            generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
+            generateMap(_textures.colorSwap, _texInternalFormat);
             if (Engine::checkForOGLErrors()) {
                 MessageHandler::instance()->printDebug(
                     "NonLinearProjection: %dx%d color swap map texture (id: %d) generated",
@@ -211,9 +201,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance()->useNormalTexture()) {
         generateCubeMap(
             _textures.cubeMapNormals,
-            Settings::instance()->getBufferFloatPrecisionAsGLint(),
-            GL_BGR,
-            GL_FLOAT
+            Settings::instance()->getBufferFloatPrecisionAsGLint()
         );
         if (Engine::checkForOGLErrors()) {
             MessageHandler::instance()->printDebug(
@@ -233,9 +221,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance()->usePositionTexture()) {
         generateCubeMap(
             _textures.cubeMapPositions,
-            Settings::instance()->getBufferFloatPrecisionAsGLint(),
-            GL_BGR,
-            GL_FLOAT
+            Settings::instance()->getBufferFloatPrecisionAsGLint()
         );
         if (Engine::checkForOGLErrors()) {
             MessageHandler::instance()->printDebug(
@@ -314,9 +300,7 @@ void NonLinearProjection::initVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internalFormat,
-                                          GLenum format, GLenum type)
-{
+void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internalFormat) {
     glDeleteTextures(1, &texture);
     texture = 0;
 
@@ -339,30 +323,13 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    if (Settings::instance()->getForceGlTexImage2D()) {
-        for (int side = 0; side < 6; ++side) {
-            glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + side,
-                0,
-                internalFormat,
-                _cubemapResolution,
-                _cubemapResolution,
-                0,
-                format,
-                type,
-                nullptr
-            );
-        }
-    }
-    else {
-        glTexStorage2D(
-            GL_TEXTURE_CUBE_MAP,
-            1,
-            internalFormat,
-            _cubemapResolution,
-            _cubemapResolution
-        );
-    }
+    glTexStorage2D(
+        GL_TEXTURE_CUBE_MAP,
+        1,
+        internalFormat,
+        _cubemapResolution,
+        _cubemapResolution
+    );
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -387,9 +354,7 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
     glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
 }
 
-void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat,
-                                      GLenum format, GLenum type)
-{
+void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat) {
     glDeleteTextures(1, &texture);
     texture = 0;
 
@@ -410,28 +375,13 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    if (Settings::instance()->getForceGlTexImage2D()) {
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            internalFormat,
-            _cubemapResolution,
-            _cubemapResolution,
-            0,
-            format,
-            type,
-            nullptr
-        );
-    }
-    else {
-        glTexStorage2D(
-            GL_TEXTURE_2D,
-            1,
-            internalFormat,
-            _cubemapResolution,
-            _cubemapResolution
-        );
-    }
+    glTexStorage2D(
+        GL_TEXTURE_2D,
+        1,
+        internalFormat,
+        _cubemapResolution,
+        _cubemapResolution
+    );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

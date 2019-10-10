@@ -56,10 +56,8 @@ struct Configuration {
     std::optional<int> nodeId;
     std::optional<bool> firmSync;
     std::optional<bool> ignoreSync;
-    std::optional<bool> forceGlTexImage;
     std::optional<bool> fxaa;
     std::optional<int> msaaSamples;
-    std::optional<bool> noFbo;
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
 };
@@ -68,32 +66,6 @@ struct Configuration {
  * Command line parameters are used to load a configuration file and settings. Note that
  * parameter with one '\-' are followed by arguments but parameters with '\-\-' are just
  * options without arguments.
- *
- * Parameter     | Description
- * ------------- | -------------
- * -config <filename> | set xml confiuration file
- * -logPath <filepath> | set log file path
- * --help | display help message and exit
- * -local <integer> | set which node in configuration that is the localhost (index
- *                    starts at 0)
- * --client | run the application as client (only available when running as local)
- * --slave | run the application as client (only available when running as local)
- * --debug | set the notify level of messagehandler to debug
- * --Firm-Sync | enable firm frame sync
- * --Loose-Sync | disable firm frame sync
- * --Ignore-Sync | disable frame sync
- * -notify <integer> | set the notify level used in the MessageHandler
- *                     (0 = highest priority)
- * --No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering,
- *            FXAA and fisheye rendering will be disabled)
- * --Capture-PNG | use png images for screen capture (default)
- * --Capture-TGA | use tga images for screen capture
- * -MSAA <integer> | Enable MSAA as default (argument must be a power of two)
- * --FXAA | Enable FXAA as default
- * --gDebugger | Force textures to be generated using glTexImage2D instead of
- *               glTexStorage2D
- * -numberOfCaptureThreads <integer> | set the maximum amount of threads that should
- *                                     be used during framecapture (default 8)
  */
 Configuration parseArguments(std::vector<std::string> arg);
 
@@ -110,9 +82,10 @@ config::Cluster loadCluster(std::optional<std::string> path);
  * \image latex render_diagram.eps "Render diagram" width=7cm
  */
 class Engine {
-    friend class core::FisheyeProjection; //needs to access draw callbacks
-    friend class core::SphericalMirrorProjection; //needs to access draw callbacks
-    friend class core::SpoutOutputProjection; //needs to access draw callbacks
+    // needs to access draw callbacks
+    friend class core::FisheyeProjection;
+    friend class core::SphericalMirrorProjection;
+    friend class core::SpoutOutputProjection;
 
 public:
     /// The different run modes used by the init function
@@ -165,7 +138,6 @@ public:
 
     /// \returns the static pointer to the engine instance
     static Engine* instance();
-
 
     Engine(Configuration arg);
 
@@ -299,9 +271,6 @@ public:
 
     /// \return the index of the focus window. If no window has focus, 0 is returned.
     int getFocusedWindowIndex() const;
-
-    /// \param state of the wireframe rendering
-    void setWireframe(bool state);
 
     /**
      * Set if the info text should be visible or not
@@ -1014,13 +983,6 @@ void sgct::Engine::clearBuffer() {
     glm::ivec4 getCurrentViewportPixelCoords() const;
 
     /**
-     * Get if wireframe rendering is enabled.
-     *
-     * \return true if wireframe is enabled otherwise false
-     */
-    bool getWireframe() const;
-
-    /**
      * Specifies the sync parameters to be used in the rendering loop.
      *
      * \param printMessage If <code>true</code> a message is print waiting for a frame
@@ -1067,13 +1029,6 @@ private:
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
 
-    /**
-     * Print the node info to terminal.
-     *
-     * \param nodeId Which node to print
-     */
-    void printNodeInfo(unsigned int nodeId);
-    
     /// Set up the current viewport.
     void enterCurrentViewport();
 
@@ -1109,24 +1064,6 @@ private:
     /// This function renders stats, OSD and overlays.
     void render2D();
 
-    /**
-     * This function enters the correct viewport, frustum, stereo mode and calls the draw
-     * callback.
-     */
-    void drawFixedPipeline();
-
-    /// Draw viewport overlays if there are any.
-    void drawOverlaysFixedPipeline();
-
-    /**
-     * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
-     * be a simple quad or a geometry correction and blending mesh.
-     */
-    void renderFBOTextureFixedPipeline();
-
-    /// This function combines a texture and a shader into a new texture.
-    void renderPostFXFixedPipeline(TextureIndexes finalTargetIndex);
-
     /// This function attaches targets to FBO if FBO is in use
     void prepareBuffer(TextureIndexes ti);
 
@@ -1143,16 +1080,15 @@ private:
     void loadShaders();
 
     /**
+     * This function clears and sets the appropriate buffer from:
+     *   - Back buffer
+     *   - Left back buffer
+     *   - Right back buffer
      *
      * \param mode is the one of the following:
      *   - Backbuffer (transparent)
      *   - Backbuffer (black)
      *   - RenderToTexture
-     *
-     * This function clears and sets the appropriate buffer from:
-     *   - Back buffer
-     *   - Left back buffer
-     *   - Right back buffer
      */
     void setAndClearBuffer(BufferMode mode);
 
@@ -1171,7 +1107,6 @@ private:
     void copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mode mode);
 
     static void clearBuffer();
-
 
     static Engine* _instance;
 
@@ -1217,7 +1152,6 @@ private:
 
     bool _showInfo = false;
     bool _showGraph = false;
-    bool _showWireframe = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
     bool _renderingOffScreen = false;

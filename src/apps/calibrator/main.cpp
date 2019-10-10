@@ -23,11 +23,11 @@ namespace {
     sgct::Engine* gEngine;
 
     struct {
-        GLuint vao;
-        GLuint vbo;
-        GLuint iboLine;
+        GLuint vao = 0;
+        GLuint vbo = 0;
+        GLuint iboLine = 0;
         int nVertLine = 0;
-        GLuint iboTriangle;
+        GLuint iboTriangle = 0;
         int nVertTriangle = 0;
     } geometry;
 
@@ -215,8 +215,8 @@ void initGL() {
         // First the horizontal, azimuth lines
         for (int e = 0; e < ElevationSteps; ++e ) {
             std::vector<uint16_t> t(AzimuthSteps);
-            std::iota(t.begin(), t.end(), e * AzimuthSteps);
-            t.push_back(e * AzimuthSteps); // close the ring
+            std::iota(t.begin(), t.end(), static_cast<uint16_t>(e * AzimuthSteps));
+            t.push_back(static_cast<uint16_t>(e * AzimuthSteps)); // close the ring
             t.push_back(RestartIndex); // restart for the next ring
             indices.insert(indices.end(), t.begin(), t.end());
         }
@@ -225,7 +225,7 @@ void initGL() {
         // exactly 'AzimuthSteps' positions in the vertex array
         for (int a = 0; a < AzimuthSteps; ++a) {
             for (int e = 0; e < ElevationSteps; ++e) {
-                indices.push_back(a + e * AzimuthSteps);
+                indices.push_back(static_cast<uint16_t>(a + e * AzimuthSteps));
             }
             indices.push_back(RestartIndex);
         }
@@ -244,7 +244,7 @@ void initGL() {
         std::vector<uint16_t> indices;
         for (int e = 0; e < ElevationSteps; ++e) {
             for (int a = 0; a < AzimuthSteps; ++a) {
-                const uint16_t base = e * AzimuthSteps + a;
+                const uint16_t base = static_cast<uint16_t>(e * AzimuthSteps + a);
                 // first triangle
                 indices.push_back(base);
                 indices.push_back(base + 1);

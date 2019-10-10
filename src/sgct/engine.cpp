@@ -112,7 +112,6 @@ namespace {
         }
     }
 
-
     void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
         sgct::Engine& eng = *sgct::Engine::instance();
         glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
@@ -122,7 +121,7 @@ namespace {
     }
 
     void outputHelpMessage() {
-        fprintf(stderr, R"(
+        std::cout << R"(
 Parameters:
 ------------------------------------
 -config <filename.xml>
@@ -151,12 +150,6 @@ Parameters:
     Enable FXAA as default
 -notify <integer>
     Set the notify level used in the MessageHandler\n\t(0 = highest priority)
---gDebugger
-    Force textures to be generated using glTexImage2D instead of glTexStorage2D
---No-FBO
-    Disable frame buffer objects
-    (some stereo modes, Multi-Window rendering,
-    FXAA and fisheye rendering will be disabled)
 --Capture-PNG
     Use png images for screen capture (default)
 --Capture-JPG
@@ -165,8 +158,7 @@ Parameters:
     Use tga images for screen capture
 -numberOfCaptureThreads <integer>
     Set the maximum amount of thread that should be used during framecapture (default 8)
-------------------------------------
-)");
+------------------------------------)";
     }
 
 
@@ -497,11 +489,11 @@ Parameters:
             sgct::Settings::BufferFloatPrecision p =
             [](sgct::config::Settings::BufferFloatPrecision p) {
                 switch (p) {
-                default:
-                case sgct::config::Settings::BufferFloatPrecision::Float16Bit:
-                    return sgct::Settings::BufferFloatPrecision::Float16Bit;
-                case sgct::config::Settings::BufferFloatPrecision::Float32Bit:
-                    return sgct::Settings::BufferFloatPrecision::Float32Bit;
+                    default:
+                    case sgct::config::Settings::BufferFloatPrecision::Float16Bit:
+                        return sgct::Settings::BufferFloatPrecision::Float16Bit;
+                    case sgct::config::Settings::BufferFloatPrecision::Float32Bit:
+                        return sgct::Settings::BufferFloatPrecision::Float32Bit;
                 }
             }(*settings.bufferFloatPrecision);
             s.setBufferFloatPrecision(p);
@@ -531,11 +523,11 @@ Parameters:
                 s.setOSDTextFontSize(*settings.osdText->size);
             }
             if (settings.osdText->xOffset) {
-                const glm::vec2 curr = s.getOSDTextOffset();
+                const glm::vec2& curr = s.getOSDTextOffset();
                 s.setOSDTextOffset(glm::vec2(*settings.osdText->xOffset, curr.y));
             }
             if (settings.osdText->yOffset) {
-                const glm::vec2 curr = s.getOSDTextOffset();
+                const glm::vec2& curr = s.getOSDTextOffset();
                 s.setOSDTextOffset(glm::vec2(curr.x, *settings.osdText->yOffset));
             }
         }
@@ -662,10 +654,6 @@ Configuration parseArguments(std::vector<std::string> arg) {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--gDebugger") {
-            config.forceGlTexImage = true;
-            arg.erase(arg.begin() + i);
-        }
         else if (arg[i] == "--FXAA") {
             config.fxaa = true;
             arg.erase(arg.begin() + i);
@@ -674,10 +662,6 @@ Configuration parseArguments(std::vector<std::string> arg) {
             int msaa = std::stoi(arg[i + 1]);
             config.msaaSamples = msaa;
             arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "--No-FBO") {
-            config.noFbo = false;
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--Capture-TGA") {
@@ -781,44 +765,41 @@ Engine::Engine(Configuration config) {
     if (config.ignoreSync) {
         core::ClusterManager::instance()->setUseIgnoreSync(*config.ignoreSync);
     }
-    if (config.forceGlTexImage) {
-        Settings::instance()->setForceGlTexImage2D(*config.forceGlTexImage);
-    }
     if (config.fxaa) {
         Settings::instance()->setDefaultFXAAState(*config.fxaa);
     }
     if (config.msaaSamples) {
-        if (*config.msaaSamples <= 0) {
-            MessageHandler::instance()->printError(
-                "Only positive MSAA samples are allowed"
-            );
-        }
-        else {
+        if (*config.msaaSamples > 0) {
             Settings::instance()->setDefaultNumberOfAASamples(*config.msaaSamples);
         }
-    }
-    if (config.noFbo) {
-        Settings::instance()->setUseFBO(*config.noFbo);
+        else {
+            MessageHandler::instance()->printError(
+                "Number of MSAA samples must be positive"
+            );
+        }
     }
     if (config.captureFormat) {
         Settings::instance()->setCaptureFormat(*config.captureFormat);
     }
     if (config.nCaptureThreads) {
-        if (*config.nCaptureThreads <= 0) {
+        if (*config.nCaptureThreads > 0) {
+            Settings::instance()->setNumberOfCaptureThreads(*config.nCaptureThreads);
+        }
+        else {
             MessageHandler::instance()->printError(
                 "Only positive number of capture threads allowed"
             );
         }
-        else {
-            Settings::instance()->setNumberOfCaptureThreads(*config.nCaptureThreads);
-        }
     }
 
-    if (!_helpMode) {
-        glfwSetErrorCallback(glfwErrorCallback);
-        if (!glfwInit()) {
-            _shouldTerminate = true;
-        }
+    if (_helpMode) {
+        return;
+    }
+
+    glfwSetErrorCallback(glfwErrorCallback);
+    const int res = glfwInit();
+    if (res != 0) {
+        _shouldTerminate = true;
     }
 }
 
@@ -1601,10 +1582,8 @@ void Engine::render() {
             updateDrawBufferResolutions();
         }
     
-        _renderingOffScreen = Settings::instance()->useFBO();
-        if (_renderingOffScreen) {
-            getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
-        }
+        _renderingOffScreen = true;
+        getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
         // Make sure correct context is current
         if (_postSyncPreDrawFn) {
@@ -1740,9 +1719,7 @@ void Engine::render() {
                 _thisNode->setCurrentWindowIndex(i);
 
                 _renderingOffScreen = false;
-                if (Settings::instance()->useFBO()) {
-                    _internalRenderFBOFn();
-                }
+                _internalRenderFBOFn();
             }
         }
         getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
@@ -1977,69 +1954,13 @@ void Engine::draw() {
     glEnable(GL_SCISSOR_TEST);
     
     enterCurrentViewport();
-    
-    if (Settings::instance()->useFBO()) {
-        setAndClearBuffer(BufferMode::RenderToTexture);
-    }
-    else {
-        setAndClearBuffer(BufferMode::BackBuffer);
-    }
-    
+    setAndClearBuffer(BufferMode::RenderToTexture);
     glDisable(GL_SCISSOR_TEST);
 
     if (_drawFn) {
         glLineWidth(1.0);
-        if (_showWireframe) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-        else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
-        _drawFn();
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-}
-
-void Engine::drawFixedPipeline() {
-    // run scissor test to prevent clearing of entire buffer
-    glEnable(GL_SCISSOR_TEST);
-    
-    // set glViewport & glScissor
-    enterCurrentViewport();
-    
-    if (Settings::instance()->useFBO()) {
-        setAndClearBuffer(BufferMode::RenderToTexture);
-    }
-    else {
-        setAndClearBuffer(BufferMode::BackBuffer);
-    }
-    
-    glDisable(GL_SCISSOR_TEST);
-    glMatrixMode(GL_PROJECTION);
-
-    core::Projection& proj =
-        getCurrentWindow().getCurrentViewport()->getProjection(_currentFrustumMode);
-
-    glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
-
-    glMatrixMode(GL_MODELVIEW);
-
-    glLoadMatrixf(glm::value_ptr(proj.getViewMatrix() * getModelMatrix()));
-
-    if (_drawFn) {
-        glLineWidth(1.0);
-
-        if (_showWireframe) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-        else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
         _drawFn();
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 }
@@ -2067,67 +1988,7 @@ void Engine::drawOverlays() {
     }
 }
 
-void Engine::drawOverlaysFixedPipeline() {
-    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); i++) {
-        getCurrentWindow().setCurrentViewport(i);
-        const core::Viewport& vp = getCurrentWindow().getViewport(i);
-
-        if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
-            return;
-        }
-
-        // enter ortho mode
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glPushMatrix();
-            
-        enterCurrentViewport();
-
-        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glDisable(GL_CULL_FACE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glLoadIdentity();
-        glColor4f(1.f, 1.f, 1.f, 1.f);
-
-        glActiveTexture(GL_TEXTURE0);
-            
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
-
-        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            
-        getCurrentWindow().bindVBO();
-
-        glClientActiveTexture(GL_TEXTURE0);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
-
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-        getCurrentWindow().unbindVBO();
-
-        glPopClientAttrib();
-        glPopAttrib();
-
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-    }
-}
-
 void Engine::prepareBuffer(TextureIndexes ti) {
-    if (!Settings::instance()->useFBO()) {
-        return;
-    }
     if (getCurrentWindow().usePostFX()) {
         ti = Intermediate;
     }
@@ -2291,146 +2152,6 @@ void Engine::renderFBOTexture() {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderFBOTextureFixedPipeline() {
-    core::OffScreenBuffer::unBind();
-    
-    Window& win = getCurrentWindow();
-    win.makeOpenGLContextCurrent(Window::Context::Window);
-    
-    _currentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
-        core::Frustum::Mode::StereoLeftEye :
-        core::Frustum::Mode::MonoEye;
-    
-    glm::ivec2 s = glm::ivec2(glm::ceil(win.getScale() * glm::vec2(win.getResolution())));
-    glViewport(0, 0, s.x, s.y);
-    setAndClearBuffer(BufferMode::BackBufferBlack);
-
-    // enter ortho mode
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glPushMatrix();
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-
-    glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glLoadIdentity();
-    
-    Window::StereoMode sm = win.getStereoMode();
-
-    const bool useWarping = Settings::instance()->getUseWarping();
-    if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
-        win.bindStereoShaderProgram();
-
-        glUniform1i(win.getStereoShaderLeftTexLoc(), 0);
-        glUniform1i(win.getStereoShaderRightTexLoc(), 1);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
-        glEnable(GL_TEXTURE_2D);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
-        glEnable(GL_TEXTURE_2D);
-
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            if (useWarping) {
-                win.getViewport(i).renderWarpMesh();
-            }
-            else {
-                win.getViewport(i).renderQuadMesh();
-            }
-        }
-        ShaderProgram::unbind();
-    }
-    else {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
-        glEnable(GL_TEXTURE_2D);
-
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            if (useWarping) {
-                win.getViewport(i).renderWarpMesh();
-            }
-            else {
-                win.getViewport(i).renderQuadMesh();
-            }
-        }
-
-        // render right eye in active stereo mode
-        if (win.getStereoMode() == Window::StereoMode::Active) {
-            glm::ivec2 res = win.getResolution();
-            glViewport(0, 0, res.x, res.y);
-            
-            _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
-            setAndClearBuffer(BufferMode::BackBufferBlack);
-
-            glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(RightEye));
-
-            for (int i = 0; i < win.getNumberOfViewports(); i++) {
-                if (useWarping) {
-                    win.getViewport(i).renderWarpMesh();
-                }
-                else {
-                    win.getViewport(i).renderQuadMesh();
-                }
-            }
-        }
-    }
-
-    // render mask (mono)
-    if (win.hasAnyMasks()) {
-        glDrawBuffer(win.isDoubleBuffered() ? GL_BACK : GL_FRONT);
-        glReadBuffer(win.isDoubleBuffered() ? GL_BACK : GL_FRONT);
-
-        // if stereo != active stereo
-        glActiveTexture(GL_TEXTURE1);
-        glDisable(GL_TEXTURE_2D);
-
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_BLEND);
-
-        // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-
-        // render blend masks
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            const core::Viewport& vp = win.getViewport(i);
-            if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
-                vp.renderMaskMesh();
-            }
-        }
-
-        // render black level masks
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            const core::Viewport& vp = win.getViewport(i);
-            if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
-
-                // inverse multiply
-                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                vp.renderMaskMesh();
-
-                // add
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                vp.renderMaskMesh();
-            }
-        }
-    }
-    
-    glPopAttrib();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-}
-
 void Engine::renderViewports(TextureIndexes ti) {
     prepareBuffer(ti);
 
@@ -2490,12 +2211,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     if (!getCurrentWindow().getCallDraw3DFunction() &&
         !getCurrentWindow().getCopyPreviousWindowToCurrentWindow())
     {
-        if (Settings::instance()->useFBO()) {
-            setAndClearBuffer(BufferMode::RenderToTexture);
-        }
-        else {
-            setAndClearBuffer(BufferMode::BackBuffer);
-        }
+        setAndClearBuffer(BufferMode::RenderToTexture);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2659,125 +2375,6 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
         getCurrentWindow().unbindVAO();
 
         ShaderProgram::unbind();
-    }
-}
-
-void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-    const size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
-    if (numberOfPasses > 0) {
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-    }
-
-    for (size_t i = 0; i < numberOfPasses; i++) {
-        PostFX& fx = getCurrentWindow().getPostFX(i);
-
-        // set output
-        if (i == (numberOfPasses - 1) && !getCurrentWindow().useFXAA()) {
-            // if last
-            fx.setOutputTexture(
-                getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
-            );
-        }
-        else {
-            // ping pong between the two FX buffers
-            fx.setOutputTexture(
-                getCurrentWindow().getFrameBufferTexture((i % 2 == 0) ? FX1 : FX2)
-            );
-        }
-
-        // set input (dependent on output)
-        if (i == 0) {
-            fx.setInputTexture(getCurrentWindow().getFrameBufferTexture(Intermediate));
-        }
-        else {
-            PostFX& fxPrevious = getCurrentWindow().getPostFX(i - 1);
-            fx.setInputTexture(fxPrevious.getOutputTexture());
-        }
-
-        fx.render();
-    }
-
-    if (numberOfPasses > 0) {
-        glPopAttrib();
-    }
-
-    if (getCurrentWindow().useFXAA()) {
-        PostFX* lastFx = numberOfPasses > 0 ?
-            &getCurrentWindow().getPostFX(numberOfPasses - 1) :
-            nullptr;
-
-        // bind target FBO
-        getCurrentWindow().getFBO()->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
-        );
-
-        // if for some reson the active texture has been reset
-        glActiveTexture(GL_TEXTURE0);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-
-        glMatrixMode(GL_MODELVIEW);
-        glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
-        glViewport(0, 0, framebufferSize.x, framebufferSize.y);
-        
-        glClearColor(0.f, 0.f, 0.f, 0.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-        glEnable(GL_TEXTURE_2D);
-        if (lastFx) {
-            glBindTexture(GL_TEXTURE_2D, lastFx->getOutputTexture());
-        }
-        else {
-            glBindTexture(
-                GL_TEXTURE_2D,
-                getCurrentWindow().getFrameBufferTexture(Intermediate)
-            );
-        }
-
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-
-        _shader.fxaa.bind();
-        glUniform1f(_shaderLoc.sizeX, static_cast<float>(framebufferSize.x));
-        glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
-        glUniform1i(_shaderLoc.fxaaTexture, 0);
-        glUniform1f(
-            _shaderLoc.fxaaSubPixTrim,
-            Settings::instance()->getFXAASubPixTrim()
-        );
-        glUniform1f(
-            _shaderLoc.fxaaSubPixOffset,
-            Settings::instance()->getFXAASubPixOffset()
-        );
-
-        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
-        getCurrentWindow().bindVBO();
-        glClientActiveTexture(GL_TEXTURE0);
-
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-        getCurrentWindow().unbindVBO();
-
-        ShaderProgram::unbind();
-
-        glPopClientAttrib();
-        glPopAttrib();
     }
 }
 
@@ -3229,17 +2826,10 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-
     enterCurrentViewport();
-
-    if (Settings::instance()->useFBO()) {
-        setAndClearBuffer(BufferMode::RenderToTexture);
-    }
-    else {
-        setAndClearBuffer(BufferMode::BackBuffer);
-    }
-
+    setAndClearBuffer(BufferMode::RenderToTexture);
     glDisable(GL_SCISSOR_TEST);
+
     _shader.overlay.bind();
 
     glUniform1i(_shaderLoc.overlayTex, 0);
@@ -3366,10 +2956,6 @@ void Engine::clearBuffer() {
     const float alpha = instance()->getCurrentWindow().getAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void Engine::printNodeInfo(unsigned int nodeId) {
-    MessageHandler::instance()->printDebug("This node has index %d", nodeId);
 }
 
 void Engine::enterCurrentViewport() {
@@ -3587,10 +3173,6 @@ int Engine::getFocusedWindowIndex() const {
         }
     }
     return 0; // no window has focus
-}
-
-void Engine::setWireframe(bool state) {
-    _showWireframe = state;
 }
 
 void Engine::setDisplayInfoVisibility(bool state) {
@@ -3872,10 +3454,6 @@ glm::ivec4 Engine::getCurrentViewportPixelCoords() const {
     else {
         return _currentViewportCoords;
     }
-}
-
-bool Engine::getWireframe() const {
-    return _showWireframe;
 }
 
 void Engine::setSyncParameters(bool printMessage, float timeout) {

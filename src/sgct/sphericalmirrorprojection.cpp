@@ -51,7 +51,7 @@ void core::SphericalMirrorProjection::initTextures() {
         if (!bv.isEnabled()) {
             return;
         }
-        generateMap(texture, _texInternalFormat, _texFormat, _texType);
+        generateMap(texture, _texInternalFormat);
         if (Engine::checkForOGLErrors()) {
             MessageHandler::instance()->printDebug(
                 "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
@@ -326,19 +326,12 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     }(face);
 
     glLineWidth(1.0);
-    if (Engine::instance()->getWireframe()) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    //reset depth function (to opengl default)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDepthFunc(GL_LESS);
 
     setupViewport(vp);
 
-#if defined DebugCubemap
+#ifdef DebugCubemap
     float color[4];
     switch (face) {
         case 0:

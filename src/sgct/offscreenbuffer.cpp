@@ -14,7 +14,7 @@
 
 namespace {
     void setDrawBuffers() {
-        switch (sgct::Settings::instance()->getCurrentDrawBufferType()) {
+        switch (sgct::Settings::instance()->getDrawBufferType()) {
             case sgct::Settings::DrawBufferType::Diffuse:
             default:
             {
@@ -56,7 +56,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glGenRenderbuffers(1, &_depthBuffer);
 
     _size = glm::ivec2(width, height);
-    _isMultiSampled = (samples > 1 && Settings::instance()->useFBO());
+    _isMultiSampled = samples > 1;
 
     // create a multisampled buffer
     if (_isMultiSampled) {
@@ -193,7 +193,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     _size = glm::ivec2(width, height);
-    _isMultiSampled = (samples > 1 && Settings::instance()->useFBO());
+    _isMultiSampled = samples > 1;
 
     glDeleteFramebuffers(1, &_frameBuffer);
     glDeleteRenderbuffers(1, &_depthBuffer);

@@ -435,7 +435,7 @@ void SpoutOutputProjection::initShaders() {
     fisheyeVertShader = shaders_fisheye::FisheyeVert;
 
     if (Settings::instance()->useDepthTexture()) {
-        switch (Settings::instance()->getCurrentDrawBufferType()) {
+        switch (Settings::instance()->getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
@@ -454,7 +454,7 @@ void SpoutOutputProjection::initShaders() {
     }
     else {
         //no depth
-        switch (Settings::instance()->getCurrentDrawBufferType()) {
+        switch (Settings::instance()->getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFrag;
@@ -671,14 +671,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     }(face);
 
     glLineWidth(1.0);
-    if (Engine::instance()->getWireframe()) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    // reset depth function (to opengl default)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDepthFunc(GL_LESS);
 
     // run scissor test to prevent clearing of entire buffer

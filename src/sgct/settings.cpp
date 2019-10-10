@@ -60,10 +60,6 @@ void Settings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
     _currentBufferFloatPrecision = bfp;
 }
 
-void Settings::setUseFBO(bool state) {
-    _useFBO = state;
-}
-
 void Settings::setNumberOfCaptureThreads(int count) {
     _nCaptureThreads = count;
 }
@@ -78,10 +74,6 @@ bool Settings::useNormalTexture() const {
 
 bool Settings::usePositionTexture() const {
     return _usePositionTexture;
-}
-
-bool Settings::useFBO() const {
-    return _useFBO;
 }
 
 int Settings::getNumberOfCaptureThreads() const {
@@ -100,7 +92,7 @@ float Settings::getFXAASubPixOffset() const {
     return _fxaaSubPixOffset;
 }
 
-Settings::DrawBufferType Settings::getCurrentDrawBufferType() const {
+Settings::DrawBufferType Settings::getDrawBufferType() const {
     if (_usePositionTexture) {
         if (_useNormalTexture) {
             return DrawBufferType::DiffuseNormalPosition;
@@ -193,20 +185,8 @@ void Settings::setDefaultFXAAState(bool state) {
     _defaultFXAA = state;
 }
 
-void Settings::setForceGlTexImage2D(bool state) {
-    _forceGlTexImage2D = state;
-}
-
-bool Settings::getForceGlTexImage2D() const {
-    return _forceGlTexImage2D;
-}
-
 void Settings::setUseWarping(bool state) {
     _useWarping = state;
-}
-
-void Settings::setShowWarpingWireframe(bool state) {
-    _showWarpingWireframe = state;
 }
 
 void Settings::setCaptureFromBackBuffer(bool state) {
@@ -227,10 +207,6 @@ bool Settings::getExportWarpingMeshes() const {
 
 bool Settings::getUseWarping() const {
     return _useWarping;
-}
-
-bool Settings::getShowWarpingWireframe() const {
-    return _showWarpingWireframe;
 }
 
 bool Settings::getCaptureFromBackBuffer() const {

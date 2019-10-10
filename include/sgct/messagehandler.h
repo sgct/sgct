@@ -22,7 +22,6 @@ public:
     enum class Level {
         Error = 0,
         Important,
-        VersionInfo,
         Info,
         Warning,
         Debug,

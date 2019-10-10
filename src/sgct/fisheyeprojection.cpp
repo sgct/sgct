@@ -528,7 +528,7 @@ void FisheyeProjection::initShaders() {
 
     if (_offAxis) {
         if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
+            switch (Settings::instance()->getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -554,7 +554,7 @@ void FisheyeProjection::initShaders() {
         }
         else {
             // no depth
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
+            switch (Settings::instance()->getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -582,7 +582,7 @@ void FisheyeProjection::initShaders() {
     else {
         // not off axis
         if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
+            switch (Settings::instance()->getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -608,7 +608,7 @@ void FisheyeProjection::initShaders() {
         }
         else {
             // no depth
-            switch (Settings::instance()->getCurrentDrawBufferType()) {
+            switch (Settings::instance()->getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -819,12 +819,7 @@ void FisheyeProjection::initShaders() {
 
 void FisheyeProjection::drawCubeFace(BaseViewport& face) {
     glLineWidth(1.0);
-    if (Engine::instance()->getWireframe()) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glDepthFunc(GL_LESS);
 

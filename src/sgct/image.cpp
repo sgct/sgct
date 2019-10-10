@@ -265,15 +265,15 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
         png_set_swap(png_ptr);
     }
 
-    png_bytep* rowPtrs = new png_bytep[_size.y];
+    std::vector<png_bytep> rowPtrs(_size.y);
 
     for (size_t y = 0; y < _size.y; y++) {
         rowPtrs[(_size.y - 1) - y] = reinterpret_cast<png_bytep>(
             &_data[y * _size.x * _nChannels * _bytesPerChannel]
         );
     }
-    png_write_image(png_ptr, rowPtrs);
-    delete[] rowPtrs;
+    png_write_image(png_ptr, rowPtrs.data());
+    rowPtrs.clear();
 
     // end write
     if (setjmp(png_jmpbuf(png_ptr))) {

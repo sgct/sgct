@@ -104,10 +104,8 @@ protected:
     virtual void initShaders() = 0;
 
     void setupViewport(BaseViewport& vp);
-    void generateMap(unsigned int& texture, GLenum internalFormat, GLenum format,
-        GLenum type);
-    void generateCubeMap(unsigned int& texture, GLenum internalFormat, GLenum format,
-        GLenum type);
+    void generateMap(unsigned int& texture, GLenum internalFormat);
+    void generateCubeMap(unsigned int& texture, GLenum internalFormat);
 
     struct {
         unsigned int cubeMapColor = 0;

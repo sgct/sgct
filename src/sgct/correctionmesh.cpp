@@ -2256,10 +2256,6 @@ void CorrectionMesh::exportMesh(const std::string& exportMeshPath,
 }
 
 void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
-    if (Settings::instance()->getShowWarpingWireframe()) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)
     {
@@ -2274,10 +2270,6 @@ void CorrectionMesh::render(const CorrectionMeshGeometry& mt) const {
     }
     else {
         glCallList(mt.vertexData);
-    }
-
-    if (Settings::instance()->getShowWarpingWireframe()) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 }
 

@@ -17,8 +17,6 @@
 #include <string>
 #include <thread>
 
-namespace tinyxml2 { class XMLElement; }
-
 namespace sgct {
 
 /**
@@ -84,12 +82,9 @@ public:
     /**
      * Set the float precision of the float buffers (normal and position buffer).
      * \param bfp is the float precition that will be used in next buffer resize or
-                  creation
+     *            creation
      */
     void setBufferFloatPrecision(BufferFloatPrecision bfp);
-
-    /// Set the FBO mode. This is done internally using SGCT config file.
-    void setUseFBO(bool state);
 
     /// Set the number of capture threads used by SGCT (multi-threaded screenshots)
     void setNumberOfCaptureThreads(int count);
@@ -152,17 +147,8 @@ public:
     /// Set the default FXAA state for all windows (enabled or disabled)
     void setDefaultFXAAState(bool state);
 
-    /**
-     * Set the glTexImage2D (legacy) should be used instead of glTexStorage2D (modern).
-     * For example gDebugger can't display textures created using glTexStorage2D.
-     */
-    void setForceGlTexImage2D(bool state);
-
     /// Set if screen warping should be used or not
     void setUseWarping(bool state);
-
-    /// Set if warping mesh wireframe should be rendered
-    void setShowWarpingWireframe(bool state);
 
     /**
      * Set if geometry should try to adapt after framebuffer dimensions. This is valid for
@@ -207,17 +193,8 @@ public:
     /// Get the FXAA default state
     bool getDefaultFXAAState() const;
 
-    /**
-     * Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern).
-     * For example gDebugger can't display textures created using glTexStorage2D
-     */
-    bool getForceGlTexImage2D() const;
-
     /// Get if screen warping is used
     bool getUseWarping() const;
-
-    /// Get if warping wireframe mesh should be rendered
-    bool getShowWarpingWireframe() const;
 
     /**
      * Get if capture should use backbuffer data or texture. Backbuffer data includes
@@ -247,9 +224,6 @@ public:
     /// Return true if positions are rendered to texture
     bool usePositionTexture() const;
 
-    /// Returns true if FBOs are used
-    bool useFBO() const;
-
     /// Get the number of capture threads (for screenshot recording)
     int getNumberOfCaptureThreads() const;
 
@@ -262,8 +236,8 @@ public:
     /// \returns the FXAA sub-pixel offset
     float getFXAASubPixOffset() const;
 
-    /// \returns the current drawBufferType
-    DrawBufferType getCurrentDrawBufferType() const;
+    /// \returns the drawBufferType
+    DrawBufferType getDrawBufferType() const;
 
 private:
     Settings() = default;
@@ -279,11 +253,8 @@ private:
     bool _useDepthTexture = false;
     bool _useNormalTexture = false;
     bool _usePositionTexture = false;
-    bool _useFBO = true;
     bool _defaultFXAA = false;
-    bool _forceGlTexImage2D = false;
     bool _useWarping = true;
-    bool _showWarpingWireframe = false;
     bool _captureBackBuffer = false;
     bool _tryMaintainAspectRatio = true;
     bool _exportWarpingMeshes = false;

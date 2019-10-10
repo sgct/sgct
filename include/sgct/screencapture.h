@@ -125,7 +125,7 @@ private:
     GLenum _downloadTypeSetByUser = _downloadType;
     int _dataSize = 0;
     glm::ivec2 _resolution;
-    int _nChannels;
+    int _nChannels = 0;
     int _bytesPerColor = 1;
 
     std::function<void(Image*, size_t, EyeIndex, GLenum type)> _captureCallback;

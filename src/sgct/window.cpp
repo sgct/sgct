@@ -182,7 +182,7 @@ void Window::close() {
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
-    if (_finalFBO != nullptr && Settings::instance()->useFBO()) {
+    if (_finalFBO) {
         MessageHandler::instance()->printInfo(
             "Releasing OpenGL buffers for window %d", _id
         );
@@ -248,15 +248,13 @@ void Window::init() {
 
     // swap the buffers and update the window
     glfwSwapBuffers(_windowHandle);
-
-    // initNvidiaSwapGroups();
 }
 
 void Window::initOGL() {
     updateColorBufferData();
     
     createTextures();
-    createVBOs(); //must be created before FBO
+    createVBOs(); // must be created before FBO
     createFBOs();
     initScreenCapture();
     loadShaders();
@@ -770,7 +768,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DECORATED, _decorated ? GLFW_TRUE : GLFW_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
-    if (antiAliasingSamples > 1 && !Settings::instance()->useFBO()) {
+    if (antiAliasingSamples > 1) {
         // if multisample is used
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples);
     }
@@ -864,12 +862,10 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         
     glfwMakeContextCurrent(_sharedHandle);
 
-    if (Settings::instance()->useFBO()) {
-        _screenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
+    _screenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
 
-        if (useRightEyeTexture()) {
-            _screenCaptureRight = std::make_unique<core::ScreenCapture>();
-        }
+    if (useRightEyeTexture()) {
+        _screenCaptureRight = std::make_unique<core::ScreenCapture>();
     }
 
     _finalFBO = std::make_unique<core::OffScreenBuffer>();
@@ -1043,11 +1039,6 @@ void Window::resetSwapGroupFrameNumber() {
 }
 
 void Window::createTextures() {
-    // no target textures needed if not using FBO
-    if (!Settings::instance()->useFBO()) {
-        return;
-    }
-
     GLint maxTexSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
     if (_framebufferRes.x > maxTexSize || _framebufferRes.y > maxTexSize) {
@@ -1123,12 +1114,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         }(type);
 
     const glm::ivec2 res = _framebufferRes;
-    if (Settings::instance()->getForceGlTexImage2D()) {
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, res.x, res.y, 0, format, pType, 0);
-    }
-    else {
-        glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
-    }
+    glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
 
     MessageHandler::instance()->printDebug(
         "%dx%d texture (id: %d) generated for window %d",
@@ -1142,18 +1128,6 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 }
 
 void Window::createFBOs() {
-    if (!Settings::instance()->useFBO()) {
-        // disable anaglyph & checkerboard stereo if FBOs are not used
-        if (_stereoMode > StereoMode::Active) {
-            _stereoMode = StereoMode::NoStereo;
-        }
-        MessageHandler::instance()->printWarning(
-            "Warning! FBO rendering is not supported or enabled. PostFX, fisheye and "
-            "some stereo modes are disabled"
-        );
-        return;
-    }
-
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
             
@@ -1319,7 +1293,7 @@ void Window::addPostFX(PostFX fx) {
 }
 
 void Window::resizeFBOs() {
-    if (_useFixResolution || !Settings::instance()->useFBO()) {
+    if (_useFixResolution) {
         return;
     }
 

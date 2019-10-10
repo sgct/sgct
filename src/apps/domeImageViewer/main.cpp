@@ -1,8 +1,12 @@
-#include <sgct.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
 #include <sgct/image.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/utils/dome.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <fstream>
 #include <memory>

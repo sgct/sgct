@@ -1,5 +1,8 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/texturemanager.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
 #include <algorithm>
@@ -108,7 +111,7 @@ void drawFace(Rotation rot) {
             break;
     }
 
-    sgct::ShaderManager::instance()->bindShaderProgram("simple");
+    ShaderManager::instance()->bindShaderProgram("simple");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

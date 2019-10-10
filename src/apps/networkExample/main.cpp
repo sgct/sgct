@@ -1,7 +1,11 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
 #include <sgct/networkmanager.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/texturemanager.h>
 #include <sgct/window.h>
+#include <sgct/utils/box.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string_view>

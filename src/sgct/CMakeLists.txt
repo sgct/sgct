@@ -1,5 +1,4 @@
 set(HEADER_FILES
-  ${PROJECT_SOURCE_DIR}/include/sgct.h
   ${PROJECT_SOURCE_DIR}/include/sgct/action.h
   ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/clustermanager.h

@@ -1,5 +1,7 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
 #include <sgct/user.h>
 #include <sgct/touch.h>
 #include <glm/glm.hpp>

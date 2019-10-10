@@ -1,5 +1,6 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
+#include <sgct/shareddata.h>
 
 namespace {
     sgct::Engine* gEngine;

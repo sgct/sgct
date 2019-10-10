@@ -1,6 +1,10 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/texturemanager.h>
 #include <sgct/window.h>
+#include <sgct/utils/box.h>
 #include <SpoutLibrary.h>
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,7 +14,6 @@ namespace {
     sgct::Engine* gEngine;
 
     std::unique_ptr<sgct::utils::Box> box;
-    //sgct_utils::SGCTPlane * myPlane = NULL;
     GLint matrixLoc = -1;
 
     struct SpoutData {

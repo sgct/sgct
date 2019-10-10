@@ -1,5 +1,8 @@
-#include <sgct.h>
 #include <sgct/commandline.h>
+#include <sgct/engine.h>
+#include <sgct/shadermanager.h>
+#include <sgct/shareddata.h>
+#include <sgct/texturemanager.h>
 #include "objloader.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>

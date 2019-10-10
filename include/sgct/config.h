@@ -77,7 +77,6 @@ struct Settings {
     std::optional<bool> useDepthTexture;
     std::optional<bool> useNormalTexture;
     std::optional<bool> usePositionTexture;
-    std::optional<bool> usePBO;
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
     std::optional<Display> display;
     std::optional<OSDText> osdText;

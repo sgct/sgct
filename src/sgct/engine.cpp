@@ -493,9 +493,6 @@ Parameters:
         if (settings.usePositionTexture) {
             s.setUsePositionTexture(*settings.usePositionTexture);
         }
-        if (settings.usePBO) {
-            s.setUsePBO(*settings.usePBO);
-        }
         if (settings.bufferFloatPrecision) {
             sgct::Settings::BufferFloatPrecision p =
             [](sgct::config::Settings::BufferFloatPrecision p) {

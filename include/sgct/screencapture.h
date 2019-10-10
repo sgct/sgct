@@ -133,7 +133,6 @@ private:
     std::string _filename;
     std::string _baseName;
     std::string _path;
-    bool _usePBO = true;
     EyeIndex _eyeIndex = EyeIndex::Mono;
     CaptureFormat _format = CaptureFormat::PNG;
     int _windowIndex = 0;

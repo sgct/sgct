@@ -975,9 +975,6 @@ namespace {
             else if (val == "PositionTexture") {
                 settings.usePositionTexture = parseValue<bool>(*elem, "value");
             }
-            else if (val == "PBO") {
-                settings.usePBO = parseValue<bool>(*elem, "value");
-            }
             else if (val == "Precision") {
                 std::optional<float> f = parseValue<float>(*elem, "float");
                 if (f) {

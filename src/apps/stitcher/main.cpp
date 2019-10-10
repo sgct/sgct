@@ -628,12 +628,6 @@ int main(int argc, char* argv[]) {
 
             MessageHandler::instance()->printInfo("Right path set to %s", argv[i + 1]);
         }
-        else if (arg == "-compression" && argc > (i + 1)) {
-            int tmpi = atoi(argv[i + 1]);
-            Settings::instance()->setPNGCompressionLevel(tmpi);
-
-            MessageHandler::instance()->printInfo("Compression set to %d", tmpi);
-        }
     }
 
     gEngine->setInitOGLFunction(initOGLFun);

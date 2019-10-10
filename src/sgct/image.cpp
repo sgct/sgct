@@ -86,6 +86,24 @@ bool Image::load(const std::string& filename) {
     return _data != nullptr;
 }
 
+bool Image::load(unsigned char* data, int length) {
+    stbi_set_flip_vertically_on_load(1);
+    _data = stbi_load_from_memory(data, length, &_size[0], &_size[1], &_nChannels, 0);
+    _bytesPerChannel = 1;
+    _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
+
+    // Convert BGR to RGB
+    if (_nChannels >= 3) {
+        for (size_t i = 0; i < _dataSize; i += _nChannels) {
+            unsigned char tmp = _data[i];
+            _data[i] = _data[i + 2];
+            _data[i + 2] = tmp;
+        }
+    }
+
+    return _data != nullptr;
+}
+
 bool Image::save(const std::string& filename) {
     if (filename.empty()) {
         MessageHandler::instance()->printError(
@@ -183,14 +201,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     png_set_compression_level(png_ptr, compressionLevel);
     png_set_filter(png_ptr, 0, PNG_FILTER_NONE);
     png_set_compression_mem_level(png_ptr, 8);
-    
-    if (Settings::instance()->getUseRLE()) {
-        png_set_compression_strategy(png_ptr, Z_RLE);
-    }
-    else {
-        png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
-    }
-    
+    png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
     png_set_compression_window_bits(png_ptr, 15);
     png_set_compression_method(png_ptr, 8);
     png_set_compression_buffer_size(png_ptr, 8192);
@@ -291,6 +302,10 @@ const unsigned char* Image::getData() const {
 
 int Image::getChannels() const {
     return _nChannels;
+}
+
+int Image::getBytesPerChannel() const {
+    return _bytesPerChannel;
 }
 
 glm::ivec2 Image::getSize() const {

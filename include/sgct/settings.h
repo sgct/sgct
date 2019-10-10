@@ -95,19 +95,6 @@ public:
     void setNumberOfCaptureThreads(int count);
 
     /**
-     * Set the zlib compression level used for saving png files
-     * Compression levels 1-9.
-     *   -1 = Default compression\n
-     *    0 = No compression\n
-     *    1 = Best speed\n
-     *    9 = Best compression\n
-     */
-    void setPNGCompressionLevel(int level);
-
-    /// Set the JPEG quality in range [0-100].
-    void setJPEGQuality(int quality);
-
-    /**
      * Set capture/screenshot path used by SGCT
      *
      * \param path the path including filename without suffix
@@ -170,10 +157,6 @@ public:
      * For example gDebugger can't display textures created using glTexStorage2D.
      */
     void setForceGlTexImage2D(bool state);
-    void setUsePBO(bool state);
-
-    /// Set if run length encoding (RLE) should be used in PNG and TGA export.
-    void setUseRLE(bool state);
 
     /// Set if screen warping should be used or not
     void setUseWarping(bool state);
@@ -230,9 +213,6 @@ public:
      */
     bool getForceGlTexImage2D() const;
 
-    /// Get if pixel buffer object transferes should be used
-    bool getUsePBO() const;
-
     /// Get if screen warping is used
     bool getUseWarping() const;
 
@@ -251,21 +231,12 @@ public:
     /// Get if warping meshes should be exported as obj-files.
     bool getExportWarpingMeshes() const;
 
-    /// Get if run length encoding (RLE) is used in PNG and TGA export.
-    bool getUseRLE() const;
-
     /**
      * Get the capture/screenshot path
      *
      * \return the captureformat if set, otherwise -1 is returned
      */
     CaptureFormat getCaptureFormat();
-
-    /// Get the zlib compression level used in png export.
-    int getPNGCompressionLevel() const;
-
-    /// Get the JPEG quality settings (0-100)
-    int getJPEGQuality() const;
 
     /// Return true if depth buffer is rendered to texture
     bool useDepthTexture() const;
@@ -303,8 +274,6 @@ private:
     int _swapInterval = 1;
     int _refreshRate = 0;
     int _nCaptureThreads = std::thread::hardware_concurrency();
-    std::atomic_int _pngCompressionLevel = 1;
-    std::atomic_int _jpegQuality = 100;
     int _defaultNumberOfAASamples = 1;
     
     bool _useDepthTexture = false;
@@ -313,8 +282,6 @@ private:
     bool _useFBO = true;
     bool _defaultFXAA = false;
     bool _forceGlTexImage2D = false;
-    bool _usePBO = true;
-    std::atomic_bool _useRLE = false;
     bool _useWarping = true;
     bool _showWarpingWireframe = false;
     bool _captureBackBuffer = false;

@@ -89,17 +89,15 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
         info.isRunning = false;
     }
 
-    if (_usePBO) {
-        glGenBuffers(1, &_pbo);
-        MessageHandler::instance()->printDebug(
-            "ScreenCapture: Generating %dx%dx%d PBO: %u",
-            _resolution.x, _resolution.y, _nChannels, _pbo
-        );
+    glGenBuffers(1, &_pbo);
+    MessageHandler::instance()->printDebug(
+        "ScreenCapture: Generating %dx%dx%d PBO: %u",
+        _resolution.x, _resolution.y, _nChannels, _pbo
+    );
 
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-        glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, 0, GL_STATIC_READ);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-    }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
+    glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, 0, GL_STATIC_READ);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
 void ScreenCapture::setTextureTransferProperties(GLenum type) {
@@ -127,71 +125,27 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     }
     
     glPixelStorei(GL_PACK_ALIGNMENT, 1); // byte alignment
-
-    if (_usePBO) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
         
-        if (capSrc == CaptureSource::Texture) {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, 0);
-        }
-        else {
-            // set the target framebuffer to read
-            glReadBuffer(sourceForCaptureSource(capSrc));
-            const glm::ivec2& s = imPtr->getSize();
-            const GLsizei w = static_cast<GLsizei>(s.x);
-            const GLsizei h = static_cast<GLsizei>(s.y);
-            glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
-        }
-            
-        unsigned char* ptr = reinterpret_cast<unsigned char*>(
-            glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
-        );
-        if (ptr) {
-            memcpy(imPtr->getData(), ptr, _dataSize);
-                
-            if (_captureCallback) {
-                _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
-            }
-            else if (_bytesPerColor <= 2) {
-                // save the image
-                _captureInfos[threadIndex].isRunning = true;
-                _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
-                    screenCaptureHandler,
-                    &_captureInfos[threadIndex]
-                );
-            }
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-        }
-        else {
-            MessageHandler::instance()->printError(
-                "Error: Can't map data (0) from GPU in frame capture"
-            );
-        }
-        
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
+    if (capSrc == CaptureSource::Texture) {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, 0);
     }
     else {
-        // no PBO
-        if (capSrc == CaptureSource::Texture) {
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glGetTexImage(
-                GL_TEXTURE_2D,
-                0,
-                _downloadFormat,
-                _downloadType,
-                imPtr->getData()
-            );
-        }
-        else {
-            // set the target framebuffer to read
-            glReadBuffer(sourceForCaptureSource(capSrc));
-            const glm::ivec2& s = imPtr->getSize();
-            const GLsizei w = static_cast<GLsizei>(s.x);
-            const GLsizei h = static_cast<GLsizei>(s.y);
-            glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, imPtr->getData());
-        }
-        
+        // set the target framebuffer to read
+        glReadBuffer(sourceForCaptureSource(capSrc));
+        const glm::ivec2& s = imPtr->getSize();
+        const GLsizei w = static_cast<GLsizei>(s.x);
+        const GLsizei h = static_cast<GLsizei>(s.y);
+        glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
+    }
+            
+    unsigned char* ptr = reinterpret_cast<unsigned char*>(
+        glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
+    );
+    if (ptr) {
+        memcpy(imPtr->getData(), ptr, _dataSize);
+                
         if (_captureCallback) {
             _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
         }
@@ -203,20 +157,20 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
                 &_captureInfos[threadIndex]
             );
         }
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
+    else {
+        MessageHandler::instance()->printError(
+            "Error: Can't map data (0) from GPU in frame capture"
+        );
+    }
+        
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); // unbind pbo
 }
 
 void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
     _path = std::move(path);
     _baseName = std::move(filename);
-}
-
-void ScreenCapture::setUsePBO(bool state) {
-    _usePBO = state;
-    
-    MessageHandler::instance()->printInfo(
-        "ScreenCapture: PBO rendering %s", state ? "enabled" : "disabled"
-    );
 }
 
 void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {

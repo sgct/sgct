@@ -9,9 +9,6 @@
 #include <optional>
 
 namespace {
-    constexpr const int HeaderSize = 1;
-    enum class ImageType { JPEG, PNG };
-
     sgct::Engine* gEngine;
 
     std::unique_ptr<std::thread> loadThread;
@@ -33,7 +30,7 @@ namespace {
     sgct::SharedBool serverUploadDone(false);
     sgct::SharedInt32 serverUploadCount(0);
     sgct::SharedBool clientsUploadDone(false);
-    sgct::SharedVector<std::pair<std::string, int>> imagePaths;
+    sgct::SharedVector<std::string> imagePaths;
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
@@ -77,26 +74,7 @@ void readImage(unsigned char* data, int len) {
     std::unique_lock lk(mutex);
 
     std::unique_ptr<sgct::core::Image> img = std::make_unique<sgct::core::Image>();
-
-    const char type = static_cast<char>(data[0]);
-    assert(type == 0 || type == 1);
-    ImageType t = static_cast<ImageType>(type);
-
-    bool result = false;
-    switch (t) {
-        case ImageType::JPEG:
-            result = img->loadJPEG(
-                reinterpret_cast<unsigned char*>(data + HeaderSize),
-                len - HeaderSize
-            );
-            break;
-        case ImageType::PNG:
-            result = img->loadPNG(
-                reinterpret_cast<unsigned char*>(data + HeaderSize),
-                len - HeaderSize
-            );
-            break;
-    }
+    bool result = img->load(reinterpret_cast<unsigned char*>(data), len);
 
     if (result) {
         transImages.push_back(std::move(img));
@@ -118,25 +96,18 @@ void startDataTransfer() {
 
     for (int i = id; i < imageCounter; i++) {
         // load from file
-        using K = std::string;
-        using V = int;
-        const std::pair<K, V>& p = imagePaths.getValAt(static_cast<size_t>(i));
+        const std::string& p = imagePaths.getValAt(static_cast<size_t>(i));
 
-        std::ifstream file(p.first.c_str(), std::ios::binary);
+        std::ifstream file(p.c_str(), std::ios::binary);
         file.seekg(0, std::ios::end);
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        std::vector<char> buffer(size + HeaderSize);
-        int type = p.second;
-
-        // write header (single unsigned char)
-        buffer[0] = static_cast<char>(type);
-
-        if (file.read(buffer.data() + HeaderSize, size)) {
+        std::vector<char> buffer(size);
+        if (file.read(buffer.data(), size)) {
             const int s = static_cast<int>(buffer.size());
             // transfer
-            gEngine->transferDataBetweenNodes(buffer.data(), s, i );
+            gEngine->transferDataBetweenNodes(buffer.data(), s, i);
 
             // read the image on master
             readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
@@ -192,8 +163,8 @@ void uploadTexture() {
 
         GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-        const GLsizei width = static_cast<GLsizei>(transImages[i]->getWidth());
-        const GLsizei height = static_cast<GLsizei>(transImages[i]->getHeight());
+        const GLsizei width = static_cast<GLsizei>(transImages[i]->getSize().x);
+        const GLsizei height = static_cast<GLsizei>(transImages[i]->getSize().y);
         unsigned char* data = transImages[i]->getData();
         glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, width, height);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, type, format, data);
@@ -211,8 +182,8 @@ void uploadTexture() {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         MessageHandler::instance()->printInfo(
-            "Texture id %d loaded (%dx%dx%d).",
-            tex, transImages[i]->getWidth(), transImages[i]->getHeight(),
+            "Texture id %d loaded (%dx%dx%d)",
+            tex, transImages[i]->getSize().x, transImages[i]->getSize().y,
             transImages[i]->getChannels()
         );
 
@@ -501,20 +472,14 @@ void dropCallback(int count, const char** paths) {
             const size_t foundJpg = tmpStr.find(".jpg");
             const size_t foundJpeg = tmpStr.find(".jpeg");
             if (foundJpg != std::string::npos || foundJpeg != std::string::npos) {
-                imagePaths.addVal(std::pair<std::string, int>(
-                    pathStrings[i],
-                    static_cast<int>(ImageType::JPEG)
-                ));
+                imagePaths.addVal(pathStrings[i]);
                 transfer.setVal(true); // tell transfer thread to start processing data
                 serverUploadCount.setVal(serverUploadCount.getVal() + 1);
             }
 
             const size_t foundPng = tmpStr.find(".png");
             if (foundPng != std::string::npos) {
-                imagePaths.addVal(std::pair<std::string, int>(
-                    pathStrings[i],
-                    static_cast<int>(ImageType::PNG)
-                ));
+                imagePaths.addVal(pathStrings[i]);
                 transfer.setVal(true); // tell transfer thread to start processing data
                 serverUploadCount.setVal(serverUploadCount.getVal() + 1);
             }

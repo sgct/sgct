@@ -8,9 +8,6 @@
 #include <memory>
 
 namespace {
-    constexpr const int HeaderSize = 1;
-    enum class ImageType { JPEG, PNG };
-
     sgct::Engine* gEngine;
 
     std::unique_ptr<std::thread> loadThread;
@@ -28,7 +25,7 @@ namespace {
     sgct::SharedBool transfer(false);
     sgct::SharedBool serverUploadDone(false);
     sgct::SharedBool clientsUploadDone(false);
-    sgct::SharedVector<std::pair<std::string, int>> imagePaths;
+    sgct::SharedVector<std::string> imagePaths;
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
 
@@ -146,22 +143,18 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); // our polygon winding is counter clockwise
 
-    using SM = ShaderManager;
-    SM::instance()->addShaderProgram(
+    ShaderManager::instance()->addShaderProgram(
         "xform",
         vertexShader,
         fragmentShader,
         ShaderProgram::ShaderSourceType::String
     );
-    SM::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->bindShaderProgram("xform");
 
-    matrixLoc = SM::instance()->getShaderProgram("xform").getUniformLocation("mvp");
-    glUniform1i(
-        SM::instance()->getShaderProgram("xform").getUniformLocation("tex"),
-        0
-    );
-
-    SM::instance()->unBindShaderProgram();
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    matrixLoc = prog.getUniformLocation("mvp");
+    glUniform1i(prog.getUniformLocation("tex"), 0 );
+    ShaderManager::instance()->unBindShaderProgram();
 }
 
 void encodeFun() {
@@ -185,7 +178,6 @@ void cleanUpFun() {
         GLuint tex = texIds.getValAt(i);
         if (tex) {
             glDeleteTextures(1, &tex);
-            texIds.setValAt(i, 0);
         }
     }
     texIds.clear();
@@ -199,16 +191,16 @@ void cleanUpFun() {
 void keyCallback(int key, int, int action, int) {
     if (gEngine->isMaster()) {
         switch (key) {
-        case key::S:
-            if (action == action::Press) {
-                stats.setVal(!stats.getVal());
-            }
-            break;
-        case key::I:
-            if (action == action::Press) {
-                info.setVal(!info.getVal());
-            }
-            break;
+            case key::S:
+                if (action == action::Press) {
+                    stats.setVal(!stats.getVal());
+                }
+                break;
+            case key::I:
+                if (action == action::Press) {
+                    info.setVal(!info.getVal());
+                }
+                break;
         }
     }
 }
@@ -218,30 +210,10 @@ void readImage(unsigned char* data, int len) {
 
     transImg = std::make_unique<sgct::core::Image>();
 
-    char type = static_cast<char>(data[0]);
-    assert(type == 0 || type == 1);
-    ImageType t = ImageType(type);
-
-    bool result = false;
-    switch (t) {
-        case ImageType::JPEG:
-            result = transImg->loadJPEG(
-                reinterpret_cast<unsigned char*>(data + HeaderSize),
-                len - HeaderSize
-            );
-            break;
-        case ImageType::PNG:
-            result = transImg->loadPNG(
-                reinterpret_cast<unsigned char*>(data + HeaderSize),
-                len - HeaderSize
-            );
-            break;
-    }
-
+    const bool result = transImg->load(reinterpret_cast<unsigned char*>(data), len);
     if (!result) {
         transImg = nullptr;
     }
-
 }
 
 void startDataTransfer() {
@@ -251,37 +223,27 @@ void startDataTransfer() {
     currentPackage.setVal(id);
 
     // make sure to keep within bounds
-    if (static_cast<int>(imagePaths.getSize()) > id) {
-        sendTimer = sgct::Engine::getTime();
+    if (static_cast<int>(imagePaths.getSize()) <= id) {
+        return;
+    }
+        
+    sendTimer = sgct::Engine::getTime();
 
-        // load from file
-        const std::pair<std::string, int>& tmpPair =
-            imagePaths.getValAt(static_cast<std::size_t>(id));
+    // load from file
+    const std::string& tmpPair = imagePaths.getValAt(static_cast<size_t>(id));
 
-        std::ifstream file(tmpPair.first.c_str(), std::ios::binary);
-        file.seekg(0, std::ios::end);
-        const std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
+    std::ifstream file(tmpPair.c_str(), std::ios::binary);
+    file.seekg(0, std::ios::end);
+    const std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
 
-        std::vector<char> buffer(size + HeaderSize);
-        int type = tmpPair.second;
+    std::vector<char> buffer(size);
+    if (file.read(buffer.data(), size)) {
+        const int s = static_cast<int>(size);
+        gEngine->transferDataBetweenNodes(buffer.data(), s, id);
 
-        // write header (single unsigned char)
-        buffer[0] = static_cast<char>(type);
-
-        if (file.read(buffer.data() + HeaderSize, size)) {
-            gEngine->transferDataBetweenNodes(
-                buffer.data(),
-                static_cast<int>(buffer.size()),
-                id
-            );
-
-            // read the image on master
-            readImage(
-                reinterpret_cast<unsigned char*>(buffer.data()),
-                static_cast<int>(buffer.size())
-            );
-        }
+        // read the image on master
+        readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
     }
 }
 
@@ -335,16 +297,16 @@ void uploadTexture() {
         GL_TEXTURE_2D,
         mipMapLevels,
         internalformat,
-        static_cast<GLsizei>(transImg->getWidth()),
-        static_cast<GLsizei>(transImg->getHeight())
+        static_cast<GLsizei>(transImg->getSize().x),
+        static_cast<GLsizei>(transImg->getSize().y)
     );
     glTexSubImage2D(
         GL_TEXTURE_2D,
         0,
         0,
         0,
-        static_cast<GLsizei>(transImg->getWidth()),
-        static_cast<GLsizei>(transImg->getHeight()),
+        static_cast<GLsizei>(transImg->getSize().x),
+        static_cast<GLsizei>(transImg->getSize().y),
         type,
         format,
         transImg->getData()
@@ -363,7 +325,7 @@ void uploadTexture() {
         
     sgct::MessageHandler::instance()->printInfo(
         "Texture id %d loaded (%dx%dx%d).",
-        tex, transImg->getWidth(), transImg->getHeight(), transImg->getChannels()
+        tex, transImg->getSize().x, transImg->getSize().y, transImg->getChannels()
     );
         
     texIds.addVal(tex);
@@ -458,36 +420,27 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 }
 
 void dropCallback(int, const char** paths) {
-    if (gEngine->isMaster()) {
-        // simply pick the first path to transmit
-        std::string tmpStr(paths[0]);
+    if (!gEngine->isMaster()) {
+        return;
+    }
 
-        // transform to lowercase
-        std::transform(
-            tmpStr.begin(),
-            tmpStr.end(),
-            tmpStr.begin(),
-            [](char c) { return static_cast<char>(c); }
-        );
+    // simply pick the first path to transmit
+    std::string tmpStr(paths[0]);
 
-        const size_t foundJpg = tmpStr.find(".jpg");
-        const size_t foundJpeg = tmpStr.find(".jpeg");
-        if (foundJpg != std::string::npos || foundJpeg != std::string::npos) {
-            imagePaths.addVal(
-                std::pair<std::string, int>(paths[0], static_cast<int>(ImageType::JPEG))
-            );
-            transfer.setVal(true);
-            return;
-        }
+    // transform to lowercase
+    std::transform(
+        tmpStr.begin(),
+        tmpStr.end(),
+        tmpStr.begin(),
+        [](char c) { return static_cast<char>(c); }
+    );
 
-        const size_t foundPng = tmpStr.find(".png");
-        if (foundPng != std::string::npos) {
-            imagePaths.addVal(
-                std::pair<std::string, int>(paths[0], static_cast<int>(ImageType::PNG))
-            );
-            transfer.setVal(true);
-            return;
-        }
+    const bool foundJpg = tmpStr.find(".jpg") != std::string::npos;
+    const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
+    const bool foundPng = tmpStr.find(".png") != std::string::npos;
+    if (foundJpg || foundJpeg || foundPng) {
+        imagePaths.addVal(paths[0]);
+        transfer.setVal(true);
     }
 }
 

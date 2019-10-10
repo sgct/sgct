@@ -81,6 +81,42 @@ namespace {
   void main() { color = vec4(1.0, 0.5, 0.0, 1.0); }
 )";
 
+   unsigned char getSampleAt(const sgct::core::Image& img, int x, int y) {
+       const int width = img.getSize().x;
+       const size_t idx = (y * width + x) * img.getChannels() * img.getBytesPerChannel();
+       return img.getData()[idx];
+   }
+
+   float getInterpolatedSampleAt(const sgct::core::Image& img, float x, float y) {
+       int px = static_cast<int>(x); //floor x
+       int py = static_cast<int>(y); //floor y
+
+       // Calculate the weights for each pixel
+       float fx = x - static_cast<float>(px);
+       float fy = y - static_cast<float>(py);
+
+       //if no need for interpolation
+       if (fx == 0.f && fy == 0.f) {
+           return static_cast<float>(getSampleAt(img, px, py));
+       }
+
+       float fx1 = 1.0f - fx;
+       float fy1 = 1.0f - fy;
+
+       float w0 = fx1 * fy1;
+       float w1 = fx * fy1;
+       float w2 = fx1 * fy;
+       float w3 = fx * fy;
+
+       float p0 = static_cast<float>(getSampleAt(img, px, py));
+       float p1 = static_cast<float>(getSampleAt(img, px, py + 1));
+       float p2 = static_cast<float>(getSampleAt(img, px + 1, py));
+       float p3 = static_cast<float>(getSampleAt(img, px + 1, py + 1));
+
+       return p0 * w0 + p1 * w1 + p2 * w2 + p3 * w3;
+   }
+
+
 } // namespace
 
 using namespace sgct;
@@ -175,16 +211,16 @@ void initOmniStereo(bool mask) {
                 bool omniNeeded = true;
                 if (turnMap.getChannels() > 0) {
                     const glm::vec2 turnMapPos = {
-                        (x / xResf) * static_cast<float>(turnMap.getWidth() - 1),
-                        (y / yResf) * static_cast<float>(turnMap.getHeight() - 1)
+                        (x / xResf) * static_cast<float>(turnMap.getSize().x - 1),
+                        (y / yResf) * static_cast<float>(turnMap.getSize().y - 1)
                     };
 
                     // inverse gamma
                     const float headTurnMultiplier = pow(
-                        turnMap.getInterpolatedSampleAt(
+                        getInterpolatedSampleAt(
+                            turnMap,
                             turnMapPos.x,
-                            turnMapPos.y,
-                            sgct::core::Image::Blue
+                            turnMapPos.y
                         ) / 255.f,
                         2.2f
                     );
@@ -199,16 +235,16 @@ void initOmniStereo(bool mask) {
                 glm::vec3 newEyePos;
                 if (sepMap.getChannels() > 0) {
                     const glm::vec2 sepMapPos = {
-                        (x / xResf) * static_cast<float>(sepMap.getWidth() - 1),
-                        (y / yResf) * static_cast<float>(sepMap.getHeight() - 1)
+                        (x / xResf) * static_cast<float>(sepMap.getSize().x - 1),
+                        (y / yResf) * static_cast<float>(sepMap.getSize().y - 1)
                     };
 
                     // inverse gamma 2.2
                     const float separationMultiplier = pow(
-                        sepMap.getInterpolatedSampleAt(
+                        getInterpolatedSampleAt(
+                            sepMap,
                             sepMapPos.x,
-                            sepMapPos.y,
-                            sgct::core::Image::Blue
+                            sepMapPos.y
                         ) / 255.f,
                         2.2f
                     );

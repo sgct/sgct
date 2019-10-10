@@ -23,6 +23,7 @@ public:
 
     bool allocateOrResizeData();
     bool load(const std::string& filename);
+    bool load(unsigned char* data, int length);
 
     /// Save the buffer to file. Type is automatically set by filename suffix.
     bool save(const std::string& filename);
@@ -30,6 +31,7 @@ public:
     unsigned char* getData();
     const unsigned char* getData() const;
     int getChannels() const;
+    int getBytesPerChannel() const;
     glm::ivec2 getSize() const;
 
     void setSize(glm::ivec2 size);

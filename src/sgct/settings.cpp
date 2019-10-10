@@ -68,22 +68,6 @@ void Settings::setNumberOfCaptureThreads(int count) {
     _nCaptureThreads = count;
 }
 
-void Settings::setPNGCompressionLevel(int level) {
-    _pngCompressionLevel = level;
-}
-
-void Settings::setJPEGQuality(int quality) {
-    _jpegQuality = quality;
-}
-
-int Settings::getPNGCompressionLevel() const { 
-    return _pngCompressionLevel;
-}
-
-int Settings::getJPEGQuality() const {
-    return _jpegQuality;
-}
-
 bool Settings::useDepthTexture() const {
     return _useDepthTexture;
 }
@@ -217,18 +201,6 @@ bool Settings::getForceGlTexImage2D() const {
     return _forceGlTexImage2D;
 }
 
-void Settings::setUsePBO(bool state) {
-    _usePBO = state;
-}
-
-bool Settings::getUsePBO() const {
-    return _usePBO;
-}
-
-void Settings::setUseRLE(bool state) {
-    _useRLE = state;
-}
-
 void Settings::setUseWarping(bool state) {
     _useWarping = state;
 }
@@ -243,10 +215,6 @@ void Settings::setCaptureFromBackBuffer(bool state) {
 
 void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
-}
-
-bool Settings::getUseRLE() const {
-    return _useRLE;
 }
 
 bool Settings::getTryMaintainAspectRatio() const {

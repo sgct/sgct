@@ -945,9 +945,6 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](core::ScreenCapture& sc) {
-        // a workaround for devices that support pbos but not showing it, like OSX (Intel)
-        sc.setUsePBO(Settings::instance()->getUsePBO());
-
         const int nCaptureChannels = _alpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture

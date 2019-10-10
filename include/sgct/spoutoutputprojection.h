@@ -65,10 +65,6 @@ private:
     void drawCubeFace(int face);
     void blitCubeFace(int face);
     void attachTextures(int face);
-    void renderInternal();
-    void renderInternalFixedPipeline();
-    void renderCubemapInternal(size_t* subViewPortIndex);
-    void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
     // shader locations
     int _cubemapLoc = -1;

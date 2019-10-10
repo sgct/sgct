@@ -7,7 +7,6 @@ namespace {
 
     sgct::SharedBool showStats(false);
     sgct::SharedBool showGraph(false);
-    sgct::SharedBool showWireframe(false);
     sgct::SharedFloat sizeFactor(0.5f);
 } // namespace
 
@@ -41,7 +40,6 @@ void preSyncFun() {
 void postSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(showStats.getVal());
     gEngine->setStatsGraphVisibility(showGraph.getVal());
-    gEngine->setWireframe(showWireframe.getVal());
 }
 
 void encodeFun() {
@@ -49,7 +47,6 @@ void encodeFun() {
     SharedData::instance()->writeFloat(sizeFactor);
     SharedData::instance()->writeBool(showStats);
     SharedData::instance()->writeBool(showGraph);
-    SharedData::instance()->writeBool(showWireframe);
 }
 
 void decodeFun() {
@@ -57,7 +54,6 @@ void decodeFun() {
     SharedData::instance()->readFloat(sizeFactor);
     SharedData::instance()->readBool(showStats);
     SharedData::instance()->readBool(showGraph);
-    SharedData::instance()->readBool(showWireframe);
 }
 
 void externalControlMessageCallback(const char* receivedChars, int size) {
@@ -68,9 +64,6 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
         }
         else if (size == 7 && msg.substr(0, 5) == "graph") {
             showGraph.setVal(msg.substr(6, 1) == "1");
-        }
-        else if (size == 6 && msg.substr(0, 4) == "wire") {
-            showWireframe.setVal(msg.substr(5, 1) == "1");
         }
         else if (size >= 6 && msg.substr(0, 4) == "size") {
             // parse string to int

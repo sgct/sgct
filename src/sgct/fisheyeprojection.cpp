@@ -82,7 +82,72 @@ void FisheyeProjection::update(glm::vec2 size) {
 }
 
 void FisheyeProjection::render() {
-    renderInternal();
+    glEnable(GL_SCISSOR_TEST);
+    Engine::instance()->enterCurrentViewport();
+    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+
+    _shader.bind();
+
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // if for some reson the active texture has been reset
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
+
+    if (Settings::instance()->useDepthTexture()) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
+        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
+    }
+
+    if (Settings::instance()->useNormalTexture()) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
+        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
+    }
+
+    if (Settings::instance()->usePositionTexture()) {
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
+        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
+    }
+
+    glDisable(GL_CULL_FACE);
+    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+    if (alpha) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else {
+        glDisable(GL_BLEND);
+    }
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+
+    glUniform1i(_shaderLoc.cubemapLoc, 0);
+    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
+
+    if (_offAxis) {
+        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
+    }
+
+    glBindVertexArray(_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    ShaderProgram::unbind();
+
+    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glDisable(GL_DEPTH_TEST);
+
+    if (alpha) {
+        glDisable(GL_BLEND);
+    }
+
+    // restore depth func
+    glDepthFunc(GL_LESS);
 }
 
 void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
@@ -106,7 +171,91 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
             break;
     }
 
-    renderCubemapInternal(subViewPortIndex);
+    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
+        *subViewPortIndex = idx;
+
+        if (!vp.isEnabled()) {
+            return;
+        }
+
+        _cubeMapFbo->bind();
+        if (!_cubeMapFbo->isMultiSampled()) {
+            attachTextures(idx);
+        }
+
+        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
+        drawCubeFace(vp);
+
+        // blit MSAA fbo to texture
+        if (_cubeMapFbo->isMultiSampled()) {
+            blitCubeFace(idx);
+        }
+
+        // re-calculate depth values from a cube to spherical model
+        if (Settings::instance()->useDepthTexture()) {
+            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+
+            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
+
+            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
+            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
+            glEnable(GL_SCISSOR_TEST);
+
+            Engine::instance()->_clearBufferFn();
+
+            glDisable(GL_CULL_FACE);
+            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+            if (alpha) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                glDisable(GL_BLEND);
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_ALWAYS);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
+
+            _depthCorrectionShader.bind();
+            glUniform1i(_shaderLoc.swapColorLoc, 0);
+            glUniform1i(_shaderLoc.swapDepthLoc, 1);
+            glUniform1f(
+                _shaderLoc.swapNearLoc,
+                Engine::instance()->_nearClippingPlaneDist
+            );
+            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->_farClippingPlaneDist);
+
+            Engine::instance()->getCurrentWindow().bindVAO();
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            Engine::instance()->getCurrentWindow().unbindVAO();
+
+            ShaderProgram::unbind();
+
+            glDisable(GL_DEPTH_TEST);
+
+            if (alpha) {
+                glDisable(GL_BLEND);
+            }
+
+            glDepthFunc(GL_LESS);
+            glDisable(GL_SCISSOR_TEST);
+        }
+    };
+
+    internalRender(_subViewports.right, 0);
+    internalRender(_subViewports.left, 1);
+    internalRender(_subViewports.bottom, 2);
+    internalRender(_subViewports.top, 3);
+    internalRender(_subViewports.front, 4);
+    internalRender(_subViewports.back, 5);
 }
 
 void FisheyeProjection::setDomeDiameter(float diameter) {
@@ -874,341 +1023,6 @@ void FisheyeProjection::attachTextures(int face) {
             GL_COLOR_ATTACHMENT2
         );
     }
-}
-
-void FisheyeProjection::renderInternal() {
-    glEnable(GL_SCISSOR_TEST);
-    Engine::instance()->enterCurrentViewport();
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
-
-    _shader.bind();
-
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    // if for some reson the active texture has been reset
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
-
-    if (Settings::instance()->useDepthTexture()) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
-        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
-    }
-
-    if (Settings::instance()->useNormalTexture()) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
-        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
-    }
-
-    if (Settings::instance()->usePositionTexture()) {
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
-        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
-    }
-
-    glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
-    if (alpha) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-    else {
-        glDisable(GL_BLEND);
-    }
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    glUniform1i(_shaderLoc.cubemapLoc, 0);
-    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
-
-    if (_offAxis) {
-        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
-    }
-
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-
-    ShaderProgram::unbind();
-
-    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glDisable(GL_DEPTH_TEST);
-
-    if (alpha) {
-        glDisable(GL_BLEND);
-    }
-
-    // restore depth func
-    glDepthFunc(GL_LESS);
-}
-
-void FisheyeProjection::renderInternalFixedPipeline() {
-    glEnable(GL_SCISSOR_TEST);
-    Engine::_instance->enterCurrentViewport();
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
-
-    _shader.bind();
-
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    glActiveTexture(GL_TEXTURE0);
-
-    glMatrixMode(GL_TEXTURE);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-
-    glEnable(GL_TEXTURE_CUBE_MAP);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
-
-    if (Settings::instance()->useDepthTexture()) {
-        glActiveTexture(GL_TEXTURE1);
-        glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
-        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
-    }
-
-    if (Settings::instance()->useNormalTexture()) {
-        glActiveTexture(GL_TEXTURE2);
-        glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
-        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
-    }
-
-    if (Settings::instance()->usePositionTexture()) {
-        glActiveTexture(GL_TEXTURE3);
-        glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
-        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
-    }
-
-    glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
-    if (alpha) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-    else {
-        glDisable(GL_BLEND);
-    }
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-
-    glUniform1i(_shaderLoc.cubemapLoc, 0);
-    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
-
-    if (_offAxis) {
-        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
-    }
-
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    //make sure that VBOs are unbound; to not mess up the vertex array
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glClientActiveTexture(GL_TEXTURE0);
-
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    ShaderProgram::unbind();
-
-    glPopClientAttrib();
-    glPopAttrib();
-}
-
-void FisheyeProjection::renderCubemapInternal(size_t* subViewPortIndex) {
-    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
-        *subViewPortIndex = idx;
-
-        if (!vp.isEnabled()) {
-            return;
-        }
-
-        _cubeMapFbo->bind();
-        if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
-
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
-        drawCubeFace(vp);
-
-        // blit MSAA fbo to texture
-        if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
-
-        // re-calculate depth values from a cube to spherical model
-        if (Settings::instance()->useDepthTexture()) {
-            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
-
-            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
-            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
-
-            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
-            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
-            glEnable(GL_SCISSOR_TEST);
-
-            Engine::instance()->_clearBufferFn();
-
-            glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
-            if (alpha) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            else {
-                glDisable(GL_BLEND);
-            }
-
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_ALWAYS);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
-
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
-
-            _depthCorrectionShader.bind();
-            glUniform1i(_shaderLoc.swapColorLoc, 0);
-            glUniform1i(_shaderLoc.swapDepthLoc, 1);
-            glUniform1f(
-                _shaderLoc.swapNearLoc,
-                Engine::instance()->_nearClippingPlaneDist
-            );
-            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->_farClippingPlaneDist);
-
-            Engine::instance()->getCurrentWindow().bindVAO();
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance()->getCurrentWindow().unbindVAO();
-
-            ShaderProgram::unbind();
-
-            glDisable(GL_DEPTH_TEST);
-
-            if (alpha) {
-                glDisable(GL_BLEND);
-            }
-
-            glDepthFunc(GL_LESS);
-            glDisable(GL_SCISSOR_TEST);
-        }
-    };
-
-    internalRender(_subViewports.right, 0);
-    internalRender(_subViewports.left, 1);
-    internalRender(_subViewports.bottom, 2);
-    internalRender(_subViewports.top, 3);
-    internalRender(_subViewports.front, 4);
-    internalRender(_subViewports.back, 5);
-}
-
-void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
-    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
-        *subViewPortIndex = idx;
-
-        if (!vp.isEnabled()) {
-            return;
-        }
-        _cubeMapFbo->bind();
-        if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
-
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
-        drawCubeFace(vp);
-
-        // blit MSAA fbo to texture
-        if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
-
-        // re-calculate depth values from a cube to spherical model
-        if (Settings::instance()->useDepthTexture()) {
-            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
-
-            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
-            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
-
-            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
-            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
-
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glEnable(GL_SCISSOR_TEST);
-
-            Engine::instance()->_clearBufferFn();
-
-            glActiveTexture(GL_TEXTURE0);
-            glMatrixMode(GL_TEXTURE);
-            glLoadIdentity();
-
-            glMatrixMode(GL_MODELVIEW);
-
-            _depthCorrectionShader.bind();
-            glUniform1i(_shaderLoc.swapColorLoc, 0);
-            glUniform1i(_shaderLoc.swapDepthLoc, 1);
-            glUniform1f(
-                _shaderLoc.swapNearLoc,
-                Engine::instance()->_nearClippingPlaneDist
-            );
-            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->_farClippingPlaneDist);
-
-            glDisable(GL_CULL_FACE);
-            bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
-            if (alpha) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            else {
-                glDisable(GL_BLEND);
-            }
-
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_ALWAYS);
-
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
-
-            glActiveTexture(GL_TEXTURE1);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
-
-            glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-            Engine::instance()->getCurrentWindow().bindVBO();
-            glClientActiveTexture(GL_TEXTURE0);
-
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance()->getCurrentWindow().unbindVBO();
-            glPopClientAttrib();
-
-            ShaderProgram::unbind();
-            glPopAttrib();
-        }
-    };
-
-    internalRender(_subViewports.right, 0);
-    internalRender(_subViewports.left, 1);
-    internalRender(_subViewports.bottom, 2);
-    internalRender(_subViewports.top, 3);
-    internalRender(_subViewports.front, 4);
-    internalRender(_subViewports.back, 5);
 }
 
 } // namespace sgct::core

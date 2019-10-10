@@ -39,7 +39,6 @@ namespace {
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool wireframe(false);
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
     sgct::SharedBool takeScreenshot(false);
@@ -264,7 +263,6 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    gEngine->setWireframe(wireframe.getVal());
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
     sgct::core::ClusterManager::instance()->getTrackingManager().setEnabled(
@@ -352,7 +350,6 @@ void initOGLFun() {
 
 void encodeFun() {
     SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(wireframe);
     SharedData::instance()->writeBool(info);
     SharedData::instance()->writeBool(stats);
     SharedData::instance()->writeBool(takeScreenshot);
@@ -362,7 +359,6 @@ void encodeFun() {
 
 void decodeFun() {
     SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(wireframe);
     SharedData::instance()->readBool(info);
     SharedData::instance()->readBool(stats);
     SharedData::instance()->readBool(takeScreenshot);
@@ -378,9 +374,6 @@ void keyCallback(int key, int, int action, int) {
                 break;
             case key::I:
                 info.setVal(!info.getVal());
-                break;
-            case key::W:
-                wireframe.setVal(!wireframe.getVal());
                 break;
             case key::Q:
                 gEngine->terminate();

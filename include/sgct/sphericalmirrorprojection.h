@@ -58,10 +58,6 @@ private:
     void drawCubeFace(size_t face);
     void blitCubeFace(unsigned int texture);
     void attachTextures(unsigned int texture);
-    void renderInternal();
-    void renderInternalFixedPipeline();
-    void renderCubemapInternal(size_t* subViewPortIndex);
-    void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
     float _tilt = 0.f;
     float _diameter = 2.4f;

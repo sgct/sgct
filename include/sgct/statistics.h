@@ -22,7 +22,7 @@ class Statistics {
 public:
     Statistics();
     ~Statistics();
-    void initVBO(bool fixedPipeline);
+    void initVBO();
     void setAvgFPS(float afps);
     void setFrameTime(float t);
     void setDrawTime(float t);
@@ -92,7 +92,6 @@ private:
     unsigned int _staticVBO = 0;
 
     int _nLines = 0;
-    bool _fixedPipeline = true;
 
     ShaderProgram _shader;
     int _mvpLoc = -1;

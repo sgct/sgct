@@ -164,7 +164,7 @@ public:
     void setWindowResolution(glm::ivec2 resolution);
 
     /**
-     * Sets the framebuffer resolution. Theese parameters will only be used if a fixed
+     * Sets the framebuffer resolution. These parameters will only be used if a fixed
      * resolution is used that is different from the window resolution.
      * This might be useful in fullscreen mode on Apples retina displays to force 1080p
      * resolution or similar.

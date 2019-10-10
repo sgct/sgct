@@ -19,7 +19,6 @@ namespace {
 
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
-    sgct::SharedBool wireframe(false);
     sgct::SharedInt32 texIndex(-1);
     sgct::SharedInt32 incrIndex(1);
     sgct::SharedInt32 numSyncedTex(0);
@@ -276,7 +275,6 @@ void preSyncFun() {
 void postSyncPreDrawFun() {
     gEngine->setDisplayInfoVisibility(info.getVal());
     gEngine->setStatsGraphVisibility(stats.getVal());
-    gEngine->setWireframe(wireframe.getVal());
 }
 
 void initOGLFun() {
@@ -308,7 +306,6 @@ void encodeFun() {
     SharedData::instance()->writeDouble(currentTime);
     SharedData::instance()->writeBool(info);
     SharedData::instance()->writeBool(stats);
-    SharedData::instance()->writeBool(wireframe);
     SharedData::instance()->writeInt32(texIndex);
     SharedData::instance()->writeInt32(incrIndex);
 }
@@ -317,7 +314,6 @@ void decodeFun() {
     SharedData::instance()->readDouble(currentTime);
     SharedData::instance()->readBool(info);
     SharedData::instance()->readBool(stats);
-    SharedData::instance()->readBool(wireframe);
     SharedData::instance()->readInt32(texIndex);
     SharedData::instance()->readInt32(incrIndex);
 }
@@ -350,12 +346,6 @@ void keyCallback(int key, int, int action, int) {
             break;
         case key::I:
             info.setVal(!info.getVal());
-            break;
-        case key::W:
-            wireframe.setVal(!wireframe.getVal());
-            break;
-        case key::F:
-            wireframe.setVal(!wireframe.getVal());
             break;
         case key::Key1:
             incrIndex.setVal(1);

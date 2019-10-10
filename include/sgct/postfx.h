@@ -48,7 +48,6 @@ public:
 
 private:
     void internalRender();
-    void internalRenderFixedPipeline();
 
     void (*_updateFn)() = nullptr;
     void (PostFX::*_renderFn)() = nullptr;

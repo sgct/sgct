@@ -1058,7 +1058,6 @@ private:
     /// This function combines a texture and a shader into a new texture.
     void renderPostFX(TextureIndexes ti);
 
-    /// Works for fixed and programable pipeline.
     void renderViewports(TextureIndexes ti);
 
     /// This function renders stats, OSD and overlays.

@@ -98,10 +98,6 @@ private:
     void drawCubeFace(BaseViewport& face);
     void blitCubeFace(int face);
     void attachTextures(int face);
-    void renderInternal();
-    void renderInternalFixedPipeline();
-    void renderCubemapInternal(size_t* subViewPortIndex);
-    void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
     float _fov = 180.f;
     float _tilt = 0.f;

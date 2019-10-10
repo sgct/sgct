@@ -1176,7 +1176,7 @@ void Engine::initOGL() {
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
     loadShaders();
-    _statistics->initVBO(false);
+    _statistics->initVBO();
 
     if (_initOpenGLFn) {
         MessageHandler::instance()->printInfo("Calling init callback");

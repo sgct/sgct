@@ -203,7 +203,7 @@ void FisheyeProjection::renderCubemap(std::size_t* subViewPortIndex) {
             glScissor(0, 0, _cubemapResolution, _cubemapResolution);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::instance()->_clearBufferFn();
+            Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
             const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
@@ -975,14 +975,7 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
     glEnable(GL_SCISSOR_TEST);
     setupViewport(face);
 
-    if (Engine::instance()->_clearBufferFn) {
-        Engine::instance()->_clearBufferFn();
-    }
-    else {
-        glm::vec4 color = Engine::instance()->getClearColor();
-        glClearColor(color.r, color.g, color.b, color.a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+    Engine::clearBuffer();
 
     glDisable(GL_SCISSOR_TEST);
 

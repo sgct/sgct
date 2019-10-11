@@ -452,14 +452,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (Engine::instance()->_clearBufferFn) {
-        Engine::instance()->_clearBufferFn();
-    }
-    else {
-        glm::vec4 color = Engine::instance()->getClearColor();
-        glClearColor(color.r, color.g, color.b, color.a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+    Engine::clearBuffer();
 #endif
 
     Engine::instance()->_drawFn();

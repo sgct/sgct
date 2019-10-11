@@ -345,22 +345,6 @@ public:
     void setPostSyncPreDrawFunction(std::function<void()> fn);
 
     /**
-     * This function sets the clear buffer callback which will override the default clear
-     * buffer function.
-     *
-     * \param fnPtr is the function pointer to a clear buffer function callback
-     *
-\code
-void sgct::Engine::clearBuffer() {
-    const float * colorPtr = sgct::Engine::instance()->getClearColor();
-    glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-\endcode
-     */
-    void setClearBufferFunction(std::function<void()> fn);
-
-    /**
      * This function sets the draw callback. It's possible to have several draw functions
      * and change the callback on the fly preferably in a stage before the draw like the
      * post-sync-pre-draw stage or the pre-sync stage. The draw callback can be called
@@ -841,7 +825,7 @@ void sgct::Engine::clearBuffer() {
     Window& getWindow(int index) const;
 
     /// \return the number of windows for this node.
-    size_t getNumberOfWindows() const;
+    int getNumberOfWindows() const;
 
     /// \return a pointer to the current window that is beeing rendered
     Window& getCurrentWindow() const;
@@ -869,12 +853,6 @@ void sgct::Engine::clearBuffer() {
 
     /// \return true if on-screen info is rendered.
     bool isDisplayInfoRendered() const;
-
-    /**
-     * \return true if render target is off-screen (FBO) or false if render target is the
-     *         frame buffer.
-     */
-    bool isRenderingOffScreen() const;
 
     /**
      * \return the active frustum mode which can be one of the following:
@@ -951,9 +929,6 @@ void sgct::Engine::clearBuffer() {
 
     /// \return the active render target.
     RenderTarget getCurrentRenderTarget() const;
-
-    /// \return the active off screen buffer. If no buffer is active nullptr is returned. 
-    core::OffScreenBuffer* getCurrentFBO() const;
 
     /**
      * Returns the active viewport in pixels (only valid inside in the draw callback
@@ -1048,9 +1023,6 @@ private:
     /// This function updates the renderingtargets.
     void updateRenderingTargets(TextureIndexes ti);
 
-    /// This function updates the timers.
-    void updateTimers(double timeStamp);
-
     /**
      * This function loads shaders that handles different 3D modes. The shaders are only
      * loaded once in the initOGL function.
@@ -1094,7 +1066,6 @@ private:
     std::function<void()> _postDrawFn;
     std::function<void()> _preWindowFn;
     std::function<void()> _initOpenGLFn;
-    std::function<void()> _clearBufferFn;
     std::function<void()> _cleanUpFn;
     std::function<void()> _draw2DFn;
     std::function<void(const char*, int)> _externalDecodeCallbackFn;
@@ -1126,7 +1097,6 @@ private:
         size_t sub = 0;
     } _currentViewportIndex;
     RenderTarget _currentRenderTarget = RenderTarget::WindowBuffer;
-    core::OffScreenBuffer* _currentOffScreenBuffer = nullptr;
 
     bool _showInfo = false;
     bool _showGraph = false;
@@ -1156,29 +1126,16 @@ private:
 
     std::unique_ptr<core::NetworkManager> _networkConnections;
     std::unique_ptr<core::Statistics> _statistics;
-    core::Node* _thisNode = nullptr;
+    //core::Node* _thisNode = nullptr;
 
     std::unique_ptr<std::thread> _thread;
 
-    std::string _logfilePath;
     bool _isRunning = true;
     bool _isInitialized = false;
     std::string _aaInfo;
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;
-
-    struct TimerInformation {
-        int id = 0;
-        double lastFired = 0.0;
-        double interval = 0.0;
-        std::function<void(int)> callback;
-    };
-
-    /// stores all active timers
-    std::vector<TimerInformation> _timers;
-    /// the timer created next will use this ID
-    int _timerID = 0;
 
     RunMode _runMode = RunMode::Default_Mode;
     std::string _glslVersion;

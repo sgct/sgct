@@ -68,14 +68,6 @@ void myDraw2DFun() {
     text::print(
         *text::FontManager::instance()->getFont("SGCTFont", 24),
         text::TextAlignMode::TopLeft,
-        50,
-        700, 
-        glm::vec4(1.f, 0.f, 0.f, 1.f),
-        "Focused: %s", gEngine->getCurrentWindow().isFocused() ? "true" : "false"
-    );
-    text::print(
-        *text::FontManager::instance()->getFont("SGCTFont", 24),
-        text::TextAlignMode::TopLeft,
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),

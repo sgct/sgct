@@ -268,9 +268,6 @@ public:
     /// Set the color bit depth of the FBO and Screencapture.
     void setColorBitDepth(ColorBitDepth cbd);
 
-    /// Set if screen capturing is allowed.
-    void setAllowCapture(bool state);
-
     /// \returns true if full screen rendering is enabled
     bool isFullScreen() const;
 
@@ -295,21 +292,12 @@ public:
     /// \returns If the frame buffer has a fix resolution this function returns true.
     bool isFixResolution() const;
 
-    /**
-     * \returns If the window resolution was set in configuration file this function
-     *          returns true.
-     */
-    bool isWindowResolutionSet() const;
-
     /// \returns true if any kind of stereo is enabled
     bool isStereo() const;
 
     /// \returns true if this window is resized
     bool isWindowResized() const;
 
-    /// Get if (screen) capturing is allowed.
-    bool isCapturingAllowed() const;
-        
     /// \returns the name of this window
     const std::string& getName() const;
 
@@ -482,23 +470,22 @@ private:
     std::string _name;
     std::vector<std::string> _tags;
 
-    bool _visible = true;
+    bool _isVisible = true;
     bool _renderWhileHidden = false;
-    bool _focused = false;
-    bool _iconified = false;
+    bool _hasFocus = false;
+    bool _isIconified = false;
     bool _useFixResolution = false;
-    bool _isWindowResSet = false;
-    bool _allowCapture = true;
-    bool _callDraw2DFunction = true;
-    bool _callDraw3DFunction = true;
-    bool _copyPreviousWindowToCurrentWindow = false;
+    bool _isWindowResolutionSet = false;
+    bool _hasCallDraw2DFunction = true;
+    bool _hasCallDraw3DFunction = true;
+    bool _shouldCopyPreviousWindowToCurrentWindow = false;
     bool _useQuadBuffer = false;
-    bool _fullScreen = false;
-    bool _floating = false;
-    bool _doubleBuffered = true;
+    bool _isFullScreen = false;
+    bool _isFloating = false;
+    bool _isDoubleBuffered = true;
     bool _setWindowPos = false;
-    bool _decorated = true;
-    bool _alpha = false;
+    bool _isDecorated = true;
+    bool _hasAlpha = false;
     glm::ivec2 _framebufferRes = glm::ivec2(512, 256);
     glm::ivec2 _windowInitialRes = glm::ivec2(640, 480);
     bool _hasPendingWindowRes = false;
@@ -565,8 +552,8 @@ private:
     static GLFWwindow* _sharedHandle;
     static GLFWwindow* _currentContextOwner;
     static bool _useSwapGroups;
-    static bool _barrier;
-    static bool _swapGroupMaster;
+    static bool _isBarrierActive;
+    static bool _isSwapGroupMaster;
 };
 
 } // namespace sgct

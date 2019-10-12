@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/viewport.h>
@@ -42,15 +43,15 @@ namespace {
     // abock(2019-10-02); glbinding doesn't come with default bindings against the wgl.xml
     // file, so we have to resolve these manually
     bool FunctionsResolved = false;
-    using BindSwapBarrier = BOOL(*)(GLuint group, GLuint barrier);
+    using BindSwapBarrier = GLboolean(*)(GLuint group, GLuint barrier);
     BindSwapBarrier wglBindSwapBarrierNV = nullptr;
-    using JoinSwapGroup = BOOL(*)(HDC hDC, GLuint group);
+    using JoinSwapGroup = GLboolean(*)(HDC hDC, GLuint group);
     JoinSwapGroup wglJoinSwapGroupNV = nullptr;
-    using QueryMaxSwapGroups = BOOL(*)(HDC hDC, GLuint* maxGroups, GLuint* maxBarriers);
+    using QueryMaxSwapGroups = GLboolean(*)(HDC hDC, GLuint* mGroups, GLuint* mBarriers);
     QueryMaxSwapGroups wglQueryMaxSwapGroupsNV = nullptr;
-    using QueryFrameCount = BOOL(*)(HDC hDC, GLuint* count);
+    using QueryFrameCount = GLboolean(*)(HDC hDC, GLuint* count);
     QueryFrameCount wglQueryFrameCountNV = nullptr;
-    using ResetFrameCount = BOOL(*)(HDC hDC);
+    using ResetFrameCount = GLboolean(*)(HDC hDC);
     ResetFrameCount wglResetFrameCountNV = nullptr;
 
     constexpr const float QuadVerts[20] = {
@@ -120,8 +121,8 @@ namespace {
 namespace sgct {
 
 bool Window::_useSwapGroups = false;
-bool Window::_barrier = false;
-bool Window::_swapGroupMaster = false;
+bool Window::_isBarrierActive = false;
+bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_currentContextOwner = nullptr;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
@@ -160,11 +161,11 @@ int Window::getId() const {
 }
 
 bool Window::isFocused() const {
-    return _focused;
+    return _hasFocus;
 }
 
 bool Window::isIconified() const {
-    return _iconified;
+    return _isIconified;
 }
 
 void Window::close() {
@@ -228,7 +229,7 @@ void Window::close() {
 }
 
 void Window::init() {
-    if (!_fullScreen) {
+    if (!_isFullScreen) {
         if (_setWindowPos) {
             glfwSetWindowPos(_windowHandle, _windowPos.x, _windowPos.y);
         }
@@ -391,7 +392,7 @@ unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
 }
 
 void Window::setVisibility(bool state) {
-    if (state != _visible) {
+    if (state != _isVisible) {
         if (_windowHandle) {
             if (state) {
                 glfwShowWindow(_windowHandle);
@@ -400,7 +401,7 @@ void Window::setVisibility(bool state) {
                 glfwHideWindow(_windowHandle);
             }
         }
-        _visible = state;
+        _isVisible = state;
     }
 }
 
@@ -409,11 +410,11 @@ void Window::setRenderWhileHidden(bool state) {
 }
 
 void Window::setFocused(bool state) {
-    _focused = state;
+    _hasFocus = state;
 }
 
 void Window::setIconified(bool state) {
-    _iconified = state;
+    _isIconified = state;
 }
 
 void Window::setWindowTitle(const char* title) {
@@ -444,14 +445,14 @@ void Window::setFramebufferResolution(glm::ivec2 resolution) {
 }
 
 void Window::swap(bool takeScreenshot) {
-    if (!((_visible || _renderWhileHidden) && _allowCapture)) {
+    if (!(_isVisible || _renderWhileHidden)) {
         return;
     }
 
     makeOpenGLContextCurrent(Context::Window);
         
     if (takeScreenshot) {
-        if (Settings::instance()->getCaptureFromBackBuffer() && _doubleBuffered) {
+        if (Settings::instance()->getCaptureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono != nullptr) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -483,7 +484,7 @@ void Window::swap(bool takeScreenshot) {
     // swap
     _windowResOld = _windowRes;
 
-    if (_doubleBuffered) {
+    if (_isDoubleBuffered) {
         glfwSwapBuffers(_windowHandle);
     }
     else {
@@ -552,7 +553,7 @@ void Window::initWindowResolution(glm::ivec2 resolution) {
     _windowRes = resolution;
     _windowResOld = _windowRes;
     _aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
-    _isWindowResSet = true;
+    _isWindowResolutionSet = true;
 
     if (!_useFixResolution) {
         _framebufferRes = resolution;
@@ -560,7 +561,7 @@ void Window::initWindowResolution(glm::ivec2 resolution) {
 }
 
 bool Window::update() {
-    if (!_visible || !isWindowResized()) {
+    if (!_isVisible || !isWindowResized()) {
         return false;
     }
     makeOpenGLContextCurrent(Context::Window);
@@ -568,7 +569,7 @@ bool Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](core::ScreenCapture& sc) {
-        const int nCaptureChannels = _alpha ? 4 : 3;
+        const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
@@ -620,7 +621,7 @@ bool Window::isWindowResized() const {
 }
 
 bool Window::isBarrierActive() {
-    return _barrier;
+    return _isBarrierActive;
 }
 
 bool Window::isUsingSwapGroups() {
@@ -628,23 +629,23 @@ bool Window::isUsingSwapGroups() {
 }
 
 bool Window::isSwapGroupMaster() {
-    return _swapGroupMaster;
+    return _isSwapGroupMaster;
 }
 
 bool Window::isFullScreen() const {
-    return _fullScreen;
+    return _isFullScreen;
 }
 
 bool Window::isFloating() const {
-    return _floating;
+    return _isFloating;
 }
 
 bool Window::isDoubleBuffered() const {
-    return _doubleBuffered;
+    return _isDoubleBuffered;
 }
 
 bool Window::isVisible() const {
-    return _visible;
+    return _isVisible;
 }
 
 bool Window::isRenderingWhileHidden() const {
@@ -653,10 +654,6 @@ bool Window::isRenderingWhileHidden() const {
 
 bool Window::isFixResolution() const {
     return _useFixResolution;
-}
-
-bool Window::isWindowResolutionSet() const {
-    return _isWindowResSet;
 }
 
 bool Window::isStereo() const {
@@ -669,19 +666,19 @@ void Window::setWindowPosition(glm::ivec2 positions) {
 }
 
 void Window::setWindowMode(bool fullscreen) {
-    _fullScreen = fullscreen;
+    _isFullScreen = fullscreen;
 }
 
 void Window::setFloating(bool floating) {
-    _floating = floating;
+    _isFloating = floating;
 }
 
 void Window::setDoubleBuffered(bool doubleBuffered) {
-    _doubleBuffered = doubleBuffered;
+    _isDoubleBuffered = doubleBuffered;
 }
 
 void Window::setWindowDecoration(bool state) {
-    _decorated = state;
+    _isDecorated = state;
 }
 
 void Window::setFullScreenMonitorIndex(int index) {
@@ -689,14 +686,14 @@ void Window::setFullScreenMonitorIndex(int index) {
 }
 
 void Window::setBarrier(bool state) {
-    if (_useSwapGroups && state != _barrier) {
+    if (_useSwapGroups && state != _isBarrierActive) {
         MessageHandler::instance()->printInfo("Window: Enabling Nvidia swap barrier");
 
 #ifdef WIN32
-        _barrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
+        _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0);
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
-        _barrier = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0);
+        _isBarrierActive = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0);
     #endif
 #endif
     }
@@ -737,8 +734,8 @@ void Window::setUseQuadbuffer(bool state) {
 }
 
 void Window::setCallDraw2DFunction(bool state) {
-    _callDraw2DFunction = state;
-    if (!_callDraw2DFunction) {
+    _hasCallDraw2DFunction = state;
+    if (!_hasCallDraw2DFunction) {
         MessageHandler::instance()->printInfo(
             "Window %d: Draw 2D function disabled for this window", _id
         );
@@ -746,8 +743,8 @@ void Window::setCallDraw2DFunction(bool state) {
 }
 
 void Window::setCallDraw3DFunction(bool state) {
-    _callDraw3DFunction = state;
-    if (!_callDraw3DFunction) {
+    _hasCallDraw3DFunction = state;
+    if (!_hasCallDraw3DFunction) {
         MessageHandler::instance()->printInfo(
             "Window %d: Draw (3D) function disabled for this window", _id
         );
@@ -755,8 +752,8 @@ void Window::setCallDraw3DFunction(bool state) {
 }
 
 void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
-    _copyPreviousWindowToCurrentWindow = state;
-    if (_copyPreviousWindowToCurrentWindow) {
+    _shouldCopyPreviousWindowToCurrentWindow = state;
+    if (_shouldCopyPreviousWindowToCurrentWindow) {
         MessageHandler::instance()->printInfo(
             "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window", _id
         );
@@ -765,7 +762,7 @@ void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
 
 bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
-    glfwWindowHint(GLFW_DECORATED, _decorated ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
     if (antiAliasingSamples > 1) {
@@ -777,15 +774,15 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     }
 
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-    glfwWindowHint(GLFW_FLOATING, _floating ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, _doubleBuffered ? GLFW_TRUE : GLFW_FALSE);
-    if (!_visible) {
+    glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
+    if (!_isVisible) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     }
 
     setUseQuadbuffer(_stereoMode == StereoMode::Active);
 
-    if (_fullScreen) {
+    if (_isFullScreen) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
@@ -807,7 +804,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
             }
         }
 
-        if (!_isWindowResSet) {
+        if (!_isWindowResolutionSet) {
             const GLFWvidmode* currentMode = glfwGetVideoMode(_monitor);
             _windowRes = glm::ivec2(currentMode->width, currentMode->height);
         }
@@ -857,8 +854,8 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
-    _focused = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
-    _iconified = glfwGetWindowAttrib(_windowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
+    _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
+    _isIconified = glfwGetWindowAttrib(_windowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
         
     glfwMakeContextCurrent(_sharedHandle);
 
@@ -941,7 +938,7 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](core::ScreenCapture& sc) {
-        const int nCaptureChannels = _alpha ? 4 : 3;
+        const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance()->getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
@@ -996,7 +993,7 @@ void Window::initScreenCapture() {
 unsigned int Window::getSwapGroupFrameNumber() {
     unsigned int frameNumber = 0;
 
-    if (_barrier) {
+    if (_isBarrierActive) {
     #ifdef WIN32
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglQueryFrameCountNV(hDC, &frameNumber);
@@ -1013,7 +1010,7 @@ unsigned int Window::getSwapGroupFrameNumber() {
 }
 
 void Window::resetSwapGroupFrameNumber() {
-    if (_barrier) {
+    if (_isBarrierActive) {
 #ifdef WIN32
         bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
                        wglResetFrameCountNV(hDC);
@@ -1024,13 +1021,13 @@ void Window::resetSwapGroupFrameNumber() {
                        glXResetFrameCountNV(disp, hDC);
 #endif
         if (success) {
-            _swapGroupMaster = true;
+            _isSwapGroupMaster = true;
             MessageHandler::instance()->printInfo(
                 "Resetting frame counter. This computer is the master"
             );
         }
         else {
-            _swapGroupMaster = false;
+            _isSwapGroupMaster = false;
             MessageHandler::instance()->printInfo(
                 "Resetting frame counter failed. This computer is the slave"
             );
@@ -1543,11 +1540,11 @@ bool Window::useRightEyeTexture() const {
 }
 
 void Window::setAlpha(bool state) {
-    _alpha = state;
+    _hasAlpha = state;
 }
 
 bool Window::getAlpha() const {
-    return _alpha;
+    return _hasAlpha;
 }
 
 void Window::setGamma(float gamma) {
@@ -1579,14 +1576,6 @@ void Window::setColorBitDepth(ColorBitDepth cbd) {
 
 Window::ColorBitDepth Window::getColorBitDepth() const {
     return _bufferColorBitDepth;
-}
-
-void Window::setAllowCapture(bool state) {
-    _allowCapture = state;
-}
-
-bool Window::isCapturingAllowed() const {
-    return _allowCapture;
 }
 
 float Window::getBrightness() const {
@@ -1658,15 +1647,15 @@ int Window::getStereoShaderRightTexLoc() const {
 }
 
 bool Window::getCallDraw2DFunction() const {
-    return _callDraw2DFunction;
+    return _hasCallDraw2DFunction;
 }
 
 bool Window::getCallDraw3DFunction() const {
-    return _callDraw3DFunction;
+    return _hasCallDraw3DFunction;
 }
 
 bool Window::getCopyPreviousWindowToCurrentWindow() const {
-    return _copyPreviousWindowToCurrentWindow;
+    return _shouldCopyPreviousWindowToCurrentWindow;
 }
 
 } // namespace sgct

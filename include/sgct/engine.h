@@ -915,14 +915,10 @@ public:
     glm::ivec2 getCurrentDrawBufferSize() const;
 
     /**
-     * Get the selected FBO buffer size. Each window has its own buffer plus any
+     * Get all the available FBO buffer sizes. Each window has its own buffer plus any
      * additional non-linear projection targets.
-     *
-     * \param index index of selected drawbuffer
      */
-    glm::ivec2 getDrawBufferSize(size_t index) const;
-
-    size_t getNumberOfDrawBuffers() const;
+    const std::vector<glm::ivec2>& getDrawBufferResolutions() const;
 
     /// \return the active FBO buffer index.
     size_t getCurrentDrawBufferIndex() const;
@@ -985,12 +981,6 @@ private:
 
     /// Set up the current viewport.
     void enterCurrentViewport();
-
-    /**
-     * This function updates the Anti-Aliasing (AA) settings. This function is called once
-     * per second.
-     */
-    void updateAAInfo(const Window& window);
 
     void updateDrawBufferResolutions();
 
@@ -1078,11 +1068,6 @@ private:
     > _screenShotFn;
     std::function<void(GLFWwindow*)> _contextCreationFn;
     
-    std::function<void()> _internalDrawFn;
-    std::function<void()> _internalRenderFBOFn;
-    std::function<void()> _internalDrawOverlaysFn;
-    std::function<void(TextureIndexes)> _internalRenderPostFXFn;
-
     float _nearClippingPlaneDist = 0.1f;
     float _farClippingPlaneDist = 100.f;
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
@@ -1126,13 +1111,11 @@ private:
 
     std::unique_ptr<core::NetworkManager> _networkConnections;
     std::unique_ptr<core::Statistics> _statistics;
-    //core::Node* _thisNode = nullptr;
 
     std::unique_ptr<std::thread> _thread;
 
     bool _isRunning = true;
     bool _isInitialized = false;
-    std::string _aaInfo;
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;

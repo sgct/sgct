@@ -974,7 +974,6 @@ bool Engine::initWindows() {
     for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
         Window& win = thisNode->getWindow(i);
         win.init();
-        updateAAInfo(win);
     }
 
     // init draw buffer resolution
@@ -996,11 +995,6 @@ bool Engine::initWindows() {
 }
 
 void Engine::initOGL() {
-    _internalDrawFn = [this]() { draw(); };
-    _internalRenderFBOFn = [this]() { renderFBOTexture(); };
-    _internalDrawOverlaysFn = [this]() { drawOverlays(); };
-    _internalRenderPostFXFn = [this](TextureIndexes idx) { renderPostFX(idx); };
-
     // force buffer objects since display lists are not supported in core opengl 3.3+
     core::ClusterManager::instance()->setMeshImplementation(
         core::ClusterManager::MeshImplementation::BufferObjects
@@ -1236,11 +1230,6 @@ void Engine::clearAllCallbacks() {
     _dataTransferAcknowledgeCallbackFn = nullptr;
     _contextCreationFn = nullptr;
     _screenShotFn = nullptr;
-
-    _internalDrawFn = nullptr;
-    _internalRenderFBOFn = nullptr;
-    _internalDrawOverlaysFn = nullptr;
-    _internalRenderPostFXFn = nullptr;
 
     gKeyboardCallbackFnPtr = nullptr;
     gMouseButtonCallbackFnPtr = nullptr;
@@ -1571,7 +1560,7 @@ void Engine::render() {
                 thisNode->setCurrentWindowIndex(i);
 
                 _renderingOffScreen = false;
-                _internalRenderFBOFn();
+                renderFBOTexture();
             }
         }
         getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
@@ -1757,16 +1746,6 @@ void Engine::renderDisplayInfo() {
             "Frame buffer resolution: %d x %d",
             getCurrentWindow().getFramebufferResolution().x,
             getCurrentWindow().getFramebufferResolution().y
-        );
-
-        sgct::text::print(
-            *font,
-            sgct::text::TextAlignMode::TopLeft,
-            pos.x,
-            lineHeight * 0.f + pos.y,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            "Anti-Aliasing: %s",
-            _aaInfo.c_str()
         );
 
         // if active stereoscopic rendering
@@ -2052,7 +2031,7 @@ void Engine::renderViewports(TextureIndexes ti) {
             }
 
             if (getCurrentWindow().getCallDraw3DFunction()) {
-                _internalDrawFn();
+                draw();
             }
         }
     }
@@ -2079,7 +2058,7 @@ void Engine::renderViewports(TextureIndexes ti) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
 
-            _internalRenderPostFXFn(ti);
+            renderPostFX(ti);
 
             render2D();
             if (splitScreenStereo) {
@@ -2107,7 +2086,7 @@ void Engine::renderViewports(TextureIndexes ti) {
 
 void Engine::render2D() {
     // draw viewport overlays if any
-    _internalDrawOverlaysFn();
+    drawOverlays();
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -2887,13 +2866,6 @@ void Engine::calculateFPS(double timestamp) {
         _statistics->setAvgFPS(renderedFrames / tmpTime);
         renderedFrames = 0.f;
         tmpTime = 0.f;
-
-        core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
-        for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
-            if (thisNode->getWindow(i).isVisible()) {
-                updateAAInfo(thisNode->getWindow(i));
-            }
-        }
     }
 }
 
@@ -3106,26 +3078,6 @@ void Engine::setExternalControlBufferSize(unsigned int newSize) {
     }
 }
 
-void Engine::updateAAInfo(const Window& window) {
-    if (window.useFXAA()) {
-        if (window.getNumberOfAASamples() > 1) {
-            _aaInfo = "FXAA+MSAAx" + std::to_string(window.getNumberOfAASamples());
-        }
-        else {
-            _aaInfo = "FXAA";
-        }
-    }
-    else {
-        // no FXAA
-        if (window.getNumberOfAASamples() > 1) {
-            _aaInfo = "MSAAx" + std::to_string(window.getNumberOfAASamples());
-        }
-        else {
-            _aaInfo = "none";
-        }
-    }
-}
-
 void Engine::updateDrawBufferResolutions() {
     core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
     _drawBufferResolutions.clear();
@@ -3224,17 +3176,8 @@ glm::ivec2 Engine::getCurrentDrawBufferSize() const {
     return _drawBufferResolutions[_currentDrawBufferIndex];
 }
 
-glm::ivec2 Engine::getDrawBufferSize(size_t index) const {
-    if (index < _drawBufferResolutions.size()) {
-        return _drawBufferResolutions[index];
-    }
-    else {
-        return glm::ivec2(0, 0);
-    }
-}
-
-size_t Engine::getNumberOfDrawBuffers() const {
-    return _drawBufferResolutions.size();
+const std::vector<glm::ivec2>& Engine::getDrawBufferResolutions() const {
+    return _drawBufferResolutions;
 }
 
 size_t Engine::getCurrentDrawBufferIndex() const {

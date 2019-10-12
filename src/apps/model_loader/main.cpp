@@ -163,9 +163,6 @@ void drawFun() {
     );
 
     const glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
-    const glm::mat3 NM = glm::inverseTranspose(
-        glm::mat3(gEngine->getCurrentModelViewMatrix() * scene)
-    );
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));

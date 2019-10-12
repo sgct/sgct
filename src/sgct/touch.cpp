@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/Touch.h>
+#include <sgct/touch.h>
 
 #include <GLFW/glfw3.h>
 #include <algorithm>

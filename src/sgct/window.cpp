@@ -31,17 +31,13 @@
 // Nvidia Quadro Sync technology is only supported in Windows or Linux
 #ifdef WIN32
 HDC hDC;
-#elif defined __LINUX__
-GLXDrawable hDC;
-Display * disp;
-#ifdef GLEW_MX
-GLXEWContext* glxewGetContext();
-#endif // GLEW_MX
 #endif
 
 namespace {
     // abock(2019-10-02); glbinding doesn't come with default bindings against the wgl.xml
     // file, so we have to resolve these manually
+
+#ifdef WIN32
     bool FunctionsResolved = false;
     using BindSwapBarrier = GLboolean(*)(GLuint group, GLuint barrier);
     BindSwapBarrier wglBindSwapBarrierNV = nullptr;
@@ -53,6 +49,7 @@ namespace {
     QueryFrameCount wglQueryFrameCountNV = nullptr;
     using ResetFrameCount = GLboolean(*)(HDC hDC);
     ResetFrameCount wglResetFrameCountNV = nullptr;
+#endif // WIN32
 
     constexpr const float QuadVerts[20] = {
         0.f, 0.f, -1.f, -1.f, -1.f,
@@ -279,6 +276,7 @@ void Window::initOGL() {
         vp->getNonLinearProjection()->update(std::move(viewport));
     }
 
+#ifdef WIN32
     if (!FunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
         // abock (2019-10-02); I had to hand-resolve these functions as glbindings does
         // not come with build-in support for the wgl.xml functions
@@ -321,6 +319,7 @@ void Window::initOGL() {
 
         FunctionsResolved = true;
     }
+#endif // WIN32
 }
 
 void Window::initContextSpecificOGL() {
@@ -691,11 +690,7 @@ void Window::setBarrier(bool state) {
 
 #ifdef WIN32
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0);
-#else //Apple and Linux uses glext.h
-    #ifndef __APPLE__
-        _isBarrierActive = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0);
-    #endif
-#endif
+#endif // WIN32
     }
 }
 
@@ -870,7 +865,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     return true;
 }
 
-void Window::initNvidiaSwapGroups() {    
+void Window::initNvidiaSwapGroups() {
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
         MessageHandler::instance()->printInfo("Window: Joining Nvidia swap group");
@@ -903,36 +898,6 @@ void Window::initNvidiaSwapGroups() {
     else {
         _useSwapGroups = false;
     }
-#else //Apple and Linux uses glext.h
-    #ifndef __APPLE__
-
-    if (glfwExtensionSupported("GLX_NV_swap_group")) {
-        MessageHandler::instance()->printInfo("Window: Joining Nvidia swap group");
-
-        hDC = glXGetCurrentDrawable();
-        disp = glXGetCurrentDisplay();
-
-        unsigned int maxBarrier = 0;
-        unsigned int maxGroup = 0;
-        glXQueryMaxSwapGroupsNV(disp, hDC, &maxGroup, &maxBarrier);
-        MessageHandler::instance()->printInfo(
-            "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %d. "
-            "Max number of barriers: %d", maxGroup, maxBarrier
-        );
-
-        if (glXJoinSwapGroupNV(disp, hDC, 1)) {
-            MessageHandler::instance()->printInfo("Window: Joining swapgroup 1 [ok]");
-            _useSwapGroups = true;
-        }
-        else {
-            MessageHandler::instance()->printInfo("Window: Joining swapgroup 1 [failed]");
-            _useSwapGroups = false;
-        }
-    }
-    else {
-        _useSwapGroups = false;
-    }
-    #endif
 #endif
 }
 
@@ -998,28 +963,16 @@ unsigned int Window::getSwapGroupFrameNumber() {
         if (glfwExtensionSupported("WGL_NV_swap_group")) {
             wglQueryFrameCountNV(hDC, &frameNumber);
         }
-    #else //Apple and Linux uses glext.h
-        #ifndef __APPLE__
-        if (glfwExtensionSupported("GLX_NV_swap_group")) {
-            glXQueryFrameCountNV(disp, hDC, &frameNumber);
-        }
-        #endif
     #endif
     }
     return frameNumber;
 }
 
 void Window::resetSwapGroupFrameNumber() {
-    if (_isBarrierActive) {
 #ifdef WIN32
+    if (_isBarrierActive) {
         bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
                        wglResetFrameCountNV(hDC);
-#elif defined(__APPLE__)
-        bool success = false;
-#else //linux
-        bool success = glfwExtensionSupported("GLX_NV_swap_group") &&
-                       glXResetFrameCountNV(disp, hDC);
-#endif
         if (success) {
             _isSwapGroupMaster = true;
             MessageHandler::instance()->printInfo(
@@ -1033,6 +986,7 @@ void Window::resetSwapGroupFrameNumber() {
             );
         }
     }
+#endif
 }
 
 void Window::createTextures() {

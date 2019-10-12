@@ -150,7 +150,8 @@ bool Image::save(const std::string& filename) {
         return r != 0;
     }
 
-    assert(!"We should never get here unless someone added a type and forgot to save it");
+    // We should never get here unless someone added a type and forgot to save it
+    assert(false);
     return false;
 }
 
@@ -267,7 +268,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
 
     std::vector<png_bytep> rowPtrs(_size.y);
 
-    for (size_t y = 0; y < _size.y; y++) {
+    for (int y = 0; y < _size.y; y++) {
         rowPtrs[(_size.y - 1) - y] = reinterpret_cast<png_bytep>(
             &_data[y * _size.x * _nChannels * _bytesPerChannel]
         );

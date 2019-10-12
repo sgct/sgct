@@ -206,15 +206,15 @@ bool CorrectionMesh::generateDomeProjectionMesh(const std::string& meshPath,
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
 #else
-    meshFile = fopen(path.c_str(), "r");
+    meshFile = fopen(meshPath.c_str(), "r");
     if (meshFile == nullptr) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
@@ -416,7 +416,7 @@ bool CorrectionMesh::generateScalableMesh(const std::string& path, const Viewpor
                     buf.indices.resize(numberOfIndices);
                     std::fill(buf.indices.begin(), buf.indices.end(), 0);
                 }
-                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, 16, &tmpD) == 2) {
+                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
                     if (strcmp(tmpBuf, "LEFT") == 0) {
                         leftOrtho = tmpD;
                     }
@@ -1255,15 +1255,15 @@ bool CorrectionMesh::generateSkySkanMesh(const std::string& meshPath, Viewport& 
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
 #else
-    meshFile = fopen(path.c_str(), "r");
+    meshFile = fopen(meshPath.c_str(), "r");
     if (meshFile == nullptr) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
@@ -1476,15 +1476,15 @@ bool CorrectionMesh::generatePaulBourkeMesh(const std::string& meshPath,
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str())
         );
         return false;
     }
 #else
-    meshFile = fopen(path.c_str(), "r");
+    meshFile = fopen(meshPath.c_str(), "r");
     if (meshFile == nullptr) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
@@ -1626,15 +1626,15 @@ bool CorrectionMesh::generateOBJMesh(const std::string& meshPath) {
 #if (_MSC_VER >= 1400)
     if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
 #else
-    meshFile = fopen(path.c_str(), "r");
+    meshFile = fopen(meshPath.c_str(), "r");
     if (meshFile == nullptr) {
         MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
+            "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
         );
         return false;
     }
@@ -1726,16 +1726,16 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
 #if (_MSC_VER >= 1400)
         if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile) {
             MessageHandler::instance()->printError(
-                "CorrectionMesh: Failed to open warping mesh file"
+                "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
             );
             return false;
         }
 #else
-        meshFile = fopen(path.c_str(), "rb");
+        meshFile = fopen(meshPath.c_str(), "rb");
         if (meshFile == nullptr) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "CorrectionMesh: Failed to open warping mesh file"
+                "CorrectionMesh: Failed to open warping mesh file '%s'", meshPath.c_str()
             );
             return false;
         }

@@ -133,21 +133,21 @@ target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
 
 if (SGCT_DEP_INCLUDE_GLFW)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)
-  target_link_libraries(sgct PRIVATE glfw)
+  target_link_libraries(sgct PUBLIC glfw)
 endif ()
 
 if (SGCT_DEP_INCLUDE_LIBPNG)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_LIBPNG)
+  target_compile_definitions(sgct PRIVATE SGCT_HAS_LIBPNG)
   target_link_libraries(sgct PRIVATE png16_static)
 endif ()
 
 if (SGCT_DEP_INCLUDE_TINYXML)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_TINYXML)
+  target_compile_definitions(sgct PRIVATE SGCT_HAS_TINYXML)
   target_link_libraries(sgct PRIVATE tinyxml2static)
 endif ()
 
 if (SGCT_DEP_INCLUDE_VRPN)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_VRPN)
+  target_compile_definitions(sgct PRIVATE SGCT_HAS_VRPN)
   target_link_libraries(sgct PRIVATE vrpn)
 endif ()
 
@@ -202,8 +202,10 @@ else() # Linux
 endif ()
 
 target_include_directories(sgct SYSTEM PUBLIC
-    ${PROJECT_SOURCE_DIR}/ext/glfw/include
-    ${PROJECT_SOURCE_DIR}/ext/tinyxml2
+  ${PROJECT_SOURCE_DIR}/ext/glfw/include
+)
+target_include_directories(sgct SYSTEM PRIVATE
+  ${PROJECT_SOURCE_DIR}/ext/tinyxml2
 )
 
 target_include_directories(sgct SYSTEM PUBLIC

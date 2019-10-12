@@ -49,28 +49,6 @@ void main() {
     vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);
     Color = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.g);
 })";
-
-    constexpr const char* FontVertShaderLegacy = R"(
-**glsl_version**
-
-void main() {
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-})";
-
-    constexpr const char* FontFragShaderLegacy = R"(
-**glsl_version**
-
-uniform vec4 Col;
-uniform vec4 StrokeCol;
-uniform sampler2D Tex;
-
-void main() {
-    vec4 LuminanceAlpha = texture2D(Tex, gl_TexCoord[0].st);
-    vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);
-    gl_FragColor = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.a);
-})";
-
 } // namespace
 
 namespace sgct::text {

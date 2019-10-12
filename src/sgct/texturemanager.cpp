@@ -6,11 +6,11 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/TextureManager.h>
+#include <sgct/texturemanager.h>
 
-#include <sgct/Engine.h>
-#include <sgct/Image.h>
-#include <sgct/MessageHandler.h>
+#include <sgct/engine.h>
+#include <sgct/image.h>
+#include <sgct/messagehandler.h>
 
 namespace sgct {
 

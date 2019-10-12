@@ -10,7 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/messageHandler.h>
+#include <sgct/messagehandler.h>
 #include <sgct/mutexmanager.h>
 #include <sgct/tracker.h>
 #include <glm/gtc/matrix_transform.hpp>

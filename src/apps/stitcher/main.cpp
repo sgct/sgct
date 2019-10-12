@@ -25,7 +25,6 @@ namespace {
         Rotation::Deg0,
         Rotation::Deg0
     };
-    size_t activeTexture = 0;
     size_t numberOfTextures = 0;
 
     int stopIndex;

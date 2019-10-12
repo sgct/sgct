@@ -9,7 +9,7 @@
 #include <sgct/fisheyeprojection.h>
 
 #include <sgct/engine.h>
-#include <sgct/messageHandler.h>
+#include <sgct/messagehandler.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>

@@ -55,7 +55,6 @@ function (set_compile_options target)
       "-Wmicrosoft-flexible-array"
       "-Wmissing-noreturn"
       "-Wnewline-eof"
-      "-Wno-missing-braces"
       "-Wnon-virtual-dtor"
       "-Wold-style-cast"
       "-Wpessimizing-move"
@@ -86,6 +85,8 @@ function (set_compile_options target)
       "-Wvla"
       "-Wzero-length-array"
 
+      "-Wno-header-hygiene"
+      "-Wno-missing-braces"
       "-Wno-unused-function"
     )
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

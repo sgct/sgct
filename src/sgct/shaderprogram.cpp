@@ -6,9 +6,9 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/ShaderProgram.h>
+#include <sgct/shaderprogram.h>
 
-#include <sgct/MessageHandler.h>
+#include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 
 namespace sgct {

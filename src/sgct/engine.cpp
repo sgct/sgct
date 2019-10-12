@@ -906,7 +906,7 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 #ifdef __APPLE__
-            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             _glslVersion = "#version 450 core";
@@ -2390,7 +2390,6 @@ void Engine::setAndClearBuffer(BufferMode mode) {
 }
 
 bool Engine::checkForOGLErrors() {
-    using Level = MessageHandler::Level;
     MessageHandler& mh = *MessageHandler::instance();
 
     const GLenum oglError = glGetError();

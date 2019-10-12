@@ -15,8 +15,8 @@
 #include <numeric>
 
 #ifdef SGCT_HAS_TEXT
-#include <sgct/Font.h>
-#include <sgct/FontManager.h>
+#include <sgct/font.h>
+#include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
 

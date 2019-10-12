@@ -6,12 +6,12 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/PostFX.h>
+#include <sgct/postfx.h>
 
-#include <sgct/ClusterManager.h>
-#include <sgct/Engine.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/OffScreenBuffer.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
+#include <sgct/messagehandler.h>
+#include <sgct/offscreenbuffer.h>
 
 namespace sgct {
 

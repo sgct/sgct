@@ -14,9 +14,9 @@
 #include <sgct/node.h>
 #include <sgct/settings.h>
 #include <sgct/tracker.h>
-#include <sgct/trackingDevice.h>
+#include <sgct/trackingdevice.h>
 #include <sgct/user.h>
-#include <sgct/Viewport.h>
+#include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <algorithm>
 #include <optional>

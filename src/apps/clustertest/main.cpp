@@ -298,7 +298,7 @@ void preSyncFun() {
 #else
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
-        strftime(TimeBuffer, TIME_BUFFER_SIZE, "%X", timeInfoPtr);
+        strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 #endif
         const std::string time = TimeBuffer;
         const std::wstring wTime(time.begin(), time.end());

@@ -6,17 +6,17 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/Viewport.h>
+#include <sgct/viewport.h>
 
-#include <sgct/ClusterManager.h>
+#include <sgct/clustermanager.h>
 #include <sgct/config.h>
-#include <sgct/FisheyeProjection.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/ReadConfig.h>
-#include <sgct/ScreenCapture.h>
-#include <sgct/SphericalMirrorProjection.h>
-#include <sgct/SpoutOutputProjection.h>
-#include <sgct/TextureManager.h>
+#include <sgct/fisheyeprojection.h>
+#include <sgct/messagehandler.h>
+#include <sgct/readconfig.h>
+#include <sgct/screencapture.h>
+#include <sgct/sphericalmirrorprojection.h>
+#include <sgct/spoutoutputprojection.h>
+#include <sgct/texturemanager.h>
 #include <algorithm>
 #include <array>
 #include <optional>

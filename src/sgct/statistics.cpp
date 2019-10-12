@@ -27,13 +27,13 @@ namespace {
     constexpr const char* Stats_Vert_Shader = R"(
 **glsl_version**
 
-layout (location = 0) in vec2 Position;
+layout (location = 0) in vec2 vertPosition;
 
 uniform mat4 MVP;
 
 void main() {
-    gl_Position = MVP * vec4(Position, 0.0, 1.0);
-};
+    gl_Position = MVP * vec4(vertPosition, 0.0, 1.0);
+}
 )";
 
     constexpr const char* Stats_Frag_Shader = R"(

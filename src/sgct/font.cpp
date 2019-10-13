@@ -234,7 +234,7 @@ bool Font::getPixelData(FT_Face face, int& width, int& height,
             0
         );
 
-        error = FT_Glyph_Stroke(&(gd.strokeGlyph), gd.stroker, 1);
+        FT_Glyph_Stroke(&(gd.strokeGlyph), gd.stroker, 1);
     }
 
     // Convert the glyph to a bitmap

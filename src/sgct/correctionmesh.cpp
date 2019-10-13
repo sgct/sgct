@@ -1837,15 +1837,15 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
         size_t ret = 0;
         for (int i = 0; i < numCorrectionValues; ++i) {
 #ifdef WIN32
-            ret = fread_s(&corrGridX[i], numCorrectionValues, sizeof(int), 1, meshFile);
-            ret = fread_s(&corrGridY[i], numCorrectionValues, sizeof(int), 1, meshFile);
+            fread_s(&corrGridX[i], numCorrectionValues, sizeof(int), 1, meshFile);
+            fread_s(&corrGridY[i], numCorrectionValues, sizeof(int), 1, meshFile);
             // MPCDI uses the PFM format for correction grid. PFM format is designed for
             // 3 RGB values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for error value
             ret = fread_s(&errorPos, numCorrectionValues, sizeof(int), 1, meshFile);
 #else
-            ret = fread(&corrGridX[i], sizeof(float), 1, meshFile);
-            ret = fread(&corrGridY[i], sizeof(float), 1, meshFile);
+            fread(&corrGridX[i], sizeof(float), 1, meshFile);
+            fread(&corrGridY[i], sizeof(float), 1, meshFile);
             ret = fread(&errorPos, sizeof(float), 1, meshFile);
 #endif
         }

@@ -389,7 +389,6 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     close(lSocket);
 #endif
 
-    lSocket = INVALID_SOCKET;
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Mutex for connection %d is unlocked\n", _id);
 #endif

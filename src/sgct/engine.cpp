@@ -2947,7 +2947,7 @@ void Engine::addPostFX(PostFX fx) {
     core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
     for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
         thisNode->getWindow(i).setUsePostFX(true);
-        thisNode->getWindow(i).addPostFX(std::move(fx));
+        thisNode->getWindow(i).addPostFX(fx);
     }
 }
 

@@ -1805,7 +1805,7 @@ void Engine::drawOverlays() {
         }
 
         enterCurrentViewport();
-            
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
         _shader.overlay.bind();
@@ -2383,7 +2383,7 @@ void Engine::setAndClearBuffer(BufferMode mode) {
         clearBuffer();
     }
     else {
-        //when rendering textures to backbuffer (using fbo)
+        // when rendering textures to backbuffer (using fbo)
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
     }

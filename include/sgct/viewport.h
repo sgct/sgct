@@ -31,12 +31,8 @@ public:
 
     void applySettings(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);
-    void setOverlayTexture(std::string texturePath);
-    void setBlendMaskTexture(std::string texturePath);
-    void setBlackLevelMaskTexture(std::string texturePath);
-    void setCorrectionMesh(std::string meshPath);
     void setMpcdiWarpMesh(std::vector<unsigned char> data);
-    void setTracked(bool state);
+    // void setTracked(bool state);
     void loadData();
 
     /// Render the viewport mesh which the framebuffer texture is attached to
@@ -52,12 +48,10 @@ public:
     bool hasBlendMaskTexture() const;
     bool hasBlackLevelMaskTexture() const;
     bool hasSubViewports() const;
-    bool hasCorrectionMesh() const;
     bool isTracked() const;
     unsigned int getOverlayTextureIndex() const;
     unsigned int getBlendMaskTextureIndex() const;
     unsigned int getBlackLevelMaskTextureIndex() const;
-    CorrectionMesh& getCorrectionMeshPtr();
     NonLinearProjection* getNonLinearProjection() const;
     const std::vector<unsigned char>& mpcdiWarpMesh() const;
 
@@ -73,8 +67,7 @@ private:
     std::string _blackLevelMaskFilename;
     std::string _meshFilename;
     std::string _meshHint;
-    bool _correctionMesh = false;
-    bool _tracked = false;
+    bool _isTracked = false;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;

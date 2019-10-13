@@ -529,6 +529,9 @@ bool Mpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
+            // @TODO (abock, 2019-10-13); This is the only place where we need the name of
+            // a viewport. Is there a better way to determine whether we are currently
+            // looking at the correct viewport so we can remove the name?
             const std::string& winName = win.getViewport(i).getName();
             const std::string& warpName = warp->id;
             if (winName == warpName && warp->pathWarpFile == _pfmFileContents.fileName) {

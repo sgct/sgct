@@ -1746,6 +1746,8 @@ bool CorrectionMesh::generateMpcdiMesh(const std::string& meshPath,
             "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer",
             meshPath.c_str()
         );
+        // @TODO (abock, 2019-10-13) It would be nice if we wouldn't need to have to query
+        // the parent viewport for this data, but have it accessible directly instead
         srcBuff = parent.mpcdiWarpMesh().data();
         srcSizeBytes = parent.mpcdiWarpMesh().size();
     }

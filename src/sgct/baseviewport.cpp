@@ -30,11 +30,11 @@ void BaseViewport::setSize(glm::vec2 size) {
 }
 
 void BaseViewport::setEnabled(bool state) {
-    _enabled = state;
+    _isEnabled = state;
 }
 
 bool BaseViewport::isEnabled() const {
-    return _enabled;
+    return _isEnabled;
 }
 
 void BaseViewport::setEye(Frustum::Mode eye) {

@@ -488,8 +488,6 @@ void SpoutOutputProjection::initViewports() {
 
     // right, left, bottom, top, front, back
     {
-        _subViewports.right.setName("SpoutOutput 0");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -515,8 +513,6 @@ void SpoutOutputProjection::initViewports() {
 
     // left
     {
-        _subViewports.left.setName("SpoutOutput 1");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -544,8 +540,6 @@ void SpoutOutputProjection::initViewports() {
 
     // bottom
     {
-        _subViewports.bottom.setName("SpoutOutput 2");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -572,8 +566,6 @@ void SpoutOutputProjection::initViewports() {
 
     // top
     {
-        _subViewports.top.setName("SpoutOutput 3");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -600,8 +592,6 @@ void SpoutOutputProjection::initViewports() {
 
     // front
     {
-        _subViewports.front.setName("SpoutOutput 4");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -621,8 +611,6 @@ void SpoutOutputProjection::initViewports() {
 
     // back
     {
-        _subViewports.back.setName("SpoutOutput 5");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;

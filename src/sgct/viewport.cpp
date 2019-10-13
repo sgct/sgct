@@ -46,22 +46,22 @@ void Viewport::applySettings(const config::Viewport& viewport) {
         setName(*viewport.name);
     }
     if (viewport.overlayTexture) {
-        setOverlayTexture(*viewport.overlayTexture);
+        _overlayFilename = *viewport.overlayTexture;
     }
     if (viewport.blendMaskTexture) {
-        setBlendMaskTexture(*viewport.blendMaskTexture);
+        _blendMaskFilename = *viewport.blendMaskTexture;
     }
     if (viewport.blendLevelMaskTexture) {
-        setBlackLevelMaskTexture(*viewport.blendLevelMaskTexture);
+        _blackLevelMaskFilename = *viewport.blendLevelMaskTexture;
     }
     if (viewport.correctionMeshTexture) {
-        setCorrectionMesh(*viewport.correctionMeshTexture);
+        _meshFilename = std::move(*viewport.correctionMeshTexture);
     }
     if (viewport.meshHint) {
         _meshHint = *viewport.meshHint;
     }
     if (viewport.isTracked) {
-        setTracked(*viewport.isTracked);
+        _isTracked = *viewport.isTracked;
     }
     if (viewport.eye) {
         Frustum::Mode e = [](config::Viewport::Eye e) {
@@ -210,10 +210,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& proj) {
 #ifndef SGCT_HAS_SPOUT
     (void)proj;
-    MessageHandler::instance()->print(
-        MessageHandler::Level::Warning,
-        "ReadConfig: Spout library not added to SGCT"
-    );
+    MessageHandler::instance()->printWarning("Spout library not added to SGCT");
     return;
 #else
    
@@ -289,28 +286,8 @@ void Viewport::applySphericalMirrorProjection(
     _nonLinearProjection = std::move(sphericalMirrorProj);
 }
 
-void Viewport::setOverlayTexture(std::string texturePath) {
-    _overlayFilename = std::move(texturePath);
-}
-
-void Viewport::setBlendMaskTexture(std::string texturePath) {
-    _blendMaskFilename = std::move(texturePath);
-}
-
-void Viewport::setBlackLevelMaskTexture(std::string texturePath) {
-    _blackLevelMaskFilename = std::move(texturePath);
-}
-
-void Viewport::setCorrectionMesh(std::string meshPath) {
-    _meshFilename = std::move(meshPath);
-}
-
 void Viewport::setMpcdiWarpMesh(std::vector<unsigned char> data) {
     _mpcdiWarpMesh = std::move(data);
-}
-
-void Viewport::setTracked(bool state) {
-    _tracked = state;
 }
 
 void Viewport::loadData() {
@@ -346,7 +323,7 @@ void Viewport::loadData() {
     }
 
     if (!_mpcdiWarpMesh.empty()) {
-        _correctionMesh = _mesh.readAndGenerateMesh(
+        _mesh.readAndGenerateMesh(
             "mesh.mpcdi",
             *this,
             CorrectionMesh::parseHint("mpcdi")
@@ -354,7 +331,7 @@ void Viewport::loadData() {
     }
     else {
         // load default if _meshFilename is empty
-        _correctionMesh = _mesh.readAndGenerateMesh(
+        _mesh.readAndGenerateMesh(
             _meshFilename,
             *this,
             CorrectionMesh::parseHint(_meshHint)
@@ -363,19 +340,19 @@ void Viewport::loadData() {
 }
 
 void Viewport::renderQuadMesh() const {
-    if (_enabled) {
+    if (_isEnabled) {
         _mesh.renderQuadMesh();
     }
 }
 
 void Viewport::renderWarpMesh() const {
-    if (_enabled) {
+    if (_isEnabled) {
         _mesh.renderWarpMesh();
     }
 }
 
 void Viewport::renderMaskMesh() const {
-    if (_enabled) {
+    if (_isEnabled) {
         _mesh.renderMaskMesh();
     }
 }
@@ -396,12 +373,8 @@ bool Viewport::hasSubViewports() const {
     return _nonLinearProjection != nullptr;
 }
 
-bool Viewport::hasCorrectionMesh() const {
-    return _correctionMesh;
-}
-
 bool Viewport::isTracked() const {
-    return _tracked;
+    return _isTracked;
 }
 
 unsigned int Viewport::getOverlayTextureIndex() const {
@@ -414,10 +387,6 @@ unsigned int Viewport::getBlendMaskTextureIndex() const {
 
 unsigned int Viewport::getBlackLevelMaskTextureIndex() const {
     return _blackLevelMaskTextureIndex;
-}
-
-CorrectionMesh& Viewport::getCorrectionMeshPtr() {
-    return _mesh;
 }
 
 NonLinearProjection* Viewport::getNonLinearProjection() const {

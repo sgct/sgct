@@ -77,7 +77,7 @@ protected:
     User& _user;
     std::string _name = "NoName";
     std::string _userName;
-    bool _enabled = true;
+    bool _isEnabled = true;
     glm::vec2 _position = glm::vec2(0.f, 0.f);
     glm::vec2 _size = glm::vec2(1.f, 1.f);
 

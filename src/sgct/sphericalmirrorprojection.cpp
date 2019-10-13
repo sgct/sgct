@@ -183,7 +183,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // Right
     {
-        _subViewports.right.setName("Spherical Mirror 0");
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -207,8 +206,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // left
     {
-        _subViewports.left.setName("SphericalMirror 1");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -232,8 +229,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // bottom
     {
-        _subViewports.bottom.setName("SphericalMirror 2");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -258,8 +253,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // top
     {
-        _subViewports.top.setName("SphericalMirror 3");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -283,8 +276,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // front
     {
-        _subViewports.front.setName("SphericalMirror 4");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
@@ -302,8 +293,6 @@ void SphericalMirrorProjection::initViewports() {
 
     // back
     {
-        _subViewports.back.setName("SphericalMirror 5");
-
         glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;

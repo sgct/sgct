@@ -1,4 +1,4 @@
-﻿#include <sgct/clustermanager.h>
+#include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/font.h>
@@ -177,6 +177,9 @@ void drawFun() {
     wchar_t str5[] = L"한자"; // Korean string
     wchar_t str6[] = L"बईबईसई"; // Hindi string
 
+    // @TODO (abock, 2019-10-13) This all does not seem to work very well
+    // anymore on Mac
+    
     text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
     text::FontManager::instance()->setStrokeColor(glm::vec4(1.f, 0.f, 0.f, 0.5f));
     

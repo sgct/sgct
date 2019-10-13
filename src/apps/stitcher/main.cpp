@@ -118,6 +118,10 @@ void drawFace(Rotation rot) {
 
 
 void drawFun() {
+    if (numberOfTextures == 0) {
+        return;
+    }
+
     size_t index = counter % numberOfTextures;
     counter++;
 

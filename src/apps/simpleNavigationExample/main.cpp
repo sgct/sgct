@@ -222,7 +222,7 @@ void drawPyramid(int index) {
     glBindVertexArray(pyramid.vao);
 
     // draw lines
-    glLineWidth(2.0f);
+    glLineWidth(2.f);
     glPolygonOffset(1.f, 0.1f); // offset to avoid z-buffer fighting
     glUniform1f(alphaLocation, 0.8f);
     glDrawArrays(GL_LINES, 0, 16);
@@ -291,7 +291,7 @@ void initOGLFun() {
     ShaderManager::instance()->unBindShaderProgram();
 
     ShaderManager::instance()->addShaderProgram(
-        "pyramid",
+        "pyramidShader",
         pyramidVertexShader,
         pyramidFragmentShader,
         ShaderProgram::ShaderSourceType::String

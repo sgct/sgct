@@ -2394,6 +2394,8 @@ bool Engine::checkForOGLErrors() {
 
     const GLenum oglError = glGetError();
     switch (oglError) {
+        case GL_NO_ERROR:
+            break;
         case GL_INVALID_ENUM:
             mh.printError("OpenGL error: GL_INVALID_ENUM");
             break;
@@ -2417,6 +2419,9 @@ bool Engine::checkForOGLErrors() {
             break;
         case GL_TABLE_TOO_LARGE:
             mh.printError("OpenGL error: GL_TABLE_TOO_LARGE");
+            break;
+        default:
+            mh.printError("OpenGL error: Unknown error %i", static_cast<int>(oglError));
             break;
     }
 

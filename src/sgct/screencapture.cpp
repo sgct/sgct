@@ -22,7 +22,7 @@ namespace {
 
         const bool saveSuccess = ptr->frameBufferImage->save(ptr->filename);
         if (!saveSuccess) {
-            sgct::MessageHandler::instance()->printError(
+            sgct::MessageHandler::printError(
                 "Error: Failed to save '%s'", ptr->filename.c_str()
             );
         }
@@ -47,7 +47,7 @@ ScreenCapture::ScreenCapture()
 {}
 
 ScreenCapture::~ScreenCapture() {
-    MessageHandler::instance()->printInfo("Clearing screen capture buffers");
+    MessageHandler::printInfo("Clearing screen capture buffers");
 
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         // kill threads that are still running
@@ -90,7 +90,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     }
 
     glGenBuffers(1, &_pbo);
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "ScreenCapture: Generating %dx%dx%d PBO: %u",
         _resolution.x, _resolution.y, _nChannels, _pbo
     );
@@ -160,9 +160,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     else {
-        MessageHandler::instance()->printError(
-            "Error: Can't map data (0) from GPU in frame capture"
-        );
+        MessageHandler::printError("Error: Can't map data (0) from GPU in frame capture");
     }
         
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); // unbind pbo
@@ -185,9 +183,7 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     _windowIndex = windowIndex;
 
-    MessageHandler::instance()->printDebug(
-        "Number of screen capture threads is set to %d", _nThreads
-    );
+    MessageHandler::printDebug("Number of screencapture threads is set to %d", _nThreads);
 }
 
 void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
@@ -323,15 +319,13 @@ void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
 
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Error in finding availible thread for screenshot/capture"
         );
         return nullptr;
     }
 
-    MessageHandler::instance()->printDebug(
-        "Starting thread for screenshot/capture [%d]", index
-    );
+    MessageHandler::printDebug("Starting thread for screenshot/capture [%d]", index);
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<core::Image>();

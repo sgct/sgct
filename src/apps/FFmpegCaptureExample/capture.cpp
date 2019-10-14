@@ -19,8 +19,7 @@ extern "C"
     AV_ERROR_MAX_STRING_SIZE, errnum)
 #endif
 
-Capture::Capture()
-{
+Capture::Capture() {
     mOptions = nullptr;
     mFMTContext = nullptr;
     mVideoHost = "";
@@ -41,41 +40,33 @@ Capture::Capture()
     mInited = false;
 }
 
-Capture::~Capture()
-{
+Capture::~Capture() {
     cleanup();
 }
 
-std::string Capture::getVideoHost() const
-{
+std::string Capture::getVideoHost() const {
     return mVideoHost;
 }
 
-int Capture::getWidth() const
-{
+int Capture::getWidth() const {
     return mWidth;
 }
 
-int Capture::getHeight() const
-{
+int Capture::getHeight() const {
     return mHeight;
 }
 
-const char * Capture::getFormat() const
-{
+const char* Capture::getFormat() const {
     return mVideoStrFormat.c_str();
 }
 
-std::size_t Capture::getNumberOfDecodedFrames() const
-{
+std::size_t Capture::getNumberOfDecodedFrames() const {
     return mDecodedVideoFrames;
 }
 
-bool Capture::init()
-{
-    if (mVideoDevice.empty())
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "No video device specified!\n");
+bool Capture::init() {
+    if (mVideoDevice.empty()) {
+        sgct::MessageHandler::printError("No video device specified");
         cleanup();
         return false;
     }
@@ -100,23 +91,20 @@ bool Capture::init()
     inputName = mVideoDevice;
 #endif
 
-    if (avformat_open_input(&mFMTContext, inputName.c_str(), iformat, &mOptions) < 0)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not open capture input!\n");
+    if (avformat_open_input(&mFMTContext, inputName.c_str(), iformat, &mOptions) < 0) {
+        sgct::MessageHandler::printError("Could not open capture input");
         cleanup();
         return false;
     }
 
-    /* retrieve stream information */
-    if (avformat_find_stream_info(mFMTContext, nullptr) < 0)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find stream information!\n");
+    // retrieve stream information
+    if (avformat_find_stream_info(mFMTContext, nullptr) < 0) {
+        sgct::MessageHandler::printError("Could not find stream information");
         cleanup();
         return false;
     }
 
-    if (!initVideoStream())
-    {
+    if (!initVideoStream()) {
         cleanup();
         return false;
     }
@@ -124,16 +112,14 @@ bool Capture::init()
     //dump format info to console
     av_dump_format(mFMTContext, 0, inputName.c_str(), 0);
 
-    if (mVideoCodecContext)
-    {
-        if (!allocateVideoDecoderData(mVideoCodecContext->pix_fmt))
-        {
+    if (mVideoCodecContext) {
+        if (!allocateVideoDecoderData(mVideoCodecContext->pix_fmt)) {
             cleanup();
             return false;
         }
     }
 
-    /* initialize packet, set data to nullptr, let the demuxer fill it */
+    // initialize packet, set data to nullptr, let the demuxer fill it
     av_init_packet(&mPkt);
     mPkt.data = nullptr;
     mPkt.size = 0;
@@ -143,46 +129,41 @@ bool Capture::init()
     return true;
 }
 
-void Capture::setVideoHost(std::string hostAdress)
-{
+void Capture::setVideoHost(std::string hostAdress) {
     mVideoHost = hostAdress;
 }
 
-void Capture::setVideoDevice(std::string videoDeviceName)
-{
+void Capture::setVideoDevice(std::string videoDeviceName) {
     mVideoDevice = videoDeviceName;
 }
 
-void Capture::setVideoDecoderCallback(std::function<void(uint8_t ** data, int width, int height)> cb)
+void Capture::setVideoDecoderCallback(
+                           std::function<void(uint8_t ** data, int width, int height)> cb)
 {
     mVideoDecoderCallback = cb;
 }
 
-void Capture::addOption(std::pair<std::string, std::string> option)
-{
+void Capture::addOption(std::pair<std::string, std::string> option) {
     mUserOptions.push_back(option);
 }
 
-bool Capture::poll()
-{
-    if (!mInited)
+bool Capture::poll() {
+    if (!mInited) {
         return false;
+    }
     
     int ret;
     int gotVideoFrame;
 
     bool all_ok = true;
 
-    if (av_read_frame(mFMTContext, &mPkt) >= 0)
-    {
+    if (av_read_frame(mFMTContext, &mPkt) >= 0) {
         AVPacket orig_pkt = mPkt;
 
-        do
-        {
+        do {
             ret = decodePacket(&gotVideoFrame);
-            if (ret < 0)
-            {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to decode package!\n");
+            if (ret < 0) {
+                sgct::MessageHandler::printError("Failed to decode package");
                 all_ok = false;
                 break;
             }
@@ -198,23 +179,19 @@ bool Capture::poll()
     return all_ok;
 }
 
-void Capture::setupOptions()
-{
+void Capture::setupOptions() {
     av_dict_set(&mOptions, "fflags", "nobuffer", 0); //reduce latency
     av_dict_set(&mOptions, "fflags", "flush_packets", 0); //reduce the latency by flushing out packets immediately
 
     //set user options
-    for (std::size_t i = 0; i < mUserOptions.size(); i++)
-    {
-        if (!mUserOptions.at(i).first.empty() && !mUserOptions.at(i).second.empty())
-        {
+    for (std::size_t i = 0; i < mUserOptions.size(); i++) {
+        if (!mUserOptions.at(i).first.empty() && !mUserOptions.at(i).second.empty()) {
             av_dict_set(&mOptions, mUserOptions.at(i).first.c_str(), mUserOptions.at(i).second.c_str(), 0);
         }
     }
 }
 
-void Capture::initFFmpeg()
-{
+void Capture::initFFmpeg() {
     //set log level
     //av_log_set_level(AV_LOG_INFO);
     av_log_set_level(AV_LOG_QUIET);
@@ -225,11 +202,9 @@ void Capture::initFFmpeg()
     //avformat_network_init();
 }
 
-bool Capture::initVideoStream()
-{
+bool Capture::initVideoStream() {
     //open video stream
-    if (openCodeContext(mFMTContext, AVMEDIA_TYPE_VIDEO, mVideo_stream_idx) >= 0)
-    {
+    if (openCodeContext(mFMTContext, AVMEDIA_TYPE_VIDEO, mVideo_stream_idx) >= 0) {
         mVideoStream = mFMTContext->streams[mVideo_stream_idx];
         mVideoCodecContext = mVideoStream->codec;
 
@@ -238,13 +213,15 @@ bool Capture::initVideoStream()
         mWidth = mVideoCodecContext->width;
         mHeight = mVideoCodecContext->height;
     }
-    else
+    else {
         return false;
+    }
 
     return true;
 }
 
-int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, int & streamIndex)
+int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type
+                             int& streamIndex)
 {
     int ret;
     AVStream *st;
@@ -253,13 +230,14 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
     AVDictionary *opts = nullptr;
 
     ret = av_find_best_stream(fmt_ctx, type, -1, -1, nullptr, 0);
-    if (ret < 0)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find %s stream!\n", av_get_media_type_string(type));
+    if (ret < 0) {
+        sgct::MessageHandler::printError(
+            "Could not find %s stream",
+            av_get_media_type_string(type)
+        );
         return ret;
     }
-    else
-    {
+    else {
         streamIndex = ret;
         st = fmt_ctx->streams[streamIndex];
 
@@ -271,9 +249,11 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
 
         dec = avcodec_find_decoder(dec_ctx->codec_id);
 
-        if (!dec)
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not find %s codec!\n", av_get_media_type_string(type));
+        if (!dec) {
+            sgct::MessageHandler::printError(
+                "Could not find %s codec",
+                av_get_media_type_string(type)
+            );
             return AVERROR(EINVAL);
         }
 
@@ -283,9 +263,11 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
 #else
         av_dict_set(&opts, "refcounted_frames", "0", 0);
 #endif
-        if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0)
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not open %s codec!\n", av_get_media_type_string(type));
+        if ((ret = avcodec_open2(dec_ctx, dec, &opts)) < 0) {
+            sgct::MessageHandler::printError(
+                "Could not open %s codec",
+                av_get_media_type_string(type)
+            );
             return ret;
         }
     }
@@ -293,42 +275,45 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
     return 0;
 }
 
-bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
-{
+bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt) {
     int ret = 0;
 
-    if (pix_fmt != mDstPixFmt)
-    {
+    if (pix_fmt != mDstPixFmt) {
         char buf[256];
         std::size_t found;
 
         mVideoStrFormat = std::string(av_get_pix_fmt_string(buf, 256, pix_fmt));
         found = mVideoStrFormat.find(' ');
-        if (found != std::string::npos)
+        if (found != std::string::npos) {
             mVideoStrFormat = mVideoStrFormat.substr(0, found); //delate inrelevant data
+        }
 
         mVideoDstFormat.assign(av_get_pix_fmt_string(buf, 256, mDstPixFmt));
         found = mVideoDstFormat.find(' ');
-        if (found != std::string::npos)
+        if (found != std::string::npos) {
             mVideoDstFormat = mVideoDstFormat.substr(0, found); //delate inrelevant data
+        }
 
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Info, "Creating video scaling context (%s->%s)\n", mVideoStrFormat.c_str(), mVideoDstFormat.c_str());
+        sgct::MessageHandler::printInfo(
+            "Creating video scaling context (%s->%s)",
+            mVideoStrFormat.c_str(), mVideoDstFormat.c_str()
+        );
 
         //create context for frame convertion
         mVideoScaleContext = sws_getContext(mWidth, mHeight, pix_fmt,
             mWidth, mHeight, mDstPixFmt,
             SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
-        if (!mVideoScaleContext)
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate frame convertion context!\n");
+        if (!mVideoScaleContext) {
+            sgct::MessageHandler::printError(
+                "Could not allocate frame conversion context"
+            );
             return false;
         }
     }
 
     mTempFrame = av_frame_alloc();
-    if (!mTempFrame)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate temp frame data!\n");
+    if (!mTempFrame) {
+        sgct::MessageHandler::printError("Could not allocate temp frame data");
         return false;
     }
 
@@ -337,87 +322,79 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
     mTempFrame->format = mDstPixFmt;
 
     ret = av_image_alloc(mTempFrame->data, mTempFrame->linesize, mWidth, mHeight, mDstPixFmt, 1);
-    if (ret < 0)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate temp frame buffer!\n");
+    if (ret < 0) {
+        sgct::MessageHandler::printError("Could not allocate temp frame buffer");
         return false;
     }
 
-    if (!mFrame)
+    if (!mFrame) {
         mFrame = av_frame_alloc();
+    }
 
-    if (!mFrame)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Could not allocate frame data!\n");
+    if (!mFrame) {
+        sgct::MessageHandler::printError("Could not allocate frame data");
         return false;
     }
 
     return true;
 }
 
-int Capture::decodePacket(int * gotVideoPtr)
-{
+int Capture::decodePacket(int* gotVideoPtr) {
     int ret = 0;
     int decoded = mPkt.size;
     bool packageOk = false;
 
     *gotVideoPtr = 0;
-    
-    if (mPkt.stream_index == mVideo_stream_idx && mVideoCodecContext)
-    {
+
+    if (mPkt.stream_index == mVideo_stream_idx && mVideoCodecContext) {
         /* decode video frame */
         ret = avcodec_decode_video2(mVideoCodecContext, mFrame, gotVideoPtr, &mPkt);
 
-        if (ret < 0)
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Video decoding error: %s!\n", av_err2str(ret));
+        if (ret < 0) {
+            sgct::MessageHandler::printError("Video decoding error: %s", av_err2str(ret));
             return ret;
         }
 
         decoded = FFMIN(ret, mPkt.size);
-        if (*gotVideoPtr)
-        {
+        if (*gotVideoPtr) {
             packageOk = true;
             
-            if (mVideoCodecContext->pix_fmt != mDstPixFmt)
-            {
+            if (mVideoCodecContext->pix_fmt != mDstPixFmt) {
                 //convert to destination pixel format
                 ret = sws_scale(mVideoScaleContext, mFrame->data, mFrame->linesize, 0, mHeight, mTempFrame->data, mTempFrame->linesize);
-                if (ret < 0)
-                {
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to convert decoded frame to %s!\n", mVideoDstFormat.c_str());
+                if (ret < 0) {
+                    sgct::MessageHandler::printError(
+                        "Failed to convert decoded frame to %s", mVideoDstFormat.c_str()
+                    );
                     return ret;
                 }
             }
-            else
-            {
+            else {
                 ret = av_frame_copy(mTempFrame, mFrame);
-                if (ret < 0)
-                {
+                if (ret < 0) {
                     sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error, "Failed to copy frame!\n");
                     return ret;
                 }
             }
 
             //store mTempFrame;
-            if (mVideoDecoderCallback != nullptr)
+            if (mVideoDecoderCallback != nullptr) {
                 mVideoDecoderCallback(mTempFrame->data, mWidth, mHeight);
+            }
 
             mDecodedVideoFrames++;
             //std::cout << "Decoded frames: " << mDecodedVideoFrames << std::endl;
 
-            if (ret < 0)
-            {
+            if (ret < 0) {
                 return ret;
             }
         }
     }
 
 #if USE_REF_COUNTER
-    /* If we use the new API with reference counting, we own the data and need
-    * to de-reference it when we don't use it anymore */
-    if (packageOk)
-    {
+    // If we use the new API with reference counting, we own the data and need
+    // to de-reference it when we don't use it anymore
+    if (packageOk) {
         av_frame_unref(mFrame);
     }
 #endif
@@ -425,37 +402,31 @@ int Capture::decodePacket(int * gotVideoPtr)
     return decoded;
 }
 
-void Capture::cleanup()
-{
+void Capture::cleanup() {
     mInited = false;
     mVideoDecoderCallback = nullptr;
 
-    if (mVideoCodecContext)
-    {
+    if (mVideoCodecContext) {
         avcodec_close(mVideoCodecContext);
         mVideoCodecContext = nullptr;
     }
 
-    if (mFMTContext)
-    {
+    if (mFMTContext) {
         avformat_close_input(&mFMTContext);
         mFMTContext = nullptr;
     }
 
-    if (mFrame)
-    {
+    if (mFrame) {
         av_frame_free(&mFrame);
         mFrame = nullptr;
     }
 
-    if (mTempFrame)
-    {
+    if (mTempFrame) {
         av_frame_free(&mTempFrame);
         mTempFrame = nullptr;
     }
 
-    if (mVideoScaleContext)
-    {
+    if (mVideoScaleContext) {
         sws_freeContext(mVideoScaleContext);
         mVideoScaleContext = nullptr;
     }

@@ -156,9 +156,7 @@ namespace {
             return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
-        sgct::MessageHandler::instance()->printError(
-            "Unknown stereo mode %s", type.c_str()
-        );
+        sgct::MessageHandler::printError("Unknown stereo mode %s", type.c_str());
         return sgct::config::Window::StereoMode::NoStereo;
     }
 
@@ -198,9 +196,7 @@ namespace {
             return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
-        sgct::MessageHandler::instance()->printError(
-            "Unknown color bit depth %s", type.c_str()
-        );
+        sgct::MessageHandler::printError("Unknown color bit depth %s", type.c_str());
         return sgct::config::Window::ColorBitDepth::Depth8;
     }
 
@@ -379,9 +375,7 @@ namespace {
             return value;
         }
         else {
-            sgct::MessageHandler::instance()->printError(
-                "Error extracting value '%s'", name
-            );
+            sgct::MessageHandler::printError("Error extracting value '%s'", name);
             return std::nullopt;
         }
     }
@@ -414,7 +408,7 @@ namespace {
                     proj.fov.up = *up;
                 }
                 else {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "Viewport: Failed to parse planar projection FOV from XML"
                     );
                 }
@@ -628,7 +622,7 @@ namespace {
                     i++;
                 }
                 else {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "ProjectionPlane: Failed to parse coordinates from XML"
                     );
                 }
@@ -700,7 +694,7 @@ namespace {
                     viewport.position = *pos;
                 }
                 else {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "Viewport: Failed to parse position from XML"
                     );
                 }
@@ -711,7 +705,7 @@ namespace {
                     viewport.size = *size;
                 }
                 else {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "Viewport: Failed to parse size from XML"
                     );
                 }
@@ -987,7 +981,7 @@ namespace {
                             sgct::config::Settings::BufferFloatPrecision::Float32Bit;
                     }
                     else {
-                        sgct::MessageHandler::instance()->printWarning(
+                        sgct::MessageHandler::printWarning(
                             "ReadConfig: Wrong precision value (%d). Must be 16 or 32", *f
                         );
                     }
@@ -1062,7 +1056,7 @@ namespace {
                     return sgct::config::Capture::Format::JPG;
                 }
                 else {
-                    sgct::MessageHandler::instance()->printWarning(
+                    sgct::MessageHandler::printWarning(
                         "ReadConfig: Unknown capturing format. Using PNG"
                     );
                     return sgct::config::Capture::Format::PNG;
@@ -1224,7 +1218,7 @@ namespace {
     std::string replaceEnvVars(const std::string& filename) {
         size_t foundPercentage = filename.find('%');
         if (foundPercentage != std::string::npos) {
-            sgct::MessageHandler::instance()->printError(
+            sgct::MessageHandler::printError(
                 "ReadConfig: SGCT doesn't support the usage of '%%' in the path"
             );
             return "";
@@ -1248,7 +1242,7 @@ namespace {
         }
 
         if (beginEnvVar.size() != endEnvVar.size()) {
-            sgct::MessageHandler::instance()->printError(
+            sgct::MessageHandler::printError(
                 "ReadConfig: Error: Bad configuration path string"
             );
             return std::string();
@@ -1267,7 +1261,7 @@ namespace {
                 char* fetchedEnvVar;
                 errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
                 if (err) {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "ReadConfig: Error: Cannot fetch environment variable '%s'",
                         envVar.c_str()
                     );
@@ -1276,7 +1270,7 @@ namespace {
 #else
                 char* fetchedEnvVar = getenv(envVar.c_str());
                 if (fetchedEnvVar == nullptr) {
-                    sgct::MessageHandler::instance()->printError(
+                    sgct::MessageHandler::printError(
                         "ReadConfig: Error: Cannot fetch environment variable '%s'",
                         envVar.c_str()
                     );
@@ -1313,9 +1307,7 @@ glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll) {
 
 sgct::config::Cluster readConfig(const std::string& filename) {
     std::string f = filename;
-    MessageHandler::instance()->printDebug(
-        "ReadConfig: Parsing XML config '%s'", f.c_str()
-    );
+    MessageHandler::printDebug("ReadConfig: Parsing XML config '%s'", f.c_str());
 
     f = replaceEnvVars(f);
     if (f.empty()) {
@@ -1324,16 +1316,16 @@ sgct::config::Cluster readConfig(const std::string& filename) {
 
     sgct::config::Cluster cluster = readAndParseXMLFile(f);
 
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "ReadConfig: Config file '%s' read successfully", f.c_str()
     );
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "ReadConfig: Number of nodes in cluster: %d", cluster.nodes.size()
     );
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const sgct::config::Node& node = cluster.nodes[i];
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port
         );
     }

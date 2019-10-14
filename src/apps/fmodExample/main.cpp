@@ -207,7 +207,7 @@ void setupAudio()
 {
     if( gEngine->isMaster() )
     {
-        sgct::MessageHandler::instance()->print("Setting up Audio.\n");
+        sgct::MessageHandler::printInfo("Setting up Audio");
         audio.init();
 
         audio.addSound("Drums", "drumloop.wav", true);

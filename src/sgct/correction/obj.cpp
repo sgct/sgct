@@ -25,7 +25,7 @@ namespace sgct::core::correction {
 Buffer generateOBJMesh(const std::string& path) {
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading Maya Wavefront OBJ mesh data from '%s'", path.c_str()
     );
 
@@ -38,7 +38,7 @@ Buffer generateOBJMesh(const std::string& path) {
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
         );
         return Buffer();
@@ -82,7 +82,7 @@ Buffer generateOBJMesh(const std::string& path) {
 
     // sanity check
     if (counter != buf.vertices.size() || buf.vertices.empty()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Vertex count doesn't match number of texture coordinates"
         );
         return Buffer();

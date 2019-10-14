@@ -210,7 +210,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& proj) {
 #ifndef SGCT_HAS_SPOUT
     (void)proj;
-    MessageHandler::instance()->printWarning("Spout library not added to SGCT");
+    MessageHandler::printWarning("Spout library not added to SGCT");
     return;
 #else
    
@@ -291,10 +291,8 @@ void Viewport::setMpcdiWarpMesh(std::vector<unsigned char> data) {
 }
 
 void Viewport::loadData() {
-    MessageHandler::instance()->printDebug(
-        "Viewport: loading GPU data for '%s'", _name.c_str()
-    );
-        
+    MessageHandler::printDebug("Viewport: loading GPU data for '%s'", _name.c_str());
+
     if (!_overlayFilename.empty()) {
         TextureManager::instance()->loadUnManagedTexture(
             _overlayTextureIndex,

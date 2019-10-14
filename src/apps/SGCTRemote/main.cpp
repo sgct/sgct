@@ -74,18 +74,16 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
             sizeFactor.setVal(static_cast<float>(tmpVal) / 100.f);
         }
 
-        MessageHandler::instance()->printInfo(
-            "Message: '%s', size: %d", receivedChars, size
-        );
+        MessageHandler::printInfo("Message: '%s', size: %d", receivedChars, size);
     }
 }
 
 void externalControlStatusCallback(bool connected) {
     if (connected) {
-        MessageHandler::instance()->printInfo("External control connected");
+        MessageHandler::printInfo("External control connected");
     }
     else {
-        MessageHandler::instance()->printInfo("External control disconnected");
+        MessageHandler::printInfo("External control disconnected");
     }
 }
 

@@ -25,7 +25,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
     std::ifstream shaderFile(file);
 
     if (!shaderFile.is_open()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Could not open %s file [%s]",
             getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
@@ -39,7 +39,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
 
     // Make sure the file is not empty
     if (fileSize == 0) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Can't create source for %s: empty file [%s]",
             getShaderTypeName(_shaderType).c_str(), file.c_str()
         );
@@ -59,7 +59,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
 bool Shader::setSourceFromString(const std::string& sourceString) {
     // At this point no resetting of shaders are supported
     if (_shaderId > 0) {
-        MessageHandler::instance()->printWarning(
+        MessageHandler::printWarning(
             "%s is already set for specified shader",
             getShaderTypeName(_shaderType).c_str()
         );
@@ -96,7 +96,7 @@ bool Shader::checkCompilationStatus() const {
         glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &logLength);
 
         if (logLength == 0) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "%s compile error: Unknown error",
                 getShaderTypeName(_shaderType).c_str()
             );
@@ -105,7 +105,7 @@ bool Shader::checkCompilationStatus() const {
 
         std::vector<GLchar> log(logLength);
         glGetShaderInfoLog(_shaderId, logLength, nullptr, log.data());
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "%s compile error: %s", getShaderTypeName(_shaderType).c_str(), log.data()
         );
 

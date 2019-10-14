@@ -173,28 +173,24 @@ void Window::close() {
     }
     _postFXPasses.clear();
 
-    MessageHandler::instance()->printInfo(
-        "Deleting screen capture data for window %d", _id
-    );
+    MessageHandler::printInfo("Deleting screen capture data for window %d", _id);
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        MessageHandler::instance()->printInfo(
-            "Releasing OpenGL buffers for window %d", _id
-        );
+        MessageHandler::printInfo("Releasing OpenGL buffers for window %d", _id);
         _finalFBO->destroy();
         _finalFBO = nullptr;
 
         destroyFBOs();
     }
 
-    MessageHandler::instance()->printInfo("Deleting VBOs for window %d", _id);
+    MessageHandler::printInfo("Deleting VBOs for window %d", _id);
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    MessageHandler::instance()->printInfo("Deleting VAOs for window %d", _id);
+    MessageHandler::printInfo("Deleting VAOs for window %d", _id);
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -306,8 +302,8 @@ void Window::initOGL() {
         if (!wglBindSwapBarrierNV || !wglJoinSwapGroupNV || !wglQueryMaxSwapGroupsNV ||
             !wglQueryFrameCountNV || !wglResetFrameCountNV)
         {
-            MessageHandler::instance()->printError("Error resolving swapgroup functions");
-            MessageHandler::instance()->printImportant(
+            MessageHandler::printError("Error resolving swapgroup functions");
+            MessageHandler::printImportant(
                 "wglBindSwapBarrierNV(: %p\twglJoinSwapGroupNV: %p\t"
                 "wglQueryMaxSwapGroupsNV: %p\twglQueryFrameCountNV: %p\t"
                 "wglResetFrameCountNV: %p",
@@ -383,7 +379,7 @@ unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
             }
             return _frameBufferTextures.positions;
         default:
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "Window: Requested framebuffer texture index %d is out of bounds", index
             );
             return 0;
@@ -502,7 +498,7 @@ void Window::updateResolutions() {
         for (int j = 0; j < getNumberOfViewports(); ++j) {
             core::Viewport& vp = getViewport(j);
             vp.updateFovToMatchAspectRatio(_aspectRatio, newAspectRatio);
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "Window: update aspect ratio in viewport# %d (%f --> %f)",
                 j, _aspectRatio, newAspectRatio
             );
@@ -514,7 +510,7 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Window: Resolution changed to %dx%d in window %d",
             _windowRes.x, _windowRes.y, _id
         );
@@ -525,7 +521,7 @@ void Window::updateResolutions() {
     if (_hasPendingFramebufferRes) {
         _framebufferRes = _pendingFramebufferRes;
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Window: Framebuffer resolution changed to %dx%d for window %d",
             _framebufferRes.x, _framebufferRes.y, _id
         );
@@ -541,7 +537,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
         core::Viewport& vp = getViewport(j);
         vp.setHorizontalFieldOfView(hFovDeg, _aspectRatio);
     }
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "Window: Horizontal FOV changed to %f deg. in %d viewports for window %d "
         "using aspect ratio %f",
         hFovDeg, getNumberOfViewports(), _id, _aspectRatio
@@ -686,7 +682,7 @@ void Window::setFullScreenMonitorIndex(int index) {
 
 void Window::setBarrier(bool state) {
     if (_useSwapGroups && state != _isBarrierActive) {
-        MessageHandler::instance()->printInfo("Window: Enabling Nvidia swap barrier");
+        MessageHandler::printInfo("Window: Enabling Nvidia swap barrier");
 
 #ifdef WIN32
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0);
@@ -713,7 +709,7 @@ void Window::setUseFXAA(bool state) {
     else {
         _usePostFX = !_postFXPasses.empty();
     }
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "FXAA status: %s for window %d", state ? "enabled" : "disabled", _id
     );
 }
@@ -722,16 +718,14 @@ void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        MessageHandler::instance()->printInfo(
-            "Window %d: Enabling quadbuffered rendering", _id
-        );
+        MessageHandler::printInfo("Window %d: Enabling quadbuffered rendering", _id);
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Window %d: Draw 2D function disabled for this window", _id
         );
     }
@@ -740,7 +734,7 @@ void Window::setCallDraw2DFunction(bool state) {
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Window %d: Draw (3D) function disabled for this window", _id
         );
     }
@@ -749,7 +743,7 @@ void Window::setCallDraw3DFunction(bool state) {
 void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
     _shouldCopyPreviousWindowToCurrentWindow = state;
     if (_shouldCopyPreviousWindowToCurrentWindow) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window", _id
         );
     }
@@ -792,7 +786,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         else {
             _monitor = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                MessageHandler::instance()->printInfo(
+                MessageHandler::printInfo(
                     "Window(%d): Invalid monitor index (%d). Computer has %d monitors",
                     _id, _monitorIndex, count
                 );
@@ -868,14 +862,14 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 void Window::initNvidiaSwapGroups() {
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
-        MessageHandler::instance()->printInfo("Window: Joining Nvidia swap group");
+        MessageHandler::printInfo("Window: Joining Nvidia swap group");
 
         hDC = wglGetCurrentDC();
 
         unsigned int maxBarrier = 0;
         unsigned int maxGroup = 0;
         wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "WGL_NV_swap_group extension is supported. Max number of groups: %d. "
             "Max number of barriers: %d", maxGroup, maxBarrier
         );
@@ -887,11 +881,11 @@ void Window::initNvidiaSwapGroups() {
         // the hDC is unbound from its current group, if any. If <group> is larger than
         // <maxGroups>, wglJoinSwapGroupNV fails.
         if (wglJoinSwapGroupNV(hDC, 1)) {
-            MessageHandler::instance()->printInfo("Window: Joining swapgroup 1 [ok]");
+            MessageHandler::printInfo("Window: Joining swapgroup 1 [ok]");
             _useSwapGroups = true;
         }
         else {
-            MessageHandler::instance()->printInfo("Window: Joining swapgroup 1 [failed]");
+            MessageHandler::printInfo("Window: Joining swapgroup 1 [failed]");
             _useSwapGroups = false;
         }
     }
@@ -931,7 +925,7 @@ void Window::initScreenCapture() {
         }
 
         if (!Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "Window %d: OpenGL error occured in screen capture init", _id
             );
         }
@@ -975,13 +969,13 @@ void Window::resetSwapGroupFrameNumber() {
                        wglResetFrameCountNV(hDC);
         if (success) {
             _isSwapGroupMaster = true;
-            MessageHandler::instance()->printInfo(
+            MessageHandler::printInfo(
                 "Resetting frame counter. This computer is the master"
             );
         }
         else {
             _isSwapGroupMaster = false;
-            MessageHandler::instance()->printInfo(
+            MessageHandler::printInfo(
                 "Resetting frame counter failed. This computer is the slave"
             );
         }
@@ -993,7 +987,7 @@ void Window::createTextures() {
     GLint maxTexSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
     if (_framebufferRes.x > maxTexSize || _framebufferRes.y > maxTexSize) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Window %d: Requested framebuffer is to big (Max: %dx%d)",
             _id, maxTexSize, maxTexSize
         );
@@ -1026,12 +1020,12 @@ void Window::createTextures() {
     }
 
     if (Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Texture targets initialized successfully for window %d", _id
         );
     }
     else {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Texture targets failed to initialize for window %d", _id
         );
     }
@@ -1067,7 +1061,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     const glm::ivec2 res = _framebufferRes;
     glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
 
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "%dx%d texture (id: %d) generated for window %d",
         _framebufferRes.x, _framebufferRes.y, id, id
     );
@@ -1083,13 +1077,13 @@ void Window::createFBOs() {
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
             
     if (_finalFBO->checkForErrors()) {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Window %d: FBO initiated successfully. Number of samples: %d",
             _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
         );
     }
     else {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Window %d: FBO initiated with errors! Number of samples: %d",
             _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
         );
@@ -1098,10 +1092,10 @@ void Window::createFBOs() {
 
 void Window::createVBOs() {
     glGenVertexArrays(1, &_vao);
-    MessageHandler::instance()->printDebug("Window: Generating VAO: %d", _vao);
+    MessageHandler::printDebug("Window: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    MessageHandler::instance()->printDebug("Window: Generating VBO: %d", _vbo);
+    MessageHandler::printDebug("Window: Generating VBO: %d", _vbo);
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
@@ -1176,7 +1170,7 @@ void Window::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        MessageHandler::instance()->printError("Failed to load stereo vertex shader");
+        MessageHandler::printError("Failed to load stereo vertex shader");
     }
 
     helpers::findAndReplace(stereoFragShader, "**glsl_version**", glslVersion);
@@ -1186,7 +1180,7 @@ void Window::loadShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        MessageHandler::instance()->printError("Failed to load stereo fragment shader"
+        MessageHandler::printError("Failed to load stereo fragment shader"
         );
     }
 
@@ -1201,7 +1195,7 @@ void Window::loadShaders() {
     ShaderProgram::unbind();
 
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Window %d: OpenGL error occured while loading shaders", _id
         );
     }
@@ -1262,14 +1256,10 @@ void Window::resizeFBOs() {
     }
 
     if (_finalFBO->checkForErrors()) {
-        MessageHandler::instance()->printDebug(
-            "Window %d: FBOs resized successfully", _id
-        );
+        MessageHandler::printDebug("Window %d: FBOs resized successfully", _id);
     }
     else {
-        MessageHandler::instance()->printError(
-            "Window %d: FBOs resized with GL errors", _id
-        );
+        MessageHandler::printError("Window %d: FBOs resized with GL errors", _id);
     }
 }
 
@@ -1296,16 +1286,12 @@ Window::StereoMode Window::getStereoMode() const {
 
 void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
     _viewports.push_back(std::move(vpPtr));
-    MessageHandler::instance()->printDebug(
-        "Adding viewport (total %d)", _viewports.size()
-    );
+    MessageHandler::printDebug("Adding viewport (total %d)", _viewports.size());
 }
 
 core::BaseViewport* Window::getCurrentViewport() const {
     if (_currentViewport == nullptr) {
-        MessageHandler::instance()->printError(
-            "Window %d error: No current viewport", _id
-        );
+        MessageHandler::printError("Window %d error: No current viewport", _id);
     }
     return _currentViewport;
 }
@@ -1342,7 +1328,7 @@ int Window::getNumberOfAASamples() const {
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
 
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "Window: Setting stereo mode to '%s' for window %d",
         getStereoModeStr().c_str(), _id
     );

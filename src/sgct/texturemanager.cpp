@@ -84,7 +84,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
         _anisotropicFilterSize = fval;
     }
     else {
-        MessageHandler::instance()->printWarning(
+        MessageHandler::printWarning(
             "TextureManager warning: Anisotropic filtersize=%.2f is incorrect. Max and "
             "min values for your hardware is %.1f and 1.0", maximumAnistropy
         );
@@ -143,7 +143,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
             _textures[name] = std::move(tmpTexture);
         }
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "TextureManager: Texture created from '%s' [id=%d]", filename.c_str(), texID
         );
     }
@@ -159,7 +159,7 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
                                  bool interpolate, int mipmapLevels)
 {
     if (!imgPtr) {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "TextureManager: Cannot create texture '%s' from invalid image", name.c_str()
         );
         return false;
@@ -190,7 +190,7 @@ bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
             _textures[name] = tmpTexture;
         }
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "TextureManager: Texture created from image [id=%d]", texID
         );
     }
@@ -226,7 +226,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
             return false;
         }
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "TextureManager: Unmanaged texture created from '%s' [id=%d]",
             filename.c_str(), tmpTexID
         );
@@ -253,7 +253,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
         texPtr = textureItem->second.id;
 
         if (_overWriteMode) {
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "TextureManager: Reloading texture '%s'! [id=%d]", name.c_str(), texPtr
             );
 
@@ -264,7 +264,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr
             reload = true;
         }
         else {
-            MessageHandler::instance()->printWarning(
+            MessageHandler::printWarning(
                 "TextureManager: '%s' exists already! [id=%d]", name.c_str(), texPtr
             );
             return false;
@@ -339,7 +339,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
             break;
     }
 
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
         "Type: %#04x, Format: %#04x",
         imgPtr.getSize().x, imgPtr.getSize().y, imgPtr.getChannels(),

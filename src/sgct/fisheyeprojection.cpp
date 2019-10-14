@@ -776,7 +776,7 @@ void FisheyeProjection::initShaders() {
             ShaderProgram::ShaderSourceType::String
         );
         if (!depthCorrFrag) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "Failed to load fisheye depth correction vertex shader"
             );
         }
@@ -786,7 +786,7 @@ void FisheyeProjection::initShaders() {
             ShaderProgram::ShaderSourceType::String
         );
         if (!depthCorrVert) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "Failed to load fisheye depth correction fragment shader"
             );
         }
@@ -880,7 +880,7 @@ void FisheyeProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fisheyeVertex) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Failed to load fisheye vertex shader: %s", fisheyeVertexShader.c_str()
         );
     }
@@ -890,7 +890,7 @@ void FisheyeProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fisheyeFragment) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Failed to load fisheye fragment shader %s", fisheyeFragmentShader.c_str()
         );
     }

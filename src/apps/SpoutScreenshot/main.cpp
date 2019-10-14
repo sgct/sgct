@@ -53,7 +53,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Spout: Initing %ux%u texture from '%s'", width, height, sender.c_str()
         );
         initialized = true;
@@ -65,7 +65,7 @@ bool bindSpout() {
             return receiver->BindSharedTexture();
         }
         else {
-            MessageHandler::instance()->printInfo("Spout disconnected");
+            MessageHandler::printInfo("Spout disconnected");
 
             // reset if disconnected
             initialized = false;
@@ -166,27 +166,27 @@ void keyboardCallback(int key, int, int action, int) {
         switch (key) {
             case key::Key1:
                 sender = "Right\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'Right'");
+                MessageHandler::printInfo("Settings receiver to 'Right'");
                 break;
             case key::Key2:
                 sender = "zLeft\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'zLeft'");
+                MessageHandler::printInfo("Settings receiver to 'zLeft'");
                 break;
             case key::Key3:
                 sender = "Bottom\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'Bottom'");
+                MessageHandler::printInfo("Settings receiver to 'Bottom'");
                 break;
             case key::Key4:
                 sender = "Top\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'Top'");
+                MessageHandler::printInfo("Settings receiver to 'Top'");
                 break;
             case key::Key5:
                 sender = "Left\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'Left'");
+                MessageHandler::printInfo("Settings receiver to 'Left'");
                 break;
             case key::Key6:
                 sender = "zRight\0";
-                MessageHandler::instance()->printInfo("Settings receiver to 'zRight'");
+                MessageHandler::printInfo("Settings receiver to 'zRight'");
                 break;
             case key::Space:
                 shouldTakeScreenshot = true;

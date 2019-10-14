@@ -432,10 +432,10 @@ void touchCallback(const core::Touch* touchPoints) {
     // Do not print info if only stationary touch points
 #ifdef _DEBUG
     if (!touchPoints->areAllPointsStationary()) {
-        MessageHandler::instance()->printInfo("=========NEW TOUCH POINTS==========");
-        MessageHandler::instance()->printInfo("TouchPoints %i", latestTouchPoints.size());
+        MessageHandler::printInfo("=========NEW TOUCH POINTS==========");
+        MessageHandler::printInfo("TouchPoints %i", latestTouchPoints.size());
         for (std::size_t i = 0; i < latestTouchPoints.size(); ++i) {
-            MessageHandler::instance()->printInfo(
+            MessageHandler::printInfo(
                 "TouchPoint: %s", core::getTouchPointInfo(latestTouchPoints[i]).c_str()
             );
         }

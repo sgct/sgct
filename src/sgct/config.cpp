@@ -25,11 +25,11 @@ bool validateUser(const User& user) {
     bool success = true;
 
     if (user.tracking && user.tracking->device.empty()) {
-        MessageHandler::instance()->printError("Tracking device name must not be empty");
+        MessageHandler::printError("Tracking device name must not be empty");
         success = false;
     }
     if (user.tracking && user.tracking->tracker.empty()) {
-        MessageHandler::instance()->printError("Tracking tracker name must not be empty");
+        MessageHandler::printError("Tracking tracker name must not be empty");
         success = false;
     }
 
@@ -40,15 +40,15 @@ bool validateCapture(const Capture& capture) {
     bool success = true;
 
     if (capture.monoPath && capture.monoPath->empty()) {
-        MessageHandler::instance()->printError("Mono path must not be empty");
+        MessageHandler::printError("Mono path must not be empty");
         success = false;
     }
     if (capture.monoPath && capture.leftPath->empty()) {
-        MessageHandler::instance()->printError("Left path must not be empty");
+        MessageHandler::printError("Left path must not be empty");
         success = false;
     }
     if (capture.monoPath && capture.rightPath->empty()) {
-        MessageHandler::instance()->printError("Right path must not be empty");
+        MessageHandler::printError("Right path must not be empty");
         success = false;
     }
 
@@ -65,33 +65,33 @@ bool validateSettings(const Settings& settings) {
     if (settings.display && settings.display->swapInterval &&
         *settings.display->swapInterval < 0)
     {
-        MessageHandler::instance()->printError("Swap interval must not be negative");
+        MessageHandler::printError("Swap interval must not be negative");
         success = false;
     }
     if (settings.display && settings.display->refreshRate &&
         *settings.display->refreshRate < 0)
     {
-        MessageHandler::instance()->printError("Refresh rate must not be negative");
+        MessageHandler::printError("Refresh rate must not be negative");
         success = false;
     }
 
     if (settings.osdText && settings.osdText->name && settings.osdText->name->empty()) {
-        MessageHandler::instance()->printError("OSDText font name must not be negative");
+        MessageHandler::printError("OSDText font name must not be negative");
         success = false;
     }
 
     if (settings.osdText && settings.osdText->path && settings.osdText->path->empty()) {
-        MessageHandler::instance()->printError("OSDText font path must not be negative");
+        MessageHandler::printError("OSDText font path must not be negative");
         success = false;
     }
 
     if (settings.osdText && settings.osdText->size && *settings.osdText->size < 0) {
-        MessageHandler::instance()->printError("OSDText font size must not be negative");
+        MessageHandler::printError("OSDText font size must not be negative");
         success = false;
     }
 
     if (settings.fxaa && settings.fxaa->trim && *settings.fxaa->trim <= 0.f) {
-        MessageHandler::instance()->printError("FXAA trim must be postive");
+        MessageHandler::printError("FXAA trim must be postive");
         success = false;
     }
     return success;
@@ -101,13 +101,13 @@ bool validateDevice(const Device& device) {
     bool success = true;
 
     if (device.name.empty()) {
-        MessageHandler::instance()->printError("Device name must not be empty");
+        MessageHandler::printError("Device name must not be empty");
         success = false;
     }
 
     auto validateAddress = [](const auto& v) -> bool {
         if (v.vrpnAddress.empty()) {
-            MessageHandler::instance()->printError("VRPN address must not be empty");
+            MessageHandler::printError("VRPN address must not be empty");
             return false;
         }
         else {
@@ -126,7 +126,7 @@ bool validateTracker(const Tracker& tracker) {
     bool success = true;
 
     if (tracker.name.empty()) {
-        MessageHandler::instance()->printError("Tracker name must not be empty");
+        MessageHandler::printError("Tracker name must not be empty");
         success = false;
     }
 
@@ -143,15 +143,11 @@ bool validatePlanarProjection(const PlanarProjection& proj) {
     bool success = true;
 
     if (proj.fov.up == proj.fov.down) {
-        MessageHandler::instance()->printError(
-            "Up and down field of views can not be the same"
-        );
+        MessageHandler::printError("Up and down field of views can not be the same");
         success = false;
     }
     if (proj.fov.left == proj.fov.right) {
-        MessageHandler::instance()->printError(
-            "Left and right field of views can not be the same"
-        );
+        MessageHandler::printError("Left and right field of views can not be the same");
         success = false;
     }
     return success;
@@ -161,41 +157,37 @@ bool validateFisheyeProjection(const FisheyeProjection& proj) {
     bool success = true;
 
     if (proj.fov && *proj.fov <= 0.f) {
-        MessageHandler::instance()->printError("Field of view setting must be positive");
+        MessageHandler::printError("Field of view setting must be positive");
         success = false;
     }
 
     if (proj.crop && proj.crop->left > proj.crop->right) {
-        MessageHandler::instance()->printError("Left and right crop must not overlap");
+        MessageHandler::printError("Left and right crop must not overlap");
         success = false;
     }
 
     if (proj.crop && proj.crop->bottom > proj.crop->top) {
-        MessageHandler::instance()->printError("Bottom and top crop must not overlap");
+        MessageHandler::printError("Bottom and top crop must not overlap");
         success = false;
     }
 
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::instance()->printError("Quality value must be positive");
+        MessageHandler::printError("Quality value must be positive");
         success = false;
     }
     
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::instance()->printError(
-            "Quality setting only allows powers of two"
-        );
+        MessageHandler::printError("Quality setting only allows powers of two");
         success = false;
     }
 
     if (proj.diameter && *proj.diameter <= 0.f) {
-        MessageHandler::instance()->printError("Diameter must be positive");
+        MessageHandler::printError("Diameter must be positive");
         success = false;
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::instance()->printError(
-            "Every background color component has to be positive"
-        );
+        MessageHandler::printError("Every background color component has to be positive");
         success = false;
     }
 
@@ -206,21 +198,17 @@ bool validateSphericalMirrorProjection(const SphericalMirrorProjection& proj) {
     bool success = true;
 
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::instance()->printError("Quality value must be positive");
+        MessageHandler::printError("Quality value must be positive");
         success = false;
     }
 
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::instance()->printError(
-            "Quality setting only allows powers of two"
-        );
+        MessageHandler::printError("Quality setting only allows powers of two");
         success = false;
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::instance()->printError(
-            "Every background color component has to be positive"
-        );
+        MessageHandler::printError("Every background color component has to be positive");
         success = false;
     }
 
@@ -231,26 +219,22 @@ bool validateSpoutOutputProjection(const SpoutOutputProjection& proj) {
     bool success = true;
 
     if (proj.mappingSpoutName.empty()) {
-        MessageHandler::instance()->printError("Mapping name must not be empty");
+        MessageHandler::printError("Mapping name must not be empty");
         success = false;
     }
 
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::instance()->printError("Quality value must be positive");
+        MessageHandler::printError("Quality value must be positive");
         success = false;
     }
 
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::instance()->printError(
-            "Quality setting only allows powers of two"
-        );
+        MessageHandler::printError("Quality setting only allows powers of two");
         success = false;
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::instance()->printError(
-            "Every background color component has to be positive"
-        );
+        MessageHandler::printError("Every background color component has to be positive");
         success = false;
     }
 
@@ -269,38 +253,32 @@ bool validateViewport(const Viewport& viewport) {
     bool success = true;
     
     if (viewport.user && viewport.user->empty()) {
-        MessageHandler::instance()->printError("User must not be empty");
+        MessageHandler::printError("User must not be empty");
         success = false;
     }
 
     if (viewport.overlayTexture && viewport.overlayTexture->empty()) {
-        MessageHandler::instance()->printError("Overlay texture path must not be empty");
+        MessageHandler::printError("Overlay texture path must not be empty");
         success = false;
     }
 
     if (viewport.blendMaskTexture && viewport.blendMaskTexture->empty()) {
-        MessageHandler::instance()->printError(
-            "Blendmask texture path must not be empty"
-        );
+        MessageHandler::printError("Blendmask texture path must not be empty");
         success = false;
     }
 
     if (viewport.blendLevelMaskTexture && viewport.blendLevelMaskTexture->empty()) {
-        MessageHandler::instance()->printError(
-            "Blendmask level texture path must not be empty"
-        );
+        MessageHandler::printError("Blendmask level texture path must not be empty");
         success = false;
     }
 
     if (viewport.correctionMeshTexture && viewport.correctionMeshTexture->empty()) {
-        MessageHandler::instance()->printError(
-            "Correction mesh texture path must not be empty"
-        );
+        MessageHandler::printError("Correction mesh texture path must not be empty");
         success = false;
     }
 
     if (viewport.meshHint && viewport.meshHint->empty()) {
-        MessageHandler::instance()->printError("Mesh hint must not be empty");
+        MessageHandler::printError("Mesh hint must not be empty");
         success = false;
     }
 
@@ -323,48 +301,44 @@ bool validateWindow(const Window& window) {
     bool success = true;
 
     if (window.name && window.name->empty()) {
-        MessageHandler::instance()->printError("Window name must not be empty");
+        MessageHandler::printError("Window name must not be empty");
         success = false;
     }
 
     for (const std::string& t : window.tags) {
         if (t.empty()) {
-            MessageHandler::instance()->printError(
-                "Empty tags are not allowed for windows"
-            );
+            MessageHandler::printError("Empty tags are not allowed for windows");
             success = false;
         }
     }
 
     if (window.gamma && *window.gamma <= 0.1f) {
-        MessageHandler::instance()->printError("Gamma value must be at least 0.1");
+        MessageHandler::printError("Gamma value must be at least 0.1");
         success = false;
     }
 
     if (window.contrast && *window.contrast <= 0.f) {
-        MessageHandler::instance()->printError("Contrast value must be postive");
+        MessageHandler::printError("Contrast value must be postive");
         success = false;
     }
 
     if (window.brightness && *window.brightness <= 0.f) {
-        MessageHandler::instance()->printError("Brightness value must be positive");
+        MessageHandler::printError("Brightness value must be positive");
         success = false;
     }
 
     if (window.msaa && *window.msaa < 0) {
-        MessageHandler::instance()->printError(
-            "Number of MSAA samples must be non-negative"
-        );
+        MessageHandler::printError("Number of MSAA samples must be non-negative");
         success = false;
     }
 
     if (window.monitor && *window.monitor < 0) {
-        MessageHandler::instance()->printError("Monitor index must be non-negative");
+        MessageHandler::printError("Monitor index must be non-negative");
         success = false;
     }
 
     if (window.mpcdi && window.mpcdi->empty()) {
-        MessageHandler::instance()->printError("MPCDI file must not be empty");
+        MessageHandler::printError("MPCDI file must not be empty");
         success = false;
     }
 
@@ -381,24 +355,22 @@ bool validateNode(const Node& node) {
     bool success = true;
 
     if (node.address.empty()) {
-        MessageHandler::instance()->printError("Node address must not be empty");
+        MessageHandler::printError("Node address must not be empty");
         success = false;
     }
 
     if (node.port <= 0) {
-        MessageHandler::instance()->printError("Node port must be non-negative");
+        MessageHandler::printError("Node port must be non-negative");
         success = false;
     }
 
     if (node.name && node.name->empty()) {
-        MessageHandler::instance()->printError("Node name must not be empty");
+        MessageHandler::printError("Node name must not be empty");
         success = false;
     }
 
     if (node.dataTransferPort && *node.dataTransferPort <= 0) {
-        MessageHandler::instance()->printError(
-            "Node data transfer port must be non-negative"
-        );
+        MessageHandler::printError("Node data transfer port must be non-negative");
         success = false;
     }
 
@@ -410,16 +382,12 @@ bool validateCluster(const Cluster& cluster) {
     bool success = true;
 
     if (cluster.masterAddress.empty()) {
-        MessageHandler::instance()->printError(
-            "Cluster master address must not be empty"
-        );
+        MessageHandler::printError("Cluster master address must not be empty");
         success = false;
     }
 
     if (cluster.externalControlPort && *cluster.externalControlPort <= 0) {
-        MessageHandler::instance()->printError(
-            "Cluster external control port must be non-negative"
-        );
+        MessageHandler::printError("Cluster external control port must be non-negative");
         success = false;
     }
 

@@ -26,7 +26,7 @@ namespace sgct::core::correction {
 Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos,
                                   const glm::ivec2& size)
 {
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading DomeProjection mesh data from '%s'", path.c_str()
     );
 
@@ -39,7 +39,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
         );
         return Buffer();

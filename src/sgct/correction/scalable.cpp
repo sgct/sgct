@@ -27,7 +27,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
 {
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading scalable mesh data from '%s'", path.c_str()
     );
 
@@ -40,9 +40,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
-        );
+        MessageHandler::printError("CorrectionMesh: Failed to open warping mesh file");
         return Buffer();
     }
 
@@ -134,9 +132,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        MessageHandler::instance()->printError(
-            "CorrectionMesh: Incorrect mesh data geometry"
-        );
+        MessageHandler::printError("CorrectionMesh: Incorrect mesh data geometry");
         return Buffer();
     }
 

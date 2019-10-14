@@ -131,13 +131,13 @@ void core::SphericalMirrorProjection::initTextures() {
         }
         generateMap(texture, _texInternalFormat);
         if (Engine::checkForOGLErrors()) {
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, texture
             );
         }
         else {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "NonLinearProjection: Error occured while generating %dx%d cube face "
                 "texture (id: %d)", _cubemapResolution, _cubemapResolution, texture
             );
@@ -320,7 +320,7 @@ void SphericalMirrorProjection::initViewports() {
 void SphericalMirrorProjection::initShaders() {
     if (_stereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        MessageHandler::instance()->printWarning(
+        MessageHandler::printWarning(
             "Stereo rendering not supported in spherical projection"
         );
     }
@@ -351,7 +351,7 @@ void SphericalMirrorProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Failed to load spherical mirror vertex shader: %s",
             sphericalMirrorVertexShader.c_str()
         );
@@ -362,7 +362,7 @@ void SphericalMirrorProjection::initShaders() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Failed to load spherical mirror fragment shader: %s",
             sphericalMirrorFragmentShader.c_str()
         );

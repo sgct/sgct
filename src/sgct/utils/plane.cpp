@@ -20,7 +20,7 @@ Plane::Plane(float width, float height) {
     createVBO(width, height);
 
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printError("SGCT Utils: Plane creation error");
+        MessageHandler::printError("SGCT Utils: Plane creation error");
     }
 }
 
@@ -68,10 +68,10 @@ void Plane::createVBO(float width, float height) {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    MessageHandler::instance()->printDebug("Plane: Generating VAO: %d", _vao);
+    MessageHandler::printDebug("Plane: Generating VAO: %d", _vao);
     glGenBuffers(1, &_vbo);
 
-    MessageHandler::instance()->printDebug("Plane: Generating VBO: %d", _vbo);
+    MessageHandler::printDebug("Plane: Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,

@@ -116,20 +116,20 @@ void Statistics::initVBO() {
     glGenVertexArrays(2, &_dynamicVAO[0]);
     glGenVertexArrays(1, &_staticVAO);
 
-    MessageHandler::instance()->printDebug("Statistics: Generating VAOs");
+    MessageHandler::printDebug("Statistics: Generating VAOs");
     for (unsigned int i = 0; i < 2; i++) {
-        MessageHandler::instance()->printDebug("\t%d", _dynamicVAO[i]);
+        MessageHandler::printDebug("\t%d", _dynamicVAO[i]);
     }
-    MessageHandler::instance()->printDebug("\t%d", _staticVAO);
+    MessageHandler::printDebug("\t%d", _staticVAO);
 
     glGenBuffers(2, &_dynamicVBO[0]);
     glGenBuffers(1, &_staticVBO);
 
-    MessageHandler::instance()->printDebug("Statistics: Generating VBOs");
+    MessageHandler::printDebug("Statistics: Generating VBOs");
     for (unsigned int i = 0; i < 2; i++) {
-        MessageHandler::instance()->printDebug("\t%d", _dynamicVBO[i]);
+        MessageHandler::printDebug("\t%d", _dynamicVBO[i]);
     }
-    MessageHandler::instance()->printDebug("\t%d", _staticVBO);
+    MessageHandler::printDebug("\t%d", _staticVBO);
 
     // double buffered VBOs
     for (unsigned int i = 0; i < 2; i++) {
@@ -184,7 +184,7 @@ void Statistics::initVBO() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!vert) {
-        MessageHandler::instance()->printError("Failed to load statistics vertex shader");
+        MessageHandler::printError("Failed to load statistics vertex shader");
     }
     bool frag = _shader.addShaderSrc(
         fragShader,
@@ -192,9 +192,7 @@ void Statistics::initVBO() {
         ShaderProgram::ShaderSourceType::String
     );
     if (!frag) {
-        MessageHandler::instance()->printError(
-            "Failed to load statistics fragment shader"
-        );
+        MessageHandler::printError("Failed to load statistics fragment shader");
     }
     _shader.createAndLinkProgram();
     _shader.bind();

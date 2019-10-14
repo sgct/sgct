@@ -23,21 +23,21 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
     _shaderProgram.setName(_name);
 
     if (!_shaderProgram.addShaderSrc(vertShaderSrc, GL_VERTEX_SHADER, srcType)) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "PostFX: Pass '%s' failed to load or set vertex shader", _name.c_str()
         );
         return false;
     }
 
     if (!_shaderProgram.addShaderSrc(fragShaderSrc, GL_FRAGMENT_SHADER, srcType)) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "PostFX: Pass '%s' failed to load or set fragment shader", _name.c_str()
         );
         return false;
     }
 
     if (!_shaderProgram.createAndLinkProgram()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "PostFX: Pass '%s' failed to link shader", _name.c_str()
         );
         return false;
@@ -49,7 +49,7 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
 }
 
 void PostFX::destroy() {
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "PostFX: Pass '%s' destroying shader and texture", _name.c_str()
     );
 

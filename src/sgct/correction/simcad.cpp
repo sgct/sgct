@@ -24,7 +24,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading simcad warp data from '%s'", path.c_str()
     );
 
@@ -46,7 +46,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
             str = "File not found";
         }
 
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "ReadConfig: Error occured while reading config file '%s'. Error: %s",
             path.c_str(), str.c_str()
         );
@@ -55,7 +55,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "ReadConfig: Error occured while reading config file '%s'."
             "Error: Cannot find XML root", path.c_str()
         );
@@ -65,7 +65,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement();
     if (element == nullptr) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "ReadConfig: Error occured while reading config file '%s'. "
             "Error: Cannot find XML root", path.c_str()
         );
@@ -74,7 +74,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     std::string_view val = element->Value();
     if (val != "GeometryDefinition") {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "ReadConfig: Error occured while reading config file '%s'. "
             "Error: Missing value 'GeometryDefinition'", path.c_str()
         );
@@ -111,9 +111,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        MessageHandler::instance()->printError(
-            "CorrectionMesh: Not the same x coords as y coords"
-        );
+        MessageHandler::printError("CorrectionMesh: Not the same x coords as y coords");
         return Buffer();
     }
 
@@ -121,7 +119,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Not a valid squared matrix read from SimCAD file"
         );
         return Buffer();

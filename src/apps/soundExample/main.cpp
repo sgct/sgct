@@ -78,7 +78,7 @@ void myInitOGLFun()
     alutInit(NULL, 0);
 
     //Check for errors if any
-    sgct::MessageHandler::instance()->print("ALUT init: %s\n", alutGetErrorString( alutGetError() ));
+    sgct::MessageHandler::printInfo("ALUT init: %s", alutGetErrorString(alutGetError()));
 
     setAudioSource(audio_buffer0, source0, "file1.wav");
 
@@ -172,7 +172,7 @@ void setAudioSource(ALuint &buffer, ALuint &source, const char * filename)
     buffer = alutCreateBufferFromFile(filename);
     if( buffer == AL_NONE )
     {
-        sgct::MessageHandler::instance()->print("Failed to read audio file '%s', error: %s\n", filename, alutGetErrorString( alutGetError() ));
+        sgct::MessageHandler::printInfo("Failed to read audio file '%s', error: %s", filename, alutGetErrorString( alutGetError() ));
     }
     alSourcei(source, AL_BUFFER, buffer);
 }

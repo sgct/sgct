@@ -66,19 +66,15 @@ void parseArguments(int& argc, char**& argv) {
         std::string_view arg(argv[i]);
         if (arg == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            MessageHandler::instance()->printInfo("Setting port to: %d", port);
+            MessageHandler::printInfo("Setting port to: %d", port);
         }
         else if (arg == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            MessageHandler::instance()->printInfo(
-                "Setting address to: %s", address.c_str()
-            );
+            MessageHandler::printInfo("Setting address to: %s", address.c_str());
         }
         else if (arg == "--server") {
             isServer = true;
-            MessageHandler::instance()->printInfo(
-                "This computer will host the connection"
-            );
+            MessageHandler::printInfo("This computer will host the connection");
         }
     }
 }
@@ -92,27 +88,25 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
 
     connected = conn->isConnected();
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "Network is %s", conn->isConnected() ? "connected" : "disconneced"
     );
 }
 
 void networkAck(int packageId, int) {
-    MessageHandler::instance()->printInfo(
-        "Network package %d is received", packageId
-    );
+    MessageHandler::printInfo("Network package %d is received", packageId);
 
     if (timerData.second == packageId) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Loop time: %lf ms", (sgct::Engine::getTime() - timerData.first) * 1000.0
         );
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    MessageHandler::instance()->printInfo("Network decoding package %d", packageId);
+    MessageHandler::printInfo("Network decoding package %d", packageId);
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    MessageHandler::instance()->printInfo("Message: \"%s\"", test.c_str());
+    MessageHandler::printInfo("Message: \"%s\"", test.c_str());
 }
 
 void networkLoop() {
@@ -139,7 +133,7 @@ void connect() {
 
     // no need to specify the address on the host/server
     if (!isServer && address.empty()) {
-        MessageHandler::instance()->printError("Network error: No address set");
+        MessageHandler::printError("Network error: No address set");
         return;
     }
 
@@ -147,7 +141,7 @@ void connect() {
 
     // init
     try {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Initiating network connection at port %d", port
         );
 
@@ -164,7 +158,7 @@ void connect() {
         );
     }
     catch (const std::runtime_error& err) {
-        MessageHandler::instance()->printError("Network error: %s", err.what());
+        MessageHandler::printError("Network error: %s", err.what());
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);

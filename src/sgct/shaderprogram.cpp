@@ -82,7 +82,7 @@ int ShaderProgram::getId() const {
 
 bool ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "ShaderProgram: No shaders has been added to program '%s'", _name.c_str()
         );
         return false;
@@ -109,9 +109,7 @@ bool ShaderProgram::createAndLinkProgram() {
 }
 
 bool ShaderProgram::reload() {
-    MessageHandler::instance()->printInfo(
-        "ShaderProgram: Reloading program '%s'", _name.c_str()
-    );
+    MessageHandler::printInfo("ShaderProgram: Reloading program '%s'", _name.c_str());
     
     deleteProgram();
 
@@ -125,7 +123,7 @@ bool ShaderProgram::reload() {
         }
 
         if (!success) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "ShaderProgram: Failed to load '%s'", sd.source.c_str()
             );
             return false;
@@ -141,7 +139,7 @@ bool ShaderProgram::createProgram() {
         // but should only return true if it hasn't been linked yet.
         // if it has been linked already it can't be reused
         if (_isLinked) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "Could not create shader program [%s]: Already linked to shaders",
                 _name.c_str()
             );
@@ -155,7 +153,7 @@ bool ShaderProgram::createProgram() {
     _programId = glCreateProgram();
 
     if (_programId == 0) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Could not create shader program [%s]: Unknown error", _name.c_str()
         );
         return false;
@@ -175,7 +173,7 @@ bool ShaderProgram::checkLinkStatus() const {
         std::vector<GLchar> log(logLength);
         glGetProgramInfoLog(_programId, logLength, nullptr, log.data());
 
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Shader program[%s] linking error: %s", _name.c_str(), log.data()
         );
 

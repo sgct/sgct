@@ -137,28 +137,26 @@ void initOmniStereo(bool mask) {
     double t0 = gEngine->getTime();
 
     if (gEngine->getNumberOfWindows() < 2) {
-        MessageHandler::instance()->printError(
-            "Failed to allocate omni stereo in secondary window"
-        );
+        MessageHandler::printError("Failed to allocate omni stereo in secondary window");
         return;
     }
 
     sgct::core::Image turnMap;
     const bool turnMapSuccess = turnMap.load(turnMapSrc);
     if (!turnMapSuccess) {
-        MessageHandler::instance()->printWarning("Failed to load turn map");
+        MessageHandler::printWarning("Failed to load turn map");
     }
 
     sgct::core::Image sepMap;
     const bool sepMapSuccess = sepMap.load(sepMapSrc);
     if (!sepMapSuccess) {
-        MessageHandler::instance()->printWarning("Failed to load separation map");
+        MessageHandler::printWarning("Failed to load separation map");
     }
 
     Window& win = gEngine->getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     );
     omniProjections.resize(res.x);
@@ -343,7 +341,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "Time to init viewports: %f s\n%d %% will be rendered.",
         gEngine->getTime() - t0, percentage
     );
@@ -414,7 +412,7 @@ void drawOmniStereo() {
     }
 
     const double t1 = gEngine->getTime();
-    MessageHandler::instance()->printInfo("Time to draw frame: %f s", t1 - t0);
+    MessageHandler::printInfo("Time to draw frame: %f s", t1 - t0);
 }
 
 void drawFun() {
@@ -527,13 +525,11 @@ int main(int argc, char* argv[]) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            MessageHandler::instance()->printInfo(
-                "Setting turn map path to '%s'", turnMapSrc.c_str()
-            );
+            MessageHandler::printInfo("Setting turn map path to %s", turnMapSrc.c_str());
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            MessageHandler::instance()->printInfo(
+            MessageHandler::printInfo(
                 "Setting separation map path to '%s'", sepMapSrc.c_str()
             );
         }

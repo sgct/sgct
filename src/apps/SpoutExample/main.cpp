@@ -64,7 +64,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
-        MessageHandler::instance()->printInfo(
+        MessageHandler::printInfo(
             "Spout: Initing %ux%u texture from '%s'", width, height, senderName
         );
         initialized = true;
@@ -76,7 +76,7 @@ bool bindSpout() {
             return receiver->BindSharedTexture();
         }
         else {
-            MessageHandler::instance()->printInfo("Spout disconnected");
+            MessageHandler::printInfo("Spout disconnected");
 
             // reset if disconnected
             initialized = false;

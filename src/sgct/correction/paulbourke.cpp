@@ -30,7 +30,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 {
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading Paul Bourke spherical mirror mesh data from '%s'",
         path.c_str()
     );
@@ -44,7 +44,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
         );
         return Buffer();
@@ -68,7 +68,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     // check if everyting useful is set
     if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        MessageHandler::instance()->printError("CorrectionMesh: Invalid data");
+        MessageHandler::printError("CorrectionMesh: Invalid data");
         return Buffer();
     }
 

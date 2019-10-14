@@ -30,7 +30,7 @@
 namespace sgct::core {
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "CorrectionMeshGeometry: Releasing correction mesh OpenGL data"
     );
 
@@ -51,7 +51,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
     
     // generate unwarped mesh for mask
     if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
-        MessageHandler::instance()->printDebug("CorrectionMesh: Creating mask mesh");
+        MessageHandler::printDebug("CorrectionMesh: Creating mask mesh");
 
         Buffer buf = setupMaskMesh(parent.getPosition(), parent.getSize());
         createMesh(_maskGeometry, buf);
@@ -62,7 +62,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
         createMesh(_warpGeometry, buf);
 
-        MessageHandler::instance()->printDebug("CorrectionMesh: Empty mesh path");
+        MessageHandler::printDebug("CorrectionMesh: Empty mesh path");
         return false;
     }
     
@@ -84,7 +84,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u",
                 static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
             );
@@ -102,7 +102,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printInfo(
+            MessageHandler::printInfo(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Faces=%u\n",
                 buf.vertices.size(), buf.indices.size()
             );
@@ -120,7 +120,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -140,7 +140,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -165,7 +165,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -194,7 +194,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
                 fishPrj->update(glm::ivec2(1.f, 1.f));
             }
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -214,7 +214,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            sgct::MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -232,7 +232,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mpcdi Correction mesh read successfully. "
                 "Vertices=%u, Indices=%u", _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -253,7 +253,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         if (buf.isComplete) {
             createMesh(_warpGeometry, buf);
 
-            MessageHandler::instance()->printDebug(
+            MessageHandler::printDebug(
                 "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
                 _warpGeometry.nVertices, _warpGeometry.nIndices
             );
@@ -267,7 +267,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
     }
 
     if (!loadStatus) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh error: Loading mesh '%s' failed", path.c_str()
         );
 
@@ -330,7 +330,7 @@ CorrectionMesh::Format CorrectionMesh::parseHint(const std::string& hintStr) {
         hint = Format::Mpcdi;
     }
     else {
-        MessageHandler::instance()->printWarning(
+        MessageHandler::printWarning(
             "CorrectionMesh: hint '%s' is invalid", hintStr.c_str()
         );
     }
@@ -404,7 +404,7 @@ void CorrectionMesh::exportMesh(const CorrectionMeshGeometry& geometry,
                                 const correction::Buffer& buf)
 {
     if (geometry.type != GL_TRIANGLES && geometry.type != GL_TRIANGLE_STRIP) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh error: Failed to export '%s'. Geometry type is not supported",
             exportPath.c_str()
         );
@@ -413,7 +413,7 @@ void CorrectionMesh::exportMesh(const CorrectionMeshGeometry& geometry,
     
     std::ofstream file(exportPath, std::ios::out);
     if (!file.is_open()) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh error: Failed to export '%s'", exportPath.c_str()
         );
         return;
@@ -475,7 +475,7 @@ void CorrectionMesh::exportMesh(const CorrectionMeshGeometry& geometry,
 
     file.close();
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Mesh '%s' exported successfully", exportPath.c_str()
     );
 }

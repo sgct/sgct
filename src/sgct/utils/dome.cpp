@@ -24,25 +24,20 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
 
     // must be four or higher
     if (_azimuthSteps < 4) {
-        MessageHandler::instance()->printWarning(
-            "Warning: Dome geometry azimuth steps must be exceed 4"
-        );
+        MessageHandler::printWarning("Dome geometry azimuth steps must be exceed 4");
         _azimuthSteps = 4;
     }
 
     // must be four or higher
     if (_elevationSteps < 4)  {
-        MessageHandler::instance()->printWarning(
-            "Warning: Dome geometry elevation steps must be exceed 4"
-        );
+        MessageHandler::printWarning("Dome geometry elevation steps must be exceed 4");
         _elevationSteps = 4;
     }
-
 
     createVBO(radius, FOV);
 
     if (!Engine::checkForOGLErrors()) {
-        MessageHandler::instance()->printError("SGCT Utils: Dome creation error");
+        MessageHandler::printError("SGCT Utils: Dome creation error");
     }
 }
 
@@ -206,10 +201,10 @@ void Dome::createVBO(float radius, float FOV) {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    MessageHandler::instance()->printDebug("Dome: Generating VAO: %d", _vao);
+    MessageHandler::printDebug("Dome: Generating VAO: %d", _vao);
 
     glGenBuffers(2, &_vbo);
-    MessageHandler::instance()->printDebug("Dome: Generating VBOs: %d %d", _vbo, _ibo);
+    MessageHandler::printDebug("Dome: Generating VBOs: %d %d", _vbo, _ibo);
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(

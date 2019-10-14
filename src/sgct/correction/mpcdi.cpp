@@ -22,9 +22,7 @@ namespace {
                         size_t srcSizeBytes, int readSizeBytes)
     {
         if ((idx + readSizeBytes) > srcSizeBytes) {
-            sgct::MessageHandler::instance()->printError(
-                "CorrectionMesh: Reached EOF in mesh buffer"
-            );
+            sgct::MessageHandler::printError("CorrectionMesh: Reached EOF in buffer");
             return false;
         }
         float val;
@@ -46,9 +44,8 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
     size_t srcSizeBytes = 0;
     const unsigned char* srcBuff = nullptr;
     if (isReadingFile) {
-        MessageHandler::instance()->printInfo(
-            "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'",
-            path.c_str()
+        MessageHandler::printInfo(
+            "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'", path.c_str()
         );
         bool loadSuccess = false;
 #if (_MSC_VER >= 1400)
@@ -58,16 +55,15 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
         loadSuccess = meshFile != nullptr;
 #endif
         if (!loadSuccess) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
             );
             return Buffer();
         }
     }
     else {
-        MessageHandler::instance()->printInfo(
-            "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer",
-            path.c_str()
+        MessageHandler::printInfo(
+            "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer", path.c_str()
         );
         // @TODO (abock, 2019-10-13) It would be nice if we wouldn't need to have to query
         // the parent viewport for this data, but have it accessible directly instead
@@ -101,9 +97,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
             }
         }
         if (retval != 1) {
-            MessageHandler::instance()->printError(
-                "CorrectionMesh: Error reading from file"
-            );
+            MessageHandler::printError("CorrectionMesh: Error reading from file");
             if (meshFile) {
                 fclose(meshFile);
             }
@@ -141,7 +135,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
     if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
                 &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
     {
-        MessageHandler::instance()->printError("CorrectionMesh: Invalid header syntax");
+        MessageHandler::printError("CorrectionMesh: Invalid header syntax");
         if (isReadingFile) {
             fclose(meshFile);
         }
@@ -151,7 +145,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
-        MessageHandler::instance()->printError("CorrectionMesh: Incorrect file type");
+        MessageHandler::printError("CorrectionMesh: Incorrect file type");
     }
     const int numCorrectionValues = numberOfCols * numberOfRows;
     std::vector<float> corrGridX(numCorrectionValues);
@@ -176,7 +170,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
         }
         fclose(meshFile);
         if (ret != 4) {
-            MessageHandler::instance()->printError(
+            MessageHandler::printError(
                 "CorrectionMesh: Error reading all correction values"
             );
             return Buffer();
@@ -190,7 +184,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
             readErr |= !readMeshBuffer(&errorPos, srcIdx, srcBuff, srcSizeBytes, 4);
 
             if (readErr) {
-                MessageHandler::instance()->printError(
+                MessageHandler::printError(
                     "CorrectionMesh: Error reading mpcdi correction value at index %d", i
                 );
             }

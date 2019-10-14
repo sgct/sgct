@@ -165,7 +165,7 @@ void myInitOGLFun()
     }
     //If we have an OpenVRWindow, initialize OpenVR.
     if (FirstOpenVRWindow) {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Error , "OpenVR Initalized!\n");
+        sgct::MessageHandler::printError("OpenVR Initalized");
         sgct::openvr::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
     }
 
@@ -394,7 +394,7 @@ void contextCreationCallback(GLFWwindow * win)
      
     if( !hiddenWindow )
     {
-        sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
+        sgct::MessageHandler::printInfo("Failed to create loader context");
     }
     
     //restore to normal
@@ -406,7 +406,7 @@ void contextCreationCallback(GLFWwindow * win)
 
 void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
-    sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
+    sgct::MessageHandler::printInfo("Decoding %d bytes in transfer id: %d on node %d", receivedlength, packageId, clientIndex);
 
     lastPackage.setVal(packageId);
     
@@ -417,12 +417,12 @@ void myDataTransferDecoder(void * receivedData, int receivedlength, int packageI
 
 void myDataTransferStatus(bool connected, int clientIndex)
 {
-    sgct::MessageHandler::instance()->print("Transfer node %d is %s.\n", clientIndex, connected ? "connected" : "disconnected");
+    sgct::MessageHandler::printInfo("Transfer node %d is %s", clientIndex, connected ? "connected" : "disconnected");
 }
 
 void myDataTransferAcknowledge(int packageId, int clientIndex)
 {
-    sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
+    sgct::MessageHandler::printInfo("Transfer id: %d is completed on node %d", packageId, clientIndex);
     
     static int counter = 0;
     if( packageId == lastPackage.getVal())
@@ -433,7 +433,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
             clientsUploadDone = true;
             counter = 0;
             
-            sgct::MessageHandler::instance()->print("Time to distribute and upload textures on cluster: %f ms\n", (sgct::Engine::getTime() - sendTimer)*1000.0);
+            sgct::MessageHandler::printInfo("Time to distribute and upload textures on cluster: %f ms\n", (sgct::Engine::getTime() - sendTimer)*1000.0);
         }
     }
 }
@@ -601,7 +601,7 @@ void uploadTexture()
                 //unbind
                 glBindTexture(GL_TEXTURE_2D, 0);
 
-                sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImages[i]->getWidth(), transImages[i]->getHeight(), transImages[i]->getChannels());
+                sgct::MessageHandler::printInfo("Texture id %d loaded (%dx%dx%d)", tex, transImages[i]->getWidth(), transImages[i]->getHeight(), transImages[i]->getChannels());
 
                 texIds.addVal(tex);
 

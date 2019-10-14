@@ -331,15 +331,15 @@ int main(int argc, char* argv[]) {
         std::string_view argg = argv[i];
         if (argg == "-tilt" && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->printInfo("Setting tilt to: %f", tilt);
+            MessageHandler::printInfo("Setting tilt to: %f", tilt);
         }
         else if (argg == "-radius" && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::instance()->printInfo("Setting radius to: %f", radius);
+            MessageHandler::printInfo("Setting radius to: %f", radius);
         }
         else if (argg == "-tex" && argc > (i + 1)) {
             texture = argv[i + 1];
-            MessageHandler::instance()->printInfo("Using texture: %s", texture.c_str());
+            MessageHandler::printInfo("Using texture: %s", texture.c_str());
         }
     }
 

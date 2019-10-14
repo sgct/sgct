@@ -90,7 +90,7 @@ void webDecoder(const char * msg, size_t len)
             mWebMutex.unlock();
         }
     }
-    //sgct::MessageHandler::instance()->print("Web message: '%s'\n", msg);
+    //sgct::MessageHandler::printInfo("Web message: '%s'", msg);
 }
 
 int main( int argc, char* argv[] )

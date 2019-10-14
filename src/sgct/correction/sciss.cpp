@@ -47,7 +47,7 @@ namespace sgct::core::correction {
 Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading sciss mesh data from '%s'", path.c_str()
     );
 
@@ -60,9 +60,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
-            "CorrectionMesh: Failed to open warping mesh file"
-        );
+        MessageHandler::printError("CorrectionMesh: Failed to open warping mesh file");
         return Buffer();
     }
 
@@ -79,7 +77,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
 
     // check fileID
     if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || ret != 3) {
-        MessageHandler::instance()->printError("CorrectionMesh: Incorrect file id");
+        MessageHandler::printError("CorrectionMesh: Incorrect file id");
         fclose(meshFile);
         return Buffer();
     }
@@ -92,14 +90,12 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     ret = fread(&fileVersion, sizeof(uint8_t), 1, meshFile);
 #endif
     if (ret != 1) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
     else {
-        MessageHandler::instance()->printDebug(
-            "CorrectionMesh: file version %u", fileVersion
-        );
+        MessageHandler::printDebug("CorrectionMesh: file version %u", fileVersion);
     }
 
     // read mapping type
@@ -110,12 +106,12 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     ret = fread(&type, sizeof(unsigned int), 1, meshFile);
 #endif
     if (ret != 1) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
     else {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
         );
     }
@@ -129,7 +125,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
 #endif
     double yaw, pitch, roll;
     if (ret != 1) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
@@ -147,30 +143,19 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         pitch = angles.y;
         roll = -angles.z;
         
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Rotation quat = [%f %f %f %f]. "
             "yaw = %lf, pitch = %lf, roll = %lf",
             viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Position = [%f %f %f]", viewData.x, viewData.y, viewData.z
         );
 
-        MessageHandler::instance()->printDebug(
-            "CorrectionMesh: FOV up = %f", viewData.fovUp
-        );
-
-        MessageHandler::instance()->printDebug(
-            "CorrectionMesh: FOV down = %f", viewData.fovDown
-        );
-
-        MessageHandler::instance()->printDebug(
-            "CorrectionMesh: FOV left = %f", viewData.fovLeft
-        );
-
-        MessageHandler::instance()->printDebug(
-            "CorrectionMesh: FOV right = %f", viewData.fovRight
-        );
+        MessageHandler::printDebug("CorrectionMesh: FOV up = %f", viewData.fovUp);
+        MessageHandler::printDebug("CorrectionMesh: FOV down = %f", viewData.fovDown);
+        MessageHandler::printDebug("CorrectionMesh: FOV left = %f", viewData.fovLeft);
+        MessageHandler::printDebug("CorrectionMesh: FOV right = %f", viewData.fovRight);
     }
 
     // read number of vertices
@@ -181,20 +166,20 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     ret = fread(size, sizeof(unsigned int), 2, meshFile);
 #endif
     if (ret != 2) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
 
     if (fileVersion == 2) {
         numberOfVertices = size[1];
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Number of vertices = %u", numberOfVertices
         );
     }
     else {
         numberOfVertices = size[0] * size[1];
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Number of vertices = %u (%ux%u)",
             numberOfVertices, size[0], size[1]
         );
@@ -218,7 +203,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     );
 #endif
     if (ret != numberOfVertices) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
@@ -237,12 +222,12 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
 #endif
 
     if (ret != 1) {
-        MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+        MessageHandler::printError("CorrectionMesh: Error parsing file");
         fclose(meshFile);
         return Buffer();
     }
     else {
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "CorrectionMesh: Number of indices = %u", numberOfIndices
         );
     }
@@ -267,7 +252,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         );
 #endif
         if (ret != numberOfIndices) {
-            MessageHandler::instance()->printError("CorrectionMesh: Error parsing file");
+            MessageHandler::printError("CorrectionMesh: Error parsing file");
             fclose(meshFile);
             return Buffer();
         }

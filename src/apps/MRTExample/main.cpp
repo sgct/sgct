@@ -154,7 +154,7 @@ void initOGLFun() {
     int sizeC;
     std::string path = TextureManager::instance()->getTexturePath("box");
     TextureManager::instance()->getDimensions("box", sizeX, sizeY, sizeC);
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "Texture info, x=%d, y=%d, c=%d, path=%s", sizeX, sizeY, sizeC, path.c_str()
     );
 

@@ -65,7 +65,7 @@ Image::~Image() {
 
 bool Image::load(const std::string& filename) {
     if (filename.empty()) {
-        MessageHandler::instance()->printError("Image error: Cannot load empty filepath");
+        MessageHandler::printError("Image error: Cannot load empty filepath");
         return false;
     }
 
@@ -106,18 +106,14 @@ bool Image::load(unsigned char* data, int length) {
 
 bool Image::save(const std::string& filename) {
     if (filename.empty()) {
-        MessageHandler::instance()->printError(
-            "Image error: Filename not set for saving image"
-        );
+        MessageHandler::printError("Image error: Filename not set for saving image");
         return false;
     }
 
     FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
         // not found
-        MessageHandler::instance()->printError(
-            "Image error: Cannot save file '%s'", filename.c_str()
-        );
+        MessageHandler::printError("Image error: Cannot save file %s", filename.c_str());
         return false;
     }
     if (type == FormatType::PNG) {
@@ -161,7 +157,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Image error: Cannot save %d-bit PNG", _bytesPerChannel * 8
         );
         return false;
@@ -172,7 +168,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     FILE* fp = nullptr;
 #if (_MSC_VER >= 1400)
     if (fopen_s( &fp, filename.c_str(), "wb") != 0 || !fp) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Image error: Can't create PNG file '%s'", filename.c_str()
         );
         return false;
@@ -180,7 +176,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
 #else
     fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Image error: Can't create PNG file '%s'", filename.c_str()
         );
         return false;
@@ -285,7 +281,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
 
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "Image: '%s' was saved successfully (%.2f ms)",
         filename.c_str(), (Engine::getTime() - t0) * 1000.0
     );
@@ -331,7 +327,7 @@ bool Image::allocateOrResizeData() {
     unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
 
     if (dataSize == 0) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "Image error: Invalid image size %dx%d %d channels",
             _size.x, _size.y, _nChannels
         );
@@ -352,7 +348,7 @@ bool Image::allocateOrResizeData() {
         _dataSize = dataSize;
         _isExternalData = false;
 
-        MessageHandler::instance()->printDebug(
+        MessageHandler::printDebug(
             "Image: Allocated %d bytes for image data (%.2f ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
         );

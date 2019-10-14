@@ -34,23 +34,24 @@ public:
     /// Destroy the MessageHandler
     static void destroy();
 
-    void decode(std::vector<char> receivedData, int clientIndex);
-
     /**
      * Print messages to command line and share to master for easier debuging on a
      * cluster.
      *
      * \param nl is the notify level of this message
      */
-    void print(Level nl, const char* fmt, ...);
+    static void print(Level nl, const char* fmt, ...);
 
-    void printDebug(const char* fmt, ...);
-    void printWarning(const char* fmt, ...);
-    void printInfo(const char* fmt, ...);
-    void printImportant(const char* fmt, ...);
-    void printError(const char* fmt, ...);
+    static void printDebug(const char* fmt, ...);
+    static void printWarning(const char* fmt, ...);
+    static void printInfo(const char* fmt, ...);
+    static void printImportant(const char* fmt, ...);
+    static void printError(const char* fmt, ...);
 
     void clearBuffer();
+
+    void decode(std::vector<char> receivedData, int clientIndex);
+
 
     /// Set the notify level for displaying messages.
     void setNotifyLevel(Level nl);

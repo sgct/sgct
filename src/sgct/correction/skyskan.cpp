@@ -28,7 +28,7 @@ namespace sgct::core::correction {
 Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::instance()->printInfo(
+    MessageHandler::printInfo(
         "CorrectionMesh: Reading SkySkan mesh data from '%s'", path.c_str()
     );
 
@@ -41,7 +41,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::instance()->printError(
+        MessageHandler::printError(
             "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
         );
         return Buffer();
@@ -126,7 +126,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     fclose(meshFile);
 
     if (!dimensionsSet || !azimuthSet || !elevationSet || !hFovSet || hFov <= 0.f) {
-        MessageHandler::instance()->printError("CorrectionMesh: Data reading error");
+        MessageHandler::printError("CorrectionMesh: Data reading error");
         return Buffer();
     }
 
@@ -138,7 +138,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(atan(hh));
 
-        MessageHandler::instance()->printInfo("HFOV: %f VFOV: %f", hFov, vFov);
+        MessageHandler::printInfo("HFOV: %f VFOV: %f", hFov, vFov);
     }
 
     if (fovTweaks[0] > 0.f) {

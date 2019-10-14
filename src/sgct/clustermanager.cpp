@@ -112,17 +112,17 @@ void ClusterManager::setSceneTransform(glm::mat4 mat) {
 
 void ClusterManager::setSceneOffset(glm::vec3 offset) {
     _sceneTranslate = glm::translate(glm::mat4(1.f), std::move(offset));
-    calculateSceneTransform();
+    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
 void ClusterManager::setSceneRotation(float yaw, float pitch, float roll) {
     _sceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
-    calculateSceneTransform();
+    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
 void ClusterManager::setSceneRotation(glm::mat4 mat) {
     _sceneRotation = std::move(mat);
-    calculateSceneTransform();
+    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
 bool ClusterManager::getIgnoreSync() const {
@@ -143,10 +143,6 @@ bool ClusterManager::getUseASCIIForExternalControl() const {
 
 void ClusterManager::setSceneScale(float scale) {
     _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(scale));
-    calculateSceneTransform();
-}
-
-void ClusterManager::calculateSceneTransform() {
     _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
@@ -194,14 +190,6 @@ bool ClusterManager::getFirmFrameLockSyncStatus() const {
 
 void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
     _firmFrameLockSync = state;
-}
-
-void ClusterManager::setMeshImplementation(MeshImplementation impl) {
-    _meshImpl = impl;
-}
-
-ClusterManager::MeshImplementation ClusterManager::getMeshImplementation() const {
-    return _meshImpl;
 }
 
 TrackingManager& ClusterManager::getTrackingManager() {

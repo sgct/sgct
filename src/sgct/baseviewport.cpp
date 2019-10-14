@@ -195,16 +195,16 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
     _fov = glm::vec4(up, down, left, right);
     _distance = dist;
 
-    _viewPlane.lowerLeft.x = dist * tan(glm::radians<float>(left));
-    _viewPlane.lowerLeft.y = dist * tan(glm::radians<float>(down));
+    _viewPlane.lowerLeft.x = dist * tan(glm::radians(left));
+    _viewPlane.lowerLeft.y = dist * tan(glm::radians(down));
     _viewPlane.lowerLeft.z = -dist;
 
-    _viewPlane.upperLeft.x = dist * tan(glm::radians<float>(left));
-    _viewPlane.upperLeft.y = dist * tan(glm::radians<float>(up));
+    _viewPlane.upperLeft.x = dist * tan(glm::radians(left));
+    _viewPlane.upperLeft.y = dist * tan(glm::radians(up));
     _viewPlane.upperLeft.z = -dist;
 
-    _viewPlane.upperRight.x = dist * tan(glm::radians<float>(right));
-    _viewPlane.upperRight.y = dist * tan(glm::radians<float>(up));
+    _viewPlane.upperRight.x = dist * tan(glm::radians(right));
+    _viewPlane.upperRight.y = dist * tan(glm::radians(up));
     _viewPlane.upperRight.z = -dist;
 
     _projectionPlane.setCoordinateLowerLeft(_rotation * _viewPlane.lowerLeft);
@@ -232,7 +232,7 @@ void BaseViewport::setHorizontalFieldOfView(float hFov, float aspectRatio) {
     const float hFov2 = hFov / 2.f;
     const float zDist = abs(_projectionPlane.getCoordinateUpperRight().z);
 
-    const float projDimX = zDist * tan(glm::radians<float>(hFov2));
+    const float projDimX = zDist * tan(glm::radians(hFov2));
     const float projDimY = projDimX / aspectRatio;
     const float vAngle = glm::degrees(atan(projDimY / zDist));
 

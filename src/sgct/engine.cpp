@@ -995,11 +995,6 @@ bool Engine::initWindows() {
 }
 
 void Engine::initOGL() {
-    // force buffer objects since display lists are not supported in core opengl 3.3+
-    core::ClusterManager::instance()->setMeshImplementation(
-        core::ClusterManager::MeshImplementation::BufferObjects
-    );
-
     // Get OpenGL version
     int version[3];
     GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();

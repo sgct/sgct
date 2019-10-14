@@ -262,9 +262,7 @@ bool validateProjectionPlane(const ProjectionPlane&) {
 }
 
 bool validateMpcdiProjection(const MpcdiProjection&) {
-    bool success = true;
-
-    return success;
+    return true;
 }
 
 bool validateViewport(const Viewport& viewport) {

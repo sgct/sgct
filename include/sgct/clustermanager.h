@@ -36,12 +36,6 @@ public:
     /// Destroy the ClusterManager
     static void destroy();
 
-    /// Different modes for warping/edge blending meshes 
-    enum class MeshImplementation {
-        BufferObjects = 0,
-        DisplayList
-    };
-
     /// Add a cluster node to the manager's vector.
     void addNode(std::unique_ptr<Node> node);
 
@@ -101,10 +95,7 @@ public:
     /// \returns the id to the node which runs this application
     int getThisNodeId() const;
 
-    /**
-     * \return the dns, name or IP of the master in the cluster (depends on what's been
-     *         set in the XML config)
-     */
+    /// \return the dns, name or IP of the master in the cluster
     const std::string& getMasterAddress() const;
 
     /// \param the DNS, IP or name of the master in the cluster
@@ -164,33 +155,17 @@ public:
      */
     void setSceneScale(float scale);
 
-    /**
-     * Sets the rendering hint for SGCT's internal draw functions (must be done before
-     * OpenGL init)
-     */
-    void setMeshImplementation(MeshImplementation impl);
-
-    /// \returns the mesh implementation
-    MeshImplementation getMeshImplementation() const;
-
     /// \returns the pointer to the tracking manager
     TrackingManager& getTrackingManager();
 
 private:
     ClusterManager();
 
-    /**
-     * Updates the scene transform. Calculates the transform matrix using:
-     * SceneTransform = Rotation * Offset * Scale
-     */
-    void calculateSceneTransform();
-
     static ClusterManager* _instance;
 
     // @TODO (abock 2019-09-02): I tried changing this to a std::vector<Node>, but
-    // this class is handing out pointers to external classes left and right, so we can't
-    // have a datastructure that will willynilly move its contents around in memory.
-    // #sadface
+    // this class is handing out pointers left and right, so we can't have a datastructure
+    // that will willynilly move its contents around in memory. #sadface
     std::vector<std::unique_ptr<Node>> _nodes;
 
     int _thisNodeId = -1;
@@ -208,8 +183,6 @@ private:
     glm::mat4 _sceneScale = glm::mat4(1.f);
     glm::mat4 _sceneTranslate = glm::mat4(1.f);
     glm::mat4 _sceneRotation = glm::mat4(1.f);
-    // @TODO (abock, 2019-10-07); Is this still necessary/used?
-    MeshImplementation _meshImpl = MeshImplementation::BufferObjects;
     NetworkManager::NetworkMode _netMode = NetworkManager::NetworkMode::Remote;
 };
 

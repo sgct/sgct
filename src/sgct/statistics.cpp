@@ -113,53 +113,49 @@ void Statistics::initVBO() {
     _staticVerts.push_back(static_cast<float>(StatsHistoryLength * 2));
     _staticVerts.push_back(1.f / 60.f);
 
-    if (ClusterManager::instance()->getMeshImplementation() ==
-        ClusterManager::MeshImplementation::BufferObjects)
-    {
-        glGenVertexArrays(2, &_dynamicVAO[0]);
-        glGenVertexArrays(1, &_staticVAO);
+    glGenVertexArrays(2, &_dynamicVAO[0]);
+    glGenVertexArrays(1, &_staticVAO);
 
-        MessageHandler::instance()->printDebug("Statistics: Generating VAOs");
-        for (unsigned int i = 0; i < 2; i++) {
-            MessageHandler::instance()->printDebug("\t%d", _dynamicVAO[i]);
-        }
-        MessageHandler::instance()->printDebug("\t%d", _staticVAO);
+    MessageHandler::instance()->printDebug("Statistics: Generating VAOs");
+    for (unsigned int i = 0; i < 2; i++) {
+        MessageHandler::instance()->printDebug("\t%d", _dynamicVAO[i]);
+    }
+    MessageHandler::instance()->printDebug("\t%d", _staticVAO);
 
-        glGenBuffers(2, &_dynamicVBO[0]);
-        glGenBuffers(1, &_staticVBO);
+    glGenBuffers(2, &_dynamicVBO[0]);
+    glGenBuffers(1, &_staticVBO);
 
-        MessageHandler::instance()->printDebug("Statistics: Generating VBOs");
-        for (unsigned int i = 0; i < 2; i++) {
-            MessageHandler::instance()->printDebug("\t%d", _dynamicVBO[i]);
-        }
-        MessageHandler::instance()->printDebug("\t%d", _staticVBO);
-    
-        // double buffered VBOs
-        for (unsigned int i = 0; i < 2; i++) {
-            glBindVertexArray(_dynamicVAO[i]);
-            glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[i]);
-            glBufferData(
-                GL_ARRAY_BUFFER,
-                StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs,
-                &_dynamicVertexList,
-                GL_STREAM_DRAW
-            );
-    
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-        }
+    MessageHandler::instance()->printDebug("Statistics: Generating VBOs");
+    for (unsigned int i = 0; i < 2; i++) {
+        MessageHandler::instance()->printDebug("\t%d", _dynamicVBO[i]);
+    }
+    MessageHandler::instance()->printDebug("\t%d", _staticVBO);
 
-        glBindVertexArray(_staticVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, _staticVBO);
+    // double buffered VBOs
+    for (unsigned int i = 0; i < 2; i++) {
+        glBindVertexArray(_dynamicVAO[i]);
+        glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[i]);
         glBufferData(
             GL_ARRAY_BUFFER,
-            _staticVerts.size() * sizeof(float),
-            _staticVerts.data(),
-            GL_STATIC_DRAW
+            StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs,
+            &_dynamicVertexList,
+            GL_STREAM_DRAW
         );
+
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     }
+
+    glBindVertexArray(_staticVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, _staticVBO);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        _staticVerts.size() * sizeof(float),
+        _staticVerts.data(),
+        GL_STATIC_DRAW
+    );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     
     // SETUP SHADERS
     glBindVertexArray(0);
@@ -299,12 +295,6 @@ void Statistics::addSyncTime(float t) {
 }
 
 void Statistics::update() {
-    if (ClusterManager::instance()->getMeshImplementation() !=
-        ClusterManager::MeshImplementation::BufferObjects)
-    {
-        return;
-    }
-
     _vboIndex = 1 - _vboIndex; //ping-pong
     glBindBuffer(GL_ARRAY_BUFFER, _dynamicVBO[_vboIndex]);
     size_t size = StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs;

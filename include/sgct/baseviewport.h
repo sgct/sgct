@@ -44,6 +44,10 @@ public:
     
     User& getUser() const;
     Frustum::Mode getEye() const;
+
+    // @TODO (abock, 2019-10-13) It would be nice to get to a place where we can remove
+    // these functions that just had out editable projections to everyone who asks. It's
+    // hard to keep preconditions on the class alive with this
     Projection& getProjection(Frustum::Mode frustumMode);
     const Projection& getProjection(Frustum::Mode frustumMode) const;
     Projection& getProjection();
@@ -76,6 +80,11 @@ protected:
 
     User& _user;
     std::string _name = "NoName";
+
+    // @TODO (abock, 2019-10-13) I'm pretty sure that we can remove the _userName variable
+    // which will ultimately remove the need to store multiple user pointers in the
+    // ClusterManager. I'm fairly certain that that feature was never used and probably
+    // wasn't working anyway
     std::string _userName;
     bool _isEnabled = true;
     glm::vec2 _position = glm::vec2(0.f, 0.f);

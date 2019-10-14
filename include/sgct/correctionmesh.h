@@ -9,6 +9,7 @@
 #ifndef __SGCT__CORRECTION_MESH__H__
 #define __SGCT__CORRECTION_MESH__H__
 
+#include <sgct/correction/buffer.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <string>
@@ -24,17 +25,6 @@ class Viewport;
  */
 class CorrectionMesh {
 public:
-    struct CorrectionMeshGeometry {
-        ~CorrectionMeshGeometry();
-
-        unsigned int vao = 0;
-        unsigned int vbo = 0;
-        unsigned int ibo = 0;
-        unsigned int nVertices = 0;
-        unsigned int nIndices = 0;
-        GLenum geometryType = GL_TRIANGLE_STRIP;
-    };
-
     enum class Format {
         None = 0,
         DomeProjection,
@@ -46,6 +36,9 @@ public:
         Obj,
         Mpcdi
     };
+
+    /// Parse hint from string to enum.
+    static Format parseHint(const std::string& hintStr);
 
     /**
      * This function finds a suitible parser for warping meshes and loads them into
@@ -69,15 +62,27 @@ public:
     /// Render the final mesh where for mapping the frame buffer to the screen.
     void renderMaskMesh() const;
 
-    /// Parse hint from string to enum.
-    static Format parseHint(const std::string& hintStr);
-
 private:
+    struct CorrectionMeshGeometry {
+        ~CorrectionMeshGeometry();
+
+        unsigned int vao = 0;
+        unsigned int vbo = 0;
+        unsigned int ibo = 0;
+        unsigned int nVertices = 0;
+        unsigned int nIndices = 0;
+        GLenum type = GL_TRIANGLE_STRIP;
+    };
+
+    void createMesh(CorrectionMeshGeometry& geom, const correction::Buffer& buffer);
+    void exportMesh(const CorrectionMeshGeometry& geometry, const std::string& exportPath,
+        const correction::Buffer& buf);
+
     CorrectionMeshGeometry _quadGeometry;
     CorrectionMeshGeometry _warpGeometry;
     CorrectionMeshGeometry _maskGeometry;
 };
-    
+
 } // namespace sgct::core
 
 #endif // __SGCT__CORRECTION_MESH__H__

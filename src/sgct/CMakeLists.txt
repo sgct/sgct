@@ -49,6 +49,16 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/version.h
   ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/window.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdi.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/paulbourke.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/scalable.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/sciss.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/simcad.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/simple.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/skyskan.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
@@ -107,6 +117,15 @@ set(SOURCE_FILES
   version.cpp
   viewport.cpp
   window.cpp
+  correction/domeprojection.cpp
+  correction/mpcdi.cpp
+  correction/obj.cpp
+  correction/paulbourke.cpp
+  correction/scalable.cpp
+  correction/sciss.cpp
+  correction/simcad.cpp
+  correction/simple.cpp
+  correction/skyskan.cpp
   utils/box.cpp
   utils/dome.cpp
   utils/domegrid.cpp

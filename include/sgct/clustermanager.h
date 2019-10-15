@@ -15,6 +15,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <string_view>
 
 /**
  * \namespace sgct::core
@@ -47,21 +48,13 @@ public:
      *
      * \param index the index to a node in the vector
      *
-     * \return the pointer to the requested node or nullptr if not found
+     * \return the pointer to the requested node or nullptr if not found. This pointer is
+     *         not guaranteed to be stable between function calls
      */
     Node* getNode(size_t index);
 
-    /**
-     * Get a pointer to a specific node.
-     *
-     * \param name of the node to search for
-     *
-     * \return the pointer to the requested node or nullptr if not found
-     */
-    Node* getNode(const std::string& name);
-
-    /// \return a pointer to the node that this application is running on
-    Node* getThisNode();
+    /// \return a reference to the node that this application is running on
+    Node& getThisNode();
 
     /// \return the pointer to the default user
     User& getDefaultUser();

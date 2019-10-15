@@ -194,7 +194,8 @@ float getLineWidth(sgct::text::Font& font, const std::wstring& line) {
 
 void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
               const sgct::text::TextAlignMode& mode, float x, float y,
-              const glm::vec4& color)
+              const glm::vec4& color,
+              const glm::vec4& strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f))
 {
     using namespace sgct::text;
 
@@ -207,22 +208,10 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    FontManager::instance()->getShader().bind();
+    // FontManager::instance()->getShader().bind();
 
     glBindVertexArray(font.getVAO());
     glActiveTexture(GL_TEXTURE0);
-
-    glUniform4fv(
-        FontManager::instance()->getColorLocation(),
-        1,
-        glm::value_ptr(color)
-    );
-    const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-    glUniform4fv(
-        FontManager::instance()->getStrokeLocation(),
-        1,
-        glm::value_ptr(stroke)
-    );
 
     for (size_t i = 0; i < lines.size(); i++) {
         glm::vec3 offset(x, y - h * i, 0.f);
@@ -250,14 +239,8 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
             glBindTexture(GL_TEXTURE_2D, ffd.texId);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glUniform1i(FontManager::instance()->getTextureLoc(), 0);
 
-            glUniformMatrix4fv(
-                FontManager::instance()->getMVPLocation(),
-                1,
-                GL_FALSE,
-                glm::value_ptr(scale)
-            );
+            FontManager::instance()->bindShader(scale, color, strokeColor, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -271,7 +254,8 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
 
 void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
               const sgct::text::TextAlignMode& mode, const glm::mat4& mvp,
-              const glm::vec4& color)
+              const glm::vec4& color,
+              const glm::vec4& strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f))
 {
     using namespace sgct::text;
 
@@ -280,22 +264,8 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    FontManager::instance()->getShader().bind();
-
     glBindVertexArray(font.getVAO());
     glActiveTexture(GL_TEXTURE0);
-
-    glUniform4fv(
-        FontManager::instance()->getColorLocation(),
-        1,
-        glm::value_ptr(color)
-    );
-    const glm::vec4 stroke = FontManager::instance()->getStrokeColor();
-    glUniform4fv(
-        FontManager::instance()->getStrokeLocation(),
-        1,
-        glm::value_ptr(stroke)
-    );
 
     const float textScale = 1.f / font.getHeight();
     const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
@@ -327,13 +297,7 @@ void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-            glUniform1i(FontManager::instance()->getTextureLoc(), 0);
-            glUniformMatrix4fv(
-                FontManager::instance()->getMVPLocation(),
-                1,
-                GL_FALSE,
-                glm::value_ptr(scale)
-            );
+            FontManager::instance()->bindShader(scale, color, strokeColor, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -378,7 +342,7 @@ void print(Font& font, TextAlignMode mode, float x, float y, const wchar_t* form
 void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
-    va_list	args;
+    va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
@@ -390,7 +354,35 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 }
 
 void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+           const glm::vec4& strokeColor, const char* format, ...)
+{
+    va_list	args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
+
+    if (!buf.empty()) {
+        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
+        render2d(lines, font, mode, x, y, color, strokeColor);
+    }
+}
+
+void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const wchar_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
+
+    if (!buf.empty()) {
+        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
+        render2d(lines, font, mode, x, y, color);
+    }
+}
+
+void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+           const glm::vec4& strokeColor, const wchar_t* format, ...)
 {
     va_list	args;
     va_start(args, format);
@@ -399,7 +391,7 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 
     if (!buf.empty()) {
         std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
-        render2d(lines, font, mode, x, y, color);
+        render2d(lines, font, mode, x, y, color, strokeColor);
     }
 }
 
@@ -430,7 +422,7 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* forma
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const char* format, ...)
 {
-    va_list	args;
+    va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
     va_end(args);
@@ -442,7 +434,35 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 }
 
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
+             const glm::vec4& strokeColor, const char* format, ...)
+{
+    va_list	args;
+    va_start(args, format);
+    std::vector<char> buf = parseArgList(args, format);
+    va_end(args);
+
+    if (!buf.empty()) {
+        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
+        render3d(lines, font, mode, mvp, color, strokeColor);
+    }
+}
+
+void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
              const wchar_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    std::vector<wchar_t> buf = parseArgList(args, format);
+    va_end(args);
+
+    if (!buf.empty()) {
+        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
+        render3d(lines, font, mode, mvp, color);
+    }  
+}
+
+void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
+             const glm::vec4& strokeColor, const wchar_t* format, ...)
 {
     va_list	args;
     va_start(args, format);
@@ -451,7 +471,7 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 
     if (!buf.empty()) {
         std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
-        render3d(lines, font, mode, mvp, color);
+        render3d(lines, font, mode, mvp, color, strokeColor);
     }  
 }
 

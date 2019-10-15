@@ -24,24 +24,21 @@ public:
     ~Dome();
 
     /**
-     * If openGL 3.3+ is used:
-     *   layout 0 contains texture coordinates (vec2)
-     *   layout 1 contains vertex normals (vec3)
-     *   layout 2 contains vertex positions (vec3).
+     * layout 0 contains texture coordinates (vec2)
+     * layout 1 contains vertex normals (vec3)
+     * layout 2 contains vertex positions (vec3).
      */
     void draw();
 
 private:
-    void drawVBO();
-    void drawVAO();
     void createVBO(float radius, float FOV);
 
     int _elevationSteps;
     int _azimuthSteps;
 
+    unsigned int _vao = 0;
     unsigned int _vbo = 0;
     unsigned int _ibo = 0;
-    unsigned int _vao = 0;
 };
 
 } // namespace sgct::utils

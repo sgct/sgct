@@ -22,32 +22,34 @@
 #endif // WIN32
 
 namespace {
+    std::string SystemFontPath;
+
     constexpr const char* FontVertShader = R"(
 **glsl_version**
 layout (location = 0) in vec2 TexCoord;
 layout (location = 1) in vec2 Position;
 
-uniform mat4 MVP;
-out vec2 UV;
+uniform mat4 mvp;
+out vec2 uv;
 
 void main() {
-    gl_Position = MVP * vec4(Position, 0.0, 1.0);
-    UV = TexCoord;
+    gl_Position = mvp * vec4(Position, 0.0, 1.0);
+    uv = TexCoord;
 })";
 
     constexpr const char* FontFragShader = R"(
 **glsl_version**
-uniform vec4 Col;
-uniform vec4 StrokeCol;
-uniform sampler2D Tex;
+uniform vec4 col;
+uniform vec4 strokeCol;
+uniform sampler2D tex;
 
-in vec2 UV;
+in vec2 uv;
 out vec4 Color;
 
 void main() {
-    vec2 LuminanceAlpha = texture(Tex, UV.st).rg;
-    vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);
-    Color = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.g);
+    vec2 luminanceAlpha = texture(tex, uv.st).rg;
+    vec4 blend = mix(strokeCol, col, luminanceAlpha.r);
+    Color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
 })";
 } // namespace
 
@@ -78,17 +80,18 @@ FontManager::FontManager() {
 
     // Set default font path
 #ifdef WIN32
-    char FontDir[128];
-    const UINT success = GetWindowsDirectory(FontDir, 128);
+    constexpr const int BufferSize = 256;
+    char FontDir[256];
+    const UINT success = GetWindowsDirectory(FontDir, 256);
     if (success > 0) {
-        _defaultFontPath = FontDir;
-        _defaultFontPath += "\\Fonts\\";
+        SystemFontPath = FontDir;
+        SystemFontPath += "\\Fonts\\";
     }
 #elif defined(__APPLE__)
-    //System Fonts
-    _defaultFontPath = "/Library/Fonts/";
+    // System Fonts
+    SystemFontPath = "/Library/Fonts/";
 #else
-    _defaultFontPath = "/usr/share/fonts/truetype/freefont/";
+    SystemFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif
 }
 
@@ -105,52 +108,27 @@ FontManager::~FontManager() {
     _shader.deleteProgram();
 }
 
-void FontManager::setDefaultFontPath(std::string path) {
-    _defaultFontPath = std::move(path);
+void FontManager::bindShader(const glm::mat4& mvp, const glm::vec4& color, 
+                             const glm::vec4& strokeColor, int texture) const
+{
+    _shader.bind();
+
+    glUniform4fv(_colorLocation, 1, glm::value_ptr(color));
+    glUniform4fv(_strokeLocation, 1, glm::value_ptr(strokeColor));
+    glUniform1i(_textureLocation, texture);
+    glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
-void FontManager::setStrokeColor(glm::vec4 color) {
-    _strokeColor = std::move(color);
-}
-
-glm::vec4 FontManager::getStrokeColor() const {
-    return _strokeColor;
-}
-
-const ShaderProgram& FontManager::getShader() const {
-    return _shader;
-}
-
-unsigned int FontManager::getMVPLocation() const {
-    return _mvpLocation;
-}
-
-unsigned int FontManager::getColorLocation() const {
-    return _colorLocation;
-}
-
-unsigned int FontManager::getStrokeLocation() const {
-    return _strokeLocation;
-}
-
-unsigned int FontManager::getTextureLoc() const {
-    return _textureLocation;
-}
-
-bool FontManager::addFont(std::string fontName, std::string path, FontPath fontPath) {
+bool FontManager::addFont(std::string name, std::string file, Path path) {
     // Perform file exists check
-    if (fontPath == FontPath::Default) {
-        path = _defaultFontPath + path;
+    if (path == Path::System) {
+        file = SystemFontPath + file;
     }
 
-    bool inserted = _fontPaths.insert({ std::move(fontName), std::move(path) }).second;
-
+    const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
     if (!inserted) {
-        MessageHandler::printWarning(
-            "Font with name '%s' already specified", fontName.c_str()
-        );
+        MessageHandler::printWarning("Font with name '%s' already exists", name.c_str());
     }
-
     return inserted;
 }
 
@@ -195,7 +173,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
     if (error == FT_Err_Unknown_File_Format) {
         MessageHandler::printError(
-            "FontManager: Unsopperted file format [%s] for font [%s]",
+            "FontManager: Unsupperted file format [%s] for font [%s]",
             it->second.c_str(), name.c_str()
         );
         return nullptr;
@@ -216,11 +194,10 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     }
 
     // Create the font when all error tests are done
-    std::unique_ptr<Font> font = std::make_unique<Font>(_library, face, name, height);
+    std::unique_ptr<Font> font = std::make_unique<Font>(_library, face, height);
 
-    static bool shaderCreated = false;
-
-    if (!shaderCreated) {
+    static bool isShaderCreated = false;
+    if (!isShaderCreated) {
         _shader.setName("FontShader");
         std::string vertShader = FontVertShader;
         std::string fragShader = FontFragShader;
@@ -256,13 +233,13 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         _shader.createAndLinkProgram();
         _shader.bind();
 
-        _mvpLocation = _shader.getUniformLocation("MVP");
-        _colorLocation = _shader.getUniformLocation("Col");
-        _strokeLocation = _shader.getUniformLocation("StrokeCol");
-        _textureLocation = _shader.getUniformLocation("Tex");
+        _mvpLocation = _shader.getUniformLocation("mvp");
+        _colorLocation = _shader.getUniformLocation("col");
+        _strokeLocation = _shader.getUniformLocation("strokeCol");
+        _textureLocation = _shader.getUniformLocation("tex");
         _shader.unbind();
 
-        shaderCreated = true;
+        isShaderCreated = true;
     }
 
     return font;

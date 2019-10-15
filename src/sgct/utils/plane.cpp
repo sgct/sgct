@@ -8,7 +8,6 @@
 
 #include <sgct/utils/plane.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
@@ -18,10 +17,6 @@ namespace sgct::utils {
 
 Plane::Plane(float width, float height) {
     createVBO(width, height);
-
-    if (!Engine::checkForOGLErrors()) {
-        MessageHandler::printError("SGCT Utils: Plane creation error");
-    }
 }
 
 Plane::~Plane() {
@@ -30,26 +25,6 @@ Plane::~Plane() {
 }
 
 void Plane::draw() {
-    drawVAO();
-}
-
-void Plane::drawVBO() {
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    
-    glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glPopClientAttrib();
-}
-
-void Plane::drawVAO() {
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
@@ -64,14 +39,8 @@ void Plane::createVBO(float width, float height) {
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
 
-    MessageHandler::printDebug("Plane: Generating VAO: %d", _vao);
     glGenBuffers(1, &_vbo);
-
-    MessageHandler::printDebug("Plane: Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -81,6 +50,7 @@ void Plane::createVBO(float width, float height) {
     );
 
     // texcoords
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
         2,
@@ -89,7 +59,9 @@ void Plane::createVBO(float width, float height) {
         sizeof(helpers::VertexData),
         reinterpret_cast<void*>(0)
     );
+
     // normals
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
         3,
@@ -98,7 +70,9 @@ void Plane::createVBO(float width, float height) {
         sizeof(helpers::VertexData),
         reinterpret_cast<void*>(8)
     );
+
     // vert positions
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(
         2,
         3,
@@ -109,7 +83,6 @@ void Plane::createVBO(float width, float height) {
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 } // namespace sgct::utils

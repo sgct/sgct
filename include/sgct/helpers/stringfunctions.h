@@ -14,7 +14,7 @@
 
 namespace sgct::helpers {
 
-static void findAndReplace(std::string& src, const std::string& pattern,
+static void findAndReplace(std::string& src, const std::string_view& pattern,
                            const std::string& replaceStr)
 {
     size_t found = src.find(pattern);
@@ -28,7 +28,6 @@ static std::vector<std::string> split(std::string str, char delimiter) {
     std::vector<std::string> tmpVec;
     std::stringstream ss(std::move(str));
     std::string part;
-
     while (getline(ss, part, delimiter)) {
         tmpVec.push_back(part);
     }

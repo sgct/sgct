@@ -159,7 +159,7 @@ void draw() {
             h / 2.f - (s1 + s2) * 1.2f,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%s",
-            core::ClusterManager::instance()->getThisNode()->getAddress().c_str()
+            core::ClusterManager::instance()->getThisNode().getAddress().c_str()
         );
     }
 #endif // SGCT_HAS_TEXT

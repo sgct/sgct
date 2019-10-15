@@ -818,8 +818,8 @@ public:
      */
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
 
-    /// \return a pointer to this node (running on this computer).
-    const sgct::core::Node* getThisNode() const;
+    /// \return a reference to this node (running on this computer).
+    const sgct::core::Node& getThisNode() const;
 
     /// \return a pointer to a specified window by index on this node.
     Window& getWindow(int index) const;
@@ -850,9 +850,6 @@ public:
 
     /// \return true if this node is the master
     bool isMaster() const;
-
-    /// \return true if on-screen info is rendered.
-    bool isDisplayInfoRendered() const;
 
     /**
      * \return the active frustum mode which can be one of the following:
@@ -920,9 +917,6 @@ public:
      */
     const std::vector<glm::ivec2>& getDrawBufferResolutions() const;
 
-    /// \return the active FBO buffer index.
-    size_t getCurrentDrawBufferIndex() const;
-
     /// \return the active render target.
     RenderTarget getCurrentRenderTarget() const;
 
@@ -953,12 +947,6 @@ private:
 
     /// Initiates OpenGL.
     void initOGL();
-
-    /// Clean up all resources and release memory.
-    void clean();
-
-    /// Un-binds all callbacks.
-    void clearAllCallbacks();
 
     /**
      * Locks the rendering thread for synchronization. Locks the slaves until data is
@@ -1123,6 +1111,9 @@ private:
     RunMode _runMode = RunMode::Default_Mode;
     std::string _glslVersion;
     int _exitKey = key::Escape;
+
+    unsigned int _timeQueryBegin;
+    unsigned int _timeQueryEnd;
 };
 
 } // namespace sgct

@@ -101,7 +101,7 @@ const std::string& PostFX::getName() const {
 }
 
 void PostFX::internalRender() {
-    Window& win = core::ClusterManager::instance()->getThisNode()->getCurrentWindow();
+    Window& win = core::ClusterManager::instance()->getThisNode().getCurrentWindow();
 
     // bind target FBO
     win.getFBO()->attachColorTexture(_outputTexture);

@@ -25,15 +25,13 @@ public:
     void draw();
 
 private:
-    void drawVBO();
-    void drawVAO();
     void createVBO(float radius, float FOV);
 
     unsigned int _resolution;
     unsigned int _rings;
     unsigned int _segments;
-    unsigned int _vbo = 0;
     unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
 } // namespace sgct::utils

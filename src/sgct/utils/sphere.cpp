@@ -8,10 +8,10 @@
 
 #include <sgct/utils/sphere.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
 
@@ -19,46 +19,15 @@ namespace sgct::utils {
 
 Sphere::Sphere(float radius, unsigned int segments) {
     createVBO(radius, segments);
-
-    if (!Engine::checkForOGLErrors()) {
-        MessageHandler::printError("SGCT Utils: Sphere creation error");
-    }
 }
 
 Sphere::~Sphere() {
-    glDeleteBuffers(1, &_vbo);
-    _vbo = 0;
-
-    glDeleteBuffers(1, &_ibo);
-    _ibo = 0;
-
     glDeleteVertexArrays(1, &_vao);
-    _vao = 0;
+    glDeleteBuffers(1, &_vbo);
+    glDeleteBuffers(1, &_ibo);
 }
 
 void Sphere::draw() {
-    drawVAO();
-}
-
-void Sphere::drawVBO() {
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-
-    glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
-    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, 0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glPopClientAttrib();
-}
-
-void Sphere::drawVAO() {
     glBindVertexArray(_vao);
     glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -137,16 +106,8 @@ void Sphere::createVBO(float radius, unsigned int segments) {
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    MessageHandler::printDebug("Sphere: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    glGenBuffers(1, &_ibo);
-    MessageHandler::printDebug("Sphere: Generating VBOs: %d %d", _vbo, _ibo);
-
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -156,6 +117,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     );
 
     // texcoords
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
         2,
@@ -164,7 +126,9 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         sizeof(helpers::VertexData),
         reinterpret_cast<void*>(0)
     );
+
     // normals
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
         3,
@@ -173,7 +137,9 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         sizeof(helpers::VertexData),
         reinterpret_cast<void*>(8)
     );
+
     // vert positions
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(
         2,
         3,
@@ -183,6 +149,7 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         reinterpret_cast<void*>(20)
     ); 
 
+    glGenBuffers(1, &_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
@@ -192,8 +159,6 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 } // namespace sgct::utils

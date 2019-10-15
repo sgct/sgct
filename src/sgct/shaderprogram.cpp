@@ -31,6 +31,8 @@ void ShaderProgram::setName(std::string name) {
     _name = std::move(name);
 }
 
+// @TODO (2019-10-15) We should split this up into two different functions, one for
+// loading from disk, one for loading from a string
 bool ShaderProgram::addShaderSrc(std::string src, core::Shader::ShaderType type,
                                  ShaderSourceType sSrcType)
 {

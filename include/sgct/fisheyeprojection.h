@@ -88,9 +88,6 @@ public:
      */
     void setIgnoreAspectRatio(bool state);
 
-    /// Get the lens offset for off-axis projection.
-    glm::vec3 getOffset() const;
-
 private:
     void initViewports() override;
     void initShaders() override;
@@ -109,7 +106,7 @@ private:
         float top = 0.f;
     } _cropFactor;
 
-    bool _offAxis = false;
+    bool _isOffAxis = false;
     bool _ignoreAspectRatio = false;
         
     glm::vec3 _offset = glm::vec3(0.f);

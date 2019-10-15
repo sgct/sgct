@@ -181,8 +181,7 @@ void drawFun() {
     // anymore on Mac
     
     text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
-    text::FontManager::instance()->setStrokeColor(glm::vec4(1.f, 0.f, 0.f, 0.5f));
-    
+
     // test
     glm::mat4 texMVP = glm::ortho(-1.f, 1.f, -1.f, 1.f);
     texMVP = glm::scale(texMVP, glm::vec3(0.1f));
@@ -197,6 +196,8 @@ void drawFun() {
         text::TextAlignMode::TopRight,
         500,
         500,
+        glm::vec4(1.f),
+        glm::vec4(1.f, 0.f, 0.f, 0.5f),
         L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
         str0, str1, str2, str3, str4, str5, str6
     );
@@ -207,6 +208,8 @@ void drawFun() {
             text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
+            glm::vec4(1.f),
+            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Swap group: Active"
         );
 
@@ -215,6 +218,8 @@ void drawFun() {
             text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             500,
+            glm::vec4(1.f),
+            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Press B to toggle barrier and R to reset counter"
         );
 
@@ -224,6 +229,8 @@ void drawFun() {
                 text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
+                glm::vec4(1.f),
+                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap barrier: Active"
             );
         }
@@ -233,6 +240,8 @@ void drawFun() {
                 text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 400,
+                glm::vec4(1.f),
+                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap barrier: Inactive"
             );
         }
@@ -243,6 +252,8 @@ void drawFun() {
                 text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
+                glm::vec4(1.f),
+                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap group master: True"
             );
         }
@@ -252,6 +263,8 @@ void drawFun() {
                 text::TextAlignMode::TopLeft,
                 xPos - xPos / 2.f,
                 350,
+                glm::vec4(1.f),
+                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap group master: False"
             );
         }
@@ -262,6 +275,8 @@ void drawFun() {
             text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             300,
+            glm::vec4(1.f),
+            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Nvidia frame counter: %u", iFrame
         );
         text::print(
@@ -269,6 +284,8 @@ void drawFun() {
             text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             250,
+            glm::vec4(1.f),
+            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Framerate: %.3lf", 1.0 / gEngine->getDt()
         );
     }
@@ -278,6 +295,8 @@ void drawFun() {
             text::TextAlignMode::TopLeft,
             xPos - xPos / 2.f,
             450,
+            glm::vec4(1.f),
+            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Swap group: Inactive"
         );
     }
@@ -338,10 +357,10 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    core::Node* thisNode = core::ClusterManager::instance()->getThisNode();
-    for (int i = 0; i < thisNode->getNumberOfWindows(); i++) {
-        for (int j = 0; j < thisNode->getWindow(i).getNumberOfViewports(); j++) {
-            if (thisNode->getWindow(i).getViewport(j).isEnabled()) {
+    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+        for (int j = 0; j < thisNode.getWindow(i).getNumberOfViewports(); j++) {
+            if (thisNode.getWindow(i).getViewport(j).isEnabled()) {
                 numberOfActiveViewports++;
             }
         }

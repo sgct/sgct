@@ -63,7 +63,7 @@ int Node::getCurrentWindowIndex() const {
 bool Node::shouldAllWindowsClose() {
     for (Window& window : _windows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {
-            window.setVisibility(false);
+            window.setVisible(false);
             glfwSetWindowShouldClose(window.getWindowHandle(), 0);
         }
     }
@@ -80,13 +80,13 @@ bool Node::shouldAllWindowsClose() {
 
 void Node::showAllWindows() {
     for (Window& window : _windows) {
-        window.setVisibility(true);
+        window.setVisible(true);
     }
 }
 
 void Node::hideAllWindows() {
     for (Window& window : _windows) {
-        window.setVisibility(false);
+        window.setVisible(false);
     }
 }
 
@@ -108,7 +108,6 @@ void Node::setAddress(std::string address) {
 
 void Node::setSyncPort(int port) {
     _syncPort = port;
-    
     MessageHandler::printDebug("Node: Setting sync port to %d", _syncPort);
 }
 

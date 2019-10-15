@@ -131,6 +131,9 @@ protected:
         BaseViewport back;
     } _subViewports;
 
+    // @TODO (abock, 2019-10-15) This should probably be turned into a vector of a
+    // Vertex struct to enforce that all derived classes fill it the same way.  At the
+    // same time, maybe we don't even need to store the vertices permanently either?
     std::vector<float> _vertices;
 
     InterpolationMode _interpolationMode = InterpolationMode::Linear;

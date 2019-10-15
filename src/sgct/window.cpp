@@ -27,8 +27,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-// Apple doesn't support advanced sync features
-// Nvidia Quadro Sync technology is only supported in Windows or Linux
 #ifdef WIN32
 HDC hDC;
 #endif
@@ -59,57 +57,45 @@ namespace {
     };
 
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
-        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-        if (!node) {
-            return;
-        }
-
         width = std::max(width, 1);
         height = std::max(height, 1);
-        for (int i = 0; i < node->getNumberOfWindows(); i++) {
-            if (node->getWindow(i).getWindowHandle() == window) {
-                node->getWindow(i).setWindowResolution(glm::ivec2(width, height));
+
+        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        for (int i = 0; i < node.getNumberOfWindows(); i++) {
+            if (node.getWindow(i).getWindowHandle() == window) {
+                node.getWindow(i).setWindowResolution(glm::ivec2(width, height));
             }
         }
     }
 
     void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-        if (!node) {
-            return;
-        }
-
         width = std::max(width, 1);
         height = std::max(height, 1);
-        for (int i = 0; i < node->getNumberOfWindows(); i++) {
-            if (node->getWindow(i).getWindowHandle() == window) {
-                node->getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
+
+        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        for (int i = 0; i < node.getNumberOfWindows(); i++) {
+            if (node.getWindow(i).getWindowHandle() == window) {
+                node.getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
             }
         }
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
-        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-        if (!node) {
-            return;
-        }
+        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
 
-        for (int i = 0; i < node->getNumberOfWindows(); i++) {
-            if (node->getWindow(i).getWindowHandle() == window) {
-                node->getWindow(i).setFocused(state);
+        for (int i = 0; i < node.getNumberOfWindows(); i++) {
+            if (node.getWindow(i).getWindowHandle() == window) {
+                node.getWindow(i).setFocused(state);
             }
         }
     }
 
     void windowIconifyCallback(GLFWwindow* window, int state) {
-        sgct::core::Node* node = sgct::core::ClusterManager::instance()->getThisNode();
-        if (!node) {
-            return;
-        }
+        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
 
-        for (int i = 0; i < node->getNumberOfWindows(); i++) {
-            if (node->getWindow(i).getWindowHandle() == window) {
-                node->getWindow(i).setIconified(state);
+        for (int i = 0; i < node.getNumberOfWindows(); i++) {
+            if (node.getWindow(i).getWindowHandle() == window) {
+                node.getWindow(i).setIconified(state);
             }
         }
     }
@@ -234,7 +220,7 @@ void Window::init() {
 
     using namespace core;
     std::string title = "SGCT node: " +
-        ClusterManager::instance()->getThisNode()->getAddress() +
+        ClusterManager::instance()->getThisNode().getAddress() +
         " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
         + ": " + std::to_string(_id) + ")";
 
@@ -386,7 +372,7 @@ unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
     }
 }
 
-void Window::setVisibility(bool state) {
+void Window::setVisible(bool state) {
     if (state != _isVisible) {
         if (_windowHandle) {
             if (state) {

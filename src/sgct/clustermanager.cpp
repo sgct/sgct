@@ -17,11 +17,10 @@ namespace sgct::core {
 
 ClusterManager* ClusterManager::_instance = nullptr;
 
-ClusterManager* ClusterManager::instance()  {
+ClusterManager* ClusterManager::instance() {
     if (!_instance) {
         _instance = new ClusterManager();
     }
-
     return _instance;
 }
 
@@ -46,22 +45,8 @@ Node* ClusterManager::getNode(size_t index) {
     return (index < _nodes.size()) ? _nodes[index].get() : nullptr;
 }
 
-Node* ClusterManager::getNode(const std::string& name) {
-    auto it = std::find_if(
-        _nodes.begin(),
-        _nodes.end(),
-        [&name](const std::unique_ptr<Node>& n) { return n->getName() == name; }
-    );
-    if (it != _nodes.end()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
-}
-
-Node* ClusterManager::getThisNode() {
-    return _thisNodeId < 0 ? nullptr : _nodes[_thisNodeId].get();
+Node& ClusterManager::getThisNode() {
+    return *_nodes[_thisNodeId];
 }
 
 User& ClusterManager::getDefaultUser() {
@@ -177,7 +162,12 @@ const glm::mat4& ClusterManager::getSceneTransform() const {
 }
 
 void ClusterManager::setThisNodeId(int id) {
-    _thisNodeId = id;
+    if (id >= 0) {
+        _thisNodeId = id;
+    }
+    else {
+        MessageHandler::printError("Node id must be positive");
+    }
 }
 
 int ClusterManager::getThisNodeId() const {

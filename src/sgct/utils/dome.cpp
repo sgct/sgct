@@ -48,48 +48,6 @@ Dome::~Dome() {
 }
 
 void Dome::draw() {
-    drawVAO();
-}
-
-void Dome::drawVBO() {
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-
-    glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
-    
-    for (int i = 0; i < _elevationSteps - 1; i++) {
-        const unsigned int size = (2 * _azimuthSteps + 2);
-        const unsigned int offset = i * size;
-        glDrawElements(
-            GL_TRIANGLE_STRIP,
-            size,
-            GL_UNSIGNED_INT,
-            reinterpret_cast<void*>(offset * sizeof(unsigned int))
-        );
-    }
-
-    // one extra for the cap vertex and one extra for duplication of last index
-    const unsigned int size = _azimuthSteps + 2;
-    const unsigned int offset = (2 * _azimuthSteps + 2) * (_elevationSteps - 1);
-    glDrawElements(
-        GL_TRIANGLE_FAN,
-        size,
-        GL_UNSIGNED_INT,
-        reinterpret_cast<void*>(offset * sizeof(unsigned int))
-    );
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glPopClientAttrib();
-}
-
-void Dome::drawVAO() {
     glBindVertexArray(_vao);
 
     for (int i = 0; i < _elevationSteps - 1; i++) {
@@ -197,15 +155,8 @@ void Dome::createVBO(float radius, float FOV) {
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
 
-    MessageHandler::printDebug("Dome: Generating VAO: %d", _vao);
-
-    glGenBuffers(2, &_vbo);
-    MessageHandler::printDebug("Dome: Generating VBOs: %d %d", _vbo, _ibo);
-
+    glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -215,6 +166,7 @@ void Dome::createVBO(float radius, float FOV) {
     );
 
     // texcoords
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
         2,
@@ -224,6 +176,7 @@ void Dome::createVBO(float radius, float FOV) {
         reinterpret_cast<void*>(0)
     );
     // normals
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
         3,
@@ -233,6 +186,7 @@ void Dome::createVBO(float radius, float FOV) {
         reinterpret_cast<void*>(8)
     );
     // vert positions
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(
         2,
         3,
@@ -242,6 +196,7 @@ void Dome::createVBO(float radius, float FOV) {
         reinterpret_cast<void*>(20)
     );
 
+    glGenBuffers(1, &_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
@@ -251,8 +206,6 @@ void Dome::createVBO(float radius, float FOV) {
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 } // namespace sgct::utils

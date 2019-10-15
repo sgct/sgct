@@ -135,7 +135,7 @@ public:
      * that window will be paused unless it's forced to render while hidden by using
      * setRenderWhileHidden().
      */
-    void setVisibility(bool state);
+    void setVisible(bool state);
 
     /**
      * Set if window should render while hidden. Normally a window pauses the rendering if

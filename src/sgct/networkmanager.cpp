@@ -111,7 +111,7 @@ NetworkManager::~NetworkManager() {
 
 bool NetworkManager::init() {
     ClusterManager& cm = *ClusterManager::instance();
-    const std::string& thisAddress = cm.getThisNode()->getAddress();
+    const std::string& thisAddress = cm.getThisNode().getAddress();
     if (thisAddress.empty()) {
         MessageHandler::printError(
             "NetworkManager: No address information for this node available"
@@ -137,7 +137,7 @@ bool NetworkManager::init() {
 
     // if faking an address (running local) then add it to the search list
     if (_mode != NetworkMode::Remote) {
-        _localAddresses.push_back(cm.getThisNode()->getAddress());
+        _localAddresses.push_back(cm.getThisNode().getAddress());
     }
 
     // Add Cluster Functionality
@@ -145,13 +145,13 @@ bool NetworkManager::init() {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->getPort();
-            if (port == cm.getThisNode()->getSyncPort() ||
-                port == cm.getThisNode()->getDataTransferPort() ||
+            if (port == cm.getThisNode().getSyncPort() ||
+                port == cm.getThisNode().getDataTransferPort() ||
                 port == cm.getExternalControlPort())
             {
                 MessageHandler::printError(
                     "NetworkManager: Port %d is already used by connection %u",
-                    cm.getThisNode()->getSyncPort(), i
+                    cm.getThisNode().getSyncPort(), i
                 );
                 return false;
             }
@@ -160,7 +160,7 @@ bool NetworkManager::init() {
         // if client
         if (!_isServer) {
             const bool addSyncPort = addConnection(
-                cm.getThisNode()->getSyncPort(),
+                cm.getThisNode().getSyncPort(),
                 remoteAddress
             );
             if (addSyncPort) {
@@ -180,7 +180,7 @@ bool NetworkManager::init() {
 
             // add data transfer connection
             bool addTransferPort = addConnection(
-                cm.getThisNode()->getDataTransferPort(),
+                cm.getThisNode().getDataTransferPort(),
                 remoteAddress,
                 Network::ConnectionType::DataTransfer
             );

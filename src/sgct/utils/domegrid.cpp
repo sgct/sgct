@@ -8,9 +8,9 @@
 
 #include <sgct/utils/domegrid.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 namespace sgct::utils {
@@ -28,11 +28,6 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
     }
 
     createVBO(radius, FOV);
-
-    // if error occured
-    if (!Engine::checkForOGLErrors()) {
-        MessageHandler::printError("SGCT Utils: Dome creation error");
-    }
 }
 
 DomeGrid::~DomeGrid() {
@@ -41,33 +36,6 @@ DomeGrid::~DomeGrid() {
 }
 
 void DomeGrid::draw() {
-    drawVAO();
-}
-
-void DomeGrid::drawVBO() {
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    glVertexPointer(3, GL_FLOAT, 0, nullptr);
-
-    for (unsigned int r = 0; r < _rings; r++) {
-        glDrawArrays(GL_LINE_LOOP, r * _resolution, _resolution);
-    }
-    for (unsigned int s = 0; s < _segments; s++) {
-        glDrawArrays(
-            GL_LINE_STRIP,
-            _rings * _resolution + s * ((_resolution / 4) + 1),
-            (_resolution / 4) + 1
-        );
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glPopClientAttrib();
-}
-
-void DomeGrid::drawVAO() {
     glBindVertexArray(_vao);
 
     for (unsigned int r = 0; r < _rings; r++) {
@@ -125,12 +93,8 @@ void DomeGrid::createVBO(float radius, float FOV) {
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    glEnableVertexAttribArray(0);
-    MessageHandler::printDebug("DomeGrid: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    MessageHandler::printDebug("DomeGrid: Generating VBO: %d", _vbo);
-
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -139,6 +103,7 @@ void DomeGrid::createVBO(float radius, float FOV) {
         GL_STATIC_DRAW
     );
 
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

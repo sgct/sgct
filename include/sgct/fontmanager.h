@@ -12,14 +12,14 @@
 #ifdef SGCT_HAS_TEXT
 
 #include <sgct/shaderprogram.h>
+#include <freetype/ftglyph.h>
+#include <freetype/ftstroke.h>
 #include <glm/glm.hpp>
 #include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-#include <freetype/ftglyph.h>
-#include <freetype/ftstroke.h>
 
 /**
  * \namespace sgct::text
@@ -89,8 +89,8 @@ class Font;
  */
 class FontManager {
 public:
-    /// Convenience enum from where to load font files
-    enum class FontPath { Local, Default };
+    /// Enum from where to load font files
+    enum class Path { System, Local };
 
     static FontManager* instance();
     static void destroy();
@@ -101,12 +101,11 @@ public:
     /**
      * Adds a font file to the manager.
      *
-     * \param fontName Specify a name for the font
-     * \param path Path to the font file
-     * \param fontPath If it is a local font path directory or using the default path
+     * \param name Specify a name for the font
+     * \param file Path to the font file
+     * \param path If it is a local font path directory or using the default path
      */
-    bool addFont(std::string fontName, std::string path,
-        FontPath fontPath = FontPath::Default);
+    bool addFont(std::string name, std::string file, Path path = Path::System);
 
     /**
      * Get a font face that is loaded into memory.
@@ -128,27 +127,15 @@ public:
     Font* getDefaultFont(unsigned int height = 10);
     
     /**
-     * Set the default font path. This will be the directory where font files will be
-     * searched for by default. If not explicitly set the default font path will be the
-     * windows font folder.
-     *
-     * \param path The directory where the default font files are located
+     * Binds the font shader and also sets the four uniform values for the
+     * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
+     * texture index at which the font information is stored
      */
-    void setDefaultFontPath(std::string path);
-
-    /// Set the stroke (border) color
-    void setStrokeColor(glm::vec4 color);
-
-    glm::vec4 getStrokeColor() const;
-
-    const ShaderProgram& getShader() const;
-    unsigned int getMVPLocation() const;
-    unsigned int getColorLocation() const;
-    unsigned int getStrokeLocation() const;
-    unsigned int getTextureLoc() const;
+    void bindShader(const glm::mat4& mvp, const glm::vec4& color, 
+        const glm::vec4& strokeColor, int texture) const;
 
 private:
-    /// Constructor initiates the freetyp library
+    /// Constructor initiates the freetype library
     FontManager();
 
     /**
@@ -161,16 +148,9 @@ private:
      */
     std::unique_ptr<Font> createFont(const std::string& fontName, unsigned int height);
 
-    FontManager(const FontManager & fm) = delete;
-    const FontManager& operator=(const FontManager& rhs) = delete;
-
     static FontManager* _instance;
 
-    // The default font path from where to look for font files
-    std::string _defaultFontPath;
-
     FT_Library _library;
-    glm::vec4 _strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
 
     // Holds all predefined font paths for generating font glyphs
     std::map<std::string, std::string> _fontPaths; 
@@ -185,7 +165,7 @@ private:
     int _textureLocation = -1;
 };
 
-} // namespace sgct
+} // namespace sgct::text
 
 #endif // SGCT_HAS_TEXT
 #endif // __SGCT__FONT_MANAGER__H__

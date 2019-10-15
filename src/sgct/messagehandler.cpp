@@ -195,91 +195,91 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
 void MessageHandler::print(const char* fmt, ...) {
     if (fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::print(Level nl, const char* fmt, ...) {
-    if (nl > _instance->getNotifyLevel() || fmt == nullptr) {
+    if (nl > instance()->getNotifyLevel() || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printDebug(const char* fmt, ...) {
-    if (_instance->getNotifyLevel() <= Level::Debug || fmt == nullptr) {
+    if (instance()->getNotifyLevel() <= Level::Debug || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printWarning(const char* fmt, ...) {
-    if (_instance->getNotifyLevel() <= Level::Warning || fmt == nullptr) {
+    if (instance()->getNotifyLevel() <= Level::Warning || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printInfo(const char* fmt, ...) {
-    if (_instance->getNotifyLevel() <= Level::Info || fmt == nullptr) {
+    if (instance()->getNotifyLevel() <= Level::Info || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printImportant(const char* fmt, ...) {
-    if (_instance->getNotifyLevel() <= Level::Important || fmt == nullptr) {
+    if (instance()->getNotifyLevel() <= Level::Important || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printError(const char* fmt, ...) {
-    if (_instance->getNotifyLevel() <= Level::Error || fmt == nullptr) {
+    if (instance()->getNotifyLevel() <= Level::Error || fmt == nullptr) {
         // If There's No Text
-        _instance->_parseBuffer[0] = 0;    // Do Nothing
+        instance()->_parseBuffer[0] = 0;    // Do Nothing
         return;
     }
 
     va_list ap; // Pointer To List Of Arguments
     va_start(ap, fmt); // Parses The String For Variables
-    _instance->printv(fmt, ap);
+    instance()->printv(fmt, ap);
     va_end(ap);
 }
 

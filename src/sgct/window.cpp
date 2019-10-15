@@ -671,7 +671,7 @@ void Window::setBarrier(bool state) {
         MessageHandler::printInfo("Window: Enabling Nvidia swap barrier");
 
 #ifdef WIN32
-        _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0);
+        _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
 #endif // WIN32
     }
 }

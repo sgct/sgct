@@ -11,33 +11,14 @@
 
 #include <mutex>
 
-namespace sgct {
+namespace sgct::mutex {
 
-// @TODO (abock, 2019-10-07) move these out of the struct
+inline std::mutex ConsoleMutex;
+inline std::mutex DataSyncMutex;
+inline std::mutex FrameSyncMutex;
+inline std::mutex TrackingMutex;
+inline std::mutex TransferMutex;
 
-/**
- * This singleton class manages SGCTs mutexes
- */
-struct MutexManager {
-    /// Get the Settings instance
-    static MutexManager* instance();
-
-    /// Destroy the Settings instance
-    static void destroy();
-
-    std::mutex dataSyncMutex;
-    std::mutex frameSyncMutex;
-    std::mutex trackingMutex;
-    std::mutex consoleMutex;
-    std::mutex transferMutex;
-
-private:
-    MutexManager() = default;
-    ~MutexManager() = default;
-
-    static MutexManager* _instance;
-};
-
-} // namespace sgct
+} // namespace sgct::mutex
 
 #endif // __SGCT__MUTEX_MANAGER__H__

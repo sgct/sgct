@@ -124,7 +124,7 @@ TrackingManager::~TrackingManager() {
     fprintf(stderr, "Destructing, setting running to false\n");
 #endif
     {
-        std::unique_lock lock(MutexManager::instance()->trackingMutex);
+        std::unique_lock lock(mutex::TrackingMutex);
         _isRunning = false;
     }
 
@@ -145,7 +145,7 @@ bool TrackingManager::isRunning() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    std::unique_lock lock(mutex::TrackingMutex);
     return _isRunning;
 #else
     MessageHandler::printWarning("SGCT compiled without VRPN support");
@@ -386,7 +386,7 @@ void TrackingManager::setSamplingTime(double t) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    std::unique_lock lock(mutex::TrackingMutex);
     _samplingTime = t;
 #else
     (void)t;
@@ -399,7 +399,7 @@ double TrackingManager::getSamplingTime() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sampling time for vrpn loop\n");
 #endif
-    std::unique_lock lock(MutexManager::instance()->trackingMutex);
+    std::unique_lock lock(mutex::TrackingMutex);
     return _samplingTime;
 #else
     MessageHandler::printWarning("SGCT compiled without VRPN support");

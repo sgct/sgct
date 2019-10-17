@@ -7,22 +7,3 @@
  ****************************************************************************************/
 
 #include <sgct/mutexmanager.h>
-
-namespace sgct {
-
-MutexManager* MutexManager::_instance = nullptr;
-
-MutexManager* MutexManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new MutexManager();
-    }
-
-    return _instance;
-}
-
-void MutexManager::destroy() {
-    delete _instance;
-    _instance = nullptr;
-}
-
-} // namespace sgct

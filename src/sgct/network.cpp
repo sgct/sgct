@@ -438,7 +438,7 @@ void Network::pushClientMessage() {
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
     if (MessageHandler::instance()->getDataSize() > HeaderSize) {
-        MutexManager::instance()->dataSyncMutex.lock();
+        mutex::DataSyncMutex.lock();
 
         // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
         // though it has nothing to do with the messaging?
@@ -474,8 +474,7 @@ void Network::pushClientMessage() {
             static_cast<int>(messageSize)
         );
 
-        MutexManager::instance()->dataSyncMutex.unlock();
-
+        mutex::DataSyncMutex.unlock();
         MessageHandler::instance()->clearBuffer();
     }
     else {

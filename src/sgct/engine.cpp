@@ -63,9 +63,9 @@ namespace {
         bool run = true;
 
         while (run) {
-            sgct::MutexManager::instance()->frameSyncMutex.lock();
+            sgct::mutex::FrameSyncMutex.lock();
             run = sRunUpdateFrameLockLoop;
-            sgct::MutexManager::instance()->frameSyncMutex.unlock();
+            sgct::mutex::FrameSyncMutex.unlock();
 
             sgct::core::NetworkManager::cond.notify_all();
 
@@ -680,9 +680,9 @@ Engine::~Engine() {
     if (_thread) {
         MessageHandler::printDebug("Waiting for frameLock thread to finish");
 
-        MutexManager::instance()->frameSyncMutex.lock();
+        mutex::FrameSyncMutex.lock();
         sRunUpdateFrameLockLoop = false;
-        MutexManager::instance()->frameSyncMutex.unlock();
+        mutex::FrameSyncMutex.unlock();
 
         _thread->join();
         _thread = nullptr;
@@ -739,7 +739,6 @@ Engine::~Engine() {
     MessageHandler::destroy();
 
     MessageHandler::printDebug("Destroying mutexes");
-    MutexManager::destroy();
 
     // Close window and terminate GLFW
     MessageHandler::printDebug("Terminating glfw");
@@ -1294,7 +1293,7 @@ bool Engine::frameLockPreStage() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         else {
-            std::unique_lock lk(MutexManager::instance()->frameSyncMutex);
+            std::unique_lock lk(mutex::FrameSyncMutex);
             core::NetworkManager::cond.wait(lk);
         }
 
@@ -1355,7 +1354,7 @@ bool Engine::frameLockPostStage() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         else {
-            std::unique_lock lk(MutexManager::instance()->frameSyncMutex);
+            std::unique_lock lk(mutex::FrameSyncMutex);
             core::NetworkManager::cond.wait(lk);
         }
 

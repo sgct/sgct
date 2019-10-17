@@ -16,7 +16,7 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/readconfig.h>
 #include <sgct/mpcdi.h>
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statistics.h>
@@ -63,9 +63,9 @@ namespace {
         bool run = true;
 
         while (run) {
-            sgct::mutex::FrameSyncMutex.lock();
+            sgct::core::mutex::FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
-            sgct::mutex::FrameSyncMutex.unlock();
+            sgct::core::mutex::FrameSync.unlock();
 
             sgct::core::NetworkManager::cond.notify_all();
 
@@ -680,9 +680,9 @@ Engine::~Engine() {
     if (_thread) {
         MessageHandler::printDebug("Waiting for frameLock thread to finish");
 
-        mutex::FrameSyncMutex.lock();
+        core::mutex::FrameSync.lock();
         sRunUpdateFrameLockLoop = false;
-        mutex::FrameSyncMutex.unlock();
+        core::mutex::FrameSync.unlock();
 
         _thread->join();
         _thread = nullptr;
@@ -1293,7 +1293,7 @@ bool Engine::frameLockPreStage() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         else {
-            std::unique_lock lk(mutex::FrameSyncMutex);
+            std::unique_lock lk(core::mutex::FrameSync);
             core::NetworkManager::cond.wait(lk);
         }
 
@@ -1354,7 +1354,7 @@ bool Engine::frameLockPostStage() {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         else {
-            std::unique_lock lk(mutex::FrameSyncMutex);
+            std::unique_lock lk(core::mutex::FrameSync);
             core::NetworkManager::cond.wait(lk);
         }
 

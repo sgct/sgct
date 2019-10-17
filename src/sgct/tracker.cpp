@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/trackingdevice.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
@@ -72,7 +72,7 @@ TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
 }
 
 void Tracker::setOrientation(glm::quat q) {
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
 
     // create inverse rotation matrix
     _orientation = glm::inverse(glm::mat4_cast(q));
@@ -90,30 +90,30 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void Tracker::setOffset(glm::vec3 offset) {
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
     _offset = std::move(offset);
     calculateTransform();
 }
 
 void Tracker::setScale(double scaleVal) {
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
     if (scaleVal > 0.0) {
         _scale = scaleVal;
     }
 }
 
 void Tracker::setTransform(glm::mat4 mat) {
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
     _transform = std::move(mat);
 }
 
 glm::mat4 Tracker::getTransform() const { 
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
     return _transform;
 }
 
 double Tracker::getScale() const {
-    std::unique_lock lock(mutex::TrackingMutex);
+    std::unique_lock lock(core::mutex::Tracking);
     return _scale;
 }
 

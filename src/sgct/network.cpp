@@ -36,7 +36,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/messagehandler.h>
 #include <sgct/networkmanager.h>
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
 
 #include <zlib.h>
@@ -438,7 +438,7 @@ void Network::pushClientMessage() {
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
     if (MessageHandler::instance()->getDataSize() > HeaderSize) {
-        mutex::DataSyncMutex.lock();
+        core::mutex::DataSync.lock();
 
         // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
         // though it has nothing to do with the messaging?
@@ -474,7 +474,7 @@ void Network::pushClientMessage() {
             static_cast<int>(messageSize)
         );
 
-        mutex::DataSyncMutex.unlock();
+        core::mutex::DataSync.unlock();
         MessageHandler::instance()->clearBuffer();
     }
     else {

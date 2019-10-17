@@ -9,7 +9,7 @@
 #ifndef __SGCT__SHARED_DATA__H__
 #define __SGCT__SHARED_DATA__H__
 
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/network.h>
 #include <sgct/shareddatatypes.h>
 #include <array>
@@ -151,17 +151,17 @@ template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
     T val = sobj.getVal();
     
-    std::unique_lock lk(MutexManager::instance()->dataSyncMutex);
+    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(T));
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T>& sobj) {
-    MutexManager::instance()->dataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     T val = *reinterpret_cast<T*>(&_dataBlock[_pos]);
     _pos += sizeof(T);
-    MutexManager::instance()->dataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     sobj.setVal(val);
 }
@@ -171,28 +171,28 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     std::vector<T> tmpVec = vector.getVal();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
-    MutexManager::instance()->dataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
-    MutexManager::instance()->dataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
-        MutexManager::instance()->dataSyncMutex.lock();
+        core::mutex::DataSync.lock();
         _currentStorage->insert(_currentStorage->end(), c, c + length);
-        MutexManager::instance()->dataSyncMutex.unlock();
+        core::mutex::DataSync.unlock();
     }
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T>& vector) {
-    MutexManager::instance()->dataSyncMutex.lock();
+    core::mutex::DataSync.lock();
 
     uint32_t size = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint32_t);
 
-    MutexManager::instance()->dataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     if (size == 0) {
         vector.clear();
@@ -203,12 +203,12 @@ void SharedData::readVector(SharedVector<T>& vector) {
     uint32_t totalSize = size * sizeof(T);
     //unsigned char* data = new unsigned char[totalSize];
 
-    MutexManager::instance()->dataSyncMutex.lock();
+    core::mutex::DataSync.lock();
 
     unsigned char* c = &_dataBlock[_pos];
     _pos += totalSize;
 
-    MutexManager::instance()->dataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     //memcpy(data, c, totalSize);
 

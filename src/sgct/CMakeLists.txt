@@ -17,7 +17,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/messagehandler.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/mutexmanager.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
   ${PROJECT_SOURCE_DIR}/include/sgct/network.h
   ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/node.h
@@ -87,7 +87,6 @@ set(SOURCE_FILES
   image.cpp
   messagehandler.cpp
   mpcdi.cpp
-  mutexmanager.cpp
   network.cpp
   networkmanager.cpp
   node.cpp

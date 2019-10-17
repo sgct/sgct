@@ -9,7 +9,7 @@
 #include <sgct/messagehandler.h>
 
 #include <sgct/networkmanager.h>
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/helpers/portedfunctions.h>
 #include <fstream>
 #include <iostream>
@@ -52,7 +52,7 @@ MessageHandler::MessageHandler() {
 }
 
 void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     _recBuffer = std::move(receivedData);
     _recBuffer.push_back('\0');
     print("[client %d]: %s [end]", clientIndex, &_recBuffer[0]);
@@ -60,7 +60,7 @@ void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
 
 void MessageHandler::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
-    std::unique_lock lock(mutex::ConsoleMutex);
+    std::unique_lock lock(core::mutex::Console);
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > _maxMessageSize) {
@@ -284,7 +284,7 @@ void MessageHandler::printError(const char* fmt, ...) {
 }
 
 void MessageHandler::clearBuffer() {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     _buffer.clear();
 }
 

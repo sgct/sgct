@@ -10,7 +10,6 @@
 
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
-#include <sgct/mutexmanager.h>
 #include <zlib.h>
 #include <string>
 
@@ -59,7 +58,7 @@ SharedData::SharedData() {
 }
 
 void SharedData::setCompression(bool state, int level) {
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     _useCompression = state;
     _compressionLevel = level;
 
@@ -70,7 +69,7 @@ void SharedData::setCompression(bool state, int level) {
         _currentStorage = &_dataBlock;
         _compressionRatio = 1.f;
     }
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 float SharedData::getCompressionRatio() {
@@ -89,7 +88,7 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::decode");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
 
     // reset
     _pos = 0;
@@ -100,7 +99,7 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
     }
     _dataBlock.insert(_dataBlock.end(), receivedData, receivedData + receivedLength);
 
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     if (_decodeFn != nullptr) {
         _decodeFn();
@@ -111,7 +110,7 @@ void SharedData::encode() {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::encode");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
 
     _dataBlock.clear();
     if (_useCompression) {
@@ -129,7 +128,7 @@ void SharedData::encode() {
         _headerSpace.begin() + core::Network::HeaderSize
     );
 
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     if (_encodeFn) {
         _encodeFn();
@@ -137,9 +136,9 @@ void SharedData::encode() {
 
     if (_useCompression && !_dataBlockToCompress.empty()) {
         // (abock, 2019-09-18); I was thinking of replacing this with a std::unique_lock
-        // but the dataSyncMutex lock is unlocked further down *before* sending a message
-        // to the MessageHandler which uses the dataSyncMutex internally.
-        mutex::DataSyncMutex.lock();
+        // but the mutex::DataSync lock is unlocked further down *before* sending a message
+        // to the MessageHandler which uses the mutex::DataSync internally.
+        core::mutex::DataSync.lock();
 
         // re-allocate if needed use a compression buffer twice as large to fit huffman
         // tree + data which can  larger than original data in some cases.
@@ -179,14 +178,14 @@ void SharedData::encode() {
             );
         }
         else {
-            mutex::DataSyncMutex.unlock();
+            core::mutex::DataSync.unlock();
             MessageHandler::printError(
                 "SharedData: Failed to compress data (error %d)", err
             );
             return;
         }
 
-        mutex::DataSyncMutex.unlock();
+        core::mutex::DataSync.unlock();
     }
 }
 
@@ -212,10 +211,10 @@ void SharedData::writeFloat(const SharedFloat& sf) {
 #endif
 
     float val = sf.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(float));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeDouble(const SharedDouble& sd) {
@@ -224,10 +223,10 @@ void SharedData::writeDouble(const SharedDouble& sd) {
 #endif
 
     double val = sd.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(double));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeInt64(const SharedInt64& si) {
@@ -236,10 +235,10 @@ void SharedData::writeInt64(const SharedInt64& si) {
 #endif
 
     int64_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char* >(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int64_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeInt32(const SharedInt32& si) {
@@ -248,10 +247,10 @@ void SharedData::writeInt32(const SharedInt32& si) {
 #endif
 
     int32_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int32_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeInt16(const SharedInt16& si) {
@@ -260,10 +259,10 @@ void SharedData::writeInt16(const SharedInt16& si) {
 #endif
 
     int16_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int16_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeInt8(const SharedInt8& si) {
@@ -272,10 +271,10 @@ void SharedData::writeInt8(const SharedInt8& si) {
 #endif
 
     int8_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int8_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeUInt64(const SharedUInt64& si) {
@@ -284,10 +283,10 @@ void SharedData::writeUInt64(const SharedUInt64& si) {
 #endif
 
     uint64_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint64_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeUInt32(const SharedUInt32& si) {
@@ -296,10 +295,10 @@ void SharedData::writeUInt32(const SharedUInt32& si) {
 #endif
 
     uint32_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeUInt16(const SharedUInt16& si) {
@@ -308,10 +307,10 @@ void SharedData::writeUInt16(const SharedUInt16& si) {
 #endif
 
     uint16_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint16_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeUInt8(const SharedUInt8& si) {
@@ -320,10 +319,10 @@ void SharedData::writeUInt8(const SharedUInt8& si) {
 #endif
 
     uint8_t val = si.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint8_t));
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeUChar(const SharedUChar& suc) {
@@ -332,9 +331,9 @@ void SharedData::writeUChar(const SharedUChar& suc) {
 #endif
 
     unsigned char val = suc.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     _currentStorage->push_back(val);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeBool(const SharedBool& sb) {
@@ -343,9 +342,9 @@ void SharedData::writeBool(const SharedBool& sb) {
 #endif
     
     bool val = sb.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     _currentStorage->push_back(val ? 1 : 0);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeString(const SharedString& ss) {
@@ -354,14 +353,14 @@ void SharedData::writeString(const SharedString& ss) {
 #endif
     
     std::string tmpStr = ss.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
     _currentStorage->insert(_currentStorage->end(), tmpStr.data(), tmpStr.data() + length);
     
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::writeWString(const SharedWString& ss) {
@@ -370,7 +369,7 @@ void SharedData::writeWString(const SharedWString& ss) {
 #endif
 
     std::wstring tmpStr = ss.getVal();
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     unsigned char* ws = reinterpret_cast<unsigned char*>(&tmpStr[0]);
@@ -378,18 +377,18 @@ void SharedData::writeWString(const SharedWString& ss) {
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
     _currentStorage->insert(_currentStorage->end(), ws, ws + length * sizeof(wchar_t));
 
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 }
 
 void SharedData::readFloat(SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readFloat");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     
     float val = *reinterpret_cast<float*>(&_dataBlock[_pos]);
     _pos += sizeof(float);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Float = %f", val);
@@ -402,10 +401,10 @@ void SharedData::readDouble(SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readDouble");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     double val = *reinterpret_cast<double*>(&_dataBlock[_pos]);
     _pos += sizeof(double);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Double = %lf", val);
@@ -418,10 +417,10 @@ void SharedData::readInt64(SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readInt64");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     int64_t val = *reinterpret_cast<int64_t*>(&_dataBlock[_pos]);
     _pos += sizeof(int64_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Int64 = %ld", val);
@@ -434,10 +433,10 @@ void SharedData::readInt32(SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readInt32");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     int32_t val = *reinterpret_cast<int32_t*>(&_dataBlock[_pos]);
     _pos += sizeof(int32_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Int32 = %d", val);
@@ -450,10 +449,10 @@ void SharedData::readInt16(SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readInt16");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     int16_t val = *reinterpret_cast<int16_t*>(&_dataBlock[_pos]);
     _pos += sizeof(int16_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Int16 = %d", val);
@@ -466,10 +465,10 @@ void SharedData::readInt8(SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readInt8");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     int8_t val = *reinterpret_cast<int8_t*>(&_dataBlock[_pos]);
     _pos += sizeof(int8_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Int8 = %d", val);
@@ -482,10 +481,10 @@ void SharedData::readUInt64(SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readUInt64");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint64_t val = *reinterpret_cast<uint64_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint64_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("UInt64 = %lu", val);
@@ -498,10 +497,10 @@ void SharedData::readUInt32(SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readUInt32");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint32_t val = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint32_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("UInt32 = %u", val);
@@ -514,10 +513,10 @@ void SharedData::readUInt16(SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readUInt16");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint16_t val = *reinterpret_cast<uint16_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint16_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("UInt16 = %u", val);
@@ -530,10 +529,10 @@ void SharedData::readUInt8(SharedUInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readUInt8");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     uint8_t val = *reinterpret_cast<uint8_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint8_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("UInt8 = %u", val);
@@ -546,10 +545,10 @@ void SharedData::readUChar(SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readUChar");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned char c = _dataBlock[_pos];
     _pos += sizeof(unsigned char);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("UChar = %d", c);
@@ -561,10 +560,10 @@ void SharedData::readBool(SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readBool");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     bool b = _dataBlock[_pos] == 1;
     _pos += 1;
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("Bool = %d", b);
@@ -576,7 +575,7 @@ void SharedData::readString(SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readString");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     
     uint32_t length = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint32_t);
@@ -588,7 +587,7 @@ void SharedData::readString(SharedString& ss) {
 
     std::string stringData(_dataBlock.begin() + _pos, _dataBlock.begin() + _pos + length);
     _pos += length;
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
     
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("String = '%s'", stringData);
@@ -601,7 +600,7 @@ void SharedData::readWString(SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::printDebug("SharedData::readWString");
 #endif
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
 
     uint32_t length = *(reinterpret_cast<uint32_t*>(&_dataBlock[_pos]));
     _pos += sizeof(uint32_t);
@@ -613,7 +612,7 @@ void SharedData::readWString(SharedWString& ss) {
 
     std::wstring stringData(_dataBlock.begin() + _pos, _dataBlock.begin() + _pos + length);
     _pos += length * sizeof(wchar_t);
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     ss.setVal(std::move(stringData));
 }

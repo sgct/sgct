@@ -17,7 +17,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
-#include <sgct/mutexmanager.h>
+#include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
 #include <sgct/statistics.h>
 #include <algorithm>
@@ -481,32 +481,32 @@ void NetworkManager::setDataTransferCompression(bool state, int level) {
 }
 
 unsigned int NetworkManager::getActiveConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return _nActiveConnections;
 }
 
 unsigned int NetworkManager::getActiveSyncConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return _nActiveSyncConnections;
 }
 
 unsigned int NetworkManager::getActiveDataTransferConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return _nActiveDataTransferConnections;
 }
 
 int NetworkManager::getConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::getSyncConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
 int NetworkManager::getDataTransferConnectionsCount() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return static_cast<int>(_dataTransferConnections.size());
 }
 
@@ -531,14 +531,14 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     unsigned int nConnectedSyncNodesCounter = 0;
     unsigned int nConnectedDataTransferNodesCounter = 0;
 
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     unsigned int totalNumberOfConnections =
         static_cast<unsigned int>(_networkConnections.size());
     unsigned int totalNumberOfSyncConnections =
         static_cast<unsigned int>(_syncConnections.size());
     unsigned int totalNumberOfTransferConnections =
         static_cast<unsigned int>(_dataTransferConnections.size());
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     // count connections
     for (const std::unique_ptr<Network>& conn : _networkConnections) {
@@ -566,7 +566,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         nConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
-    mutex::DataSyncMutex.lock();
+    core::mutex::DataSync.lock();
     _nActiveConnections = numberOfConnectionsCounter;
     _nActiveSyncConnections = nConnectedSyncNodesCounter;
     _nActiveDataTransferConnections = nConnectedDataTransferNodesCounter;
@@ -576,17 +576,17 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_nActiveSyncConnections == 0 && !_isServer) {
         _isRunning = false;
     }
-    mutex::DataSyncMutex.unlock();
+    core::mutex::DataSync.unlock();
 
     if (_isServer) {
-        mutex::DataSyncMutex.lock();
+        core::mutex::DataSync.lock();
         // local copy (thread safe)
         bool allNodesConnectedCopy =
             (nConnectedSyncNodesCounter == totalNumberOfSyncConnections) &&
             (nConnectedDataTransferNodesCounter == totalNumberOfTransferConnections);
 
         _allNodesConnected = allNodesConnectedCopy;
-        mutex::DataSyncMutex.unlock();
+        core::mutex::DataSync.unlock();
 
         // send cluster connected message to nodes/slaves
         if (allNodesConnectedCopy) {
@@ -653,7 +653,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
 
     if (!_isServer) {
         unsigned int totalNumberOfTransferConnections = static_cast<unsigned int>(
@@ -843,12 +843,12 @@ bool NetworkManager::isComputerServer() const {
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(mutex::DataSyncMutex);
+    std::unique_lock lock(core::mutex::DataSync);
     return _allNodesConnected;
 }
 

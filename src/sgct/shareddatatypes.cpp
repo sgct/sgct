@@ -8,8 +8,6 @@
 
 #include <sgct/shareddatatypes.h>
 
-#include <sgct/mutexmanager.h>
-
 namespace sgct {
 
 template class SharedObject<float>;

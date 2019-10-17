@@ -30,10 +30,6 @@
 namespace sgct::core {
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    MessageHandler::printDebug(
-        "CorrectionMeshGeometry: Releasing correction mesh OpenGL data"
-    );
-
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ibo);
@@ -61,8 +57,6 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
     if (path.empty()) {
         Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
         createMesh(_warpGeometry, buf);
-
-        MessageHandler::printDebug("CorrectionMesh: Empty mesh path");
         return false;
     }
     
@@ -348,7 +342,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     glBindBuffer(GL_ARRAY_BUFFER, geom.vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        geom.nVertices * sizeof(correction::CorrectionMeshVertex),
+        buffer.vertices.size() * sizeof(correction::CorrectionMeshVertex),
         buffer.vertices.data(),
         GL_STATIC_DRAW
     );
@@ -387,7 +381,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geom.ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        geom.nIndices * sizeof(unsigned int),
+        buffer.indices.size() * sizeof(unsigned int),
         buffer.indices.data(),
         GL_STATIC_DRAW
     );

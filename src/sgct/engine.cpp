@@ -1054,6 +1054,56 @@ bool Engine::initWindows() {
 
     glbinding::Binding::initialize(glfwGetProcAddress);
 
+    constexpr const bool CheckOpenGLForErrors = true;
+    if (CheckOpenGLForErrors) {
+        using namespace glbinding;
+
+        Binding::setCallbackMaskExcept(CallbackMask::After, { "glGetError" });
+        Binding::setAfterCallback([](const FunctionCall& f) {
+            const GLenum error = glGetError();
+            switch (error) {
+                case GL_NO_ERROR:
+                    break;
+                case GL_INVALID_ENUM:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: GL_INVALID_ENUM",
+                        f.function->name()
+                    );
+                    break;
+                case GL_INVALID_VALUE:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: GL_INVALID_VALUE",
+                        f.function->name()
+                    );
+                    break;
+                case GL_INVALID_OPERATION:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: GL_INVALID_OPERATION",
+                        f.function->name()
+                    );
+                    break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: "
+                        "GL_INVALID_FRAMEBUFFER_OPERATION",
+                        f.function->name()
+                    );
+                    break;
+                case GL_OUT_OF_MEMORY:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: GL_OUT_OF_MEMORY",
+                        f.function->name()
+                    );
+                    break;
+                default:
+                    MessageHandler::printError(
+                        "OpenGL Invalid State. Function %s: %i",
+                        f.function->name(), static_cast<int>(error)
+                    );
+            }
+        });
+    }
+
     // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

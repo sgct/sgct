@@ -39,10 +39,9 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::printError(
-            "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
-        );
-        return Buffer();
+        char ErrorBuffer[1024];
+        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
+        throw std::runtime_error(ErrorBuffer);
     }
 
     Buffer buf;
@@ -91,7 +90,9 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
         }
     }
 
-    fclose(meshFile);
+    if (meshFile) {
+        fclose(meshFile);
+    }
 
     // add one to actually store the dimensions instread of largest index
     numberOfCols++;
@@ -123,7 +124,6 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
         }
     }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLES;
     return buf;
 }

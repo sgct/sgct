@@ -46,39 +46,47 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
             str = "File not found";
         }
 
-        MessageHandler::printError(
+        char ErrorBuffer[1024];
+        sprintf(
+            ErrorBuffer,
             "ReadConfig: Error occured while reading config file '%s'. Error: %s",
             path.c_str(), str.c_str()
         );
-        return Buffer();
+        throw std::runtime_error(ErrorBuffer);
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        MessageHandler::printError(
-            "ReadConfig: Error occured while reading config file '%s'."
-            "Error: Cannot find XML root", path.c_str()
+        char ErrorBuffer[1024];
+        sprintf(
+            ErrorBuffer,
+            "Error occured while reading config file '%s'. Error: Cannot find XML root",
+            path.c_str()
         );
-        return Buffer();
+        throw std::runtime_error(ErrorBuffer);
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement();
     if (element == nullptr) {
-        MessageHandler::printError(
-            "ReadConfig: Error occured while reading config file '%s'. "
-            "Error: Cannot find XML root", path.c_str()
+        char ErrorBuffer[1024];
+        sprintf(
+            ErrorBuffer,
+            "Error occured while reading config file '%s'. Error: Cannot find XML root",
+            path.c_str()
         );
-        return Buffer();
+        throw std::runtime_error(ErrorBuffer);
     }
 
     std::string_view val = element->Value();
     if (val != "GeometryDefinition") {
-        MessageHandler::printError(
-            "ReadConfig: Error occured while reading config file '%s'. "
+        char ErrorBuffer[1024];
+        sprintf(
+            ErrorBuffer,
+            "Error occured while reading config file '%s'. "
             "Error: Missing value 'GeometryDefinition'", path.c_str()
         );
-        return Buffer();
+        throw std::runtime_error(ErrorBuffer);
     }
 
     float xrange = 1.f;
@@ -111,18 +119,14 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        MessageHandler::printError("CorrectionMesh: Not the same x coords as y coords");
-        return Buffer();
+        throw std::runtime_error("Not the same x coords as y coords");
     }
 
     const float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
     const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
-        MessageHandler::printError(
-            "CorrectionMesh: Not a valid squared matrix read from SimCAD file"
-        );
-        return Buffer();
+        throw std::runtime_error("Not a valid squared matrix read from SimCAD file");
     }
 
     const unsigned int numberOfCols = static_cast<unsigned int>(numberOfColsf);
@@ -184,7 +188,6 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
         }
     }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLE_STRIP;
 
     return buf;

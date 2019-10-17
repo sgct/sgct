@@ -40,8 +40,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::printError("CorrectionMesh: Failed to open warping mesh file");
-        return Buffer();
+        throw std::runtime_error("Failed to open warping mesh file");
     }
 
     unsigned int numOfVerticesRead = 0;
@@ -132,8 +131,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        MessageHandler::printError("CorrectionMesh: Incorrect mesh data geometry");
-        return Buffer();
+        throw std::runtime_error("Incorrect mesh data geometry");
     }
 
     // normalize
@@ -152,9 +150,10 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
         buf.vertices[i].y = yVal * 2.f - 1.f;
     }
 
-    fclose(meshFile);
+    if (meshFile) {
+        fclose(meshFile);
+    }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLES;
     return buf;
 }

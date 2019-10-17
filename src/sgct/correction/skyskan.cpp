@@ -41,10 +41,9 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::printError(
-            "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
-        );
-        return Buffer();
+        char ErrorBuffer[1024];
+        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
+        throw std::runtime_error(ErrorBuffer);
     }
 
     float azimuth = 0.f;
@@ -126,8 +125,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     fclose(meshFile);
 
     if (!dimensionsSet || !azimuthSet || !elevationSet || !hFovSet || hFov <= 0.f) {
-        MessageHandler::printError("CorrectionMesh: Data reading error");
-        return Buffer();
+        throw std::runtime_error("Data reading error");
     }
 
     // create frustums and projection matrices
@@ -213,7 +211,6 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         buf.vertices[i].t = buf.vertices[i].t * s.y + p.y;
     }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLES;
 
     return buf;

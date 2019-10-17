@@ -38,10 +38,9 @@ Buffer generateOBJMesh(const std::string& path) {
     loadSuccess = meshFile != nullptr;
 #endif
     if (!loadSuccess) {
-        MessageHandler::printError(
-            "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
-        );
-        return Buffer();
+        char ErrorBuffer[1024];
+        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
+        throw std::runtime_error(ErrorBuffer);
     }
 
     unsigned int counter = 0;
@@ -82,13 +81,11 @@ Buffer generateOBJMesh(const std::string& path) {
 
     // sanity check
     if (counter != buf.vertices.size() || buf.vertices.empty()) {
-        MessageHandler::printError(
-            "CorrectionMesh: Vertex count doesn't match number of texture coordinates"
+        throw std::runtime_error(
+            "Vertex count doesn't match number of texture coordinates"
         );
-        return Buffer();
     }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLES;
 
     return buf;

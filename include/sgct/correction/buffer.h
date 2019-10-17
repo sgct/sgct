@@ -26,7 +26,6 @@ struct CorrectionMeshVertex {
 };
 
 struct Buffer {
-    bool isComplete = false;
     std::vector<CorrectionMeshVertex> vertices;
     std::vector<unsigned int> indices;
     GLenum geometryType;

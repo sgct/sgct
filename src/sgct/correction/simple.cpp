@@ -51,7 +51,6 @@ Buffer setupMaskMesh(const glm::ivec2& pos, const glm::ivec2& size) {
     buff.vertices[3].x = 2.f * pos.x - 1.f;
     buff.vertices[3].y = 2.f * (pos.y + size.y) - 1.f;
 
-    buff.isComplete = true;
     buff.geometryType = GL_TRIANGLE_STRIP;
 
     return buff;
@@ -98,7 +97,6 @@ Buffer setupSimpleMesh(const glm::ivec2& pos, const glm::ivec2& size) {
     buff.vertices[3].x = 2.f * pos.x - 1.f;
     buff.vertices[3].y = 2.f * (pos.y + size.y) - 1.f;
 
-    buff.isComplete = true;
     buff.geometryType = GL_TRIANGLE_STRIP;
 
     return buff;

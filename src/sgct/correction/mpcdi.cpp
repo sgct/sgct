@@ -55,10 +55,9 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
         loadSuccess = meshFile != nullptr;
 #endif
         if (!loadSuccess) {
-            MessageHandler::printError(
-                "CorrectionMesh: Failed to open warping mesh file '%s'", path.c_str()
-            );
-            return Buffer();
+            char ErrorBuffer[1024];
+            sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
+            throw std::runtime_error(ErrorBuffer);
         }
     }
     else {
@@ -97,11 +96,10 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
             }
         }
         if (retval != 1) {
-            MessageHandler::printError("CorrectionMesh: Error reading from file");
             if (meshFile) {
                 fclose(meshFile);
             }
-            return Buffer();
+            throw std::runtime_error("Error reading from file");
         }
 
         headerBuffer[index++] = headerChar;
@@ -135,17 +133,16 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
     if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
                 &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
     {
-        MessageHandler::printError("CorrectionMesh: Invalid header syntax");
         if (isReadingFile) {
             fclose(meshFile);
         }
-        return Buffer();
+        throw std::runtime_error("Invalid header syntax");
     }
 #endif
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
-        MessageHandler::printError("CorrectionMesh: Incorrect file type");
+        throw std::runtime_error("Incorrect file type");
     }
     const int numCorrectionValues = numberOfCols * numberOfRows;
     std::vector<float> corrGridX(numCorrectionValues);
@@ -170,10 +167,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
         }
         fclose(meshFile);
         if (ret != 4) {
-            MessageHandler::printError(
-                "CorrectionMesh: Error reading all correction values"
-            );
-            return Buffer();
+            throw std::runtime_error("Error reading all correction values");
         }
     }
     else {
@@ -184,9 +178,9 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
             readErr |= !readMeshBuffer(&errorPos, srcIdx, srcBuff, srcSizeBytes, 4);
 
             if (readErr) {
-                MessageHandler::printError(
-                    "CorrectionMesh: Error reading mpcdi correction value at index %d", i
-                );
+                char ErrorBuf[1024];
+                sprintf(ErrorBuf, "Error reading MPCDI correction value at index %d", i);
+                throw std::runtime_error(ErrorBuf);
             }
         }
     }
@@ -273,7 +267,6 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
         }
     }
 
-    buf.isComplete = true;
     buf.geometryType = GL_TRIANGLES;
 
     return buf;

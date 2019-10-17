@@ -75,8 +75,6 @@ private:
     };
 
     void createMesh(CorrectionMeshGeometry& geom, const correction::Buffer& buffer);
-    void exportMesh(const CorrectionMeshGeometry& geometry, const std::string& exportPath,
-        const correction::Buffer& buf);
 
     CorrectionMeshGeometry _quadGeometry;
     CorrectionMeshGeometry _warpGeometry;

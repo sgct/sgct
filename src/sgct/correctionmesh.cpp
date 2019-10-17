@@ -27,6 +27,89 @@
 #include <fstream>
 #include <iomanip>
 
+namespace {
+    void exportMesh(GLenum type, const std::string& exportPath,
+                    const sgct::core::correction::Buffer& buf)
+    {
+        if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
+            sgct::MessageHandler::printError(
+                "CorrectionMesh: Failed to export '%s'. Geometry type is not supported",
+                exportPath.c_str()
+            );
+            return;
+        }
+
+        std::ofstream file(exportPath, std::ios::out);
+        if (!file.is_open()) {
+            sgct::MessageHandler::printError(
+                "CorrectionMesh: Failed to export '%s'", exportPath.c_str()
+            );
+            return;
+        }
+
+        file << std::fixed;
+        file << std::setprecision(6);
+        file << "# SGCT warping mesh\n";
+        file << "# Number of vertices: " << buf.vertices.size() << "\n";
+
+        // export vertices
+        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+            file << "v " << buf.vertices[i].x << ' ' << buf.vertices[i].y << " 0\n";
+        }
+
+        // export texture coords
+        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+            file << "vt " << buf.vertices[i].s << ' ' << buf.vertices[i].t << " 0\n";
+        }
+
+        // export generated normals
+        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+            file << "vn 0 0 1\n";
+        }
+
+        file << "# Number of faces: " << buf.indices.size() / 3 << '\n';
+
+        // export face indices
+        if (type == GL_TRIANGLES) {
+            for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
+                file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
+                    << buf.indices[i] + 1 << ' ';
+                file << buf.indices[i + 1] + 1 << '/' << buf.indices[i + 1] + 1 << '/'
+                    << buf.indices[i + 1] + 1 << ' ';
+                file << buf.indices[i + 2] + 1 << '/' << buf.indices[i + 2] + 1 << '/'
+                    << buf.indices[i + 2] + 1 << '\n';
+            }
+        }
+        else {
+            // triangle strip
+
+            // first base triangle
+            file << "f " << buf.indices[0] + 1 << '/' << buf.indices[0] + 1 << '/'
+                << buf.indices[0] + 1 << ' ';
+            file << buf.indices[1] + 1 << '/' << buf.indices[1] + 1 << '/'
+                << buf.indices[1] + 1 << ' ';
+            file << buf.indices[2] + 1 << '/' << buf.indices[2] + 1 << '/'
+                << buf.indices[2] + 1 << '\n';
+
+            for (unsigned int i = 2; i < buf.indices.size(); i++) {
+                file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
+                    << buf.indices[i] + 1 << ' ';
+                file << buf.indices[i - 1] + 1 << '/' << buf.indices[i - 1] + 1 << '/'
+                    << buf.indices[i - 1] + 1 << ' ';
+                file << buf.indices[i - 2] + 1 << '/' << buf.indices[i - 2] + 1 << '/'
+                    << buf.indices[i - 2] + 1 << '\n';
+            }
+        }
+
+        file.close();
+
+        sgct::MessageHandler::printInfo(
+            "CorrectionMesh: Mesh '%s' exported successfully", exportPath.c_str()
+        );
+    }
+
+} // namespace
+
 namespace sgct::core {
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
@@ -69,115 +152,37 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
 
-    bool loadStatus = false;
+    try {
+        Buffer buf;
 
-    // find a suitable format
-    if (pathLower.find(".sgc") != std::string::npos) {
-        Buffer buf = generateScissMesh(path, parent);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Correction mesh read successfully. Vertices=%u, Indices=%u",
-                static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
-            );
-            
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        // find a suitable format
+        if (pathLower.find(".sgc") != std::string::npos) {
+            buf = generateScissMesh(path, parent);
         }
-    }
-    else if (pathLower.find(".ol") != std::string::npos) {
-        Buffer buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printInfo(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Faces=%u\n",
-                buf.vertices.size(), buf.indices.size()
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        else if (pathLower.find(".ol") != std::string::npos) {
+            buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
         }
-    }
-    else if (pathLower.find(".skyskan") != std::string::npos) {
-        Buffer buf = generateSkySkanMesh(path, parent);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        else if (pathLower.find(".skyskan") != std::string::npos) {
+            buf = generateSkySkanMesh(path, parent);
         }
-    }
-    else if ((pathLower.find(".txt") != std::string::npos) &&
+        else if ((pathLower.find(".txt") != std::string::npos) &&
             (hint == Format::None || hint == Format::SkySkan))
-    {
-        Buffer buf = generateSkySkanMesh(path, parent);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        {
+            buf = generateSkySkanMesh(path, parent);
         }
-    }
-    else if ((pathLower.find(".csv") != std::string::npos) &&
+        else if ((pathLower.find(".csv") != std::string::npos) &&
             (hint == Format::None || hint == Format::DomeProjection))
-    {
-        Buffer buf = generateDomeProjectionMesh(
-            path,
-            parent.getPosition(),
-            parent.getSize()
-        );
-        loadStatus = buf.isComplete;
-
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
+        {
+            buf = generateDomeProjectionMesh(
+                path,
+                parent.getPosition(),
+                parent.getSize()
             );
-            
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
         }
-    }
-    else if ((pathLower.find(".data") != std::string::npos) &&
+        else if ((pathLower.find(".data") != std::string::npos) &&
             (hint == Format::None || hint == Format::PaulBourke))
-    {
-        Buffer buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
+        {
+            buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
 
             // force regeneration of dome render quad
             FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
@@ -187,89 +192,45 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
                 fishPrj->setIgnoreAspectRatio(true);
                 fishPrj->update(glm::ivec2(1.f, 1.f));
             }
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
         }
-    }
-    else if ((pathLower.find(".obj") != std::string::npos) &&
+        else if ((pathLower.find(".obj") != std::string::npos) &&
             (hint == Format::None || hint == Format::Obj))
-    {
-        Buffer buf = generateOBJMesh(path);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        {
+            buf = generateOBJMesh(path);
         }
-    }
-    else if (pathLower.find(".mpcdi") != std::string::npos) {
-        Buffer buf = generateMpcdiMesh("", parent);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
-
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mpcdi Correction mesh read successfully. "
-                "Vertices=%u, Indices=%u", _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
+        else if (pathLower.find(".mpcdi") != std::string::npos) {
+            buf = generateMpcdiMesh("", parent);
+        }
+        else if ((pathLower.find(".simcad") != std::string::npos) &&
+            (hint == Format::None || hint == Format::SimCad))
+        {
+            buf = generateSimCADMesh(path, parent);
+        }
+        else {
+            throw std::runtime_error("Could not find format");
         }
 
-    }
-    else if ((pathLower.find(".simcad") != std::string::npos) &&
-             (hint == Format::None || hint == Format::SimCad))
-    {
-        Buffer buf = generateSimCADMesh(path, parent);
-        loadStatus = buf.isComplete;
-        if (buf.isComplete) {
-            createMesh(_warpGeometry, buf);
+        createMesh(_warpGeometry, buf);
 
-            MessageHandler::printDebug(
-                "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
-                _warpGeometry.nVertices, _warpGeometry.nIndices
-            );
-
-            if (Settings::instance()->getExportWarpingMeshes()) {
-                const size_t found = path.find_last_of(".");
-                std::string filename = path.substr(0, found) + "_export.obj";
-                exportMesh(_warpGeometry, std::move(filename), buf);
-            }
-        }
-    }
-
-    if (!loadStatus) {
-        MessageHandler::printError(
-            "CorrectionMesh error: Loading mesh '%s' failed", path.c_str()
+        MessageHandler::printDebug(
+            "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
+            static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
         );
 
+        if (Settings::instance()->getExportWarpingMeshes()) {
+            const size_t found = path.find_last_of(".");
+            std::string filename = path.substr(0, found) + "_export.obj";
+            exportMesh(_warpGeometry.type, std::move(filename), buf);
+        }
+
+        return true;
+    }
+    catch (const std::runtime_error & e) {
+        MessageHandler::printError("%s", e.what());
         Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
         createMesh(_warpGeometry, buf);
+        return false;
     }
-
-    return loadStatus;
 }
 
 void CorrectionMesh::renderQuadMesh() const {
@@ -391,87 +352,6 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     geom.nVertices = static_cast<int>(buffer.vertices.size());
     geom.nIndices = static_cast<int>(buffer.indices.size());
     geom.type = buffer.geometryType;
-}
-
-void CorrectionMesh::exportMesh(const CorrectionMeshGeometry& geometry,
-                                const std::string& exportPath,
-                                const correction::Buffer& buf)
-{
-    if (geometry.type != GL_TRIANGLES && geometry.type != GL_TRIANGLE_STRIP) {
-        MessageHandler::printError(
-            "CorrectionMesh error: Failed to export '%s'. Geometry type is not supported",
-            exportPath.c_str()
-        );
-        return;
-    }
-    
-    std::ofstream file(exportPath, std::ios::out);
-    if (!file.is_open()) {
-        MessageHandler::printError(
-            "CorrectionMesh error: Failed to export '%s'", exportPath.c_str()
-        );
-        return;
-    }
-
-    file << std::fixed;
-    file << std::setprecision(6);
-    file << "# SGCT warping mesh\n";
-    file << "# Number of vertices: " << geometry.nVertices << "\n";
-
-    // export vertices
-    for (unsigned int i = 0; i < geometry.nVertices; i++) {
-        file << "v " << buf.vertices[i].x << ' ' << buf.vertices[i].y << " 0\n";
-    }
-
-    // export texture coords
-    for (unsigned int i = 0; i < geometry.nVertices; i++) {
-        file << "vt " << buf.vertices[i].s << ' ' << buf.vertices[i].t << " 0\n";
-    }
-
-    // export generated normals
-    for (unsigned int i = 0; i < geometry.nVertices; i++) {
-        file << "vn 0 0 1\n";
-    }
-
-    file << "# Number of faces: " << geometry.nIndices / 3 << '\n';
-
-    // export face indices
-    if (geometry.type == GL_TRIANGLES) {
-        for (unsigned int i = 0; i < geometry.nIndices; i += 3) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i + 1] + 1 << '/' << buf.indices[i + 1] + 1 << '/'
-                 << buf.indices[i + 1] + 1 << ' ';
-            file << buf.indices[i + 2] + 1 << '/' << buf.indices[i + 2] + 1 << '/'
-                 << buf.indices[i + 2] + 1 << '\n';
-        }
-    }
-    else {
-        // triangle strip
-
-        // first base triangle
-        file << "f " << buf.indices[0] + 1 << '/' << buf.indices[0] + 1 << '/'
-             << buf.indices[0] + 1 << ' ';
-        file << buf.indices[1] + 1 << '/' << buf.indices[1] + 1 << '/'
-             << buf.indices[1] + 1 << ' ';
-        file << buf.indices[2] + 1 << '/' << buf.indices[2] + 1 << '/'
-             << buf.indices[2] + 1 << '\n';
-
-        for (unsigned int i = 2; i < geometry.nIndices; i++) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i - 1] + 1 << '/' << buf.indices[i - 1] + 1 << '/'
-                 << buf.indices[i - 1] + 1 << ' ';
-            file << buf.indices[i - 2] + 1 << '/' << buf.indices[i - 2] + 1 << '/'
-                 << buf.indices[i - 2] + 1 << '\n';
-        }
-    }
-
-    file.close();
-
-    MessageHandler::printInfo(
-        "CorrectionMesh: Mesh '%s' exported successfully", exportPath.c_str()
-    );
 }
 
 } // namespace sgct::core

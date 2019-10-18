@@ -1071,7 +1071,7 @@ void Window::initScreenCapture() {
                 break;
         }
 
-        if (!Engine::checkForOGLErrors()) {
+        if (!Engine::checkForOGLErrors("Window::initScreenCapture")) {
             MessageHandler::printError(
                 "Window %d: OpenGL error occured in screen capture init", _id
             );
@@ -1166,7 +1166,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    if (Engine::checkForOGLErrors()) {
+    if (Engine::checkForOGLErrors("Window::createTextures")) {
         MessageHandler::printDebug(
             "Texture targets initialized successfully for window %d", _id
         );
@@ -1341,7 +1341,7 @@ void Window::loadShaders() {
     glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
 
-    if (!Engine::checkForOGLErrors()) {
+    if (!Engine::checkForOGLErrors("Window::loadShaders")) {
         MessageHandler::printError(
             "Window %d: OpenGL error occured while loading shaders", _id
         );

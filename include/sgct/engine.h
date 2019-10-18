@@ -281,10 +281,6 @@ public:
     ///  \return the current screenshot number (file index)
     unsigned int getScreenShotNumber() const;
 
-    /// Don't use this. This function is called internally in SGCT.
-    void invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
-        core::ScreenCapture::EyeIndex ei, GLenum type);
-
     /**
      * Create a timer that counts down and call the given callback when finished. The
      * timer runs only on the master and is not precies since it is triggered in end of
@@ -838,9 +834,11 @@ public:
      * (to commandline). Avoid this function in the render loop for release code since it
      * can reduce performance.
      *
+     * \param function The name of the function that asked for this check
+     *
      * \return true if no errors occured
      */
-    static bool checkForOGLErrors();
+    static bool checkForOGLErrors(const std::string& function);
 
     /// \return true if this node is the master
     bool isMaster() const;
@@ -1102,7 +1100,6 @@ private:
     std::unique_ptr<std::thread> _thread;
 
     bool _isRunning = true;
-    bool _isInitialized = false;
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;

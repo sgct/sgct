@@ -134,7 +134,7 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 
 void NonLinearProjection::initTextures() {    
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat);
-    if (Engine::checkForOGLErrors()) {
+    if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
         MessageHandler::printDebug(
             "NonLinearProjection: %dx%d color cube map texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
@@ -150,7 +150,7 @@ void NonLinearProjection::initTextures() {
     
     if (Settings::instance()->useDepthTexture()) {
         generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32);
-        if (Engine::checkForOGLErrors()) {
+        if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
             MessageHandler::printDebug(
                 "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
@@ -167,7 +167,7 @@ void NonLinearProjection::initTextures() {
         if (_useDepthTransformation) {
             // generate swap textures
             generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
-            if (Engine::checkForOGLErrors()) {
+            if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
                 MessageHandler::printDebug(
                     "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated",
                     _cubemapResolution, _cubemapResolution, _textures.depthSwap
@@ -182,7 +182,7 @@ void NonLinearProjection::initTextures() {
             }
 
             generateMap(_textures.colorSwap, _texInternalFormat);
-            if (Engine::checkForOGLErrors()) {
+            if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
                 MessageHandler::printDebug(
                     "NonLinearProjection: %dx%d color swap map texture (id: %d) generated",
                     _cubemapResolution, _cubemapResolution, _textures.colorSwap
@@ -203,7 +203,7 @@ void NonLinearProjection::initTextures() {
             _textures.cubeMapNormals,
             Settings::instance()->getBufferFloatPrecisionAsGLint()
         );
-        if (Engine::checkForOGLErrors()) {
+        if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
             MessageHandler::printDebug(
                 "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapNormals
@@ -223,7 +223,7 @@ void NonLinearProjection::initTextures() {
             _textures.cubeMapPositions,
             Settings::instance()->getBufferFloatPrecisionAsGLint()
         );
-        if (Engine::checkForOGLErrors()) {
+        if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
             MessageHandler::printDebug(
                 "NonLinearProjection: %dx%d position cube map texture (%d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.cubeMapPositions

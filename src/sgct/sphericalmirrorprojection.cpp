@@ -130,7 +130,7 @@ void core::SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat);
-        if (Engine::checkForOGLErrors()) {
+        if (Engine::checkForOGLErrors("SphericalMirrorProjection::initTextures")) {
             MessageHandler::printDebug(
                 "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, texture

@@ -103,7 +103,7 @@ private:
     std::vector<char> _recBuffer;
     std::vector<char> _headerSpace;
 
-    std::atomic<Level> _level;
+    std::atomic<Level> _level = Level::Warning;
     std::atomic_bool _showTime = true;
     std::atomic_bool _logToConsole = true;
     std::atomic_bool _logToFile = false;

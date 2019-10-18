@@ -42,12 +42,6 @@ MessageHandler::MessageHandler() {
     _headerSpace[0] = core::Network::DataId;
     _buffer.insert(_buffer.begin(), _headerSpace.begin(), _headerSpace.end());
 
-#ifdef __SGCT_DEBUG__
-    _level = Level::Debug;
-#else
-    _level = Level::Warning;
-#endif
-
     setLogPath(nullptr);
 }
 
@@ -55,7 +49,7 @@ void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
     std::unique_lock lock(core::mutex::DataSync);
     _recBuffer = std::move(receivedData);
     _recBuffer.push_back('\0');
-    print("[client %d]: %s [end]", clientIndex, &_recBuffer[0]);
+    print("[client %d]: %s [end]", clientIndex, _recBuffer.data());
 }
 
 void MessageHandler::printv(const char* fmt, va_list ap) {

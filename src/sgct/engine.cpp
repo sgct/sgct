@@ -47,11 +47,8 @@ sgct::core::Touch gCurrentTouchPoints;
 
 bool sRunUpdateFrameLockLoop = true;
 
-#ifdef GLEW_MX
-GLEWContext* glewGetContext();
-#endif // GLEW_MX
-
 namespace {
+    constexpr const bool CheckOpenGLForErrors = true;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
@@ -340,34 +337,26 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
     }
 
     if (_shouldTerminate) {
-        MessageHandler::printError(
-            "Failed to init GLFW! Application will close in 5 seconds"
-        );
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        MessageHandler::printError("Failed to initialize GLFW");
         return false;
     }
 
     const bool validation = sgct::config::validateCluster(cluster);
     if (!validation) {
-        throw std::runtime_error("Validation of configuration failes");
+        MessageHandler::printError("Validation of configuration failed");
+        return false;
     }
          
     core::ClusterManager::instance()->applyCluster(cluster);
 
     bool networkSuccess = initNetwork();
     if (!networkSuccess) { 
-        MessageHandler::printError(
-            "Network init error. Application will close in 5 seconds"
-        );
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        MessageHandler::printError("Network initialization error");
         return false;
     }
 
     if (!initWindows()) {
-        MessageHandler::printError(
-            "Window init error. Application will close in 5 seconds"
-        );
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        MessageHandler::printError("Window initialization error");
         return false;
     }
 
@@ -451,7 +440,6 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
         getTrackingManager().startSampling();
     }
 
-    _isInitialized = true;
     return true;
 }
 
@@ -467,7 +455,7 @@ bool Engine::initNetwork() {
     }
     catch (const std::runtime_error& e) {
         MessageHandler::printError(
-            "Initiating network connections failed! Error: '%s'", e.what()
+            "Initiating network connections failed. Error: '%s'", e.what()
         );
         return false;
     }
@@ -637,53 +625,12 @@ bool Engine::initWindows() {
 
     glbinding::Binding::initialize(glfwGetProcAddress);
 
-    constexpr const bool CheckOpenGLForErrors = true;
     if (CheckOpenGLForErrors) {
         using namespace glbinding;
 
         Binding::setCallbackMaskExcept(CallbackMask::After, { "glGetError" });
         Binding::setAfterCallback([](const FunctionCall& f) {
-            const GLenum error = glGetError();
-            switch (error) {
-                case GL_NO_ERROR:
-                    break;
-                case GL_INVALID_ENUM:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: GL_INVALID_ENUM",
-                        f.function->name()
-                    );
-                    break;
-                case GL_INVALID_VALUE:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: GL_INVALID_VALUE",
-                        f.function->name()
-                    );
-                    break;
-                case GL_INVALID_OPERATION:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: GL_INVALID_OPERATION",
-                        f.function->name()
-                    );
-                    break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: "
-                        "GL_INVALID_FRAMEBUFFER_OPERATION",
-                        f.function->name()
-                    );
-                    break;
-                case GL_OUT_OF_MEMORY:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: GL_OUT_OF_MEMORY",
-                        f.function->name()
-                    );
-                    break;
-                default:
-                    MessageHandler::printError(
-                        "OpenGL Invalid State. Function %s: %i",
-                        f.function->name(), static_cast<int>(error)
-                    );
-            }
+            checkForOGLErrors(f.function->name());
         });
     }
 
@@ -691,8 +638,8 @@ bool Engine::initWindows() {
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (!checkForOGLErrors()) {
-        MessageHandler::printError("GLEW init triggered an OpenGL error");
+    if (!checkForOGLErrors("initWindows")) {
+        MessageHandler::printError("Initialization triggered an OpenGL error");
     }
 
     // Window/Context creation callback
@@ -779,7 +726,9 @@ void Engine::initOGL() {
             auto callback = [this](core::Image* img, size_t size,
                                    core::ScreenCapture::EyeIndex idx, GLenum type)
             {
-                invokeScreenShotCallback(img, size, idx, type);
+                if (_screenShotFn) {
+                    _screenShotFn(img, size, idx, type);
+                }
             };
             
             Window& win = getCurrentWindow();
@@ -846,7 +795,7 @@ void Engine::initOGL() {
     }
 
     // check for errors
-    checkForOGLErrors();
+    checkForOGLErrors("initOGL");
     MessageHandler::printInfo("Ready to render");
 }
 
@@ -890,8 +839,7 @@ bool Engine::frameLockPreStage() {
                 MessageHandler::printInfo(
                     "Slave: waiting for master... send frame %d != previous recv "
                     "frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: "
-                    "%s\n\tNvidia universal frame number: %u\n\tSGCT frame "
-                    "number: %u",
+                    "%s\n\tNvidia universal frame number: %u\n\tSGCT frame number: %u",
                     conn->getSendFrameCurrent(), conn->getRecvFramePrevious(),
                     getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
                     getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
@@ -902,7 +850,7 @@ bool Engine::frameLockPreStage() {
             if (glfwGetTime() - t0 > _syncTimeout) {
                 // more than a minute
                 MessageHandler::printError(
-                    "Slave: no sync signal from master after %.1f seconds! Exiting...",
+                    "Slave: no sync signal from master after %.1f seconds. Exiting...",
                     _syncTimeout
                 );
                 return false;
@@ -955,8 +903,7 @@ bool Engine::frameLockPostStage() {
                 MessageHandler::printInfo(
                     "Waiting for slave%d: send frame %d != recv frame %d\n\t"
                     "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
-                    "Nvidia universal frame number: %u\n\t"
-                    "SGCT frame number: %u",
+                    "Nvidia universal frame number: %u\n\tSGCT frame number: %u",
                     i, _networkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
                     _networkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
                     getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
@@ -982,10 +929,6 @@ bool Engine::frameLockPostStage() {
 }
 
 void Engine::render() {
-    if (!_isInitialized) {
-        MessageHandler::printError("Render function called before initialization");
-        return;
-    }
     _isRunning = true;
 
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
@@ -1088,7 +1031,7 @@ void Engine::render() {
 
                 nonLinearProj->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
-                    //for mono viewports frustum mode can be selected by user or xml
+                    // for mono viewports frustum mode can be selected by user or xml
                     _currentFrustumMode = win.getViewport(j).getEye();
                     nonLinearProj->renderCubemap(&_currentViewportIndex.sub);
                 }
@@ -1171,10 +1114,6 @@ void Engine::render() {
         }
         getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
-#ifdef __SGCT_DEBUG__
-        checkForOGLErrors();
-#endif
-
         if (_showGraph) {
             glQueryCounter(_timeQueryEnd, GL_TIMESTAMP);
         }
@@ -1220,7 +1159,7 @@ void Engine::render() {
             thisNode.getWindow(i).updateResolutions();
         }
 
-        // Check if ESC key was pressed or window was closed
+        // Check if exit key was pressed or window was closed
         _isRunning = !(thisNode.getKeyPressed(_exitKey) ||
                      thisNode.shouldAllWindowsClose() || _shouldTerminate ||
                      !_networkConnections->isRunning());
@@ -1254,7 +1193,7 @@ void Engine::renderDisplayInfo() {
         glm::vec2 pos = glm::vec2(getCurrentWindow().getResolution()) *
                         Settings::instance()->getOSDTextOffset();
         
-        core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+        const core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
         text::print(
             *font,
             text::TextAlignMode::TopLeft,
@@ -1462,7 +1401,7 @@ void Engine::renderFBOTexture() {
         core::Frustum::Mode::StereoLeftEye :
         core::Frustum::Mode::MonoEye;
 
-    glm::ivec2 size = glm::ivec2(
+    const glm::ivec2 size = glm::ivec2(
         glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
     );
 
@@ -1484,7 +1423,7 @@ void Engine::renderFBOTexture() {
 
         for (int i = 0; i < win.getNumberOfViewports(); i++) {
             if (Settings::instance()->getUseWarping()) {
-               win.getViewport(i).renderWarpMesh();
+                win.getViewport(i).renderWarpMesh();
             }
             else {
                 win.getViewport(i).renderQuadMesh();
@@ -1649,13 +1588,10 @@ void Engine::renderViewports(TextureIndexes ti) {
         if (getCurrentWindow().usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
-
             renderPostFX(ti);
-
             render2D();
             if (splitScreenStereo) {
-                // render left eye info and graph so that all 2D items are rendered after
-                // post fx
+                // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
             }
@@ -1663,8 +1599,7 @@ void Engine::renderViewports(TextureIndexes ti) {
         else {
             render2D();
             if (splitScreenStereo) {
-                // render left eye info and graph so that all 2D items are rendered after
-                // post fx
+                // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
             }
@@ -1797,7 +1732,7 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
 }
 
 void Engine::updateRenderingTargets(TextureIndexes ti) {
-    // copy AA-buffer to "regular"/non-AA buffer
+    // copy AA-buffer to "regular" / non-AA buffer
     core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
     if (!fbo->isMultiSampled()) {
         return;
@@ -1877,7 +1812,6 @@ void Engine::loadShaders() {
 
     _shaderLoc.fxaaTexture = _shader.fxaa.getUniformLocation("tex");
     glUniform1i(_shaderLoc.fxaaTexture, 0);
-
     ShaderProgram::unbind();
 
     // Used for overlays & mono.
@@ -1910,10 +1844,8 @@ void Engine::loadShaders() {
     glUniform1i(_shaderLoc.monoTex, 0);
     ShaderProgram::unbind();
 
-    std::string overlayVertShader;
-    std::string overlayFragShader;
-    overlayVertShader = core::shaders::OverlayVert;
-    overlayFragShader = core::shaders::OverlayFrag;
+    std::string overlayVertShader = core::shaders::OverlayVert;
+    std::string overlayFragShader = core::shaders::OverlayFrag;
 
     //replace glsl version
     helpers::findAndReplace(overlayVertShader, "**glsl_version**", getGLSLVersion());
@@ -1974,44 +1906,53 @@ void Engine::setAndClearBuffer(BufferMode mode) {
     }
 }
 
-bool Engine::checkForOGLErrors() {
-    const GLenum oglError = glGetError();
-    switch (oglError) {
+bool Engine::checkForOGLErrors(const std::string& function) {
+    const GLenum error = glGetError();
+    switch (error) {
         case GL_NO_ERROR:
             break;
         case GL_INVALID_ENUM:
-            MessageHandler::printError("OpenGL error: GL_INVALID_ENUM");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_INVALID_ENUM", function.c_str()
+            );
             break;
         case GL_INVALID_VALUE:
-            MessageHandler::printError("OpenGL error: GL_INVALID_VALUE");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_INVALID_VALUE", function.c_str()
+            );
             break;
         case GL_INVALID_OPERATION:
-            MessageHandler::printError("OpenGL error: GL_INVALID_OPERATION");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_INVALID_OPERATION", function.c_str()
+            );
             break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
-            MessageHandler::printError("OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_INVALID_FRAMEBUFFER_OPERATION",
+                function.c_str()
+            );
             break;
         case GL_STACK_OVERFLOW:
-            MessageHandler::printError("OpenGL error: GL_STACK_OVERFLOW");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_STACK_OVERFLOW", function.c_str()
+            );
             break;
         case GL_STACK_UNDERFLOW:
-            MessageHandler::printError("OpenGL error: GL_STACK_UNDERFLOW");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_STACK_UNDERFLOW", function.c_str()
+            );
             break;
         case GL_OUT_OF_MEMORY:
-            MessageHandler::printError("OpenGL error: GL_OUT_OF_MEMORY");
-            break;
-        case GL_TABLE_TOO_LARGE:
-            MessageHandler::printError("OpenGL error: GL_TABLE_TOO_LARGE");
+            MessageHandler::printError(
+                "OpenGL error. Function %s: GL_OUT_OF_MEMORY", function.c_str()
+            );
             break;
         default:
             MessageHandler::printError(
-                "OpenGL error: Unknown error %i",
-                static_cast<int>(oglError)
+                "OpenGL error. Function %s: %i", function.c_str(), static_cast<int>(error)
             );
-            break;
     }
-
-    return oglError == GL_NO_ERROR;
+    return error == GL_NO_ERROR;
 }
 
 bool Engine::isMaster() const {
@@ -2081,65 +2022,65 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     glfwPollEvents();
     
     // Must wait until all nodes are running if using swap barrier
-    if (!core::ClusterManager::instance()->getIgnoreSync() &&
-        core::ClusterManager::instance()->getNumberOfNodes() > 1)
+    if (core::ClusterManager::instance()->getIgnoreSync() ||
+        core::ClusterManager::instance()->getNumberOfNodes() <= 1)
     {
-        // check if swapgroups are supported
+        return;
+    }
+
+    // check if swapgroups are supported
 #ifdef WIN32
-        if (glfwExtensionSupported("WGL_NV_swap_group")) {
-            MessageHandler::printInfo("Swap groups are supported by hardware");
-        }
-        else {
-            MessageHandler::printInfo("Swap groups are not supported by hardware");
-        }
+    const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group");
 #else
-        MessageHandler::printInfo("Swap groups are not supported by hardware");
+    const bool hasSwapGroup = false;
 #endif
+    if (hasSwapGroup) {
+        MessageHandler::printInfo("Swap groups are supported by hardware");
+    }
+    else {
+        MessageHandler::printInfo("Swap groups are not supported by hardware");
+    }
 
-        MessageHandler::printInfo("Waiting for all nodes to connect");
-        MessageHandler::instance()->setShowTime(false);
+    MessageHandler::printInfo("Waiting for all nodes to connect");
         
-        while (_networkConnections->isRunning() && !thisNode.getKeyPressed(_exitKey) &&
-               !thisNode.shouldAllWindowsClose() && !_shouldTerminate)
-        {
-            // Swap front and back rendering buffers
-            for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                if (thisNode.getWindow(i).isDoubleBuffered()) {
-                    glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
-                }
-                else {
-                    glFinish();
-                }
+    while (_networkConnections->isRunning() && !thisNode.getKeyPressed(_exitKey) &&
+            !thisNode.shouldAllWindowsClose() && !_shouldTerminate)
+    {
+        // Swap front and back rendering buffers
+        for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            if (thisNode.getWindow(i).isDoubleBuffered()) {
+                glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
             }
-            glfwPollEvents();
-
-            if (_networkConnections->areAllNodesConnected()) {
-                break;
+            else {
+                glFinish();
             }
+        }
+        glfwPollEvents();
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (_networkConnections->areAllNodesConnected()) {
+            break;
         }
 
-        // wait for user to release exit key
-        while (thisNode.getKeyPressed(_exitKey)) {
-            // Swap front and back rendering buffers
-            // key buffers also swapped
-            for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                if (thisNode.getWindow(i).isDoubleBuffered()) {
-                    glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
-                }
-                else {
-                    glFinish();
-                }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    // wait for user to release exit key
+    while (thisNode.getKeyPressed(_exitKey)) {
+        // Swap front and back rendering buffers
+        // key buffers also swapped
+        for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            if (thisNode.getWindow(i).isDoubleBuffered()) {
+                glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
             }
-            glfwPollEvents();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            else {
+                glFinish();
+            }
         }
+        glfwPollEvents();
 
-        MessageHandler::instance()->setShowTime(true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
@@ -2215,7 +2156,6 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
     glDisable(GL_SCISSOR_TEST);
 
     _shader.overlay.bind();
-
     glUniform1i(_shaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
@@ -2233,9 +2173,7 @@ void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mo
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
 
     getCurrentWindow().bindVAO();
-
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
     getCurrentWindow().unbindVAO();
     ShaderProgram::unbind();
 }
@@ -2594,14 +2532,6 @@ void Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId) {
 void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId) {
     if (_dataTransferAcknowledgeCallbackFn) {
         _dataTransferAcknowledgeCallbackFn(packageId, clientId);
-    }
-}
-
-void Engine::invokeScreenShotCallback(core::Image* imPtr, size_t winIndex,
-                                      core::ScreenCapture::EyeIndex ei, GLenum type)
-{
-    if (_screenShotFn) {
-        _screenShotFn(imPtr, winIndex, ei, type);
     }
 }
 

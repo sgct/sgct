@@ -35,10 +35,6 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
     }
 
     createVBO(radius, FOV);
-
-    if (!Engine::checkForOGLErrors()) {
-        MessageHandler::printError("SGCT Utils: Dome creation error");
-    }
 }
 
 Dome::~Dome() {

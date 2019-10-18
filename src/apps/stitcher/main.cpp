@@ -469,7 +469,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     Configuration config = parseArguments(arguments);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -641,18 +642,17 @@ int main(int argc, char* argv[]) {
     gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setPreWindowFunction(preWinInitFun);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
     gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
     if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
-
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

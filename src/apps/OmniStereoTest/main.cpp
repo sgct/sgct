@@ -518,7 +518,27 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    if (cluster.settings.has_value()) {
+        if (cluster.settings->display.has_value()) {
+            cluster.settings->display->swapInterval = 0;
+        }
+        else {
+            config::Settings::Display display;
+            display.swapInterval = 0;
+            cluster.settings->display = display;
+        }
+    }
+    else {
+        config::Settings::Display display;
+        display.swapInterval = 0;
+
+        config::Settings settings;
+        settings.display = display;
+
+        cluster.settings = settings;
+    }
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     for (int i = 0; i < argc; i++) {
         std::string_view argument = argv[i];
@@ -535,24 +555,21 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Settings::instance()->setSwapInterval(0);
-
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setPostDrawFunction(postDrawFun);
     gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
-
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

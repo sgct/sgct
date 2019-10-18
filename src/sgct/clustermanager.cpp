@@ -49,7 +49,15 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
     if (cluster.scene) {
-        applyScene(*cluster.scene);
+            if (cluster.scene->offset) {
+                setSceneOffset(*cluster.scene->offset);
+            }
+            if (cluster.scene->orientation) {
+                setSceneRotation(glm::mat4_cast(*cluster.scene->orientation));
+            }
+            if (cluster.scene->scale) {
+                setSceneScale(*cluster.scene->scale);
+            }
     }
     for (const config::Node& node : cluster.nodes) {
         std::unique_ptr<Node> n = std::make_unique<Node>();
@@ -60,51 +68,38 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         Settings::instance()->applySettings(*cluster.settings);
     }
     if (cluster.user) {
-        applyUser(*cluster.user);
+        User* usrPtr;
+        if (cluster.user->name) {
+            std::unique_ptr<User> usr = std::make_unique<User>(*cluster.user->name);
+            usrPtr = usr.get();
+            addUser(std::move(usr));
+            MessageHandler::printInfo("Adding user '%s'", cluster.user->name->c_str());
+        }
+        else {
+            usrPtr = &getDefaultUser();
+        }
+
+        if (cluster.user->eyeSeparation) {
+            usrPtr->setEyeSeparation(*cluster.user->eyeSeparation);
+        }
+        if (cluster.user->position) {
+            usrPtr->setPos(*cluster.user->position);
+        }
+        if (cluster.user->transformation) {
+            usrPtr->setTransform(*cluster.user->transformation);
+        }
+        if (cluster.user->tracking) {
+            usrPtr->setHeadTracker(
+                cluster.user->tracking->tracker,
+                cluster.user->tracking->device
+            );
+        }
     }
     if (cluster.capture) {
         Settings::instance()->applyCapture(*cluster.capture);
     }
     if (cluster.tracker) {
         getTrackingManager().applyTracker(*cluster.tracker);
-    }
-}
-
-void ClusterManager::applyScene(const config::Scene& scene) {
-    if (scene.offset) {
-        setSceneOffset(*scene.offset);
-    }
-    if (scene.orientation) {
-        setSceneRotation(glm::mat4_cast(*scene.orientation));
-    }
-    if (scene.scale) {
-        setSceneScale(*scene.scale);
-    }
-}
-
-void ClusterManager::applyUser(const config::User& user) {
-    User* usrPtr;
-    if (user.name) {
-        std::unique_ptr<User> usr = std::make_unique<User>(*user.name);
-        usrPtr = usr.get();
-        addUser(std::move(usr));
-        MessageHandler::printInfo("ReadConfig: Adding user '%s'", user.name->c_str());
-    }
-    else {
-        usrPtr = &getDefaultUser();
-    }
-
-    if (user.eyeSeparation) {
-        usrPtr->setEyeSeparation(*user.eyeSeparation);
-    }
-    if (user.position) {
-        usrPtr->setPos(*user.position);
-    }
-    if (user.transformation) {
-        usrPtr->setTransform(*user.transformation);
-    }
-    if (user.tracking) {
-        usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
     }
 }
 

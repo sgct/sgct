@@ -103,7 +103,7 @@ void encodeFun()
 }
 \endcode
     */
-    void setEncodeFunction(void(*fnPtr)());
+    void setEncodeFunction(std::function<void()>);
 
     /**
      * Set the decoder callback.
@@ -115,7 +115,7 @@ void decodeFun()
 }
 \endcode
     */
-    void setDecodeFunction(void(*fnPtr)());
+    void setDecodeFunction(std::function<void()>);
 
     /// This fuction is called internally by SGCT and shouldn't be used by the user.
     void encode();
@@ -132,8 +132,8 @@ private:
     SharedData();
 
     // function pointers
-    void (*_encodeFn)() = nullptr;
-    void (*_decodeFn)() = nullptr;
+    std::function<void()> _encodeFn;
+    std::function<void()> _decodeFn;
 
     static SharedData* _instance;
     std::vector<unsigned char> _dataBlock;

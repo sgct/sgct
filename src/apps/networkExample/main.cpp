@@ -313,7 +313,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     parseArguments(argc, argv);
 
@@ -322,18 +323,17 @@ int main(int argc, char* argv[]) {
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     connectionThread = std::make_unique<std::thread>(networkLoop);
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

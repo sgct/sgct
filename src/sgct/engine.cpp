@@ -140,15 +140,22 @@ config::Cluster loadCluster(std::optional<std::string> path) {
     }
 }
 
-Engine::Engine(const Configuration& config) {
+void Engine::create(const Configuration& arg) {
     if (_instance) {
         MessageHandler::printError(
-            "The Engine class is an implictit singleton and can only be created once"
+            "The Engine class is a singleton and can only be created once"
         );
         return;
     }
-    _instance = this;
+    _instance = new Engine(arg);
+}
 
+void Engine::destroy() {
+    delete _instance;
+    _instance = nullptr;
+}
+
+Engine::Engine(const Configuration& config) {
     if (config.isServer) {
         core::ClusterManager::instance()->setNetworkMode(
             *config.isServer ?
@@ -2263,6 +2270,14 @@ void Engine::setPreWindowFunction(std::function<void()> fn) {
 
 void Engine::setCleanUpFunction(std::function<void()> fn) {
     _cleanUpFn = std::move(fn);
+}
+
+void Engine::setEncodeFunction(std::function<void()> fn) {
+    SharedData::instance()->setEncodeFunction(fn);
+}
+
+void Engine::setDecodeFunction(std::function<void()> fn) {
+    SharedData::instance()->setDecodeFunction(fn);
 }
 
 void Engine::setExternalControlCallback(std::function<void(const char*, int)> fn) {

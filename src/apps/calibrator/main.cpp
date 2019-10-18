@@ -324,7 +324,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -349,16 +350,15 @@ int main(int argc, char* argv[]) {
     gEngine->setInitOGLFunction(initGL);
     gEngine->setCleanUpFunction(cleanUp);
     gEngine->setKeyboardCallbackFunction(keyboardCallback);
-    SharedData::instance()->setEncodeFunction(encode);
-    SharedData::instance()->setDecodeFunction(decode);
+    gEngine->setEncodeFunction(encode);
+    gEngine->setDecodeFunction(decode);
 
-    // Init the engine
     if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

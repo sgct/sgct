@@ -118,10 +118,8 @@ public:
     /// \returns the static pointer to the engine instance
     static Engine* instance();
 
-    Engine(const Configuration& arg);
-
-    /// Engine destructor destructs GLFW and releases resources/memory.
-    ~Engine();
+    static void create(const Configuration& arg);
+    static void destroy();
 
     /**
      * Engine initiation that:
@@ -311,8 +309,6 @@ public:
      * This function sets the initOGL callback. The Engine will then use the callback only
      * once before the starting the render loop. Textures, Models, Buffers, etc. can be
      * loaded/allocated here.
-     *
-     * \param fn is the std function of an OpenGL initiation callback
      */
     void setInitOGLFunction(std::function<void(void)> fn);
 
@@ -320,16 +316,12 @@ public:
      * This callback is called before the window is created (before OpenGL context is
      * created). At this stage the config file has been read and network initialized.
      * Therefore it's suitable for loading master or slave specific data.
-     *
-     * \param fn is the std function of a pre window creation callback
      */
     void setPreWindowFunction(std::function<void()> fn);
 
     /**
      * This function sets the pre-sync callback. The Engine will then use the callback
      * before the sync stage. In the callback set the variables that will be shared.
-     *
-     * \param fn is the function pointer to a pre-sync callback
      */
     void setPreSyncFunction(std::function<void()> fn);
 
@@ -339,8 +331,6 @@ public:
      * callback the post-sync-pre-draw callback is called only once per frame. In this
      * callback synchronized variables can be applied or simulations depending on
      * synchronized input can run.
-     *
-     * \param fn is the std function of a post-sync-pre-draw callback
      */
     void setPostSyncPreDrawFunction(std::function<void()> fn);
 
@@ -350,8 +340,6 @@ public:
      * post-sync-pre-draw stage or the pre-sync stage. The draw callback can be called
      * several times per frame since it's called once for every viewport and once for
      * every eye if stereoscopy is used.
-     *
-     * \param fn is the std function to a draw callback
      */
     void setDrawFunction(std::function<void()> fn);
 
@@ -359,8 +347,6 @@ public:
      * This function sets the draw 2D callback. This callback will be called after
      * overlays and post effects has been drawn. This makes it possible to render text and
      * HUDs that will not be filtered and antialiased.
-     *
-     * \param fn is the function pointer to a draw 2D callback
      */
     void setDraw2DFunction(std::function<void()> fn);
 
@@ -369,8 +355,6 @@ public:
      * after the draw stage but before the OpenGL buffer swap. Compared to the draw
      * callback the post-draw callback is called only once per frame. In this callback
      * data/buffer swaps can be made.
-     *
-     * \param fn is the std function of a post-draw callback
      */
     void setPostDrawFunction(std::function<void()> fn);
 
@@ -378,10 +362,20 @@ public:
      * This function sets the clean up callback which will be called in the Engine
      * destructor before all sgct components (like window, OpenGL context, network, etc.)
      * will be destroyed.
-     *
-     * \param fn is the std function pointer of a clean up function callback
      */
     void setCleanUpFunction(std::function<void()> fn);
+
+    /**
+     * This functions sets the encoding callback that is called by SGCT to encode all
+     * shared data that is sent to the connected nodes in a clustered setup.
+     */
+    void setEncodeFunction(std::function<void()> fn);
+
+    /**
+     * This functions sets the decoding callback that is called by SGCT to encode all
+     * shared data that is sent to the connected nodes in a clustered setup.
+     */
+    void setDecodeFunction(std::function<void()> fn);
 
     /**
      * This function sets the keyboard callback (GLFW wrapper) where the four parameters
@@ -938,6 +932,11 @@ public:
 
 private:
     enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+
+    Engine(const Configuration& arg);
+
+    /// Engine destructor destructs GLFW and releases resources/memory.
+    ~Engine();
 
     /// Initiates network communication.
     bool initNetwork();

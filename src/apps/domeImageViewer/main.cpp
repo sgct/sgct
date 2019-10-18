@@ -486,7 +486,8 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
@@ -496,18 +497,16 @@ int main(int argc, char* argv[]) {
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setContextCreationCallback(contextCreationCallback);
     gEngine->setDropCallbackFunction(dropCallback);
-
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
-        return EXIT_FAILURE;
-    }
-
     gEngine->setDataTransferCallback(dataTransferDecoder);
     gEngine->setDataTransferStatusCallback(dataTransferStatus);
     gEngine->setDataAcknowledgeCallback(dataTransferAcknowledge);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
+    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+        Engine::destroy();
+        return EXIT_FAILURE;
+    }
 
     gEngine->render();
 
@@ -518,6 +517,6 @@ int main(int argc, char* argv[]) {
         loadThread = nullptr;
     }
 
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

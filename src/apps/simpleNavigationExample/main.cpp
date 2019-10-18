@@ -430,26 +430,27 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
-    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     gEngine->setCleanUpFunction(cleanUpFun);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
+
+    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
-
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }
 

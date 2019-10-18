@@ -11,14 +11,15 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit( EXIT_SUCCESS );
 }

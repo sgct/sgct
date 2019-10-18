@@ -198,7 +198,19 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    if (cluster.settings) {
+        cluster.settings->useNormalTexture = true;
+        cluster.settings->usePositionTexture = true;
+    }
+    else {
+        config::Settings settings;
+        settings.useNormalTexture = true;
+        settings.usePositionTexture = true;
+        cluster.settings = settings;
+    }
+
+    Engine::create(config);
+    gEngine = Engine::instance();
 
     gEngine->setInitOGLFunction(initOGLFun);
     gEngine->setDrawFunction(drawFun);
@@ -206,21 +218,15 @@ int main(int argc, char* argv[]) {
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setCleanUpFunction(cleanUpFun);
     gEngine->setKeyboardCallbackFunction(keyCallback);
-
-    sgct::Settings::instance()->setUseNormalTexture(true);
-    sgct::Settings::instance()->setUsePositionTexture(true);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
     if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    sgct::SharedData::instance()->setEncodeFunction(encodeFun);
-    sgct::SharedData::instance()->setDecodeFunction(decodeFun);
-
     gEngine->render();
-
-    delete gEngine;
-
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

@@ -91,25 +91,24 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
-    // Bind your functions
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
     gEngine->setExternalControlCallback(externalControlMessageCallback);
     gEngine->setExternalControlStatusCallback(externalControlStatusCallback);
-
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
     // Init the engine
     if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

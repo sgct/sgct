@@ -76,12 +76,12 @@ float SharedData::getCompressionRatio() {
     return _compressionRatio;
 }
 
-void SharedData::setEncodeFunction(void(*fnPtr)(void)) {
-    _encodeFn = fnPtr;
+void SharedData::setEncodeFunction(std::function<void()> fn) {
+    _encodeFn = std::move(fn);
 }
 
-void SharedData::setDecodeFunction(void(*fnPtr)(void)) {
-    _decodeFn = fnPtr;
+void SharedData::setDecodeFunction(std::function<void()> fn) {
+    _decodeFn = std::move(fn);
 }
 
 void SharedData::decode(const char* receivedData, int receivedLength, int) {

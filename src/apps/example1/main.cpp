@@ -143,23 +143,22 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
+    gEngine = Engine::instance();
 
-    // Bind your functions
     gEngine->setInitOGLFunction(initFun);
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setCleanUpFunction(cleanUpFun);
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
+    gEngine->setEncodeFunction(encodeFun);
+    gEngine->setDecodeFunction(decodeFun);
 
-    // Init the engine
     if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

@@ -1112,8 +1112,8 @@ private:
     std::string _glslVersion;
     int _exitKey = key::Escape;
 
-    unsigned int _timeQueryBegin;
-    unsigned int _timeQueryEnd;
+    unsigned int _timeQueryBegin = 0;
+    unsigned int _timeQueryEnd = 0;
 };
 
 } // namespace sgct

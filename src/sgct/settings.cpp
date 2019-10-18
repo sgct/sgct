@@ -28,6 +28,98 @@ void Settings::destroy() {
     _instance = nullptr;
 }
 
+void Settings::applySettings(const config::Settings& settings) {
+    if (settings.useDepthTexture) {
+        setUseDepthTexture(*settings.useDepthTexture);
+    }
+    if (settings.useNormalTexture) {
+        setUseNormalTexture(*settings.useNormalTexture);
+    }
+    if (settings.usePositionTexture) {
+        setUsePositionTexture(*settings.usePositionTexture);
+    }
+    if (settings.bufferFloatPrecision) {
+        BufferFloatPrecision p =
+            [](config::Settings::BufferFloatPrecision p) {
+            switch (p) {
+                default:
+                case config::Settings::BufferFloatPrecision::Float16Bit:
+                    return BufferFloatPrecision::Float16Bit;
+                case config::Settings::BufferFloatPrecision::Float32Bit:
+                    return BufferFloatPrecision::Float32Bit;
+            }
+        }(*settings.bufferFloatPrecision);
+        setBufferFloatPrecision(p);
+    }
+    if (settings.display) {
+        if (settings.display->swapInterval) {
+            setSwapInterval(*settings.display->swapInterval);
+        }
+        if (settings.display->refreshRate) {
+            setRefreshRateHint(*settings.display->refreshRate);
+        }
+        if (settings.display->maintainAspectRatio) {
+            setTryMaintainAspectRatio(*settings.display->maintainAspectRatio);
+        }
+        if (settings.display->exportWarpingMeshes) {
+            setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
+        }
+    }
+    if (settings.osdText) {
+        if (settings.osdText->name) {
+            setOSDTextFontName(*settings.osdText->name);
+        }
+        if (settings.osdText->path) {
+            setOSDTextFontPath(*settings.osdText->path);
+        }
+        if (settings.osdText->size) {
+            setOSDTextFontSize(*settings.osdText->size);
+        }
+        if (settings.osdText->xOffset) {
+            const glm::vec2& curr = getOSDTextOffset();
+            setOSDTextOffset(glm::vec2(*settings.osdText->xOffset, curr.y));
+        }
+        if (settings.osdText->yOffset) {
+            const glm::vec2& curr = getOSDTextOffset();
+            setOSDTextOffset(glm::vec2(curr.x, *settings.osdText->yOffset));
+        }
+    }
+    if (settings.fxaa) {
+        if (settings.fxaa->offset) {
+            setFXAASubPixOffset(*settings.fxaa->offset);
+        }
+        if (settings.fxaa->trim) {
+            setFXAASubPixTrim(1.f / *settings.fxaa->trim);
+        }
+    }
+}
+
+void Settings::applyCapture(const config::Capture& capture) {
+    if (capture.monoPath) {
+        setCapturePath(*capture.monoPath, CapturePath::Mono);
+    }
+    if (capture.leftPath) {
+        setCapturePath(*capture.leftPath, CapturePath::LeftStereo);
+    }
+    if (capture.rightPath) {
+        setCapturePath(*capture.rightPath, CapturePath::RightStereo);
+    }
+    if (capture.format) {
+        CaptureFormat f = [](config::Capture::Format format) {
+            switch (format) {
+                default:
+                case config::Capture::Format::PNG:
+                    return CaptureFormat::PNG;
+                case config::Capture::Format::JPG:
+                    return CaptureFormat::JPG;
+                case config::Capture::Format::TGA:
+                    return CaptureFormat::TGA;
+            }
+        }(*capture.format);
+        setCaptureFormat(f);
+    }
+}
+
 void Settings::setSwapInterval(int val) {
     _swapInterval = val;
 }

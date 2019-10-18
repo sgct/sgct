@@ -9,6 +9,7 @@
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
+#include <sgct/config.h>
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
@@ -28,6 +29,9 @@ class TrackingManager {
 public:
     ~TrackingManager();
     
+    void applyDevice(const config::Device& device);
+    void applyTracker(const config::Tracker& tracker);
+
     void startSampling();
 
     /**

@@ -17,6 +17,8 @@ namespace sgct::core {
 
 class Node {
 public:
+    void applyNode(const config::Node& node);
+
     /**
      * Add a window to the window vector. Note that a window must be opened to become
      * visible.

@@ -140,6 +140,43 @@ TrackingManager::~TrackingManager() {
 #endif // SGCT_HAS_VRPN
 }
 
+void TrackingManager::applyDevice(const config::Device& device) {
+    addDeviceToCurrentTracker(device.name);
+
+    for (const config::Device::Sensors& s : device.sensors) {
+        addSensorToCurrentDevice(s.vrpnAddress, s.identifier);
+    }
+    for (const config::Device::Buttons& b : device.buttons) {
+        addButtonsToCurrentDevice(b.vrpnAddress, b.count);
+    }
+    for (const config::Device::Axes& a : device.axes) {
+        addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
+    }
+    if (device.offset) {
+        getLastTracker()->getLastDevice()->setOffset(*device.offset);
+    }
+    if (device.transformation) {
+        getLastTracker()->getLastDevice()->setTransform(*device.transformation);
+    }
+}
+
+void TrackingManager::applyTracker(const config::Tracker& tracker) {
+    addTracker(tracker.name);
+
+    for (const config::Device& device : tracker.devices) {
+        applyDevice(device);
+    }
+    if (tracker.offset) {
+        getLastTracker()->setOffset(*tracker.offset);
+    }
+    if (tracker.scale) {
+        getLastTracker()->setScale(*tracker.scale);
+    }
+    if (tracker.transformation) {
+        getLastTracker()->setTransform(*tracker.transformation);
+    }
+}
+
 bool TrackingManager::isRunning() const {
 #ifdef SGCT_HAS_VRPN
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__

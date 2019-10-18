@@ -16,6 +16,26 @@
 
 namespace sgct::core {
 
+void Node::applyNode(const config::Node& node) {
+    setAddress(node.address);
+    if (node.name) {
+        setName(*node.name);
+    }
+    setSyncPort(node.port);
+    if (node.dataTransferPort) {
+        setDataTransferPort(*node.dataTransferPort);
+    }
+    if (node.swapLock) {
+        setUseSwapGroups(*node.swapLock);
+    }
+
+    for (const config::Window& window : node.windows) {
+        Window win = Window(getNumberOfWindows());
+        win.applyWindow(window, *this);
+        addWindow(std::move(win));
+    }
+}
+
 void Node::addWindow(Window window) {
     _windows.emplace_back(std::move(window));
 }

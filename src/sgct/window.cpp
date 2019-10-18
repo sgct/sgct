@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
+#include <sgct/mpcdi.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
@@ -117,6 +118,166 @@ Window::Window(int id)
 
     // pointers
     _sharedHandle = nullptr;
+}
+
+void Window::applyWindow(const config::Window& window, core::Node& node) {
+    if (window.name) {
+        setName(*window.name);
+    }
+    if (!window.tags.empty()) {
+        setTags(window.tags);
+    }
+    if (window.bufferBitDepth) {
+        ColorBitDepth bd = [](config::Window::ColorBitDepth bd) {
+            switch (bd) {
+                default:
+                case config::Window::ColorBitDepth::Depth8:
+                    return ColorBitDepth::Depth8;
+                case config::Window::ColorBitDepth::Depth16:
+                    return ColorBitDepth::Depth16;
+                case config::Window::ColorBitDepth::Depth16Float:
+                    return ColorBitDepth::Depth16Float;
+                case config::Window::ColorBitDepth::Depth32Float:
+                    return ColorBitDepth::Depth32Float;
+                case config::Window::ColorBitDepth::Depth16Int:
+                    return ColorBitDepth::Depth16Int;
+                case config::Window::ColorBitDepth::Depth32Int:
+                    return ColorBitDepth::Depth32Int;
+                case config::Window::ColorBitDepth::Depth16UInt:
+                    return ColorBitDepth::Depth16UInt;
+                case config::Window::ColorBitDepth::Depth32UInt:
+                    return ColorBitDepth::Depth32UInt;
+            }
+        }(*window.bufferBitDepth);
+        setColorBitDepth(bd);
+    }
+
+    if (window.isFullScreen) {
+        setWindowMode(*window.isFullScreen);
+    }
+
+    if (window.isFloating) {
+        setFloating(*window.isFloating);
+    }
+
+    if (window.alwaysRender) {
+        setRenderWhileHidden(*window.alwaysRender);
+    }
+
+    if (window.isHidden) {
+        setVisible(*window.isHidden);
+    }
+
+    if (window.doubleBuffered) {
+        setDoubleBuffered(*window.doubleBuffered);
+    }
+
+    if (window.gamma) {
+        setGamma(*window.gamma);
+    }
+
+    if (window.contrast) {
+        setContrast(*window.contrast);
+    }
+
+    if (window.brightness) {
+        setBrightness(*window.brightness);
+    }
+
+    if (window.msaa) {
+        setNumberOfAASamples(*window.msaa);
+    }
+
+    if (window.hasAlpha) {
+        setAlpha(*window.hasAlpha);
+    }
+
+    if (window.useFxaa) {
+        setUseFXAA(*window.useFxaa);
+    }
+
+    if (window.isDecorated) {
+        setWindowDecoration(*window.isDecorated);
+    }
+
+    if (window.hasBorder) {
+        setWindowDecoration(*window.hasBorder);
+    }
+
+    if (window.draw2D) {
+        setCallDraw2DFunction(*window.draw2D);
+    }
+
+    if (window.draw3D) {
+        setCallDraw2DFunction(*window.draw3D);
+    }
+
+    if (window.copyPreviousWindowToCurrentWindow) {
+        setCopyPreviousWindowToCurrentWindow(*window.copyPreviousWindowToCurrentWindow);
+    }
+
+    if (window.monitor) {
+        setFullScreenMonitorIndex(*window.monitor);
+    }
+
+    if (window.mpcdi) {
+        core::Mpcdi().parseConfiguration(*window.mpcdi, node, *this);
+        return;
+    }
+
+    if (window.stereo) {
+        StereoMode sm = [](config::Window::StereoMode sm) {
+            switch (sm) {
+                default:
+                case config::Window::StereoMode::NoStereo:
+                    return StereoMode::NoStereo;
+                case config::Window::StereoMode::Active:
+                    return StereoMode::Active;
+                case config::Window::StereoMode::AnaglyphRedCyan:
+                    return StereoMode::AnaglyphRedCyan;
+                case config::Window::StereoMode::AnaglyphAmberBlue:
+                    return StereoMode::AnaglyphAmberBlue;
+                case config::Window::StereoMode::AnaglyphRedCyanWimmer:
+                    return StereoMode::AnaglyphRedCyanWimmer;
+                case config::Window::StereoMode::Checkerboard:
+                    return StereoMode::Checkerboard;
+                case config::Window::StereoMode::CheckerboardInverted:
+                    return StereoMode::CheckerboardInverted;
+                case config::Window::StereoMode::VerticalInterlaced:
+                    return StereoMode::VerticalInterlaced;
+                case config::Window::StereoMode::VerticalInterlacedInverted:
+                    return StereoMode::VerticalInterlacedInverted;
+                case config::Window::StereoMode::Dummy:
+                    return StereoMode::Dummy;
+                case config::Window::StereoMode::SideBySide:
+                    return StereoMode::SideBySide;
+                case config::Window::StereoMode::SideBySideInverted:
+                    return StereoMode::SideBySideInverted;
+                case config::Window::StereoMode::TopBottom:
+                    return StereoMode::TopBottom;
+                case config::Window::StereoMode::TopBottomInverted:
+                    return StereoMode::TopBottomInverted;
+            }
+        }(*window.stereo);
+        setStereoMode(sm);
+    }
+
+    if (window.pos) {
+        setWindowPosition(*window.pos);
+    }
+
+    initWindowResolution(window.size);
+
+    if (window.resolution) {
+        setFramebufferResolution(*window.resolution);
+        setFixResolution(true);
+    }
+
+    for (const config::Viewport& viewport : window.viewports) {
+        std::unique_ptr<core::Viewport> vp = std::make_unique<core::Viewport>();
+        vp->applySettings(viewport);
+        addViewport(std::move(vp));
+    }
 }
 
 void Window::setName(std::string name) {

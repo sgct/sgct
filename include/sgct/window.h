@@ -9,6 +9,7 @@
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
+#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/postfx.h>
@@ -66,6 +67,8 @@ public:
     };
 
     enum class Eye { MonoOrLeft, Right };
+
+    void applyWindow(const config::Window& window, core::Node& node);
 
     /**
      * Init Nvidia swap groups if they are supported by hardware. Supported hardware is

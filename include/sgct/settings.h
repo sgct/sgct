@@ -53,6 +53,9 @@ public:
     /// Destroy the Settings instance
     static void destroy();
 
+    void applySettings(const config::Settings& settings);
+    void applyCapture(const config::Capture& capture);
+
     /**
      * Set swap interval for all windows
      *   -1 = adaptive sync (Nvidia)

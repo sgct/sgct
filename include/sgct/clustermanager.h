@@ -9,6 +9,7 @@
 #ifndef __SGCT__CLUSTER_MANAGER__H__
 #define __SGCT__CLUSTER_MANAGER__H__
 
+#include <sgct/config.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/trackingmanager.h>
@@ -36,6 +37,10 @@ public:
 
     /// Destroy the ClusterManager
     static void destroy();
+
+    void applyCluster(const config::Cluster& cluster);
+    void applyScene(const config::Scene& scene);
+    void applyUser(const config::User& user);
 
     /// Add a cluster node to the manager's vector.
     void addNode(std::unique_ptr<Node> node);

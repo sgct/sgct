@@ -135,8 +135,8 @@ struct FisheyeProjection {
     enum class Method { FourFace, FiveFace };
     enum class Interpolation { Linear, Cubic };
     struct Crop {
-        // @TODO (abock, 2019-09-21) The default values for right and top should probably
-        // be 1.f ?
+        // Crop values are measured as [0,1] from the respective side, which is why right
+        // and top are 0 and not 1 as one might expect
         float left = 0.f;
         float right = 0.f;
         float bottom = 0.f;

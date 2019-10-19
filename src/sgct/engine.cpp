@@ -518,7 +518,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 330 core";
             break;
         case RunMode::OpenGL_4_0_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -527,7 +526,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 400 core";
             break;
 
         case RunMode::OpenGL_4_1_Debug_Core_Profile:
@@ -540,7 +538,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 410 core";
             break;
         case RunMode::OpenGL_4_2_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -552,7 +549,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 420 core";
             break;
         case RunMode::OpenGL_4_3_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -564,7 +560,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 430 core";
             break;
         case RunMode::OpenGL_4_4_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -576,7 +571,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 440 core";
             break;
         case RunMode::OpenGL_4_5_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -588,7 +582,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 450 core";
             break;
         case RunMode::OpenGL_4_6_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -600,7 +593,6 @@ bool Engine::initWindows() {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 #endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            _glslVersion = "#version 460 core";
             break;
     }
 
@@ -1773,9 +1765,6 @@ void Engine::loadShaders() {
     _shader.fxaa.setName("FXAAShader");
     std::string fxaaVertShader = core::shaders::FXAAVert;
     std::string fxaaFragShader = core::shaders::FXAAFrag;
-    
-    helpers::findAndReplace(fxaaVertShader, "**glsl_version**", getGLSLVersion());
-    helpers::findAndReplace(fxaaFragShader, "**glsl_version**", getGLSLVersion());
 
     const bool fxaaVertSuccess = _shader.fxaa.addShaderSrc(
         fxaaVertShader,
@@ -1818,9 +1807,6 @@ void Engine::loadShaders() {
     std::string fboQuadVertShader = core::shaders::BaseVert;
     std::string fboQuadFragShader = core::shaders::BaseFrag;
 
-    helpers::findAndReplace(fboQuadVertShader, "**glsl_version**", getGLSLVersion());
-    helpers::findAndReplace(fboQuadFragShader, "**glsl_version**", getGLSLVersion());
-
     _shader.fboQuad.setName("FBOQuadShader");
     const bool quadVertSuccess = _shader.fboQuad.addShaderSrc(
         fboQuadVertShader,
@@ -1846,10 +1832,6 @@ void Engine::loadShaders() {
 
     std::string overlayVertShader = core::shaders::OverlayVert;
     std::string overlayFragShader = core::shaders::OverlayFrag;
-
-    //replace glsl version
-    helpers::findAndReplace(overlayVertShader, "**glsl_version**", getGLSLVersion());
-    helpers::findAndReplace(overlayFragShader, "**glsl_version**", getGLSLVersion());
 
     _shader.overlay.setName("OverlayShader");
     const bool overlayVertSuccess = _shader.overlay.addShaderSrc(
@@ -1996,10 +1978,6 @@ glm::mat4 Engine::getCurrentModelViewMatrix() const {
 
 unsigned int Engine::getCurrentFrameNumber() const {
     return _frameCounter;
-}
-
-const std::string& Engine::getGLSLVersion() const {
-    return _glslVersion;
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {

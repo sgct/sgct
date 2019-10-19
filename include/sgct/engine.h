@@ -889,9 +889,6 @@ public:
     /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
 
-    /// Get the GLSL version string that matches the run mode setting
-    const std::string& getGLSLVersion() const;
-
     /**
      * Get the active viewport size in pixels.
      */
@@ -1105,7 +1102,6 @@ private:
     unsigned int _shotCounter = 0;
 
     RunMode _runMode = RunMode::Default_Mode;
-    std::string _glslVersion;
     int _exitKey = key::Escape;
 
     unsigned int _timeQueryBegin = 0;

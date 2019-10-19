@@ -1308,9 +1308,6 @@ void Window::loadShaders() {
         }
     }(_stereoMode);
 
-    const std::string glslVersion = Engine::instance()->getGLSLVersion();
-
-    helpers::findAndReplace(stereoVertShader, "**glsl_version**", glslVersion);
     const bool vertShader = _stereo.shader.addShaderSrc(
         stereoVertShader,
         GL_VERTEX_SHADER,
@@ -1320,15 +1317,13 @@ void Window::loadShaders() {
         MessageHandler::printError("Failed to load stereo vertex shader");
     }
 
-    helpers::findAndReplace(stereoFragShader, "**glsl_version**", glslVersion);
     const bool fragShader = _stereo.shader.addShaderSrc(
         stereoFragShader,
         GL_FRAGMENT_SHADER,
         ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
-        MessageHandler::printError("Failed to load stereo fragment shader"
-        );
+        MessageHandler::printError("Failed to load stereo fragment shader");
     }
 
     _stereo.shader.setName("StereoShader");

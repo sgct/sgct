@@ -25,7 +25,7 @@
 
 namespace {
     constexpr const char* Stats_Vert_Shader = R"(
-**glsl_version**
+#version 330 core
 
 layout (location = 0) in vec2 vertPosition;
 
@@ -37,7 +37,7 @@ void main() {
 )";
 
     constexpr const char* Stats_Frag_Shader = R"(
-**glsl_version**
+#version 330 core
 
 uniform vec4 Col;
 out vec4 Color;
@@ -165,18 +165,6 @@ void Statistics::initVBO() {
 
     std::string vertShader = Stats_Vert_Shader;
     std::string fragShader = Stats_Frag_Shader;
-
-    //replace glsl version
-    helpers::findAndReplace(
-        vertShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
-    helpers::findAndReplace(
-        fragShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
 
     bool vert = _shader.addShaderSrc(
         vertShader,

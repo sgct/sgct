@@ -12,7 +12,7 @@
 namespace sgct::core::shaders {
 
 constexpr const char* SphericalProjectionVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 Position;
   layout (location = 1) in vec2 TexCoords;
@@ -31,7 +31,7 @@ constexpr const char* SphericalProjectionVert = R"(
 )";
 
 constexpr const char* SphericalProjectionFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;

@@ -680,12 +680,6 @@ void SpoutOutputProjection::initShaders() {
         std::string depthCorrFrag = shaders_fisheye::BaseVert;
         std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
-        //replace glsl version
-        helpers::findAndReplace(
-            depthCorrFrag,
-            "**glsl_version**",
-            Engine::instance()->getGLSLVersion()
-        );
         bool fragShader = _depthCorrectionShader.addShaderSrc(
             depthCorrFrag,
             GL_VERTEX_SHADER,
@@ -697,11 +691,6 @@ void SpoutOutputProjection::initShaders() {
             );
         }
 
-        helpers::findAndReplace(
-            depthCorrVert,
-            "**glsl_version**",
-            Engine::instance()->getGLSLVersion()
-        );
         bool vertShader = _depthCorrectionShader.addShaderSrc(
             depthCorrVert,
             GL_FRAGMENT_SHADER,
@@ -764,18 +753,6 @@ void SpoutOutputProjection::initShaders() {
 
     // replace add correct transform in the fragment shader
     helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
-
-    // replace glsl version
-    helpers::findAndReplace(
-        fisheyeVertShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
-    helpers::findAndReplace(
-        fisheyeFragShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
 
     // replace color
     std::stringstream ssColor;

@@ -111,7 +111,7 @@ namespace {
             }
         }
     }
-#endif SGCT_HAS_VRPN
+#endif // SGCT_HAS_VRPN
 } // namespace
 
 namespace sgct {

@@ -25,7 +25,7 @@ namespace {
     std::string SystemFontPath;
 
     constexpr const char* FontVertShader = R"(
-**glsl_version**
+#version 330 core
 layout (location = 0) in vec2 TexCoord;
 layout (location = 1) in vec2 Position;
 
@@ -38,7 +38,7 @@ void main() {
 })";
 
     constexpr const char* FontFragShader = R"(
-**glsl_version**
+#version 330 core
 uniform vec4 col;
 uniform vec4 strokeCol;
 uniform sampler2D tex;
@@ -201,18 +201,6 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         _shader.setName("FontShader");
         std::string vertShader = FontVertShader;
         std::string fragShader = FontFragShader;
-
-        // replace glsl version
-        helpers::findAndReplace(
-            vertShader,
-            "**glsl_version**",
-            Engine::instance()->getGLSLVersion()
-        );
-        helpers::findAndReplace(
-            fragShader,
-            "**glsl_version**",
-            Engine::instance()->getGLSLVersion()
-        );
 
         const bool vert = _shader.addShaderSrc(
             vertShader,

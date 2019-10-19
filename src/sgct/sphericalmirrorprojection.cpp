@@ -333,18 +333,6 @@ void SphericalMirrorProjection::initShaders() {
     std::string sphericalMirrorVertexShader = core::shaders::SphericalProjectionVert;
     std::string sphericalMirrorFragmentShader = core::shaders::SphericalProjectionFrag;
 
-    // replace glsl version
-    helpers::findAndReplace(
-        sphericalMirrorVertexShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
-    helpers::findAndReplace(
-        sphericalMirrorFragmentShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
-
     bool vertShader = _shader.addShaderSrc(
         sphericalMirrorVertexShader,
         GL_VERTEX_SHADER,

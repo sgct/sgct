@@ -12,7 +12,7 @@
 namespace sgct::core::shaders {
 
 constexpr const char* BaseVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 Position;
   layout (location = 1) in vec2 TexCoords;
@@ -29,7 +29,7 @@ constexpr const char* BaseVert = R"(
 )";
 
 constexpr const char* BaseFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -43,7 +43,7 @@ constexpr const char* BaseFrag = R"(
 )";
 
 constexpr const char* OverlayVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 TexCoords;
   layout (location = 1) in vec3 Position;
@@ -57,7 +57,7 @@ constexpr const char* OverlayVert = R"(
 )";
 
 constexpr const char* OverlayFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 Color;
@@ -70,7 +70,7 @@ constexpr const char* OverlayFrag = R"(
 )";
 
 constexpr const char* AnaglyphVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 Position;
   layout (location = 1) in vec2 TexCoords;
@@ -87,7 +87,7 @@ constexpr const char* AnaglyphVert = R"(
 )";
 
 constexpr const char* AnaglyphRedCyanFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -107,7 +107,7 @@ constexpr const char* AnaglyphRedCyanFrag = R"(
 )";
 
 constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -130,7 +130,7 @@ constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
 )";
 
 constexpr const char* AnaglyphAmberBlueFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -149,7 +149,7 @@ constexpr const char* AnaglyphAmberBlueFrag = R"(
 )";
 
 constexpr const char* CheckerBoardFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -170,7 +170,7 @@ constexpr const char* CheckerBoardFrag = R"(
 )";
 
 constexpr const char* CheckerBoardInvertedFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -191,7 +191,7 @@ constexpr const char* CheckerBoardInvertedFrag = R"(
 )";
 
 constexpr const char* VerticalInterlacedFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -212,7 +212,7 @@ constexpr const char* VerticalInterlacedFrag = R"(
 )";
 
 constexpr const char* VerticalInterlacedInvertedFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -233,7 +233,7 @@ constexpr const char* VerticalInterlacedInvertedFrag = R"(
 )";
 
 constexpr const char* SBSFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -253,7 +253,7 @@ constexpr const char* SBSFrag = R"(
 )";
 
 constexpr const char* SBSInvertedFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -273,7 +273,7 @@ constexpr const char* SBSInvertedFrag = R"(
 )";
 
 constexpr const char* TBFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -293,7 +293,7 @@ constexpr const char* TBFrag = R"(
 )";
 
 constexpr const char* TBInvertedFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -313,7 +313,7 @@ constexpr const char* TBInvertedFrag = R"(
 )";
 
 constexpr const char* DummyStereoFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   in vec4 Col;
@@ -328,7 +328,7 @@ constexpr const char* DummyStereoFrag = R"(
 )";
 
 constexpr const char* FXAAVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 TexCoords;
   layout (location = 1) in vec3 Position;
@@ -352,7 +352,7 @@ constexpr const char* FXAAVert = R"(
 )";
 
 constexpr const char* FXAAFrag = R"(
-  **glsl_version**
+  #version 330 core
 /* 
   FXAA_EDGE_THRESHOLD 
   The minimum amount of local contrast required to apply algorithm. 

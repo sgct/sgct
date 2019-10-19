@@ -64,7 +64,7 @@ constexpr const char* SampleOffsetFun = R"(
 )";
    
 constexpr const char* BaseVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 TexCoords;
   layout (location = 1) in vec3 Position;
@@ -78,7 +78,7 @@ constexpr const char* BaseVert = R"(
 )";
 
 constexpr const char* FisheyeVert = R"(
-  **glsl_version**
+  #version 330 core
 
   layout (location = 0) in vec2 TexCoords;
   layout (location = 1) in vec3 Position;
@@ -92,7 +92,7 @@ constexpr const char* FisheyeVert = R"(
 )";
 
 constexpr const char* FisheyeFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 diffuse;
@@ -109,7 +109,7 @@ constexpr const char* FisheyeFrag = R"(
 )";
 
 constexpr const char* FisheyeFragNormal = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -142,7 +142,7 @@ constexpr const char* FisheyeFragNormal = R"(
 )";
 
 constexpr const char* FisheyeFragPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -175,7 +175,7 @@ constexpr const char* FisheyeFragPosition = R"(
 )";
 
 constexpr const char* FisheyeFragNormalPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -212,7 +212,7 @@ constexpr const char* FisheyeFragNormalPosition = R"(
 )";
 
 constexpr const char* FisheyeFragDepth = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 diffuse;
@@ -244,7 +244,7 @@ constexpr const char* FisheyeFragDepth = R"(
 )";
 
 constexpr const char* FisheyeFragDepthNormal = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -280,7 +280,7 @@ constexpr const char* FisheyeFragDepthNormal = R"(
 )";
 
 constexpr const char* FisheyeFragDepthPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -316,7 +316,7 @@ constexpr const char* FisheyeFragDepthPosition = R"(
 )";
 
 constexpr const char* FisheyeFragDepthNormalPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -356,7 +356,7 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxis = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 diffuse;
@@ -374,7 +374,7 @@ constexpr const char* FisheyeFragOffAxis = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisNormal = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -408,7 +408,7 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -442,7 +442,7 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -480,7 +480,7 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisDepth = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 diffuse;
@@ -513,7 +513,7 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -550,7 +550,7 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -587,7 +587,7 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
 )";
 
 constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   layout(location = 0) out vec4 diffuse;
@@ -628,7 +628,7 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
 )";
 
 constexpr const char* FisheyeDepthCorrectionFrag = R"(
-  **glsl_version**
+  #version 330 core
 
   in vec2 UV;
   out vec4 Color;

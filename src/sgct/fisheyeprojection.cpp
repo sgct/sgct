@@ -691,11 +691,6 @@ void FisheyeProjection::initShaders() {
         std::string depthCorrFragShader = shaders_fisheye::BaseVert;
         std::string depthCorrVertShader = shaders_fisheye::FisheyeDepthCorrectionFrag;
 
-        const std::string& glsl = Engine::instance()->getGLSLVersion();
-        // replace glsl version
-        helpers::findAndReplace(depthCorrFragShader, "**glsl_version**", glsl);
-        helpers::findAndReplace(depthCorrVertShader, "**glsl_version**", glsl);
-
         bool depthCorrFrag = _depthCorrectionShader.addShaderSrc(
             depthCorrFragShader,
             GL_VERTEX_SHADER,
@@ -784,18 +779,6 @@ void FisheyeProjection::initShaders() {
             "angle45Factor*x + angle45Factor*y, z)"
         );
     }
-
-    // replace glsl version
-    helpers::findAndReplace(
-        fisheyeVertexShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
-    helpers::findAndReplace(
-        fisheyeFragmentShader,
-        "**glsl_version**",
-        Engine::instance()->getGLSLVersion()
-    );
 
     // replace color
     std::stringstream ssColor;

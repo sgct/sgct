@@ -21,14 +21,14 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
     _name = std::move(name);
     _shaderProgram.setName(_name);
 
-    if (!_shaderProgram.addShaderSrc(vertShaderSrc, GL_VERTEX_SHADER)) {
+    if (!_shaderProgram.addShaderSource(vertShaderSrc, GL_VERTEX_SHADER)) {
         MessageHandler::printError(
             "PostFX: Pass '%s' failed to load or set vertex shader", _name.c_str()
         );
         return false;
     }
 
-    if (!_shaderProgram.addShaderSrc(fragShaderSrc, GL_FRAGMENT_SHADER)) {
+    if (!_shaderProgram.addShaderSource(fragShaderSrc, GL_FRAGMENT_SHADER)) {
         MessageHandler::printError(
             "PostFX: Pass '%s' failed to load or set fragment shader", _name.c_str()
         );

@@ -688,11 +688,8 @@ void FisheyeProjection::initShaders() {
 
     // depth correction shader only
     if (Settings::instance()->useDepthTexture()) {
-        std::string depthCorrFragShader = shaders_fisheye::BaseVert;
-        std::string depthCorrVertShader = shaders_fisheye::FisheyeDepthCorrectionFrag;
-
-        bool depthCorrFrag = _depthCorrectionShader.addShaderSrc(
-            depthCorrFragShader,
+        bool depthCorrFrag = _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::BaseVert,
             GL_VERTEX_SHADER
         );
         if (!depthCorrFrag) {
@@ -700,8 +697,8 @@ void FisheyeProjection::initShaders() {
                 "Failed to load fisheye depth correction vertex shader"
             );
         }
-        bool depthCorrVert = _depthCorrectionShader.addShaderSrc(
-            depthCorrVertShader,
+        bool depthCorrVert = _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::FisheyeDepthCorrectionFrag,
             GL_FRAGMENT_SHADER
         );
         if (!depthCorrVert) {
@@ -785,7 +782,7 @@ void FisheyeProjection::initShaders() {
             << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
-    bool fisheyeVertex = _shader.addShaderSrc(
+    bool fisheyeVertex = _shader.addShaderSource(
         fisheyeVertexShader,
         GL_VERTEX_SHADER
     );
@@ -794,7 +791,7 @@ void FisheyeProjection::initShaders() {
             "Failed to load fisheye vertex shader: %s", fisheyeVertexShader.c_str()
         );
     }
-    bool fisheyeFragment = _shader.addShaderSrc(
+    bool fisheyeFragment = _shader.addShaderSource(
         fisheyeFragmentShader,
         GL_FRAGMENT_SHADER
     );

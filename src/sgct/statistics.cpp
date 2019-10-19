@@ -162,11 +162,11 @@ void Statistics::initVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     _shader.setName("StatsShader");
-    bool vert = _shader.addShaderSrc(StatsVertShader, GL_VERTEX_SHADER);
+    bool vert = _shader.addShaderSource(StatsVertShader, GL_VERTEX_SHADER);
     if (!vert) {
         MessageHandler::printError("Failed to load statistics vertex shader");
     }
-    bool frag = _shader.addShaderSrc(StatsFragShader, GL_FRAGMENT_SHADER);
+    bool frag = _shader.addShaderSource(StatsFragShader, GL_FRAGMENT_SHADER);
     if (!frag) {
         MessageHandler::printError("Failed to load statistics fragment shader");
     }

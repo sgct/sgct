@@ -31,7 +31,7 @@ void ShaderProgram::setName(std::string name) {
     _name = std::move(name);
 }
 
-bool ShaderProgram::addShaderSrc(std::string src, core::Shader::ShaderType type) {
+bool ShaderProgram::addShaderSource(std::string src, core::Shader::ShaderType type) {
     core::ShaderData sd;
     sd.shader.setShaderType(type);
     sd.source = std::move(src);

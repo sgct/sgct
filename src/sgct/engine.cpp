@@ -1763,19 +1763,16 @@ void Engine::updateRenderingTargets(TextureIndexes ti) {
 
 void Engine::loadShaders() {
     _shader.fxaa.setName("FXAAShader");
-    std::string fxaaVertShader = core::shaders::FXAAVert;
-    std::string fxaaFragShader = core::shaders::FXAAFrag;
-
-    const bool fxaaVertSuccess = _shader.fxaa.addShaderSrc(
-        fxaaVertShader,
+    const bool fxaaVertSuccess = _shader.fxaa.addShaderSource(
+        core::shaders::FXAAVert,
         GL_VERTEX_SHADER
     );
     if (!fxaaVertSuccess) {
         MessageHandler::printError("Failed to load FXAA vertex shader");
     }
 
-    const bool fxaaFragSuccess = _shader.fxaa.addShaderSrc(
-        fxaaFragShader,
+    const bool fxaaFragSuccess = _shader.fxaa.addShaderSource(
+        core::shaders::FXAAFrag,
         GL_FRAGMENT_SHADER
     );
     if (!fxaaFragSuccess) {
@@ -1802,19 +1799,16 @@ void Engine::loadShaders() {
     ShaderProgram::unbind();
 
     // Used for overlays & mono.
-    std::string fboQuadVertShader = core::shaders::BaseVert;
-    std::string fboQuadFragShader = core::shaders::BaseFrag;
-
     _shader.fboQuad.setName("FBOQuadShader");
-    const bool quadVertSuccess = _shader.fboQuad.addShaderSrc(
-        fboQuadVertShader,
+    const bool quadVertSuccess = _shader.fboQuad.addShaderSource(
+        core::shaders::BaseVert,
         GL_VERTEX_SHADER
     );
     if (!quadVertSuccess) {
         MessageHandler::printError("Failed to load FBO quad vertex shader");
     }
-    const bool quadFragSuccess = _shader.fboQuad.addShaderSrc(
-        fboQuadFragShader,
+    const bool quadFragSuccess = _shader.fboQuad.addShaderSource(
+        core::shaders::BaseFrag,
         GL_FRAGMENT_SHADER
     );
     if (!quadFragSuccess) {
@@ -1826,19 +1820,16 @@ void Engine::loadShaders() {
     glUniform1i(_shaderLoc.monoTex, 0);
     ShaderProgram::unbind();
 
-    std::string overlayVertShader = core::shaders::OverlayVert;
-    std::string overlayFragShader = core::shaders::OverlayFrag;
-
     _shader.overlay.setName("OverlayShader");
-    const bool overlayVertSuccess = _shader.overlay.addShaderSrc(
-        overlayVertShader,
+    const bool overlayVertSuccess = _shader.overlay.addShaderSource(
+        core::shaders::OverlayVert,
         GL_VERTEX_SHADER
     );
     if (!overlayVertSuccess) {
         MessageHandler::printError("Failed to load overlay vertex shader");
     }
-    const bool overlayFragSuccess = _shader.overlay.addShaderSrc(
-        overlayFragShader,
+    const bool overlayFragSuccess = _shader.overlay.addShaderSource(
+        core::shaders::OverlayFrag,
         GL_FRAGMENT_SHADER
     );
     if (!overlayFragSuccess) {

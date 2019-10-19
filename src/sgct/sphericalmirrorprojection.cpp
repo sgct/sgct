@@ -333,14 +333,17 @@ void SphericalMirrorProjection::initShaders() {
     std::string sphericalMirrorVertexShader = core::shaders::SphericalProjectionVert;
     std::string sphericalMirrorFragmentShader = core::shaders::SphericalProjectionFrag;
 
-    bool vertShader = _shader.addShaderSrc(sphericalMirrorVertexShader, GL_VERTEX_SHADER);
+    bool vertShader = _shader.addShaderSource(
+        sphericalMirrorVertexShader,
+        GL_VERTEX_SHADER
+    );
     if (!vertShader) {
         MessageHandler::printError(
             "Failed to load spherical mirror vertex shader: %s",
             sphericalMirrorVertexShader.c_str()
         );
     }
-    bool fragShader = _shader.addShaderSrc(
+    bool fragShader = _shader.addShaderSource(
         sphericalMirrorFragmentShader,
         GL_FRAGMENT_SHADER
     );

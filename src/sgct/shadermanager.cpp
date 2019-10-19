@@ -71,12 +71,12 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
+    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
+    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -109,12 +109,12 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
 
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
+    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
+    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -146,17 +146,17 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
+    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
+    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
 
-    if (!sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER)) {
+    if (!sp.addShaderSource(geometrySrc, GL_GEOMETRY_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -191,17 +191,17 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
+    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
+    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
 
-    if( !sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER)) {
+    if( !sp.addShaderSource(geometrySrc, GL_GEOMETRY_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }

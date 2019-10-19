@@ -677,11 +677,8 @@ void SpoutOutputProjection::initShaders() {
 
     //depth correction shader only
     if (Settings::instance()->useDepthTexture()) {
-        std::string depthCorrFrag = shaders_fisheye::BaseVert;
-        std::string depthCorrVert = shaders_fisheye::FisheyeDepthCorrectionFrag;
-
-        bool fragShader = _depthCorrectionShader.addShaderSrc(
-            depthCorrFrag,
+        bool fragShader = _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::FisheyeDepthCorrectionFrag,
             GL_VERTEX_SHADER
         );
         if (!fragShader) {
@@ -690,8 +687,8 @@ void SpoutOutputProjection::initShaders() {
             );
         }
 
-        bool vertShader = _depthCorrectionShader.addShaderSrc(
-            depthCorrVert,
+        bool vertShader = _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::BaseVert,
             GL_FRAGMENT_SHADER
         );
         if (!vertShader) {
@@ -759,13 +756,13 @@ void SpoutOutputProjection::initShaders() {
             << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
 
-    bool vertShader = _shader.addShaderSrc(fisheyeVertShader, GL_VERTEX_SHADER);
+    bool vertShader = _shader.addShaderSource(fisheyeVertShader, GL_VERTEX_SHADER);
     if (!vertShader) {
         MessageHandler::printError(
             "Failed to load fisheye vertex shader: %s", fisheyeVertShader.c_str()
         );
     }
-    bool fragShader = _shader.addShaderSrc(fisheyeFragShader, GL_FRAGMENT_SHADER);
+    bool fragShader = _shader.addShaderSource(fisheyeFragShader, GL_FRAGMENT_SHADER);
     if (!fragShader) {
         MessageHandler::printError(
             "Failed to load fisheye fragment shader %s", fisheyeFragShader.c_str()

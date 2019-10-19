@@ -130,9 +130,8 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         const double z = static_cast<double>(viewData.qz);
         const double w = static_cast<double>(viewData.qw);
         
-        // @TODO (abock, 2019-08-30): It seems weird that we are mixing the euler angles
-        // from x,y,z to y,x,z. Maybe something related to left-handed and right-handed
-        // coordinate systems?
+        // Switching the Euler angles to switch from a right-handed coordinate system to
+        // a left-handed one
         glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
         yaw = -angles.x;
         pitch = angles.y;

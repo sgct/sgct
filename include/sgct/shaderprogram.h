@@ -56,7 +56,7 @@ public:
      *
      * \return Whether the source code was set correctly or not
      */
-    bool addShaderSrc(std::string src, core::Shader::ShaderType type);
+    bool addShaderSource(std::string src, core::Shader::ShaderType type);
 
     /**
      * Will create the program and link the shaders. The shader sources must have been set

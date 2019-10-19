@@ -176,20 +176,7 @@ void drawFun() {
     wchar_t str5[] = L"한자"; // Korean string
     wchar_t str6[] = L"बईबईसई"; // Hindi string
 
-    // @TODO (abock, 2019-10-13) This all does not seem to work very well
-    // anymore on Mac
-    
     text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
-
-    // test
-    glm::mat4 texMVP = glm::ortho(-1.f, 1.f, -1.f, 1.f);
-    texMVP = glm::scale(texMVP, glm::vec3(0.1f));
-    texMVP = glm::rotate(
-        texMVP,
-        static_cast<float>(currentTime.getVal()),
-        glm::vec3(0.f, 1.f, 0.f)
-    );
-
     text::print(
         *text::FontManager::instance()->getFont("SGCTFont", 32),
         text::TextAlignMode::TopRight,

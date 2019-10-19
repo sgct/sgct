@@ -11,6 +11,7 @@
 
 #include <sgct/shaderprogram.h>
 #include <glm/glm.hpp>
+#include <functional>
 
 namespace sgct {
 
@@ -20,13 +21,12 @@ namespace sgct {
 class PostFX {
 public:
     /// \returns true if shader and output/target texture created successfully
-    bool init(std::string name, const std::string& vertShaderSrc,
-        const std::string& fragShaderSrc);
-    void destroy();
+    PostFX(std::string name, const std::string& vertShaderSrc,
+        const std::string& fragShaderSrc, std::function<void()>);
+    ~PostFX();
 
     /// Render this pass
     void render();
-    void setUpdateUniformsFunction(void(*fnPtr)());
     void setInputTexture(unsigned int inputTex);
     void setOutputTexture(unsigned int outputTex);
     
@@ -37,24 +37,18 @@ public:
     unsigned int getInputTexture() const;
     
     /// \returns the shader pointer
-    ShaderProgram& getShaderProgram();
-
-    /// \returns the shader pointer
     const ShaderProgram& getShaderProgram() const;
     
     /// \returns name of this post effect pass
     const std::string& getName() const;
 
 private:
-    void internalRender();
-
-    void (*_updateFn)() = nullptr;
-    void (PostFX::*_renderFn)() = nullptr;
+    const std::function<void()> _updateFunction;
 
     ShaderProgram _shaderProgram;
     unsigned int _inputTexture = 0;
     unsigned int _outputTexture = 0;
-    
+
     glm::ivec2 _size = glm::ivec2(1, 1);
     std::string _name;
     inline static bool _deleted = false;

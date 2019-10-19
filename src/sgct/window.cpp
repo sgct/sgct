@@ -315,9 +315,6 @@ bool Window::isIconified() const {
 void Window::close() {
     makeOpenGLContextCurrent(Context::Shared);
 
-    for (PostFX& pfx : _postFXPasses) {
-        pfx.destroy();
-    }
     _postFXPasses.clear();
 
     MessageHandler::printInfo("Deleting screen capture data for window %d", _id);

@@ -32,39 +32,15 @@ namespace {
 
 using namespace sgct;
 
-void updatePass1() {
-    glUniform1i(postFXTextureLocation.pass1, 0);
-}
-
-void updatePass2() {
-    glUniform1i(postFXTextureLocation.pass2, 0);
-    glUniform1f(
-        sizeLocation.pass2,
-        static_cast<float>(gEngine->getCurrentResolution().x)
-    );
-}
-
-void updatePass3() {
-    glUniform1i(postFXTextureLocation.pass3, 0);
-    glUniform1f(
-        sizeLocation.pass3,
-        static_cast<float>(gEngine->getCurrentResolution().y)
-    );
-}
-
-void updatePass4() {
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture());
-    glUniform1i(postFXTextureLocation.pass4, 0);
-    glUniform1i(originalTextureLocation, 1);
-}
-
 void setupPostFXs() {
     {
-        PostFX fx;
-        fx.init("Threshold", "base.vert", "threshold.frag");
-        fx.setUpdateUniformsFunction(updatePass1);
-        ShaderProgram& sp = fx.getShaderProgram();
+        PostFX fx(
+            "Threshold",
+            "base.vert",
+            "threshold.frag",
+            [](){ glUniform1i(postFXTextureLocation.pass1, 0); }
+        );
+        const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
         postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
@@ -73,10 +49,19 @@ void setupPostFXs() {
     }
 
     {
-        PostFX fx;
-        fx.init("HBlur", "blur_h.vert", "blur.frag");
-        fx.setUpdateUniformsFunction(updatePass2);
-        ShaderProgram& sp = fx.getShaderProgram();
+        PostFX fx(
+            "HBlur",
+            "blur_h.vert",
+            "blur.frag",
+            [](){
+                glUniform1i(postFXTextureLocation.pass2, 0);
+                glUniform1f(
+                    sizeLocation.pass2,
+                    static_cast<float>(gEngine->getCurrentResolution().x)
+                );
+            }
+        );
+        const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
         postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
         sizeLocation.pass2 = sp.getUniformLocation("size");
@@ -85,10 +70,19 @@ void setupPostFXs() {
     }
 
     {
-        PostFX fx;
-        fx.init("VBlur", "blur_v.vert", "blur.frag");
-        fx.setUpdateUniformsFunction(updatePass3);
-        ShaderProgram& sp = fx.getShaderProgram();
+        PostFX fx(
+            "VBlur",
+            "blur_v.vert",
+            "blur.frag",
+            [](){
+                glUniform1i(postFXTextureLocation.pass3, 0);
+                glUniform1f(
+                    sizeLocation.pass3,
+                    static_cast<float>(gEngine->getCurrentResolution().y)
+                );
+            }
+        );
+        const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
         postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
         sizeLocation.pass3 = sp.getUniformLocation("size");
@@ -97,10 +91,18 @@ void setupPostFXs() {
     }
 
     {
-        PostFX fx;
-        fx.init("Glow", "base.vert", "glow.frag");
-        fx.setUpdateUniformsFunction(updatePass4);
-        ShaderProgram& sp = fx.getShaderProgram();
+        PostFX fx(
+            "Glow",
+            "base.vert",
+            "glow.frag",
+            [](){
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture());
+                glUniform1i(postFXTextureLocation.pass4, 0);
+                glUniform1i(originalTextureLocation, 1);
+            }
+        );
+        const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
         postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
@@ -159,10 +161,7 @@ void initOGLFun() {
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
 
-    box = std::make_unique<sgct::utils::Box>(
-        2.f,
-        sgct::utils::Box::TextureMappingMode::Regular
-    );
+    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);

@@ -15,47 +15,48 @@
 
 namespace sgct {
 
-bool PostFX::init(std::string name, const std::string& vertShaderSrc,
-                  const std::string& fragShaderSrc)
+PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
+               const std::string& fragShaderSrc, std::function<void()> updateFunction)
+    : _name(std::move(name))
+    , _updateFunction(std::move(updateFunction))
 {
-    _name = std::move(name);
     _shaderProgram.setName(_name);
     _shaderProgram.addShaderSource(vertShaderSrc, fragShaderSrc);
     if (!_shaderProgram.createAndLinkProgram()) {
-        MessageHandler::printError(
-            "PostFX: Pass '%s' failed to link shader", _name.c_str()
-        );
-        return false;
+        MessageHandler::printError("PostFX '%s' failed to link shader", _name.c_str());
     }
-
-    // @TODO (abock, 2019-10-19) Do we still need the _renderFn or can we get rid of it?
-    _renderFn = &PostFX::internalRender;
-
-    return true;
 }
 
-void PostFX::destroy() {
-    MessageHandler::printInfo(
-        "PostFX: Pass '%s' destroying shader and texture", _name.c_str()
-    );
-
-    _renderFn = nullptr;
-    _updateFn = nullptr;
-
-    if (!_deleted) {
-        _shaderProgram.deleteProgram();
-        _deleted = true;
-    }
+PostFX::~PostFX() {
+    _shaderProgram.deleteProgram();
 }
 
 void PostFX::render() {
-    if (_renderFn) {
-        (this->*_renderFn)();
-    }
-}
+    Window& win = core::ClusterManager::instance()->getThisNode().getCurrentWindow();
 
-void PostFX::setUpdateUniformsFunction(void(*fnPtr)()) {
-    _updateFn = fnPtr;
+    // bind target FBO
+    win.getFBO()->attachColorTexture(_outputTexture);
+
+    _size = win.getFramebufferResolution();
+
+    glViewport(0, 0, _size.x, _size.y);
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _inputTexture);
+
+    _shaderProgram.bind();
+
+    if (_updateFunction) {
+        _updateFunction();
+    }
+
+    win.bindVAO();
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    win.unbindVAO();
+
+    ShaderProgram::unbind();
 }
 
 void PostFX::setInputTexture(unsigned int inputTex) {
@@ -74,44 +75,12 @@ unsigned int PostFX::getInputTexture() const {
     return _inputTexture;
 }
 
-ShaderProgram& PostFX::getShaderProgram() {
-    return _shaderProgram;
-}
-
 const ShaderProgram& PostFX::getShaderProgram() const {
     return _shaderProgram;
 }
 
 const std::string& PostFX::getName() const {
     return _name;
-}
-
-void PostFX::internalRender() {
-    Window& win = core::ClusterManager::instance()->getThisNode().getCurrentWindow();
-
-    // bind target FBO
-    win.getFBO()->attachColorTexture(_outputTexture);
-
-    _size = win.getFramebufferResolution();
-
-    glViewport(0, 0, _size.x, _size.y);
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _inputTexture);
-
-    _shaderProgram.bind();
-
-    if (_updateFn) {
-        _updateFn();
-    }
-
-    win.bindVAO();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    win.unbindVAO();
-
-    ShaderProgram::unbind();
 }
 
 } // namespace sgct

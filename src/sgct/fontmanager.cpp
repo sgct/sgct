@@ -199,14 +199,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     static bool isShaderCreated = false;
     if (!isShaderCreated) {
         _shader.setName("FontShader");
-        const bool vert = _shader.addShaderSource(FontVertShader, GL_VERTEX_SHADER);
-        if (!vert) {
-            MessageHandler::printError("Failed to load font vertex shader");
-        }
-        const bool frag = _shader.addShaderSource(FontFragShader, GL_FRAGMENT_SHADER);
-        if (!frag) {
-            MessageHandler::printError("Failed to load font fragment shader");
-        }
+        _shader.addShaderSource(FontVertShader, FontFragShader);
         _shader.createAndLinkProgram();
         _shader.bind();
 

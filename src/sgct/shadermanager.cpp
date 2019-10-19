@@ -56,6 +56,8 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     return true;
 }
 
+// @TODO (abock, 2019-10-19) Remove this and replace with a function that just adds an
+// existing program to the manager
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      const std::string& vertexSrc,
                                      const std::string& fragmentSrc)

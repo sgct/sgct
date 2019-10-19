@@ -44,6 +44,21 @@ bool ShaderProgram::addShaderSource(std::string src, core::Shader::ShaderType ty
     return success;
 }
 
+void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
+    const bool v = addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
+    const bool f = addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
+
+    if (v && !f) {
+        throw std::runtime_error("Failed to load fragment shader");
+    }
+    else if (!v && f) {
+        throw std::runtime_error("Failed to load vertex shader");
+    }
+    else if (!v && !f) {
+        throw std::runtime_error("Failed to load vertex and fragment shader");
+    }
+}
+
 int ShaderProgram::getAttribLocation(const std::string& name) const {
     return glGetAttribLocation(_programId, name.c_str());
 }

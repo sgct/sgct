@@ -59,6 +59,17 @@ public:
     bool addShaderSource(std::string src, core::Shader::ShaderType type);
 
     /**
+     * Creates and adds a vertex and a fragment shader and adds them to this shader
+     * program.
+     * 
+     * \param vertexSrc Source text for the vertex program
+     * \param fragmentSrc Source text for the fragment program
+     *
+     * \throws std::runtime_error If the adding of the shaders failed
+     */
+    void addShaderSource(std::string vertexSrc, std::string fragmentSrc);
+
+    /**
      * Will create the program and link the shaders. The shader sources must have been set
      * before the program can be linked. After the program is created and linked no
      * modification to the shader sources can be made.

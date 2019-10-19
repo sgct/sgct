@@ -330,29 +330,10 @@ void SphericalMirrorProjection::initShaders() {
         _shader.deleteProgram();
     }
 
-    std::string sphericalMirrorVertexShader = core::shaders::SphericalProjectionVert;
-    std::string sphericalMirrorFragmentShader = core::shaders::SphericalProjectionFrag;
-
-    bool vertShader = _shader.addShaderSource(
-        sphericalMirrorVertexShader,
-        GL_VERTEX_SHADER
+    _shader.addShaderSource(
+        core::shaders::SphericalProjectionVert,
+        core::shaders::SphericalProjectionFrag
     );
-    if (!vertShader) {
-        MessageHandler::printError(
-            "Failed to load spherical mirror vertex shader: %s",
-            sphericalMirrorVertexShader.c_str()
-        );
-    }
-    bool fragShader = _shader.addShaderSource(
-        sphericalMirrorFragmentShader,
-        GL_FRAGMENT_SHADER
-    );
-    if (!fragShader) {
-        MessageHandler::printError(
-            "Failed to load spherical mirror fragment shader: %s",
-            sphericalMirrorFragmentShader.c_str()
-        );
-    }
     _shader.setName("SphericalMirrorShader");
     _shader.createAndLinkProgram();
     _shader.bind();

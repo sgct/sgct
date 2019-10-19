@@ -173,7 +173,11 @@ namespace {
 
         // setup geometry data
         ffd.pos.x = static_cast<float>(gd.bitmapGlyph->left);
-        ffd.pos.y = static_cast<float>(gd.bitmapGlyph->top - gd.bitmap->rows);
+        // abock (2010-10-19) Don't remove this variable;  if the expression is directly
+        // inserted in the static_cast, something goes wrong when rows > top and things
+        // // get wrongly converted into unsigned integer type before the cast
+        const int y = gd.bitmapGlyph->top - gd.bitmap->rows;
+        ffd.pos.y = static_cast<float>(y);
         ffd.size.x = static_cast<float>(width);
         ffd.size.y = static_cast<float>(height);
 

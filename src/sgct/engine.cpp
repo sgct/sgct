@@ -1763,21 +1763,7 @@ void Engine::updateRenderingTargets(TextureIndexes ti) {
 
 void Engine::loadShaders() {
     _shader.fxaa.setName("FXAAShader");
-    const bool fxaaVertSuccess = _shader.fxaa.addShaderSource(
-        core::shaders::FXAAVert,
-        GL_VERTEX_SHADER
-    );
-    if (!fxaaVertSuccess) {
-        MessageHandler::printError("Failed to load FXAA vertex shader");
-    }
-
-    const bool fxaaFragSuccess = _shader.fxaa.addShaderSource(
-        core::shaders::FXAAFrag,
-        GL_FRAGMENT_SHADER
-    );
-    if (!fxaaFragSuccess) {
-        MessageHandler::printError("Failed to load FXAA fragment shader");
-    }
+    _shader.fxaa.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
     _shader.fxaa.createAndLinkProgram();
     _shader.fxaa.bind();
 
@@ -1800,20 +1786,7 @@ void Engine::loadShaders() {
 
     // Used for overlays & mono.
     _shader.fboQuad.setName("FBOQuadShader");
-    const bool quadVertSuccess = _shader.fboQuad.addShaderSource(
-        core::shaders::BaseVert,
-        GL_VERTEX_SHADER
-    );
-    if (!quadVertSuccess) {
-        MessageHandler::printError("Failed to load FBO quad vertex shader");
-    }
-    const bool quadFragSuccess = _shader.fboQuad.addShaderSource(
-        core::shaders::BaseFrag,
-        GL_FRAGMENT_SHADER
-    );
-    if (!quadFragSuccess) {
-        MessageHandler::printError("Failed to load FBO quad fragment shader");
-    }
+    _shader.fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
     _shader.fboQuad.createAndLinkProgram();
     _shader.fboQuad.bind();
     _shaderLoc.monoTex = _shader.fboQuad.getUniformLocation("Tex");
@@ -1821,20 +1794,10 @@ void Engine::loadShaders() {
     ShaderProgram::unbind();
 
     _shader.overlay.setName("OverlayShader");
-    const bool overlayVertSuccess = _shader.overlay.addShaderSource(
+    _shader.overlay.addShaderSource(
         core::shaders::OverlayVert,
-        GL_VERTEX_SHADER
+        core::shaders::OverlayFrag
     );
-    if (!overlayVertSuccess) {
-        MessageHandler::printError("Failed to load overlay vertex shader");
-    }
-    const bool overlayFragSuccess = _shader.overlay.addShaderSource(
-        core::shaders::OverlayFrag,
-        GL_FRAGMENT_SHADER
-    );
-    if (!overlayFragSuccess) {
-        MessageHandler::printError("Failed to load overlay fragment shader");
-    }
     _shader.overlay.createAndLinkProgram();
     _shader.overlay.bind();
     _shaderLoc.overlayTex = _shader.overlay.getUniformLocation("Tex");

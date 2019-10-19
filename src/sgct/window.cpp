@@ -1308,23 +1308,8 @@ void Window::loadShaders() {
         }
     }(_stereoMode);
 
-    const bool vertShader = _stereo.shader.addShaderSource(
-        stereoVertShader,
-        GL_VERTEX_SHADER
-    );
-    if (!vertShader) {
-        MessageHandler::printError("Failed to load stereo vertex shader");
-    }
-
-    const bool fragShader = _stereo.shader.addShaderSource(
-        stereoFragShader,
-        GL_FRAGMENT_SHADER
-    );
-    if (!fragShader) {
-        MessageHandler::printError("Failed to load stereo fragment shader");
-    }
-
     _stereo.shader.setName("StereoShader");
+    _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();
     _stereo.mvpLoc = _stereo.shader.getUniformLocation("MVP");

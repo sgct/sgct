@@ -140,7 +140,6 @@ void drawFun() {
 #ifdef SGCT_HAS_TEXT
     float xPos = gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f;
 
-    glColor3f(1.f, 1.f, 0.f);
     if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoLeftEye) {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 32),

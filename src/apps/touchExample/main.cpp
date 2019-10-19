@@ -284,8 +284,7 @@ void initOGLFun() {
     sm.addShaderProgram(
         "gridShader",
         gridVertexShader,
-        gridFragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        gridFragmentShader
     );
     sm.bindShaderProgram("gridShader");
     grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("mvp");
@@ -294,8 +293,7 @@ void initOGLFun() {
     sm.addShaderProgram(
         "pyramidShader",
         pyramidVertexShader,
-        pyramidFragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        pyramidFragmentShader
     );
     sm.bindShaderProgram("pyramidShader");
     pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("mvp");

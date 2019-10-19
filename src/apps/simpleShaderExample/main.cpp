@@ -64,12 +64,7 @@ void initFun() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
  

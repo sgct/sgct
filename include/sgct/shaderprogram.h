@@ -23,9 +23,6 @@ namespace sgct {
 */
 class ShaderProgram {
 public:
-    /// If shader source should be loaded from file or read as is
-    enum class ShaderSourceType { File, String };
-
     /**
      * Default only sets the program name.Shaders objects won't be created until any
      * shader source code is set. The program will be created when the createAndLink()
@@ -50,19 +47,16 @@ public:
     void setName(std::string name);
 
     /**
-     * Will add a shader to the program.
+     * Will create and add a shader to the program.
      *
-     * \param src Where the source is found, can be either a file path or shader source
-     *            string
+     * \param src The shader source string
      * \param type Type of shader can be one of the following: GL_COMPUTE_SHADER,
      *             GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
      *             GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
-     * \param sSrcType What type of source code should be read, file or string
      *
      * \return Whether the source code was set correctly or not
      */
-    bool addShaderSrc(std::string src, core::Shader::ShaderType type,
-        ShaderSourceType sSrcType = ShaderSourceType::File);
+    bool addShaderSrc(std::string src, core::Shader::ShaderType type);
 
     /**
      * Will create the program and link the shaders. The shader sources must have been set

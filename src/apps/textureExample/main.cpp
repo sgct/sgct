@@ -97,12 +97,7 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
     matrixLoc = prg.getUniformLocation("mvp");

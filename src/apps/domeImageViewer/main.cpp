@@ -290,15 +290,8 @@ void initOGLFun() {
     // our polygon winding is clockwise since we are inside of the dome
     glFrontFace(GL_CW);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
-
+    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("xform");
-
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
     matrixLoc = prog.getUniformLocation("mvp");
     GLint texLoc = prog.getUniformLocation("tex");

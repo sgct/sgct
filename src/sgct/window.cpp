@@ -1310,8 +1310,7 @@ void Window::loadShaders() {
 
     const bool vertShader = _stereo.shader.addShaderSrc(
         stereoVertShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_VERTEX_SHADER
     );
     if (!vertShader) {
         MessageHandler::printError("Failed to load stereo vertex shader");
@@ -1319,8 +1318,7 @@ void Window::loadShaders() {
 
     const bool fragShader = _stereo.shader.addShaderSrc(
         stereoFragShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_FRAGMENT_SHADER
     );
     if (!fragShader) {
         MessageHandler::printError("Failed to load stereo fragment shader");

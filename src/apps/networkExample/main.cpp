@@ -260,8 +260,7 @@ void initOGLFun() {
     sgct::ShaderManager::instance()->addShaderProgram(
         "xform",
         vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        fragmentShader
     );
     sgct::ShaderManager::instance()->bindShaderProgram("xform");
 

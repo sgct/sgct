@@ -276,12 +276,7 @@ void initGL() {
         hasTexture = false;
     }
 
-    ShaderManager::instance()->addShaderProgram(
-        "simple",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("simple");
     const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
 

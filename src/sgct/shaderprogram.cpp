@@ -31,24 +31,12 @@ void ShaderProgram::setName(std::string name) {
     _name = std::move(name);
 }
 
-// @TODO (2019-10-15) We should split this up into two different functions, one for
-// loading from disk, one for loading from a string
-bool ShaderProgram::addShaderSrc(std::string src, core::Shader::ShaderType type,
-                                 ShaderSourceType sSrcType)
-{
+bool ShaderProgram::addShaderSrc(std::string src, core::Shader::ShaderType type) {
     core::ShaderData sd;
     sd.shader.setShaderType(type);
-    sd.isSrcFile = sSrcType == ShaderSourceType::File;
     sd.source = std::move(src);
 
-    bool success;
-    if (sd.isSrcFile) {
-        success = sd.shader.setSourceFromFile(sd.source);
-    }
-    else {
-        success = sd.shader.setSourceFromString(sd.source);
-    }
-
+    const bool success = sd.shader.setSourceFromString(sd.source);
     if (success) {
         _shaders.push_back(std::move(sd));
     }
@@ -116,14 +104,7 @@ bool ShaderProgram::reload() {
     deleteProgram();
 
     for (core::ShaderData& sd : _shaders) {
-        bool success;
-        if (sd.isSrcFile) {
-            success = sd.shader.setSourceFromFile(sd.source);
-        }
-        else {
-            success = sd.shader.setSourceFromString(sd.source);
-        }
-
+        const bool success = sd.shader.setSourceFromString(sd.source);
         if (!success) {
             MessageHandler::printError(
                 "ShaderProgram: Failed to load '%s'", sd.source.c_str()

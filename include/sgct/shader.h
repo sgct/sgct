@@ -49,17 +49,6 @@ public:
      * not already done. At this point a compiled shader can't have its source reset.
      * Recompilation of shaders is not supported.
      *
-     * \param file Path to shader file
-     *
-     * \return If setting source and compilation went ok.
-     */
-    bool setSourceFromFile(const std::string& file);
-    
-    /**
-     * Set the shader source code from a file, will create and compile the shader if it is
-     * not already done. At this point a compiled shader can't have its source reset.
-     * Recompilation of shaders is not supported.
-     *
      * \param sourceString String with shader source code
      *
      * \return If setting the source and compilation went ok.

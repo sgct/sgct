@@ -693,8 +693,7 @@ void FisheyeProjection::initShaders() {
 
         bool depthCorrFrag = _depthCorrectionShader.addShaderSrc(
             depthCorrFragShader,
-            GL_VERTEX_SHADER,
-            ShaderProgram::ShaderSourceType::String
+            GL_VERTEX_SHADER
         );
         if (!depthCorrFrag) {
             MessageHandler::printError(
@@ -703,8 +702,7 @@ void FisheyeProjection::initShaders() {
         }
         bool depthCorrVert = _depthCorrectionShader.addShaderSrc(
             depthCorrVertShader,
-            GL_FRAGMENT_SHADER,
-            ShaderProgram::ShaderSourceType::String
+            GL_FRAGMENT_SHADER
         );
         if (!depthCorrVert) {
             MessageHandler::printError(
@@ -789,8 +787,7 @@ void FisheyeProjection::initShaders() {
 
     bool fisheyeVertex = _shader.addShaderSrc(
         fisheyeVertexShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_VERTEX_SHADER
     );
     if (!fisheyeVertex) {
         MessageHandler::printError(
@@ -799,8 +796,7 @@ void FisheyeProjection::initShaders() {
     }
     bool fisheyeFragment = _shader.addShaderSrc(
         fisheyeFragmentShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_FRAGMENT_SHADER
     );
     if (!fisheyeFragment) {
         MessageHandler::printError(

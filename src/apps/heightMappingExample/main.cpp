@@ -296,8 +296,7 @@ void initOGLFun() {
         mSp,
         "Heightmap",
         vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        fragmentShader
     );
 
     mSp.bind();

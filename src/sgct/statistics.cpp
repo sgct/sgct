@@ -24,7 +24,7 @@
 #undef max
 
 namespace {
-    constexpr const char* Stats_Vert_Shader = R"(
+    constexpr const char* StatsVertShader = R"(
 #version 330 core
 
 layout (location = 0) in vec2 vertPosition;
@@ -36,7 +36,7 @@ void main() {
 }
 )";
 
-    constexpr const char* Stats_Frag_Shader = R"(
+    constexpr const char* StatsFragShader = R"(
 #version 330 core
 
 uniform vec4 Col;
@@ -162,23 +162,11 @@ void Statistics::initVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     _shader.setName("StatsShader");
-
-    std::string vertShader = Stats_Vert_Shader;
-    std::string fragShader = Stats_Frag_Shader;
-
-    bool vert = _shader.addShaderSrc(
-        vertShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
-    );
+    bool vert = _shader.addShaderSrc(StatsVertShader, GL_VERTEX_SHADER);
     if (!vert) {
         MessageHandler::printError("Failed to load statistics vertex shader");
     }
-    bool frag = _shader.addShaderSrc(
-        fragShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
-    );
+    bool frag = _shader.addShaderSrc(StatsFragShader, GL_FRAGMENT_SHADER);
     if (!frag) {
         MessageHandler::printError("Failed to load statistics fragment shader");
     }

@@ -1768,8 +1768,7 @@ void Engine::loadShaders() {
 
     const bool fxaaVertSuccess = _shader.fxaa.addShaderSrc(
         fxaaVertShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_VERTEX_SHADER
     );
     if (!fxaaVertSuccess) {
         MessageHandler::printError("Failed to load FXAA vertex shader");
@@ -1777,8 +1776,7 @@ void Engine::loadShaders() {
 
     const bool fxaaFragSuccess = _shader.fxaa.addShaderSrc(
         fxaaFragShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_FRAGMENT_SHADER
     );
     if (!fxaaFragSuccess) {
         MessageHandler::printError("Failed to load FXAA fragment shader");
@@ -1810,16 +1808,14 @@ void Engine::loadShaders() {
     _shader.fboQuad.setName("FBOQuadShader");
     const bool quadVertSuccess = _shader.fboQuad.addShaderSrc(
         fboQuadVertShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_VERTEX_SHADER
     );
     if (!quadVertSuccess) {
         MessageHandler::printError("Failed to load FBO quad vertex shader");
     }
     const bool quadFragSuccess = _shader.fboQuad.addShaderSrc(
         fboQuadFragShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_FRAGMENT_SHADER
     );
     if (!quadFragSuccess) {
         MessageHandler::printError("Failed to load FBO quad fragment shader");
@@ -1836,16 +1832,14 @@ void Engine::loadShaders() {
     _shader.overlay.setName("OverlayShader");
     const bool overlayVertSuccess = _shader.overlay.addShaderSrc(
         overlayVertShader,
-        GL_VERTEX_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_VERTEX_SHADER
     );
     if (!overlayVertSuccess) {
         MessageHandler::printError("Failed to load overlay vertex shader");
     }
     const bool overlayFragSuccess = _shader.overlay.addShaderSrc(
         overlayFragShader,
-        GL_FRAGMENT_SHADER,
-        ShaderProgram::ShaderSourceType::String
+        GL_FRAGMENT_SHADER
     );
     if (!overlayFragSuccess) {
         MessageHandler::printError("Failed to load overlay fragment shader");

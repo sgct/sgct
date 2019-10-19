@@ -48,17 +48,14 @@ public:
      * shader source code file or as shader source code.
      *
      * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code, can be a file path or source code
-     * \param fragmentSrc The fragment shader source code, can be a file path or source
-     *                    code
-     * \param sSrcTyp Shader source code type, if it is a link to a file or source code
+     * \param vertexSrc The vertex shader source code
+     * \param fragmentSrc The fragment shader source code
      *
      * \return Whether the shader was created, linked and added to the manager correctly
      *         or not.
      */
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
-        const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
+        const std::string& fragmentSrc);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -68,17 +65,14 @@ public:
      *
      * \param shaderProgram Reference to ShaderProgram
      * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code, can be a file path or source code
-     * \param fragmentSrc The fragment shader source code, can be a file path or source
-     *                    code
-     * \param sSrcTyp Shader source code type, if it is a link to a file or source code
+     * \param vertexSrc The vertex shader source code
+     * \param fragmentSrc The fragment shader source code
      *
      * \return Whether the shader was created, linked and added to the manager correctly
      *         or not.
      */
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
-        const std::string& vertexSrc, const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
+        const std::string& vertexSrc, const std::string& fragmentSrc);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -87,19 +81,15 @@ public:
      * shader source code file or as shader source code.
      *
      * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code, can be a file path or source code
-     * \param fragmentSrc The fragment shader source code, can be a file path or source
-     *                    code
-     * \param geometrySrc The geometry shader source code, can be a file path or source
-     *                    code
-     * \param sSrcTyp Shader source code type, if it is a link to a file or source code
+     * \param vertexSrc The vertex shader source code
+     * \param fragmentSrc The fragment shader source code
+     * \param geometrySrc The geometry shader source code
      *
      * \return Whether the shader was created, linked and added to the manager correctly
      *         or not.
      */
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
-        const std::string& fragmentSrc, const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
+        const std::string& fragmentSrc, const std::string& geometrySrc);
 
     /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
@@ -109,20 +99,16 @@ public:
      *
      * \param shaderProgram Reference to ShaderProgram
      * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code, can be a file path or source code
-     * \param fragmentSrc The fragment shader source code, can be a file path or source
-     *        code
-     * \param geometrySrc The geometry shader source code, can be a file path or source
-     *        code
-     * \param sSrcTyp Shader source code type, if it is a link to a file or source code
+     * \param vertexSrc The vertex shader source code
+     * \param fragmentSrc The fragment shader source code
+     * \param geometrySrc The geometry shader source code
      *
      * \return Whether the shader was created, linked and added to the manager correctly
      *         or not.
      */
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
         const std::string& vertexSrc, const std::string& fragmentSrc,
-        const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::ShaderSourceType::File);
+        const std::string& geometrySrc);
 
     /**
      * Reloads a shader program from the manager for the current bin.

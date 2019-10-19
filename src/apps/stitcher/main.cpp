@@ -415,12 +415,7 @@ void initOGLFun() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->addShaderProgram(
-        "simple",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
 }
 
 void encodeFun() {

@@ -58,8 +58,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
 
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      const std::string& vertexSrc,
-                                     const std::string& fragmentSrc,
-                                     ShaderProgram::ShaderSourceType sSrcType)
+                                     const std::string& fragmentSrc)
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
@@ -72,12 +71,12 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -95,8 +94,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
 bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
                                      const std::string& name,
                                      const std::string& vertexSrc,
-                                     const std::string& fragmentSrc,
-                                     ShaderProgram::ShaderSourceType sSrcType)
+                                     const std::string& fragmentSrc)
 {
     // if something failes set shader pointer to NullShader
     shaderProgram = NullShader;
@@ -111,12 +109,12 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
 
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -135,8 +133,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      const std::string& vertexSrc,
                                      const std::string& fragmentSrc,
-                                     const std::string& geometrySrc,
-                                     ShaderProgram::ShaderSourceType sSrcType)
+                                     const std::string& geometrySrc)
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
@@ -149,17 +146,17 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
 
-    if (!sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
@@ -178,8 +175,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
                                      const std::string& name,
                                      const std::string& vertexSrc,
                                      const std::string& fragmentSrc,
-                                     const std::string& geometrySrc,
-                                     ShaderProgram::ShaderSourceType sSrcType)
+                                     const std::string& geometrySrc)
 {
     //if something failes set shader pointer to NullShader
     shaderProgram = NullShader;
@@ -195,17 +191,17 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     // If shader don't exist, create it and add to container
     ShaderProgram sp(name);
     
-    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
     
-    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER, sSrcType)) {
+    if (!sp.addShaderSrc(fragmentSrc, GL_FRAGMENT_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }
 
-    if( !sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER, sSrcType)) {
+    if( !sp.addShaderSrc(geometrySrc, GL_GEOMETRY_SHADER)) {
         // Error messaging handled when setting source
         return false;
     }

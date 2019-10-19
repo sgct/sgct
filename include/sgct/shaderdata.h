@@ -16,7 +16,6 @@ namespace sgct::core {
 struct ShaderData {
     Shader shader;
     std::string source;
-    bool isSrcFile;
 };
 
 } // namespace sgct::core

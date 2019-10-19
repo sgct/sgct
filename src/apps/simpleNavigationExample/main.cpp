@@ -282,8 +282,7 @@ void initOGLFun() {
     ShaderManager::instance()->addShaderProgram(
         "gridShader",
         gridVertexShader,
-        gridFragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        gridFragmentShader
     );
     ShaderManager::instance()->bindShaderProgram("gridShader");
     const ShaderProgram& gProg= ShaderManager::instance()->getShaderProgram("gridShader");
@@ -293,8 +292,7 @@ void initOGLFun() {
     ShaderManager::instance()->addShaderProgram(
         "pyramidShader",
         pyramidVertexShader,
-        pyramidFragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        pyramidFragmentShader
     );
     ShaderManager::instance()->bindShaderProgram("pyramidShader");
     const ShaderProgram& pyramidProg =

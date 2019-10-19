@@ -128,12 +128,7 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    ShaderManager::instance()->addShaderProgram(
-        "MRT",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("MRT", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("MRT");
 
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");

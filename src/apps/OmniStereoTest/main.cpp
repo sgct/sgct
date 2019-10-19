@@ -474,21 +474,11 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager& sm = *ShaderManager::instance();
-    sm.addShaderProgram(
-        "grid",
-        gridVertexShader,
-        gridFragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
     sm.bindShaderProgram("grid");
     gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
 
-    sm.addShaderProgram(
-        "xform",
-        baseVertexShader,
-        baseFragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    sm.addShaderProgram("xform", baseVertexShader, baseFragmentShader);
     sm.bindShaderProgram("xform");
     matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
     GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("tex");

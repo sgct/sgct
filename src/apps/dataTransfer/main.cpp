@@ -149,12 +149,7 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); // our polygon winding is counter clockwise
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
     ShaderManager::instance()->bindShaderProgram("xform");
 
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");

@@ -20,42 +20,6 @@ void Shader::setShaderType(ShaderType shaderType) {
     _shaderType = shaderType;
 }
 
-bool Shader::setSourceFromFile(const std::string& file) {
-    // Make sure file can be opened
-    std::ifstream shaderFile(file);
-
-    if (!shaderFile.is_open()) {
-        MessageHandler::printError(
-            "Could not open %s file [%s]",
-            getShaderTypeName(_shaderType).c_str(), file.c_str()
-        );
-        return false;
-    }
-
-    // Create needed resources by reading file length
-    shaderFile.seekg(0, std::ios_base::end);
-    std::streamoff fileSize = shaderFile.tellg();
-    shaderFile.seekg(0, std::ios_base::beg);
-
-    // Make sure the file is not empty
-    if (fileSize == 0) {
-        MessageHandler::printError(
-            "Can't create source for %s: empty file [%s]",
-            getShaderTypeName(_shaderType).c_str(), file.c_str()
-        );
-        return false;
-    }
-
-    // Copy file content to string
-    std::vector<char> bytes(fileSize);
-    shaderFile.read(bytes.data(), fileSize);
-    std::string shaderSrc(bytes.data(), fileSize);
-    shaderFile.close();
-
-    // Compile shader source
-    return setSourceFromString(shaderSrc);
-}
-
 bool Shader::setSourceFromString(const std::string& sourceString) {
     // At this point no resetting of shaders are supported
     if (_shaderId > 0) {
@@ -72,9 +36,7 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
     _shaderId = glCreateShader(_shaderType);
     glShaderSource(_shaderId, 1, shaderSrc, nullptr);
 
-    // Compile and check status
     glCompileShader(_shaderId);
-
     return checkCompilationStatus();
 }
 

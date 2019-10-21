@@ -64,7 +64,7 @@ bool Node::getKeyPressed(int key) {
     return false;
 }
 
-int Node::getNumberOfWindows() {
+int Node::getNumberOfWindows() const {
     return static_cast<int>(_windows.size());
 }
 
@@ -80,7 +80,7 @@ int Node::getCurrentWindowIndex() const {
     return _currentWindowIndex;
 }
 
-bool Node::shouldAllWindowsClose() {
+bool Node::closeAllWindows() {
     for (Window& window : _windows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {
             window.setVisible(false);

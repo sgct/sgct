@@ -18,6 +18,19 @@
 #include <zip.h>
 
 namespace {
+    [[nodiscard]] glm::quat parseOrientationNode(float yaw, float pitch, float roll) {
+        const float x = pitch;
+        const float y = -yaw;
+        const float z = -roll;
+
+        glm::quat quat;
+        quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+        quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+        quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
+
+        return quat;
+    }
+
     [[nodiscard]] sgct::config::MpcdiProjection parseMpcdi(tinyxml2::XMLElement* element) {
         using namespace tinyxml2;
 
@@ -141,11 +154,14 @@ namespace {
                     return {};
                 }
 
-                proj.orientation = sgct::core::readconfig::parseMpcdiOrientationNode(
-                    yaw,
-                    pitch,
-                    roll
-                );
+                const float x = pitch;
+                const float y = -yaw;
+                const float z = -roll;
+                glm::quat quat;
+                quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.f, 1.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.f, 0.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.f, 0.f, 1.f));
+                proj.orientation = quat;
             }
             child = child->NextSiblingElement();
         }

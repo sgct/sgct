@@ -50,8 +50,7 @@ private:
     unsigned int _outputTexture = 0;
 
     glm::ivec2 _size = glm::ivec2(1, 1);
-    std::string _name;
-    inline static bool _deleted = false;
+    const std::string _name;
 };
 
 } // namespace sgct

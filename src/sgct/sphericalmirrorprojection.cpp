@@ -43,7 +43,7 @@ void SphericalMirrorProjection::render() {
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -318,7 +318,7 @@ void SphericalMirrorProjection::initViewports() {
 }
 
 void SphericalMirrorProjection::initShaders() {
-    if (_stereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
         MessageHandler::printWarning(
             "Stereo rendering not supported in spherical projection"

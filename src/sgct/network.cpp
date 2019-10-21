@@ -38,7 +38,6 @@
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
-
 #include <zlib.h>
 #include <algorithm>
 
@@ -46,7 +45,7 @@ namespace {
     constexpr const int MaxNumberOfAttempts = 10;
     constexpr const int SocketBufferSize = 4096;
 
-    constexpr const int MAX_NET_SYNC_FRAME_NUMBER = 10000;
+    constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
     int32_t parseInt32(char* str) {
         int32_t val = *(reinterpret_cast<int32_t*>(str));
@@ -216,15 +215,8 @@ void Network::connectionHandler() {
 
             //wait for signal until next iteration in loop
             if (!isTerminated()) {
-#ifdef __SGCT_MUTEX_DEBUG__
-                    fprintf(stderr, "Locking mutex for connection %d", _id);
-#endif
-
                 std::unique_lock lk(_connectionMutex);
                 _startConnectionCond.wait(lk);
-#ifdef __SGCT_MUTEX_DEBUG__
-                    fprintf(stderr, "Mutex for connection %d is unlocked", _id);
-#endif
             }
         }
     }
@@ -374,9 +366,6 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     //   * SHUT_WR (Disables further send operations)
     //   * SHUT_RDWR (Disables further send and receive operations)
 
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex for connection %d\n", _id);
-#endif
     std::unique_lock lock(_connectionMutex);
 
 #ifdef WIN32
@@ -386,10 +375,6 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     shutdown(lSocket, SHUT_RDWR);
     close(lSocket);
 #endif
-
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Mutex for connection %d is unlocked\n", _id);
-#endif
 }
 
 void Network::setBufferSize(uint32_t newSize) {
@@ -397,13 +382,9 @@ void Network::setBufferSize(uint32_t newSize) {
 }
 
 int Network::iterateFrameCounter() {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::iterateFrameCounter");
-#endif
-
     _previousSendFrame.store(_currentSendFrame.load());
 
-    if (_currentSendFrame < MAX_NET_SYNC_FRAME_NUMBER) {
+    if (_currentSendFrame < MaxNetworkSyncFrameNumber) {
         _currentSendFrame++;
     }
     else {
@@ -413,25 +394,15 @@ int Network::iterateFrameCounter() {
     _isUpdated = false;
 
 
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex for connection %d\n", _id);
-#endif
     {
         std::unique_lock lock(_connectionMutex);
         _timeStampSend = Engine::getTime();
     }
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Mutex for connection %d is unlocked\n", _id);
-#endif
 
     return _currentSendFrame;
 }
 
 void Network::pushClientMessage() {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::pushClientMessage");
-#endif
-
     // The servers' render function is locked until a message starting with the ack-byte
     // is received.
     int currentFrame = iterateFrameCounter();
@@ -522,18 +493,11 @@ int Network::getRecvFramePrevious() const {
 }
 
 double Network::getLoopTime() const {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::getLoopTime");
-#endif
     std::unique_lock lock(_connectionMutex);
     return _timeStampTotal;
 }
 
 bool Network::isUpdated() const {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::isUpdated");
-#endif
-
     bool state = false;
     if (_isServer) {
         state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
@@ -574,13 +538,6 @@ void Network::setAcknowledgeFunction(std::function<void(int, int)> fn) {
 }
 
 void Network::setConnectedStatus(bool state) {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug(
-        "Network::setConnectedStatus = %s at syncframe %d",
-        state ? "true" : "false", getSendFrame()
-    );
-#endif
-
     std::unique_lock lock(_connectionMutex);
     _isConnected = state;
 }
@@ -590,10 +547,6 @@ bool Network::isConnected() const {
 }
 
 Network::ConnectionType Network::getType() const {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::getTypeOfServer");
-#endif
-
     std::unique_lock lock(_connectionMutex);
     return _connectionType;
 }
@@ -611,10 +564,6 @@ bool Network::isTerminated() const {
 }
 
 void Network::setRecvFrame(int i) {
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Network::setRecvFrame");
-#endif
-    
     _previousRecvFrame.store(_currentRecvFrame.load());
     _currentRecvFrame = i;
     _isUpdated = true;
@@ -678,9 +627,6 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
 
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
-#ifdef __SGCT_NETWORK_DEBUG__
-        MessageHandler::printDebug("Header id=%d", _headerId);
-#endif
         if (_headerId == DataId || _headerId == CompressedDataId) {
             // parse the sync frame number
             syncFrameNumber = parseInt32(&header[1]);
@@ -697,30 +643,11 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
                 );
             }
 
-#ifdef __SGCT_NETWORK_DEBUG__
-            MessageHandler::printDebug(
-                "Network: Package info: Frame = %d, Size = %u for connection %d",
-                syncFrameNumber, dataSize, _id
-            );
-#endif
-
             // resize buffer if needed
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Locking mutex for connection %d\n", _id);
-#endif
-            
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
             updateBuffer(_uncompressBuffer, uncompressedDataSize, _uncompressedBufferSize);
-            
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Mutex for connection %d is unlocked\n", _id);
-#endif
         }
     }
-
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Receiving data (buffer size: %d)", dataSize);
-#endif
 
     // Get the data/message
     if (dataSize > 0) {
@@ -737,9 +664,6 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
-#ifdef __SGCT_NETWORK_DEBUG__
-        MessageHandler::printDebug("Header id=%d", _headerId);
-#endif
         if (_headerId == DataId || _headerId == CompressedDataId) {
             // parse the package _id
             packageId = parseInt32(&header[1]);
@@ -749,15 +673,8 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
             uncompressedDataSize = parseUInt32(&header[9]);
 
             // resize buffer if needed
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Locking mutex for connection %d\n", _id);
-#endif
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
             updateBuffer(_uncompressBuffer, uncompressedDataSize, _uncompressedBufferSize);
-
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Mutex for connection %d is unlocked\n", _id);
-#endif
         }
         else if (_headerId == Ack && _acknowledgeCallback != nullptr) {
             //parse the package _id
@@ -766,17 +683,9 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
         }
     }
 
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug("Receiving data (buffer size: %d)", dataSize);
-#endif
     // Get the data/message
     if (dataSize > 0 && packageId > -1) {
         iResult = receiveData(_socket, _recvBuffer.data(), dataSize, 0);
-#ifdef __SGCT_NETWORK_DEBUG__
-        MessageHandler::printDebug(
-            "Data type: %d, %d bytes of %u", packageId, iResult, dataSize
-        );
-#endif
     }
 
     return iResult;
@@ -877,10 +786,6 @@ void Network::communicationHandler() {
 
             MessageHandler::printInfo("Done");
         }
-#ifdef __SGCT_NETWORK_DEBUG__
-        MessageHandler::printDebug("Receiving message header");
-#endif
-        
         int32_t packageId = -1;
         int32_t syncFrameNumber = -1;
         uint32_t dataSize = 0;
@@ -972,22 +877,13 @@ void Network::communicationHandler() {
                         NetworkManager::cond.notify_all();
                     }
                     else if (_headerId == ConnectedId && _connectedCallback) {
-#ifdef __SGCT_NETWORK_DEBUG__
-                        MessageHandler::printDebug("Signaling slave is connected");
-#endif
                         _connectedCallback();
                         NetworkManager::cond.notify_all();
-#ifdef __SGCT_NETWORK_DEBUG__
-                        MessageHandler::printDebug("Done");
-#endif
                     }
                 }
             }
             // handle external ascii communication
             else if (getType() == ConnectionType::ExternalASCIIConnection) {
-#ifdef __SGCT_NETWORK_DEBUG__
-                MessageHandler::printDebug("Parsing external TCP ASCII data");
-#endif
                 extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
 
                 bool breakConnection = false;
@@ -1040,22 +936,12 @@ void Network::communicationHandler() {
                     sendData(msg.c_str(), static_cast<int>(msg.size()));
                     found = extBuffer.find("\r\n");
                 }
-#ifdef __SGCT_NETWORK_DEBUG__
-                MessageHandler::printDebug("Done");
-#endif
             }
             // handle external raw/binary communication
             else if (getType() == ConnectionType::ExternalRawConnection) {
-#ifdef __SGCT_NETWORK_DEBUG__
-                MessageHandler::printDebug("Parsing external TCP raw data");
-#endif
                 if (decoderCallback) {
                     decoderCallback(_recvBuffer.data(), iResult, _id);
                 }
-
-#ifdef __SGCT_NETWORK_DEBUG__
-                MessageHandler::printDebug("Done");
-#endif
             }
             // handle data transfer communication
             else if (getType() == ConnectionType::DataTransfer) {
@@ -1149,43 +1035,22 @@ void Network::communicationHandler() {
                         _connectionMutex.unlock();
                     }
                     else if (_headerId == ConnectedId && _connectedCallback) {
-#ifdef __SGCT_NETWORK_DEBUG__
-                        MessageHandler::printDebug("Signaling slave is connected");
-#endif
                         _connectedCallback();
                         NetworkManager::cond.notify_all();
-                        
-#ifdef __SGCT_NETWORK_DEBUG__
-                        MessageHandler::printDebug("Done");
-#endif
                     }
                 }
             }
         }
         // handle failed receive
         else if (iResult == 0) {
-#ifdef __SGCT_NETWORK_DEBUG__
-            MessageHandler::printDebug("Setting connection status to false");
-#endif
             setConnectedStatus(false);
-#ifdef __SGCT_NETWORK_DEBUG__
-            MessageHandler::printDebug("Done");
-#endif
-
             MessageHandler::printError(
                 "TCP Connection %d closed (error: %d)", _id, SGCT_ERRNO
             );
         }
         else {
         // if negative
-#ifdef __SGCT_NETWORK_DEBUG__
-            MessageHandler::printDebug("Setting connection status to false");
-#endif
             setConnectedStatus(false);
-#ifdef __SGCT_NETWORK_DEBUG__
-            MessageHandler::printDebug("Done");
-#endif
-
             MessageHandler::printError(
                 "TCP connection %d recv failed: %d", _id, SGCT_ERRNO
             );
@@ -1207,12 +1072,6 @@ void Network::communicationHandler() {
 }
 
 void Network::sendData(const void* data, int length) {
-#ifdef __SGCT_NETWORK_DEBUG__
-    for (int i = 0; i < length; i++) {
-        fprintf(stderr, "%u ", (reinterpret_cast<const char*>(data)[i]));
-    }
-    fprintf(stderr, "\n");
-#endif
     _ssize_t sentLen;
     int sendSize = length;
 
@@ -1281,18 +1140,10 @@ void Network::initShutdown() {
 
     MessageHandler::printInfo("Closing connection %d", _id);
 
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex for connection %d", _id);
-#endif
-
     {
         std::unique_lock lock(_connectionMutex);
         decoderCallback = nullptr;
     }
-
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Mutex for connection %d is unlocked", _id);
-#endif
 
     _isConnected = false;
     _shouldTerminate = true;

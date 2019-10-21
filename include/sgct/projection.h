@@ -25,11 +25,10 @@ public:
         float nearClippingPlane, float farClippingPlane,
         glm::vec3 viewOffset = glm::vec3(0.f));
 
-    Frustum& getFrustum();
     const glm::mat4& getViewProjectionMatrix() const;
     const glm::mat4& getViewMatrix() const;
     const glm::mat4& getProjectionMatrix() const;
-    
+
 protected:
     glm::mat4 _viewMatrix = glm::mat4(1.f);
     glm::mat4 _viewProjectionMatrix = glm::mat4(1.f);

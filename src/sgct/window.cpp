@@ -212,8 +212,8 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
         setCallDraw2DFunction(*window.draw3D);
     }
 
-    if (window.copyPreviousWindowToCurrentWindow) {
-        setCopyPreviousWindowToCurrentWindow(*window.copyPreviousWindowToCurrentWindow);
+    if (window.blitPreviousWindow) {
+        setCopyPreviousWindowToCurrentWindow(*window.blitPreviousWindow);
     }
 
     if (window.monitor) {
@@ -1219,7 +1219,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
-            
+
     if (_finalFBO->checkForErrors()) {
         MessageHandler::printDebug(
             "Window %d: FBO initiated successfully. Number of samples: %d",
@@ -1374,7 +1374,7 @@ void Window::resizeFBOs() {
         //attatch color buffer to prevent GL errors
         _finalFBO->bind();
         _finalFBO->attachColorTexture(_frameBufferTextures.leftEye);
-        _finalFBO->unBind();
+        _finalFBO->unbind();
     }
 
     if (_finalFBO->checkForErrors()) {
@@ -1605,7 +1605,7 @@ void Window::setAlpha(bool state) {
     _hasAlpha = state;
 }
 
-bool Window::getAlpha() const {
+bool Window::hasAlpha() const {
     return _hasAlpha;
 }
 

@@ -372,7 +372,7 @@ public:
     std::string getStereoModeStr() const;
 
     /// Enable alpha clear color and 4-component screenshots
-    bool getAlpha() const;
+    bool hasAlpha() const;
 
     /// Get monitor gamma value (works only if fullscreen)
     float getGamma() const;

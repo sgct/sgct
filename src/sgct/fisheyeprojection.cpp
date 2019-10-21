@@ -44,37 +44,38 @@ void FisheyeProjection::update(glm::vec2 size) {
         }
     }
 
-    _vertices[0] = _cropFactor.left;
-    _vertices[1] = _cropFactor.bottom;
-    _vertices[2] = -x;
-    _vertices[3] = -y;
-    _vertices[4] = -1.f;
+    std::array<float, 20> vertices;
+    vertices[0] = _cropFactor.left;
+    vertices[1] = _cropFactor.bottom;
+    vertices[2] = -x;
+    vertices[3] = -y;
+    vertices[4] = -1.f;
 
-    _vertices[5] = _cropFactor.left;
-    _vertices[6] = 1.f - _cropFactor.top;
-    _vertices[7] = -x;
-    _vertices[8] = y;
-    _vertices[9] = -1.f;
+    vertices[5] = _cropFactor.left;
+    vertices[6] = 1.f - _cropFactor.top;
+    vertices[7] = -x;
+    vertices[8] = y;
+    vertices[9] = -1.f;
 
-    _vertices[10] = 1.f - _cropFactor.right;
-    _vertices[11] = _cropFactor.bottom;
-    _vertices[12] = x;
-    _vertices[13] = -y;
-    _vertices[14] = -1.f;
+    vertices[10] = 1.f - _cropFactor.right;
+    vertices[11] = _cropFactor.bottom;
+    vertices[12] = x;
+    vertices[13] = -y;
+    vertices[14] = -1.f;
 
-    _vertices[15] = 1.f - _cropFactor.right;
-    _vertices[16] = 1.f - _cropFactor.top;
-    _vertices[17] = x;
-    _vertices[18] = y;
-    _vertices[19] = -1.f;
+    vertices[15] = 1.f - _cropFactor.right;
+    vertices[16] = 1.f - _cropFactor.top;
+    vertices[17] = x;
+    vertices[18] = y;
+    vertices[19] = -1.f;
 
     // update VBO
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        _vertices.size() * sizeof(float),
-        _vertices.data(),
+        vertices.size() * sizeof(float),
+        vertices.data(),
         GL_STATIC_DRAW
     );
     glBindVertexArray(0);
@@ -114,7 +115,7 @@ void FisheyeProjection::render() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+    const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -204,7 +205,7 @@ void FisheyeProjection::renderCubemap(size_t* subViewPortIndex) {
             Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+            const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -563,7 +564,7 @@ void FisheyeProjection::initViewports() {
 }
 
 void FisheyeProjection::initShaders() {
-    if (_stereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
+    if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
         _isOffAxis = true;
     }

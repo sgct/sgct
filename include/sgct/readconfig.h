@@ -10,15 +10,12 @@
 #define __SGCT__READ_CONFIG__H__
 
 #include <sgct/config.h>
-#include <glm/glm.hpp>
 #include <string>
 
-namespace sgct::core::readconfig {
-
-glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll);
+namespace sgct::core {
 
 [[nodiscard]] sgct::config::Cluster readConfig(const std::string& filename);
 
-} // namespace sgct_config
+} // namespace sgct::core
 
 #endif // __SGCT__READ_CONFIG__H__

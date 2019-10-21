@@ -17,8 +17,8 @@ namespace sgct {
 
 PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
                const std::string& fragShaderSrc, std::function<void()> updateFunction)
-    : _name(std::move(name))
-    , _updateFunction(std::move(updateFunction))
+    : _updateFunction(std::move(updateFunction))
+    , _name(std::move(name))
 {
     _shaderProgram.setName(_name);
     _shaderProgram.addShaderSource(vertShaderSrc, fragShaderSrc);

@@ -19,6 +19,8 @@ namespace sgct::core {
  */
 class OffScreenBuffer {
 public:
+    static void unbind();
+
     void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);
     void setInternalColorFormat(GLenum internalFormat);
@@ -51,12 +53,6 @@ public:
     void bind(GLsizei n, const GLenum* bufs);
 
     /**
-     * Bind framebuffer, auto-set draw buffers.
-     * \param isMultisampled is true if MSAA should be used
-     */
-    void bind(bool isMultisampled);
-
-    /**
      * Bind framebuffer
      * \param isMultisampled is true if MSAA should be used
      * \param n number of color buffers
@@ -65,7 +61,6 @@ public:
     void bind(bool isMultisampled, GLsizei n, const GLenum* bufs);
     void bindBlit();
     void blit();
-    static void unBind();
     void destroy();
     bool isMultiSampled() const;
 

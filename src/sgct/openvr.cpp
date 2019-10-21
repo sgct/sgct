@@ -18,12 +18,13 @@
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/window.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
 namespace {
     struct FBODesc {
-        unsigned int fboID;
-        unsigned int texID;
+        unsigned int fboID = 0;
+        unsigned int texID = 0;
     };
 
     bool isOpenVRInitalized = false;
@@ -97,9 +98,8 @@ void initialize(float nearClip, float farClip) {
         MessageHandler::printInfo("OpenVR has already been initialized");
         return;
     }
-        
-    const bool isHMDconnected = vr::VR_IsHmdPresent();
 
+    const bool isHMDconnected = vr::VR_IsHmdPresent();
     if (!isHMDconnected) {
         return;
     }
@@ -187,7 +187,7 @@ void copyWindowToHMD(Window* win) {
         return;
     }
 
-    glm::ivec2 dim = win->getFinalFBODimensions();
+    const glm::ivec2 dim = win->getFinalFBODimensions();
     const int windowWidth = dim.x;
     const int windowHeight = dim.y;
     const int renderWidth = dim.x / 2;
@@ -237,7 +237,8 @@ void copyWindowToHMD(Window* win) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     vr::Texture_t rightEyeTexture = {
-        reinterpret_cast<void*>(static_cast<std::uintptr_t>(rightEyeFBODesc.texID)),
+        // abock (2019-10-20);  urgh, yes is know, but I couldn't find a cleaner way
+        reinterpret_cast<void*>(static_cast<uintptr_t>(rightEyeFBODesc.texID)),
         vr::TextureType_OpenGL,
         vr::ColorSpace_Gamma
     };

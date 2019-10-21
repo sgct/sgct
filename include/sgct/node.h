@@ -35,7 +35,7 @@ public:
     void setUseSwapGroups(bool state);
 
     /// Check if all windows are set to close and close them.
-    bool shouldAllWindowsClose();
+    bool closeAllWindows();
 
     /// Is this node using nvidia swap groups for it's windows?
     bool isUsingSwapGroups() const;
@@ -50,7 +50,7 @@ public:
     bool getKeyPressed(int key);
 
     /// Get the number of windows in the window vector
-    int getNumberOfWindows();
+    int getNumberOfWindows() const;
 
     /// Get the window pointer at index in window vector.
     Window& getWindow(int index);

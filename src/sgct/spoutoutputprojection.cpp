@@ -56,38 +56,40 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 }
 
 void SpoutOutputProjection::update(glm::vec2) {
-    _vertices[0] = 0.f;
-    _vertices[1] = 0.f;
-    _vertices[2] = -1.f;
-    _vertices[3] = -1.f;
-    _vertices[4] = -1.f;
+    std::array<float, 20> vertices;
+    vertices[0] = 0.f;
+    vertices[1] = 0.f;
+    vertices[2] = -1.f;
+    vertices[3] = -1.f;
+    vertices[4] = -1.f;
 
-    _vertices[5] = 0.f;
-    _vertices[6] = 1.f;
-    _vertices[7] = -1.f;
-    _vertices[8] = 1.f;
-    _vertices[9] = -1.f;
+    vertices[5] = 0.f;
+    vertices[6] = 1.f;
+    vertices[7] = -1.f;
+    vertices[8] = 1.f;
+    vertices[9] = -1.f;
 
-    _vertices[10] = 1.f;
-    _vertices[11] = 0.f;
-    _vertices[12] = 1.f;
-    _vertices[13] = -1.f;
-    _vertices[14] = -1.f;
+    vertices[10] = 1.f;
+    vertices[11] = 0.f;
+    vertices[12] = 1.f;
+    vertices[13] = -1.f;
+    vertices[14] = -1.f;
 
-    _vertices[15] = 1.f;
-    _vertices[16] = 1.f;
-    _vertices[17] = 1.f;
-    _vertices[18] = 1.f;
-    _vertices[19] = -1.f;
+    vertices[15] = 1.f;
+    vertices[16] = 1.f;
+    vertices[17] = 1.f;
+    vertices[18] = 1.f;
+    vertices[19] = -1.f;
 
     // update VBO
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-
-    GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(PositionBuffer, _vertices.data(), 20 * sizeof(float));
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(float),
+        vertices.data(),
+        GL_STATIC_DRAW
+    );
     glBindVertexArray(0);
 }
 
@@ -122,7 +124,7 @@ void SpoutOutputProjection::render() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+        bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -157,7 +159,7 @@ void SpoutOutputProjection::render() {
         // restore depth func
         glDepthFunc(GL_LESS);
 
-        _spoutFBO->unBind();
+        _spoutFBO->unbind();
 
         glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 #ifdef SGCT_HAS_SPOUT
@@ -250,7 +252,7 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
             Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().getAlpha();
+            const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -294,7 +296,7 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
         }
 
         if (_mappingType == Mapping::Cubemap) {
-            _cubeMapFbo->unBind();
+            _cubeMapFbo->unbind();
 
             if (_spout[i].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
@@ -794,8 +796,6 @@ void SpoutOutputProjection::initFBO() {
     else {
         MessageHandler::printError("Spout FBO created with errors");
     }
-
-    OffScreenBuffer::unBind();
 }
 
 void SpoutOutputProjection::drawCubeFace(int face) {

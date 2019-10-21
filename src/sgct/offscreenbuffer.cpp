@@ -46,7 +46,6 @@ namespace {
             }
         }
     }
-
 } // namespace
 
 namespace sgct::core {
@@ -60,14 +59,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
     // create a multisampled buffer
     if (_isMultiSampled) {
-        GLint MaxSamples;
-        glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
-        samples = std::max(samples, MaxSamples);
-        if (MaxSamples < 2) {
+        GLint maxSamples;
+        glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+        samples = std::max(samples, maxSamples);
+        if (maxSamples < 2) {
             samples = 0;
         }
 
-        MessageHandler::printDebug("Max samples supported: %d", MaxSamples);
+        MessageHandler::printDebug("Max samples supported: %d", maxSamples);
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -172,8 +171,6 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         _depthBuffer
     );
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     if (_isMultiSampled) {
         MessageHandler::printDebug(
             "OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO "
@@ -189,6 +186,8 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             width, height, _frameBuffer, _depthBuffer
         );
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
@@ -201,15 +200,6 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     glDeleteRenderbuffers(1, &_colorBuffer);
     glDeleteRenderbuffers(1, &_normalBuffer);
     glDeleteRenderbuffers(1, &_positionBuffer);
-
-    // init
-    _frameBuffer = 0;
-    _multiSampledFrameBuffer = 0;
-    _colorBuffer = 0;
-    _depthBuffer = 0;
-    _normalBuffer = 0;
-    _positionBuffer = 0;
-
     createFBO(width, height, samples);
 }
 
@@ -232,31 +222,7 @@ void OffScreenBuffer::bind() {
 }
 
 void OffScreenBuffer::bind(GLsizei n, const GLenum* bufs) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (_isMultiSampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
-    }
-    else {
-        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-    }
-
-    glDrawBuffers(n, bufs);
-}
-
-void OffScreenBuffer::bind(bool isMultisampled) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (isMultisampled) {
-        glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);
-    }
-    else {
-        glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-    }
-
-    setDrawBuffers();
+    bind(_isMultiSampled, n, bufs);
 }
 
 void OffScreenBuffer::bind(bool isMultisampled, GLsizei n, const GLenum* bufs) {
@@ -279,7 +245,7 @@ void OffScreenBuffer::bindBlit() {
     setDrawBuffers();
 }
 
-void OffScreenBuffer::unBind() {
+void OffScreenBuffer::unbind() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -327,26 +293,20 @@ void OffScreenBuffer::blit() {
 
 void OffScreenBuffer::destroy() {
     glDeleteFramebuffers(1, &_frameBuffer);
+    _frameBuffer = 0;
     glDeleteRenderbuffers(1, &_depthBuffer);
-    
+    _depthBuffer = 0;
+
     if (_isMultiSampled) {
         glDeleteFramebuffers(1, &_multiSampledFrameBuffer);
+        _multiSampledFrameBuffer = 0;
         glDeleteRenderbuffers(1, &_colorBuffer);
-
-        if (Settings::instance()->useNormalTexture()) {
-            glDeleteRenderbuffers(1, &_normalBuffer);
-        }
-        if (Settings::instance()->usePositionTexture()) {
-            glDeleteRenderbuffers(1, &_positionBuffer);
-        }
+        _colorBuffer = 0;
+        glDeleteRenderbuffers(1, &_normalBuffer);
+        _normalBuffer = 0;
+        glDeleteRenderbuffers(1, &_positionBuffer);
+        _positionBuffer = 0;
     }
-
-    _frameBuffer = 0;
-    _multiSampledFrameBuffer = 0;
-    _colorBuffer = 0;
-    _depthBuffer = 0;
-    _normalBuffer = 0;
-    _positionBuffer = 0;
 }
 
 bool OffScreenBuffer::isMultiSampled() const {

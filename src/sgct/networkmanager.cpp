@@ -64,8 +64,6 @@ const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
 }
 #endif // defined(__MINGW32__) || defined(__MINGW64__)
 
-//#define __SGCT_NETWORK_DEBUG__
-
 namespace sgct::core {
 
 std::condition_variable NetworkManager::cond;
@@ -310,12 +308,12 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
             maxTime = std::max(currentTime, maxTime);
             minTime = std::min(currentTime, minTime);
 
-            int currentSize =
+            const int currentSize =
                 static_cast<int>(SharedData::instance()->getDataSize()) -
                 Network::HeaderSize;
 
             // iterate counter
-            int currentFrame = connection->iterateFrameCounter();
+            const int currentFrame = connection->iterateFrameCounter();
 
             unsigned char* dataBlock = SharedData::instance()->getDataBlock();
             std::memcpy(dataBlock + 1, &currentFrame, sizeof(int));
@@ -345,20 +343,13 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
 }
 
 bool NetworkManager::isSyncComplete() const {
-    unsigned int counter = static_cast<unsigned int>(
+    const unsigned int counter = static_cast<unsigned int>(
         std::count_if(
             _syncConnections.cbegin(),
             _syncConnections.cend(),
             [](Network* n) { return n->isUpdated(); }
         )
     );
-#ifdef __SGCT_NETWORK_DEBUG__
-    MessageHandler::printDebug(
-        "SGCTNetworkManager::isSyncComplete: counter %u of %u",
-        counter, getSyncConnectionsCount()
-    );
-#endif
-
     return (counter == getActiveSyncConnectionsCount());
 }
 
@@ -800,8 +791,7 @@ void NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         MessageHandler::printError(
-            "NetworkManager: Failed to get address info (error %d)",
-            Network::getLastError()
+            "NetworkManager: Failed to get address info (%d)", Network::getLastError()
         );
     }
     else {
@@ -853,7 +843,7 @@ bool NetworkManager::areAllNodesConnected() const {
 }
 
 void NetworkManager::retrieveNodeId() const {
-    for (size_t i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
+    for (int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
         // check ip
         if (matchAddress(ClusterManager::instance()->getNode(i)->getAddress())) {
             ClusterManager::instance()->setThisNodeId(static_cast<int>(i));

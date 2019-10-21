@@ -279,7 +279,7 @@ struct Window {
     std::optional<bool> hasBorder;
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
-    std::optional<bool> copyPreviousWindowToCurrentWindow;
+    std::optional<bool> blitPreviousWindow;
     std::optional<int> monitor;
     std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;

@@ -92,7 +92,7 @@ void NonLinearProjection::setUseDepthTransformation(bool state) {
 }
 
 void NonLinearProjection::setStereo(bool state) {
-    _stereo = state;
+    _isStereo = state;
 }
 
 void NonLinearProjection::setClearColor(glm::vec4 color) {
@@ -132,7 +132,7 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
     return _vpCoords;
 }
 
-void NonLinearProjection::initTextures() {    
+void NonLinearProjection::initTextures() {
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat);
     if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
         MessageHandler::printDebug(
@@ -252,14 +252,10 @@ void NonLinearProjection::initFBO() {
             "NonLinearProjection: Cube map FBO created with errors"
         );
     }
-
-    OffScreenBuffer::unBind();
 }
 
 void NonLinearProjection::initVBO() {
-    _vertices.resize(20);
-    std::fill(_vertices.begin(), _vertices.end(), 0.f);
-    
+    std::array<float, 20> vertices;
     glGenVertexArrays(1, &_vao);
     MessageHandler::printDebug("NonLinearProjection: Generating VAO: %d", _vao);
 
@@ -269,7 +265,7 @@ void NonLinearProjection::initVBO() {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     // 2TF + 3VF = 2*4 + 3*4 = 20
-    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), _vertices.data(), GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertices.data(), GL_STREAM_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
@@ -294,9 +290,56 @@ void NonLinearProjection::initVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void NonLinearProjection::setupViewport(BaseViewport& vp) {
+    const float cmRes = static_cast<float>(_cubemapResolution);
+
+    _vpCoords = glm::ivec4(
+        static_cast<int>(floor(vp.getPosition().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getPosition().y * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getSize().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.getSize().y * cmRes + 0.5f))
+    );
+
+    glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
+    glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
+}
+
+void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat) {
+    glDeleteTextures(1, &texture);
+
+    GLint MaxMapRes;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
+    if (_cubemapResolution > MaxMapRes) {
+        MessageHandler::printError(
+            "NonLinearProjection: Requested map size is too big (%d > %d)",
+            _cubemapResolution, MaxMapRes
+        );
+    }
+
+    // set up texture target
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Disable mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
+    glTexStorage2D(
+        GL_TEXTURE_2D,
+        1,
+        internalFormat,
+        _cubemapResolution,
+        _cubemapResolution
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
 void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internalFormat) {
     glDeleteTextures(1, &texture);
-    texture = 0;
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -332,55 +375,6 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-}
-
-void NonLinearProjection::setupViewport(BaseViewport& vp) {
-    const float cmRes = static_cast<float>(_cubemapResolution);
-
-    _vpCoords = glm::ivec4(
-        static_cast<int>(floor(vp.getPosition().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getPosition().y * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getSize().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getSize().y * cmRes + 0.5f))
-    );
-
-    glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
-    glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
-}
-
-void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat) {
-    glDeleteTextures(1, &texture);
-    texture = 0;
-
-    GLint MaxMapRes;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
-    if (_cubemapResolution > MaxMapRes) {
-        MessageHandler::printError(
-            "NonLinearProjection: Requested map size is too big (%d > %d)",
-            _cubemapResolution, MaxMapRes
-        );
-    }
-
-    // set up texture target
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    // Disable mipmaps
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
-    glTexStorage2D(
-        GL_TEXTURE_2D,
-        1,
-        internalFormat,
-        _cubemapResolution,
-        _cubemapResolution
-    );
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 } // namespace sgct::core

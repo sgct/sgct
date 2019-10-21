@@ -95,7 +95,7 @@ Engine* Engine::instance() {
 config::Cluster loadCluster(std::optional<std::string> path) {
     if (path) {
         try {
-            return core::readconfig::readConfig(*path);
+            return core::readConfig(*path);
         }
         catch (const std::runtime_error& e) {
             // (abock, 2019-10-11) This conversion from string_view to string is necessary
@@ -1021,7 +1021,7 @@ void Engine::render() {
 
                 core::NonLinearProjection* nonLinearProj = vp.getNonLinearProjection();
 
-                nonLinearProj->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
+                nonLinearProj->setAlpha(getCurrentWindow().hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
                     _currentFrustumMode = win.getViewport(j).getEye();
@@ -1071,7 +1071,7 @@ void Engine::render() {
                 }
                 core::NonLinearProjection* p = vp.getNonLinearProjection();
 
-                p->setAlpha(getCurrentWindow().getAlpha() ? 0.f : 1.f);
+                p->setAlpha(getCurrentWindow().hasAlpha() ? 0.f : 1.f);
                 _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
                 p->renderCubemap(&_currentViewportIndex.sub);
 
@@ -1153,7 +1153,7 @@ void Engine::render() {
 
         // Check if exit key was pressed or window was closed
         _isRunning = !(thisNode.getKeyPressed(_exitKey) ||
-                     thisNode.shouldAllWindowsClose() || _shouldTerminate ||
+                     thisNode.closeAllWindows() || _shouldTerminate ||
                      !_networkConnections->isRunning());
 
         // for all windows
@@ -1378,7 +1378,7 @@ void Engine::prepareBuffer(TextureIndexes ti) {
 }
 
 void Engine::renderFBOTexture() {
-    core::OffScreenBuffer::unBind();
+    core::OffScreenBuffer::unbind();
 
     bool maskShaderSet = false;
 
@@ -1970,7 +1970,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     MessageHandler::printInfo("Waiting for all nodes to connect");
         
     while (_networkConnections->isRunning() && !thisNode.getKeyPressed(_exitKey) &&
-            !thisNode.shouldAllWindowsClose() && !_shouldTerminate)
+            !thisNode.closeAllWindows() && !_shouldTerminate)
     {
         // Swap front and back rendering buffers
         for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
@@ -2205,7 +2205,7 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
 void Engine::clearBuffer() {
     glm::vec4 color = Engine::instance()->getClearColor();
 
-    const float alpha = instance()->getCurrentWindow().getAlpha() ? 0.f : color.a;
+    const float alpha = instance()->getCurrentWindow().hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

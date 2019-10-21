@@ -18,7 +18,6 @@ namespace sgct::core {
  */
 class ProjectionPlane {
 public:
-    void reset();
     void offset(const glm::vec3& p);
 
     void setCoordinateLowerLeft(glm::vec3 coordinate);
@@ -26,13 +25,13 @@ public:
     void setCoordinateUpperRight(glm::vec3 coordinate);
 
     /// \returns coordinates for the lower left projection plane corner
-    glm::vec3 getCoordinateLowerLeft() const;
+    const glm::vec3& getCoordinateLowerLeft() const;
 
     /// \returns coordinates for the upper left projection plane corner
-    glm::vec3 getCoordinateUpperLeft() const;
+    const glm::vec3& getCoordinateUpperLeft() const;
 
     /// \returns coordinates for the upper right projection plane corner
-    glm::vec3 getCoordinateUpperRight() const;
+    const glm::vec3& getCoordinateUpperRight() const;
 
 protected:
     glm::vec3 _lowerLeft = glm::vec3(-1.f, -1.f, -2.f);

@@ -383,7 +383,7 @@ void drawOmniStereo() {
     Window& win = gEngine->getWindow(1);
     glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
@@ -399,7 +399,7 @@ void drawOmniStereo() {
         }
     }
 
-    ShaderManager::instance()->bindShaderProgram("grid");
+    ShaderManager::instance()->getShaderProgram("grid").bind();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -426,10 +426,10 @@ void drawFun() {
         glm::mat4 vp = gEngine->getCurrentViewProjectionMatrix();
         glm::mat4 model = gEngine->getModelMatrix();
 
-        ShaderManager::instance()->bindShaderProgram("grid");
+        ShaderManager::instance()->getShaderProgram("grid").bind();
         renderGrid(vp);
 
-        ShaderManager::instance()->bindShaderProgram("xform");
+        ShaderManager::instance()->getShaderProgram("xform").bind();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
@@ -475,16 +475,16 @@ void initOGLFun() {
 
     ShaderManager& sm = *ShaderManager::instance();
     sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
-    sm.bindShaderProgram("grid");
+    sm.getShaderProgram("grid").bind();
     gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
+    sm.getShaderProgram("grid").unbind();
 
     sm.addShaderProgram("xform", baseVertexShader, baseFragmentShader);
-    sm.bindShaderProgram("xform");
+    sm.getShaderProgram("xform").bind();
     matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
     GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("tex");
     glUniform1i(textureLoc, 0);
-
-    sm.unBindShaderProgram();
+    sm.getShaderProgram("xform").unbind();
 
     initOmniStereo(maskOutSimilarities);
 }

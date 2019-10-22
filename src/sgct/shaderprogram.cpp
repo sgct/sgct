@@ -11,37 +11,51 @@
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 
+namespace {
+    bool checkLinkStatus(GLint programId, const std::string& name) {
+        GLint linkStatus;
+        glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
+
+        if (!linkStatus) {
+            GLint logLength;
+            glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+
+            std::vector<GLchar> log(logLength);
+            glGetProgramInfoLog(programId, logLength, nullptr, log.data());
+
+            sgct::MessageHandler::printError(
+                "Shader program[%s] linking error: %s", name.c_str(), log.data()
+            );
+        }
+        return linkStatus != 0;
+    }
+} // namespace
+
 namespace sgct {
 
 ShaderProgram::ShaderProgram(std::string name) : _name(std::move(name)) {}
 
 void ShaderProgram::deleteProgram() {
-    for (core::ShaderData& sd : _shaders) {
-        if (sd.shader.getId() > 0) {
-            glDetachShader(_programId, sd.shader.getId());
-            sd.shader.deleteShader();
+    for (core::Shader& shader : _shaders) {
+        if (shader.getId() > 0) {
+            glDetachShader(_programId, shader.getId());
         }
     }
+    _shaders.clear();
 
     glDeleteProgram(_programId);
     _programId = 0;
 }
 
-void ShaderProgram::setName(std::string name) {
-    _name = std::move(name);
-}
-
-bool ShaderProgram::addShaderSource(std::string src, core::Shader::ShaderType type) {
-    core::ShaderData sd;
-    sd.shader.setShaderType(type);
-    sd.source = std::move(src);
-
-    const bool success = sd.shader.setSourceFromString(sd.source);
-    if (success) {
-        _shaders.push_back(std::move(sd));
+bool ShaderProgram::addShaderSource(std::string src, GLenum type) {
+    try {
+        _shaders.emplace_back(type, std::move(src));
+        return true;
     }
-
-    return success;
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
+        return false;
+    }
 }
 
 void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
@@ -101,34 +115,14 @@ bool ShaderProgram::createAndLinkProgram() {
     }
 
     // Link shaders
-    for (const core::ShaderData& sd : _shaders) {
-        if (sd.shader.getId() > 0) {
-            glAttachShader(_programId, sd.shader.getId());
+    for (const core::Shader& shader : _shaders) {
+        if (shader.getId() > 0) {
+            glAttachShader(_programId, shader.getId());
         }
     }
-
     glLinkProgram(_programId);
-
-    _isLinked = checkLinkStatus();
+    _isLinked = checkLinkStatus(_programId, _name);
     return _isLinked;
-}
-
-bool ShaderProgram::reload() {
-    MessageHandler::printInfo("ShaderProgram: Reloading program '%s'", _name.c_str());
-    
-    deleteProgram();
-
-    for (core::ShaderData& sd : _shaders) {
-        const bool success = sd.shader.setSourceFromString(sd.source);
-        if (!success) {
-            MessageHandler::printError(
-                "ShaderProgram: Failed to load '%s'", sd.source.c_str()
-            );
-            return false;
-        }
-    }
-
-    return createAndLinkProgram();
 }
 
 bool ShaderProgram::createProgram() {
@@ -154,27 +148,6 @@ bool ShaderProgram::createProgram() {
         MessageHandler::printError(
             "Could not create shader program [%s]: Unknown error", _name.c_str()
         );
-        return false;
-    }
-
-    return true;
-}
-
-bool ShaderProgram::checkLinkStatus() const {
-    GLint linkStatus;
-    glGetProgramiv(_programId, GL_LINK_STATUS, &linkStatus);
-
-    if (!linkStatus) {
-        GLint logLength;
-        glGetProgramiv(_programId, GL_INFO_LOG_LENGTH, &logLength);
-
-        std::vector<GLchar> log(logLength);
-        glGetProgramInfoLog(_programId, logLength, nullptr, log.data());
-
-        MessageHandler::printError(
-            "Shader program[%s] linking error: %s", _name.c_str(), log.data()
-        );
-
         return false;
     }
 

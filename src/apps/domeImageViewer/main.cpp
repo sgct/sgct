@@ -236,7 +236,7 @@ void drawFun() {
     glEnable(GL_CULL_FACE);
 
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
-        
+
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
@@ -248,13 +248,10 @@ void drawFun() {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
     }
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
-
-    // draw the box
     dome->draw();
-
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -291,13 +288,12 @@ void initOGLFun() {
     glFrontFace(GL_CW);
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     GLint texLoc = prog.getUniformLocation("tex");
     glUniform1i(texLoc, 0);
-
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 }
 
 void encodeFun() {

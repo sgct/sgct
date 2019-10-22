@@ -38,6 +38,20 @@ namespace {
             case Source::RightBackBuffer: return GL_BACK_RIGHT;
         }
     }
+
+    [[nodiscard]] GLenum getDownloadFormat(int nChannels) {
+        switch (nChannels) {
+            default:
+                return GL_BGRA;
+            case 1:
+                return GL_RED;
+            case 2:
+                return GL_RG;
+            case 3:
+                return GL_BGR;
+        }
+    }
+
 } // namespace
 
 namespace sgct::core {
@@ -47,8 +61,6 @@ ScreenCapture::ScreenCapture()
 {}
 
 ScreenCapture::~ScreenCapture() {
-    MessageHandler::printInfo("Clearing screen capture buffers");
-
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         // kill threads that are still running
         if (info.captureThread) {
@@ -66,15 +78,14 @@ ScreenCapture::~ScreenCapture() {
 
 void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor) {
     glDeleteBuffers(1, &_pbo);
-    _pbo = 0;
 
-    _resolution = resolution;
+    _resolution = std::move(resolution);
     _bytesPerColor = bytesPerColor;
     
     _nChannels = channels;
     _dataSize = _resolution.x * _resolution.y * _nChannels * _bytesPerColor;
 
-    updateDownloadFormat();
+    _downloadType = getDownloadFormat(_nChannels);
 
     std::unique_lock lock(_mutex);
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
@@ -91,8 +102,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
 
     glGenBuffers(1, &_pbo);
     MessageHandler::printDebug(
-        "ScreenCapture: Generating %dx%dx%d PBO: %u",
-        _resolution.x, _resolution.y, _nChannels, _pbo
+        "Generating %dx%dx%d PBO: %u", _resolution.x, _resolution.y, _nChannels, _pbo
     );
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
@@ -103,7 +113,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
 void ScreenCapture::setTextureTransferProperties(GLenum type) {
     _downloadType = type;
     _downloadTypeSetByUser = _downloadType;
-    updateDownloadFormat();
+    _downloadFormat = getDownloadFormat(_nChannels);
 }
 
 void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
@@ -124,7 +134,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         return;
     }
     
-    glPixelStorei(GL_PACK_ALIGNMENT, 1); // byte alignment
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
         
     if (capSrc == CaptureSource::Texture) {
@@ -139,13 +149,13 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         const GLsizei h = static_cast<GLsizei>(s.y);
         glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
     }
-            
+
     unsigned char* ptr = reinterpret_cast<unsigned char*>(
         glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
     );
     if (ptr) {
         memcpy(imPtr->getData(), ptr, _dataSize);
-                
+
         if (_captureCallback) {
             _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
         }
@@ -160,10 +170,10 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     else {
-        MessageHandler::printError("Error: Can't map data (0) from GPU in frame capture");
+        MessageHandler::printError("Can't map data (0) from GPU in frame capture");
     }
-        
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); // unbind pbo
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
 void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
@@ -202,25 +212,23 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     // use default settings if path is empty
     std::string filename;
     std::string eye;
-    bool useDefaultSettings = _path.empty() && _baseName.empty();
+    const bool useDefaultSettings = _path.empty() && _baseName.empty();
     if (useDefaultSettings) {
-        std::string tmpPath;
         using CapturePath = Settings::CapturePath;
         switch (_eyeIndex) {
             case EyeIndex::Mono:
             default:
-                tmpPath = Settings::instance()->getCapturePath(CapturePath::Mono);
+                filename = Settings::instance()->getCapturePath(CapturePath::Mono);
                 break;
             case EyeIndex::StereoLeft:
                 eye = "_L";
-                tmpPath = Settings::instance()->getCapturePath(CapturePath::LeftStereo);
+                filename = Settings::instance()->getCapturePath(CapturePath::LeftStereo);
                 break;
             case EyeIndex::StereoRight:
                 eye = "_R";
-                tmpPath = Settings::instance()->getCapturePath(CapturePath::RightStereo);
+                filename = Settings::instance()->getCapturePath(CapturePath::RightStereo);
                 break;
         }
-        filename = tmpPath;
         Window& win = Engine::instance()->getWindow(_windowIndex);
         
         if (win.getName().empty()) {
@@ -281,27 +289,10 @@ int ScreenCapture::getAvailableCaptureThread() {
     }
 }
 
-void ScreenCapture::updateDownloadFormat() {
-    switch (_nChannels) {
-        default:
-            _downloadFormat = GL_BGRA;
-            break;
-        case 1:
-            _downloadFormat = GL_RED;
-            break;
-        case 2:
-            _downloadFormat = GL_RG;
-            break;
-        case 3:
-            _downloadFormat = GL_BGR;
-            break;
-    }
-}
-
-void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
+void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
     Window& win = Engine::instance()->getWindow(_windowIndex);
-    
-    if (CapSrc == CaptureSource::Texture) {
+
+    if (captureSource == CaptureSource::Texture) {
         if (_resolution != win.getFramebufferResolution()) {
             _downloadType = _downloadTypeSetByUser;
             const int bytesPerColor = win.getFramebufferBPCC();

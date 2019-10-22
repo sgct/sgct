@@ -110,7 +110,7 @@ void drawFace(Rotation rot) {
             break;
     }
 
-    ShaderManager::instance()->bindShaderProgram("simple");
+    ShaderManager::instance()->getShaderProgram("simple").bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

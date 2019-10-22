@@ -12,24 +12,54 @@
 #include <sgct/messagehandler.h>
 #include <fstream>
 
-namespace sgct::core {
-
-Shader::Shader(ShaderType shaderType) : _shaderType(shaderType) {}
-
-void Shader::setShaderType(ShaderType shaderType) {
-    _shaderType = shaderType;
-}
-
-bool Shader::setSourceFromString(const std::string& sourceString) {
-    // At this point no resetting of shaders are supported
-    if (_shaderId > 0) {
-        MessageHandler::printWarning(
-            "%s is already set for specified shader",
-            getShaderTypeName(_shaderType).c_str()
-        );
-        return false;
+namespace {
+    std::string getShaderTypeName(GLenum shaderType) {
+        switch (shaderType) {
+            case GL_VERTEX_SHADER:
+                return "Vertex shader";
+            case GL_FRAGMENT_SHADER:
+                return "Fragment shader";
+            case GL_GEOMETRY_SHADER:
+                return "Geometry shader";
+            case GL_COMPUTE_SHADER:
+                return "Compute shader";
+            case GL_TESS_CONTROL_SHADER:
+                return "Tesselation control shader";
+            case GL_TESS_EVALUATION_SHADER:
+                return "Tesselation evaluation shader";
+            default:
+                return "Unknown shader";
+        };
     }
 
+    void checkCompilationStatus(GLenum type, GLint id) {
+        GLint compilationStatus;
+        glGetShaderiv(id, GL_COMPILE_STATUS, &compilationStatus);
+
+        if (compilationStatus == 0) {
+            GLint logLength;
+            glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
+
+            if (logLength == 0) {
+                sgct::MessageHandler::printError(
+                    "%s compile error: Unknown error", getShaderTypeName(type).c_str()
+                );
+            }
+
+            std::vector<GLchar> log(logLength);
+            glGetShaderInfoLog(id, logLength, nullptr, log.data());
+            sgct::MessageHandler::printError(
+                "%s compile error: %s", getShaderTypeName(type).c_str(), log.data()
+            );
+        }
+    }
+} // namespace
+
+namespace sgct::core {
+
+Shader::Shader(GLenum shaderType, const std::string& sourceString)
+    : _shaderType(shaderType)
+{
     // Prepare source code for shader
     const char* shaderSrc[] = { sourceString.c_str() };
 
@@ -37,63 +67,16 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
     glShaderSource(_shaderId, 1, shaderSrc, nullptr);
 
     glCompileShader(_shaderId);
-    return checkCompilationStatus();
+    checkCompilationStatus(_shaderType, _shaderId);
 }
 
-void Shader::deleteShader() {
+Shader::~Shader() {
     glDeleteShader(_shaderId);
-    _shaderId = 0;
 }
 
 int Shader::getId() const {
     return _shaderId;
 }
 
-bool Shader::checkCompilationStatus() const {
-    GLint compilationStatus;
-    glGetShaderiv(_shaderId, GL_COMPILE_STATUS, &compilationStatus);
-
-    if (compilationStatus == 0) {
-        GLint logLength;
-        glGetShaderiv(_shaderId, GL_INFO_LOG_LENGTH, &logLength);
-
-        if (logLength == 0) {
-            MessageHandler::printError(
-                "%s compile error: Unknown error",
-                getShaderTypeName(_shaderType).c_str()
-            );
-            return false;
-        }
-
-        std::vector<GLchar> log(logLength);
-        glGetShaderInfoLog(_shaderId, logLength, nullptr, log.data());
-        MessageHandler::printError(
-            "%s compile error: %s", getShaderTypeName(_shaderType).c_str(), log.data()
-        );
-
-        return false;
-    }
-
-    return compilationStatus;
-}
-
-std::string Shader::getShaderTypeName(ShaderType shaderType) const {
-    switch (shaderType) {
-        case GL_VERTEX_SHADER:
-            return "Vertex shader";
-        case GL_FRAGMENT_SHADER:
-            return "Fragment shader";
-        case GL_GEOMETRY_SHADER:
-            return "Geometry shader";
-        case GL_COMPUTE_SHADER:
-            return "Compute shader";
-        case GL_TESS_CONTROL_SHADER:
-            return "Tesselation control shader";
-        case GL_TESS_EVALUATION_SHADER:
-            return "Tesselation evaluation shader";
-        default:
-            return "Unknown shader";
-    };
-}
 
 } // namespace sgct::core

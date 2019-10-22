@@ -220,26 +220,22 @@ void createPyramid(float width) {
 void drawXZGrid() {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
 
-    ShaderManager::instance()->bindShaderProgram("gridShader");
-
+    ShaderManager::instance()->getShaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
     glBindVertexArray(grid.vao);
-
     glLineWidth(3.f);
     // offset to avoid z-buffer fighting
     glPolygonOffset(0.f, 0.f);
     glDrawArrays(GL_LINES, 0, grid.nVertices);
-
     glBindVertexArray(0);
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("gridShader").unbind();
 }
 
 void drawPyramid(int index) {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() *
         xform.getVal() * pyramidTransforms[index];
 
-    ShaderManager::instance()->bindShaderProgram("pyramidShader");
+    ShaderManager::instance()->getShaderProgram("pyramidShader").bind();
 
     glUniformMatrix4fv(pyramid.matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glBindVertexArray(pyramid.vao);
@@ -255,7 +251,7 @@ void drawPyramid(int index) {
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
     glBindVertexArray(0);
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("pyramidShader").unbind();
 }
 
 void initOGLFun() {
@@ -286,19 +282,19 @@ void initOGLFun() {
         gridVertexShader,
         gridFragmentShader
     );
-    sm.bindShaderProgram("gridShader");
+    sm.getShaderProgram("gridShader").bind();
     grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("mvp");
-    sm.unBindShaderProgram();
+    sm.getShaderProgram("gridShader").unbind();
 
     sm.addShaderProgram(
         "pyramidShader",
         pyramidVertexShader,
         pyramidFragmentShader
     );
-    sm.bindShaderProgram("pyramidShader");
+    sm.getShaderProgram("pyramidShader").bind();
     pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("mvp");
     alphaLocation = sm.getShaderProgram("pyramidShader").getUniformLocation("alpha");
-    sm.unBindShaderProgram();
+    sm.getShaderProgram("pyramidShader").unbind();
 }
 
 void preSyncFun() {

@@ -9,7 +9,6 @@ namespace {
     sgct::Engine* gEngine;
 
     sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool reloadShader(false);
 
     GLuint vertexArray = 0;
     GLuint vertexPositionBuffer = 0;
@@ -65,13 +64,11 @@ void initFun() {
     glBindVertexArray(0);
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
- 
+    prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     timeLoc = prog.getUniformLocation("currTime");
- 
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 }
 
 void drawFun() {
@@ -84,14 +81,14 @@ void drawFun() {
     );
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
         
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniform1f(timeLoc, static_cast<float>(currentTime.getVal()));
     glBindVertexArray(vertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 }
 
 void preSyncFun() {
@@ -100,35 +97,12 @@ void preSyncFun() {
     }
 }
 
-void postSyncPreDrawFun() {
-    if (reloadShader.getVal()) {
-        reloadShader.setVal(false);
-
-        ShaderProgram sp = ShaderManager::instance()->getShaderProgram("xform");
-        sp.reload();
-
-        ShaderManager::instance()->bindShaderProgram("xform");
-        const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
-        timeLoc = prog.getUniformLocation("currTime");
-        matrixLoc = prog.getUniformLocation("mvp");
-        sgct::ShaderManager::instance()->unBindShaderProgram();
-    }
-}
-
-void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && key == key::R && action == action::Press) {
-        reloadShader.setVal(true);
-    }
-}
-
 void encodeFun() {
     SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(reloadShader);
 }
 
 void decodeFun() {
     SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(reloadShader);
 }
 
 void cleanUpFun() {
@@ -148,8 +122,6 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setEncodeFunction(encodeFun);
     gEngine->setDecodeFunction(decodeFun);
 

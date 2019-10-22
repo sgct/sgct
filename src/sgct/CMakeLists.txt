@@ -32,7 +32,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
   ${PROJECT_SOURCE_DIR}/include/sgct/settings.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shader.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaderdata.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h

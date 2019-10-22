@@ -48,7 +48,9 @@ sgct::core::Touch gCurrentTouchPoints;
 bool sRunUpdateFrameLockLoop = true;
 
 namespace {
-    constexpr const bool CheckOpenGLForErrors = true;
+    // If this value is set to true, every OpenGL call will be checked for errors. This
+    // will detroy a lot of the performance, so it is disabled by default
+    constexpr const bool CheckOpenGLForErrors = false;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
@@ -1762,7 +1764,7 @@ void Engine::updateRenderingTargets(TextureIndexes ti) {
 }
 
 void Engine::loadShaders() {
-    _shader.fxaa.setName("FXAAShader");
+    _shader.fxaa = ShaderProgram("FXAAShader");
     _shader.fxaa.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
     _shader.fxaa.createAndLinkProgram();
     _shader.fxaa.bind();
@@ -1785,7 +1787,7 @@ void Engine::loadShaders() {
     ShaderProgram::unbind();
 
     // Used for overlays & mono.
-    _shader.fboQuad.setName("FBOQuadShader");
+    _shader.fboQuad = ShaderProgram("FBOQuadShader");
     _shader.fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
     _shader.fboQuad.createAndLinkProgram();
     _shader.fboQuad.bind();
@@ -1793,7 +1795,7 @@ void Engine::loadShaders() {
     glUniform1i(_shaderLoc.monoTex, 0);
     ShaderProgram::unbind();
 
-    _shader.overlay.setName("OverlayShader");
+    _shader.overlay = ShaderProgram("OverlayShader");
     _shader.overlay.addShaderSource(
         core::shaders::OverlayVert,
         core::shaders::OverlayFrag

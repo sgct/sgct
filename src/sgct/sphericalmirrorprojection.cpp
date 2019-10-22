@@ -325,16 +325,16 @@ void SphericalMirrorProjection::initShaders() {
         );
     }
 
-    //reload shader program if it exists
+    // reload shader program if it exists
     if (_shader.isLinked()) {
         _shader.deleteProgram();
     }
 
+    _shader = ShaderProgram("SphericalMirrorShader");
     _shader.addShaderSource(
         core::shaders::SphericalProjectionVert,
         core::shaders::SphericalProjectionFrag
     );
-    _shader.setName("SphericalMirrorShader");
     _shader.createAndLinkProgram();
     _shader.bind();
 

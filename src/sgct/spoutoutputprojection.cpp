@@ -56,30 +56,12 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 }
 
 void SpoutOutputProjection::update(glm::vec2) {
-    std::array<float, 20> vertices;
-    vertices[0] = 0.f;
-    vertices[1] = 0.f;
-    vertices[2] = -1.f;
-    vertices[3] = -1.f;
-    vertices[4] = -1.f;
-
-    vertices[5] = 0.f;
-    vertices[6] = 1.f;
-    vertices[7] = -1.f;
-    vertices[8] = 1.f;
-    vertices[9] = -1.f;
-
-    vertices[10] = 1.f;
-    vertices[11] = 0.f;
-    vertices[12] = 1.f;
-    vertices[13] = -1.f;
-    vertices[14] = -1.f;
-
-    vertices[15] = 1.f;
-    vertices[16] = 1.f;
-    vertices[17] = 1.f;
-    vertices[18] = 1.f;
-    vertices[19] = -1.f;
+    const std::array<const float, 20> vertices = {
+        0.f, 0.f, -1.f, -1.f, -1.f,
+        0.f, 1.f, -1.f,  1.f, -1.f,
+        1.f, 0.f,  1.f, -1.f, -1.f,
+        1.f, 1.f,  1.f,  1.f, -1.f
+    };
 
     // update VBO
     glBindVertexArray(_vao);
@@ -743,19 +725,20 @@ void SpoutOutputProjection::initShaders() {
             << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
 
-    _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
-
+    std::string name;
     switch (_mappingType) {
         case Mapping::Fisheye:
-            _shader.setName("FisheyeShader");
+            name = "FisheyeShader";
             break;
         case Mapping::Equirectangular:
-            _shader.setName("EquirectangularShader");
+            name = "EquirectangularShader";
             break;
         case Mapping::Cubemap:
-            _shader.setName("None");
+            name = "None";
             break;
     }
+    _shader = ShaderProgram(std::move(name));
+    _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 
@@ -768,7 +751,7 @@ void SpoutOutputProjection::initShaders() {
     ShaderProgram::unbind();
 
     if (Settings::instance()->useDepthTexture()) {
-        _depthCorrectionShader.setName("FisheyeDepthCorrectionShader");
+        _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
 

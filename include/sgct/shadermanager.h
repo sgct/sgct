@@ -31,17 +31,6 @@ public:
     ~ShaderManager();
 
     /**
-     * Add a empty shader program to the manager. This function is used when creating
-     * advanced shader programs. Compilation is not automatic in this case.
-     *
-     * \param name Unique name of the shader
-     * \param shaderProgram Reference to ShaderProgram
-     *
-     * \return true if shader program was added to the shader manager
-     */
-    bool addShaderProgram(const std::string& name, ShaderProgram& shaderProgram);
-
-    /**
      * Add a shader program to the manager. The shaders will be compiled and linked to the
      * program. The name of the shader needs to be unique or it won't be added. Both
      * vertex shader and fragment shader source need to be provided, either as a link to a
@@ -63,23 +52,6 @@ public:
      * vertex shader and fragment shader source need to be provided, either as a link to a
      * shader source code file or as shader source code.
      *
-     * \param shaderProgram Reference to ShaderProgram
-     * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code
-     * \param fragmentSrc The fragment shader source code
-     *
-     * \return Whether the shader was created, linked and added to the manager correctly
-     *         or not.
-     */
-    bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
-        const std::string& vertexSrc, const std::string& fragmentSrc);
-
-    /**
-     * Add a shader program to the manager. The shaders will be compiled and linked to the
-     * program. The name of the shader needs to be unique or it won't be added. Both
-     * vertex shader and fragment shader source need to be provided, either as a link to a
-     * shader source code file or as shader source code.
-     *
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
      * \param fragmentSrc The fragment shader source code
@@ -90,34 +62,6 @@ public:
      */
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
         const std::string& fragmentSrc, const std::string& geometrySrc);
-
-    /**
-     * Add a shader program to the manager. The shaders will be compiled and linked to the
-     * program. The name of the shader needs to be unique or it won't be added. Both
-     * vertex shader and fragment shader source need to be provided, either as a link to a
-     * shader source code file or as shader source code.
-     *
-     * \param shaderProgram Reference to ShaderProgram
-     * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code
-     * \param fragmentSrc The fragment shader source code
-     * \param geometrySrc The geometry shader source code
-     *
-     * \return Whether the shader was created, linked and added to the manager correctly
-     *         or not.
-     */
-    bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
-        const std::string& vertexSrc, const std::string& fragmentSrc,
-        const std::string& geometrySrc);
-
-    /**
-     * Reloads a shader program from the manager for the current bin.
-     *
-     * \param name Name of the shader program to reload
-     *
-     * \return true if the shader program was reloaded correctly
-     */
-    bool reloadShaderProgram(const std::string& name);
 
     /**
      * Removes a shader program from the manager. All resources allocated for the program
@@ -136,7 +80,7 @@ public:
      *
      * \return Whether the specified shader was set as active or not.
      */
-    bool bindShaderProgram(const std::string& name) const;
+    // bool bindShaderProgram(const std::string& name) const;
 
     /**
      * Set a shader program to be used in the current rendering pipeline.
@@ -145,10 +89,10 @@ public:
      *
      * \return Whether the specified shader was set as active or not.
      */
-    bool bindShaderProgram(const ShaderProgram& shaderProgram) const;
+    // bool bindShaderProgram(const ShaderProgram& shaderProgram) const;
     
     /// Unbind/unset/disable current shader program in the rendering pipeline.
-    void unBindShaderProgram();
+    // void unBindShaderProgram();
 
     /**
      * Check if a shader program exists in the manager.

@@ -215,7 +215,7 @@ void drawPyramid(int index) {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() *
         xform.getVal() * pyramidTransforms[index];
 
-    ShaderManager::instance()->bindShaderProgram("pyramidShader");
+    ShaderManager::instance()->getShaderProgram("pyramidShader").bind();
 
     glUniformMatrix4fv(pyramid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
@@ -232,24 +232,21 @@ void drawPyramid(int index) {
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
     glBindVertexArray(0);
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("pyramidShader").unbind();
 }
 
 void drawXZGrid() {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
 
-    ShaderManager::instance()->bindShaderProgram("gridShader");
-
+    ShaderManager::instance()->getShaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-
     glBindVertexArray(grid.vao);
-
     glLineWidth(3.f);
     glPolygonOffset(0.f, 0.f); // offset to avoid z-buffer fighting
     glDrawArrays(GL_LINES, 0, grid.nVerts);
 
     glBindVertexArray(0);
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("gridShader").unbind();
 }
 
 void cleanUpFun() {
@@ -284,22 +281,22 @@ void initOGLFun() {
         gridVertexShader,
         gridFragmentShader
     );
-    ShaderManager::instance()->bindShaderProgram("gridShader");
-    const ShaderProgram& gProg= ShaderManager::instance()->getShaderProgram("gridShader");
-    grid.matrixLocation = gProg.getUniformLocation("mvp");
-    ShaderManager::instance()->unBindShaderProgram();
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("gridShader");
+    prog.bind();
+    grid.matrixLocation = prog.getUniformLocation("mvp");
+    prog.unbind();
 
     ShaderManager::instance()->addShaderProgram(
         "pyramidShader",
         pyramidVertexShader,
         pyramidFragmentShader
     );
-    ShaderManager::instance()->bindShaderProgram("pyramidShader");
     const ShaderProgram& pyramidProg =
         ShaderManager::instance()->getShaderProgram("pyramidShader");
+    pyramidProg.bind();
     pyramid.matrixLocation = pyramidProg.getUniformLocation("mvp");
     alphaLocation = pyramidProg.getUniformLocation("alpha");
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    pyramidProg.unbind();
 }
 
 void preSyncFun() {

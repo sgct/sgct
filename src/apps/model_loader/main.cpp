@@ -23,7 +23,6 @@ namespace {
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool reloadShader(false);
 
     constexpr const char* vertexShader = R"(
   #version 330 core
@@ -163,7 +162,7 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
 
     glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glUniformMatrix3fv(NMLoc, 1, GL_FALSE, glm::value_ptr(MVP));
@@ -172,7 +171,7 @@ void drawFun() {
     glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -182,26 +181,6 @@ void preSyncFun() {
     if (gEngine->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
-}
-
-void postSyncPreDrawFun() {
-    if (!reloadShader.getVal()) {
-        return;
-    }
-
-    ShaderManager::instance()->reloadShaderProgram("xform");
-    const ShaderProgram& sp = ShaderManager::instance()->getShaderProgram("xform");
-
-    // reset locations
-    sp.bind();
-
-    MVPLoc = sp.getUniformLocation("mvp");
-    NMLoc = sp.getUniformLocation("nm");
-    GLint Tex_Loc = sp.getUniformLocation("tex");
-    glUniform1i(Tex_Loc, 0);
-
-    sp.unbind();
-    reloadShader.setVal(false);
 }
 
 void initOGLFun() {
@@ -218,25 +197,21 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("xform");
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
-
+    prog.bind();
     MVPLoc = prog.getUniformLocation("mvp");
     NMLoc = prog.getUniformLocation("nm");
     GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
-
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 }
 
 void encodeFun() {
     SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(reloadShader);
 }
 
 void decodeFun() {
     SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(reloadShader);
 }
 
 /**
@@ -255,12 +230,6 @@ void cleanUpFun() {
     vboNormals = 0;
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == action::Press && key == key::R) {
-        reloadShader.setVal(true);
-    }
-}
-
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
@@ -272,8 +241,6 @@ int main(int argc, char* argv[]) {
     gEngine->setDrawFunction(drawFun);
     gEngine->setPreSyncFunction(preSyncFun);
     gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setEncodeFunction(encodeFun);
     gEngine->setDecodeFunction(decodeFun);
 

@@ -9,7 +9,6 @@
 #include <sgct/settings.h>
 
 #include <sgct/messagehandler.h>
-#include <sgct/screencapture.h>
 
 namespace sgct {
 
@@ -58,8 +57,8 @@ void Settings::applySettings(const config::Settings& settings) {
         if (settings.display->refreshRate) {
             setRefreshRateHint(*settings.display->refreshRate);
         }
-        if (settings.display->maintainAspectRatio) {
-            setTryMaintainAspectRatio(*settings.display->maintainAspectRatio);
+        if (settings.display->keepAspectRatio) {
+            setTryKeepAspectRatio(*settings.display->keepAspectRatio);
         }
         if (settings.display->exportWarpingMeshes) {
             setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
@@ -149,7 +148,7 @@ void Settings::setUsePositionTexture(bool state) {
 }
 
 void Settings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
-    _currentBufferFloatPrecision = bfp;
+    _bufferFloatPrecision = bfp;
 }
 
 void Settings::setNumberOfCaptureThreads(int count) {
@@ -233,7 +232,7 @@ const std::string& Settings::getCapturePath(CapturePath cpi) const {
     }
 }
 
-Settings::CaptureFormat Settings::getCaptureFormat() {
+Settings::CaptureFormat Settings::getCaptureFormat() const {
     return _captureFormat;
 }
 
@@ -268,7 +267,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
     }
     else {
         MessageHandler::printWarning(
-            "Settings: Number of default MSAA samples must be a power of two", samples
+            "Number of default MSAA samples must be a power of two", samples
         );
     }
 }
@@ -289,8 +288,8 @@ void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
 }
 
-bool Settings::getTryMaintainAspectRatio() const {
-    return _tryMaintainAspectRatio;
+bool Settings::getTryKeepAspectRatio() const {
+    return _tryKeepAspectRatio;
 }
 
 bool Settings::getExportWarpingMeshes() const {
@@ -305,8 +304,8 @@ bool Settings::getCaptureFromBackBuffer() const {
     return _captureBackBuffer;
 }
 
-void Settings::setTryMaintainAspectRatio(bool state) {
-    _tryMaintainAspectRatio = state;
+void Settings::setTryKeepAspectRatio(bool state) {
+    _tryKeepAspectRatio = state;
 }
 
 unsigned int Settings::getOSDTextFontSize() const {
@@ -321,8 +320,8 @@ const std::string& Settings::getOSDTextFontPath() const {
     return _fontPath;
 }
 
-GLenum Settings::getBufferFloatPrecisionAsGLint() const {
-    return _currentBufferFloatPrecision == BufferFloatPrecision::Float16Bit ?
+GLenum Settings::getBufferFloatPrecision() const {
+    return _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ?
         GL_RGB16F :
         GL_RGB32F;
 }

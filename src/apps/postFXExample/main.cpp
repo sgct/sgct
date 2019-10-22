@@ -138,13 +138,12 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
     box->draw();
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -167,14 +166,12 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
-    ShaderManager::instance()->bindShaderProgram("xform");
-
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 
     setupPostFXs();
 }

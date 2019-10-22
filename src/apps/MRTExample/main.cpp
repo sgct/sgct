@@ -99,7 +99,7 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    ShaderManager::instance()->bindShaderProgram("MRT");
+    ShaderManager::instance()->getShaderProgram("MRT").bind();
 
     glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniformMatrix4fv(worldMatrixTransposeId, 1, GL_TRUE, glm::value_ptr(mv));
@@ -108,7 +108,7 @@ void drawFun() {
 
     box->draw();
 
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("MRT").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -129,16 +129,14 @@ void postSyncPreDrawFun() {
 
 void initOGLFun() {
     ShaderManager::instance()->addShaderProgram("MRT", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("MRT");
-
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
-
+    prg.bind();
     textureID = prg.getUniformLocation("tDiffuse");
     worldMatrixTransposeId = prg.getUniformLocation("worldMatrixTranspose");
     mvpMatrixId = prg.getUniformLocation("mvpMatrix");
     normalMatrixId = prg.getUniformLocation("normalMatrix");
 
-    ShaderManager::instance()->unBindShaderProgram();
+    prg.bind();
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
     TextureManager::instance()->loadTexture("box", "box.png", true);
@@ -153,10 +151,7 @@ void initOGLFun() {
         "Texture info, x=%d, y=%d, c=%d, path=%s", sizeX, sizeY, sizeC, path.c_str()
     );
 
-    box = std::make_unique<sgct::utils::Box>(
-        2.f,
-        sgct::utils::Box::TextureMappingMode::Regular
-        );
+    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);

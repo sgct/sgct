@@ -936,10 +936,7 @@ namespace {
                 sgct::config::Settings::Display display;
                 display.swapInterval = parseValue<int>(e, "swapInterval");
                 display.refreshRate = parseValue<int>(e, "refreshRate");
-                display.maintainAspectRatio = parseValue<bool>(
-                    e,
-                    "tryMaintainAspectRatio"
-                );
+                display.keepAspectRatio = parseValue<bool>(e, "tryMaintainAspectRatio");
                 display.exportWarpingMeshes = parseValue<bool>(e, "exportWarpingMeshes");
                 settings.display = display;
             }

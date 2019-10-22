@@ -253,7 +253,7 @@ void drawFun() {
 
     glBindVertexArray(0);
 
-    ShaderManager::instance()->unBindShaderProgram();
+    mSp.unbind();
 
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -293,11 +293,11 @@ void initOGLFun() {
 
     // setup shader
     ShaderManager::instance()->addShaderProgram(
-        mSp,
         "Heightmap",
         vertexShader,
         fragmentShader
     );
+    mSp = ShaderManager::instance()->getShaderProgram("Heightmap");
 
     mSp.bind();
     heightTextureLoc = mSp.getUniformLocation("hTex");
@@ -317,7 +317,7 @@ void initOGLFun() {
     glUniform4fv(lightAmbLoc, 1, glm::value_ptr(lightAmbient));
     glUniform4fv(lightDifLoc, 1, glm::value_ptr(lightDiffuse));
     glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
-    ShaderManager::instance()->unBindShaderProgram();
+    mSp.unbind();
 
     Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);
 

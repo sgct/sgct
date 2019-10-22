@@ -123,7 +123,7 @@ void drawFun() {
         gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
 
-    ShaderManager::instance()->bindShaderProgram("simple");
+    ShaderManager::instance()->getShaderProgram("simple").bind();
     glm::mat4 matrix = gEngine->getCurrentModelViewProjectionMatrix();
     matrix = glm::rotate(
         matrix,
@@ -435,11 +435,10 @@ void initOGLFun() {
     glBindVertexArray(0);
 
     ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("simple");
-    const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
-    matrixLocation = gProg.getUniformLocation("matrix");
-    ShaderManager::instance()->unBindShaderProgram();
-
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("simple");
+    prog.bind();
+    matrixLocation = prog.getUniformLocation("matrix");
+    prog.unbind();
 }
 
 void encodeFun() {

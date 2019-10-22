@@ -161,7 +161,7 @@ void Statistics::initVBO() {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    _shader.setName("StatsShader");
+    _shader = ShaderProgram("StatsShader");
     _shader.addShaderSource(StatsVertShader, StatsFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();

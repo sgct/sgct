@@ -12,8 +12,6 @@
 #include <sgct/config.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
-#include <atomic>
-#include <mutex>
 #include <string>
 #include <thread>
 
@@ -24,28 +22,16 @@ namespace sgct {
  */
 class Settings {
 public:
-    enum class CapturePath {
-        Mono = 0,
-        LeftStereo,
-        RightStereo
-    };
-
-    enum class CaptureFormat {
-        PNG,
-        TGA,
-        JPG
-    };
+    enum class CapturePath { Mono, LeftStereo, RightStereo };
+    enum class CaptureFormat { PNG, TGA, JPG };
 
     enum class DrawBufferType {
-        Diffuse = 0,
+        Diffuse,
         DiffuseNormal,
         DiffusePosition,
         DiffuseNormalPosition
     };
-    enum class BufferFloatPrecision {
-        Float16Bit = 0,
-        Float32Bit
-    };
+    enum class BufferFloatPrecision { Float16Bit, Float32Bit };
 
     /// Get the Settings instance
     static Settings* instance();
@@ -68,7 +54,7 @@ public:
     /**
      * Set the refreshrate hint of the window in fullscreen mode.
      * If it's not listed in your monitor's video-mode list than it will not be used.
-
+     *
      * \param freq the refresh frequency/rate
      */
     void setRefreshRateHint(int freq);
@@ -85,7 +71,7 @@ public:
     /**
      * Set the float precision of the float buffers (normal and position buffer).
      * \param bfp is the float precition that will be used in next buffer resize or
-     *            creation
+     *        creation
      */
     void setBufferFloatPrecision(BufferFloatPrecision bfp);
 
@@ -93,7 +79,7 @@ public:
     void setNumberOfCaptureThreads(int count);
 
     /**
-     * Set capture/screenshot path used by SGCT
+     * Set capture/screenshot path used by SGCT.
      *
      * \param path the path including filename without suffix
      * \param cpi index to which path to set (Mono = default, Left or Right)
@@ -101,9 +87,7 @@ public:
     void setCapturePath(std::string path, CapturePath cpi = CapturePath::Mono);
 
     /**
-     * Set the capture format which can be one of the following:
-     *   - PNG
-     *   - TGA
+     * Set the screenshot capture format.
      */
     void setCaptureFormat(CaptureFormat format);
 
@@ -157,7 +141,7 @@ public:
      * Set if geometry should try to adapt after framebuffer dimensions. This is valid for
      * multi-viewport renderings like fisheye projections.
      */
-    void setTryMaintainAspectRatio(bool state);
+    void setTryKeepAspectRatio(bool state);
     
     /**
      * Get the capture/screenshot path
@@ -188,7 +172,7 @@ public:
     const std::string& getOSDTextFontPath() const;
 
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
-    GLenum getBufferFloatPrecisionAsGLint() const;
+    GLenum getBufferFloatPrecision() const;
 
     /// Get the default MSAA setting
     int getDefaultNumberOfAASamples() const;
@@ -206,7 +190,7 @@ public:
     bool getCaptureFromBackBuffer() const;
     
     /// Get if aspect ratio is taken into acount when generation some display geometries.
-    bool getTryMaintainAspectRatio() const;
+    bool getTryKeepAspectRatio() const;
     
     /// Get if warping meshes should be exported as obj-files.
     bool getExportWarpingMeshes() const;
@@ -216,7 +200,7 @@ public:
      *
      * \return the captureformat if set, otherwise -1 is returned
      */
-    CaptureFormat getCaptureFormat();
+    CaptureFormat getCaptureFormat() const;
 
     /// Return true if depth buffer is rendered to texture
     bool useDepthTexture() const;
@@ -247,7 +231,7 @@ private:
 
     static Settings* _instance;
 
-    std::atomic<CaptureFormat> _captureFormat = CaptureFormat::PNG;
+    CaptureFormat _captureFormat = CaptureFormat::PNG;
     int _swapInterval = 1;
     int _refreshRate = 0;
     int _nCaptureThreads = std::thread::hardware_concurrency();
@@ -259,7 +243,7 @@ private:
     bool _defaultFXAA = false;
     bool _useWarping = true;
     bool _captureBackBuffer = false;
-    bool _tryMaintainAspectRatio = true;
+    bool _tryKeepAspectRatio = true;
     bool _exportWarpingMeshes = false;
 
     glm::vec2 _osdTextOffset = glm::vec2(0.05f, 0.05f);
@@ -284,7 +268,7 @@ private:
     std::string _fontPath;
     unsigned int _fontSize = 10;
 
-    BufferFloatPrecision _currentBufferFloatPrecision = BufferFloatPrecision::Float16Bit;
+    BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float16Bit;
 };
 
 } // namespace sgct

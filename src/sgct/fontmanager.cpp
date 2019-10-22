@@ -198,7 +198,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
     static bool isShaderCreated = false;
     if (!isShaderCreated) {
-        _shader.setName("FontShader");
+        _shader = ShaderProgram("FontShader");
         _shader.addShaderSource(FontVertShader, FontFragShader);
         _shader.createAndLinkProgram();
         _shader.bind();

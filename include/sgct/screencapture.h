@@ -30,24 +30,9 @@ class Image;
 class ScreenCapture {
 public:
     /// The different file formats supported
-    enum class CaptureFormat {
-        PNG = 0,
-        TGA,
-        JPEG
-    };
-
-    enum class CaptureSource {
-        Texture = 0,
-        BackBuffer,
-        LeftBackBuffer,
-        RightBackBuffer
-    };
-
-    enum class EyeIndex {
-        Mono = 0,
-        StereoLeft,
-        StereoRight
-    };
+    enum class CaptureFormat { PNG, TGA, JPEG };
+    enum class CaptureSource { Texture, BackBuffer, LeftBackBuffer, RightBackBuffer };
+    enum class EyeIndex { Mono, StereoLeft, StereoRight };
 
     struct ScreenCaptureThreadInfo {
         std::string filename;

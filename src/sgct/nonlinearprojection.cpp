@@ -201,7 +201,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance()->useNormalTexture()) {
         generateCubeMap(
             _textures.cubeMapNormals,
-            Settings::instance()->getBufferFloatPrecisionAsGLint()
+            Settings::instance()->getBufferFloatPrecision()
         );
         if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
             MessageHandler::printDebug(
@@ -221,7 +221,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance()->usePositionTexture()) {
         generateCubeMap(
             _textures.cubeMapPositions,
-            Settings::instance()->getBufferFloatPrecisionAsGLint()
+            Settings::instance()->getBufferFloatPrecision()
         );
         if (Engine::checkForOGLErrors("NonLinearProjection::initTextures")) {
             MessageHandler::printDebug(

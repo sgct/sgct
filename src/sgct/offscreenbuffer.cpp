@@ -102,7 +102,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance()->getBufferFloatPrecisionAsGLint(),
+                Settings::instance()->getBufferFloatPrecision(),
                 width,
                 height
             );
@@ -113,7 +113,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance()->getBufferFloatPrecisionAsGLint(),
+                Settings::instance()->getBufferFloatPrecision(),
                 width,
                 height
             );

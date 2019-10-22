@@ -1195,7 +1195,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 case TextureType::Normal:
                 case TextureType::Position:
                     return {
-                         Settings::instance()->getBufferFloatPrecisionAsGLint(),
+                         Settings::instance()->getBufferFloatPrecision(),
                          GL_RGB,
                          GL_FLOAT
                     };
@@ -1305,7 +1305,7 @@ void Window::loadShaders() {
         }
     }(_stereoMode);
 
-    _stereo.shader.setName("StereoShader");
+    _stereo.shader = ShaderProgram("StereoShader");
     _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();

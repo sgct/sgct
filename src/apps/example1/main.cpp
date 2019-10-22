@@ -81,12 +81,10 @@ void initFun() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("xform");
- 
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
+    prg.bind();
     matrixLoc = prg.getUniformLocation("mvp");
- 
-    ShaderManager::instance()->unBindShaderProgram();
+    prg.unbind(); 
 }
 
 void drawFun() {
@@ -99,17 +97,13 @@ void drawFun() {
     );
     glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    ShaderManager::instance()->getShaderProgram("xform").bind();
         
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glBindVertexArray(vertexArray);
-    
-    // Draw the triangle
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    // unbind
     glBindVertexArray(0);
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 }
 
 void preSyncFun() {

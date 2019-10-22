@@ -57,7 +57,7 @@ struct Settings {
     struct Display {
         std::optional<int> swapInterval;
         std::optional<int> refreshRate;
-        std::optional<bool> maintainAspectRatio;
+        std::optional<bool> keepAspectRatio;
         std::optional<bool> exportWarpingMeshes;
     };
 

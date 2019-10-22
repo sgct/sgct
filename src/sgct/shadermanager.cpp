@@ -25,35 +25,14 @@ ShaderManager* ShaderManager::instance() {
 }
 
 void ShaderManager::destroy() {
-    if (_instance != nullptr) {
-        delete _instance;
-        _instance = nullptr;
-    }
+    delete _instance;
+    _instance = nullptr;
 }
 
 ShaderManager::~ShaderManager() {
     for (ShaderProgram& p : _shaderPrograms) {
         p.deleteProgram();
     }
-}
-
-bool ShaderManager::addShaderProgram(const std::string& name,
-                                     ShaderProgram& shaderProgram)
-{
-    // Check if shader already exists
-    if (shaderProgramExists(name)) {
-        MessageHandler::printWarning(
-            "Unable to add shader program [%s]: Name already exists", name.c_str()
-        );
-        return false;
-    }
-
-    // If shader don't exist, create it and add to container
-    ShaderProgram sp(name);
-    _shaderPrograms.push_back(sp);
-    shaderProgram = _shaderPrograms.back();
-
-    return true;
 }
 
 // @TODO (abock, 2019-10-19) Remove this and replace with a function that just adds an
@@ -85,45 +64,6 @@ bool ShaderManager::addShaderProgram(const std::string& name,
 
     if (sp.createAndLinkProgram()) {
         _shaderPrograms.push_back(sp);
-        return true;
-    }
-
-    // If arrived here the creation and linking of the program didn't work.
-    // Return false but printing errors is handled in createAndLinkProgram()
-    return false;
-}
-
-bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
-                                     const std::string& name,
-                                     const std::string& vertexSrc,
-                                     const std::string& fragmentSrc)
-{
-    // if something failes set shader pointer to NullShader
-    shaderProgram = NullShader;
-    
-    // Check if shader already exists
-    if (shaderProgramExists(name)) {
-        MessageHandler::printWarning(
-            "Unable to add shader program [%s]: Name already exists", name.c_str()
-        );
-        return false;
-    }
-
-    ShaderProgram sp(name);
-    
-    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
-        // Error messaging handled when setting source
-        return false;
-    }
-    
-    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
-        // Error messaging handled when setting source
-        return false;
-    }
-
-    if (sp.createAndLinkProgram()) {
-        _shaderPrograms.push_back(sp);
-        shaderProgram = _shaderPrograms.back();
         return true;
     }
 
@@ -173,71 +113,6 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     return false;
 }
 
-bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
-                                     const std::string& name,
-                                     const std::string& vertexSrc,
-                                     const std::string& fragmentSrc,
-                                     const std::string& geometrySrc)
-{
-    //if something failes set shader pointer to NullShader
-    shaderProgram = NullShader;
-    
-    // Check if shader already exists
-    if (shaderProgramExists(name)) {
-        MessageHandler::printWarning(
-            "Unable to add shader program [%s]: Name already exists", name.c_str()
-        );
-        return false;
-    }
-
-    // If shader don't exist, create it and add to container
-    ShaderProgram sp(name);
-    
-    if (!sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER)) {
-        // Error messaging handled when setting source
-        return false;
-    }
-    
-    if (!sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER)) {
-        // Error messaging handled when setting source
-        return false;
-    }
-
-    if( !sp.addShaderSource(geometrySrc, GL_GEOMETRY_SHADER)) {
-        // Error messaging handled when setting source
-        return false;
-    }
-
-    if (sp.createAndLinkProgram()) {
-        _shaderPrograms.push_back(sp);
-        shaderProgram = _shaderPrograms.back();
-        return true;
-    }
-
-    // If arrived here the creation and linking of the program didn't work.
-    // Return false but printing errors is handled in createAndLinkProgram()
-    return false;
-}
-
-bool ShaderManager::reloadShaderProgram(const std::string& name) {
-    std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
-        _shaderPrograms.begin(),
-        _shaderPrograms.end(),
-        [name](const ShaderProgram& prg) { return prg.getName() == name; }
-    );
-
-    if (shaderIt == _shaderPrograms.end()) {
-        MessageHandler::printWarning(
-            "Unable to reload shader program [%s]: Not found in current bin", name.c_str()
-        );
-        return false;
-    }
-
-    shaderIt->reload();
-
-    return true;
-}
-
 bool ShaderManager::removeShaderProgram(const std::string& name) {
     std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         _shaderPrograms.begin(),
@@ -258,36 +133,36 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     return true;
 }
 
-bool ShaderManager::bindShaderProgram(const std::string& name) const {
-    const ShaderProgram& sp = getShaderProgram(name);
+// bool ShaderManager::bindShaderProgram(const std::string& name) const {
+//     const ShaderProgram& sp = getShaderProgram(name);
 
-    if (sp.getName() == NullShader.getName()) {
-        MessageHandler::printWarning(
-            "Could not set shader program [%s] as active: Not found in manager",
-            name.c_str()
-        );
-        glUseProgram(0); //unbind to prevent errors
-        return false;
-    }
+//     if (sp.getName() == NullShader.getName()) {
+//         MessageHandler::printWarning(
+//             "Could not set shader program [%s] as active: Not found in manager",
+//             name.c_str()
+//         );
+//         glUseProgram(0); //unbind to prevent errors
+//         return false;
+//     }
 
-    return sp.bind();
-}
+//     return sp.bind();
+// }
 
-bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const {
-    if (shaderProgram.getName() == NullShader.getName()) {
-        MessageHandler::printWarning(
-            "Could not set shader program [Invalid Pointer] as active"
-        );
-        glUseProgram(0);
-        return false;
-    }
+// bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const {
+//     if (shaderProgram.getName() == NullShader.getName()) {
+//         MessageHandler::printWarning(
+//             "Could not set shader program [Invalid Pointer] as active"
+//         );
+//         glUseProgram(0);
+//         return false;
+//     }
 
-    return shaderProgram.bind();
-}
+//     return shaderProgram.bind();
+// }
 
-void ShaderManager::unBindShaderProgram() {
-    glUseProgram(0);
-}
+// void ShaderManager::unBindShaderProgram() {
+//     glUseProgram(0);
+// }
 
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
     std::vector<ShaderProgram>::const_iterator shaderIt = std::find_if(

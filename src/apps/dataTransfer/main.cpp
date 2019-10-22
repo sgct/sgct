@@ -105,13 +105,10 @@ void drawFun() {
         );
     }
 
-    ShaderManager::instance()->bindShaderProgram("xform");
-
+    ShaderManager::instance()->getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
-
     box->draw();
-
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -150,12 +147,11 @@ void initOGLFun() {
     glFrontFace(GL_CCW); // our polygon winding is counter clockwise
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("xform");
-
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     glUniform1i(prog.getUniformLocation("tex"), 0 );
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 }
 
 void encodeFun() {

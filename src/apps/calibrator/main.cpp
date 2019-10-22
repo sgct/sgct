@@ -103,7 +103,7 @@ using namespace sgct;
 void draw() {
     glDepthMask(GL_FALSE);
 
-    ShaderManager::instance()->bindShaderProgram("simple");
+    ShaderManager::instance()->getShaderProgram("simple").bind();
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix();
 
     // Inverting tilt to keep the backwards compatibility with the previous implementation
@@ -124,7 +124,7 @@ void draw() {
     }
     glBindVertexArray(0);
 
-    ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("simple").unbind();
 
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
@@ -277,21 +277,21 @@ void initGL() {
     }
 
     ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
-    ShaderManager::instance()->bindShaderProgram("simple");
-    const ShaderProgram& gProg = ShaderManager::instance()->getShaderProgram("simple");
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("simple");
+    prog.bind();
 
-    matrixLocation = gProg.getUniformLocation("matrix");
+    matrixLocation = prog.getUniformLocation("matrix");
 
-    const GLint radiusLocation = gProg.getUniformLocation("radius");
+    const GLint radiusLocation = prog.getUniformLocation("radius");
     glUniform1f(radiusLocation, radius);
 
-    const GLint textureLocation = gProg.getUniformLocation("tex");
+    const GLint textureLocation = prog.getUniformLocation("tex");
     glUniform1i(textureLocation, 0);
 
-    const GLint hasTextureLocation = gProg.getUniformLocation("hasTex");
+    const GLint hasTextureLocation = prog.getUniformLocation("hasTex");
     glUniform1i(hasTextureLocation, hasTexture ? 1 : 0);
 
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 }
 
 void keyboardCallback(int key, int, int action, int) {

@@ -10,7 +10,6 @@
 #define __SGCT__SHADER_PROGRAM__H__
 
 #include <sgct/shader.h>
-#include <sgct/shaderdata.h>
 #include <vector>
 
 namespace sgct {
@@ -43,9 +42,6 @@ public:
     /// Will detach all attached shaders, delete them and then delete the program
     void deleteProgram();
 
-    /// \param name Name of the shader program
-    void setName(std::string name);
-
     /**
      * Will create and add a shader to the program.
      *
@@ -56,7 +52,7 @@ public:
      *
      * \return Whether the source code was set correctly or not
      */
-    bool addShaderSource(std::string src, core::Shader::ShaderType type);
+    bool addShaderSource(std::string src, GLenum type);
 
     /**
      * Creates and adds a vertex and a fragment shader and adds them to this shader
@@ -78,13 +74,6 @@ public:
      */
     bool createAndLinkProgram();
     
-    /**
-     * Reloads a shader by deleting, recompiling and re-linking.
-     *
-     * \return Whether the program was created and linked correctly or not
-     */
-    bool reload();
-
     /// Use the shader program in the current rendering pipeline
     bool bind() const;
 
@@ -138,19 +127,11 @@ private:
      */
     bool createProgram();
     
-    /**
-     * Will check the link status of the program and output any errors from the program
-     * log.
-     *
-     * \return Status of the compilation
-     */
-    bool checkLinkStatus() const;
-
     std::string _name = "SGCT_NULL"; /// Name of the program, has to be unique
     bool _isLinked = false;          /// If this program has been linked
     int _programId = 0;              /// Unique program _id
 
-    std::vector<core::ShaderData> _shaders;
+    std::vector<core::Shader> _shaders;
 };
 
 } // namespace sgct

@@ -18,9 +18,9 @@ namespace sgct {
 PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
                const std::string& fragShaderSrc, std::function<void()> updateFunction)
     : _updateFunction(std::move(updateFunction))
+    , _shaderProgram(name)
     , _name(std::move(name))
 {
-    _shaderProgram.setName(_name);
     _shaderProgram.addShaderSource(vertShaderSrc, fragShaderSrc);
     if (!_shaderProgram.createAndLinkProgram()) {
         MessageHandler::printError("PostFX '%s' failed to link shader", _name.c_str());

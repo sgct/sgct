@@ -225,13 +225,10 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
 
-    ShaderManager::instance()->bindShaderProgram("xform");
-
+    ShaderManager::instance()->getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
     box->draw();
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    ShaderManager::instance()->getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -262,14 +259,12 @@ void initOGLFun() {
         vertexShader,
         fragmentShader
     );
-    sgct::ShaderManager::instance()->bindShaderProgram("xform");
-
     const ShaderProgram& prg = sgct::ShaderManager::instance()->getShaderProgram("xform");
+    prg.bind();
     matrixLoc = prg.getUniformLocation("mvp");
     GLint TexLoc = prg.getUniformLocation("tex");
     glUniform1i(TexLoc, 0 );
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    prg.unbind();
 
     for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
         gEngine->getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");

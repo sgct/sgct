@@ -34,7 +34,7 @@ void FisheyeProjection::update(glm::vec2 size) {
 
     float x = 1.f;
     float y = 1.f;
-    if (Settings::instance()->getTryMaintainAspectRatio()) {
+    if (Settings::instance()->getTryKeepAspectRatio()) {
         float aspect = frameBufferAspect * cropAspect;
         if (aspect >= 1.f) {
             x = 1.f / aspect;
@@ -44,30 +44,12 @@ void FisheyeProjection::update(glm::vec2 size) {
         }
     }
 
-    std::array<float, 20> vertices;
-    vertices[0] = _cropFactor.left;
-    vertices[1] = _cropFactor.bottom;
-    vertices[2] = -x;
-    vertices[3] = -y;
-    vertices[4] = -1.f;
-
-    vertices[5] = _cropFactor.left;
-    vertices[6] = 1.f - _cropFactor.top;
-    vertices[7] = -x;
-    vertices[8] = y;
-    vertices[9] = -1.f;
-
-    vertices[10] = 1.f - _cropFactor.right;
-    vertices[11] = _cropFactor.bottom;
-    vertices[12] = x;
-    vertices[13] = -y;
-    vertices[14] = -1.f;
-
-    vertices[15] = 1.f - _cropFactor.right;
-    vertices[16] = 1.f - _cropFactor.top;
-    vertices[17] = x;
-    vertices[18] = y;
-    vertices[19] = -1.f;
+    const std::array<const float, 20> vertices = {
+              _cropFactor.left,        _cropFactor.bottom, -x, -y, -1.f,
+              _cropFactor.left,  1.f - _cropFactor.top,    -x,  y, -1.f,
+        1.f - _cropFactor.right,       _cropFactor.bottom,  x, -y, -1.f,
+        1.f - _cropFactor.right, 1.f - _cropFactor.top,     x,  y, -1.f
+    };
 
     // update VBO
     glBindVertexArray(_vao);
@@ -769,8 +751,8 @@ void FisheyeProjection::initShaders() {
             << ", " << _clearColor.b << ", " << _clearColor.a << ")";
     helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
+    _shader = ShaderProgram("FisheyeShader");
     _shader.addShaderSource(fisheyeVertexShader, fisheyeFragmentShader);
-    _shader.setName("FisheyeShader");
     _shader.createAndLinkProgram();
     _shader.bind();
 
@@ -803,7 +785,7 @@ void FisheyeProjection::initShaders() {
     ShaderProgram::unbind();
 
     if (Settings::instance()->useDepthTexture()) {
-        _depthCorrectionShader.setName("FisheyeDepthCorrectionShader");
+        _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
 

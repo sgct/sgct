@@ -53,7 +53,8 @@ public:
     void bind(GLsizei n, const GLenum* bufs);
 
     /**
-     * Bind framebuffer
+     * Bind framebuffer.
+     *
      * \param isMultisampled is true if MSAA should be used
      * \param n number of color buffers
      * \param bufs array with color buffers (GL_COLOR_ATTACHMENTn)

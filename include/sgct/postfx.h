@@ -20,7 +20,7 @@ namespace sgct {
  */
 class PostFX {
 public:
-    /// \returns true if shader and output/target texture created successfully
+    /// \return true if shader and output/target texture created successfully
     PostFX(std::string name, const std::string& vertShaderSrc,
         const std::string& fragShaderSrc, std::function<void()>);
     ~PostFX();
@@ -30,16 +30,16 @@ public:
     void setInputTexture(unsigned int inputTex);
     void setOutputTexture(unsigned int outputTex);
     
-    /// \returns the output texture
+    /// \return the output texture
     unsigned int getOutputTexture() const;
     
-    /// \returns the input texture
+    /// \return the input texture
     unsigned int getInputTexture() const;
     
-    /// \returns the shader pointer
+    /// \return the shader pointer
     const ShaderProgram& getShaderProgram() const;
     
-    /// \returns name of this post effect pass
+    /// \return name of this post effect pass
     const std::string& getName() const;
 
 private:

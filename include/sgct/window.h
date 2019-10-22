@@ -114,7 +114,7 @@ public:
     /**
      * This function is used internally within sgct to open the window.
      *
-     * /returns True if window was created successfully.
+     * /return True if window was created successfully.
      */
     bool openWindow(GLFWwindow* share, int lastWindowIdx);
 
@@ -128,9 +128,7 @@ public:
     /// Name this window
     void setName(std::string name);
 
-    /**
-     * Tag this window. Tags are seperated by comma
-     */
+    /// Tag this window. Tags are seperated by comma
     void setTags(std::vector<std::string> tags);
 
     /**
@@ -204,7 +202,7 @@ public:
     void setFullScreenMonitorIndex(int index);
 
     /**
-     * Force the frame buffer to have a fixed size which may be different from the window
+     * Force the framebuffer to have a fixed size which may be different from the window
      * size.
      */
     void setFixResolution(bool state);
@@ -271,7 +269,7 @@ public:
     /// Set the color bit depth of the FBO and Screencapture.
     void setColorBitDepth(ColorBitDepth cbd);
 
-    /// \returns true if full screen rendering is enabled
+    /// \return true if full screen rendering is enabled
     bool isFullScreen() const;
 
     /// \return true if window is floating/allways on top/topmost
@@ -280,44 +278,44 @@ public:
     /// \return true if window is double-buffered
     bool isDoubleBuffered() const;
 
-    /// \returns this window's focused flag
+    /// \return this window's focused flag
     bool isFocused() const;
 
-    /// \returns this window's inconify flag 
+    /// \return this window's inconify flag 
     bool isIconified() const;
 
-    /// \returns if the window is visible or not
+    /// \return if the window is visible or not
     bool isVisible() const;
 
-    /// \returns true if the window is set to render while hidden
+    /// \return true if the window is set to render while hidden
     bool isRenderingWhileHidden() const;
 
-    /// \returns If the frame buffer has a fix resolution this function returns true.
+    /// \return If the frame buffer has a fix resolution this function returns true.
     bool isFixResolution() const;
 
-    /// \returns true if any kind of stereo is enabled
+    /// \return true if any kind of stereo is enabled
     bool isStereo() const;
 
-    /// \returns true if this window is resized
+    /// \return true if this window is resized
     bool isWindowResized() const;
 
-    /// \returns the name of this window
+    /// \return the name of this window
     const std::string& getName() const;
 
-    /// \returns the tags of this window
+    /// \return the tags of this window
     const std::vector<std::string>& getTags() const;
 
-    /// \returns true if a specific tag exists
+    /// \return true if a specific tag exists
     bool hasTag(const std::string& tag) const;
 
-    /// \returns this window's id
+    /// \return this window's id
     int getId() const;
 
     /**
      * Get a frame buffer texture. If the texture doesn't exists then it will be created.
      *
      * \param index Index or Engine::TextureIndexes enum
-     * \returns texture index of selected frame buffer texture
+     * \return texture index of selected frame buffer texture
      */
     unsigned int getFrameBufferTexture(Engine::TextureIndexes index);
 
@@ -325,12 +323,11 @@ public:
      * This function returns the screen capture pointer if it's set otherwise nullptr.
      *
      * \param eye can either be 0 (left) or 1 (right)
-     *
-     * \returns pointer to screen capture ptr
+     * \return pointer to screen capture ptr
      */
     core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
 
-    /// \returns the number of samples used in multisampled anti-aliasing
+    /// \return the number of samples used in multisampled anti-aliasing
     int getNumberOfAASamples() const;
 
     /**
@@ -349,25 +346,25 @@ public:
     /// Returns pointer to FBO container
     core::OffScreenBuffer* getFBO() const;
 
-    /// \returns pointer to GLFW monitor
+    /// \return pointer to GLFW monitor
     GLFWmonitor* getMonitor() const;
 
-    /// \returns pointer to GLFW window
+    /// \return pointer to GLFW window
     GLFWwindow* getWindowHandle() const;
 
-    /// \returns a pointer to the viewport that is beeing rendered to at the moment
+    /// \return a pointer to the viewport that is beeing rendered to at the moment
     core::BaseViewport* getCurrentViewport() const;
 
-    /// \returns a pointer to a specific viewport
+    /// \return a pointer to a specific viewport
     core::Viewport& getViewport(size_t index);
 
-    /// \returns a pointer to a specific viewport
+    /// \return a pointer to a specific viewport
     const core::Viewport& getViewport(size_t index) const;
 
     /// Get the current viewport data in pixels.
     glm::ivec4 getCurrentViewportPixelCoords() const;
 
-    /// \returns the viewport count for this window
+    /// \return the viewport count for this window
     int getNumberOfViewports() const;
     std::string getStereoModeStr() const;
 
@@ -389,31 +386,31 @@ public:
     /// Get FOV of viewport[0]
     float getHorizFieldOfViewDegrees() const;
     
-    /// \returns the pointer to a specific post effect
+    /// \return the pointer to a specific post effect
     PostFX& getPostFX(size_t index);
 
-    /// \returns the number of post effects
+    /// \return the number of post effects
     size_t getNumberOfPostFXs() const;
 
-    /// \returns Get the window resolution.
+    /// \return Get the window resolution.
     glm::ivec2 getResolution() const;
 
-    /// \returns Get the frame buffer resolution.
+    /// \return Get the frame buffer resolution.
     glm::ivec2 getFramebufferResolution() const;
 
-    /// \returns Get the initial window resolution.
+    /// \return Get the initial window resolution.
     glm::ivec2 getInitialResolution() const;
 
     /**
-     * \returns Get the scale value (relation between pixel and point size). Normally this
-     *          value is 1.0f but 2.0f on retina computers.
+     * \return Get the scale value (relation between pixel and point size). Normally this
+     *         value is 1.f but 2.f on some retina computers.
      */
     glm::vec2 getScale() const;
 
-    /// \returns the aspect ratio of the window 
+    /// \return the aspect ratio of the window 
     float getAspectRatio() const;
 
-    /// \returns Get the frame buffer bytes per color component (BPCC) count.
+    /// \return Get the frame buffer bytes per color component (BPCC) count.
     int getFramebufferBPCC() const;
 
     void bindVAO() const;
@@ -427,9 +424,11 @@ public:
 
     /// \return true if any masks are used
     bool hasAnyMasks() const;
-    /// \returns true if FXAA should be used
+
+    /// \return true if FXAA should be used
     bool useFXAA() const;
-    /// \returns true if PostFX pass should be used
+
+    /// \return true if PostFX pass should be used
     bool usePostFX() const;
 
     void bindStereoShaderProgram() const;

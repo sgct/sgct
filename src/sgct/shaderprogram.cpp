@@ -47,30 +47,14 @@ void ShaderProgram::deleteProgram() {
     _programId = 0;
 }
 
-bool ShaderProgram::addShaderSource(std::string src, GLenum type) {
-    try {
-        _shaders.emplace_back(type, std::move(src));
-        return true;
-    }
-    catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
-        return false;
-    }
+void ShaderProgram::addShaderSource(std::string src, GLenum type) {
+    core::Shader v(type, std::move(src));
+    _shaders.push_back(std::move(v));
 }
 
 void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
-    const bool v = addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
-    const bool f = addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
-
-    if (v && !f) {
-        throw std::runtime_error("Failed to load fragment shader");
-    }
-    else if (!v && f) {
-        throw std::runtime_error("Failed to load vertex shader");
-    }
-    else if (!v && !f) {
-        throw std::runtime_error("Failed to load vertex and fragment shader");
-    }
+    addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
+    addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
 }
 
 int ShaderProgram::getAttribLocation(const std::string& name) const {
@@ -99,19 +83,17 @@ int ShaderProgram::getId() const {
     return _programId;
 }
 
-bool ShaderProgram::createAndLinkProgram() {
+void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        MessageHandler::printError(
-            "ShaderProgram: No shaders has been added to program '%s'", _name.c_str()
+        throw std::runtime_error(
+            "No shaders have been added the program: " + _name
         );
-        return false;
     }
 
     // Create the program
     bool createSuccess = createProgram();
     if (!createSuccess) {
-        // Error text handled in createProgram()
-        return false;
+        throw std::runtime_error("Error creating the program");
     }
 
     // Link shaders
@@ -122,7 +104,9 @@ bool ShaderProgram::createAndLinkProgram() {
     }
     glLinkProgram(_programId);
     _isLinked = checkLinkStatus(_programId, _name);
-    return _isLinked;
+    if (!_isLinked) {
+        throw std::runtime_error("Error linking the program: " + _name);
+    }
 }
 
 bool ShaderProgram::createProgram() {

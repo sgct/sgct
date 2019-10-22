@@ -24,13 +24,13 @@ public:
     void setCoordinateUpperLeft(glm::vec3 coordinate);
     void setCoordinateUpperRight(glm::vec3 coordinate);
 
-    /// \returns coordinates for the lower left projection plane corner
+    /// \return coordinates for the lower left projection plane corner
     const glm::vec3& getCoordinateLowerLeft() const;
 
-    /// \returns coordinates for the upper left projection plane corner
+    /// \return coordinates for the upper left projection plane corner
     const glm::vec3& getCoordinateUpperLeft() const;
 
-    /// \returns coordinates for the upper right projection plane corner
+    /// \return coordinates for the upper right projection plane corner
     const glm::vec3& getCoordinateUpperRight() const;
 
 protected:

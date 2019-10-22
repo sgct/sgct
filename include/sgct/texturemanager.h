@@ -45,7 +45,7 @@ public:
      * This function gets a texture id by its name.
      *
      * \param name of texture
-     * \returns openGL texture id if texture is found otherwise 0.
+     * \return openGL texture id if texture is found otherwise 0.
      */
     unsigned int getTextureId(const std::string& name);
 
@@ -107,7 +107,6 @@ public:
      * \param interpolate set to true for using interpolation (bi-linear filtering)
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
                            this value to 1 or less disables mipmaps
-     *
      * \return true if texture loaded successfully
      */
     bool loadTexture(const std::string& name, const std::string& filename,
@@ -121,7 +120,6 @@ public:
      * \param interpolate set to true for using interpolation (bi-linear filtering)
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
      *                     this value to 1 or less disables mipmaps
-     *
      * \return true if texture loaded successfully
      */
     bool loadTexture(const std::string& name, core::Image* imgPtr, bool interpolate,
@@ -135,7 +133,6 @@ public:
      * \param interpolate set to true for using interpolation (bi-linear filtering)
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
      *                     this value to 1 or less disables mipmaps
-     *
      * \return true if texture loaded successfully
      */
     bool loadUnManagedTexture(unsigned int& texID, const std::string& filename,
@@ -155,7 +152,7 @@ private:
     /// Destroy the TextureManager
     ~TextureManager();
 
-    /// \returns true if texture will be uploaded
+    /// \return true if texture will be uploaded
     bool updateTexture(const std::string& name, unsigned int& texPtr, bool& reload);
     bool uploadImage(const core::Image& imgPtr, unsigned int& texPtr);
     void freeTextureData();

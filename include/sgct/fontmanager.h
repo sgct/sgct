@@ -112,7 +112,6 @@ public:
      *
      * \param name Name of the font
      * \param height Height in  pixels for the font
-     *
      * \return Pointer to the font face, NULL if not found
      */
     Font* getFont(const std::string& name, unsigned int height = 10);
@@ -121,7 +120,6 @@ public:
      * Get the SGCT default font face that is loaded into memory.
      *
      * \param height Height in  pixels for the font
-     *
      * \return Pointer to the font face, nullptr if not found
      */
     Font* getDefaultFont(unsigned int height = 10);
@@ -143,7 +141,6 @@ private:
      *
      * \param fontName Name of the font
      * \param height Height of the font in pixels
-     *
      * \return Pointer to the newly created font, nullptr if something went wrong
      */
     std::unique_ptr<Font> createFont(const std::string& fontName, unsigned int height);

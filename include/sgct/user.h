@@ -68,7 +68,7 @@ public:
     const std::string& getHeadTrackerName() const;
     const std::string& getHeadTrackerDeviceName() const;
 
-    /// \returns true if user is tracked
+    /// \return true if user is tracked
     bool isTracked() const;
 
 private:

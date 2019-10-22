@@ -148,16 +148,15 @@ void myInitFun()
     sgct::ShaderManager::instance()->addShaderProgram(
         "avatar",
         vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
+        fragmentShader
     );
-    sgct::ShaderManager::instance()->bindShaderProgram("avatar");
+    sgct::ShaderManager::instance()->getShaderProgram("avatar").bind();
  
     Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("MVP");
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("FaceColor");
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Tex");
  
-    sgct::ShaderManager::instance()->unBindShaderProgram();
+    sgct::ShaderManager::instance()->getShaderProgram("avatar").unbind();
 }
 
 void myDrawFun() {

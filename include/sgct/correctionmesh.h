@@ -47,7 +47,6 @@ public:
      * \param path the path to the mesh data
      * \param hint a hint to pass to the parser selector
      * \param parent the pointer to parent viewport
-     *
      * \return true if mesh found and loaded successfully
      */
     bool readAndGenerateMesh(std::string path, Viewport& parent,

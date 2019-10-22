@@ -50,7 +50,6 @@ public:
      * Get a pointer to a specific node.
      *
      * \param index the index to a node in the vector
-     *
      * \return the pointer to the requested node or nullptr if not found. This pointer is
      *         not guaranteed to be stable between function calls
      */

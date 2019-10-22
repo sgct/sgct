@@ -112,7 +112,7 @@ public:
 
     /**
      * Set the pixel offset for contrast/edge detection. Values should be in the range
-     * [1.0f/8.0f, 1.0f]. Default is 0.5f.
+     * [1/8, 1]. Default is 0.5f.
      */
     void setFXAASubPixOffset(float val);
 
@@ -217,13 +217,13 @@ public:
     /// The relative On-Screen-Display text offset in range [0, 1]
     glm::vec2 getOSDTextOffset() const;
 
-    /// \returns the FXAA removal of sub-pixel aliasing
+    /// \return the FXAA removal of sub-pixel aliasing
     float getFXAASubPixTrim() const;
 
-    /// \returns the FXAA sub-pixel offset
+    /// \return the FXAA sub-pixel offset
     float getFXAASubPixOffset() const;
 
-    /// \returns the drawBufferType
+    /// \return the drawBufferType
     DrawBufferType getDrawBufferType() const;
 
 private:

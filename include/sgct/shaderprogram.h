@@ -49,10 +49,9 @@ public:
      * \param type Type of shader can be one of the following: GL_COMPUTE_SHADER,
      *             GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
      *             GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
-     *
-     * \return Whether the source code was set correctly or not
+     * \throws std::runtime_error If the adding of the shaders failed
      */
-    bool addShaderSource(std::string src, GLenum type);
+    void addShaderSource(std::string src, GLenum type);
 
     /**
      * Creates and adds a vertex and a fragment shader and adds them to this shader
@@ -60,7 +59,6 @@ public:
      * 
      * \param vertexSrc Source text for the vertex program
      * \param fragmentSrc Source text for the fragment program
-     *
      * \throws std::runtime_error If the adding of the shaders failed
      */
     void addShaderSource(std::string vertexSrc, std::string fragmentSrc);
@@ -72,7 +70,7 @@ public:
      *
      * \return Whether the program was created and linked correctly or not
      */
-    bool createAndLinkProgram();
+    void createAndLinkProgram();
     
     /// Use the shader program in the current rendering pipeline
     bool bind() const;
@@ -85,7 +83,6 @@ public:
      * are responsible of checking the return value of the attribute location.
      *
      * \param name Name of the attribute
-     *
      * \return Uniform location within the program, -1 if not an active attribute
      */
     int getAttribLocation(const std::string& name) const;
@@ -95,7 +92,6 @@ public:
      * are responsible of checking the return value of the attribute location.
      *
      * \param name Name of the uniform
-     *
      * \return Uniform location within the program, -1 if not an active uniform
      */
     int getUniformLocation(const std::string& name) const;

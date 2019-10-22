@@ -22,9 +22,7 @@ PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
     , _name(std::move(name))
 {
     _shaderProgram.addShaderSource(vertShaderSrc, fragShaderSrc);
-    if (!_shaderProgram.createAndLinkProgram()) {
-        MessageHandler::printError("PostFX '%s' failed to link shader", _name.c_str());
-    }
+    _shaderProgram.createAndLinkProgram();
 }
 
 PostFX::~PostFX() {

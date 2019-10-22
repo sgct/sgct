@@ -210,8 +210,6 @@ void SharedData::readVector(SharedVector<T>& vector) {
 
     core::mutex::DataSync.unlock();
 
-    //memcpy(data, c, totalSize);
-
     std::vector<T> tmpVec;
     tmpVec.insert(
         tmpVec.begin(),

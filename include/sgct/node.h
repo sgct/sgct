@@ -72,23 +72,23 @@ public:
 
     /**
      * \param data transfer port is the number of the tcp port used for data transfers to 
-     * this node
+     *        this node
      */
     void setDataTransferPort(int port);
 
     /// \param name the name identification string of this node
     void setName(std::string name);
 
-    /// \returns the address of this node
+    /// \return the address of this node
     const std::string& getAddress() const;
 
-    /// \returns the sync port of this node
+    /// \return the sync port of this node
     int getSyncPort() const;
 
-    /// \returns the data transfer port of this node
+    /// \return the data transfer port of this node
     int getDataTransferPort() const;
 
-    /// \returns the name if this node
+    /// \return the name if this node
     const std::string& getName() const;
 
 private:

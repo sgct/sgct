@@ -102,7 +102,7 @@ public:
      * When the server recieves a frame sync number equal to the send frame number it
      * swaps buffers.
      *
-     * \returns true if updates has been received
+     * \return true if updates has been received
      */
     bool isUpdated() const;
     void setRecvFrame(int i);

@@ -289,7 +289,6 @@ public:
      * \param millisec is the countdown time
      * \param fnPtr is the function pointer to a timer callback (the argument will be the
      *        timer handle/id).
-     *
      * \return Handle/id to the created timer
      */
     int createTimer(double millisec, std::function<void(int)> fn);
@@ -729,7 +728,6 @@ public:
      *
      * \param winIndex specifies which window to poll
      * \param key specifies which key to check
-     *
      * \return SGCT_PRESS or SGCT_RELEASE
      */
     static int getKey(int winIndex, int key);
@@ -739,7 +737,6 @@ public:
      *
      * \param winIndex specifies which window to poll
      * \param button specifies which button to check
-     *
      * \return SGCT_PRESS or SGCT_RELEASE
      */
     static int getMouseButton(int winIndex, int button);
@@ -795,7 +792,6 @@ public:
     /**
      * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
      * \param numOfValues is the number of analog axes
-     *
      * \return the analog float values (array)
      */
     static const float* getJoystickAxes(int joystick, int* numOfValues);
@@ -803,7 +799,6 @@ public:
     /**
      * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
      * \param numOfValues is the number of buttons
-     *
      * \return the button values (array)
      */
     static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
@@ -835,7 +830,6 @@ public:
      * can reduce performance.
      *
      * \param function The name of the function that asked for this check
-     *
      * \return true if no errors occured
      */
     static bool checkForOGLErrors(const std::string& function);
@@ -853,7 +847,7 @@ public:
 
     /**
      * \return the active projection matrix (only valid inside in the draw callback
-     * function)
+     *         function)
      */
     const glm::mat4& getCurrentProjectionMatrix() const;
 
@@ -889,9 +883,7 @@ public:
     /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
 
-    /**
-     * Get the active viewport size in pixels.
-     */
+    /// Get the active viewport size in pixels.
     glm::ivec2 getCurrentViewportSize() const;
 
     /**

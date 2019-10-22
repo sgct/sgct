@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace sgct {    
+namespace sgct {
 
 /**
  * Mutex protected template for multi-thread data sharing

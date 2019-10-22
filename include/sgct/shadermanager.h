@@ -21,12 +21,6 @@ namespace sgct {
  */
 class ShaderManager {
 public:
-    /**
-     * A shader program that never will be initialized. Will be returned for not found
-     * programs and can be used as comparison for NULL values
-     */
-    ShaderProgram NullShader = ShaderProgram("SGCT_NULL");
-
     /// Destructor deallocates and deletes all shaders
     ~ShaderManager();
 
@@ -39,60 +33,20 @@ public:
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
      * \param fragmentSrc The fragment shader source code
-     *
-     * \return Whether the shader was created, linked and added to the manager correctly
-     *         or not.
-     */
-    bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
-        const std::string& fragmentSrc);
-
-    /**
-     * Add a shader program to the manager. The shaders will be compiled and linked to the
-     * program. The name of the shader needs to be unique or it won't be added. Both
-     * vertex shader and fragment shader source need to be provided, either as a link to a
-     * shader source code file or as shader source code.
-     *
-     * \param name Unique name of the shader
-     * \param vertexSrc The vertex shader source code
-     * \param fragmentSrc The fragment shader source code
      * \param geometrySrc The geometry shader source code
-     *
-     * \return Whether the shader was created, linked and added to the manager correctly
-     *         or not.
+     * \throws std::runtime_error If there was an error creating the shader program
      */
-    bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
-        const std::string& fragmentSrc, const std::string& geometrySrc);
+    void addShaderProgram(const std::string& name, const std::string& vertexSrc,
+        const std::string& fragmentSrc, const std::string& geometrySrc = "");
 
     /**
      * Removes a shader program from the manager. All resources allocated for the program
      * will be deallocated and removed.
      *
      * \param name Name of the shader program to remove
-     *
      * \return true if the shader program was removed correctly
      */
     bool removeShaderProgram(const std::string& name);
-
-    /**
-     * Set a shader program to be used in the current rendering pipeline.
-     *
-     * \param name Name of the shader program to set as active
-     *
-     * \return Whether the specified shader was set as active or not.
-     */
-    // bool bindShaderProgram(const std::string& name) const;
-
-    /**
-     * Set a shader program to be used in the current rendering pipeline.
-     *
-     * \param shader Reference to the shader program to set as active
-     *
-     * \return Whether the specified shader was set as active or not.
-     */
-    // bool bindShaderProgram(const ShaderProgram& shaderProgram) const;
-    
-    /// Unbind/unset/disable current shader program in the rendering pipeline.
-    // void unBindShaderProgram();
 
     /**
      * Check if a shader program exists in the manager.
@@ -102,14 +56,11 @@ public:
     bool shaderProgramExists(const std::string& name) const;
     
     /**
-     * Get the specified shader program from the shader manager. If the shader is not
-     * found ShaderManager::NullShader will be returned which can be used for comparisons.
-     * The NullShader can not be set as active or used in the rendering pipeline.
+     * Get the specified shader program from the shader manager.
      *
      * \param name Name of the shader program
-     *
-     * \return The specified shader program or ShaderManager::NullShader if shader is not
-     *         found.
+     * \return The specified shader program
+     * \throws std::runtime_error If the shader program with the \p name was not found
      */
     const ShaderProgram& getShaderProgram(const std::string& name) const;
 

@@ -18,7 +18,7 @@ namespace sgct {
 
 /**
  * Helper class that holds tracking device/sensor data
-*/
+ */
 class TrackingDevice {
 public:
     /// Constructor

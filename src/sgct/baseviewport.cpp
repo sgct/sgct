@@ -65,18 +65,6 @@ Frustum::Mode BaseViewport::getEye() const {
     return _eye;
 }
 
-Projection& BaseViewport::getProjection(Frustum::Mode frustumMode) {
-    switch (frustumMode) {
-        default:
-        case Frustum::Mode::MonoEye:
-            return _projections.mono;
-        case Frustum::Mode::StereoLeftEye:
-            return _projections.stereoLeft;
-        case Frustum::Mode::StereoRightEye:
-            return _projections.stereoRight;
-    }
-}
-
 const Projection& BaseViewport::getProjection(Frustum::Mode frustumMode) const {
     switch (frustumMode) {
         default:
@@ -89,24 +77,8 @@ const Projection& BaseViewport::getProjection(Frustum::Mode frustumMode) const {
     }
 }
 
-Projection& BaseViewport::getProjection() {
-    return getProjection(_eye);
-}
-
 ProjectionPlane& BaseViewport::getProjectionPlane() {
     return _projectionPlane;
-}
-
-glm::quat BaseViewport::getRotation() const {
-    return _rotation;
-}
-
-glm::vec4 BaseViewport::getFOV() const {
-    return _fov;
-}
-
-float BaseViewport::getDistance() const {
-    return _distance;
 }
 
 void BaseViewport::setUserName(std::string userName) {
@@ -191,9 +163,6 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
                                                float right, glm::quat rot, float dist)
 {
     _rotation = std::move(rot);
-
-    _fov = glm::vec4(up, down, left, right);
-    _distance = dist;
 
     _viewPlane.lowerLeft.x = dist * tan(glm::radians(left));
     _viewPlane.lowerLeft.y = dist * tan(glm::radians(down));

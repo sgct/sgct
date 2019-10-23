@@ -41,21 +41,13 @@ public:
     const glm::vec2& getPosition() const;
     const glm::vec2& getSize() const;
     float getHorizontalFieldOfViewDegrees() const;
-    
+
     User& getUser() const;
     Frustum::Mode getEye() const;
 
-    // @TODO (abock, 2019-10-13) It would be nice to get to a place where we can remove
-    // these functions that just had out editable projections to everyone who asks. It's
-    // hard to keep preconditions on the class alive with this
-    Projection& getProjection(Frustum::Mode frustumMode);
     const Projection& getProjection(Frustum::Mode frustumMode) const;
-    Projection& getProjection();
     ProjectionPlane& getProjectionPlane();
-    glm::quat getRotation() const;
-    glm::vec4 getFOV() const;
-    float getDistance() const;
-    
+
     bool isEnabled() const;
     void linkUserName();
 
@@ -96,8 +88,6 @@ protected:
         glm::vec3 upperRight;
     } _viewPlane;
     glm::quat _rotation;
-    float _distance = 10.f;
-    glm::vec4 _fov;
 };
 
 } // namespace sgct::core

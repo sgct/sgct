@@ -20,11 +20,6 @@
 #include <string>
 #include <unordered_map>
 
-
-/**
- * \namespace sgct::text
- * \brief SGCT text namespace is used for text rendering and font management
- */
 namespace sgct::text {
 
 class Font;

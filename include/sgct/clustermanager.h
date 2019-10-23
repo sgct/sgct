@@ -18,10 +18,6 @@
 #include <string>
 #include <string_view>
 
-/**
- * \namespace sgct::core
- * \brief SGCT core namespace is used internally within sgct.
- */
 namespace sgct::core {
 
 class User;

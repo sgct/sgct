@@ -20,7 +20,7 @@ namespace sgct {
 
 /**
  * The TextureManager loads and handles textures. It is a singleton and can be accessed
- *   anywhere using its static instance. Currently only PNG textures are supported.
+ * anywhere using its static instance. Currently only PNG textures are supported.
  */
 class TextureManager {
 public:

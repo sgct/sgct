@@ -37,7 +37,7 @@ namespace {
     // file, so we have to resolve these manually
 
 #ifdef WIN32
-    bool FunctionsResolved = false;
+    bool AreFunctionsResolved = false;
     using BindSwapBarrier = GLboolean(*)(GLuint group, GLuint barrier);
     BindSwapBarrier wglBindSwapBarrierNV = nullptr;
     using JoinSwapGroup = GLboolean(*)(HDC hDC, GLuint group);
@@ -417,7 +417,7 @@ void Window::initOGL() {
     }
 
 #ifdef WIN32
-    if (!FunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
+    if (!AreFunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
         // abock (2019-10-02); I had to hand-resolve these functions as glbindings does
         // not come with build-in support for the wgl.xml functions
         // See https://github.com/cginternals/glbinding/issues/132 for when it is resolved
@@ -457,7 +457,7 @@ void Window::initOGL() {
             throw std::runtime_error("Error resolving swapgroup functions");
         };
 
-        FunctionsResolved = true;
+        AreFunctionsResolved = true;
     }
 #endif // WIN32
 }
@@ -885,10 +885,10 @@ void Window::setCallDraw3DFunction(bool state) {
 }
 
 void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
-    _shouldCopyPreviousWindowToCurrentWindow = state;
-    if (_shouldCopyPreviousWindowToCurrentWindow) {
+    _shouldBitPreviousWindow = state;
+    if (_shouldBitPreviousWindow) {
         MessageHandler::printInfo(
-            "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window", _id
+            "Window %d: BlitPreviousWindow enabled for this window", _id
         );
     }
 }
@@ -1449,12 +1449,6 @@ int Window::getNumberOfAASamples() const {
 
 void Window::setStereoMode(StereoMode sm) {
     _stereoMode = sm;
-
-    MessageHandler::printDebug(
-        "Window: Setting stereo mode to '%s' for window %d",
-        getStereoModeStr().c_str(), _id
-    );
-
     if (_windowHandle) {
         loadShaders();
     }
@@ -1462,12 +1456,11 @@ void Window::setStereoMode(StereoMode sm) {
 
 core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
+        default:
         case Eye::MonoOrLeft:
             return _screenCaptureLeftOrMono.get();
         case Eye::Right:
             return _screenCaptureRight.get();
-        default:
-            return nullptr;
     }
 }
 
@@ -1477,39 +1470,6 @@ void Window::setCurrentViewport(size_t index) {
 
 void Window::setCurrentViewport(core::BaseViewport* vp) {
     _currentViewport = vp;
-}
-
-std::string Window::getStereoModeStr() const {
-    switch (_stereoMode) {
-        case StereoMode::Active:
-            return "active";
-        case StereoMode::AnaglyphRedCyan:
-            return "anaglyph_red_cyan";
-        case StereoMode::AnaglyphAmberBlue:
-            return "anaglyph_amber_blue";
-        case StereoMode::AnaglyphRedCyanWimmer:
-            return "anaglyph_wimmer";
-        case StereoMode::Checkerboard:
-            return "checkerboard";
-        case StereoMode::CheckerboardInverted:
-            return "checkerboard_inverted";
-        case StereoMode::VerticalInterlaced:
-            return "vertical_interlaced";
-        case StereoMode::VerticalInterlacedInverted:
-            return "vertical_interlaced_inverted";
-        case StereoMode::Dummy:
-            return "dummy";
-        case StereoMode::SideBySide:
-            return "side_by_side";
-        case StereoMode::SideBySideInverted:
-            return "side_by_side_inverted";
-        case StereoMode::TopBottom:
-            return "top_bottom";
-        case StereoMode::TopBottomInverted:
-            return "top_bottom_inverted";
-        default:
-            return "none";
-    }
 }
 
 void Window::updateTransferCurve() {
@@ -1534,8 +1494,7 @@ void Window::updateTransferCurve() {
         float b = c + (_brightness - 1.f);
         float g = powf(b, gammaExp);
 
-        //transform back
-        //unsigned short t = static_cast<unsigned short>(roundf(256.0f * g));
+        // transform back
 
         unsigned short t = static_cast<unsigned short>(
             glm::clamp(65535.f * g, 0.f, 65535.f) + 0.5f
@@ -1648,12 +1607,12 @@ float Window::getHorizFieldOfViewDegrees() const {
     return _viewports[0]->getHorizontalFieldOfViewDegrees();
 }
 
-PostFX& Window::getPostFX(size_t index) {
+PostFX& Window::getPostFX(int index) {
     return _postFXPasses[index];
 }
 
-size_t Window::getNumberOfPostFXs() const {
-    return _postFXPasses.size();
+int Window::getNumberOfPostFXs() const {
+    return static_cast<int>(_postFXPasses.size());
 }
 
 glm::ivec2 Window::getResolution() const {
@@ -1708,16 +1667,16 @@ int Window::getStereoShaderRightTexLoc() const {
     return _stereo.rightTexLoc;
 }
 
-bool Window::getCallDraw2DFunction() const {
+bool Window::shouldCallDraw2DFunction() const {
     return _hasCallDraw2DFunction;
 }
 
-bool Window::getCallDraw3DFunction() const {
+bool Window::shouldCallDraw3DFunction() const {
     return _hasCallDraw3DFunction;
 }
 
-bool Window::getCopyPreviousWindowToCurrentWindow() const {
-    return _shouldCopyPreviousWindowToCurrentWindow;
+bool Window::shouldBlitPreviousWindow() const {
+    return _shouldBitPreviousWindow;
 }
 
 } // namespace sgct

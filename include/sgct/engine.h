@@ -37,10 +37,6 @@ class Statistics;
 class Touch;
 } // namespace sgct::core
 
-/**
- * \namespace sgct
- * \brief SGCT namespace contains the most basic functionality of the toolkit
- */
 namespace sgct {
 
 struct Configuration;
@@ -1018,7 +1014,7 @@ private:
      * This function copies/render the result from the previous window same viewport (if
      * it exists) into this window
      */
-    void copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mode mode);
+    void blitPreviousWindowViewport(core::Frustum::Mode mode);
 
     static void clearBuffer();
 

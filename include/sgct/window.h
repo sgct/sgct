@@ -31,10 +31,10 @@ namespace sgct::core {
 namespace sgct {
 
 /**
- * Helper class for window data. 
+ * Helper class for window data.
  */
 class Window {
-public:    
+public:
     /// Different stereo modes used for rendering
     enum class StereoMode {
         NoStereo = 0,
@@ -366,7 +366,6 @@ public:
 
     /// \return the viewport count for this window
     int getNumberOfViewports() const;
-    std::string getStereoModeStr() const;
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;
@@ -387,10 +386,10 @@ public:
     float getHorizFieldOfViewDegrees() const;
     
     /// \return the pointer to a specific post effect
-    PostFX& getPostFX(size_t index);
+    PostFX& getPostFX(int index);
 
     /// \return the number of post effects
-    size_t getNumberOfPostFXs() const;
+    int getNumberOfPostFXs() const;
 
     /// \return Get the window resolution.
     glm::ivec2 getResolution() const;
@@ -436,9 +435,9 @@ public:
     int getStereoShaderLeftTexLoc() const;
     int getStereoShaderRightTexLoc() const;
 
-    bool getCallDraw2DFunction() const;
-    bool getCallDraw3DFunction() const;
-    bool getCopyPreviousWindowToCurrentWindow() const;
+    bool shouldCallDraw2DFunction() const;
+    bool shouldCallDraw3DFunction() const;
+    bool shouldBlitPreviousWindow() const;
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };
@@ -480,7 +479,7 @@ private:
     bool _isWindowResolutionSet = false;
     bool _hasCallDraw2DFunction = true;
     bool _hasCallDraw3DFunction = true;
-    bool _shouldCopyPreviousWindowToCurrentWindow = false;
+    bool _shouldBitPreviousWindow = false;
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
     bool _isFloating = false;

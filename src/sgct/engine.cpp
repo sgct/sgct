@@ -71,19 +71,39 @@ namespace {
         }
     }
 
-    void dropCallback(GLFWwindow*, int count, const char** paths) {
-        if (gDropCallbackFnPtr) {
-            gDropCallbackFnPtr(count, paths);
+    std::string getStereoString(sgct::Window::StereoMode stereoMode) {
+        switch (stereoMode) {
+            case sgct::Window::StereoMode::Active:
+                return "active";
+            case sgct::Window::StereoMode::AnaglyphRedCyan:
+                return "anaglyph_red_cyan";
+            case sgct::Window::StereoMode::AnaglyphAmberBlue:
+                return "anaglyph_amber_blue";
+            case sgct::Window::StereoMode::AnaglyphRedCyanWimmer:
+                return "anaglyph_wimmer";
+            case sgct::Window::StereoMode::Checkerboard:
+                return "checkerboard";
+            case sgct::Window::StereoMode::CheckerboardInverted:
+                return "checkerboard_inverted";
+            case sgct::Window::StereoMode::VerticalInterlaced:
+                return "vertical_interlaced";
+            case sgct::Window::StereoMode::VerticalInterlacedInverted:
+                return "vertical_interlaced_inverted";
+            case sgct::Window::StereoMode::Dummy:
+                return "dummy";
+            case sgct::Window::StereoMode::SideBySide:
+                return "side_by_side";
+            case sgct::Window::StereoMode::SideBySideInverted:
+                return "side_by_side_inverted";
+            case sgct::Window::StereoMode::TopBottom:
+                return "top_bottom";
+            case sgct::Window::StereoMode::TopBottomInverted:
+                return "top_bottom_inverted";
+            default:
+                return "none";
         }
     }
 
-    void touchCallback(GLFWwindow*, GLFWtouch* touchPoints, int count) {
-        sgct::Engine& eng = *sgct::Engine::instance();
-        glm::ivec4 coords = eng.getCurrentWindow().getCurrentViewportPixelCoords();
-
-        gCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
-        gCurrentTouchPoints.setLatestPointsHandled();
-    }
 } // namespace
 
 namespace sgct {
@@ -428,10 +448,26 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
             );
         }
         if (gDropCallbackFnPtr) {
-            glfwSetDropCallback(window, dropCallback);
+            glfwSetDropCallback(
+                window,
+                [](GLFWwindow*, int count, const char** paths) {
+                    if (gDropCallbackFnPtr) {
+                        gDropCallbackFnPtr(count, paths);
+                    }
+                }
+            );
         }
         if (gTouchCallbackFnPtr) {
-            glfwSetTouchCallback(window, touchCallback);
+            glfwSetTouchCallback(
+                window,
+                [](GLFWwindow*, GLFWtouch* touchPoints, int count){
+                    sgct::Engine& eng = *sgct::Engine::instance();
+                    glm::ivec4 c = eng.getCurrentWindow().getCurrentViewportPixelCoords();
+
+                    gCurrentTouchPoints.processPoints(touchPoints, count, c.z, c.w);
+                    gCurrentTouchPoints.setLatestPointsHandled();
+                }
+            );
         }
     }
 
@@ -1291,7 +1327,7 @@ void Engine::renderDisplayInfo() {
                 lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Stereo type: %s\nCurrent eye: Left",
-                getCurrentWindow().getStereoModeStr().c_str()
+                getStereoString(getCurrentWindow().getStereoMode()).c_str()
             );
         }
         else if (_currentFrustumMode == core::Frustum::Mode::StereoRightEye) {
@@ -1302,7 +1338,7 @@ void Engine::renderDisplayInfo() {
                 lineHeight * 8.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Stereo type: %s\nCurrent eye:          Right",
-                getCurrentWindow().getStereoModeStr().c_str()
+                getStereoString(getCurrentWindow().getStereoMode()).c_str()
             );
         }
     }
@@ -1536,7 +1572,7 @@ void Engine::renderViewports(TextureIndexes ti) {
                 );
             }
 
-            if (getCurrentWindow().getCallDraw3DFunction()) {
+            if (getCurrentWindow().shouldCallDraw3DFunction()) {
                 vp.getNonLinearProjection()->render();
             }
         }
@@ -1552,19 +1588,19 @@ void Engine::renderViewports(TextureIndexes ti) {
 
             // check if we want to copy the previous window into this one before we go
             // ahead with anyting else
-            if (getCurrentWindow().getCopyPreviousWindowToCurrentWindow()) {
-                copyPreviousWindowViewportToCurrentWindowViewport(_currentFrustumMode);
+            if (getCurrentWindow().shouldBlitPreviousWindow()) {
+                blitPreviousWindowViewport(_currentFrustumMode);
             }
 
-            if (getCurrentWindow().getCallDraw3DFunction()) {
+            if (getCurrentWindow().shouldCallDraw3DFunction()) {
                 draw();
             }
         }
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!getCurrentWindow().getCallDraw3DFunction() &&
-        !getCurrentWindow().getCopyPreviousWindowToCurrentWindow())
+    if (!getCurrentWindow().shouldCallDraw3DFunction() &&
+        !getCurrentWindow().shouldBlitPreviousWindow())
     {
         setAndClearBuffer(BufferMode::RenderToTexture);
     }
@@ -1641,7 +1677,7 @@ void Engine::render2D() {
         }
 
         // Check if we should call the use defined draw2D function
-        if (_draw2DFn && getCurrentWindow().getCallDraw2DFunction()) {
+        if (_draw2DFn && getCurrentWindow().shouldCallDraw2DFunction()) {
             _draw2DFn();
         }
     }
@@ -1650,8 +1686,8 @@ void Engine::render2D() {
 void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    size_t numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
-    for (size_t i = 0; i < numberOfPasses; i++) {
+    int numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
+    for (int i = 0; i < numberOfPasses; i++) {
         PostFX& fx = getCurrentWindow().getPostFX(i);
 
         // set output
@@ -2066,7 +2102,7 @@ void Engine::updateFrustums() {
     }
 }
 
-void Engine::copyPreviousWindowViewportToCurrentWindowViewport(core::Frustum::Mode mode) {
+void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     // Check that we have a previous window
     if (getCurrentWindowIndex() < 1) {
         MessageHandler::printWarning(

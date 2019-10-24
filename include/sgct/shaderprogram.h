@@ -31,6 +31,7 @@ public:
      */
     ShaderProgram() = default;
     ShaderProgram(std::string name);
+    ShaderProgram(ShaderProgram&&) noexcept;
 
     /**
      * The destructor clears the shader data vector but the program can still be used. The
@@ -38,6 +39,8 @@ public:
      * programs can be copied when storing in containers.
      */
     ~ShaderProgram() = default;
+
+    ShaderProgram& operator=(ShaderProgram&&) noexcept;
 
     // ShaderProgram& operator=(ShaderProgram&&) = default;
     // ShaderProgram& operator=(const ShaderProgram&) = delete;

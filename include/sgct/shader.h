@@ -31,6 +31,12 @@ public:
     Shader(GLenum shaderType, const std::string& sourceString);
     // Shader(Shader&& rhs);
     // Shader& operator=(Shader&&) noexcept;
+    // 
+    Shader(const Shader&);
+    Shader(Shader&&) noexcept;
+
+    Shader& operator=(const Shader&) noexcept;
+    Shader& operator=(Shader&&) noexcept;
 
     /// Deletes the shader
     ~Shader();

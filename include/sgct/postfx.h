@@ -24,6 +24,9 @@ public:
     PostFX(std::string name, const std::string& vertShaderSrc,
         const std::string& fragShaderSrc, std::function<void()>);
     ~PostFX();
+    PostFX(PostFX&&) noexcept = default;
+
+    PostFX& operator=(PostFX&&) noexcept = default;
 
     /// Render this pass
     void render();
@@ -43,14 +46,14 @@ public:
     const std::string& getName() const;
 
 private:
-    const std::function<void()> _updateFunction;
+    std::function<void()> _updateFunction;
 
     ShaderProgram _shaderProgram;
     unsigned int _inputTexture = 0;
     unsigned int _outputTexture = 0;
 
     glm::ivec2 _size = glm::ivec2(1, 1);
-    const std::string _name;
+    std::string _name;
 };
 
 } // namespace sgct

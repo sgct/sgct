@@ -35,6 +35,28 @@ namespace sgct {
 
 ShaderProgram::ShaderProgram(std::string name) : _name(std::move(name)) {}
 
+ShaderProgram::ShaderProgram(ShaderProgram&& rhs) noexcept
+    : _name(std::move(rhs._name))
+    , _isLinked(rhs._isLinked)
+    , _programId(rhs._programId)
+    , _shaders(std::move(rhs._shaders))
+{
+    rhs._isLinked = false;
+    rhs._programId = 0;
+}
+
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
+    if (&rhs != this) {
+        _name = std::move(rhs._name);
+        _isLinked = rhs._isLinked;
+        rhs._isLinked = false;
+        _programId = rhs._programId;
+        rhs._programId = 0;
+        _shaders = std::move(rhs._shaders);
+    }
+    return *this;
+}
+
 void ShaderProgram::deleteProgram() {
     for (core::Shader& shader : _shaders) {
         if (shader.getId() > 0) {

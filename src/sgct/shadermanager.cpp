@@ -55,7 +55,7 @@ void ShaderManager::addShaderProgram(const std::string& name,
     }
 
     sp.createAndLinkProgram();
-    _shaderPrograms.push_back(sp);
+    _shaderPrograms.push_back(std::move(sp));
 }
 
 bool ShaderManager::removeShaderProgram(const std::string& name) {

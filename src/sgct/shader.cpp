@@ -69,6 +69,27 @@ Shader::Shader(GLenum shaderType, const std::string& sourceString)
     glCompileShader(_shaderId);
     checkCompilationStatus(_shaderType, _shaderId);
 }
+    Shader::Shader(const Shader& rhs) {
+        _shaderId = rhs._shaderId;
+    }
+    Shader::Shader(Shader&& rhs) noexcept {
+        _shaderId = rhs._shaderId;
+        rhs._shaderId = 0;
+    }
+
+    Shader& Shader::operator=(const Shader& rhs) noexcept {
+        if (this != &rhs) {
+            _shaderId = rhs._shaderId;
+        }
+        return *this;
+    }
+    Shader& Shader::operator=(Shader&& rhs) noexcept {
+        if (this != &rhs) {
+            _shaderId = rhs._shaderId;
+            rhs._shaderId = 0;
+        }
+        return *this;
+    }
 
 // Shader::Shader(Shader&& rhs)
 //     : _shaderId(rhs._shaderId)

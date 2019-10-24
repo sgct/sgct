@@ -15,7 +15,6 @@ namespace {
     sgct::Engine* gEngine;
 
     // shader data
-    sgct::ShaderProgram mSp;
     GLint heightTextureLoc = -1;
     GLint normalTextureLoc = -1;
     GLint currTimeLoc = -1;
@@ -236,7 +235,8 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("normalmap"));
 
-    mSp.bind();
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("Heightmap");
+    prog.bind();
 
     glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glUniformMatrix4fv(MVLoc, 1, GL_FALSE, glm::value_ptr(MV));
@@ -253,7 +253,7 @@ void drawFun() {
 
     glBindVertexArray(0);
 
-    mSp.unbind();
+    prog.unbind();
 
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -297,27 +297,27 @@ void initOGLFun() {
         vertexShader,
         fragmentShader
     );
-    mSp = ShaderManager::instance()->getShaderProgram("Heightmap");
+    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("Heightmap");
 
-    mSp.bind();
-    heightTextureLoc = mSp.getUniformLocation("hTex");
-    normalTextureLoc = mSp.getUniformLocation("nTex");
-    currTimeLoc = mSp.getUniformLocation("currTime");
-    MVPLoc = mSp.getUniformLocation("mvp");
-    MVLoc = mSp.getUniformLocation("mv");
-    MVLightLoc = mSp.getUniformLocation("mvLight");
-    NMLoc = mSp.getUniformLocation("normalMatrix");
-    lightPosLoc = mSp.getUniformLocation("lightPos");
-    lightAmbLoc = mSp.getUniformLocation("lightAmbient");
-    lightDifLoc = mSp.getUniformLocation("lightDiffuse");
-    lightSpeLoc = mSp.getUniformLocation("lightSpecular");
+    prog.bind();
+    heightTextureLoc = prog.getUniformLocation("hTex");
+    normalTextureLoc = prog.getUniformLocation("nTex");
+    currTimeLoc = prog.getUniformLocation("currTime");
+    MVPLoc = prog.getUniformLocation("mvp");
+    MVLoc = prog.getUniformLocation("mv");
+    MVLightLoc = prog.getUniformLocation("mvLight");
+    NMLoc = prog.getUniformLocation("normalMatrix");
+    lightPosLoc = prog.getUniformLocation("lightPos");
+    lightAmbLoc = prog.getUniformLocation("lightAmbient");
+    lightDifLoc = prog.getUniformLocation("lightDiffuse");
+    lightSpeLoc = prog.getUniformLocation("lightSpecular");
     glUniform1i(heightTextureLoc, 0);
     glUniform1i(normalTextureLoc, 1);
     glUniform4fv(lightPosLoc, 1, glm::value_ptr(lightPosition));
     glUniform4fv(lightAmbLoc, 1, glm::value_ptr(lightAmbient));
     glUniform4fv(lightDifLoc, 1, glm::value_ptr(lightDiffuse));
     glUniform4fv(lightSpeLoc, 1, glm::value_ptr(lightSpecular));
-    mSp.unbind();
+    prog.unbind();
 
     Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);
 

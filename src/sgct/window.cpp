@@ -838,21 +838,9 @@ void Window::setFixResolution(bool state) {
     _useFixResolution = state;
 }
 
-void Window::setUsePostFX(bool state) {
-    _usePostFX = state;
-    if (!state) {
-        _useFXAA = false;
-    }
-}
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    if (_useFXAA) {
-        _usePostFX = true;
-    }
-    else {
-        _usePostFX = !_postFXPasses.empty();
-    }
     MessageHandler::printDebug(
         "FXAA status: %s for window %d", state ? "enabled" : "disabled", _id
     );
@@ -1153,7 +1141,7 @@ void Window::createTextures() {
     if (_postFXPasses.size() > 1) {
         generateTexture(_frameBufferTextures.fx2, TextureType::Color);
     }
-    if (_usePostFX) {
+    if (_useFXAA || !_postFXPasses.empty()) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
     if (Settings::instance()->useNormalTexture()) {
@@ -1648,7 +1636,7 @@ bool Window::useFXAA() const {
 }
 
 bool Window::usePostFX() const {
-    return _usePostFX;
+    return !_postFXPasses.empty();
 }
 
 void Window::bindStereoShaderProgram() const {

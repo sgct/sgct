@@ -22,7 +22,7 @@ namespace sgct {
 class TrackingDevice {
 public:
     /// Constructor
-    TrackingDevice(size_t parentIndex, std::string name);
+    TrackingDevice(int parentIndex, std::string name);
     
     /// Set if this device is enabled or not
     void setEnabled(bool state);
@@ -36,8 +36,8 @@ public:
     /// Set the number of analog axes
     void setNumberOfAxes(int numOfAxes);
     void setSensorTransform(glm::dvec3 vec, glm::dquat rot);
-    void setButtonVal(bool val, int index);
-    void setAnalogVal(const double* array, int size);
+    void setButtonValue(bool val, int index);
+    void setAnalogValue(const double* array, int size);
 
     /// Set the orientation euler angles (degrees) used to generate the orientation matrix
     void setOrientation(float xRot, float yRot, float zRot);
@@ -131,7 +131,7 @@ private:
 
     bool _enabled = true;
     std::string _name;
-    size_t _parentIndex; // the index of parent Tracker
+    int _parentIndex; // the index of parent Tracker
     int _nButtons = 0;
     int _nAxes = 0;
     int _sensorId = -1;

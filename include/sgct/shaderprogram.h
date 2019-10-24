@@ -39,6 +39,9 @@ public:
      */
     ~ShaderProgram() = default;
 
+    // ShaderProgram& operator=(ShaderProgram&&) = default;
+    // ShaderProgram& operator=(const ShaderProgram&) = delete;
+
     /// Will detach all attached shaders, delete them and then delete the program
     void deleteProgram();
 

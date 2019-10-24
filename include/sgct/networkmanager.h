@@ -42,7 +42,7 @@ public:
     bool isSyncComplete() const;
     void close();
 
-    /// \returns the static pointer to the NetworkManager instance
+    /// \return the static pointer to the NetworkManager instance
     static NetworkManager* instance();
 
     bool matchAddress(const std::string& address) const;

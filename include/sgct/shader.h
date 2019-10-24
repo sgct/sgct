@@ -29,6 +29,8 @@ public:
      * \param sourceString String with shader source code
      */
     Shader(GLenum shaderType, const std::string& sourceString);
+    // Shader(Shader&& rhs);
+    // Shader& operator=(Shader&&) noexcept;
 
     /// Deletes the shader
     ~Shader();

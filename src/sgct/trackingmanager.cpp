@@ -8,8 +8,8 @@
 
 #include <sgct/trackingmanager.h>
 
-#include <sgct/engine.h>
 #include <sgct/clustermanager.h>
+#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
@@ -59,13 +59,13 @@ namespace {
         using namespace sgct;
         TrackingDevice* devicePtr = reinterpret_cast<TrackingDevice*>(userdata);
 
-        devicePtr->setButtonVal(b.state != 0, b.button);
+        devicePtr->setButtonValue(b.state != 0, b.button);
     }
 
     void VRPN_CALLBACK updateAnalog(void* userdata, const vrpn_ANALOGCB a) {
         using namespace sgct;
         TrackingDevice* tdPtr = reinterpret_cast<TrackingDevice*>(userdata);
-        tdPtr->setAnalogVal(a.channel, static_cast<int>(a.num_channel));
+        tdPtr->setAnalogValue(a.channel, static_cast<int>(a.num_channel));
     }
 
     void samplingLoop(void* arg) {
@@ -73,14 +73,14 @@ namespace {
         TrackingManager* tmPtr = reinterpret_cast<TrackingManager*>(arg);
 
         while (true) {
-            double t = Engine::getTime();
-            for (int i = 0; i < tmPtr->getNumberOfTrackers(); i++) {
+            const double t = Engine::getTime();
+            for (int i = 0; i < tmPtr->getNumberOfTrackers(); ++i) {
                 Tracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
                 }
-                for (int j = 0; j < trackerPtr->getNumberOfDevices(); j++) {
+                for (int j = 0; j < trackerPtr->getNumberOfDevices(); ++j) {
                     if (!trackerPtr->getDevice(j)->isEnabled()) {
                         continue;
                     }
@@ -120,9 +120,6 @@ TrackingManager::~TrackingManager() {
 #ifdef SGCT_HAS_VRPN
     MessageHandler::printInfo("Disconnecting VRPN");
 
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Destructing, setting running to false\n");
-#endif
     {
         std::unique_lock lock(core::mutex::Tracking);
         _isRunning = false;
@@ -179,9 +176,6 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
 
 bool TrackingManager::isRunning() const {
 #ifdef SGCT_HAS_VRPN
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Checking if tracking is running...\n");
-#endif
     std::unique_lock lock(core::mutex::Tracking);
     return _isRunning;
 #else
@@ -202,7 +196,7 @@ void TrackingManager::startSampling() {
     if (_headUser == nullptr) {
         _headUser = &core::ClusterManager::instance()->getDefaultUser();
     }
-        
+
     // link the head tracker
     const std::string& trackerName = _headUser->getHeadTrackerName();
     Tracker* trackerPtr = getTracker(trackerName);
@@ -229,7 +223,7 @@ void TrackingManager::startSampling() {
 void TrackingManager::updateTrackingDevices() {
 #ifdef SGCT_HAS_VRPN
     for (const std::unique_ptr<Tracker>& tracker : _trackers) {
-        for (int j = 0; j < tracker->getNumberOfDevices(); j++) {
+        for (int j = 0; j < tracker->getNumberOfDevices(); ++j) {
             TrackingDevice* tdPtr = tracker->getDevice(j);
             if (tdPtr->isEnabled() && tdPtr == _head && _headUser) {
                 _headUser->setTransform(tdPtr->getWorldTransform());
@@ -247,14 +241,10 @@ void TrackingManager::addTracker(std::string name) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.push_back(std::vector<VRPNPointer>());
 
-        MessageHandler::printInfo(
-            "Tracking: Tracker '%s' added successfully", name.c_str()
-        );
+        MessageHandler::printInfo("Tracker '%s' added successfully", name.c_str());
     }
     else {
-        MessageHandler::printWarning(
-            "Tracking: Tracker '%s' already exists", name.c_str()
-        );
+        MessageHandler::printWarning("Tracker '%s' already exists", name.c_str());
     }
 #else
     MessageHandler::printWarning("SGCT compiled without VRPN support");
@@ -263,8 +253,6 @@ void TrackingManager::addTracker(std::string name) {
 
 void TrackingManager::addDeviceToCurrentTracker(std::string name) {
 #ifdef SGCT_HAS_VRPN
-    _nDevices++;
-
     _trackers.back()->addDevice(std::move(name), _trackers.size() - 1);
     gTrackers.back().push_back(VRPNPointer());
 #else
@@ -287,9 +275,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         devicePtr->setSensorId(id);
 
         if (retVal.second && ptr.mSensorDevice == nullptr) {
-            MessageHandler::printInfo(
-                "Tracking: Connecting to sensor '%s'", address.c_str()
-            );
+            MessageHandler::printInfo("Connecting to sensor '%s'", address.c_str());
             ptr.mSensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
             ptr.mSensorDevice->register_change_handler(
                 _trackers.back().get(),
@@ -298,9 +284,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         }
     }
     else {
-        MessageHandler::printError(
-            "Tracking: Failed to connect to sensor '%s'", address.c_str()
-        );
+        MessageHandler::printError("Failed to connect to sensor '%s'", address.c_str());
     }
 #else
     (void)address;
@@ -320,7 +304,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::printInfo(
-            "Tracking: Connecting to buttons '%s' on device %s",
+            "Connecting to buttons '%s' on device %s",
             address.c_str(), devicePtr->getName().c_str()
         );
 
@@ -329,9 +313,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
         devicePtr->setNumberOfButtons(nButtons);
     }
     else {
-        MessageHandler::printError(
-            "Tracking: Failed to connect to buttons '%s'", address.c_str()
-        );
+        MessageHandler::printError("Failed to connect to buttons '%s'", address.c_str());
     }
 #else
     (void)address;
@@ -351,7 +333,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
 
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
         MessageHandler::printInfo(
-            "Tracking: Connecting to analogs '%s' on device %s",
+            "Connecting to analogs '%s' on device %s",
             address.c_str(), devicePtr->getName().c_str()
         );
 
@@ -360,9 +342,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
         devicePtr->setNumberOfAxes(nAxes);
     }
     else {
-        MessageHandler::printError(
-            "Tracking: Failed to connect to analogs '%s'", address.c_str()
-        );
+        MessageHandler::printError("Failed to connect to analogs '%s'", address.c_str());
     }
 #else
     (void)address;
@@ -375,10 +355,6 @@ int TrackingManager::getNumberOfTrackers() const {
     return static_cast<int>(_trackers.size());
 }
 
-int TrackingManager::getNumberOfDevices() const {
-    return _nDevices;
-}
-
 TrackingDevice* TrackingManager::getHeadDevice() const {
     return _head;
 }
@@ -387,12 +363,12 @@ Tracker* TrackingManager::getLastTracker() const {
     return !_trackers.empty() ? _trackers.back().get() : nullptr;
 }
 
-Tracker* TrackingManager::getTracker(size_t index) const {
-    return index < _trackers.size() ? _trackers[index].get() : nullptr;
+Tracker* TrackingManager::getTracker(int index) const {
+    return index < static_cast<int>(_trackers.size()) ? _trackers[index].get() : nullptr;
 }
 
 Tracker* TrackingManager::getTracker(const std::string& name) const {
-    auto it = std::find_if(
+    const auto it = std::find_if(
         _trackers.cbegin(),
         _trackers.cend(),
         [name](const std::unique_ptr<Tracker>& tracker) {
@@ -420,9 +396,6 @@ void TrackingManager::setEnabled(bool state) {
 
 void TrackingManager::setSamplingTime(double t) {
 #ifdef SGCT_HAS_VRPN
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Set sampling time for vrpn loop\n");
-#endif
     std::unique_lock lock(core::mutex::Tracking);
     _samplingTime = t;
 #else
@@ -433,9 +406,6 @@ void TrackingManager::setSamplingTime(double t) {
 
 double TrackingManager::getSamplingTime() const {
 #ifdef SGCT_HAS_VRPN
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Get sampling time for vrpn loop\n");
-#endif
     std::unique_lock lock(core::mutex::Tracking);
     return _samplingTime;
 #else

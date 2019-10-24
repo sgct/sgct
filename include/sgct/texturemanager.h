@@ -96,7 +96,7 @@ public:
      */
     void setWarpingMode(GLenum warpS, GLenum warpT);
 
-    /// \returns the current compression mode
+    /// \return the current compression mode
     CompressionMode getCompression() const;
 
     /**

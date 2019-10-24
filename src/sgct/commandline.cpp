@@ -37,8 +37,7 @@ Configuration parseArguments(std::vector<std::string> arg) {
         }
         else if (arg[i] == "-local" && arg.size() > (i + 1)) {
             config.isServer = true;
-            int id = std::stoi(arg[i + 1]);
-            config.nodeId = id;
+            config.nodeId = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
@@ -48,20 +47,20 @@ Configuration parseArguments(std::vector<std::string> arg) {
             tmpStr.erase(remove(tmpStr.begin(), tmpStr.end(), '\"'), tmpStr.end());
             size_t lastPos = tmpStr.length() - 1;
 
+            // Remove a trailing /
             const char last = tmpStr.at(lastPos);
             if (last == '\\' || last == '/') {
                 tmpStr.erase(lastPos);
             }
-
             config.logPath = tmpStr;
 
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
-            int level = std::stoi(arg[i + 1]);
-
+            const int level = std::stoi(arg[i + 1]);
             config.logLevel = static_cast<MessageHandler::Level>(level);
+
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
@@ -82,8 +81,7 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-MSAA" && arg.size() > (i + 1)) {
-            int msaa = std::stoi(arg[i + 1]);
-            config.msaaSamples = msaa;
+            config.msaaSamples = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
@@ -100,12 +98,12 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-numberOfCaptureThreads" && arg.size() > (i + 1)) {
-            int nThreads = std::stoi(arg[i + 1]);
-            config.nCaptureThreads = nThreads;
+            config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
         else {
+            // Ignore unknown commands
             i++;
         }
     }
@@ -150,7 +148,7 @@ Parameters:
 --Capture-TGA
     Use tga images for screen capture
 -numberOfCaptureThreads <integer>
-    Set the maximum amount of thread that should be used during framecapture (default 8)
+    Set the maximum amount of thread that should be used during framecapture
 ------------------------------------)";
 }
 

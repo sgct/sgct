@@ -8,6 +8,7 @@
 #include <sgct/utils/box.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <fstream>
 
 namespace {
     sgct::Engine* gEngine;
@@ -28,6 +29,15 @@ namespace {
         GLint pass2 = -1;
         GLint pass3 = -1;
     } sizeLocation;
+
+    std::string loadFile(const std::string& filename) {
+        std::ifstream vertexFile(filename);
+        std::string vertexString(
+            (std::istreambuf_iterator<char>(vertexFile)),
+            std::istreambuf_iterator<char>()
+        );
+        return vertexString;
+    }
 } // namespace
 
 using namespace sgct;
@@ -36,8 +46,8 @@ void setupPostFXs() {
     {
         PostFX fx(
             "Threshold",
-            "base.vert",
-            "threshold.frag",
+            loadFile("base.vert"),
+            loadFile("threshold.frag"),
             [](){ glUniform1i(postFXTextureLocation.pass1, 0); }
         );
         const ShaderProgram& sp = fx.getShaderProgram();
@@ -45,14 +55,14 @@ void setupPostFXs() {
         postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        gEngine->addPostFX(std::move(fx));
+        gEngine->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
         PostFX fx(
             "HBlur",
-            "blur_h.vert",
-            "blur.frag",
+            loadFile("blur_h.vert"),
+            loadFile("blur.frag"),
             [](){
                 glUniform1i(postFXTextureLocation.pass2, 0);
                 glUniform1f(
@@ -66,14 +76,14 @@ void setupPostFXs() {
         postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
         sizeLocation.pass2 = sp.getUniformLocation("size");
         sp.unbind();
-        gEngine->addPostFX(std::move(fx));
+        gEngine->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
         PostFX fx(
             "VBlur",
-            "blur_v.vert",
-            "blur.frag",
+            loadFile("blur_v.vert"),
+            loadFile("blur.frag"),
             [](){
                 glUniform1i(postFXTextureLocation.pass3, 0);
                 glUniform1f(
@@ -87,14 +97,14 @@ void setupPostFXs() {
         postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
         sizeLocation.pass3 = sp.getUniformLocation("size");
         sp.unbind();
-        gEngine->addPostFX(std::move(fx));
+        gEngine->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
         PostFX fx(
             "Glow",
-            "base.vert",
-            "glow.frag",
+            loadFile("base.vert"),
+            loadFile("glow.frag"),
             [](){
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture());
@@ -107,11 +117,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        gEngine->addPostFX(std::move(fx));
-    }
-
-    if (gEngine->getNumberOfWindows() > 1) {
-        gEngine->getWindow(1).setUsePostFX(false);
+        gEngine->getCurrentWindow().addPostFX(std::move(fx));
     }
 }
 
@@ -165,7 +171,11 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram("xform", "simple.vert", "simple.frag");
+    ShaderManager::instance()->addShaderProgram(
+        "xform",
+        loadFile("simple.vert"),
+        loadFile("simple.frag")
+    );
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");

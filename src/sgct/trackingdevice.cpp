@@ -18,7 +18,7 @@
 
 namespace sgct {
 
-TrackingDevice::TrackingDevice(size_t parentIndex, std::string name)
+TrackingDevice::TrackingDevice(int parentIndex, std::string name)
     : _name(std::move(name))
     , _parentIndex(parentIndex)
 {}
@@ -84,7 +84,7 @@ void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     setTrackerTimeStamp();
 }
 
-void TrackingDevice::setButtonVal(bool val, int index) {
+void TrackingDevice::setButtonValue(bool val, int index) {
     if (index >= _nButtons) {
         return;
     }
@@ -98,7 +98,7 @@ void TrackingDevice::setButtonVal(bool val, int index) {
     setButtonTimeStamp(index);
 }
 
-void TrackingDevice::setAnalogVal(const double* array, int size) {
+void TrackingDevice::setAnalogValue(const double* array, int size) {
     {
         std::unique_lock lock(core::mutex::Tracking);
         for (int i = 0; i < std::min(size, _nAxes); i++) {

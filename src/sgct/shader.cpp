@@ -70,9 +70,25 @@ Shader::Shader(GLenum shaderType, const std::string& sourceString)
     checkCompilationStatus(_shaderType, _shaderId);
 }
 
+// Shader::Shader(Shader&& rhs)
+//     : _shaderId(rhs._shaderId)
+// {
+//     _shaderId = 0;
+// }
+
 Shader::~Shader() {
     glDeleteShader(_shaderId);
 }
+
+// Shader& Shader::operator=(Shader&& rhs) {
+//     if (&rhs == this) {
+//         return *this;
+//     }
+
+//     _shaderId = rhs._shaderId;
+//     rhs._shaderId = 0;
+//     return *this;
+// }
 
 int Shader::getId() const {
     return _shaderId;

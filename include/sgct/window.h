@@ -108,7 +108,7 @@ public:
     void swap(bool takeScreenshot);
     void updateResolutions();
 
-    /// \returns true if frame buffer is resized and window is visible.
+    /// \return true if frame buffer is resized and window is visible.
     bool update();
 
     /**
@@ -207,9 +207,6 @@ public:
      */
     void setFixResolution(bool state);
     void setHorizFieldOfView(float hFovDeg);
-
-    /// Set if post effects should be used.
-    void setUsePostFX(bool state);
 
     /// Set if FXAA should be used.
     void setUseFXAA(bool state);
@@ -506,7 +503,6 @@ private:
     glm::vec2 _scale = glm::vec2(0.f, 0.f);
 
     bool _useFXAA;
-    bool _usePostFX = false;
 
     ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
     GLenum _internalColorFormat;

@@ -50,7 +50,7 @@ bool sRunUpdateFrameLockLoop = true;
 namespace {
     // If this value is set to true, every OpenGL call will be checked for errors. This
     // will detroy a lot of the performance, so it is disabled by default
-    constexpr const bool CheckOpenGLForErrors = false;
+    constexpr const bool CheckOpenGLForErrors = true;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
@@ -1876,9 +1876,11 @@ void Engine::setAndClearBuffer(BufferMode mode) {
 
 bool Engine::checkForOGLErrors(const std::string& function) {
     const GLenum error = glGetError();
+    if (error == GL_NO_ERROR) {
+        return true;
+    }
+
     switch (error) {
-        case GL_NO_ERROR:
-            break;
         case GL_INVALID_ENUM:
             MessageHandler::printError(
                 "OpenGL error. Function %s: GL_INVALID_ENUM", function.c_str()
@@ -2360,14 +2362,6 @@ double Engine::getDtStandardDeviation() const {
     return _statistics->getFrameTimeStandardDeviation();
 }
 
-double Engine::getDrawTime() const {
-    return _statistics->getDrawTime();
-}
-
-double Engine::getSyncTime() const {
-    return _statistics->getSyncTime();
-}
-
 glm::vec4 Engine::getClearColor() const {
     return _clearColor;
 }
@@ -2406,13 +2400,13 @@ void Engine::setExitKey(int key) {
     _exitKey = key;
 }
 
-void Engine::addPostFX(PostFX fx) {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-        thisNode.getWindow(i).setUsePostFX(true);
-        thisNode.getWindow(i).addPostFX(fx);
-    }
-}
+// void Engine::addPostFX(PostFX fx) {
+//     core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+//     for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+//         thisNode.getWindow(i).setUsePostFX(true);
+//         thisNode.getWindow(i).addPostFX(fx);
+//     }
+// }
 
 unsigned int Engine::getCurrentDrawTexture() const {
     if (getCurrentWindow().usePostFX()) {

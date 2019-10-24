@@ -28,29 +28,21 @@ class TrackingDevice;
 class TrackingManager {
 public:
     ~TrackingManager();
-    
+
     void applyDevice(const config::Device& device);
     void applyTracker(const config::Tracker& tracker);
 
     void startSampling();
 
-    /**
-     * Update the user position if headtracking is used. This function is called from the
-     * engine.
-     */
+    /// Update the user position if headtracking is used. The engine calls this function
     void updateTrackingDevices();
     void addTracker(std::string name);
-    void addDeviceToCurrentTracker(std::string name);
-    void addSensorToCurrentDevice(std::string address, int id);
-    void addButtonsToCurrentDevice(std::string address, int numOfButtons);
-    void addAnalogsToCurrentDevice(std::string address, int numOfAxes);
-    
+
     int getNumberOfTrackers() const;
-    int getNumberOfDevices() const;
     TrackingDevice* getHeadDevice() const;
 
     Tracker* getLastTracker() const;
-    Tracker* getTracker(size_t index) const;
+    Tracker* getTracker(int index) const;
     Tracker* getTracker(const std::string& name) const;
 
     void setEnabled(bool state);
@@ -60,6 +52,11 @@ public:
     bool isRunning() const;
 
 private:
+    void addDeviceToCurrentTracker(std::string name);
+    void addSensorToCurrentDevice(std::string address, int id);
+    void addButtonsToCurrentDevice(std::string address, int numOfButtons);
+    void addAnalogsToCurrentDevice(std::string address, int numOfAxes);
+
     std::unique_ptr<std::thread> _samplingThread;
     std::vector<std::unique_ptr<Tracker>> _trackers;
     std::set<std::string> _addresses;
@@ -68,7 +65,6 @@ private:
 
     core::User* _headUser = nullptr;
     TrackingDevice* _head = nullptr;
-    int _nDevices = 0;
 };
 
 } // namespace sgct

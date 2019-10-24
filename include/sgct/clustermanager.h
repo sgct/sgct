@@ -16,7 +16,6 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
-#include <string_view>
 
 namespace sgct::core {
 
@@ -83,7 +82,7 @@ public:
      */
     void setThisNodeId(int id);
 
-    /// \returns the id to the node which runs this application
+    /// \return the id to the node which runs this application
     int getThisNodeId() const;
 
     /// \return the dns, name or IP of the master in the cluster
@@ -146,7 +145,7 @@ public:
      */
     void setSceneScale(float scale);
 
-    /// \returns the pointer to the tracking manager
+    /// \return the pointer to the tracking manager
     TrackingManager& getTrackingManager();
 
 private:

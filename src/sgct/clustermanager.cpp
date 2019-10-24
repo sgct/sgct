@@ -49,15 +49,15 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
     if (cluster.scene) {
-            if (cluster.scene->offset) {
-                setSceneOffset(*cluster.scene->offset);
-            }
-            if (cluster.scene->orientation) {
-                setSceneRotation(glm::mat4_cast(*cluster.scene->orientation));
-            }
-            if (cluster.scene->scale) {
-                setSceneScale(*cluster.scene->scale);
-            }
+        if (cluster.scene->offset) {
+            setSceneOffset(*cluster.scene->offset);
+        }
+        if (cluster.scene->orientation) {
+            setSceneRotation(glm::mat4_cast(*cluster.scene->orientation));
+        }
+        if (cluster.scene->scale) {
+            setSceneScale(*cluster.scene->scale);
+        }
     }
     for (const config::Node& node : cluster.nodes) {
         std::unique_ptr<Node> n = std::make_unique<Node>();
@@ -70,6 +70,9 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     if (cluster.user) {
         User* usrPtr;
         if (cluster.user->name) {
+            // @TODO (2019-10-23) This doesn't seem to be used and probably can be removed
+            // which would cause all of the username in the viewports to disappear as well
+            // as noone else uses User's having a name
             std::unique_ptr<User> usr = std::make_unique<User>(*cluster.user->name);
             usrPtr = usr.get();
             addUser(std::move(usr));
@@ -126,12 +129,12 @@ User& ClusterManager::getDefaultUser() {
 }
 
 User* ClusterManager::getUser(const std::string& name) {
-    auto it = std::find_if(
-        _users.begin(),
-        _users.end(),
+    const auto it = std::find_if(
+        _users.cbegin(),
+        _users.cend(),
         [&name](const std::unique_ptr<User>& user) { return user->getName() == name; }
     );
-    if (it != _users.end()) {
+    if (it != _users.cend()) {
         return it->get();
     }
     else {
@@ -140,12 +143,12 @@ User* ClusterManager::getUser(const std::string& name) {
 }
 
 User* ClusterManager::getTrackedUser() {
-    auto it = std::find_if(
-        _users.begin(),
-        _users.end(),
+    const auto it = std::find_if(
+        _users.cbegin(),
+        _users.cend(),
         [](const std::unique_ptr<User>& u) { return u->isTracked(); }
     );
-    if (it != _users.end()) {
+    if (it != _users.cend()) {
         return it->get();
     }
     else {
@@ -206,12 +209,6 @@ const std::string& ClusterManager::getMasterAddress() const {
 }
 
 void ClusterManager::setMasterAddress(std::string address) {
-    std::transform(
-        address.begin(),
-        address.end(),
-        address.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
     _masterAddress = std::move(address);
 }
 
@@ -232,12 +229,7 @@ const glm::mat4& ClusterManager::getSceneTransform() const {
 }
 
 void ClusterManager::setThisNodeId(int id) {
-    if (id >= 0) {
-        _thisNodeId = id;
-    }
-    else {
-        MessageHandler::printError("Node id must be positive");
-    }
+    _thisNodeId = id;
 }
 
 int ClusterManager::getThisNodeId() const {

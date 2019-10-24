@@ -32,7 +32,6 @@ namespace sgct::core {
 class Image;
 class NetworkManager;
 class Node;
-class ReadConfig;
 class Statistics;
 class Touch;
 } // namespace sgct::core
@@ -111,11 +110,11 @@ public:
         Positions
     };
 
-    /// \returns the static pointer to the engine instance
-    static Engine* instance();
-
     static void create(const Configuration& arg);
     static void destroy();
+
+    /// \return the static pointer to the Engine instance
+    static Engine* instance();
 
     /**
      * Engine initiation that:
@@ -157,12 +156,6 @@ public:
     /// \return the standard devitation of the delta time in seconds
     double getDtStandardDeviation() const;
 
-    /// \return the draw time in seconds
-    double getDrawTime() const;
-
-    /// \return the sync time (time waiting for other nodes and network) in seconds
-    double getSyncTime() const;
-
     /// \return the clear color as 4 floats (RGBA)
     glm::vec4 getClearColor() const;
     
@@ -199,10 +192,6 @@ public:
     /**
      * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
      * is: sgct::key:ESC. To diable shutdown or escaping SGCT then use: sgct::key::Unknown
-     *
-     * \param key can be either an uppercase printable ISO 8859-1 (Latin 1) character
-     *        (e.g. 'A', '3' or '.'), or a special key identifier described in
-     *        setKeyboardCallbackFunction description.
      */
     void setExitKey(int key);
 
@@ -211,9 +200,6 @@ public:
      * viewport is tracked this is done on the fly.
      */
     void updateFrustums();
-
-    /// Add a post effect to all windows.
-    void addPostFX(PostFX fx);
 
     /**
      * \return the active draw texture if frame buffer objects are used,

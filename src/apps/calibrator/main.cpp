@@ -37,8 +37,7 @@ namespace {
     float tilt = 0.f;
     float radius = 7.4f;
     std::string texture;
-    bool hasTexture = false;
-    constexpr const char* Texture = "texture";
+    unsigned int textureId = 0;
 
     struct Vertex {
         float elevation, azimuth;
@@ -112,9 +111,9 @@ void draw() {
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mat));
 
     glBindVertexArray(geometry.vao);
-    if (hasTexture) {
+    if (textureId != 0) {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId(Texture));
+        glBindTexture(GL_TEXTURE_2D, textureId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboTriangle);
         glDrawElements(GL_TRIANGLES, geometry.nVertTriangle, GL_UNSIGNED_SHORT, nullptr);
     }
@@ -270,10 +269,7 @@ void initGL() {
     glBindVertexArray(0);
 
     if (!texture.empty()) {
-        hasTexture = TextureManager::instance()->loadTexture(Texture, texture, true, 0);
-    }
-    else {
-        hasTexture = false;
+        textureId = TextureManager::instance()->loadTexture(texture, true, 0);
     }
 
     ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
@@ -289,7 +285,7 @@ void initGL() {
     glUniform1i(textureLocation, 0);
 
     const GLint hasTextureLocation = prog.getUniformLocation("hasTex");
-    glUniform1i(hasTextureLocation, hasTexture ? 1 : 0);
+    glUniform1i(hasTextureLocation, (textureId != 0) ? 1 : 0);
 
     prog.unbind();
 }

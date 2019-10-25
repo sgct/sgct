@@ -17,6 +17,8 @@ namespace {
     GLuint VertexArrayID = 0;
     GLsizei numberOfVertices = 0;
 
+    unsigned int textureId = 0;
+
     // shader locations
     GLint MVPLoc = -1;
     GLint NMLoc = -1;
@@ -160,7 +162,7 @@ void drawFun() {
     const glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
 
@@ -184,10 +186,9 @@ void preSyncFun() {
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
     TextureManager::instance()->setAnisotropicFilterSize(4.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     loadModel("box.obj");
     

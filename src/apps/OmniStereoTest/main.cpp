@@ -23,6 +23,8 @@ namespace {
     GLint matrixLoc = -1;
     GLint gridMatrixLoc = -1;
 
+    unsigned int textureId = 0;
+
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
     sgct::SharedBool takeScreenshot(true);
@@ -385,7 +387,7 @@ void drawOmniStereo() {
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
     sgct::core::Frustum::Mode fm = gEngine->getCurrentFrustumMode();
     for (int x = 0; x < res.x; x++) {
@@ -432,7 +434,7 @@ void drawFun() {
         ShaderManager::instance()->getShaderProgram("xform").bind();
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+        glBindTexture(GL_TEXTURE_2D, textureId);
         renderBoxes(vp * model);
     }
 
@@ -461,7 +463,7 @@ void postDrawFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     box = std::make_unique<sgct::utils::Box>(
         0.5f,

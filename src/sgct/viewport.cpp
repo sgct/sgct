@@ -30,12 +30,6 @@ namespace {
 
 namespace sgct::core {
 
-Viewport::~Viewport() {
-    glDeleteTextures(1, &_overlayTextureIndex);
-    glDeleteTextures(1, &_blendMaskTextureIndex);
-    glDeleteTextures(1, &_blackLevelMaskTextureIndex);
-}
-
 void Viewport::applySettings(const config::Viewport& viewport) {
     if (viewport.user) {
         setUserName(*viewport.user);
@@ -292,8 +286,7 @@ void Viewport::loadData() {
     MessageHandler::printDebug("Viewport: loading GPU data for '%s'", _name.c_str());
 
     if (!_overlayFilename.empty()) {
-        TextureManager::instance()->loadUnManagedTexture(
-            _overlayTextureIndex,
+        _overlayTextureIndex = TextureManager::instance()->loadTexture(
             _overlayFilename,
             true,
             1
@@ -301,8 +294,7 @@ void Viewport::loadData() {
     }
 
     if (!_blendMaskFilename.empty()) {
-        TextureManager::instance()->loadUnManagedTexture(
-            _blendMaskTextureIndex,
+        _blendMaskTextureIndex = TextureManager::instance()->loadTexture(
             _blendMaskFilename,
             true,
             1
@@ -310,8 +302,7 @@ void Viewport::loadData() {
     }
 
     if (!_blackLevelMaskFilename.empty()) {
-        TextureManager::instance()->loadUnManagedTexture(
-            _blackLevelMaskTextureIndex,
+        _blackLevelMaskTextureIndex = TextureManager::instance()->loadTexture(
             _blackLevelMaskFilename,
             true,
             1
@@ -319,18 +310,14 @@ void Viewport::loadData() {
     }
 
     if (!_mpcdiWarpMesh.empty()) {
-        _mesh.readAndGenerateMesh(
-            "mesh.mpcdi",
-            *this,
-            CorrectionMesh::parseHint("mpcdi")
-        );
+        _mesh.readAndGenerateMesh("mesh.mpcdi", *this, parseCorrectionMeshHint("mpcdi"));
     }
     else {
         // load default if _meshFilename is empty
         _mesh.readAndGenerateMesh(
             _meshFilename,
             *this,
-            CorrectionMesh::parseHint(_meshHint)
+            parseCorrectionMeshHint(_meshHint)
         );
     }
 }

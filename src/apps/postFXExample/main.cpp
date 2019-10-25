@@ -18,6 +18,8 @@ namespace {
 
     GLint matrixLoc = -1;
 
+    unsigned int textureId = 0;
+
     struct {
         GLint pass1 = -1;
         GLint pass2 = -1;
@@ -142,7 +144,7 @@ void drawFun() {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
 
@@ -164,7 +166,7 @@ void preSyncFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 

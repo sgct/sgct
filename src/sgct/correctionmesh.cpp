@@ -112,6 +112,31 @@ namespace {
 
 namespace sgct::core {
 
+CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
+    if (hintStr == "domeprojection") {
+        return CorrectionMesh::Format::DomeProjection;
+    }
+    else if (hintStr == "scalable") {
+        return CorrectionMesh::Format::Scaleable;
+    }
+    else if (hintStr == "sciss") {
+        return CorrectionMesh::Format::Sciss;
+    }
+    else if (hintStr == "simcad") {
+        return CorrectionMesh::Format::SimCad;
+    }
+    else if (hintStr == "skyskan") {
+        return CorrectionMesh::Format::SkySkan;
+    }
+    else if (hintStr == "mpcdi") {
+        return CorrectionMesh::Format::Mpcdi;
+    }
+    else {
+        MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+        return CorrectionMesh::Format::None;
+    }
+}
+
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
@@ -143,34 +168,25 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         return false;
     }
     
-    // transform to lowercase
-    std::string pathLower(path);
-    std::transform(
-        path.begin(),
-        path.end(),
-        pathLower.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-
     try {
         Buffer buf;
 
         // find a suitable format
-        if (pathLower.find(".sgc") != std::string::npos) {
+        if (path.find(".sgc") != std::string::npos) {
             buf = generateScissMesh(path, parent);
         }
-        else if (pathLower.find(".ol") != std::string::npos) {
+        else if (path.find(".ol") != std::string::npos) {
             buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
         }
-        else if (pathLower.find(".skyskan") != std::string::npos) {
+        else if (path.find(".skyskan") != std::string::npos) {
             buf = generateSkySkanMesh(path, parent);
         }
-        else if ((pathLower.find(".txt") != std::string::npos) &&
+        else if ((path.find(".txt") != std::string::npos) &&
             (hint == Format::None || hint == Format::SkySkan))
         {
             buf = generateSkySkanMesh(path, parent);
         }
-        else if ((pathLower.find(".csv") != std::string::npos) &&
+        else if ((path.find(".csv") != std::string::npos) &&
             (hint == Format::None || hint == Format::DomeProjection))
         {
             buf = generateDomeProjectionMesh(
@@ -179,7 +195,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
                 parent.getSize()
             );
         }
-        else if ((pathLower.find(".data") != std::string::npos) &&
+        else if ((path.find(".data") != std::string::npos) &&
             (hint == Format::None || hint == Format::PaulBourke))
         {
             buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
@@ -193,15 +209,15 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
                 fishPrj->update(glm::ivec2(1.f, 1.f));
             }
         }
-        else if ((pathLower.find(".obj") != std::string::npos) &&
+        else if ((path.find(".obj") != std::string::npos) &&
             (hint == Format::None || hint == Format::Obj))
         {
             buf = generateOBJMesh(path);
         }
-        else if (pathLower.find(".mpcdi") != std::string::npos) {
+        else if (path.find(".mpcdi") != std::string::npos) {
             buf = generateMpcdiMesh("", parent);
         }
-        else if ((pathLower.find(".simcad") != std::string::npos) &&
+        else if ((path.find(".simcad") != std::string::npos) &&
             (hint == Format::None || hint == Format::SimCad))
         {
             buf = generateSimCADMesh(path, parent);
@@ -213,7 +229,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
         createMesh(_warpGeometry, buf);
 
         MessageHandler::printDebug(
-            "CorrectionMesh: Mesh read successfully. Vertices=%u, Indices=%u",
+            "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
             static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
         );
 
@@ -249,48 +265,6 @@ void CorrectionMesh::renderMaskMesh() const {
     glBindVertexArray(_maskGeometry.vao);
     glDrawElements(_maskGeometry.type, _maskGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
-}
-
-CorrectionMesh::Format CorrectionMesh::parseHint(const std::string& hintStr) {
-    if (hintStr.empty()) {
-        return Format::None;
-    }
-
-    // transform to lowercase
-    std::string str(hintStr);
-    std::transform(
-        str.begin(),
-        str.end(),
-        str.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-
-    CorrectionMesh::Format hint = Format::None;
-    if (str == "domeprojection") {
-        hint = Format::DomeProjection;
-    }
-    else if (str == "scalable") {
-        hint = Format::Scaleable;
-    }
-    else if (str == "sciss") {
-        hint = Format::Sciss;
-    }
-    else if (str == "simcad") {
-        hint = Format::SimCad;
-    }
-    else if (str == "skyskan") {
-        hint = Format::SkySkan;
-    }
-    else if (str == "mpcdi") {
-        hint = Format::Mpcdi;
-    }
-    else {
-        MessageHandler::printWarning(
-            "CorrectionMesh: hint '%s' is invalid", hintStr.c_str()
-        );
-    }
-
-    return hint;
 }
 
 void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,

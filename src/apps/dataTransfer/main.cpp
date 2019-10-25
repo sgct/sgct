@@ -21,6 +21,7 @@ namespace {
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
     std::unique_ptr<sgct::core::Image> transImg;
+    unsigned int textureId = 0;
 
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
@@ -99,10 +100,7 @@ void drawFun() {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
     }
     else {
-        glBindTexture(
-            GL_TEXTURE_2D,
-            TextureManager::instance()->getTextureId("box")
-        );
+        glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
@@ -135,7 +133,7 @@ void postSyncPreDrawFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     box = std::make_unique<sgct::utils::Box>(
         2.f,

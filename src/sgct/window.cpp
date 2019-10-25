@@ -465,7 +465,7 @@ void Window::initOGL() {
 void Window::initContextSpecificOGL() {
     makeOpenGLContextCurrent(Context::Window);
     TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
-    // must be uncompressed otherwise artefacts will occur in gradients
+    // must be uncompressed otherwise artifacts will occur in gradients
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
 
     for (int j = 0; j < getNumberOfViewports(); j++) {

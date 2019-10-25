@@ -37,16 +37,13 @@ public:
         Mpcdi
     };
 
-    /// Parse hint from string to enum.
-    static Format parseHint(const std::string& hintStr);
-
     /**
      * This function finds a suitible parser for warping meshes and loads them into
      * memory.
      *
      * \param path the path to the mesh data
-     * \param hint a hint to pass to the parser selector
      * \param parent the pointer to parent viewport
+     * \param hint a hint to pass to the parser selector
      * \return true if mesh found and loaded successfully
      */
     bool readAndGenerateMesh(std::string path, Viewport& parent,
@@ -79,6 +76,9 @@ private:
     CorrectionMeshGeometry _warpGeometry;
     CorrectionMeshGeometry _maskGeometry;
 };
+
+/// Parse hint from string to enum.
+CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr);
 
 } // namespace sgct::core
 

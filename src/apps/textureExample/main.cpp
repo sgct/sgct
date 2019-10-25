@@ -13,6 +13,8 @@ namespace {
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
+    unsigned int textureId = 0;
+
     sgct::SharedDouble currentTime(0.0);
 
     constexpr const char* vertexShader = R"(
@@ -64,7 +66,7 @@ void drawFun() {
     const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
     sgct::ShaderManager::instance()->getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -84,7 +86,7 @@ void preSyncFun(){
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     box = std::make_unique<sgct::utils::Box>(
         2.f,

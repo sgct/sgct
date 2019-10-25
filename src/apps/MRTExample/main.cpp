@@ -24,6 +24,8 @@ namespace {
     int worldMatrixTransposeId = -1;
     int normalMatrixId = -1;
 
+    unsigned int textureId = 0;
+
     constexpr const char* vertexShader = R"(
   #version 330 core
 
@@ -97,7 +99,7 @@ void drawFun() {
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+    glBindTexture(GL_TEXTURE_2D, textureId);
 
     ShaderManager::instance()->getShaderProgram("MRT").bind();
 
@@ -139,17 +141,7 @@ void initOGLFun() {
     prg.bind();
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
-
-    // test
-    int sizeX;
-    int sizeY;
-    int sizeC;
-    std::string path = TextureManager::instance()->getTexturePath("box");
-    TextureManager::instance()->getDimensions("box", sizeX, sizeY, sizeC);
-    MessageHandler::printInfo(
-        "Texture info, x=%d, y=%d, c=%d, path=%s", sizeX, sizeY, sizeC, path.c_str()
-    );
+    textureId = TextureManager::instance()->loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 

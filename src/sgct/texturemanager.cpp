@@ -25,55 +25,14 @@ TextureManager* TextureManager::instance() {
 }
 
 void TextureManager::destroy() {
-    if (_instance != nullptr) {
-        delete _instance;
-        _instance = nullptr;
-    }
-}
-
-TextureManager::TextureManager() {
-    setAnisotropicFilterSize(1.f);
-    _warpMode.s = GL_CLAMP_TO_EDGE;
-    _warpMode.t = GL_CLAMP_TO_EDGE;
-
-    TextureData tmpTexture;
-    _textures["NOTSET"] = tmpTexture;
+    delete _instance;
+    _instance = nullptr;
 }
 
 TextureManager::~TextureManager() {
-    freeTextureData();
-}
-
-unsigned int TextureManager::getTextureId(const std::string& name) {
-    return _textures.count(name) > 0 ? _textures[name].id : 0;
-}
-
-std::string TextureManager::getTexturePath(const std::string& name) {
-    return _textures.count(name) > 0 ? _textures[name].path : "NOT_FOUND";
-}
-
-void TextureManager::getDimensions(const std::string& name, int& width, int& height,
-                                   int& channels) const
-{
-    if (_textures.count(name) > 0) {
-        const TextureData& texData = _textures.at(name);
-        width = texData.width;
-        height = texData.width;
-        channels = texData.width;
+    for (unsigned int id : _textures) {
+        glDeleteTextures(1, &id);
     }
-    else {
-        width = -1;
-        height = -1;
-        channels = -1;
-    }
-}
-
-void TextureManager::setAlphaModeForSingleChannelTextures(bool alpha) {
-    _alphaMode = alpha;
-}
-
-void TextureManager::setOverWriteMode(bool mode) {
-    _overWriteMode = mode;
 }
 
 void TextureManager::setAnisotropicFilterSize(float fval) {
@@ -85,8 +44,8 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
     }
     else {
         MessageHandler::printWarning(
-            "TextureManager warning: Anisotropic filtersize=%.2f is incorrect. Max and "
-            "min values for your hardware is %.1f and 1.0", maximumAnistropy
+            "TextureManager: Anisotropic filtersize=%.2f is incorrect. Max and "
+            "min values for this hardware is %.1f and 1.0", maximumAnistropy
         );
     }
 }
@@ -95,204 +54,78 @@ void TextureManager::setCompression(CompressionMode cm) {
     _compression = cm;
 }
 
-void TextureManager::setWarpingMode(GLenum warpS, GLenum warpT) {
-    _warpMode.s = warpS;
-    _warpMode.t = warpT;
-}
-
 TextureManager::CompressionMode TextureManager::getCompression() const {
     return _compression;
 }
 
-bool TextureManager::loadTexture(const std::string& name, const std::string& filename,
-                                 bool interpolate, int mipmapLevels)
+unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,
+                                         int mipmapLevels)
 {
-    _interpolate = interpolate;
-    _mipmapLevels = mipmapLevels;
-
     GLuint texID = 0;
-    bool reload = false;
-    if (!updateTexture(name, texID, reload)) {
-        return true;
-    }
-    
-    std::unordered_map<std::string, TextureData>::iterator textureItem = _textures.end();
 
     // load image
     core::Image img;
     if (!img.load(filename)) {
-        if (reload) {
-            textureItem->second = TextureData();
-        }
-        return false;
+        return 0;
     }
     
     if (img.getData() != nullptr) {
-        if (!uploadImage(img, texID)) {
-            return false;
-        }
-
-        TextureData tmpTexture;
-        tmpTexture.id = texID;
-        tmpTexture.path = filename;
-        tmpTexture.width = static_cast<int>(img.getSize().x);
-        tmpTexture.height = static_cast<int>(img.getSize().y);
-        tmpTexture.nChannels = static_cast<int>(img.getChannels());
-
-        if (!reload) {
-            _textures[name] = std::move(tmpTexture);
-        }
+        texID = uploadImage(img, interpolate, mipmapLevels);
+        _textures.push_back(texID);
 
         MessageHandler::printDebug(
-            "TextureManager: Texture created from '%s' [id=%d]", filename.c_str(), texID
+            "Texture created from '%s' [id=%d]", filename.c_str(), texID
         );
     }
     else {
         // image data not valid
-        return false;
+        return 0;
     }
 
-    return true;
+    return texID;
 }
 
-bool TextureManager::loadTexture(const std::string& name, core::Image* imgPtr,
-                                 bool interpolate, int mipmapLevels)
+// unsigned int TextureManager::loadUnManagedTexture(const std::string& filename,
+//                                                   bool interpolate, int mipmapLevels)
+// {
+//     core::Image img;
+//     if (!img.load(filename)) {
+//         return 0;
+//     }
+
+//     if (img.getData() == nullptr) {
+//         return 0;
+//     }
+
+//     unsigned int id = uploadImage(img, interpolate, mipmapLevels);
+//     MessageHandler::printDebug(
+//         "Unmanaged texture created from '%s' [id=%d]", filename.c_str(), id
+//     );
+//     return id;
+// }
+
+unsigned int TextureManager::uploadImage(const core::Image& img, bool interpolate,
+                                         int mipmapLevels)
 {
-    if (!imgPtr) {
-        MessageHandler::printDebug(
-            "TextureManager: Cannot create texture '%s' from invalid image", name.c_str()
-        );
-        return false;
-    }
-    
-    _interpolate = interpolate;
-    _mipmapLevels = mipmapLevels;
-
-    GLuint texID = 0;
-    bool reload = false;
-    if (!updateTexture(name, texID, reload)) {
-        return true;
-    }
-
-    if (imgPtr->getData() != nullptr) {
-        if (!uploadImage(*imgPtr, texID)) {
-            return false;
-        }
-
-        TextureData tmpTexture;
-        tmpTexture.id = texID;
-        tmpTexture.path = "NOTSET";
-        tmpTexture.width = static_cast<int>(imgPtr->getSize().x);
-        tmpTexture.height = static_cast<int>(imgPtr->getSize().y);
-        tmpTexture.nChannels = static_cast<int>(imgPtr->getChannels());
-
-        if (!reload) {
-            _textures[name] = tmpTexture;
-        }
-
-        MessageHandler::printDebug(
-            "TextureManager: Texture created from image [id=%d]", texID
-        );
-    }
-    else {
-        // image data not valid
-        return false;
-    }
-
-    return true;
-}
-
-bool TextureManager::loadUnManagedTexture(unsigned int& texID,
-                                          const std::string& filename, bool interpolate,
-                                          int mipmapLevels)
-{
-    unsigned int tmpTexID = 0;
-    _interpolate = interpolate;
-    _mipmapLevels = mipmapLevels;
-
-    if (texID != 0) {
-        glDeleteTextures(1, &texID);
-        texID = 0;
-    }
-    
-    // load image
-    core::Image img;
-    if (!img.load(filename)) {
-        return false;
-    }
-
-    if (img.getData() != nullptr) {
-        if (!uploadImage(img, tmpTexID)) {
-            return false;
-        }
-
-        MessageHandler::printDebug(
-            "TextureManager: Unmanaged texture created from '%s' [id=%d]",
-            filename.c_str(), tmpTexID
-        );
-    }
-    else {
-        // image data not valid
-        return false;
-    }
-
-    texID = tmpTexID;
-    return true;
-}
-
-bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr,
-                                   bool& reload)
-{
-    // check if texture exits in manager
-    bool exist = _textures.count(name) > 0;
-    std::unordered_map<std::string, TextureData>::iterator textureItem = _textures.end();
-
-    if (exist) {
-        // get it
-        textureItem = _textures.find(name);
-        texPtr = textureItem->second.id;
-
-        if (_overWriteMode) {
-            MessageHandler::printDebug(
-                "TextureManager: Reloading texture '%s'! [id=%d]", name.c_str(), texPtr
-            );
-
-            if (texPtr != 0) {
-                glDeleteTextures(1, &texPtr);
-            }
-            texPtr = 0;
-            reload = true;
-        }
-        else {
-            MessageHandler::printWarning(
-                "TextureManager: '%s' exists already! [id=%d]", name.c_str(), texPtr
-            );
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr) {
-    glGenTextures(1, &texPtr);
-    glBindTexture(GL_TEXTURE_2D, texPtr);
+    unsigned int tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
 
     // if three channels
     GLenum textureType = GL_BGR;
 
-    if (imgPtr.getChannels() == 4) {
-        textureType = GL_BGRA;
-    }
-    else if (imgPtr.getChannels() == 1) {
+    if (img.getChannels() == 1) {
         textureType = GL_RED;
     }
-    else if (imgPtr.getChannels() == 2) {
+    else if (img.getChannels() == 2) {
         textureType = GL_RG;
+    }
+    else if (img.getChannels() == 4) {
+        textureType = GL_BGRA;
     }
 
     GLenum internalFormat = {};
-    switch (imgPtr.getChannels()) {
+    switch (img.getChannels()) {
         case 1:
             if (_compression == CompressionMode::None) {
                 internalFormat = GL_R8;
@@ -342,7 +175,7 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     MessageHandler::printDebug(
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
         "Type: %#04x, Format: %#04x",
-        imgPtr.getSize().x, imgPtr.getSize().y, imgPtr.getChannels(),
+        img.getSize().x, img.getSize().y, img.getChannels(),
         (_compression == CompressionMode::None) ?
             "none" :
             ((_compression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
@@ -352,74 +185,57 @@ bool TextureManager::uploadImage(const core::Image& imgPtr, unsigned int& texPtr
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    _mipmapLevels = glm::max(_mipmapLevels, 1);
-
     GLenum format = GL_UNSIGNED_BYTE;
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         internalFormat,
-        static_cast<GLsizei>(imgPtr.getSize().x),
-        static_cast<GLsizei>(imgPtr.getSize().y),
+        static_cast<GLsizei>(img.getSize().x),
+        static_cast<GLsizei>(img.getSize().y),
         0,
-        textureType, 
+        textureType,
         format,
-        imgPtr.getData()
+        img.getData()
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipmapLevels - 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels - 1);
 
-    if (_mipmapLevels > 1) {
+    if (mipmapLevels > 1) {
         glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
-
-        GLfloat maxAni;
-        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-        // MessageHandler::instance()->print("Max anisotropy: %f", maxAni);
 
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MIN_FILTER,
-            _interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
+            interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
         );
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
-            _interpolate ? GL_LINEAR : GL_NEAREST
+            interpolate ? GL_LINEAR : GL_NEAREST
         );
         glTexParameterf(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAX_ANISOTROPY_EXT,
-            _anisotropicFilterSize > maxAni ? maxAni : _anisotropicFilterSize
+            _anisotropicFilterSize
         );
     }
     else {
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MIN_FILTER,
-            _interpolate ? GL_LINEAR : GL_NEAREST
+            interpolate ? GL_LINEAR : GL_NEAREST
         );
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
-            _interpolate ? GL_LINEAR : GL_NEAREST
+            interpolate ? GL_LINEAR : GL_NEAREST
         );
     }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _warpMode.s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _warpMode.t);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    return true;
-}
-
-void TextureManager::freeTextureData() {
-    // the textures might not be stored in a sequence so
-    // let's erase them one by one
-    for (const std::pair<const std::string, TextureData>& p : _textures) {
-        if (p.second.id) {
-            glDeleteTextures(1, &p.second.id);
-        }
-    }
-     _textures.clear();
+    return tex;
 }
 
 } // namespace sgct::core

@@ -201,22 +201,11 @@ void preSyncFun() {
 
             // load the texture
             std::string str(tmpStr);
-            const bool loadSuccess = TextureManager::instance()->loadTexture(
-                texturePaths[i],
+            textureIndices[i] = TextureManager::instance()->loadTexture(
                 str,
                 true,
                 1
             );
-            if (!loadSuccess) {
-                std::cout << "Error: texture: " << textureIndices[i] << " file: "
-                          << str << " count: " << numberOfTextures << '\n';
-            }
-            else {
-                textureIndices[i] = TextureManager::instance()->getTextureId(
-                    texturePaths[i]
-                );
-            }
-
         }
 
         takeScreenshot.setVal(true);
@@ -224,17 +213,11 @@ void preSyncFun() {
     }
     else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
         for (size_t i = 0; i < numberOfTextures; i++) {
-            const bool loadSuccess = TextureManager::instance()->loadTexture(
-                texturePaths[i],
+            textureIndices[i] = TextureManager::instance()->loadTexture(
                 texturePaths[i],
                 true,
                 1
             );
-            if (loadSuccess) {
-                textureIndices[i] = TextureManager::instance()->getTextureId(
-                    texturePaths[i]
-                );
-            }
         }
 
         takeScreenshot.setVal(true);
@@ -280,7 +263,9 @@ void preWinInitFun() {
         }
         
         win.setNumberOfAASamples(settings.numberOfMSAASamples);
-        win.setFramebufferResolution(glm::ivec2(settings.resolution, settings.resolution));
+        win.setFramebufferResolution(
+            glm::ivec2(settings.resolution, settings.resolution)
+        );
         win.setUseFXAA(settings.fxaa);
         win.setStereoMode(
             settings.stereo ? Window::StereoMode::Dummy : Window::StereoMode::NoStereo
@@ -291,22 +276,15 @@ void preWinInitFun() {
 void initOGLFun() {
     TextureManager::instance()->setAnisotropicFilterSize(8.f);
     TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-    TextureManager::instance()->setOverWriteMode(true);
 
     // load all textures
     if (!sequence) {
         for (size_t i = 0; i < numberOfTextures; i++) {
-            const bool loadSuccess = TextureManager::instance()->loadTexture(
-                texturePaths[i],
+            textureIndices[i] = TextureManager::instance()->loadTexture(
                 texturePaths[i],
                 true,
                 1
             );
-            if (loadSuccess) {
-                textureIndices[i] = TextureManager::instance()->getTextureId(
-                    texturePaths[i]
-                );
-            }
         }
     }
 

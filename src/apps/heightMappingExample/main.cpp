@@ -27,6 +27,9 @@ namespace {
     GLint lightDifLoc = -1;
     GLint lightSpeLoc = -1;
 
+    unsigned int heightTextureId = 0;
+    unsigned int normalTextureId = 0;
+
     // opengl objects
     GLuint vertexArray = 0;
     GLuint vertexPositionBuffer = 0;
@@ -230,10 +233,10 @@ void drawFun() {
     const glm::mat3 NM = glm::inverseTranspose(glm::mat3(MV));
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("heightmap"));
+    glBindTexture(GL_TEXTURE_2D, heightTextureId);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("normalmap"));
+    glBindTexture(GL_TEXTURE_2D, normalTextureId);
 
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("Heightmap");
     prog.bind();
@@ -288,8 +291,8 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
     glDepthFunc(GL_LESS);
 
-    TextureManager::instance()->loadTexture("heightmap", "heightmap.png", true, 0);
-    TextureManager::instance()->loadTexture("normalmap", "normalmap.png", true, 0);
+    heightTextureId = TextureManager::instance()->loadTexture("heightmap.png", true, 0);
+    normalTextureId = TextureManager::instance()->loadTexture("normalmap.png", true, 0);
 
     // setup shader
     ShaderManager::instance()->addShaderProgram(

@@ -26,9 +26,6 @@ class NonLinearProjection;
  */
 class Viewport : public BaseViewport {
 public:
-    /// Destructor that deletes any overlay or mask textures
-    ~Viewport();
-
     void applySettings(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);
     void setMpcdiWarpMesh(std::vector<unsigned char> data);

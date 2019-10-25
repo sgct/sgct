@@ -464,10 +464,6 @@ void Window::initOGL() {
 
 void Window::initContextSpecificOGL() {
     makeOpenGLContextCurrent(Context::Window);
-    TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
-    // must be uncompressed otherwise artifacts will occur in gradients
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-
     for (int j = 0; j < getNumberOfViewports(); j++) {
         core::Viewport& vp = getViewport(j);
         vp.loadData();
@@ -475,9 +471,6 @@ void Window::initContextSpecificOGL() {
             _hasAnyMasks = true;
         }
     }
-
-    // restore old state
-    TextureManager::instance()->setCompression(cm);
 }
 
 unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {

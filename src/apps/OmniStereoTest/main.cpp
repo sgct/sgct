@@ -461,15 +461,10 @@ void postDrawFun() {
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setAnisotropicFilterSize(8.f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-    textureId = TextureManager::instance()->loadTexture("box.png", true);
+    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
 
-    box = std::make_unique<sgct::utils::Box>(
-        0.5f,
-        sgct::utils::Box::TextureMappingMode::Regular
-    );
-    grid = std::make_unique<sgct::utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
+    box = std::make_unique<utils::Box>(0.5f, utils::Box::TextureMappingMode::Regular);
+    grid = std::make_unique<utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
 
     // Set up backface culling
     glCullFace(GL_BACK);

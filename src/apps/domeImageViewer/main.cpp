@@ -280,7 +280,7 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    dome = std::make_unique<sgct::utils::Dome>(7.4f, 180.f, 256, 128);
+    dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
 
     // Set up backface culling
     glCullFace(GL_BACK);

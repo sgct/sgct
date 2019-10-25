@@ -274,16 +274,15 @@ void preWinInitFun() {
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setAnisotropicFilterSize(8.f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
-
     // load all textures
     if (!sequence) {
         for (size_t i = 0; i < numberOfTextures; i++) {
             textureIndices[i] = TextureManager::instance()->loadTexture(
                 texturePaths[i],
                 true,
-                1
+                1,
+                TextureManager::CompressionMode::None,
+                8.f
             );
         }
     }

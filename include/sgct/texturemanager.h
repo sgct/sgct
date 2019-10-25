@@ -38,61 +38,24 @@ public:
     static void destroy();
 
     /**
-     * Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables
-     * anisotropic filtering. This filtering mode can slow down performace. For more info
-     * look at:
-     * <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">
-     * Anisotropic filtering</a>
-     */
-    void setAnisotropicFilterSize(float fval);
-
-    /**
-     * Set texture compression. Can be one of the following:
-     *   - sgct::TextureManager::None
-     *   - sgct::TextureManager::Generic
-     *   - sgct::TextureManager::S3TC_DXT
-     *
-     * \param cm the compression mode
-     */
-    void setCompression(CompressionMode cm);
-
-    /// \return the current compression mode
-    CompressionMode getCompression() const;
-
-    /**
      * Load a texture to the TextureManager.
      *
      * \param filename the filename or path to the texture
      * \param interpolate set to true for using interpolation (bi-linear filtering)
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
                            this value to 1 or less disables mipmaps
-     * \return true if texture loaded successfully
+     * \param compression The compression method that is used for this texture
+     * \param anisotropicFilterSize The filter size that is used for the anisotropic
+     *        filtering. If this value is 1.f, only bilinear filtering is used
+     * \return true The OpenGL name for the texture that was loaded
      */
     unsigned int loadTexture(const std::string& filename, bool interpolate,
-        int mipmapLevels = 8);
-
-    /**
-     * Load a unmanaged texture. Note that this type of textures doesn't auto destruct.
-     *
-     * \param filename the filename or path to the texture
-     * \param interpolate set to true for using interpolation (bi-linear filtering)
-     * \param mipmapLevels is the number of mipmap levels that will be generated, setting
-     *                     this value to 1 or less disables mipmaps
-     * \return texID the OpenGL texture id
-     */
-    // unsigned int loadUnManagedTexture(const std::string& filename, bool interpolate,
-        // int mipmapLevels = 8);
+        int mipmapLevels = 8, CompressionMode compression = CompressionMode::None,
+        float anisotropicFilterSize = 1.f);
 
 private:
     ~TextureManager();
-
-    /// \return true if texture will be uploaded
-    unsigned int uploadImage(const core::Image& img, bool interpolate, int mipmapLevels);
-
     static TextureManager* _instance;
-    
-    float _anisotropicFilterSize = 1.f;;
-    CompressionMode _compression = CompressionMode::None;
     std::vector<unsigned int> _textures;
 };
 

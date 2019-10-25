@@ -186,12 +186,9 @@ void preSyncFun() {
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setAnisotropicFilterSize(4.f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    textureId = TextureManager::instance()->loadTexture("box.png", true);
-
+    textureId = TextureManager::instance()->loadTexture("box.png", true, 4.f);
     loadModel("box.obj");
-    
+
     // Set up backface culling
     glCullFace(GL_BACK);
     // our polygon winding is counter clockwise

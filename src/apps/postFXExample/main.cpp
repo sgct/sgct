@@ -164,10 +164,7 @@ void preSyncFun() {
 }
 
 void initOGLFun() {
-    TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    textureId = TextureManager::instance()->loadTexture("box.png", true);
-
+    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);

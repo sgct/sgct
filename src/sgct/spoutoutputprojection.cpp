@@ -185,7 +185,7 @@ void SpoutOutputProjection::render() {
     }
 }
 
-void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
+void SpoutOutputProjection::renderCubemap() {
     for (int i = 0; i < 6; i++) {
         BaseViewport& vp = [this](int face) -> BaseViewport& {
             switch (face) {
@@ -198,7 +198,6 @@ void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
             case 5: return _subViewports.back;
             }
         }(i);
-        *subViewPortIndex = i;
         unsigned int idx = static_cast<unsigned int>(i);
 
         if (!_spout[i].enabled || !vp.isEnabled()) {

@@ -29,7 +29,7 @@ public:
     void render() override;
 
     /// Render the enabled faces of the cubemap
-    void renderCubemap(size_t* subViewPortIndex) override;
+    void renderCubemap() override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance

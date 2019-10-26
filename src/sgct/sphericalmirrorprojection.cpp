@@ -81,11 +81,10 @@ void SphericalMirrorProjection::render() {
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap(size_t* subViewPortIndex) {
+void SphericalMirrorProjection::renderCubemap() {
     auto renderInternal =
-        [this, subViewPortIndex](BaseViewport& bv, unsigned int& texture, int idx)
+        [this](BaseViewport& bv, unsigned int& texture, int idx)
     {
-        *subViewPortIndex = static_cast<size_t>(idx);
         if (!bv.isEnabled()) {
             return;
         }

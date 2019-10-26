@@ -1060,11 +1060,11 @@ void Engine::render() {
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
                     _currentFrustumMode = win.getViewport(j).getEye();
-                    nonLinearProj->renderCubemap(&_currentViewportIndex.sub);
+                    nonLinearProj->renderCubemap();
                 }
                 else {
                     _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
-                    nonLinearProj->renderCubemap(&_currentViewportIndex.sub);
+                    nonLinearProj->renderCubemap();
                 }
 
                 // FBO index, every window and every nonlinear projection has it's own FBO
@@ -1108,7 +1108,7 @@ void Engine::render() {
 
                 p->setAlpha(getCurrentWindow().hasAlpha() ? 0.f : 1.f);
                 _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
-                p->renderCubemap(&_currentViewportIndex.sub);
+                p->renderCubemap();
 
                 // FBO index, every window and every nonlinear projection has it's own
                 _currentDrawBufferIndex++;

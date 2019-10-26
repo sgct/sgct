@@ -30,7 +30,7 @@ public:
     virtual void render() override;
 
     /// Render the enabled faces of the cubemap
-    virtual void renderCubemap(size_t* subViewPortIndex) override;
+    virtual void renderCubemap() override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is

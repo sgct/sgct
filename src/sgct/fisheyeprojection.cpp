@@ -132,7 +132,7 @@ void FisheyeProjection::render() {
     glDepthFunc(GL_LESS);
 }
 
-void FisheyeProjection::renderCubemap(size_t* subViewPortIndex) {
+void FisheyeProjection::renderCubemap() {
     switch (Engine::instance()->getCurrentFrustumMode()) {
         default:
             break;
@@ -152,9 +152,7 @@ void FisheyeProjection::renderCubemap(size_t* subViewPortIndex) {
             break;
     }
 
-    auto internalRender = [this, subViewPortIndex](BaseViewport& vp, int idx) {
-        *subViewPortIndex = idx;
-
+    auto internalRender = [this](BaseViewport& vp, int idx) {
         if (!vp.isEnabled()) {
             return;
         }

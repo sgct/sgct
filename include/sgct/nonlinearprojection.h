@@ -36,7 +36,7 @@ public:
         int samples = 1);
 
     virtual void render() = 0;
-    virtual void renderCubemap(size_t* subViewPortIndex) = 0;
+    virtual void renderCubemap() = 0;
     virtual void update(glm::vec2 size) = 0;
 
     void updateFrustums(const Frustum::Mode& frustumMode, float nearClipPlane,

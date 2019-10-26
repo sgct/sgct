@@ -8,6 +8,7 @@
 
 #include <sgct/settings.h>
 
+#include <sgct/config.h>
 #include <sgct/messagehandler.h>
 
 namespace sgct {

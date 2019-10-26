@@ -9,7 +9,6 @@
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
-#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/postfx.h>
@@ -18,17 +17,16 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#define NUMBER_OF_TEXTURES 8
-
 struct GLFWmonitor;
 struct GLFWwindow;
 
-namespace sgct::core {
+namespace sgct {
+
+namespace config { struct Window; }
+namespace core {
     class BaseViewport;
     class ScreenCapture;
-} // namespace sgct::core
-
-namespace sgct {
+} // namespace core
 
 /**
  * Helper class for window data.
@@ -54,7 +52,7 @@ public:
     };
 
     enum class Context { Shared = 0, Window, Unset };
-    
+
     enum class ColorBitDepth {
         Depth8,
         Depth16,
@@ -67,6 +65,18 @@ public:
     };
 
     enum class Eye { MonoOrLeft, Right };
+
+    /// The different texture indexes in window buffers
+    enum class TextureIndex {
+        LeftEye = 0,
+        RightEye,
+        Intermediate,
+        FX1,
+        FX2,
+        Depth,
+        Normals,
+        Positions
+    };
 
     void applyWindow(const config::Window& window, core::Node& node);
 
@@ -311,10 +321,10 @@ public:
     /**
      * Get a frame buffer texture. If the texture doesn't exists then it will be created.
      *
-     * \param index Index or Engine::TextureIndexes enum
+     * \param index Index or Engine::TextureIndex enum
      * \return texture index of selected frame buffer texture
      */
-    unsigned int getFrameBufferTexture(Engine::TextureIndexes index);
+    unsigned int getFrameBufferTexture(Engine::TextureIndex index);
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.

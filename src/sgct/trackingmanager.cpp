@@ -9,6 +9,7 @@
 #include <sgct/trackingmanager.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>

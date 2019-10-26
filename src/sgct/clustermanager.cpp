@@ -8,6 +8,7 @@
 
 #include <sgct/clustermanager.h>
 
+#include <sgct/config.h>
 #include <sgct/user.h>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>

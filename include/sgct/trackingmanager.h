@@ -9,16 +9,19 @@
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
-#include <sgct/config.h>
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
 #include <thread>
 #include <vector>
 
-namespace sgct::core { class User; }
-
 namespace sgct {
+
+namespace config {
+    struct Device;
+    struct Tracker;
+} // namespace config
+namespace core { class User; }
 
 class TrackingDevice;
 

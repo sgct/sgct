@@ -11,11 +11,19 @@
 
 #include <sgct/baseviewport.h>
 
-#include <sgct/config.h>
 #include <sgct/correctionmesh.h>
 #include <memory>
 #include <string>
 #include <vector>
+
+namespace sgct::config {
+    struct FisheyeProjection;
+    struct MpcdiProjection;
+    struct PlanarProjection;
+    struct SphericalMirrorProjection;
+    struct SpoutOutputProjection;
+    struct Viewport;
+} // namespace sgct::config
 
 namespace sgct::core {
 

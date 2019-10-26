@@ -9,13 +9,14 @@
 #ifndef __SGCT__CLUSTER_MANAGER__H__
 #define __SGCT__CLUSTER_MANAGER__H__
 
-#include <sgct/config.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/trackingmanager.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+
+namespace sgct::config { struct Cluster; }
 
 namespace sgct::core {
 

@@ -9,6 +9,7 @@
 #include <sgct/window.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mpcdi.h>
@@ -473,44 +474,44 @@ void Window::initContextSpecificOGL() {
     }
 }
 
-unsigned int Window::getFrameBufferTexture(Engine::TextureIndexes index) {
+unsigned int Window::getFrameBufferTexture(Engine::TextureIndex index) {
     switch (index) {
-        case Engine::LeftEye:
+        case Engine::TextureIndex::LeftEye:
             if (_frameBufferTextures.leftEye == 0) {
                 generateTexture(_frameBufferTextures.leftEye, TextureType::Color);
             }
             return _frameBufferTextures.leftEye;
-        case Engine::RightEye:
+        case Engine::TextureIndex::RightEye:
             if (_frameBufferTextures.rightEye == 0) {
                 generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
             }
             return _frameBufferTextures.rightEye;
-        case Engine::Intermediate:
+        case Engine::TextureIndex::Intermediate:
             if (_frameBufferTextures.intermediate == 0) {
                 generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
             }
             return _frameBufferTextures.intermediate;
-        case Engine::FX1:
+        case Engine::TextureIndex::FX1:
             if (_frameBufferTextures.fx1 == 0) {
                 generateTexture(_frameBufferTextures.fx1, TextureType::Color);
             }
             return _frameBufferTextures.fx1;
-        case Engine::FX2:
+        case Engine::TextureIndex::FX2:
             if (_frameBufferTextures.fx2 == 0) {
                 generateTexture(_frameBufferTextures.fx2, TextureType::Color);
             }
             return _frameBufferTextures.fx2;
-        case Engine::Depth:
+        case Engine::TextureIndex::Depth:
             if (_frameBufferTextures.depth == 0) {
                 generateTexture(_frameBufferTextures.depth, TextureType::Depth);
             }
             return _frameBufferTextures.depth;
-        case Engine::Normals:
+        case Engine::TextureIndex::Normals:
             if (_frameBufferTextures.normals == 0) {
                 generateTexture(_frameBufferTextures.normals, TextureType::Normal);
             }
             return _frameBufferTextures.normals;
-        case Engine::Positions:
+        case Engine::TextureIndex::Positions:
             if (_frameBufferTextures.positions == 0) {
                 generateTexture(_frameBufferTextures.positions, TextureType::Position);
             }

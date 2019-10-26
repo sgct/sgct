@@ -32,7 +32,7 @@ void User::setTransform(glm::mat4 transform) {
 
 void User::setOrientation(float xRot, float yRot, float zRot) {
     // create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
     
     _transform = transMat *
         glm::eulerAngleX(xRot) * glm::eulerAngleY(yRot) * glm::eulerAngleZ(zRot);
@@ -41,7 +41,7 @@ void User::setOrientation(float xRot, float yRot, float zRot) {
 
 void User::setOrientation(glm::quat q) {
     // create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
 
     _transform = transMat * glm::mat4_cast(q);
     updateEyeTransform();
@@ -53,17 +53,17 @@ void User::setEyeSeparation(float eyeSeparation) {
 }
 
 void User::updateEyeSeparation() {
-    glm::vec3 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f);
+    const glm::vec3 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f);
     _posLeftEye = _posMono - eyeOffsetVec;
     _posRightEye = _posMono + eyeOffsetVec;
 }
 
 void User::updateEyeTransform() {
-    glm::vec4 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f, 0.f);
-    
-    glm::vec4 posMono = glm::vec4(0.f, 0.f, 0.f, 1.f);
-    glm::vec4 posLeft = posMono - eyeOffsetVec;
-    glm::vec4 posRight = posMono + eyeOffsetVec;
+    const glm::vec4 eyeOffsetVec(_eyeSeparation / 2.f, 0.f, 0.f, 0.f);
+
+    const glm::vec4 posMono = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    const glm::vec4 posLeft = posMono - eyeOffsetVec;
+    const glm::vec4 posRight = posMono + eyeOffsetVec;
 
     _posMono = glm::vec3(_transform * posMono);
     _posLeftEye = glm::vec3(_transform * posLeft);
@@ -98,7 +98,7 @@ const std::string& User::getName() const {
     return _name;
 }
 
-bool User::isTracked() const {    
+bool User::isTracked() const {
     return !(_headTrackerDeviceName.empty() || _headTrackerName.empty());
 }
 

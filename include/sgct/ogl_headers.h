@@ -9,14 +9,9 @@
 #ifndef __SGCT__OGL_HEADERS__H__
 #define __SGCT__OGL_HEADERS__H__
 
-#ifndef GLEW_STATIC
-#define GLEW_STATIC
-#endif
-
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-
 
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED

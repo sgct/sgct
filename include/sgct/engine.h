@@ -28,20 +28,20 @@
 
 struct GLFWwindow;
 
-namespace sgct::core {
-class Image;
-class NetworkManager;
-class Node;
-class Statistics;
-class Touch;
-} // namespace sgct::core
-
 namespace sgct {
 
 struct Configuration;
 class PostFX;
 class TrackingManager;
 class Window;
+
+namespace core {
+    class Image;
+    class NetworkManager;
+    class Node;
+    class Statistics;
+    class Touch;
+} // namespace core
 
 config::Cluster loadCluster(std::optional<std::string> path);
 
@@ -99,7 +99,7 @@ public:
     enum class RenderTarget { WindowBuffer, NonLinearBuffer };
 
     /// The different texture indexes in window buffers
-    enum TextureIndexes {
+    enum class TextureIndex {
         LeftEye = 0,
         RightEye,
         Intermediate,
@@ -956,18 +956,18 @@ private:
     void renderFBOTexture();
     
     /// This function combines a texture and a shader into a new texture.
-    void renderPostFX(TextureIndexes ti);
+    void renderPostFX(TextureIndex ti);
 
-    void renderViewports(TextureIndexes ti);
+    void renderViewports(TextureIndex ti);
 
     /// This function renders stats, OSD and overlays.
     void render2D();
 
     /// This function attaches targets to FBO if FBO is in use
-    void prepareBuffer(TextureIndexes ti);
+    void prepareBuffer(TextureIndex ti);
 
     /// This function updates the renderingtargets.
-    void updateRenderingTargets(TextureIndexes ti);
+    void updateRenderingTargets(TextureIndex ti);
 
     /**
      * This function loads shaders that handles different 3D modes. The shaders are only

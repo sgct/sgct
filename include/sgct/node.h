@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+namespace sgct::config { struct Node; }
+
 namespace sgct::core {
 
 class Node {

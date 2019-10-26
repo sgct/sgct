@@ -14,9 +14,9 @@
 #include <string>
 #include <unordered_map>
 
-namespace sgct::core { class Image; }
-
 namespace sgct {
+
+namespace core { class Image; }
 
 /**
  * The TextureManager loads and handles textures. It is a singleton and can be accessed

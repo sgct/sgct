@@ -9,13 +9,17 @@
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
-#include <sgct/config.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <thread>
 
 namespace sgct {
+
+namespace config {
+    struct Capture;
+    struct Settings;
+} // namespace config
 
 /**
  * This singleton class will hold global SGCT settings.

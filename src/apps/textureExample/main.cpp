@@ -8,8 +8,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
@@ -63,7 +61,8 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -78,7 +77,7 @@ void drawFun() {
 }
 
 void preSyncFun(){
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -116,21 +115,20 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

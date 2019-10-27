@@ -8,8 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     constexpr const float RotationSpeed = 0.0017f;
     constexpr const float WalkingSpeed = 2.5f;
 
@@ -212,7 +210,7 @@ void createPyramid(float width) {
 
 
 void drawPyramid(int index) {
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
         xform.getVal() * pyramidTransforms[index];
 
     ShaderManager::instance()->getShaderProgram("pyramidShader").bind();
@@ -236,7 +234,8 @@ void drawPyramid(int index) {
 }
 
 void drawXZGrid() {
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          xform.getVal();
 
     ShaderManager::instance()->getShaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -300,10 +299,14 @@ void initOGLFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         if (mouseLeftButton) {
             double yPos;
-            Engine::getMousePos(gEngine->getFocusedWindowIndex(), &mouseXPos[0], &yPos);
+            Engine::getMousePos(
+                Engine::instance()->getFocusedWindowIndex(),
+                &mouseXPos[0],
+                &yPos
+            );
             mouseDx = mouseXPos[0] - mouseXPos[1];
         }
         else {
@@ -311,7 +314,9 @@ void preSyncFun() {
         }
 
         static float panRot = 0.f;
-        panRot += static_cast<float>(mouseDx * RotationSpeed * gEngine->getDt());
+        panRot += static_cast<float>(
+            mouseDx * RotationSpeed * Engine::instance()->getDt()
+        );
 
         //rotation around the y-axis
         const glm::mat4 viewRotateX = glm::rotate(
@@ -326,16 +331,20 @@ void preSyncFun() {
         const glm::vec3 right = glm::cross(view, up);
 
         if (buttonForward) {
-            pos += (WalkingSpeed * static_cast<float>(gEngine->getDt()) * view);
+            pos +=
+                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * view);
         }
         if (buttonBackward) {
-            pos -= (WalkingSpeed * static_cast<float>(gEngine->getDt()) * view);
+            pos -=
+                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * view);
         }
         if (buttonLeft) {
-            pos -= (WalkingSpeed * static_cast<float>(gEngine->getDt()) * right);
+            pos -=
+                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * right);
         }
         if (buttonRight) {
-            pos += (WalkingSpeed * static_cast<float>(gEngine->getDt()) * right);
+            pos += 
+                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * right);
         }
 
         /**
@@ -391,7 +400,7 @@ void decodeFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         switch (key) {
             case key::Up:
             case key::W:
@@ -414,10 +423,14 @@ void keyCallback(int key, int, int action, int) {
 }
 
 void mouseButtonCallback(int button, int action, int) {
-    if (gEngine->isMaster() && button == mouse::ButtonLeft) {
+    if (Engine::instance()->isMaster() && button == mouse::ButtonLeft) {
         mouseLeftButton = (action == action::Press);
         double yPos;
-        Engine::getMousePos(gEngine->getFocusedWindowIndex(), &mouseXPos[1], &yPos);
+        Engine::getMousePos(
+            Engine::instance()->getFocusedWindowIndex(),
+            &mouseXPos[1],
+            &yPos)
+        ;
     }
 }
 
@@ -426,25 +439,24 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setMouseButtonCallbackFunction(mouseButtonCallback);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setMouseButtonCallbackFunction(mouseButtonCallback);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    gEngine->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    Engine::instance()->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

@@ -11,8 +11,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
     GLint flipLoc = -1;
@@ -107,7 +105,8 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
 
     glActiveTexture(GL_TEXTURE0);
 
@@ -144,7 +143,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -208,13 +207,13 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     gEngine = new Engine(config);
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+        delete Engine::instance();
         return EXIT_FAILURE;
     }
 
@@ -222,6 +221,6 @@ int main(int argc, char* argv[]) {
     SharedData::instance()->setDecodeFunction(decodeFun);
 
     gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

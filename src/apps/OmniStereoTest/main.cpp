@@ -16,8 +16,6 @@ namespace {
     constexpr const float Diameter = 14.8f;
     constexpr const float Tilt = glm::radians(30.f);
 
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
     std::unique_ptr<sgct::utils::DomeGrid> grid;
     GLint matrixLoc = -1;
@@ -136,9 +134,9 @@ void renderGrid(glm::mat4 transform) {
 }
 
 void initOmniStereo(bool mask) {
-    double t0 = gEngine->getTime();
+    double t0 = Engine::instance()->getTime();
 
-    if (gEngine->getNumberOfWindows() < 2) {
+    if (Engine::instance()->getNumberOfWindows() < 2) {
         MessageHandler::printError("Failed to allocate omni stereo in secondary window");
         return;
     }
@@ -155,7 +153,7 @@ void initOmniStereo(bool mask) {
         MessageHandler::printWarning("Failed to load separation map");
     }
 
-    Window& win = gEngine->getWindow(1);
+    Window& win = Engine::instance()->getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
     MessageHandler::printInfo(
@@ -169,7 +167,7 @@ void initOmniStereo(bool mask) {
     int VPCounter = 0;
 
     for (int eye = 0; eye <= 2; eye++) {
-        const float eyeSep = gEngine->getDefaultUser().getEyeSeparation();
+        float eyeSep = Engine::instance()->getDefaultUser().getEyeSeparation();
 
         core::Frustum::Mode fm;
         glm::vec3 eyePos;
@@ -329,8 +327,8 @@ void initOmniStereo(bool mask) {
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
-                        gEngine->getNearClippingPlane(),
-                        gEngine->getFarClippingPlane()
+                        Engine::instance()->getNearClippingPlane(),
+                        Engine::instance()->getFarClippingPlane()
                     );
 
                     omniProjections[x][y].enabled = true;
@@ -345,7 +343,7 @@ void initOmniStereo(bool mask) {
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
     MessageHandler::printInfo(
         "Time to init viewports: %f s\n%d %% will be rendered.",
-        gEngine->getTime() - t0, percentage
+        Engine::instance()->getTime() - t0, percentage
     );
     omniInited = true;
 }
@@ -380,23 +378,23 @@ void drawOmniStereo() {
         return;
     }
 
-    double t0 = gEngine->getTime();
+    double t0 = Engine::instance()->getTime();
 
-    Window& win = gEngine->getWindow(1);
+    Window& win = Engine::instance()->getWindow(1);
     glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    sgct::core::Frustum::Mode fm = gEngine->getCurrentFrustumMode();
+    sgct::core::Frustum::Mode fm = Engine::instance()->getCurrentFrustumMode();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
                 const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
 
-                renderBoxes(vp * gEngine->getModelMatrix());
+                renderBoxes(vp * Engine::instance()->getModelMatrix());
             }
         }
     }
@@ -413,7 +411,7 @@ void drawOmniStereo() {
         }
     }
 
-    const double t1 = gEngine->getTime();
+    const double t1 = Engine::instance()->getTime();
     MessageHandler::printInfo("Time to draw frame: %f s", t1 - t0);
 }
 
@@ -421,12 +419,12 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (gEngine->getCurrentWindowIndex() == 1) {
+    if (Engine::instance()->getCurrentWindowIndex() == 1) {
         drawOmniStereo();
     }
     else {
-        glm::mat4 vp = gEngine->getCurrentViewProjectionMatrix();
-        glm::mat4 model = gEngine->getModelMatrix();
+        glm::mat4 vp = Engine::instance()->getCurrentViewProjectionMatrix();
+        glm::mat4 model = Engine::instance()->getModelMatrix();
 
         ShaderManager::instance()->getShaderProgram("grid").bind();
         renderGrid(vp);
@@ -443,21 +441,21 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
-        gEngine->takeScreenshot();
+        Engine::instance()->takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void postDrawFun() {
     // render a single frame and exit
-    gEngine->terminate();
+    Engine::instance()->terminate();
 }
 
 void initOGLFun() {
@@ -525,7 +523,7 @@ int main(int argc, char* argv[]) {
         cluster.settings = settings;
     }
     Engine::create(config);
-    gEngine = Engine::instance();
+
 
     for (int i = 0; i < argc; i++) {
         std::string_view argument = argv[i];
@@ -542,21 +540,21 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setPostDrawFunction(postDrawFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance()->setPostDrawFunction(postDrawFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

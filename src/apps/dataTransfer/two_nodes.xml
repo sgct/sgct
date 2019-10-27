@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1">
-  <Node address="127.0.0.1" syncPort="20401" dataTransferPort="20501">
+  <Node address="127.0.0.1" port="20401" dataTransferPort="20501">
     <Window fullScreen="false">
       <Pos x="0" y="300" />
       <!-- 16:9 aspect ratio -->
@@ -19,7 +19,7 @@
       </Viewport>
     </Window>
   </Node>
-  <Node address="127.0.0.2" syncPort="20402" dataTransferPort="20502">
+  <Node address="127.0.0.2" port="20402" dataTransferPort="20502">
     <Window fullScreen="false">
       <Pos x="640" y="300" />
       <!-- 16:9 aspect ratio -->

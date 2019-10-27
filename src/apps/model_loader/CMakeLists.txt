@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(model_loader main.cpp objloader.h objloader.cpp)
+add_executable(model_loader main.cpp)
 set_compile_options(model_loader)
 target_link_libraries(model_loader PRIVATE sgct)
 

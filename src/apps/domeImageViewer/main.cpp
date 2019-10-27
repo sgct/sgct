@@ -14,8 +14,6 @@
 #include <optional>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<std::thread> loadThread;
     std::mutex mutex;
     GLFWwindow* hiddenWindow;
@@ -29,7 +27,6 @@ namespace {
     sgct::SharedInt32 numSyncedTex(0);
 
     sgct::SharedInt32 lastPackage(-1);
-    sgct::SharedBool running(true);
     sgct::SharedBool transfer(false);
     sgct::SharedBool serverUploadDone(false);
     sgct::SharedInt32 serverUploadCount(0);
@@ -37,6 +34,8 @@ namespace {
     sgct::SharedVector<std::string> imagePaths;
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
+
+    bool isRunning = true;
 
     std::unique_ptr<sgct::utils::Dome> dome;
     GLint matrixLoc = -1;
@@ -46,7 +45,6 @@ namespace {
     constexpr const char* vertexShader = R"(
   #version 330 core
 
-  // Input vertex data, different for all executions of this shader.
   layout(location = 0) in vec2 texCoords;
   layout(location = 1) in vec3 normals;
   layout(location = 2) in vec3 vertPositions;
@@ -55,7 +53,6 @@ namespace {
   out vec2 uv;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvp * vec4(vertPositions, 1.0);
     uv = texCoords;
   })";
@@ -68,7 +65,7 @@ namespace {
   in vec2 uv;
   out vec4 color;
 
-  void main() { color = texture(tex, uv.st); }
+  void main() { color = texture(tex, uv); }
 )";
 } // namespace
 
@@ -110,10 +107,7 @@ void startDataTransfer() {
         std::vector<char> buffer(size);
         if (file.read(buffer.data(), size)) {
             const int s = static_cast<int>(buffer.size());
-            // transfer
-            gEngine->transferDataBetweenNodes(buffer.data(), s, i);
-
-            // read the image on master
+            Engine::instance()->transferDataBetweenNodes(buffer.data(), s, i);
             readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
         }
     }
@@ -192,19 +186,17 @@ void uploadTexture() {
         );
 
         texIds.addVal(tex);
-
         transImages[i] = nullptr;
     }
 
     transImages.clear();
     glFinish();
 
-    // restore
     glfwMakeContextCurrent(nullptr);
 }
 
 void threadWorker() {
-    while (running.getVal()) {
+    while (isRunning) {
         const bool trans = transfer.getVal();
         const bool serverDone = serverUploadDone.getVal();
         const bool clientDone = clientsUploadDone.getVal();
@@ -235,12 +227,13 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
+    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix();
 
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
-        gEngine->getCurrentFrustumMode() == sgct::core::Frustum::Mode::StereoRightEye)
+        Engine::instance()->getCurrentFrustumMode() ==
+            sgct::core::Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal() + 1));
     }
@@ -258,9 +251,9 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
-        
+
         // if texture is uploaded then iterate the index
         if (serverUploadDone.getVal() && clientsUploadDone.getVal()) {
             numSyncedTex = static_cast<int32_t>(texIds.getSize());
@@ -275,8 +268,8 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    gEngine->setDisplayInfoVisibility(info.getVal());
-    gEngine->setStatsGraphVisibility(stats.getVal());
+    Engine::instance()->setDisplayInfoVisibility(info.getVal());
+    Engine::instance()->setStatsGraphVisibility(stats.getVal());
 }
 
 void initOGLFun() {
@@ -291,8 +284,7 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
-    GLint texLoc = prog.getUniformLocation("tex");
-    glUniform1i(texLoc, 0);
+    glUniform1i(prog.getUniformLocation("tex"), 0);
     prog.unbind();
 }
 
@@ -314,7 +306,7 @@ void decodeFun() {
 
 void cleanUpFun() {
     dome = nullptr;
-    
+
     for (size_t i = 0; i < texIds.getSize(); i++) {
         GLuint tex = texIds.getValAt(i);
         if (tex) {
@@ -323,15 +315,14 @@ void cleanUpFun() {
         }
     }
     texIds.clear();
-    
-    
+
     if (hiddenWindow) {
         glfwDestroyWindow(hiddenWindow);
     }
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (!gEngine->isMaster() || action != action::Press) {
+    if (!Engine::instance()->isMaster() || action != action::Press) {
         return;
     }
     switch (key) {
@@ -380,7 +371,7 @@ void contextCreationCallback(GLFWwindow* win) {
     // restore to normal
     glfwMakeContextCurrent(sharedWindow);
     
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         loadThread = std::make_unique<std::thread>(threadWorker);
     }
 }
@@ -427,7 +418,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 }
 
 void dropCallback(int count, const char** paths) {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         std::vector<std::string> pathStrings;
         for (int i = 0; i < count; i++) {
             // simply pick the first path to transmit
@@ -476,30 +467,29 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setContextCreationCallback(contextCreationCallback);
-    gEngine->setDropCallbackFunction(dropCallback);
-    gEngine->setDataTransferCallback(dataTransferDecoder);
-    gEngine->setDataTransferStatusCallback(dataTransferStatus);
-    gEngine->setDataAcknowledgeCallback(dataTransferAcknowledge);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setContextCreationCallback(contextCreationCallback);
+    Engine::instance()->setDropCallbackFunction(dropCallback);
+    Engine::instance()->setDataTransferCallback(dataTransferDecoder);
+    Engine::instance()->setDataTransferStatusCallback(dataTransferStatus);
+    Engine::instance()->setDataAcknowledgeCallback(dataTransferAcknowledge);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
 
-    running.setVal(false);
+    isRunning = false;
 
     if (loadThread) {
         loadThread->join();

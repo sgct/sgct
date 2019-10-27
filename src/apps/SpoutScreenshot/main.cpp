@@ -11,8 +11,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     struct {
         GLuint vao;
         GLuint vbo;
@@ -91,7 +89,7 @@ void drawFun() {
     receiver->UnBindSharedTexture();
 
     if (shouldTakeScreenshot) {
-        gEngine->takeScreenshot();
+        Engine::instance()->takeScreenshot();
         shouldTakeScreenshot = false;
     }
 }
@@ -199,15 +197,14 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setKeyboardCallbackFunction(keyboardCallback);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyboardCallback);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+        delete Engine::instance();
         return EXIT_FAILURE;
     }
 

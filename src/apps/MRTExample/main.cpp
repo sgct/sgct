@@ -10,8 +10,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
 
     // variables to share across cluster
@@ -19,10 +17,10 @@ namespace {
     sgct::SharedBool takeScreenshot(false);
 
     // shader locs
-    int textureID = -1;
-    int mvpMatrixId = -1;
-    int worldMatrixTransposeId = -1;
-    int normalMatrixId = -1;
+    int textureLoc = -1;
+    int mvpMatrixLoc = -1;
+    int worldMatrixTransposeLoc = -1;
+    int normalMatrixLoc = -1;
 
     unsigned int textureId = 0;
 
@@ -42,10 +40,8 @@ namespace {
   out vec4 p;
 
   void main() {
-    // Move the normals back from the camera space to the world space
     mat3 worldRotationInverse = mat3(worldMatrixTranspose);
 
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvpMatrix * vec4(vertPositions, 1.0);
     uv = texCoords;
     n  = normalize(worldRotationInverse * normalMatrix * normals);
@@ -55,15 +51,15 @@ namespace {
     constexpr const char* fragmentShader = R"(
   #version 330 core
 
+  in vec2 uv;
+  in vec3 n;
+  in vec4 p;
+
   layout(location = 0) out vec4 diffuse;
   layout(location = 1) out vec3 normal;
   layout(location = 2) out vec3 position;
 
   uniform sampler2D tDiffuse;
-
-  in vec2 uv;
-  in vec3 n;
-  in vec4 p;
 
   void main() {
     diffuse = texture(tDiffuse, uv);
@@ -79,7 +75,7 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    constexpr double Speed = 0.44;
+    constexpr const double Speed = 0.44;
 
     // create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
@@ -94,19 +90,18 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
-    const glm::mat4 mv = gEngine->getCurrentModelViewMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mv = Engine::instance()->getCurrentModelViewMatrix() * scene;
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
     ShaderManager::instance()->getShaderProgram("MRT").bind();
-
-    glUniformMatrix4fv(mvpMatrixId, 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniformMatrix4fv(worldMatrixTransposeId, 1, GL_TRUE, glm::value_ptr(mv));
-    glUniformMatrix3fv(normalMatrixId, 1, GL_FALSE, glm::value_ptr(normalMatrix));
-    glUniform1i(textureID, 0);
+    glUniformMatrix4fv(mvpMatrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(worldMatrixTransposeLoc, 1, GL_TRUE, glm::value_ptr(mv));
+    glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+    glUniform1i(textureLoc, 0);
 
     box->draw();
 
@@ -117,14 +112,14 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
-        gEngine->takeScreenshot();
+        Engine::instance()->takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
@@ -133,10 +128,10 @@ void initOGLFun() {
     ShaderManager::instance()->addShaderProgram("MRT", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
     prg.bind();
-    textureID = prg.getUniformLocation("tDiffuse");
-    worldMatrixTransposeId = prg.getUniformLocation("worldMatrixTranspose");
-    mvpMatrixId = prg.getUniformLocation("mvpMatrix");
-    normalMatrixId = prg.getUniformLocation("normalMatrix");
+    textureLoc = prg.getUniformLocation("tDiffuse");
+    worldMatrixTransposeLoc = prg.getUniformLocation("worldMatrixTranspose");
+    mvpMatrixLoc = prg.getUniformLocation("mvpMatrix");
+    normalMatrixLoc = prg.getUniformLocation("normalMatrix");
 
     prg.bind();
     textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
@@ -162,15 +157,8 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster()) {
-        switch (key) {
-            case key::P:
-            case key::F10:
-                if (action == action::Press) {
-                    takeScreenshot.setVal(true);
-                }
-                break;
-        }
+    if (Engine::instance()->isMaster() && (action == action::Press) && (key == key::P)) {
+        takeScreenshot.setVal(true);
     }
 }
 
@@ -190,23 +178,22 @@ int main(int argc, char* argv[]) {
     }
 
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(sgct::Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

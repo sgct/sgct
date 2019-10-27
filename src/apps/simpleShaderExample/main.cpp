@@ -6,8 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     sgct::SharedDouble currentTime(0.0);
 
     GLuint vertexArray = 0;
@@ -79,7 +77,8 @@ void drawFun() {
         static_cast<float>(currentTime.getVal()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
         
@@ -92,7 +91,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -115,23 +114,22 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
     // Bind your functions
-    gEngine->setInitOGLFunction(initFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
     // Init the engine
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

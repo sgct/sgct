@@ -11,8 +11,6 @@
 #include <string_view>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<std::thread> connectionThread;
     std::atomic_bool connected;
     std::atomic_bool running;
@@ -42,7 +40,6 @@ namespace {
   out vec2 uv;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvp * vec4(vertPositions, 1.0);
     uv = texCoords;
   })";
@@ -59,27 +56,7 @@ namespace {
 )";
 } // namespace
 
-void connect();
-
 using namespace sgct;
-
-void parseArguments(int& argc, char**& argv) {
-    for (int i = 0; i < argc; i++) {
-        std::string_view arg(argv[i]);
-        if (arg == "-port" && argc > (i + 1)) {
-            port = std::stoi(argv[i + 1]);
-            MessageHandler::printInfo("Setting port to: %d", port);
-        }
-        else if (arg == "-address" && argc > (i + 1)) {
-            address = argv[i + 1];
-            MessageHandler::printInfo("Setting address to: %s", address.c_str());
-        }
-        else if (arg == "--server") {
-            isServer = true;
-            MessageHandler::printInfo("This computer will host the connection");
-        }
-    }
-}
 
 void networkConnectionUpdated(sgct::core::Network* conn) {
     if (conn->isServer()) {
@@ -111,25 +88,8 @@ void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
     MessageHandler::printInfo("Message: \"%s\"", test.c_str());
 }
 
-void networkLoop() {
-    connect();
-
-    // if client try to connect to server even after disconnection
-    if (!isServer) {
-        while (running.load()) {
-            if (connected.load() == false) {
-                connect();
-            }
-            else {
-                // just check if connected once per second
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-        }
-    }
-}
-
 void connect() {
-    if (!gEngine->isMaster()) {
+    if (!Engine::instance()->isMaster()) {
         return;
     }
 
@@ -143,9 +103,7 @@ void connect() {
 
     // init
     try {
-        MessageHandler::printDebug(
-            "Initiating network connection at port %d", port
-        );
+        MessageHandler::printDebug("Initiating network connection at port %d", port);
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -168,6 +126,23 @@ void connect() {
     }
 
     connected = true;
+}
+
+void networkLoop() {
+    connect();
+
+    // if client try to connect to server even after disconnection
+    if (!isServer) {
+        while (running.load()) {
+            if (connected.load() == false) {
+                connect();
+            }
+            else {
+                // just check if connected once per second
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+        }
+    }
 }
 
 void disconnect() {
@@ -222,7 +197,8 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -237,7 +213,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -259,12 +235,11 @@ void initOGLFun() {
     const ShaderProgram& prg = sgct::ShaderManager::instance()->getShaderProgram("xform");
     prg.bind();
     matrixLoc = prg.getUniformLocation("mvp");
-    GLint TexLoc = prg.getUniformLocation("tex");
-    glUniform1i(TexLoc, 0 );
+    glUniform1i(prg.getUniformLocation("tex"), 0 );
     prg.unbind();
 
-    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
-        gEngine->getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
+    for (int i = 0; i < Engine::instance()->getNumberOfWindows(); i++) {
+        Engine::instance()->getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
     }
 }
 
@@ -292,7 +267,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && key == key::Space && action == action::Press) {
+    if (Engine::instance()->isMaster() && key == key::Space && action == action::Press) {
         sendTestMessage();
     }
 }
@@ -305,26 +280,39 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    parseArguments(argc, argv);
+    for (int i = 0; i < argc; i++) {
+        std::string_view arg(argv[i]);
+        if (arg == "-port" && argc > (i + 1)) {
+            port = std::stoi(argv[i + 1]);
+            MessageHandler::printInfo("Setting port to: %d", port);
+        }
+        else if (arg == "-address" && argc > (i + 1)) {
+            address = argv[i + 1];
+            MessageHandler::printInfo("Setting address to: %s", address.c_str());
+        }
+        else if (arg == "--server") {
+            isServer = true;
+            MessageHandler::printInfo("This computer will host the connection");
+        }
+    }
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
     connectionThread = std::make_unique<std::thread>(networkLoop);
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

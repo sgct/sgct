@@ -4,7 +4,6 @@
 #include <sgct/freetype.h>
 
 namespace {
-    sgct::Engine* gEngine;
     const char* joyStick1Name = nullptr;
 } // namespace
 
@@ -32,8 +31,8 @@ void myDraw2DFun() {
             joystickInfoStr += std::to_string(buttons[i]) + ' ';
         }
 
-        sgct::text::print(
-            *sgct::text::FontManager::instance()->getFont("SGCTFont", 12),
+        text::print(
+            *text::FontManager::instance()->getFont("SGCTFont", 12),
             sgct::text::TextAlignMode::TopLeft,
             18,
             32,
@@ -49,9 +48,8 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::Default_Mode, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
@@ -71,9 +69,9 @@ int main(int argc, char* argv[]) {
         );
     }
 
-    gEngine->setDraw2DFunction(myDraw2DFun);
+    Engine::instance()->setDraw2DFunction(myDraw2DFun);
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

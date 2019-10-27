@@ -18,7 +18,7 @@
 
 namespace {
     enum class ImageType { JPEG, PNG };
-    
+
     constexpr const int HeaderSize = 1;
 
     sgct::Engine* gEngine;
@@ -31,7 +31,6 @@ namespace {
     GLFWwindow* sharedWindow;
 
     // variables to share across cluster
-    sgct::SharedDouble currTime(0.0);
     sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
     sgct::SharedBool takeScreenshot(false);
@@ -45,7 +44,6 @@ namespace {
     sgct::SharedInt32 incrIndex(1);
     sgct::SharedInt32 numSyncedTex(0);
 
-    sgct::SharedBool running(true);
     sgct::SharedInt32 lastPackage(-1);
     sgct::SharedBool transfer(false);
     sgct::SharedBool serverUploadDone(false);
@@ -71,13 +69,15 @@ namespace {
     float planeElevation = 33.f;
     float planeRoll = 0.f;
 
-    sgct::SharedBool captureRunning(true);
     sgct::SharedBool renderDome(fulldomeMode);
     sgct::SharedDouble captureRate(0.0);
     sgct::SharedInt32 domeCut(2);
     sgct::SharedBool chromaKey(false);
     sgct::SharedInt32 chromaKeyColorIdx(0);
     std::vector<glm::vec3> chromaKeyColors;
+
+    bool captureRunning = true;
+    bool isRunning = true;
 
     constexpr const char* vertexShader = R"(
   #version 330 core
@@ -90,7 +90,6 @@ namespace {
   out vec2 uv;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvp * vec4(vertPositions, 1.0);
     uv = texCoords;
   })";
@@ -105,7 +104,7 @@ namespace {
   in vec2 uv;
   out vec4 color;
 
-  void main() { color = texture(tex, (uv.st * scaleUV) + offsetUV); }
+  void main() { color = texture(tex, (uv * scaleUV) + offsetUV); }
 )";
 
     constexpr const char* fragmentChromaKey = R"(
@@ -122,17 +121,17 @@ namespace {
   out vec4 color;
 
   void main() {
-    vec4 texColor = texture(tex, (uv.st * scaleUV) + offsetUV);
-   
+    vec4 texColor = texture(tex, (uv * scaleUV) + offsetUV);
+
     float maskY = 0.2989 * chromaKeyColor.r + 0.5866 * chromaKeyColor.g +
                   0.1145 * chromaKeyColor.b;
     float maskCr = 0.7132 * (chromaKeyColor.r - maskY);
     float maskCb = 0.5647 * (chromaKeyColor.b - maskY);
-   
+
     float Y = 0.2989 * texColor.r + 0.5866 * texColor.g + 0.1145 * texColor.b;
     float Cr = 0.7132 * (texColor.r - Y);
     float Cb = 0.5647 * (texColor.b - Y);
-   
+
     float blendValue = smoothstep(
       thresholdSensitivity,
       thresholdSensitivity + smoothing,
@@ -198,7 +197,6 @@ void readImage(unsigned char* data, int len) {
     }
 
     if (!result) {
-        // clear if failed
         delete img;
     }
     else {
@@ -279,23 +277,23 @@ void uploadTexture() {
         const unsigned int bpc = transImages[i]->getBytesPerChannel();
 
         switch (transImages[i]->getChannels()) {
-        case 1:
-            internalformat = (bpc == 1 ? GL_R8 : GL_R16);
-            type = GL_RED;
-            break;
-        case 2:
-            internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
-            type = GL_RG;
-            break;
-        case 3:
-        default:
-            internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-            type = GL_BGR;
-            break;
-        case 4:
-            internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-            type = GL_BGRA;
-            break;
+            case 1:
+                internalformat = (bpc == 1 ? GL_R8 : GL_R16);
+                type = GL_RED;
+                break;
+            case 2:
+                internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
+                type = GL_RG;
+                break;
+            case 3:
+            default:
+                internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+                type = GL_BGR;
+                break;
+            case 4:
+                internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+                type = GL_BGRA;
+                break;
         }
 
         GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
@@ -328,7 +326,6 @@ void uploadTexture() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
         MessageHandler::printInfo(
@@ -340,14 +337,13 @@ void uploadTexture() {
         texIds.addVal(tex);
 
         delete transImages[i];
-        transImages[i] = NULL;
+        transImages[i] = nullptr;
     }
 
     transImages.clear();
     glFinish();
 
-    // restore
-    glfwMakeContextCurrent(NULL);
+    glfwMakeContextCurrent(nullptr);
 }
 
 void captureLoop() {
@@ -359,7 +355,7 @@ void captureLoop() {
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, dataSize, 0, GL_DYNAMIC_DRAW);
 
-    while (captureRunning.getVal()) {
+    while (captureRunning) {
         gCapture.poll();
 
         if (gEngine->isMaster() && transfer.getVal() && !serverUploadDone.getVal() &&
@@ -412,7 +408,7 @@ void calculateStats() {
 }
 
 void threadWorker() {
-    while (running.getVal()) {
+    while (isRunning) {
         // runs only on master
         if (transfer.getVal() && !serverUploadDone.getVal() &&
             !clientsUploadDone.getVal())
@@ -580,7 +576,7 @@ void draw3DFun() {
             glm::vec3(0.f, 0.f, 1.f)
         );
         // distance
-        planeTransform = glm::translate(planeTransform, glm::vec3(0.f, 0.f, -5.f)); 
+        planeTransform = glm::translate(planeTransform, glm::vec3(0.f, 0.f, -5.f));
 
         planeTransform = mvp * planeTransform;
         glUniformMatrix4fv(Matrix_L, 1, GL_FALSE, glm::value_ptr(planeTransform));
@@ -598,18 +594,15 @@ void draw2DFun() {
         const unsigned int fontSize = static_cast<unsigned int>(
             9.f * gEngine->getCurrentWindow().getScale().x
         );
-        text::Font* font = text::FontManager::instance()->getFont(
-            "SGCTFont",
-            fontSize
-        );
-        constexpr const float padding = 10.0f;
+        text::Font* font = text::FontManager::instance()->getFont("SGCTFont", fontSize);
+        constexpr const float Padding = 10.0f;
 
         const float resY = gEngine->getCurrentWindow().getFramebufferResolution().y;
         text::print(
             *font,
             text::TextAlignMode::TopLeft,
-            padding,
-            static_cast<float>(resY - fontSize) - padding,
+            Padding,
+            static_cast<float>(resY - fontSize) - Padding,
             glm::vec4(1.f, 1.f, 1.f, 1.f), // color
             "Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",
             gCapture.getFormat(), gCapture.getWidth(), gCapture.getHeight(),
@@ -619,8 +612,6 @@ void draw2DFun() {
 
 void preSyncFun() {
     if (gEngine->isMaster()) {
-        currTime.setVal(Engine::getTime());
-        
         // if texture is uploaded then iterate the index
         if (serverUploadDone.getVal() && clientsUploadDone.getVal()) {
             numSyncedTex = static_cast<int32_t>(texIds.getSize());
@@ -670,22 +661,17 @@ void initOGLFun() {
     chromaKeyColors.push_back(glm::vec3(0.f, 177.f / 255.f, 64.f / 255.f));
 
     // create plane
-    constexpr const float planeWidth = 8.f;
+    constexpr const float PlaneWidth = 8.f;
     const float h = static_cast<float>(gCapture.getHeight());
     const float w = static_cast<float>(gCapture.getWidth());
-    float planeHeight = planeWidth * h / w;
-    plane = std::make_unique<utils::Plane>(planeWidth, planeHeight);
+    float planeHeight = PlaneWidth * h / w;
+    plane = std::make_unique<utils::Plane>(PlaneWidth, planeHeight);
 
     // create dome
     dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
 
     ShaderManager& sm = *ShaderManager::instance();
-    sm.addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
+    sm.addShaderProgram("xform", vertexShader, fragmentShader);
     sm.bindShaderProgram("xform");
 
     matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
@@ -695,12 +681,7 @@ void initOGLFun() {
     glUniform1i(textureLocation, 0);
     sm.unBindShaderProgram();
 
-    sm.addShaderProgram(
-        "chromakey",
-        vertexShader,
-        fragmentChromaKey,
-        ShaderProgram::ShaderSourceType::String
-    );
+    sm.addShaderProgram("chromakey", vertexShader, fragmentChromaKey);
     sm.bindShaderProgram("chromakey");
 
     chromaKeyMatrixLoc = sm.getShaderProgram("chromakey").getUniformLocation("mvp");
@@ -716,7 +697,6 @@ void initOGLFun() {
 }
 
 void encode() {
-    SharedData::instance()->writeDouble(currTime);
     SharedData::instance()->writeBool(info);
     SharedData::instance()->writeBool(stats);
     SharedData::instance()->writeBool(wireframe);
@@ -730,7 +710,6 @@ void encode() {
 }
 
 void decode() {
-    SharedData::instance()->readDouble(currTime);
     SharedData::instance()->readBool(info);
     SharedData::instance()->readBool(stats);
     SharedData::instance()->readBool(wireframe);
@@ -835,18 +814,15 @@ void contextCreationCallback(GLFWwindow* win) {
     glfwMakeContextCurrent(sharedWindow);
 }
 
-void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
-                           int clientIndex)
-{
+void dataTransferDecoder(void* data, int length, int packageId, int clientIndex) {
     MessageHandler::printInfo(
-        "Decoding %d bytes in transfer id: %d on node %d",
-        receivedLength, packageId, clientIndex
+        "Decoding %d bytes in transfer id: %d on node %d", length, packageId, clientIndex
     );
 
     lastPackage.setVal(packageId);
-    
+
     // read the image on slave
-    readImage(reinterpret_cast<unsigned char*>(receivedData), receivedLength);
+    readImage(reinterpret_cast<unsigned char*>(data), length);
     uploadTexture();
 }
 
@@ -993,13 +969,13 @@ int main(int argc, char* argv[]) {
 
     gEngine->render();
 
-    captureRunning.setVal(false);
+    captureRunning = false;
     if (captureThread) {
         captureThread->join();
         captureThread = nullptr;
     }
 
-    running.setVal(false);
+    isRunning = false;
     if (loadThread) {
         loadThread->join();
         loadThread = nullptr;

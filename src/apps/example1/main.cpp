@@ -6,8 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     sgct::SharedDouble currentTime(0.0);
 
     GLuint vertexArray = 0;
@@ -26,7 +24,6 @@ namespace {
   out vec3 fragColor;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position = mvp * vec4(vertPosition, 1.0);
     fragColor = vertColor;
   })";
@@ -44,13 +41,13 @@ namespace {
 using namespace sgct;
 
 void initFun() {
-    const GLfloat positionData[] = { 
+    const GLfloat positionData[] = {
         -0.5f, -0.5f, 0.f,
          0.f, 0.5f, 0.f,
          0.5f, -0.5f, 0.f
     };
 
-    const GLfloat colorData[] = { 
+    const GLfloat colorData[] = {
         1.f, 0.f, 0.f,
         0.f, 1.f, 0.f,
         0.f, 0.f, 1.f
@@ -66,7 +63,7 @@ void initFun() {
     // upload data to GPU
     glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // generate VBO for vertex colors
     glGenBuffers(1, &vertexColorBuffer);
@@ -74,11 +71,9 @@ void initFun() {
     // upload data to GPU
     glBufferData(GL_ARRAY_BUFFER, sizeof(colorData), colorData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-    // unbind
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
@@ -95,10 +90,10 @@ void drawFun() {
         static_cast<float>(currentTime.getVal()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
 
     ShaderManager::instance()->getShaderProgram("xform").bind();
-        
+
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glBindVertexArray(vertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -107,9 +102,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    // set the time only on the master
-    if (gEngine->isMaster()) {
-        // get the time in seconds
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -133,21 +126,20 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

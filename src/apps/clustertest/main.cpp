@@ -14,20 +14,14 @@
 namespace {
     constexpr const int ExtendedSize = 10000;
 
-    sgct::Engine* gEngine;
-
     struct {
         GLuint vao;
         GLuint vbo;
         GLuint ibo;
     } geometry;
-    struct Vertex {
-        float x, y, z;
-    };
     int nVertices = 0;
     GLint matrixLocation = -1;
 
-    sgct::SharedDouble dt(0.0);
     sgct::SharedDouble currentTime(0.0);
     sgct::SharedWString sTimeOfDay;
     sgct::SharedBool showFPS(false);
@@ -44,12 +38,10 @@ namespace {
     constexpr const char* vertexShader = R"(
 #version 330 core
 
-layout(location = 0) in vec3 vertPosition;
+layout (location = 0) in vec3 vertPosition;
 uniform mat4 matrix;
 
-void main() {
-  gl_Position =  matrix * vec4(vertPosition, 1.0);
-}
+void main() { gl_Position = matrix * vec4(vertPosition, 1.0); }
 )";
 
     constexpr const char* fragmentShader = R"(
@@ -71,15 +63,15 @@ void myDraw2DFun() {
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),
-        L"Time: %ls", sTimeOfDay.getVal().c_str()
+        "Time: %ls", sTimeOfDay.getVal().c_str()
     );
     if (extraPackages.getVal() && extraData.getSize() == ExtendedSize) {
-        float xPos =
-            gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f - 150.f;
+        Window& win = Engine::instance()->getCurrentWindow();
+        float xp = win.getFramebufferResolution().x / 2.f - 150.f;
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 16),
             text::TextAlignMode::TopLeft,
-            xPos,
+            xp,
             150.f,
             glm::vec4(0.f, 1.f, 0.5f, 1.f),
             "Vector val: %f, size: %u",
@@ -96,35 +88,39 @@ void drawFun() {
 
     // test quadbuffer
     if (frametest.getVal()) {
-        if (gEngine->getCurrentFrameNumber() % 2 == 0) {
+        if (Engine::instance()->getCurrentFrameNumber() % 2 == 0) {
             // even
-            if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
+            if (Engine::instance()->getCurrentFrustumMode() ==
+                core::Frustum::Mode::StereoRightEye)
+            {
                 // left eye or mono since clear color is one step behind  -> red
-                gEngine->setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
+                Engine::instance()->setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
             }
             else {
                 // right -> blue
-                gEngine->setClearColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
+                Engine::instance()->setClearColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
             }
         }
         else {
             // odd
-            if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
+            if (Engine::instance()->getCurrentFrustumMode() ==
+                core::Frustum::Mode::StereoRightEye)
+            {
                 // left eye or mono since clear color is one step behind
-                gEngine->setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+                Engine::instance()->setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
             }
             else {
                 //right
-                gEngine->setClearColor(glm::vec4(0.f, 1.f, 0.f, 1.f));
+                Engine::instance()->setClearColor(glm::vec4(0.f, 1.f, 0.f, 1.f));
             }
         }
     }
     else {
-        gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
+        Engine::instance()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
 
     ShaderManager::instance()->getShaderProgram("simple").bind();
-    glm::mat4 matrix = gEngine->getCurrentModelViewProjectionMatrix();
+    glm::mat4 matrix = Engine::instance()->getCurrentModelViewProjectionMatrix();
     matrix = glm::rotate(
         matrix,
         glm::radians(static_cast<float>(currentTime.getVal()) * speed.getVal()),
@@ -138,31 +134,36 @@ void drawFun() {
     glBindVertexArray(0);
 
 #ifdef SGCT_HAS_TEXT
-    float xPos = gEngine->getCurrentWindow().getFramebufferResolution().x / 2.f;
+    float pos = Engine::instance()->getCurrentWindow().getFramebufferResolution().x / 2.f;
 
-    if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoLeftEye) {
+    if (Engine::instance()->getCurrentFrustumMode() ==
+        core::Frustum::Mode::StereoLeftEye)
+    {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 32),
             text::TextAlignMode::TopRight,
-            xPos,
+            pos,
             200,
             "Left"
         );
     }
-    else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::StereoRightEye) {
+    else if (Engine::instance()->getCurrentFrustumMode() ==
+             core::Frustum::Mode::StereoRightEye)
+    {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
-            xPos,
+            pos,
             150,
             "Right"
         );
     }
-    else if (gEngine->getCurrentFrustumMode() == core::Frustum::Mode::MonoEye) {
+    else if (Engine::instance()->getCurrentFrustumMode() == core::Frustum::Mode::MonoEye)
+    {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
-            xPos,
+            pos,
             200,
             "Mono"
         );
@@ -188,11 +189,11 @@ void drawFun() {
         str0, str1, str2, str3, str4, str5, str6
     );
 
-    if (gEngine->getCurrentWindow().isUsingSwapGroups()) {
+    if (Engine::instance()->getCurrentWindow().isUsingSwapGroups()) {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
-            xPos - xPos / 2.f,
+            pos - pos / 2.f,
             450,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -202,18 +203,18 @@ void drawFun() {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
-            xPos - xPos / 2.f,
+            pos - pos / 2.f,
             500,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Press B to toggle barrier and R to reset counter"
         );
 
-        if (gEngine->getCurrentWindow().isBarrierActive()) {
+        if (Engine::instance()->getCurrentWindow().isBarrierActive()) {
             text::print(
                 *text::FontManager::instance()->getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
-                xPos - xPos / 2.f,
+                pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
                 glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -224,7 +225,7 @@ void drawFun() {
             text::print(
                 *text::FontManager::instance()->getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
-                xPos - xPos / 2.f,
+                pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
                 glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -232,11 +233,11 @@ void drawFun() {
             );
         }
 
-        if (gEngine->getCurrentWindow().isSwapGroupMaster()) {
+        if (Engine::instance()->getCurrentWindow().isSwapGroupMaster()) {
             text::print(
                 *text::FontManager::instance()->getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
-                xPos - xPos / 2.f,
+                pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
                 glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -247,7 +248,7 @@ void drawFun() {
             text::print(
                 *text::FontManager::instance()->getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
-                xPos - xPos / 2.f,
+                pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
                 glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -255,31 +256,31 @@ void drawFun() {
             );
         }
 
-        unsigned int iFrame = gEngine->getCurrentWindow().getSwapGroupFrameNumber();
+        unsigned int f = Engine::instance()->getCurrentWindow().getSwapGroupFrameNumber();
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
-            xPos - xPos / 2.f,
+            pos - pos / 2.f,
             300,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
-            "Nvidia frame counter: %u", iFrame
+            "Nvidia frame counter: %u", f
         );
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
-            xPos - xPos / 2.f,
+            pos - pos / 2.f,
             250,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
-            "Framerate: %.3lf", 1.0 / gEngine->getDt()
+            "Framerate: %.3lf", 1.0 / Engine::instance()->getDt()
         );
     }
     else {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
-            xPos - xPos / 2.f,
+            pos - pos / 2.f,
             450,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
@@ -290,9 +291,8 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
-        dt.setVal(gEngine->getDt());
-        currentTime.setVal(gEngine->getTime());
+    if (Engine::instance()->isMaster()) {
+        currentTime.setVal(Engine::instance()->getTime());
 
         time_t now = time(nullptr);
         constexpr const int TimeBufferSize = 256;
@@ -315,23 +315,23 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    gEngine->setDisplayInfoVisibility(showFPS.getVal());
+    Engine::instance()->setDisplayInfoVisibility(showFPS.getVal());
 
     // barrier is set by swap group not window both windows has the same HDC
     Window::setBarrier(barrier.getVal());
     if (resetCounter.getVal()) {
         Window::resetSwapGroupFrameNumber();
     }
-    gEngine->setStatsGraphVisibility(stats.getVal());
+    Engine::instance()->setStatsGraphVisibility(stats.getVal());
 
     if (takeScreenshot.getVal()) {
-        gEngine->takeScreenshot();
+        Engine::instance()->takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void postDrawFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         resetCounter.setVal(false);
     }
 }
@@ -367,6 +367,9 @@ void initOGLFun() {
     glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.ibo);
 
+    struct Vertex {
+        float x, y, z;
+    };
     std::vector<Vertex> vertices;
     std::vector<uint8_t> indices;
 
@@ -454,7 +457,6 @@ void encodeFun() {
 
     SharedUChar sf(flags);
 
-    SharedData::instance()->writeDouble(dt);
     SharedData::instance()->writeDouble(currentTime);
     SharedData::instance()->writeFloat(speed);
     SharedData::instance()->writeUChar(sf);
@@ -467,7 +469,6 @@ void encodeFun() {
 
 void decodeFun() {
     SharedUChar sf;
-    SharedData::instance()->readDouble(dt);
     SharedData::instance()->readDouble(currentTime);
     SharedData::instance()->readFloat(speed);
     SharedData::instance()->readUChar(sf);
@@ -489,9 +490,7 @@ void decodeFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster()) {
-        static bool mousePointer = true;
-
+    if (Engine::instance()->isMaster()) {
         switch (key) {
             case key::C:
                 if (action == action::Press) {
@@ -532,15 +531,16 @@ void keyCallback(int key, int, int action, int) {
                 break;
             case key::G:
                 if (action == action::Press) {
-                    gEngine->sendMessageToExternalControl("Testing!!\r\n");
+                    Engine::instance()->sendMessageToExternalControl("Testing!!\r\n");
                 }
                 break;
             case key::M:
                 if (action == action::Press) {
+                    static bool mousePointer = true;
                     mousePointer = !mousePointer;
 
-                    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
-                        sgct::Engine::setMouseCursorVisibility(i, mousePointer);
+                    for (int i = 0; i < Engine::instance()->getNumberOfWindows(); i++) {
+                        Engine::setMouseCursorVisibility(i, mousePointer);
                     }
                 }
                 break;
@@ -565,13 +565,13 @@ void keyCallback(int key, int, int action, int) {
 }
 
 void externalControlCallback(const char* receivedChars, int size) {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         std::string_view data(receivedChars, size);
         if (data == "info") {
             showFPS.setVal(!showFPS.getVal());
         }
         else if (data == "size") {
-            gEngine->setExternalControlBufferSize(4096);
+            Engine::instance()->setExternalControlBufferSize(4096);
         }
     }
 }
@@ -581,38 +581,31 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setExternalControlCallback(externalControlCallback);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setDraw2DFunction(myDraw2DFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setPostDrawFunction(postDrawFun);
+    Engine::instance()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setExternalControlCallback(externalControlCallback);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setDraw2DFunction(myDraw2DFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance()->setPostDrawFunction(postDrawFun);
 
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::Default_Mode, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         for (int i = 0; i < ExtendedSize; i++) {
             extraData.addVal(static_cast<float>(rand() % 500) / 500.f);
         }
     }
 
-    const std::vector<std::string>& addresses =
-        core::NetworkManager::instance()->getLocalAddresses();
-    for (unsigned int i = 0; i < addresses.size(); i++) {
-        fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
-    }
-
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

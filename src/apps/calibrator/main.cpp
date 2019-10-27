@@ -21,8 +21,6 @@
 #endif // SGCT_HAS_TEXT
 
 namespace {
-    sgct::Engine* gEngine;
-
     struct {
         GLuint vao = 0;
         GLuint vbo = 0;
@@ -50,7 +48,7 @@ namespace {
 layout(location = 0) in vec2 vertPosition;
 
 out vec4 color;
-out vec2 tex_coord;
+out vec2 texCoord;
 
 uniform float radius;
 uniform mat4 matrix;
@@ -71,8 +69,8 @@ void main() {
   color = vec4(p, 1.0);
 
   float e = 1.0 - (elevation / PI_HALF);
-  tex_coord = vec2(e * sin(azimuth), e * -cos(azimuth));
-  tex_coord = (tex_coord * vec2(0.5)) + 0.5;
+  texCoord = vec2(e * sin(azimuth), e * -cos(azimuth));
+  texCoord = (texCoord * vec2(0.5)) + 0.5;
 }
 )";
 
@@ -80,7 +78,7 @@ void main() {
 #version 330 core
 
 in vec4 color;
-in vec2 tex_coord;
+in vec2 texCoord;
 out vec4 FragOut;
 
 uniform int hasTex;
@@ -88,7 +86,7 @@ uniform sampler2D tex;
 
 void main() {
   if (hasTex == 1) {
-    FragOut = texture(tex, tex_coord);
+    FragOut = texture(tex, texCoord);
   }
   else {
     FragOut = color;
@@ -100,10 +98,8 @@ void main() {
 using namespace sgct;
 
 void draw() {
-    glDepthMask(GL_FALSE);
-
     ShaderManager::instance()->getShaderProgram("simple").bind();
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix();
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix();
 
     // Inverting tilt to keep the backwards compatibility with the previous implementation
     const glm::mat4 mat = glm::rotate(mvp, -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
@@ -127,13 +123,13 @@ void draw() {
 
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
-        Window& win = gEngine->getCurrentWindow();
+        Window& win = Engine::instance()->getCurrentWindow();
         core::BaseViewport* vp = win.getCurrentViewport();
         const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
         const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
-        
+
         const float offset = w / 2.f - w / 7.f;
-        
+
         const float s1 = h / 8.f;
         const unsigned int fontSize1 = static_cast<unsigned int>(s1);
         text::Font* f1 = text::FontManager::instance()->getFont("SGCTFont", fontSize1);
@@ -265,7 +261,6 @@ void initGL() {
             GL_STATIC_DRAW
         );
     }
-
     glBindVertexArray(0);
 
     if (!texture.empty()) {
@@ -275,17 +270,11 @@ void initGL() {
     ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("simple");
     prog.bind();
-
     matrixLocation = prog.getUniformLocation("matrix");
 
-    const GLint radiusLocation = prog.getUniformLocation("radius");
-    glUniform1f(radiusLocation, radius);
-
-    const GLint textureLocation = prog.getUniformLocation("tex");
-    glUniform1i(textureLocation, 0);
-
-    const GLint hasTextureLocation = prog.getUniformLocation("hasTex");
-    glUniform1i(hasTextureLocation, (textureId != 0) ? 1 : 0);
+    glUniform1f(prog.getUniformLocation("radius"), radius);
+    glUniform1i(prog.getUniformLocation("tex"), 0);
+    glUniform1i(prog.getUniformLocation("hasTex"), (textureId != 0) ? 1 : 0);
 
     prog.unbind();
 }
@@ -316,7 +305,6 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -337,19 +325,19 @@ int main(int argc, char* argv[]) {
 
     Settings::instance()->setCaptureFromBackBuffer(true);
 
-    gEngine->setDrawFunction(draw);
-    gEngine->setInitOGLFunction(initGL);
-    gEngine->setCleanUpFunction(cleanUp);
-    gEngine->setKeyboardCallbackFunction(keyboardCallback);
-    gEngine->setEncodeFunction(encode);
-    gEngine->setDecodeFunction(decode);
+    Engine::instance()->setDrawFunction(draw);
+    Engine::instance()->setInitOGLFunction(initGL);
+    Engine::instance()->setCleanUpFunction(cleanUp);
+    Engine::instance()->setKeyboardCallbackFunction(keyboardCallback);
+    Engine::instance()->setEncodeFunction(encode);
+    Engine::instance()->setDecodeFunction(decode);
 
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::Default_Mode, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

@@ -1,7 +1,7 @@
 #include "sgct.h"
 #include "fmod_audio.h"
 
-sgct::Engine * gEngine;
+sgct::Engine* gEngine;
 
 constexpr const char* vertexShader = R"(
   #version 330 core
@@ -13,7 +13,6 @@ constexpr const char* vertexShader = R"(
   out vec3 fragColor;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position = mvp * vec4(vertPosition, 1.0);
     fragColor = vertColor;
   })";
@@ -27,7 +26,6 @@ constexpr const char* fragmentShader R"(
   void main() { color = vec4(fragColor, 1.0); }
 )";
 
-//sgct callbacks
 void myInitFun();
 void myDrawFun();
 void myPreSyncFun();

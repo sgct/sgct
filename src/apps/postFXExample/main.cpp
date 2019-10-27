@@ -11,8 +11,6 @@
 #include <fstream>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
     sgct::SharedDouble currentTime(0.0);
 
@@ -57,7 +55,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        gEngine->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -69,7 +67,7 @@ void setupPostFXs() {
                 glUniform1i(postFXTextureLocation.pass2, 0);
                 glUniform1f(
                     sizeLocation.pass2,
-                    static_cast<float>(gEngine->getCurrentResolution().x)
+                    static_cast<float>(Engine::instance()->getCurrentResolution().x)
                 );
             }
         );
@@ -78,7 +76,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
         sizeLocation.pass2 = sp.getUniformLocation("size");
         sp.unbind();
-        gEngine->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -90,7 +88,7 @@ void setupPostFXs() {
                 glUniform1i(postFXTextureLocation.pass3, 0);
                 glUniform1f(
                     sizeLocation.pass3,
-                    static_cast<float>(gEngine->getCurrentResolution().y)
+                    static_cast<float>(Engine::instance()->getCurrentResolution().y)
                 );
             }
         );
@@ -99,7 +97,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
         sizeLocation.pass3 = sp.getUniformLocation("size");
         sp.unbind();
-        gEngine->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -109,7 +107,7 @@ void setupPostFXs() {
             loadFile("glow.frag"),
             [](){
                 glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture());
+                glBindTexture(GL_TEXTURE_2D, Engine::instance()->getCurrentDrawTexture());
                 glUniform1i(postFXTextureLocation.pass4, 0);
                 glUniform1i(originalTextureLocation, 1);
             }
@@ -119,7 +117,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        gEngine->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
     }
 }
 
@@ -141,7 +139,8 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -158,7 +157,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -178,8 +177,7 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
-    GLint textureLocation = prog.getUniformLocation("tex");
-    glUniform1i(textureLocation, 0);
+    glUniform1i(prog.getUniformLocation("tex"), 0);
     prog.unbind();
 
     setupPostFXs();
@@ -202,21 +200,20 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

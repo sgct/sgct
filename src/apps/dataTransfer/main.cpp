@@ -14,8 +14,6 @@
 #include <memory>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<std::thread> loadThread;
     std::mutex mutex;
     GLFWwindow* hiddenWindow;
@@ -28,13 +26,14 @@ namespace {
     sgct::SharedInt32 texIndex(-1);
 
     sgct::SharedInt32 currentPackage(-1);
-    sgct::SharedBool running(true);
     sgct::SharedBool transfer(false);
     sgct::SharedBool serverUploadDone(false);
     sgct::SharedBool clientsUploadDone(false);
     sgct::SharedVector<std::string> imagePaths;
     sgct::SharedVector<GLuint> texIds;
     double sendTimer = 0.0;
+
+    bool isRunning = true;
 
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
@@ -53,7 +52,6 @@ namespace {
   out vec2 uv;
 
   void main() {
-    // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvp * vec4(vertPositions, 1.0);
     uv = texCoords;
   })";
@@ -66,7 +64,7 @@ namespace {
   in vec2 uv;
   out vec4 color;
 
-  void main() { color = texture(tex, uv.st); }
+  void main() { color = texture(tex, uv); }
 )";
 } // namespace
 
@@ -92,7 +90,7 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
     
@@ -113,7 +111,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
         
         // if texture is uploaded then iterate the index
@@ -126,8 +124,8 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    gEngine->setDisplayInfoVisibility(info.getVal());
-    gEngine->setStatsGraphVisibility(stats.getVal());
+    Engine::instance()->setDisplayInfoVisibility(info.getVal());
+    Engine::instance()->setStatsGraphVisibility(stats.getVal());
 }
 
 void initOGLFun() {
@@ -142,7 +140,7 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
-    glUniform1i(prog.getUniformLocation("tex"), 0 );
+    glUniform1i(prog.getUniformLocation("tex"), 0);
     prog.unbind();
 }
 
@@ -170,25 +168,20 @@ void cleanUpFun() {
         }
     }
     texIds.clear();
-    
-    
+
     if (hiddenWindow) {
         glfwDestroyWindow(hiddenWindow);
     }
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster() && (action == action::Press)) {
         switch (key) {
             case key::S:
-                if (action == action::Press) {
-                    stats.setVal(!stats.getVal());
-                }
+                stats.setVal(!stats.getVal());
                 break;
             case key::I:
-                if (action == action::Press) {
-                    info.setVal(!info.getVal());
-                }
+                info.setVal(!info.getVal());
                 break;
         }
     }
@@ -215,7 +208,7 @@ void startDataTransfer() {
     if (static_cast<int>(imagePaths.getSize()) <= id) {
         return;
     }
-        
+
     sendTimer = sgct::Engine::getTime();
 
     // load from file
@@ -229,7 +222,7 @@ void startDataTransfer() {
     std::vector<char> buffer(size);
     if (file.read(buffer.data(), size)) {
         const int s = static_cast<int>(size);
-        gEngine->transferDataBetweenNodes(buffer.data(), s, id);
+        Engine::instance()->transferDataBetweenNodes(buffer.data(), s, id);
 
         // read the image on master
         readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
@@ -246,14 +239,14 @@ void uploadTexture() {
     }
 
     glfwMakeContextCurrent(hiddenWindow);
-        
+
     // create texture
     GLuint tex;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
+
     GLenum internalformat;
     GLenum type;
 
@@ -278,7 +271,7 @@ void uploadTexture() {
             type = GL_BGRA;
             break;
     }
-        
+
     int mipMapLevels = 8;
     GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
@@ -300,16 +293,16 @@ void uploadTexture() {
         format,
         transImg->getData()
     );
-        
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
-        
+
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        
+
     glBindTexture(GL_TEXTURE_2D, 0);
 
     MessageHandler::printInfo(
@@ -318,7 +311,6 @@ void uploadTexture() {
     );
 
     texIds.addVal(tex);
-
     transImg = nullptr;
 
     glFinish();
@@ -326,7 +318,7 @@ void uploadTexture() {
 }
 
 void threadWorker() {
-    while (running.getVal()) {
+    while (isRunning) {
         // runs only on master
         if (transfer.getVal() && !serverUploadDone.getVal() &&
             !clientsUploadDone.getVal())
@@ -350,33 +342,30 @@ void threadWorker() {
 
 void contextCreationCallback(GLFWwindow* win) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    
+
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
-     
+
     if (!hiddenWindow) {
         MessageHandler::printInfo("Failed to create loader context");
     }
-    
+
     glfwMakeContextCurrent(sharedWindow);
-    
-    if (gEngine->isMaster()) {
+
+    if (Engine::instance()->isMaster()) {
         loadThread = std::make_unique<std::thread>(threadWorker);
     }
 }
 
-void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
-                           int clientIndex)
-{
+void dataTransferDecoder(void* data, int length, int packageId, int clientIndex) {
     MessageHandler::printInfo(
-        "Decoding %d bytes in transfer id: %d on node %d",
-        receivedLength, packageId, clientIndex
+        "Decoding %d bytes in transfer id: %d on node %d", length, packageId, clientIndex
     );
 
     currentPackage.setVal(packageId);
-    
+
     // read the image on master
-    readImage(reinterpret_cast<unsigned char*>(receivedData), receivedLength);
+    readImage(reinterpret_cast<unsigned char*>(data), length);
     uploadTexture();
 }
 
@@ -397,7 +386,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
         if (counter == (sgct::core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
-            
+
             MessageHandler::printInfo(
                 "Time to distribute and upload textures on cluster: %f ms", 
                 (sgct::Engine::getTime() - sendTimer) * 1000.0
@@ -407,7 +396,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 }
 
 void dropCallback(int, const char** paths) {
-    if (!gEngine->isMaster()) {
+    if (!Engine::instance()->isMaster()) {
         return;
     }
 
@@ -436,30 +425,29 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setContextCreationCallback(contextCreationCallback);
-    gEngine->setDropCallbackFunction(dropCallback);
-    gEngine->setDataTransferCallback(dataTransferDecoder);
-    gEngine->setDataTransferStatusCallback(dataTransferStatus);
-    gEngine->setDataAcknowledgeCallback(dataTransferAcknowledge);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
+    Engine::instance()->setContextCreationCallback(contextCreationCallback);
+    Engine::instance()->setDropCallbackFunction(dropCallback);
+    Engine::instance()->setDataTransferCallback(dataTransferDecoder);
+    Engine::instance()->setDataTransferStatusCallback(dataTransferStatus);
+    Engine::instance()->setDataAcknowledgeCallback(dataTransferAcknowledge);
+    Engine::instance()->setEncodeFunction(encodeFun);
+    Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance()->render();
 
-    running.setVal(false);
+    isRunning = false;
 
     if (loadThread) {
         loadThread->join();

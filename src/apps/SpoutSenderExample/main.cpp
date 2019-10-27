@@ -11,8 +11,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    sgct::Engine* gEngine;
-
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
@@ -78,7 +76,8 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = gEngine->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+                          scene;
     glActiveTexture(GL_TEXTURE0);
     ShaderManager::instance()->bindShaderProgram("xform");
     glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
@@ -102,10 +101,14 @@ void postDrawFun() {
 
         GLuint texId;
         if (windowData[i].second) {
-            texId = gEngine->getWindow(winIndex).getFrameBufferTexture(Engine::LeftEye);
+            texId = Engine::instance()->getWindow(winIndex).getFrameBufferTexture(
+                Engine::LeftEye
+            );
         }
         else {
-            texId = gEngine->getWindow(winIndex).getFrameBufferTexture(Engine::RightEye);
+            texId = Engine::instance()->getWindow(winIndex).getFrameBufferTexture(
+                Engine::RightEye
+            );
         }
             
         glBindTexture(GL_TEXTURE_2D, texId);
@@ -113,8 +116,8 @@ void postDrawFun() {
         spoutSendersData[i].spoutSender->SendTexture(
             texId,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            gEngine->getWindow(winIndex).getFramebufferResolution().x,
-            gEngine->getWindow(winIndex).getFramebufferResolution().y
+            Engine::instance()->getWindow(winIndex).getFramebufferResolution().x,
+            Engine::instance()->getWindow(winIndex).getFramebufferResolution().y
         );
     }
 
@@ -122,7 +125,7 @@ void postDrawFun() {
 }
 
 void preSyncFun() {
-    if (gEngine->isMaster()) {
+    if (Engine::instance()->isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -131,11 +134,11 @@ void preWindowInitFun() {
     std::string baseName = "SGCT_Window";
 
     //get number of framebuffer textures
-    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
+    for (int i = 0; i < Engine::instance()->getNumberOfWindows(); i++) {
         // do not resize buffers while minimized
-        gEngine->getWindow(i).setFixResolution(true);
+        Engine::instance()->getWindow(i).setFixResolution(true);
 
-        if (gEngine->getWindow(i).isStereo()) {
+        if (Engine::instance()->getWindow(i).isStereo()) {
             senderNames.push_back(baseName + std::to_string(i) + "_Left");
             windowData.push_back(std::pair(i, true));
 
@@ -163,8 +166,8 @@ void initOGLFun() {
         
         const bool success = spoutSendersData[i].spoutSender->CreateSender(
             spoutSendersData[i].senderName,
-            gEngine->getWindow(winIndex).getFramebufferResolution().x,
-            gEngine->getWindow(winIndex).getFramebufferResolution().y
+            Engine::instance()->getWindow(winIndex).getFramebufferResolution().x,
+            Engine::instance()->getWindow(winIndex).getFramebufferResolution().y
         );
         spoutSendersData[i].initialized = success;
     }
@@ -220,24 +223,23 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPostDrawFunction(postDrawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setCleanUpFunction(cleanUpFun);
-    gEngine->setPreWindowFunction(preWindowInitFun);
+    Engine::instance()->setInitOGLFunction(initOGLFun);
+    Engine::instance()->setDrawFunction(drawFun);
+    Engine::instance()->setPostDrawFunction(postDrawFun);
+    Engine::instance()->setPreSyncFunction(preSyncFun);
+    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance()->setPreWindowFunction(preWindowInitFun);
 
-    if (!gEngine->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete gEngine;
+    if (!Engine::instance)(->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+        Engine::destroy();
         return EXIT_FAILURE;
     }
 
     sgct::SharedData::instance()->setEncodeFunction(encodeFun);
     sgct::SharedData::instance()->setDecodeFunction(decodeFun);
 
-    gEngine->render();
-    delete gEngine;
+    Engine::instance()->render();
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

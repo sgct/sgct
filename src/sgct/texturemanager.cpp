@@ -180,8 +180,8 @@ TextureManager::~TextureManager() {
 }
 
 unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,
-                                         int mipmapLevels, CompressionMode compression,
-                                         float anisotropicFilterSize)
+                                         float anisotropicFilterSize, int mipmapLevels,
+                                         CompressionMode compression)
 {
     GLuint texID = 0;
 

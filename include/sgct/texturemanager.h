@@ -42,16 +42,16 @@ public:
      *
      * \param filename the filename or path to the texture
      * \param interpolate set to true for using interpolation (bi-linear filtering)
+     * \param anisotropicFilterSize The filter size that is used for the anisotropic
+     *        filtering. If this value is 1.f, only bilinear filtering is used
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
                            this value to 1 or less disables mipmaps
      * \param compression The compression method that is used for this texture
-     * \param anisotropicFilterSize The filter size that is used for the anisotropic
-     *        filtering. If this value is 1.f, only bilinear filtering is used
      * \return true The OpenGL name for the texture that was loaded
      */
     unsigned int loadTexture(const std::string& filename, bool interpolate,
-        int mipmapLevels = 8, CompressionMode compression = CompressionMode::None,
-        float anisotropicFilterSize = 1.f);
+        float anisotropicFilterSize = 1.f, int mipmapLevels = 8,
+        CompressionMode compression = CompressionMode::None);
 
 private:
     ~TextureManager();

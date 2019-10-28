@@ -1,17 +1,17 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-add_executable(openvrFullDomeViewer main.cpp xform.frag xform.vert)
-set_compile_options(openvrFullDomeViewer)
-target_link_libraries(openvrFullDomeViewer PRIVATE sgct)
+add_executable(openvrfulldomeviewer main.cpp xform.frag xform.vert)
+set_compile_options(openvrfulldomeviewer)
+target_link_libraries(openvrfulldomeviewer PRIVATE sgct)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/support/cmake/modules/")
 
 # OpenVR Specific
 find_package(OpenVR REQUIRED)
-target_include_directories(openvrFullDomeViewer PRIVATE
+target_include_directories(openvrfulldomeviewer PRIVATE
   ${OPENVR_INCLUDE_DIRS}
 )
-target_link_libraries(openvrFullDomeViewer PRIVATE
+target_link_libraries(openvrfulldomeviewer PRIVATE
   ${OPENVR_LIBRARY}
 )
 
@@ -25,6 +25,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.bat"
   "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.command"
 )
-copy_files(openvrFullDomeViewer ${files})
-copy_sgct_dynamic_libraries(openvrFullDomeViewer)
-set_target_properties(openvrFullDomeViewer PROPERTIES FOLDER "Examples")
+copy_files(openvrfulldomeviewer ${files})
+copy_sgct_dynamic_libraries(openvrfulldomeviewer)
+set_target_properties(openvrfulldomeviewer PROPERTIES FOLDER "Examples")

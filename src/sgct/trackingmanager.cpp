@@ -254,7 +254,7 @@ void TrackingManager::addTracker(std::string name) {
 
 void TrackingManager::addDeviceToCurrentTracker(std::string name) {
 #ifdef SGCT_HAS_VRPN
-    _trackers.back()->addDevice(std::move(name), _trackers.size() - 1);
+    _trackers.back()->addDevice(std::move(name), static_cast<int>(_trackers.size() - 1));
     gTrackers.back().emplace_back(VRPNPointer());
 #else
     MessageHandler::printWarning("SGCT compiled without VRPN support");

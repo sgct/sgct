@@ -280,8 +280,6 @@ void initOGLFun() {
             textureIndices[i] = TextureManager::instance()->loadTexture(
                 texturePaths[i],
                 true,
-                1,
-                TextureManager::CompressionMode::None,
                 8.f
             );
         }

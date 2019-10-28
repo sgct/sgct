@@ -108,11 +108,8 @@ bool validateDevice(const Device& device) {
     auto validateAddress = [](const auto& v) -> bool {
         if (v.vrpnAddress.empty()) {
             MessageHandler::printError("VRPN address must not be empty");
-            return false;
         }
-        else {
-            return true;
-        }
+        return !v.vrpnAddress.empty();
     };
 
     success &= std::all_of(device.sensors.begin(), device.sensors.end(), validateAddress);

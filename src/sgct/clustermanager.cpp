@@ -135,12 +135,7 @@ User* ClusterManager::getUser(const std::string& name) {
         _users.cend(),
         [&name](const std::unique_ptr<User>& user) { return user->getName() == name; }
     );
-    if (it != _users.cend()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
+    return it != _users.cend() ? it->get() : nullptr;
 }
 
 User* ClusterManager::getTrackedUser() {
@@ -149,12 +144,7 @@ User* ClusterManager::getTrackedUser() {
         _users.cend(),
         [](const std::unique_ptr<User>& u) { return u->isTracked(); }
     );
-    if (it != _users.cend()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
+    return it != _users.cend() ? it->get() : nullptr;
 }
 
 NetworkManager::NetworkMode ClusterManager::getNetworkMode() const {

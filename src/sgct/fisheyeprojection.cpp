@@ -138,14 +138,14 @@ void FisheyeProjection::renderCubemap() {
             break;
         case Frustum::Mode::StereoLeftEye:
             setOffset(glm::vec3(
-                -Engine::instance()->getDefaultUser().getEyeSeparation() / _diameter,
+                -Engine::getDefaultUser().getEyeSeparation() / _diameter,
                 0.f,
                 0.f
             ));
             break;
         case Frustum::Mode::StereoRightEye:
             setOffset(glm::vec3(
-                Engine::instance()->getDefaultUser().getEyeSeparation() / _diameter,
+                Engine::getDefaultUser().getEyeSeparation() / _diameter,
                 0.f,
                 0.f
             ));

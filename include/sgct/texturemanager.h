@@ -59,6 +59,6 @@ private:
     std::vector<unsigned int> _textures;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__TEXTURE_MANAGER__H__

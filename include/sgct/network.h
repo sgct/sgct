@@ -69,11 +69,11 @@ public:
     void closeNetwork(bool forced);
     void initShutdown();
 
-    void setDecodeFunction(std::function<void(const char*, int, int)> callback);
-    void setPackageDecodeFunction(std::function<void(void*, int, int, int)> callback);
-    void setUpdateFunction(std::function<void(Network *)> callback);
-    void setConnectedFunction(std::function<void (void)> callback);
-    void setAcknowledgeFunction(std::function<void(int, int)> callback);
+    void setDecodeFunction(std::function<void(const char*, int, int)> fn);
+    void setPackageDecodeFunction(std::function<void(void*, int, int, int)> fn);
+    void setUpdateFunction(std::function<void(Network *)> fn);
+    void setConnectedFunction(std::function<void (void)> fn);
+    void setAcknowledgeFunction(std::function<void(int, int)> fn);
     
     void setBufferSize(uint32_t newSize);
     void setConnectedStatus(bool state);
@@ -171,7 +171,7 @@ private:
     uint32_t _bufferSize = 1024;
     uint32_t _uncompressedBufferSize = _bufferSize;
     std::atomic<uint32_t> _requestedSize = _bufferSize;
-    int _port;
+    int _port = -1;
     std::string _address;
 
     std::vector<char> _recvBuffer;

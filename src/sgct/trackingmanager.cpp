@@ -240,7 +240,7 @@ void TrackingManager::addTracker(std::string name) {
 #ifdef SGCT_HAS_VRPN
     if (!getTracker(name)) {
         _trackers.push_back(std::make_unique<Tracker>(name));
-        gTrackers.push_back(std::vector<VRPNPointer>());
+        gTrackers.emplace_back(std::vector<VRPNPointer>());
 
         MessageHandler::printInfo("Tracker '%s' added successfully", name.c_str());
     }
@@ -255,7 +255,7 @@ void TrackingManager::addTracker(std::string name) {
 void TrackingManager::addDeviceToCurrentTracker(std::string name) {
 #ifdef SGCT_HAS_VRPN
     _trackers.back()->addDevice(std::move(name), _trackers.size() - 1);
-    gTrackers.back().push_back(VRPNPointer());
+    gTrackers.back().emplace_back(VRPNPointer());
 #else
     MessageHandler::printWarning("SGCT compiled without VRPN support");
 #endif // SGCT_HAS_VRPN
@@ -376,12 +376,7 @@ Tracker* TrackingManager::getTracker(const std::string& name) const {
             return tracker->getName() == name;
         }
     );
-    if (it != _trackers.cend()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
+    return it != _trackers.cend() ? it->get() : nullptr;
 }
 
 void TrackingManager::setEnabled(bool state) {

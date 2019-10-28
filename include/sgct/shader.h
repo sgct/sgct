@@ -32,11 +32,11 @@ public:
     // Shader(Shader&& rhs);
     // Shader& operator=(Shader&&) noexcept;
     // 
-    Shader(const Shader&);
-    Shader(Shader&&) noexcept;
+    Shader(const Shader& rhs);
+    Shader(Shader&& rhs) noexcept;
 
-    Shader& operator=(const Shader&) noexcept;
-    Shader& operator=(Shader&&) noexcept;
+    Shader& operator=(const Shader& rhs) noexcept;
+    Shader& operator=(Shader&& rhs) noexcept;
 
     /// Deletes the shader
     ~Shader();
@@ -55,6 +55,6 @@ private:
     int _shaderId = 0;      // The shader _id used for reference
 };
 
-} // sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__SHADER__H__

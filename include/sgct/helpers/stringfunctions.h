@@ -35,6 +35,6 @@ static std::vector<std::string> split(std::string str, char delimiter) {
     return tmpVec;
 }
 
-} // sgct_helpers
+} // namespace sgct::helpers
 
 #endif // __SGCT__STRING_FUNCTIONS__H__

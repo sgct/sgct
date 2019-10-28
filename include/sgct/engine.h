@@ -902,7 +902,7 @@ public:
 private:
     enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 
-    Engine(const Configuration& arg);
+    Engine(const Configuration& config);
 
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
@@ -956,7 +956,7 @@ private:
     void renderFBOTexture();
     
     /// This function combines a texture and a shader into a new texture.
-    void renderPostFX(TextureIndex ti);
+    void renderPostFX(TextureIndex targetIndex);
 
     void renderViewports(TextureIndex ti);
 

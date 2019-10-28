@@ -695,6 +695,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   }
 )";
 
-} // sgct::core::shaders_fisheye_cubic
+} // namespace sgct::core::shaders_fisheye_cubic
 
 #endif // __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__

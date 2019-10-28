@@ -657,6 +657,6 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
   }
 )";
 
-} // sgct::core::shaders_fisheye
+} // namespace sgct::core::shaders_fisheye
 
 #endif // __SGCT__INTERNAL_FISHEYE_SHADERS__H__

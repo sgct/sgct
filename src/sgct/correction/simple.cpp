@@ -65,8 +65,8 @@ Buffer setupSimpleMesh(const glm::ivec2& pos, const glm::ivec2& size) {
     buff.vertices[0].g = 1.f;
     buff.vertices[0].b = 1.f;
     buff.vertices[0].a = 1.f;
-    buff.vertices[0].s = pos.x;
-    buff.vertices[0].t = pos.y;
+    buff.vertices[0].s = static_cast<float>(pos.x);
+    buff.vertices[0].t = static_cast<float>(pos.y);
     buff.vertices[0].x = 2.f * pos.x - 1.f;
     buff.vertices[0].y = 2.f * pos.y - 1.f;
 
@@ -74,8 +74,8 @@ Buffer setupSimpleMesh(const glm::ivec2& pos, const glm::ivec2& size) {
     buff.vertices[1].g = 1.f;
     buff.vertices[1].b = 1.f;
     buff.vertices[1].a = 1.f;
-    buff.vertices[1].s = pos.x + size.x;
-    buff.vertices[1].t = pos.y;
+    buff.vertices[1].s = static_cast<float>(pos.x + size.x);
+    buff.vertices[1].t = static_cast<float>(pos.y);
     buff.vertices[1].x = 2.f * (pos.x + size.x) - 1.f;
     buff.vertices[1].y = 2.f * pos.y - 1.f;
 
@@ -92,8 +92,8 @@ Buffer setupSimpleMesh(const glm::ivec2& pos, const glm::ivec2& size) {
     buff.vertices[3].g = 1.f;
     buff.vertices[3].b = 1.f;
     buff.vertices[3].a = 1.f;
-    buff.vertices[3].s = pos.x;
-    buff.vertices[3].t = pos.y + size.y;
+    buff.vertices[3].s = static_cast<float>(pos.x);
+    buff.vertices[3].t = static_cast<float>(pos.y + size.y);
     buff.vertices[3].x = 2.f * pos.x - 1.f;
     buff.vertices[3].y = 2.f * (pos.y + size.y) - 1.f;
 

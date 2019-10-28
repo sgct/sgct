@@ -96,6 +96,6 @@ private:
     std::string _headTrackerName;
 };
 
-} // sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__USER__H__

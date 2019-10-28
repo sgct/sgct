@@ -103,43 +103,43 @@ namespace {
         if (type == "none" || type == "no_stereo") {
             return sgct::config::Window::StereoMode::NoStereo;
         }
-        else if (type == "active" || type == "quadbuffer") {
+        if (type == "active" || type == "quadbuffer") {
             return sgct::config::Window::StereoMode::Active;
         }
-        else if (type == "checkerboard") {
+        if (type == "checkerboard") {
             return sgct::config::Window::StereoMode::Checkerboard;
         }
-        else if (type == "checkerboard_inverted") {
+        if (type == "checkerboard_inverted") {
             return sgct::config::Window::StereoMode::CheckerboardInverted;
         }
-        else if (type == "anaglyph_red_cyan") {
+        if (type == "anaglyph_red_cyan") {
             return sgct::config::Window::StereoMode::AnaglyphRedCyan;
         }
-        else if (type == "anaglyph_amber_blue") {
+        if (type == "anaglyph_amber_blue") {
             return sgct::config::Window::StereoMode::AnaglyphAmberBlue;
         }
-        else if (type == "anaglyph_wimmer") {
+        if (type == "anaglyph_wimmer") {
             return sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer;
         }
-        else if (type == "vertical_interlaced") {
+        if (type == "vertical_interlaced") {
             return sgct::config::Window::StereoMode::VerticalInterlaced;
         }
-        else if (type == "vertical_interlaced_inverted") {
+        if (type == "vertical_interlaced_inverted") {
             return sgct::config::Window::StereoMode::VerticalInterlacedInverted;
         }
-        else if (type == "test" || type == "dummy") {
+        if (type == "test" || type == "dummy") {
             return sgct::config::Window::StereoMode::Dummy;
         }
-        else if (type == "side_by_side") {
+        if (type == "side_by_side") {
             return sgct::config::Window::StereoMode::SideBySide;
         }
-        else if (type == "side_by_side_inverted") {
+        if (type == "side_by_side_inverted") {
             return sgct::config::Window::StereoMode::SideBySideInverted;
         }
-        else if (type == "top_bottom") {
+        if (type == "top_bottom") {
             return sgct::config::Window::StereoMode::TopBottom;
         }
-        else if (type == "top_bottom_inverted") {
+        if (type == "top_bottom_inverted") {
             return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
@@ -151,28 +151,28 @@ namespace {
         if (type == "8") {
             return sgct::config::Window::ColorBitDepth::Depth8;
         }
-        else if (type == "16") {
+        if (type == "16") {
             return sgct::config::Window::ColorBitDepth::Depth16;
         }
 
-        else if (type == "16f") {
+        if (type == "16f") {
             return sgct::config::Window::ColorBitDepth::Depth16Float;
         }
-        else if (type == "32f") {
+        if (type == "32f") {
             return sgct::config::Window::ColorBitDepth::Depth32Float;
         }
 
-        else if (type == "16i") {
+        if (type == "16i") {
             return sgct::config::Window::ColorBitDepth::Depth16Int;
         }
-        else if (type == "32i") {
+        if (type == "32i") {
             return sgct::config::Window::ColorBitDepth::Depth32Int;
         }
 
-        else if (type == "16ui") {
+        if (type == "16ui") {
             return sgct::config::Window::ColorBitDepth::Depth16UInt;
         }
-        else if (type == "32ui") {
+        if (type == "32ui") {
             return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
@@ -988,15 +988,14 @@ namespace {
                 if (format == "png" || format == "PNG") {
                     return sgct::config::Capture::Format::PNG;
                 }
-                else if (format == "tga" || format == "TGA") {
+                if (format == "tga" || format == "TGA") {
                     return sgct::config::Capture::Format::TGA;
                 }
-                else if (format == "jpg" || format == "JPG") {
+                if (format == "jpg" || format == "JPG") {
                     return sgct::config::Capture::Format::JPG;
                 }
-                else {
-                    throw std::runtime_error("Unknown capturing format");
-                }
+
+                throw std::runtime_error("Unknown capturing format");
             }(format);
         }
         return res;

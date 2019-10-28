@@ -87,8 +87,7 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
 
     glm::vec2 prevPos = pos;
 
-    std::unordered_map<int, glm::vec2>::iterator prevPosMapIt =
-        _previousTouchPositions.find(id);
+    auto prevPosMapIt = _previousTouchPositions.find(id);
     if (prevPosMapIt != _previousTouchPositions.end()) {
         prevPos = prevPosMapIt->second;
         if (touchAction == TouchAction::Released) {

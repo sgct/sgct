@@ -24,7 +24,7 @@ public:
     explicit Tracker(std::string name);
 
     void setEnabled(bool state);
-    void addDevice(std::string name, size_t index);
+    void addDevice(std::string name, int index);
 
     TrackingDevice* getLastDevice() const;
     TrackingDevice* getDevice(size_t index) const;

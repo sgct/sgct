@@ -53,17 +53,17 @@ namespace {
         file << "# Number of vertices: " << buf.vertices.size() << "\n";
 
         // export vertices
-        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
-            file << "v " << buf.vertices[i].x << ' ' << buf.vertices[i].y << " 0\n";
+        for (const sgct::core::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+            file << "v " << vertex.x << ' ' << vertex.y << " 0\n";
         }
 
         // export texture coords
-        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
-            file << "vt " << buf.vertices[i].s << ' ' << buf.vertices[i].t << " 0\n";
+        for (const sgct::core::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+            file << "vt " << vertex.s << ' ' << vertex.t << " 0\n";
         }
 
         // export generated normals
-        for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+        for (size_t i = 0; i < buf.vertices.size(); ++i) {
             file << "vn 0 0 1\n";
         }
 
@@ -116,25 +116,23 @@ CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
     if (hintStr == "domeprojection") {
         return CorrectionMesh::Format::DomeProjection;
     }
-    else if (hintStr == "scalable") {
+    if (hintStr == "scalable") {
         return CorrectionMesh::Format::Scaleable;
     }
-    else if (hintStr == "sciss") {
+    if (hintStr == "sciss") {
         return CorrectionMesh::Format::Sciss;
     }
-    else if (hintStr == "simcad") {
+    if (hintStr == "simcad") {
         return CorrectionMesh::Format::SimCad;
     }
-    else if (hintStr == "skyskan") {
+    if (hintStr == "skyskan") {
         return CorrectionMesh::Format::SkySkan;
     }
-    else if (hintStr == "mpcdi") {
+    if (hintStr == "mpcdi") {
         return CorrectionMesh::Format::Mpcdi;
     }
-    else {
-        MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
-        return CorrectionMesh::Format::None;
-    }
+    MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+    return CorrectionMesh::Format::None;
 }
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {

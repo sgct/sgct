@@ -122,19 +122,19 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     const float aspect = Engine::instance()->getCurrentWindow().getAspectRatio() *
                    (size.x / size.y);
-    for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+    for (CorrectionMeshVertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)
-        buf.vertices[i].x /= aspect;
-        buf.vertices[i].x = (buf.vertices[i].x + 1.f) / 2.f;
-        buf.vertices[i].y = (buf.vertices[i].y + 1.f) / 2.f;
+        vertex.x /= aspect;
+        vertex.x = (vertex.x + 1.f) / 2.f;
+        vertex.y = (vertex.y + 1.f) / 2.f;
         
         // scale, re-position and convert to [-1, 1]
-        buf.vertices[i].x = (buf.vertices[i].x * size.x + pos.x) * 2.f - 1.f;
-        buf.vertices[i].y = (buf.vertices[i].y * size.y + pos.y) * 2.f - 1.f;
+        vertex.x = (vertex.x * size.x + pos.x) * 2.f - 1.f;
+        vertex.y = (vertex.y * size.y + pos.y) * 2.f - 1.f;
 
         // convert to viewport coordinates
-        buf.vertices[i].s = buf.vertices[i].s * size.x + pos.x;
-        buf.vertices[i].t = buf.vertices[i].t * size.y + pos.y;
+        vertex.s = vertex.s * size.x + pos.x;
+        vertex.t = vertex.t * size.y + pos.y;
     }
 
     buf.geometryType = GL_TRIANGLES;

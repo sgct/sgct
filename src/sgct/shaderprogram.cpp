@@ -16,7 +16,7 @@ namespace {
         GLint linkStatus;
         glGetProgramiv(programId, GL_LINK_STATUS, &linkStatus);
 
-        if (!linkStatus) {
+        if (linkStatus == 0) {
             GLint logLength;
             glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
 

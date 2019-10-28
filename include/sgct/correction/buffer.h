@@ -28,7 +28,7 @@ struct CorrectionMeshVertex {
 struct Buffer {
     std::vector<CorrectionMeshVertex> vertices;
     std::vector<unsigned int> indices;
-    GLenum geometryType;
+    GLenum geometryType = GL_TRIANGLES;
 };
 
 } // namespace sgct::core::correction

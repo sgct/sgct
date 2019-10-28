@@ -34,7 +34,7 @@ class NonLinearProjection;
  */
 class Viewport : public BaseViewport {
 public:
-    void applySettings(const sgct::config::Viewport& viewport);
+    void applyViewport(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);
     void setMpcdiWarpMesh(std::vector<unsigned char> data);
     // void setTracked(bool state);

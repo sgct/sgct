@@ -106,7 +106,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     );
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-    glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, 0, GL_STATIC_READ);
+    glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, nullptr, GL_STATIC_READ);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
@@ -139,7 +139,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         
     if (capSrc == CaptureSource::Texture) {
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, 0);
+        glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, nullptr);
     }
     else {
         // set the target framebuffer to read
@@ -147,7 +147,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         const glm::ivec2& s = imPtr->getSize();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
-        glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, 0);
+        glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, nullptr);
     }
 
     unsigned char* ptr = reinterpret_cast<unsigned char*>(

@@ -47,30 +47,30 @@ namespace {
 
     constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
-    int32_t parseInt32(char* str) {
-        int32_t val = *(reinterpret_cast<int32_t*>(str));
+    int32_t parseInt32(const char* str) {
+        int32_t val = *(reinterpret_cast<const int32_t*>(str));
         return val;
     }
 
-    uint32_t parseUInt32(char* str) {
-        uint32_t val = *(reinterpret_cast<uint32_t*>(str));
+    uint32_t parseUInt32(const char* str) {
+        uint32_t val = *(reinterpret_cast<const uint32_t*>(str));
         return val;
     }
 
     std::string getUncompressionErrorAsStr(int err) {
         switch (err) {
-        case Z_BUF_ERROR:
-            return "Dest. buffer not large enough";
-        case Z_MEM_ERROR:
-            return "Insufficient memory";
-        case Z_DATA_ERROR:
-            return "Corrupted data";
-        default:
-            return "Unknown error";
+            case Z_BUF_ERROR:
+                return "Dest. buffer not large enough";
+            case Z_MEM_ERROR:
+                return "Insufficient memory";
+            case Z_DATA_ERROR:
+                return "Corrupted data";
+            default:
+                return "Unknown error";
         }
     }
 
-    bool parseDisconnectPackage(char* headerPtr) {
+    bool parseDisconnectPackage(const char* headerPtr) {
         return (headerPtr[0] == sgct::core::Network::DisconnectId &&
                 headerPtr[1] == 24 && headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
                 headerPtr[4] == 27 && headerPtr[5] == '\r' &&
@@ -832,54 +832,49 @@ void Network::communicationHandler() {
 
                     break;
                 }
-                else {
-                    // handle sync communication
-                    if (_headerId == DataId && decoderCallback != nullptr) {
-                        // decode callback
-                        if (dataSize > 0) {
-                            decoderCallback(_recvBuffer.data(), dataSize, _id);
-                        }
+                // handle sync communication
+                if (_headerId == DataId && decoderCallback != nullptr) {
+                    // decode callback
+                    if (dataSize > 0) {
+                        decoderCallback(_recvBuffer.data(), dataSize, _id);
+                    }
 
-                        NetworkManager::cond.notify_all();
-                    }
-                    else if (_headerId == CompressedDataId && decoderCallback) {
-                        //decode callback
-                        if (dataSize > 0) {
-                            // parse the package _id
-                            uLongf uncompressedSize = static_cast<uLongf>(
-                                uncompressedDataSize
-                            );
+                    NetworkManager::cond.notify_all();
+                }
+                else if (_headerId == CompressedDataId && decoderCallback) {
+                    //decode callback
+                    if (dataSize > 0) {
+                        // parse the package _id
+                        uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
     
-                            int err = uncompress(
-                                reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
-                                &uncompressedSize,
-                                reinterpret_cast<Bytef*>(_recvBuffer.data()),
-                                static_cast<uLongf>(dataSize)
-                            );
+                        int err = uncompress(
+                            reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
+                            &uncompSize,
+                            reinterpret_cast<Bytef*>(_recvBuffer.data()),
+                            static_cast<uLongf>(dataSize)
+                        );
                             
-                            if (err == Z_OK) {
-                                // decode callback
-                                decoderCallback(
-                                    _uncompressBuffer.data(),
-                                    static_cast<int>(uncompressedSize),
-                                    _id
-                                );
-                            }
-                            else {
-                                MessageHandler::printError(
-                                    "Network: Failed to uncompress data for connection "
-                                    "%d. Error: %s",
-                                    _id, getUncompressionErrorAsStr(err).c_str()
-                                );
-                            }
+                        if (err == Z_OK) {
+                            // decode callback
+                            decoderCallback(
+                                _uncompressBuffer.data(),
+                                static_cast<int>(uncompSize),
+                                _id
+                            );
                         }
+                        else {
+                            MessageHandler::printError(
+                                "Network: Failed to uncompress data for connection %d. "
+                                "Error: %s", _id, getUncompressionErrorAsStr(err).c_str()
+                            );
+                        }
+                    }
                         
-                        NetworkManager::cond.notify_all();
-                    }
-                    else if (_headerId == ConnectedId && _connectedCallback) {
-                        _connectedCallback();
-                        NetworkManager::cond.notify_all();
-                    }
+                    NetworkManager::cond.notify_all();
+                }
+                else if (_headerId == ConnectedId && _connectedCallback) {
+                    _connectedCallback();
+                    NetworkManager::cond.notify_all();
                 }
             }
             // handle external ascii communication
@@ -1087,9 +1082,7 @@ void Network::sendData(const void* data, int length) {
             MessageHandler::printError("Send data failed");
             break;
         }
-        else {
-            sendSize -= sentLen;
-        }
+        sendSize -= sentLen;
     }
 }
 

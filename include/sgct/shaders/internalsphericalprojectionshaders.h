@@ -44,6 +44,6 @@ constexpr const char* SphericalProjectionFrag = R"(
   }
 )";
 
-} // sgct::core::shaders
+} // namespace sgct::core::shaders
 
 #endif // __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS__H__

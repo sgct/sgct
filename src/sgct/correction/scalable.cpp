@@ -10,12 +10,6 @@
 
 #include <sgct/messagehandler.h>
 
-#if (_MSC_VER >= 1400)
-    #define _sscanf sscanf_s
-#else
-    #define _sscanf sscanf
-#endif
-
 namespace {
     constexpr const int MaxLineLength = 1024;
 } // namespace
@@ -55,14 +49,14 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     double topOrtho = 0.0;
     glm::ivec2 res;
 
-    unsigned int a, b, c;
     while (!feof(meshFile)) {
         char lineBuffer[MaxLineLength];
 
         if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
             float x, y, s, t;
+            unsigned int a, b, c;
             unsigned int intensity;
-            if (_sscanf(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5) {
+            if (sscanf(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5) {
                 if (!buf.vertices.empty() && res.x != 0 && res.y != 0) {
                     CorrectionMeshVertex& vertex = buf.vertices[numOfVerticesRead];
                     vertex.x = (x / static_cast<float>(res.x)) * size.x + pos.x;
@@ -77,7 +71,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
                     numOfVerticesRead++;
                 }
             }
-            else if (_sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
+            else if (sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
                 if (!buf.indices.empty()) {
                     buf.indices[numOfFacesRead * 3] = a;
                     buf.indices[numOfFacesRead * 3 + 1] = b;
@@ -92,7 +86,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
                 double tmpD = 0.0;
                 unsigned int tmpUI = 0;
 
-                if (_sscanf(lineBuffer, "VERTICES %u", &numberOfVertices) == 1) {
+                if (sscanf(lineBuffer, "VERTICES %u", &numberOfVertices) == 1) {
                     buf.vertices.resize(numberOfVertices);
                     std::fill(
                         buf.vertices.begin(),
@@ -100,30 +94,30 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
                         CorrectionMeshVertex()
                     );
                 }
-                else if (_sscanf(lineBuffer, "FACES %u", &numberOfFaces) == 1) {
+                else if (sscanf(lineBuffer, "FACES %u", &numberOfFaces) == 1) {
                     numberOfIndices = numberOfFaces * 3;
                     buf.indices.resize(numberOfIndices);
                     std::fill(buf.indices.begin(), buf.indices.end(), 0);
                 }
-                else if (_sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
-                    std::string_view t = tmpBuf;
-                    if (t == "LEFT") {
+                else if (sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
+                    std::string_view tmp = tmpBuf;
+                    if (tmp == "LEFT") {
                         leftOrtho = tmpD;
                     }
-                    else if (t == "RIGHT") {
+                    else if (tmp == "RIGHT") {
                         rightOrtho = tmpD;
                     }
-                    else if (t == "BOTTOM") {
+                    else if (tmp == "BOTTOM") {
                         bottomOrtho = tmpD;
                     }
-                    else if (t == "TOP") {
+                    else if (tmp == "TOP") {
                         topOrtho = tmpD;
                     }
                 }
-                else if (_sscanf(lineBuffer, "NATIVEXRES %u", &tmpUI) == 1) {
+                else if (sscanf(lineBuffer, "NATIVEXRES %u", &tmpUI) == 1) {
                     res.x = tmpUI;
                 }
-                else if (_sscanf(lineBuffer, "NATIVEYRES %u", &tmpUI) == 1) {
+                else if (sscanf(lineBuffer, "NATIVEYRES %u", &tmpUI) == 1) {
                     res.y = tmpUI;
                 }
             }

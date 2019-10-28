@@ -9,9 +9,9 @@
 #ifndef __SGCT__PORTED_FUNCTIONS__H__
 #define __SGCT__PORTED_FUNCTIONS__H__
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef WIN32
 // Replacement for Visual Studio's _vscprintf function

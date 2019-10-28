@@ -29,7 +29,7 @@ Sphere::~Sphere() {
 
 void Sphere::draw() {
     glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 

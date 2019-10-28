@@ -37,7 +37,7 @@ public:
      *
      * \param diameter diameter of the dome diameter in meters
      */
-    void setDomeDiameter(float size);
+    void setDomeDiameter(float diameter);
 
     /**
      * Set the fisheye/dome tilt angle used in the fisheye renderer. The tilt angle is

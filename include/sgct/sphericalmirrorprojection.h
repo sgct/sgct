@@ -24,13 +24,13 @@ public:
     SphericalMirrorProjection() = default;
     virtual ~SphericalMirrorProjection() = default;
 
-    virtual void update(glm::vec2 size) override;
+    void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
-    virtual void render() override;
+    void render() override;
 
     /// Render the enabled faces of the cubemap
-    virtual void renderCubemap() override;
+    void renderCubemap() override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
@@ -50,10 +50,10 @@ public:
         std::string top);
 
 private:
-    virtual void initTextures() override;
-    virtual void initVBO() override;
-    virtual void initViewports() override;
-    virtual void initShaders() override;
+    void initTextures() override;
+    void initVBO() override;
+    void initViewports() override;
+    void initShaders() override;
         
     void drawCubeFace(size_t face);
     void blitCubeFace(unsigned int texture);

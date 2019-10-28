@@ -207,7 +207,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         _colorLocation = _shader.getUniformLocation("col");
         _strokeLocation = _shader.getUniformLocation("strokeCol");
         _textureLocation = _shader.getUniformLocation("tex");
-        _shader.unbind();
+        ShaderProgram::unbind();
 
         isShaderCreated = true;
     }

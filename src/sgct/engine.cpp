@@ -525,11 +525,7 @@ bool Engine::initNetwork() {
     }
 
     const bool networkInitSuccess = _networkConnections->init();
-    if (!networkInitSuccess) {
-        return false;
-    }
-
-    return true;
+    return networkInitSuccess;
 }
 
 bool Engine::initWindows() {
@@ -674,7 +670,7 @@ bool Engine::initWindows() {
 
     // Window/Context creation callback
     if (thisNode.getNumberOfWindows() > 0) {
-        GLFWwindow* share = thisNode.getWindow(0).getWindowHandle();
+        share = thisNode.getWindow(0).getWindowHandle();
 
         if (_contextCreationFn) {
             _contextCreationFn(share);
@@ -872,9 +868,9 @@ bool Engine::frameLockPreStage() {
                 "%d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia "
                 "universal frame number: %u\n\tSGCT frame number: %u",
                 conn->getSendFrameCurrent(), conn->getRecvFramePrevious(),
-                getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
-                getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
-                getCurrentWindow().getSwapGroupFrameNumber(), _frameCounter
+                Window::isUsingSwapGroups() ? "enabled" : "disabled",
+                Window::isBarrierActive() ? "enabled" : "disabled",
+                Window::getSwapGroupFrameNumber(), _frameCounter
             );
         }
 
@@ -935,9 +931,9 @@ bool Engine::frameLockPostStage() {
                     "Nvidia universal frame number: %u\n\tSGCT frame number: %u",
                     i, _networkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
                     _networkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
-                    getCurrentWindow().isUsingSwapGroups() ? "enabled" : "disabled",
-                    getCurrentWindow().isBarrierActive() ? "enabled" : "disabled",
-                    getCurrentWindow().getSwapGroupFrameNumber(), _frameCounter
+                    Window::isUsingSwapGroups() ? "enabled" : "disabled",
+                    Window::isBarrierActive() ? "enabled" : "disabled",
+                    Window::getSwapGroupFrameNumber(), _frameCounter
                 );
             }
         }
@@ -1206,7 +1202,7 @@ void Engine::render() {
 
 void Engine::renderDisplayInfo() {
 #ifdef SGCT_HAS_TEXT
-    const unsigned int lFrameNumber = getCurrentWindow().getSwapGroupFrameNumber();
+    const unsigned int lFrameNumber = Window::getSwapGroupFrameNumber();
 
     unsigned int fontSize = Settings::instance()->getOSDTextFontSize();
     fontSize = static_cast<unsigned int>(
@@ -1274,7 +1270,7 @@ void Engine::renderDisplayInfo() {
             );
         }
 
-        const bool usingSwapGroups = getCurrentWindow().isUsingSwapGroups();
+        const bool usingSwapGroups = Window::isUsingSwapGroups();
         if (usingSwapGroups) {
             text::print(
                 *font,
@@ -1283,10 +1279,9 @@ void Engine::renderDisplayInfo() {
                 lineHeight * 2.f + pos.y,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
                 "Swap groups: %s and barrier is %s (%s) | Frame: %d",
-                getCurrentWindow().isUsingSwapGroups() ? "Enabled" : "Disabled",
-                getCurrentWindow().isBarrierActive() ? "active" : "inactive",
-                getCurrentWindow().isSwapGroupMaster() ? "master" : "slave",
-                lFrameNumber
+                Window::isUsingSwapGroups() ? "Enabled" : "Disabled",
+                Window::isBarrierActive() ? "active" : "inactive",
+                Window::isSwapGroupMaster() ? "master" : "slave", lFrameNumber
             );
         }
         else {
@@ -1678,7 +1673,7 @@ void Engine::render2D() {
     }
 }
 
-void Engine::renderPostFX(TextureIndex finalTargetIndex) {
+void Engine::renderPostFX(TextureIndex targetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     int numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
@@ -1689,7 +1684,7 @@ void Engine::renderPostFX(TextureIndex finalTargetIndex) {
         if (i == (numberOfPasses - 1) && !getCurrentWindow().useFXAA()) {
             // if last
             fx.setOutputTexture(
-                getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
+                getCurrentWindow().getFrameBufferTexture(targetIndex)
             );
         }
         else {
@@ -1722,7 +1717,7 @@ void Engine::renderPostFX(TextureIndex finalTargetIndex) {
 
         // bind target FBO
         getCurrentWindow().getFBO()->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(finalTargetIndex)
+            getCurrentWindow().getFrameBufferTexture(targetIndex)
         );
 
         glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
@@ -2533,7 +2528,7 @@ void Engine::updateDrawBufferResolutions() {
             const core::Viewport& vp = win.getViewport(j);
             if (vp.hasSubViewports()) {
                 int cubeRes = vp.getNonLinearProjection()->getCubemapResolution();
-                _drawBufferResolutions.push_back(glm::ivec2(cubeRes, cubeRes));
+                _drawBufferResolutions.emplace_back(cubeRes, cubeRes);
             }
         }
 

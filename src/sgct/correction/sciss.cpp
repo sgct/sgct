@@ -91,9 +91,8 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         fclose(meshFile);
         throw std::runtime_error("Error parsing file");
     }
-    else {
-        MessageHandler::printDebug("CorrectionMesh: file version %u", fileVersion);
-    }
+
+    MessageHandler::printDebug("CorrectionMesh: file version %u", fileVersion);
 
     // read mapping type
     unsigned int type;
@@ -106,11 +105,10 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         fclose(meshFile);
         throw std::runtime_error("Error parsing file");
     }
-    else {
-        MessageHandler::printDebug(
-            "CorrectionMesh: Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
-        );
-    }
+
+    MessageHandler::printDebug(
+        "CorrectionMesh: Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
+    );
 
     // read viewdata
     SCISSViewData viewData;
@@ -124,33 +122,32 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         fclose(meshFile);
         throw std::runtime_error("Error parsing file");
     }
-    else {
-        const double x = static_cast<double>(viewData.qx);
-        const double y = static_cast<double>(viewData.qy);
-        const double z = static_cast<double>(viewData.qz);
-        const double w = static_cast<double>(viewData.qw);
-        
-        // Switching the Euler angles to switch from a right-handed coordinate system to
-        // a left-handed one
-        glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
-        yaw = -angles.x;
-        pitch = angles.y;
-        roll = -angles.z;
-        
-        MessageHandler::printDebug(
-            "CorrectionMesh: Rotation quat = [%f %f %f %f]. "
-            "yaw = %lf, pitch = %lf, roll = %lf",
-            viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-        MessageHandler::printDebug(
-            "CorrectionMesh: Position = [%f %f %f]", viewData.x, viewData.y, viewData.z
-        );
+    const double x = static_cast<double>(viewData.qx);
+    const double y = static_cast<double>(viewData.qy);
+    const double z = static_cast<double>(viewData.qz);
+    const double w = static_cast<double>(viewData.qw);
+        
+    // Switching the Euler angles to switch from a right-handed coordinate system to
+    // a left-handed one
+    glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
+    yaw = -angles.x;
+    pitch = angles.y;
+    roll = -angles.z;
+        
+    MessageHandler::printDebug(
+        "CorrectionMesh: Rotation quat = [%f %f %f %f]. "
+        "yaw = %lf, pitch = %lf, roll = %lf",
+        viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-        MessageHandler::printDebug("CorrectionMesh: FOV up = %f", viewData.fovUp);
-        MessageHandler::printDebug("CorrectionMesh: FOV down = %f", viewData.fovDown);
-        MessageHandler::printDebug("CorrectionMesh: FOV left = %f", viewData.fovLeft);
-        MessageHandler::printDebug("CorrectionMesh: FOV right = %f", viewData.fovRight);
-    }
+    MessageHandler::printDebug(
+        "CorrectionMesh: Position = [%f %f %f]", viewData.x, viewData.y, viewData.z
+    );
+
+    MessageHandler::printDebug("CorrectionMesh: FOV up = %f", viewData.fovUp);
+    MessageHandler::printDebug("CorrectionMesh: FOV down = %f", viewData.fovDown);
+    MessageHandler::printDebug("CorrectionMesh: FOV left = %f", viewData.fovLeft);
+    MessageHandler::printDebug("CorrectionMesh: FOV right = %f", viewData.fovRight);
 
     // read number of vertices
     unsigned int size[2];
@@ -217,11 +214,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         fclose(meshFile);
         throw std::runtime_error("Error parsing file");
     }
-    else {
-        MessageHandler::printDebug(
-            "CorrectionMesh: Number of indices = %u", numberOfIndices
-        );
-    }
+    MessageHandler::printDebug("CorrectionMesh: Number of indices = %u", numberOfIndices);
 
     // read faces
     if (numberOfIndices > 0) {

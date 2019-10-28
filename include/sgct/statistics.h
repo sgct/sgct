@@ -11,6 +11,7 @@
 
 #include <sgct/shaderprogram.h>
 #include <glm/glm.hpp>
+#include <array>
 #include <vector>
 
 namespace sgct::core {
@@ -65,11 +66,11 @@ private:
         float y;
     };
     struct {
-        StatsVertex frameTime[StatsHistoryLength];
-        StatsVertex drawTime[StatsHistoryLength];
-        StatsVertex syncTime[StatsHistoryLength];
-        StatsVertex loopTimeMax[StatsHistoryLength];
-        StatsVertex loopTimeMin[StatsHistoryLength];
+        std::array<StatsVertex, StatsHistoryLength> frameTime;
+        std::array<StatsVertex, StatsHistoryLength> drawTime;
+        std::array<StatsVertex, StatsHistoryLength> syncTime;
+        std::array<StatsVertex, StatsHistoryLength> loopTimeMax;
+        std::array<StatsVertex, StatsHistoryLength> loopTimeMin;
     } _dynamicVertexList;
     struct {
         glm::vec4 frameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
@@ -86,8 +87,8 @@ private:
     // VBOs
     unsigned int _vboIndex = 0;
     // double buffered for ping-pong
-    unsigned int _dynamicVAO[2] = { 0, 0 };
-    unsigned int _dynamicVBO[2] = { 0, 0 };
+    std::array<unsigned int, 2> _dynamicVAO = { 0, 0 };
+    std::array<unsigned int, 2> _dynamicVBO = { 0, 0 };
     unsigned int _staticVAO = 0;
     unsigned int _staticVBO = 0;
 
@@ -100,6 +101,6 @@ private:
     std::vector<float> _staticVerts;
 };
 
-} // namespace sgct_core
+} // namespace sgct::core
 
 #endif // __SGCT__STATISTICS__H__

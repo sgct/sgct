@@ -7,9 +7,9 @@
  ****************************************************************************************/
 
 // png.h needs all of this included before its own include.. sigh
-#include <stdio.h>
-#include <fstream>
 #include <algorithm>
+#include <cstdio>
+#include <fstream>
 
 #include <png.h>
 #include <pngpriv.h>

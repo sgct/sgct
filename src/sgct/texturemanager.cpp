@@ -213,4 +213,4 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     return texID;
 }
 
-} // namespace sgct::core
+} // namespace sgct

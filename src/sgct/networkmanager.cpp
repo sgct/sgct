@@ -221,16 +221,15 @@ bool NetworkManager::init() {
                     );
                     return false;
                 }
-                else {
-                    _networkConnections.back()->setDecodeFunction(
-                        [](const char* data, int length, int index) {
-                            MessageHandler::instance()->decode(
-                                std::vector<char>(data, data + length),
-                                index
-                            );
-                        }
-                    );
-                }
+
+                _networkConnections.back()->setDecodeFunction(
+                    [](const char* data, int length, int index) {
+                        MessageHandler::instance()->decode(
+                            std::vector<char>(data, data + length),
+                           index
+                        );
+                    }
+                );
 
                 // add data transfer connection
                 const bool addTransferPort = addConnection(
@@ -514,7 +513,7 @@ const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    MessageHandler::instance()->printDebug(
+    MessageHandler::printDebug(
         "NetworkManager: Updating status for connection %d", connection->getId()
     );
 
@@ -581,8 +580,8 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 
         // send cluster connected message to nodes/slaves
         if (allNodesConnectedCopy) {
-            for (unsigned int i = 0; i < _syncConnections.size(); i++) {
-                if (!_syncConnections[i]->isConnected()) {
+            for (Network* syncConnection : _syncConnections) {
+                if (!syncConnection->isConnected()) {
                     continue;
                 }
                 char data[Network::HeaderSize];
@@ -593,10 +592,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 );
                 data[0] = Network::ConnectedId;
 
-                _syncConnections[i]->sendData(&data, Network::HeaderSize);
+                syncConnection->sendData(&data, Network::HeaderSize);
             }
-            for (unsigned int i = 0; i < _dataTransferConnections.size(); i++) {
-                if (_dataTransferConnections[i]->isConnected()) {
+            for (Network* dataConnection : _dataTransferConnections) {
+                if (dataConnection->isConnected()) {
                     char data[Network::HeaderSize];
                     std::fill(
                         std::begin(data),
@@ -604,7 +603,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                         static_cast<char>(Network::DefaultId)
                     );
                     data[0] = Network::ConnectedId;
-                    _dataTransferConnections[i]->sendData(&data, Network::HeaderSize);
+                    dataConnection->sendData(&data, Network::HeaderSize);
                 }
             }
         }
@@ -800,9 +799,9 @@ void NetworkManager::getHostInfo() {
             sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
             inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
             if (p->ai_canonname) {
-                _dnsNames.push_back(p->ai_canonname);
+                _dnsNames.emplace_back(p->ai_canonname);
             }
-            _localAddresses.push_back(addr_str);
+            _localAddresses.emplace_back(addr_str);
         }
     }
 
@@ -819,8 +818,8 @@ void NetworkManager::getHostInfo() {
     }
 
     // add the loop-back
-    _localAddresses.push_back("127.0.0.1");
-    _localAddresses.push_back("localhost");
+    _localAddresses.emplace_back("127.0.0.1");
+    _localAddresses.emplace_back("localhost");
 }
 
 bool NetworkManager::matchAddress(const std::string& address) const {

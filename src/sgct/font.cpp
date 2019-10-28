@@ -52,10 +52,10 @@ namespace {
         }
 
         // Convert the glyph to a bitmap
-        FT_Glyph_To_Bitmap(&(gd.glyph), ft_render_mode_normal, 0, 1);
+        FT_Glyph_To_Bitmap(&(gd.glyph), ft_render_mode_normal, nullptr, 1);
         gd.bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.glyph);
 
-        FT_Glyph_To_Bitmap(&(gd.strokeGlyph), ft_render_mode_normal, 0, 1);
+        FT_Glyph_To_Bitmap(&(gd.strokeGlyph), ft_render_mode_normal, nullptr, 1);
         gd.bitmapStrokeGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.strokeGlyph);
 
         // This pointer will make accessing the bitmap easier
@@ -191,7 +191,7 @@ namespace {
 
         return ffd;
     }
-} // namepsace
+} // namespace
 
 namespace sgct::text {
 

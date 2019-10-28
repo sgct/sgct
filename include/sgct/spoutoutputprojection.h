@@ -14,6 +14,7 @@
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
+#include <array>
 #include <memory>
 
 namespace sgct::core {
@@ -32,22 +33,23 @@ public:
         Cubemap
     };
 
-    void setSpoutChannels(const bool channels[6]);
+    void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
+        bool zRight);
     void setSpoutMappingName(std::string name);
     void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(glm::vec3 orientation);
 
     /// Update projection when aspect ratio changes for the viewport.
-    virtual void update(glm::vec2 size) override;
+    void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
-    virtual void render() override;
+    void render() override;
 
     /// Render the enabled faces of the cubemap
-    virtual void renderCubemap() override;
+    void renderCubemap() override;
 
     static const int NFaces = 6;
-    inline static const char* CubeMapFaceName[] = {
+    inline static const std::array<const char*, 6> CubeMapFaceName = {
         "Right",
         "zLeft",
         "Bottom",
@@ -57,10 +59,10 @@ public:
     };
 
 private:
-    virtual void initTextures() override;
-    virtual void initViewports() override;
-    virtual void initShaders() override;
-    virtual void initFBO() override;
+    void initTextures() override;
+    void initViewports() override;
+    void initShaders() override;
+    void initFBO() override;
 
     void drawCubeFace(int face);
     void blitCubeFace(int face);
@@ -81,7 +83,7 @@ private:
         void* handle = nullptr;
         GLuint texture = 0;
     };
-    SpoutInfo _spout[NFaces];
+    std::array<SpoutInfo, NFaces> _spout;
 
     void* _mappingHandle = nullptr;
     GLuint _mappingTexture = 0;

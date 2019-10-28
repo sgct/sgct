@@ -58,7 +58,7 @@ public:
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
-    void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
+    void setHorizontalFieldOfView(float hFov, float aspectRatio);
 
 protected:
     struct {

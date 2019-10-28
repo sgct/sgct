@@ -50,8 +50,8 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     float elevation = 0.f;
     float hFov = 0.f;
     float vFov = 0.f;
-    glm::vec2 fovTweaks = glm::vec2(1.f);
-    glm::vec2 uvTweaks = glm::vec2(1.f);
+    glm::vec2 fovTweaks(1.f);
+    glm::vec2 uvTweaks(1.f);
     bool dimensionsSet = false;
     bool azimuthSet = false;
     bool elevationSet = false;
@@ -59,7 +59,8 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     bool vFovSet = false;
     float x, y, u, v;
 
-    unsigned int size[2];
+    unsigned int sizeX = 0;
+    unsigned int sizeY = 0;
     unsigned int counter = 0;
 
     while (!feof(meshFile)) {
@@ -94,10 +95,10 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
             ;
         }
         else if (!dimensionsSet &&
-                 _sscanf(lineBuffer, "%u %u", &size[0], &size[1]) == 2)
+                 _sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2)
         {
             dimensionsSet = true;
-            buf.vertices.resize(size[0] * size[1]);
+            buf.vertices.resize(sizeX * sizeY);
         }
         else if (dimensionsSet && _sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
         {
@@ -161,12 +162,12 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
 
     Engine::instance()->updateFrustums();
 
-    for (unsigned int c = 0; c < (size[0] - 1); c++) {
-        for (unsigned int r = 0; r < (size[1] - 1); r++) {
-            const unsigned int i0 = r * size[0] + c;
-            const unsigned int i1 = r * size[0] + (c + 1);
-            const unsigned int i2 = (r + 1) * size[0] + (c + 1);
-            const unsigned int i3 = (r + 1) * size[0] + c;
+    for (unsigned int c = 0; c < (sizeX - 1); c++) {
+        for (unsigned int r = 0; r < (sizeY - 1); r++) {
+            const unsigned int i0 = r * sizeX + c;
+            const unsigned int i1 = r * sizeX + (c + 1);
+            const unsigned int i2 = (r + 1) * sizeX + (c + 1);
+            const unsigned int i3 = (r + 1) * sizeX + c;
 
             // 3      2
             //  x____x
@@ -199,16 +200,16 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         }
     }
 
-    for (unsigned int i = 0; i < buf.vertices.size(); i++) {
+    for (CorrectionMeshVertex& vertex : buf.vertices) {
         const glm::vec2& s = parent.getSize();
         const glm::vec2& p = parent.getPosition();
 
         // convert to [-1, 1]
-        buf.vertices[i].x = 2.f * (buf.vertices[i].x * s.x + p.x) - 1.f;
-        buf.vertices[i].y = 2.f * ((1.f - buf.vertices[i].y) * s.y + p.y) - 1.f;
+        vertex.x = 2.f * (vertex.x * s.x + p.x) - 1.f;
+        vertex.y = 2.f * ((1.f - vertex.y) * s.y + p.y) - 1.f;
 
-        buf.vertices[i].s = buf.vertices[i].s * s.x + p.x;
-        buf.vertices[i].t = buf.vertices[i].t * s.y + p.y;
+        vertex.s = vertex.s * s.x + p.x;
+        vertex.t = vertex.t * s.y + p.y;
     }
 
     buf.geometryType = GL_TRIANGLES;

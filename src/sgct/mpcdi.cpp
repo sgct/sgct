@@ -462,9 +462,8 @@ bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Windo
         );
         return false;
     }
-    else {
-        parsedItems.hasDisplayElem = true;
-    }
+
+    parsedItems.hasDisplayElem = true;
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
         std::string_view val = child->Value();
@@ -586,9 +585,8 @@ bool Mpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
         );
         return false;
     }
-    else {
-        parsedItems.hasBufferElem = true;
-    }
+
+    parsedItems.hasBufferElem = true;
     if (element->Attribute("xResolution")) {
         element->QueryAttribute("xResolution", &parsedItems.resolution.x);
     }
@@ -632,7 +630,7 @@ bool Mpcdi::readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
     // intended for use with MPCDI files containing multiple regions, but currently
     // only is tested with single region files.
     if (element->Attribute("id")) {
-        _bufferRegions.push_back(element->Attribute("id"));
+        _bufferRegions.emplace_back(element->Attribute("id"));
     }
     else {
         MessageHandler::printError(

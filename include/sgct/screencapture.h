@@ -97,7 +97,7 @@ private:
     void addFrameNumberToFilename(unsigned int frameNumber);
     int getAvailableCaptureThread();
     void updateDownloadFormat();
-    void checkImageBuffer(CaptureSource CapSrc);
+    void checkImageBuffer(CaptureSource captureSource);
     Image* prepareImage(int index);
 
     std::mutex _mutex;

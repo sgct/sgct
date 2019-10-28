@@ -303,10 +303,15 @@ void SpoutOutputProjection::renderCubemap() {
     }
 }
 
-void SpoutOutputProjection::setSpoutChannels(const bool channels[NFaces]) {
-    for (size_t i = 0; i < NFaces; i++) {
-        _spout[i].enabled = channels[i];
-    }
+void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom,
+                                             bool top, bool left, bool zRight)
+{
+    _spout[0].enabled = right;
+    _spout[1].enabled = zLeft;
+    _spout[2].enabled = bottom;
+    _spout[3].enabled = top;
+    _spout[4].enabled = left;
+    _spout[5].enabled = zRight;
 }
 
 void SpoutOutputProjection::setSpoutMappingName(std::string name) {

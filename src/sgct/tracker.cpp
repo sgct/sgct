@@ -25,7 +25,7 @@ void Tracker::setEnabled(bool state) {
     }
 }
 
-void Tracker::addDevice(std::string name, size_t index) {
+void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
 
     MessageHandler::printInfo("%s: Adding device '%s'", _name.c_str(), name.c_str());
@@ -47,12 +47,7 @@ TrackingDevice* Tracker::getDevice(const std::string& name) const {
             return dev->getName() == name;
         }
     );
-    if (it != _trackingDevices.end()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
+    return it != _trackingDevices.end() ? it->get() : nullptr;
 }
 
 TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
@@ -63,12 +58,7 @@ TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
             return dev->getSensorId() == id;
         }
     );
-    if (it != _trackingDevices.end()) {
-        return it->get();
-    }
-    else {
-        return nullptr;
-    }
+    return it != _trackingDevices.end() ? it->get() : nullptr;
 }
 
 void Tracker::setOrientation(glm::quat q) {
@@ -76,7 +66,6 @@ void Tracker::setOrientation(glm::quat q) {
 
     // create inverse rotation matrix
     _orientation = glm::inverse(glm::mat4_cast(q));
-
     calculateTransform();
 }
 

@@ -51,7 +51,7 @@ namespace {
     ResetFrameCount wglResetFrameCountNV = nullptr;
 #endif // WIN32
 
-    constexpr const float QuadVerts[20] = {
+    constexpr const std::array<const float, 20> QuadVerts = {
         0.f, 0.f, -1.f, -1.f, -1.f,
         1.f, 0.f,  1.f, -1.f, -1.f,
         0.f, 1.f, -1.f,  1.f, -1.f,
@@ -87,7 +87,7 @@ namespace {
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
-                node.getWindow(i).setFocused(state);
+                node.getWindow(i).setFocused(state == GLFW_TRUE);
             }
         }
     }
@@ -97,7 +97,7 @@ namespace {
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
-                node.getWindow(i).setIconified(state);
+                node.getWindow(i).setIconified(state == GLFW_TRUE);
             }
         }
     }
@@ -276,7 +276,7 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
 
     for (const config::Viewport& viewport : window.viewports) {
         std::unique_ptr<core::Viewport> vp = std::make_unique<core::Viewport>();
-        vp->applySettings(viewport);
+        vp->applyViewport(viewport);
         addViewport(std::move(vp));
     }
 }
@@ -1226,7 +1226,7 @@ void Window::createVBOs() {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     //2TF + 3VF = 2*4 + 3*4 = 20
-    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(
         0,
@@ -1459,34 +1459,30 @@ void Window::updateTransferCurve() {
         return;
     }
 
-    GLFWgammaramp ramp;
-    unsigned short red[256];
-    unsigned short green[256];
-    unsigned short blue[256];
-    
-    ramp.size = 256;
-    ramp.red = red;
-    ramp.green = green;
-    ramp.blue = blue;
+    constexpr const int RampSize = 256;
+    std::array<unsigned short, RampSize> red;
+    std::array<unsigned short, RampSize> green;
+    std::array<unsigned short, RampSize> blue;
 
-    float gammaExp = 1.f / _gamma;
-
-    for (unsigned int i = 0; i < ramp.size; i++) {
-        float c = ((static_cast<float>(i) / 255.f) - 0.5f) * _contrast + 0.5f;
-        float b = c + (_brightness - 1.f);
-        float g = powf(b, gammaExp);
-
-        // transform back
-
+    const float gammaExp = 1.f / _gamma;
+    for (unsigned int i = 0; i < RampSize; i++) {
+        const float c = ((static_cast<float>(i) / 255.f) - 0.5f) * _contrast + 0.5f;
+        const float b = c + (_brightness - 1.f);
+        const float g = powf(b, gammaExp);
         unsigned short t = static_cast<unsigned short>(
             glm::clamp(65535.f * g, 0.f, 65535.f) + 0.5f
         );
 
-        ramp.red[i] = t;
-        ramp.green[i] = t;
-        ramp.blue[i] = t;
+        red[i] = t;
+        green[i] = t;
+        blue[i] = t;
     }
 
+    GLFWgammaramp ramp;
+    ramp.size = RampSize;
+    ramp.red = red.data();
+    ramp.green = green.data();
+    ramp.blue = blue.data();
     glfwSetGammaRamp(_monitor, &ramp);
 }
 

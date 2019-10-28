@@ -30,7 +30,7 @@ namespace {
 
 namespace sgct::core {
 
-void Viewport::applySettings(const config::Viewport& viewport) {
+void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.user) {
         setUserName(*viewport.user);
     }
@@ -102,26 +102,26 @@ void Viewport::applySettings(const config::Viewport& viewport) {
     }, viewport.projection);
 }
 
-void Viewport::applySettings(const sgct::config::MpcdiProjection& proj) {
-    if (proj.id) {
-        setName(*proj.id);
+void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
+    if (mpcdi.id) {
+        setName(*mpcdi.id);
     }
-    if (proj.position) {
-        setPos(*proj.position);
+    if (mpcdi.position) {
+        setPos(*mpcdi.position);
     }
-    if (proj.size) {
-        setSize(*proj.size);
+    if (mpcdi.size) {
+        setSize(*mpcdi.size);
     }
-    if (proj.frustum) {
+    if (mpcdi.frustum) {
         setViewPlaneCoordsUsingFOVs(
-            proj.frustum->up,
-            proj.frustum->down,
-            proj.frustum->left,
-            proj.frustum->right,
-            *proj.orientation,
-            *proj.distance
+            mpcdi.frustum->up,
+            mpcdi.frustum->down,
+            mpcdi.frustum->left,
+            mpcdi.frustum->right,
+            *mpcdi.orientation,
+            *mpcdi.distance
         );
-        _projectionPlane.offset(*proj.offset);
+        _projectionPlane.offset(*mpcdi.offset);
     }
 }
 
@@ -203,7 +203,6 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 #ifndef SGCT_HAS_SPOUT
     (void)proj;
     MessageHandler::printWarning("Spout library not added to SGCT");
-    return;
 #else
    
     std::unique_ptr<SpoutOutputProjection> spoutProj =
@@ -231,15 +230,14 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
         spoutProj->setClearColor(*proj.background);
     }
     if (proj.channels) {
-        bool channels[6] = {
+        spoutProj->setSpoutChannels(
             proj.channels->right,
             proj.channels->zLeft,
             proj.channels->bottom,
             proj.channels->top,
             proj.channels->left,
             proj.channels->zRight
-        };
-        spoutProj->setSpoutChannels(channels);
+        );
     }
     if (proj.orientation) {
         spoutProj->setSpoutRigOrientation(*proj.orientation);

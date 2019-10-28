@@ -59,7 +59,7 @@ void ShaderManager::addShaderProgram(const std::string& name,
 }
 
 bool ShaderManager::removeShaderProgram(const std::string& name) {
-    std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
+    auto shaderIt = std::find_if(
         _shaderPrograms.begin(),
         _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
@@ -79,21 +79,19 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
 }
 
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
-    std::vector<ShaderProgram>::const_iterator shaderIt = std::find_if(
-        _shaderPrograms.begin(),
-        _shaderPrograms.end(),
+    auto shaderIt = std::find_if(
+        _shaderPrograms.cbegin(),
+        _shaderPrograms.cend(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
-    if (shaderIt != _shaderPrograms.end()) {
-        return *shaderIt;
-    }
-    else {
+    if (shaderIt == _shaderPrograms.end()) {
         throw std::runtime_error("Could not find shader with name " + name);
     }
+    return *shaderIt;
 }
 
 bool ShaderManager::shaderProgramExists(const std::string& name) const {
-    std::vector<ShaderProgram>::const_iterator exists = std::find_if(
+    auto exists = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }

@@ -57,8 +57,8 @@ public:
 private:
     void addDeviceToCurrentTracker(std::string name);
     void addSensorToCurrentDevice(std::string address, int id);
-    void addButtonsToCurrentDevice(std::string address, int numOfButtons);
-    void addAnalogsToCurrentDevice(std::string address, int numOfAxes);
+    void addButtonsToCurrentDevice(std::string address, int nButtons);
+    void addAnalogsToCurrentDevice(std::string address, int nAxes);
 
     std::unique_ptr<std::thread> _samplingThread;
     std::vector<std::unique_ptr<Tracker>> _trackers;

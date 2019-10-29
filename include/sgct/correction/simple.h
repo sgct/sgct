@@ -14,8 +14,8 @@
 
 namespace sgct::core::correction {
 
-Buffer setupMaskMesh(const glm::ivec2& pos, const glm::ivec2& size);
-Buffer setupSimpleMesh(const glm::ivec2& pos, const glm::ivec2& size);
+Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size);
+Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size);
 
 } // namespace sgct::core::correction
 

@@ -23,6 +23,7 @@
 #include <sgct/settings.h>
 #include <sgct/sphericalmirrorprojection.h>
 #include <sgct/spoutoutputprojection.h>
+#include <array>
 #include <functional>
 #include <optional>
 
@@ -39,7 +40,7 @@ namespace core {
     class Image;
     class NetworkManager;
     class Node;
-    class Statistics;
+    class StatisticsRenderer;
     class Touch;
 } // namespace core
 
@@ -110,6 +111,16 @@ public:
         Positions
     };
 
+    struct Statistics {
+        static inline const int HistoryLength = 512;
+
+        std::array<double, HistoryLength> frametimes;
+        std::array<double, HistoryLength> drawTimes;
+        std::array<double, HistoryLength> syncTimes;
+        std::array<double, HistoryLength> loopTimeMin;
+        std::array<double, HistoryLength> loopTimeMax;
+    };
+
     static void create(const Configuration& arg);
     static void destroy();
 
@@ -137,6 +148,9 @@ public:
 
     /// This is SGCT's renderloop where rendering & synchronization takes place.
     void render();
+
+    /// Returns the statistic object containing all information about the frametimes, etc
+    const Statistics& getStatistics() const;
 
     /// \return the frame time (delta time) in seconds
     double getDt() const;
@@ -238,11 +252,6 @@ public:
      */
     void setDisplayInfoVisibility(bool state);
 
-    /**
-     * Set if the statistics graph should be visible or not
-     *
-     * \param state of the statistics graph rendering
-     */
     void setStatsGraphVisibility(bool state);
 
     /**
@@ -918,19 +927,16 @@ private:
 
     /**
      * Locks the rendering thread for synchronization. Locks the slaves until data is
-     * successfully received. Sync time from statistics is the time each computer waits
-     * for sync.
+     * successfully received.
      */
     bool frameLockPreStage();
 
     /**
      * Locks the rendering thread for synchronization. Locks master until slaves are ready
-     * to swap buffers. Sync time from statistics is the time each computer waits for
+     * to swap buffers.
      * sync.
      */
     bool frameLockPostStage();
-
-    void calculateFPS(double timestamp);
 
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
@@ -1034,6 +1040,15 @@ private:
     size_t _currentDrawBufferIndex = 0;
 
     struct {
+        double prevTimestamp = 0.0;
+        unsigned int lastAvgFrameCounter = 0;
+        double lastAvgTimestamp = 0.0;
+    } stats;
+
+    Statistics _statistics;
+    std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
+
+    struct {
         size_t main = 0;
         size_t sub = 0;
     } _currentViewportIndex;
@@ -1066,7 +1081,6 @@ private:
     } _shaderLoc;
 
     std::unique_ptr<core::NetworkManager> _networkConnections;
-    std::unique_ptr<core::Statistics> _statistics;
 
     std::unique_ptr<std::thread> _thread;
 

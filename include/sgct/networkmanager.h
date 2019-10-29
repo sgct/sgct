@@ -11,12 +11,12 @@
 
 #include <sgct/network.h>
 #include <atomic>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace sgct::core {
-
-class Statistics;
 
 /**
  * The network manager manages all network connections for SGCT.
@@ -32,8 +32,14 @@ public:
     ~NetworkManager();
     bool init();
 
-    ///  \param if this application is server/master in cluster then set to true
-    void sync(SyncMode sm, Statistics& statsPtr);
+    /**
+     *
+     * \param if this application is server/master in cluster then set to true
+     * \return min-max pair of the looping time to all connections if data was sent to the
+     *         clients. If it was the acknowledge data call or no connections are
+     *         available, a nullopt is returned
+     */
+    std::optional<std::pair<double, double>> sync(SyncMode sm);
 
     /**
      * Compare if the last frame and current frames are different -> data update

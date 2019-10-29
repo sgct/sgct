@@ -24,9 +24,9 @@ public:
     PostFX(std::string name, const std::string& vertShaderSrc,
         const std::string& fragShaderSrc, std::function<void()>);
     ~PostFX();
-    PostFX(PostFX&&) noexcept = default;
+    PostFX(PostFX&& rhs) noexcept;
 
-    PostFX& operator=(PostFX&&) noexcept = default;
+    PostFX& operator=(PostFX&& rhs) noexcept = default;
 
     /// Render this pass
     void render();

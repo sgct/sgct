@@ -31,6 +31,7 @@ namespace {
     } geometry;
 
     sgct::SharedBool showId(false);
+    sgct::SharedBool showStats(false);
 
     float tilt = 0.f;
     float radius = 7.4f;
@@ -98,6 +99,8 @@ void main() {
 using namespace sgct;
 
 void draw() {
+    Engine::instance()->setStatsGraphVisibility(showStats.getVal());
+
     ShaderManager::instance()->getShaderProgram("simple").bind();
     const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix();
 
@@ -283,14 +286,20 @@ void keyboardCallback(int key, int, int action, int) {
     if (key == key::I && action == action::Press) {
         showId.setVal(!showId.getVal());
     }
+
+    if (key == key::S && action == action::Press) {
+        showStats.setVal(!showStats.getVal());
+    }
 }
 
 void encode() {
     SharedData::instance()->writeBool(showId);
+    SharedData::instance()->writeBool(showStats);
 }
 
 void decode() {
     SharedData::instance()->readBool(showId);
+    SharedData::instance()->readBool(showStats);
 }
 
 void cleanUp() {

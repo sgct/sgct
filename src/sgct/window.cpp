@@ -1338,7 +1338,7 @@ glm::ivec2 Window::getFinalFBODimensions() const {
 }
 
 void Window::addPostFX(PostFX fx) {
-    _postFXPasses.push_back(std::move(fx));
+    _postFXPasses.emplace_back(std::move(fx));
 }
 
 void Window::resizeFBOs() {

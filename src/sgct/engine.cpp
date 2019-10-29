@@ -18,7 +18,7 @@
 #include <sgct/mutexes.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
-#include <sgct/statistics.h>
+#include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
@@ -28,6 +28,7 @@
 #include <sgct/shaders/internalshaders.h>
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <glm/gtc/type_ptr.hpp>
@@ -102,6 +103,16 @@ namespace {
             default:
                 return "none";
         }
+    }
+
+    template <typename Array>
+    void addValue(Array& array, double value) {
+        std::rotate(
+            std::rbegin(array),
+            std::rbegin(array) + 1,
+            std::rend(array)
+        );
+        array[0] = value;
     }
 } // namespace
 
@@ -240,6 +251,12 @@ Engine::Engine(const Configuration& config) {
     if (res == GLFW_FALSE) {
         _shouldTerminate = true;
     }
+
+    std::fill(_statistics.frametimes.begin(), _statistics.frametimes.end(), 0.0);
+    std::fill(_statistics.drawTimes.begin(), _statistics.drawTimes.end(), 0.0);
+    std::fill(_statistics.syncTimes.begin(), _statistics.syncTimes.end(), 0.0);
+    std::fill(_statistics.loopTimeMin.begin(), _statistics.loopTimeMin.end(), 0.0);
+    std::fill(_statistics.loopTimeMax.begin(), _statistics.loopTimeMax.end(), 0.0);
 }
 
 Engine::~Engine() {
@@ -306,14 +323,14 @@ Engine::~Engine() {
         thisNode.getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
     }
 
-    _statistics = nullptr;
-
     MessageHandler::printDebug("Destroying shader manager and internal shaders");
     ShaderManager::destroy();
 
     _shader.fboQuad.deleteProgram();
     _shader.fxaa.deleteProgram();
     _shader.overlay.deleteProgram();
+
+    _statisticsRenderer = nullptr;
 
     MessageHandler::printDebug("Destroying texture manager");
     TextureManager::destroy();
@@ -634,8 +651,6 @@ bool Engine::initWindows() {
         _preWindowFn();
     }
 
-    _statistics = std::make_unique<core::Statistics>();
-
     GLFWwindow* share = nullptr;
     const int lastWindowIdx = thisNode.getNumberOfWindows() - 1;
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -731,7 +746,6 @@ void Engine::initOGL() {
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
     loadShaders();
-    _statistics->initVBO();
 
     if (_initOpenGLFn) {
         MessageHandler::printInfo("Calling init callback");
@@ -829,8 +843,13 @@ bool Engine::frameLockPreStage() {
 
     const double ts = glfwGetTime();
     // from server to clients
-    _networkConnections->sync(NetworkManager::SyncMode::SendDataToClients, *_statistics);
-    _statistics->setSyncTime(static_cast<float>(glfwGetTime() - ts));
+    std::optional<std::pair<double, double>> minMax =
+        _networkConnections->sync(NetworkManager::SyncMode::SendDataToClients);
+    if (minMax) {
+        addValue(_statistics.loopTimeMin, minMax->first);
+        addValue(_statistics.loopTimeMax, minMax->second);
+    }
+    addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
 
     // run only on clients/slaves
     if (ClusterManager::instance()->getIgnoreSync() ||
@@ -885,9 +904,8 @@ bool Engine::frameLockPreStage() {
 
     // A this point all data needed for rendering a frame is received.
     // Let's signal that back to the master/server.
-    _networkConnections->sync(NetworkManager::SyncMode::AcknowledgeData, *_statistics);
-    _statistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
-
+    _networkConnections->sync(NetworkManager::SyncMode::AcknowledgeData);
+    addValue(_statistics.syncTimes, glfwGetTime() - t0);
     return true;
 }
 
@@ -947,8 +965,8 @@ bool Engine::frameLockPostStage() {
             return false;
         }
     }
-    _statistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
 
+    addValue(_statistics.syncTimes, glfwGetTime() - t0);
     return true;
 }
 
@@ -1007,7 +1025,9 @@ void Engine::render() {
         }
 
         const double startFrameTime = glfwGetTime();
-        calculateFPS(startFrameTime); // measures time between calls
+        const double ft = static_cast<float>(startFrameTime - stats.prevTimestamp);
+        addValue(_statistics.frametimes, ft);
+        stats.prevTimestamp = startFrameTime;
 
         if (_showGraph) {
             glQueryCounter(_timeQueryBegin, GL_TIMESTAMP);
@@ -1159,11 +1179,11 @@ void Engine::render() {
             glGetQueryObjectui64v(_timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
 
             const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            _statistics->setDrawTime(static_cast<float>(t));
+            addValue(_statistics.drawTimes, t);
         }
 
         if (_showGraph) {
-            _statistics->update();
+            _statisticsRenderer->update();
         }
         
         // master will wait for nodes render before swapping
@@ -1228,23 +1248,44 @@ void Engine::renderDisplayInfo() {
             _networkConnections->isComputerServer() ? "master" : "slave"
         );
 
+        const double accFrameTime = std::accumulate(
+            _statistics.frametimes.begin(),
+            _statistics.frametimes.end(),
+            0.0
+        );
+        const double avgFrametime = accFrameTime / Statistics::HistoryLength;
+        const double avgFPS = 1.f / avgFrametime;
+        
         text::print(
             *font,
             text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 5.f + pos.y,
             glm::vec4(0.8f, 0.8f, 0.f, 1.f),
-            "Frame rate: %.2f Hz, frame: %u", _statistics->getAvgFPS(), _frameCounter
+            "Frame rate: %.2f Hz, frame: %u", avgFPS, _frameCounter
         );
 
+        const double accDrawtime = std::accumulate(
+            _statistics.drawTimes.begin(),
+            _statistics.drawTimes.end(),
+            0.0
+        );
+        const double avgDrawtime = accDrawtime / Statistics::HistoryLength;
         text::print(
             *font,
             text::TextAlignMode::TopLeft,
             pos.x,
             lineHeight * 4.f + pos.y,
             glm::vec4(0.8f, 0.f, 0.8f, 1.f),
-            "Avg. draw time: %.2f ms", _statistics->getAvgDrawTime() * 1000.f
+            "Avg. draw time: %.2f ms", avgDrawtime * 1000.f
         );
+
+        const double accSynctime = std::accumulate(
+            _statistics.syncTimes.begin(),
+            _statistics.syncTimes.end(),
+            0.0
+        );
+        const double avgSynctime = accSynctime / Statistics::HistoryLength;
 
         if (isMaster()) {
             text::print(
@@ -1253,8 +1294,7 @@ void Engine::renderDisplayInfo() {
                 pos.x,
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
-                "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)",
-                _statistics->getAvgSyncTime() * 1000.0,
+                "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)", avgSynctime * 1000.0, 
                 SharedData::instance()->getUserDataSize(),
                 SharedData::instance()->getCompressionRatio()
             );
@@ -1266,7 +1306,7 @@ void Engine::renderDisplayInfo() {
                 pos.x,
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
-                "Avg. sync time: %.2f ms", _statistics->getAvgSyncTime() * 1000.0
+                "Avg. sync time: %.2f ms", avgSynctime * 1000.0
             );
         }
 
@@ -1632,6 +1672,15 @@ void Engine::renderViewports(TextureIndex ti) {
 }
 
 void Engine::render2D() {
+    if (_showGraph && _statisticsRenderer == nullptr) {
+        // User desired the graph
+        _statisticsRenderer = std::make_unique<core::StatisticsRenderer>(_statistics);
+    }
+    if (!_showGraph && _statisticsRenderer != nullptr) {
+        // User desired to remove the graph
+        _statisticsRenderer = nullptr;
+    }
+
     // draw viewport overlays if any
     drawOverlays();
 
@@ -1652,10 +1701,7 @@ void Engine::render2D() {
         enterCurrentViewport();
 
         if (_showGraph) {
-            _statistics->draw(
-                static_cast<float>(getCurrentWindow().getFramebufferResolution().y) /
-                static_cast<float>(getCurrentWindow().getResolution().y)
-            );
+            _statisticsRenderer->render();
         }
         // The text renderer enters automatically the correct viewport
         if (_showInfo) {
@@ -2318,43 +2364,51 @@ void Engine::enterCurrentViewport() {
     );
 }
 
-void Engine::calculateFPS(double timestamp) {
-    static double lastTimestamp = glfwGetTime();
-    _statistics->setFrameTime(static_cast<float>(timestamp - lastTimestamp));
-    lastTimestamp = timestamp;
-    static float renderedFrames = 0.f;
-    static float tmpTime = 0.f;
-    renderedFrames += 1.f;
-    tmpTime += _statistics->getFrameTime();
-    if (tmpTime >= 1.f) {
-        _statistics->setAvgFPS(renderedFrames / tmpTime);
-        renderedFrames = 0.f;
-        tmpTime = 0.f;
-    }
+const Engine::Statistics& Engine::getStatistics() const {
+    return _statistics;
 }
 
 double Engine::getDt() const {
-    return _statistics->getFrameTime();
+    return _statistics.frametimes[0];
 }
 
 double Engine::getAvgFPS() const {
-    return _statistics->getAvgFPS();
+    return 1.0 / getAvgDt();
 }
 
 double Engine::getAvgDt() const {
-    return _statistics->getAvgFrameTime();
+    const double accFrameTime = std::accumulate(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end(),
+        0.0
+    );
+    const double avgFrametime = accFrameTime / Statistics::HistoryLength;
+    return avgFrametime;
 }
 
 double Engine::getMinDt() const {
-    return _statistics->getMinFrameTime();
+    return *std::min_element(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end()
+    );
 }
 
 double Engine::getMaxDt() const {
-    return _statistics->getMaxFrameTime();
+    return *std::max_element(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end()
+    );
 }
 
 double Engine::getDtStandardDeviation() const {
-    return _statistics->getFrameTimeStandardDeviation();
+    const double avg = getAvgDt();
+    const double sumSquare = std::accumulate(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end(),
+        0.0,
+        [avg](double cur, double rhs) { return cur + pow(rhs - avg, 2.0); }
+    );
+    return sumSquare / Statistics::HistoryLength;
 }
 
 glm::vec4 Engine::getClearColor() const {

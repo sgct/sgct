@@ -38,7 +38,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddatatypes.h
   ${PROJECT_SOURCE_DIR}/include/sgct/sphericalmirrorprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/spoutoutputprojection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/statistics.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/touch.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
@@ -105,7 +105,7 @@ set(SOURCE_FILES
   shareddatatypes.cpp
   sphericalmirrorprojection.cpp
   spoutoutputprojection.cpp
-  statistics.cpp
+  statisticsrenderer.cpp
   texturemanager.cpp
   touch.cpp
   tracker.cpp

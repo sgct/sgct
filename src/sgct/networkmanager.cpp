@@ -19,7 +19,6 @@
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
-#include <sgct/statistics.h>
 #include <algorithm>
 #include <numeric>
 
@@ -293,8 +292,12 @@ bool NetworkManager::init() {
     return true;
 }
 
-void NetworkManager::sync(SyncMode sm, Statistics& stats) {
+std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
     if (sm == SyncMode::SendDataToClients) {
+        if (_syncConnections.empty()) {
+            return std::nullopt;
+        }
+
         double maxTime = -std::numeric_limits<double>::max();
         double minTime = std::numeric_limits<double>::max();
 
@@ -324,9 +327,7 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
             );
         }
 
-        if (isComputerServer()) {
-            stats.setLoopTime(static_cast<float>(minTime), static_cast<float>(maxTime));
-        }
+        return std::make_pair(minTime, maxTime);
     }
     else if (sm == SyncMode::AcknowledgeData) {
         for (Network* connection : _syncConnections) {
@@ -339,6 +340,7 @@ void NetworkManager::sync(SyncMode sm, Statistics& stats) {
             }
         }
     }
+    return std::nullopt;
 }
 
 bool NetworkManager::isSyncComplete() const {

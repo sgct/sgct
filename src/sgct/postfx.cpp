@@ -25,6 +25,20 @@ PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
     _shaderProgram.createAndLinkProgram();
 }
 
+PostFX::PostFX(PostFX&& rhs) noexcept {
+    // (abock, 2019-10-28) I don't know why I had to manually write this function, but if
+    // I do = default in the header, VS 2017 complains as the class is no longer move
+    // constructable (shrug)
+    //
+    // static_assert(std::is_nothrow_move_constructible_v<PostFX>);
+    _updateFunction = std::move(rhs._updateFunction);
+    _shaderProgram = std::move(rhs._shaderProgram);
+    _inputTexture = std::move(rhs._inputTexture);
+    _outputTexture = std::move(rhs._outputTexture);
+    _size = std::move(rhs._size);
+    _name = std::move(rhs._name);
+}
+
 PostFX::~PostFX() {
     _shaderProgram.deleteProgram();
 }

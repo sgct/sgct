@@ -1,1 +1,1 @@
-openvrExample.exe -config openvr_with_fullscreen_mono.xml
+openvr.exe -config openvr_with_fullscreen_mono.xml

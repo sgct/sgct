@@ -1,3 +1,3 @@
 #!/bin/sh
 cd "$(dirname "$0")"
-./heightMappingNDISenderExample -config fisheye.xml
+./heightmappingndisender -config fisheye.xml

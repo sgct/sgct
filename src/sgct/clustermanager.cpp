@@ -31,7 +31,7 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager() {
-    _users.push_back(std::make_unique<User>("default"));
+    _users.push_back(User("default"));
 }
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
@@ -61,8 +61,8 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
     for (const config::Node& node : cluster.nodes) {
-        std::unique_ptr<Node> n = std::make_unique<Node>();
-        n->applyNode(node);
+        Node n;
+        n.applyNode(node);
         addNode(std::move(n));
     }
     if (cluster.settings) {
@@ -74,9 +74,9 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             // @TODO (2019-10-23) This doesn't seem to be used and probably can be removed
             // which would cause all of the username in the viewports to disappear as well
             // as noone else uses User's having a name
-            std::unique_ptr<User> usr = std::make_unique<User>(*cluster.user->name);
-            usrPtr = usr.get();
+            User usr(*cluster.user->name);
             addUser(std::move(usr));
+            usrPtr = &_users.back();
             MessageHandler::printInfo("Adding user '%s'", cluster.user->name->c_str());
         }
         else {
@@ -107,44 +107,44 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
 }
 
-void ClusterManager::addNode(std::unique_ptr<Node> node) {
+void ClusterManager::addNode(Node node) {
     _nodes.push_back(std::move(node));
 }
 
-void ClusterManager::addUser(std::unique_ptr<User> userPtr) {
-    _users.push_back(std::move(userPtr));
+void ClusterManager::addUser(User user) {
+    _users.push_back(std::move(user));
 }
 
-Node* ClusterManager::getNode(size_t index) {
-    return (index < _nodes.size()) ? _nodes[index].get() : nullptr;
+Node* ClusterManager::getNode(int index) {
+    return (index < _nodes.size()) ? &_nodes[index] : nullptr;
 }
 
 Node& ClusterManager::getThisNode() {
-    return *_nodes[_thisNodeId];
+    return _nodes[_thisNodeId];
 }
 
 User& ClusterManager::getDefaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
     // possible to clear the mUsers list
-    return *_users[0];
+    return _users[0];
 }
 
 User* ClusterManager::getUser(const std::string& name) {
-    const auto it = std::find_if(
-        _users.cbegin(),
-        _users.cend(),
-        [&name](const std::unique_ptr<User>& user) { return user->getName() == name; }
+    auto it = std::find_if(
+        _users.begin(),
+        _users.end(),
+        [&name](const User& user) { return user.getName() == name; }
     );
-    return it != _users.cend() ? it->get() : nullptr;
+    return it != _users.end() ? &*it : nullptr;
 }
 
 User* ClusterManager::getTrackedUser() {
-    const auto it = std::find_if(
-        _users.cbegin(),
-        _users.cend(),
-        [](const std::unique_ptr<User>& u) { return u->isTracked(); }
+    auto it = std::find_if(
+        _users.begin(),
+        _users.end(),
+        [](const User& u) { return u.isTracked(); }
     );
-    return it != _users.cend() ? it->get() : nullptr;
+    return it != _users.end() ? &*it : nullptr;
 }
 
 NetworkManager::NetworkMode ClusterManager::getNetworkMode() const {

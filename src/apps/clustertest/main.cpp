@@ -169,26 +169,6 @@ void drawFun() {
         );
     }
 
-    wchar_t str0[] = L"åäö"; // Swedish string
-    wchar_t str1[] = L"лдощдффыкйцн"; // Russian string
-    wchar_t str2[] = L"かんじ"; // Japanese string
-    wchar_t str3[] = L"汉字"; // Chinese string
-    wchar_t str4[] = L"mương"; // Vietnamese string
-    wchar_t str5[] = L"한자"; // Korean string
-    wchar_t str6[] = L"बईबईसई"; // Hindi string
-
-    text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
-    text::print(
-        *text::FontManager::instance()->getFont("SGCTFont", 32),
-        text::TextAlignMode::TopRight,
-        500,
-        500,
-        glm::vec4(1.f),
-        glm::vec4(1.f, 0.f, 0.f, 0.5f),
-        L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
-        str0, str1, str2, str3, str4, str5, str6
-    );
-
     if (Engine::instance()->getCurrentWindow().isUsingSwapGroups()) {
         text::print(
             *text::FontManager::instance()->getFont("SGCTFont", 18),

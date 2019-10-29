@@ -1,1 +1,1 @@
-heightMappingNDISenderExample.exe -config ../../config/single.xml
+heightmappingndisender.exe -config ../../config/single.xml

@@ -1,1 +1,1 @@
-simpleNavigationExample.exe -config single_fisheye.xml
+simplenavigation.exe -config single_fisheye.xml

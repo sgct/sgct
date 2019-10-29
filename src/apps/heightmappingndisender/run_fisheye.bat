@@ -1,1 +1,1 @@
-heightMappingNDISenderExample.exe -config fisheye.xml
+heightmappingndisender.exe -config fisheye.xml

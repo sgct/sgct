@@ -1,1 +1,1 @@
-openvrFullDomeViewer.exe -config openvr_mono.xml
+openvrfulldomeviewer.exe -config openvr_mono.xml

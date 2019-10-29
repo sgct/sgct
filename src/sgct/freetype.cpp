@@ -131,43 +131,14 @@ std::vector<char> parseArgList(va_list args, const char* format) {
     return buffer;
 }
 
-std::vector<wchar_t> parseArgList(va_list args, const wchar_t* format) {
-    int size = 1 + vscwprintf(format, args);
-    std::vector<wchar_t> buffer(size, 0);
-
-#if defined(_WIN32)
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vswprintf_s(buffer.data(), size, format, args);
-#else
-    vswprintf(buffer.data(), size, format, args);
-#endif
-#else
-    vswprintf(buffer.data(), 1024, format, args);
-#endif
-
-    return buffer;
-}
-
-std::vector<std::wstring> split(std::wstring str, wchar_t delimiter) {
-    std::vector<std::wstring> tmpVec;
-    std::wstringstream ss(std::move(str));
-    std::wstring part;
-
-    while (getline(ss, part, delimiter)) {
-        tmpVec.push_back(part);
-    }
-
-    return tmpVec;
-}
-
-std::vector<std::wstring> split(std::string str, wchar_t delimiter) {
-    std::vector<std::wstring> tmpVec;
-    std::wstring ws;
+std::vector<std::string> split(std::string str, char delimiter) {
+    std::string ws;
     ws.assign(str.begin(), str.end());
 
-    std::wstringstream ss(ws);
-    std::wstring part;
+    std::stringstream ss(ws);
+    std::string part;
 
+    std::vector<std::string> tmpVec;
     while (getline(ss, part, delimiter)) {
         tmpVec.push_back(part);
     }
@@ -176,7 +147,7 @@ std::vector<std::wstring> split(std::string str, wchar_t delimiter) {
 }
 
 
-float getLineWidth(sgct::text::Font& font, const std::wstring& line) {
+float getLineWidth(sgct::text::Font& font, const std::string& line) {
     // figure out width
     float lineWidth = 0.f;
     for (size_t j = 0; j < line.length() - 1; ++j) {
@@ -192,7 +163,7 @@ float getLineWidth(sgct::text::Font& font, const std::wstring& line) {
     return lineWidth;
 }
 
-void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
+void render2d(const std::vector<std::string>& lines, sgct::text::Font& font,
               const sgct::text::TextAlignMode& mode, float x, float y,
               const glm::vec4& color,
               const glm::vec4& strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f))
@@ -252,7 +223,7 @@ void render2d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
     sgct::ShaderProgram::unbind();
 }
 
-void render3d(const std::vector<std::wstring>& lines, sgct::text::Font& font,
+void render3d(const std::vector<std::string>& lines, sgct::text::Font& font,
               const sgct::text::TextAlignMode& mode, const glm::mat4& mvp,
               const glm::vec4& color,
               const glm::vec4& strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f))
@@ -320,21 +291,7 @@ void print(Font& font, TextAlignMode mode, float x, float y, const char* format,
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
-        render2d(lines, font, mode, x, y, glm::vec4(1.f));
-    }
-}
-
-void print(Font& font, TextAlignMode mode, float x, float y, const wchar_t* format, ...) {
-    va_list	args;
-    va_start(args, format);
-    // @TODO (abock, 2019-10-13) This does not seem to work properly on OSX. It results
-    // in an empty buffer object
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render2d(lines, font, mode, x, y, glm::vec4(1.f));
     }
 }
@@ -348,7 +305,7 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render2d(lines, font, mode, x, y, color);
     }
 }
@@ -362,35 +319,7 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
-        render2d(lines, font, mode, x, y, color, strokeColor);
-    }
-}
-
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
-           const wchar_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
-        render2d(lines, font, mode, x, y, color);
-    }
-}
-
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
-           const glm::vec4& strokeColor, const wchar_t* format, ...)
-{
-    va_list	args;
-    va_start(args, format);
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render2d(lines, font, mode, x, y, color, strokeColor);
     }
 }
@@ -402,19 +331,7 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, 
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
-        render3d(lines, font, mode, mvp, glm::vec4(1.f));
-    }
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* format, ...) {
-    va_list	args;
-    va_start(args, format);
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render3d(lines, font, mode, mvp, glm::vec4(1.f));
     }
 }
@@ -428,7 +345,7 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render3d(lines, font, mode, mvp, color);
     }
 }
@@ -442,37 +359,9 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
     va_end(args);
 
     if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::string(buf.data()), L'\n');
+        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         render3d(lines, font, mode, mvp, color, strokeColor);
     }
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
-             const wchar_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
-        render3d(lines, font, mode, mvp, color);
-    }  
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
-             const glm::vec4& strokeColor, const wchar_t* format, ...)
-{
-    va_list	args;
-    va_start(args, format);
-    std::vector<wchar_t> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::wstring> lines = split(std::wstring(buf.data()), L'\n');
-        render3d(lines, font, mode, mvp, color, strokeColor);
-    }  
 }
 
 } // namespace sgct::text

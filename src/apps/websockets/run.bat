@@ -1,1 +1,1 @@
-websocketsExample.exe -config fisheye.xml
+websockets.exe -config fisheye.xml

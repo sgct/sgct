@@ -1,1 +1,1 @@
-OmniStereoTest.exe -config test.xml -turnmap turnmap.jpg -sepmap sepmap.png
+omnistereo.exe -config test.xml -turnmap turnmap.jpg -sepmap sepmap.png

@@ -37,30 +37,51 @@ public:
     void applyCluster(const config::Cluster& cluster);
 
     /// Add a cluster node to the manager's vector.
-    void addNode(std::unique_ptr<Node> node);
+    void addNode(Node node);
 
-    /// Add a user ptr.
-    void addUser(std::unique_ptr<User> userPtr);
+    /// Add a new user.
+    void addUser(User userPtr);
 
     /**
-     * Get a pointer to a specific node.
+     * Get a pointer to a specific node. Please observe that the address of this object
+     * might change between frames and should not be kept around for long.
      *
-     * \param index the index to a node in the vector
+     * \param int the index to a node in the vector
      * \return the pointer to the requested node or nullptr if not found. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    Node* getNode(size_t index);
+    Node* getNode(int index);
 
-    /// \return a reference to the node that this application is running on
+    /**
+     * Get the current node. Please observe that the address of this object might change
+     * between frames and should not be kept around for long.
+     *
+     * \return a reference to the node that this application is running on
+     */
     Node& getThisNode();
 
-    /// \return the pointer to the default user
+    /**
+     * Get the default user. Please observe that the address of this object might change
+     * between frames and should not be kept around for long.
+     *
+     * \return the pointer to the default user
+     */
     User& getDefaultUser();
 
-    /// \return the pointer to a named user. nullptr is returned if no user is found.
+    /**
+     * Get the user with the specific name. Please observe that the address of this object
+     * might change between frames and should not be kept around for long.
+     *
+     * \return the pointer to a named user. nullptr is returned if no user is found.
+     */
     User* getUser(const std::string& name);
 
-    /// \return the pointer to the tracked user. Returns nullptr if no user is tracked.
+    /**
+     * Get the tracked user. Please observe that the address of this object might change
+     * between frames and should not be kept around for long.
+     *
+     * \return the pointer to the tracked user. Returns nullptr if no user is tracked.
+     */
     User* getTrackedUser();
 
     /// \return the current network mode
@@ -154,10 +175,7 @@ private:
 
     static ClusterManager* _instance;
 
-    // @TODO (abock 2019-09-02): I tried changing this to a std::vector<Node>, but
-    // this class is handing out pointers left and right, so we can't have a datastructure
-    // that will willynilly move its contents around in memory. #sadface
-    std::vector<std::unique_ptr<Node>> _nodes;
+    std::vector<Node> _nodes;
 
     int _thisNodeId = -1;
     bool _firmFrameLockSync = false;
@@ -166,8 +184,7 @@ private:
     int _externalControlPort = 0;
     bool _useASCIIForExternalControl = true;
 
-    // @TODO (abock, 2019-09-02): See nodes
-    std::vector<std::unique_ptr<User>> _users;
+    std::vector<User> _users;
     TrackingManager _trackingManager;
 
     glm::mat4 _sceneTransform = glm::mat4(1.f);

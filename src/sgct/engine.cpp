@@ -51,7 +51,7 @@ bool sRunUpdateFrameLockLoop = true;
 namespace {
     // If this value is set to true, every OpenGL call will be checked for errors. This
     // will detroy a lot of the performance, so it is disabled by default
-    constexpr const bool CheckOpenGLForErrors = true;
+    constexpr const bool CheckOpenGLForErrors = false;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);

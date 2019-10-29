@@ -1,1 +1,1 @@
-heightMappingExample.exe -config fisheye.xml
+heightmapping.exe -config fisheye.xml

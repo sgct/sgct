@@ -1,4 +1,4 @@
 #!/bin/sh
 cd "$(dirname "$0")"
-./touchExample -config two_nodes.xml -local 0 &
-./touchExample -config two_nodes.xml -local 1 --slave &
+./touch -config two_nodes.xml -local 0 &
+./touch -config two_nodes.xml -local 1 --slave &

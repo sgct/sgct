@@ -1,1 +1,1 @@
-openvrFullDomeViewer.exe -config openvr_stereo.xml
+openvrfulldomeviewer.exe -config openvr_stereo.xml

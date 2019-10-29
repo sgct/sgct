@@ -1,3 +1,3 @@
 #!/bin/sh
 cd "$(dirname "$0")"
-./heightMappingNDISenderExample -config ../../config/single.xml
+./heightmappingndisender -config ../../config/single.xml

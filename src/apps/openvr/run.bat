@@ -1,1 +1,1 @@
-openvrExample.exe -config openvr_window_same_as_hmd.xml
+openvr.exe -config openvr_window_same_as_hmd.xml

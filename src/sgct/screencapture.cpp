@@ -85,7 +85,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     _nChannels = channels;
     _dataSize = _resolution.x * _resolution.y * _nChannels * _bytesPerColor;
 
-    _downloadType = getDownloadFormat(_nChannels);
+    _downloadFormat = getDownloadFormat(_nChannels);
 
     std::unique_lock lock(_mutex);
     for (ScreenCaptureThreadInfo& info : _captureInfos) {

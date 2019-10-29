@@ -210,11 +210,11 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
     }
 
     if (window.draw3D) {
-        setCallDraw2DFunction(*window.draw3D);
+        setCallDraw3DFunction(*window.draw3D);
     }
 
     if (window.blitPreviousWindow) {
-        setCopyPreviousWindowToCurrentWindow(*window.blitPreviousWindow);
+        setBlitPreviousWindow(*window.blitPreviousWindow);
     }
 
     if (window.monitor) {
@@ -851,27 +851,21 @@ void Window::setUseQuadbuffer(bool state) {
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        MessageHandler::printInfo(
-            "Window %d: Draw 2D function disabled for this window", _id
-        );
+        MessageHandler::printInfo("Window %d: Draw 2D function disabled", _id);
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        MessageHandler::printInfo(
-            "Window %d: Draw (3D) function disabled for this window", _id
-        );
+        MessageHandler::printInfo("Window %d: Draw 3D function disabled", _id);
     }
 }
 
-void Window::setCopyPreviousWindowToCurrentWindow(bool state) {
+void Window::setBlitPreviousWindow(bool state) {
     _shouldBitPreviousWindow = state;
     if (_shouldBitPreviousWindow) {
-        MessageHandler::printInfo(
-            "Window %d: BlitPreviousWindow enabled for this window", _id
-        );
+        MessageHandler::printInfo("Window %d: BlitPreviousWindow enabled", _id);
     }
 }
 

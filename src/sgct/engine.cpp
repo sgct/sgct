@@ -51,7 +51,7 @@ bool sRunUpdateFrameLockLoop = true;
 namespace {
     // If this value is set to true, every OpenGL call will be checked for errors. This
     // will detroy a lot of the performance, so it is disabled by default
-    constexpr const bool CheckOpenGLForErrors = false;
+    constexpr const bool CheckOpenGLForErrors = true;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
@@ -756,7 +756,7 @@ void Engine::initOGL() {
     // create all textures, etc
     core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.setCurrentWindowIndex(i);
+        _currentWindowIndex = i;
         // set context to shared
         getCurrentWindow().initOGL();
         
@@ -1051,7 +1051,7 @@ void Engine::render() {
             // part out and only use _thisNode->getWindow(i) directly, but then it failed
             // to have two separate rendering windows. So some hidden state somewhere, I
             // guess?!
-            thisNode.setCurrentWindowIndex(i);
+            _currentWindowIndex = i;
             Window& win = getCurrentWindow();
 
             if (!_renderingOffScreen) {
@@ -1149,7 +1149,7 @@ void Engine::render() {
         // Render to screen
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
             if (thisNode.getWindow(i).isVisible()) {
-                thisNode.setCurrentWindowIndex(i);
+                _currentWindowIndex = i;
 
                 _renderingOffScreen = false;
                 renderFBOTexture();
@@ -1753,7 +1753,7 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
             fx.setInputTexture(fxPrevious.getOutputTexture());
         }
 
-        fx.render();
+        fx.render(getCurrentWindow());
     }
 
     if (getCurrentWindow().useFXAA()) {
@@ -2638,11 +2638,11 @@ int Engine::getNumberOfWindows() const {
 }
 
 Window& Engine::getCurrentWindow() const {
-    return core::ClusterManager::instance()->getThisNode().getCurrentWindow();
+    return core::ClusterManager::instance()->getThisNode().getWindow(_currentWindowIndex);
 }
 
 int Engine::getCurrentWindowIndex() const {
-    return core::ClusterManager::instance()->getThisNode().getCurrentWindowIndex();
+    return _currentWindowIndex;
 }
 
 core::User& Engine::getDefaultUser() {

@@ -27,9 +27,6 @@ public:
      */
     void addWindow(Window window);
 
-    /// Set which window that will render the draw calls.
-    void setCurrentWindowIndex(int index);
-
     /**
      * Set to true if this node's windows should belong to a nvida swap group. Only valid
      * before window opens.
@@ -56,12 +53,6 @@ public:
 
     /// Get the window pointer at index in window vector.
     Window& getWindow(int index);
-
-    /// Get the active window pointer.
-    Window& getCurrentWindow();
-
-    /// Get the current window index
-    int getCurrentWindowIndex() const;
 
     /// \param address is the hostname, DNS-name or ip
     void setAddress(std::string address);
@@ -99,7 +90,6 @@ private:
     int _syncPort = 0;
     int _dataTransferPort = 0;
 
-    int _currentWindowIndex = 0;
     std::vector<Window> _windows;
     bool _useSwapGroups = false;
 };

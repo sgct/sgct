@@ -772,10 +772,7 @@ namespace {
         window.hasBorder = parseValue<bool>(element, "border");
         window.draw2D = parseValue<bool>(element, "draw2D");
         window.draw3D = parseValue<bool>(element, "draw3D");
-        window.blitPreviousWindow = parseValue<bool>(
-            element,
-            "copyPreviousWindowToCurrentWindow"
-        );
+        window.blitPreviousWindow = parseValue<bool>(element, "blitPreviousWindow");
         window.monitor = parseValue<int>(element, "monitor");
 
         if (element.Attribute("mpcdi")) {

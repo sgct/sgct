@@ -32,6 +32,7 @@ namespace {
 
     sgct::SharedBool showId(false);
     sgct::SharedBool showStats(false);
+    sgct::SharedBool takeScreenshot(false);
 
     float tilt = 0.f;
     float radius = 7.4f;
@@ -99,8 +100,6 @@ void main() {
 using namespace sgct;
 
 void draw() {
-    Engine::instance()->setStatsGraphVisibility(showStats.getVal());
-
     ShaderManager::instance()->getShaderProgram("simple").bind();
     const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix();
 
@@ -123,7 +122,9 @@ void draw() {
     glBindVertexArray(0);
 
     ShaderManager::instance()->getShaderProgram("simple").unbind();
+}
 
+void draw2D() {
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
         Window& win = Engine::instance()->getCurrentWindow();
@@ -282,6 +283,14 @@ void initGL() {
     prog.unbind();
 }
 
+void postSyncPreDraw() {
+    Engine::instance()->setStatsGraphVisibility(showStats.getVal());
+    if (takeScreenshot.getVal()) {
+        Engine::instance()->takeScreenshot();
+        takeScreenshot.setVal(false);
+    }
+}
+
 void keyboardCallback(int key, int, int action, int) {
     if (key == key::I && action == action::Press) {
         showId.setVal(!showId.getVal());
@@ -290,16 +299,22 @@ void keyboardCallback(int key, int, int action, int) {
     if (key == key::S && action == action::Press) {
         showStats.setVal(!showStats.getVal());
     }
+
+    if (key == key::P && action == action::Press) {
+        takeScreenshot.setVal(true);
+    }
 }
 
 void encode() {
     SharedData::instance()->writeBool(showId);
     SharedData::instance()->writeBool(showStats);
+    SharedData::instance()->writeBool(takeScreenshot);
 }
 
 void decode() {
     SharedData::instance()->readBool(showId);
     SharedData::instance()->readBool(showStats);
+    SharedData::instance()->readBool(takeScreenshot);
 }
 
 void cleanUp() {
@@ -334,7 +349,9 @@ int main(int argc, char* argv[]) {
 
     Settings::instance()->setCaptureFromBackBuffer(true);
 
+    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDraw);
     Engine::instance()->setDrawFunction(draw);
+    Engine::instance()->setDraw2DFunction(draw2D);
     Engine::instance()->setInitOGLFunction(initGL);
     Engine::instance()->setCleanUpFunction(cleanUp);
     Engine::instance()->setKeyboardCallbackFunction(keyboardCallback);

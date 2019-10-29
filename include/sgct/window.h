@@ -234,8 +234,8 @@ public:
     /// Set if the specifed Draw3D function pointer should be called for this window.
     void setCallDraw3DFunction(bool state);
 
-    /// Set if the specifed Draw2D function pointer should be called for this window.
-    void setCopyPreviousWindowToCurrentWindow(bool state);
+    /// Set if the the contents of the previous window should be blitted to this window
+    void setBlitPreviousWindow(bool state);
 
     /// Set the number of samples used in multisampled anti-aliasing
     void setNumberOfAASamples(int samples);

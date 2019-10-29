@@ -27,10 +27,11 @@ PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
 
 PostFX::PostFX(PostFX&& rhs) noexcept {
     // (abock, 2019-10-28) I don't know why I had to manually write this function, but if
-    // I do = default in the header, VS 2017 complains as the class is no longer move
-    // constructable (shrug)
-    //
+    // I do =default in the header, VS 2017 complains as the class is no longer move
+    // constructable (shrug). If you think you can figure it out, make sure to compile on
+    // VS 2017 and make
     // static_assert(std::is_nothrow_move_constructible_v<PostFX>);
+    // not fail
     _updateFunction = std::move(rhs._updateFunction);
     _shaderProgram = std::move(rhs._shaderProgram);
     _inputTexture = std::move(rhs._inputTexture);
@@ -43,13 +44,11 @@ PostFX::~PostFX() {
     _shaderProgram.deleteProgram();
 }
 
-void PostFX::render() {
-    Window& win = core::ClusterManager::instance()->getThisNode().getCurrentWindow();
-
+void PostFX::render(Window& window) {
     // bind target FBO
-    win.getFBO()->attachColorTexture(_outputTexture);
+    window.getFBO()->attachColorTexture(_outputTexture);
 
-    _size = win.getFramebufferResolution();
+    _size = window.getFramebufferResolution();
 
     glViewport(0, 0, _size.x, _size.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -64,9 +63,9 @@ void PostFX::render() {
         _updateFunction();
     }
 
-    win.bindVAO();
+    window.bindVAO();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    win.unbindVAO();
+    window.unbindVAO();
 
     ShaderProgram::unbind();
 }

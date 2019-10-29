@@ -803,7 +803,7 @@ public:
     /// \return the number of windows for this node.
     int getNumberOfWindows() const;
 
-    /// \return a pointer to the current window that is beeing rendered
+    /// \return a pointer to the current window that is being rendered
     Window& getCurrentWindow() const;
 
     /// \return an index to the current window that is beeing rendered
@@ -1038,6 +1038,8 @@ private:
     glm::ivec4 _currentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> _drawBufferResolutions;
     size_t _currentDrawBufferIndex = 0;
+
+    int _currentWindowIndex = 0;
 
     struct {
         double prevTimestamp = 0.0;

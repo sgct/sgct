@@ -15,6 +15,8 @@
 
 namespace sgct {
 
+class Window;
+
 /**
  * Class that holds a post effect pass
  */
@@ -29,7 +31,7 @@ public:
     PostFX& operator=(PostFX&& rhs) noexcept = default;
 
     /// Render this pass
-    void render();
+    void render(Window& window);
     void setInputTexture(unsigned int inputTex);
     void setOutputTexture(unsigned int outputTex);
     

@@ -40,13 +40,6 @@ void Node::addWindow(Window window) {
     _windows.emplace_back(std::move(window));
 }
 
-// @TODO (abock, 2019-08-29): I think this state of 'current window index' can probably go
-// away. It seems like an extra state machine that is not worth carrying around for the
-// few use cases that it has
-void Node::setCurrentWindowIndex(int index) {
-    _currentWindowIndex = index;
-}
-
 void Node::setUseSwapGroups(bool state) {
     _useSwapGroups = state;
 }
@@ -70,14 +63,6 @@ int Node::getNumberOfWindows() const {
 
 Window& Node::getWindow(int index) {
     return _windows[index];
-}
-
-Window& Node::getCurrentWindow() {
-    return _windows[_currentWindowIndex];
-}
-
-int Node::getCurrentWindowIndex() const {
-    return _currentWindowIndex;
 }
 
 bool Node::closeAllWindows() {

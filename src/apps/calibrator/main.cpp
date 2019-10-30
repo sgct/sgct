@@ -33,6 +33,7 @@ namespace {
     sgct::SharedBool showId(false);
     sgct::SharedBool showStats(false);
     sgct::SharedBool takeScreenshot(false);
+    sgct::SharedBool captureBackbuffer(false);
 
     float tilt = 0.f;
     float radius = 7.4f;
@@ -284,6 +285,7 @@ void initGL() {
 }
 
 void postSyncPreDraw() {
+    Settings::instance()->setCaptureFromBackBuffer(captureBackbuffer.getVal());
     Engine::instance()->setStatsGraphVisibility(showStats.getVal());
     if (takeScreenshot.getVal()) {
         Engine::instance()->takeScreenshot();
@@ -303,18 +305,24 @@ void keyboardCallback(int key, int, int action, int) {
     if (key == key::P && action == action::Press) {
         takeScreenshot.setVal(true);
     }
+
+    if (key == key::B && action == action::Press) {
+        captureBackbuffer.setVal(!captureBackbuffer.getVal());
+    }
 }
 
 void encode() {
     SharedData::instance()->writeBool(showId);
     SharedData::instance()->writeBool(showStats);
     SharedData::instance()->writeBool(takeScreenshot);
+    SharedData::instance()->writeBool(captureBackbuffer);
 }
 
 void decode() {
     SharedData::instance()->readBool(showId);
     SharedData::instance()->readBool(showStats);
     SharedData::instance()->readBool(takeScreenshot);
+    SharedData::instance()->readBool(captureBackbuffer);
 }
 
 void cleanUp() {
@@ -346,8 +354,6 @@ int main(int argc, char* argv[]) {
             MessageHandler::printInfo("Using texture: %s", texture.c_str());
         }
     }
-
-    Settings::instance()->setCaptureFromBackBuffer(true);
 
     Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDraw);
     Engine::instance()->setDrawFunction(draw);

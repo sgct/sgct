@@ -33,14 +33,6 @@ namespace {
         std::vector<char> buffer;
     };
 
-    [[nodiscard]] glm::quat parseOrientationNode(float yaw, float pitch, float roll) {
-        glm::quat quat;
-        quat = glm::rotate(quat, glm::radians(-yaw), glm::vec3(0.f, 1.f, 0.f));
-        quat = glm::rotate(quat, glm::radians(pitch), glm::vec3(1.f, 0.f, 0.f));
-        quat = glm::rotate(quat, glm::radians(-roll), glm::vec3(0.f, 0.f, 1.f));
-        return quat;
-    }
-
     [[nodiscard]] config::MpcdiProjection parseMpcdi(const tinyxml2::XMLElement& elem) {
         config::MpcdiProjection proj;
         if (elem.Attribute("id")) {
@@ -63,55 +55,44 @@ namespace {
         }
         proj.size = vpSize;
 
-        float yaw = 0.f;
-        float pitch = 0.f;
-        float roll = 0.f;
         const tinyxml2::XMLElement* child = elem.FirstChildElement();
         while (child) {
             const tinyxml2::XMLElement& c = *child;
 
             std::string_view val = c.Value();
             if (val == "frustum") {
-                bool hasRight = false;
-                bool hasLeft = false;
-                bool hasUp = false;
-                bool hasDown = false;
-                bool hasYaw = false;
-                bool hasPitch = false;
-                bool hasRoll = false;
-                config::MpcdiProjection::Frustum frustum;
+                std::optional<float> right;
+                std::optional<float> left;
+                std::optional<float> up;
+                std::optional<float> down;
+                std::optional<float> yaw;
+                std::optional<float> pitch;
+                std::optional<float> roll;
                 const tinyxml2::XMLElement* grandChild = c.FirstChildElement();
                 while (grandChild) {
                     const tinyxml2::XMLElement& gc = *grandChild;
                     try {
                         std::string_view grandChildVal = gc.Value();
                         if (grandChildVal == "rightAngle") {
-                            frustum.right = std::stof(gc.GetText());
-                            hasRight = true;
+                            right = std::stof(gc.GetText());
                         }
                         else if (grandChildVal == "leftAngle") {
-                            frustum.left = std::stof(gc.GetText());
-                            hasLeft = true;
+                            left = std::stof(gc.GetText());
                         }
                         else if (grandChildVal == "upAngle") {
-                            frustum.up = std::stof(gc.GetText());
-                            hasUp = true;
+                            up = std::stof(gc.GetText());
                         }
                         else if (grandChildVal == "downAngle") {
-                            frustum.down = std::stof(gc.GetText());
-                            hasDown = true;
+                            down = std::stof(gc.GetText());
                         }
                         else if (grandChildVal == "yaw") {
                             yaw = std::stof(gc.GetText());
-                            hasYaw = true;
                         }
                         else if (grandChildVal == "pitch") {
                             pitch = std::stof(gc.GetText());
-                            hasPitch = true;
                         }
                         else if (grandChildVal == "roll") {
                             roll = std::stof(gc.GetText());
-                            hasRoll = true;
                         }
                     }
                     catch (const std::invalid_argument&) {
@@ -121,14 +102,19 @@ namespace {
                     grandChild = gc.NextSiblingElement();
                 }
 
-                const bool hasMissingField = !hasDown || !hasUp || !hasLeft ||
-                    !hasRight || !hasYaw || !hasPitch || !hasRoll;
-                if (hasMissingField) {
+                const bool hasAllFields = down.has_value() && up.has_value() &&
+                    left.has_value() && right.has_value() && yaw.has_value() &&
+                    pitch.has_value() && roll.has_value();
+                if (!hasAllFields) {
                     throw ParsingError("Failed to parse MPCDI projection FOV");
                 }
-
-                proj.frustum = frustum;
-                proj.orientation = parseOrientationNode(yaw, pitch, roll);
+                
+                proj.frustum = { *down, *up, *left, *right };
+                glm::quat quat;
+                quat = glm::rotate(quat, glm::radians(-*yaw), glm::vec3(0.f, 1.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(*pitch), glm::vec3(1.f, 0.f, 0.f));
+                quat = glm::rotate(quat, glm::radians(-*roll), glm::vec3(0.f, 0.f, 1.f));
+                proj.orientation = quat;
             }
             child = c.NextSiblingElement();
         }
@@ -155,9 +141,6 @@ namespace {
         }
         res.resolution = resolution;
 
-        // Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
-        res.position = glm::ivec2(0, 0);
-
         const tinyxml2::XMLElement* child = elem.FirstChildElement();
         while (child) {
             std::string_view val = child->Value();
@@ -178,7 +161,7 @@ namespace {
         }
     }
 
-    void handleSubfile(SubFile& subfile, unzFile zip, const unz_file_info& fileInfo) {
+    void handleSubfile(SubFile& subfile, unzFile zip, unsigned long uncompressedSize) {
         if (subfile.isFound) {
             MessageHandler::printWarning(
                 "Duplicate file %s found in MPCDI", subfile.fileName.c_str()
@@ -190,8 +173,8 @@ namespace {
         if (openCurrentFile != UNZ_OK) {
             throw ParsingError("Unable to open " + subfile.fileName);
         }
-        std::vector<char> buffer(fileInfo.uncompressed_size);
-        int size = unzReadCurrentFile(zip, buffer.data(), fileInfo.uncompressed_size);
+        std::vector<char> buffer(uncompressedSize);
+        const int size = unzReadCurrentFile(zip, buffer.data(), uncompressedSize);
         if (size < 0) {
             throw ParsingError("Read from " + subfile.fileName + " failed");
         }
@@ -218,36 +201,31 @@ namespace {
     void parseGeoWarpFile(const tinyxml2::XMLElement& element, const std::string& region,
                           const SubFile& pfmFile, ReturnValue& res)
     {
-        std::string pathWarpFile;
-        bool hasFoundPath = false;
-        bool hasFoundInterpolation = false;
+        std::optional<std::string> pathWarpFile;
 
         const tinyxml2::XMLElement* child = element.FirstChildElement();
         while (child) {
             std::string_view val = child->Value();
             if (val == "path") {
                 pathWarpFile = child->GetText();
-                hasFoundPath = true;
             }
             else if (val == "interpolation") {
                 std::string_view interpolation = child->GetText();
                 if (interpolation != "linear") {
                     throw ParsingError("Only linear interpolation is supported");
                 }
-                hasFoundInterpolation = true;
             }
             child = child->NextSiblingElement();
         }
-        if (!hasFoundPath || !hasFoundInterpolation) {
+        if (!pathWarpFile.has_value()) {
             throw ParsingError("GeometryWarpFile requires path and interpolation");
         }
 
-        // Look for matching MPCDI region (SGCT viewport) to pass
-        // the warp field data to
+        // Look for matching MPCDI region (SGCT viewport) to pass the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (ReturnValue::ViewportInfo& vpInfo : res.viewports) {
-            const std::string& winName = *vpInfo.proj.id;
-            if (winName == region && pathWarpFile == pfmFile.fileName) {
+            const std::string& viewportId = *vpInfo.proj.id;
+            if (viewportId == region && *pathWarpFile == pfmFile.fileName) {
                 vpInfo.meshData = pfmFile.buffer;
                 foundMatchingPfmBuffer = true;
             }
@@ -257,19 +235,14 @@ namespace {
         }
     }
 
-    void parseFiles(const tinyxml2::XMLElement& elem, const SubFile& pfmFile,
+    void parseFiles(const tinyxml2::XMLElement& elem, const SubFile& pfm,
                     ReturnValue& res)
     {
         std::string fileRegion;
 
-        const tinyxml2::XMLElement* child = elem.FirstChildElement();
+        const tinyxml2::XMLElement* child = elem.FirstChildElement("fileset");
         while (child) {
             std::string_view val = child->Value();
-            if (val != "fileset") {
-                child = child->NextSiblingElement();
-                continue;
-            }
-
             if (child->Attribute("region")) {
                 fileRegion = child->Attribute("region");
             }
@@ -277,7 +250,7 @@ namespace {
             while (grandChild) {
                 std::string_view grandChildVal = grandChild->Value();
                 if (grandChildVal == "geometryWarpFile") {
-                    parseGeoWarpFile(*grandChild, fileRegion, pfmFile, res);
+                    parseGeoWarpFile(*grandChild, fileRegion, pfm, res);
                 }
                 unsupportedFeatureCheck(grandChildVal, "alphaMap");
                 unsupportedFeatureCheck(grandChildVal, "betaMap");
@@ -292,8 +265,7 @@ namespace {
         }
     }
 
-    void parseMpcdi(const tinyxml2::XMLDocument& doc, const SubFile& pfmFile,
-                    ReturnValue& res) {
+    ReturnValue parseMpcdi(const tinyxml2::XMLDocument& doc, const SubFile& pfmFile) {
         const tinyxml2::XMLElement* rootNode = doc.FirstChildElement("MPCDI");
         if (rootNode == nullptr) {
             throw ParsingError("Cannot find XML root");
@@ -302,88 +274,62 @@ namespace {
 
         // Verify that we have a correctly formed MPCDI file
         const char* profileAttr = root.Attribute("profile");
-        if (profileAttr == nullptr || std::string(profileAttr) != "3d") {
+        if (profileAttr == nullptr || std::string_view(profileAttr) != "3d") {
             throw ParsingError("Error parsing MPCDI, missing or wrong 'profile'");
         }
         const char* geometryAttr = root.Attribute("geometry");
-        if (geometryAttr == nullptr || std::string(geometryAttr) != "1") {
+        if (geometryAttr == nullptr || std::string_view(geometryAttr) != "1") {
             throw ParsingError("Error parsing MPCDI, missing or wrong 'geometry'");
         }
         const char* versionAttr = root.Attribute("version");
-        if (versionAttr == nullptr || std::string(versionAttr) != "2.0") {
+        if (versionAttr == nullptr || std::string_view(versionAttr) != "2.0") {
             throw ParsingError("Error parsing MPCDI, missing or wrong 'version'");
         }
 
-        bool foundDisplayElem = false;
-        const tinyxml2::XMLElement* element = root.FirstChildElement();
-        while (element) {
-            std::string_view val = element->Value();
-            if (val == "display") {
-                if (foundDisplayElem) {
-                    throw ParsingError("Multiple 'display' elements not supported");
-                }
-                parseDisplay(*element, res);
-                foundDisplayElem = true;
-            }
-            else if (val == "files") {
-                parseFiles(*element, pfmFile, res);
-            }
-            unsupportedFeatureCheck(val, "extensionSet");
-            element = element->NextSiblingElement();
+        ReturnValue res;
+        // Parse the display subtree
+        const tinyxml2::XMLElement* displayElement = root.FirstChildElement("display");
+        if (displayElement == nullptr) {
+            throw ParsingError("Missing 'display' element");
         }
-    }
-
-    void parseString(const SubFile& xmlFile, const SubFile& pfmFile, ReturnValue& res) {
-        if (xmlFile.buffer.empty()) {
-            throw ParsingError("Empty XML buffer");
+        if (displayElement->NextSiblingElement("display") != nullptr) {
+            throw ParsingError("Multiple 'display' elements not supported");
         }
-        tinyxml2::XMLDocument xmlDoc;
-        tinyxml2::XMLError result = xmlDoc.Parse(
-            xmlFile.buffer.data(),
-            xmlFile.buffer.size()
-        );
+        parseDisplay(*displayElement, res);
 
-        if (result != tinyxml2::XML_NO_ERROR) {
-            std::string str = "Parsing failed after: ";
-            if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-                str += xmlDoc.GetErrorStr1();
-                str += ' ';
-                str += xmlDoc.GetErrorStr2();
-            }
-            else if (xmlDoc.GetErrorStr1()) {
-                str += xmlDoc.GetErrorStr1();
-            }
-            else if (xmlDoc.GetErrorStr2()) {
-                str += xmlDoc.GetErrorStr2();
-            }
-            else {
-                str = "File not found";
-            }
-            throw ParsingError("Error parsing file " + str);
+        // Parse the files subtree
+        const tinyxml2::XMLElement* filesElement = root.FirstChildElement("files");
+        if (filesElement == nullptr) {
+            throw ParsingError("Missing 'files' element");
+        }
+        parseFiles(*filesElement, pfmFile, res);
+
+        // Check for unsupported features that we might want to warn about
+        const tinyxml2::XMLElement* extSetElem = root.FirstChildElement("extensionSet");
+        if (extSetElem) {
+            MessageHandler::printWarning("Unsupported feature: %s", extSetElem->Value());
         }
 
-        parseMpcdi(xmlDoc, pfmFile, res);
+        return res;
     }
 } // namespace
 
-ReturnValue parseConfiguration(const std::string& filenameMpcdi) {
-    ReturnValue res;
-
-    unzFile zipfile = unzOpen(filenameMpcdi.c_str());
+ReturnValue parseMpcdiConfiguration(const std::string& filename) {
+    unzFile zipfile = unzOpen(filename.c_str());
     if (zipfile == nullptr) {
-        throw ParsingError("Unable to open zip archive file " + filenameMpcdi);
+        throw ParsingError("Unable to open zip archive file " + filename);
     }
     // Get info about the zip file
     unz_global_info globalInfo;
-    int globalInfoRet = unzGetGlobalInfo(zipfile, &globalInfo);
+    const int globalInfoRet = unzGetGlobalInfo(zipfile, &globalInfo);
     if (globalInfoRet != UNZ_OK) {
         unzClose(zipfile);
-        throw ParsingError("Unable to get zip archive info from " + filenameMpcdi);
+        throw ParsingError("Unable to get zip archive info from " + filename);
     }
 
     // Search for required files inside mpcdi archive file
-    SubFile xmlFileContents;
-    SubFile pfmFileContents;
+    SubFile xmlComponent;
+    SubFile pfmComponent;
     try {
         for (unsigned int i = 0; i < globalInfo.number_entry; ++i) {
             unz_file_info fileInfo;
@@ -410,23 +356,21 @@ ReturnValue parseConfiguration(const std::string& filenameMpcdi) {
             };
 
             if (endsWith(fileName, "xml")) {
-                xmlFileContents.fileName = fileName;
-                handleSubfile(xmlFileContents, zipfile, fileInfo);
+                xmlComponent.fileName = fileName;
+                handleSubfile(xmlComponent, zipfile, fileInfo.uncompressed_size);
             }
             else if (endsWith(fileName, "pfm")) {
-                pfmFileContents.fileName = fileName;
-                handleSubfile(pfmFileContents, zipfile, fileInfo);
+                pfmComponent.fileName = fileName;
+                handleSubfile(pfmComponent, zipfile, fileInfo.uncompressed_size);
             }
             else {
                 MessageHandler::printWarning("Ignoring unknown extension %s", fileName);
             }
 
             if (i < globalInfo.number_entry - 1) {
-                int goToNextFileStatus = unzGoToNextFile(zipfile);
-                if (goToNextFileStatus != UNZ_OK) {
-                    MessageHandler::printWarning(
-                        "parseMpcdiConfiguration: Unable to get next file in archive"
-                    );
+                const int status = unzGoToNextFile(zipfile);
+                if (status != UNZ_OK) {
+                    MessageHandler::printWarning("Unable to get next file in archive");
                 }
             }
         }
@@ -437,11 +381,39 @@ ReturnValue parseConfiguration(const std::string& filenameMpcdi) {
     }
 
     unzClose(zipfile);
-    if (!xmlFileContents.isFound && !pfmFileContents.isFound) {
-        throw ParsingError(filenameMpcdi + " does not contain xml and/or pfm file");
+    if (!xmlComponent.isFound && !pfmComponent.isFound) {
+        throw ParsingError(filename + " does not contain the XML and/or PFM file");
     }
 
-    parseString(xmlFileContents, pfmFileContents, res);
+    if (xmlComponent.buffer.empty()) {
+        throw ParsingError("Empty XML buffer");
+    }
+    tinyxml2::XMLDocument xmlDoc;
+    tinyxml2::XMLError result = xmlDoc.Parse(
+        xmlComponent.buffer.data(),
+        xmlComponent.buffer.size()
+    );
+
+    if (result != tinyxml2::XML_NO_ERROR) {
+        std::string str = "Parsing failed after: ";
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
+            str += xmlDoc.GetErrorStr1();
+            str += ' ';
+            str += xmlDoc.GetErrorStr2();
+        }
+        else if (xmlDoc.GetErrorStr1()) {
+            str += xmlDoc.GetErrorStr1();
+        }
+        else if (xmlDoc.GetErrorStr2()) {
+            str += xmlDoc.GetErrorStr2();
+        }
+        else {
+            str = "File not found";
+        }
+        throw ParsingError("Error parsing file " + str);
+    }
+
+    ReturnValue res = parseMpcdi(xmlDoc, pfmComponent);
     return res;
 }
 

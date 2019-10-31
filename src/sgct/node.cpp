@@ -31,7 +31,7 @@ void Node::applyNode(const config::Node& node) {
 
     for (const config::Window& window : node.windows) {
         Window win = Window(getNumberOfWindows());
-        win.applyWindow(window, *this);
+        win.applyWindow(window);
         addWindow(std::move(win));
     }
 }

@@ -78,7 +78,7 @@ public:
         Positions
     };
 
-    void applyWindow(const config::Window& window, core::Node& node);
+    void applyWindow(const config::Window& window);
 
     /**
      * Init Nvidia swap groups if they are supported by hardware. Supported hardware is

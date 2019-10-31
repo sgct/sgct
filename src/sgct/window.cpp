@@ -121,7 +121,7 @@ Window::Window(int id)
     _sharedHandle = nullptr;
 }
 
-void Window::applyWindow(const config::Window& window, core::Node& node) {
+void Window::applyWindow(const config::Window& window) {
     if (window.name) {
         setName(*window.name);
     }
@@ -222,8 +222,8 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
     }
 
     if (window.mpcdi) {
-        core::mpcdi::ReturnValue r = core::mpcdi::parseConfiguration(*window.mpcdi);
-        setWindowPosition(r.position);
+        core::mpcdi::ReturnValue r = core::mpcdi::parseMpcdiConfiguration(*window.mpcdi);
+        setWindowPosition(glm::ivec2(0, 0));
         initWindowResolution(r.resolution);
         setFramebufferResolution(r.resolution);
         setFixResolution(true);

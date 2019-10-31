@@ -17,17 +17,20 @@
 namespace sgct::core::mpcdi {
 
 struct ReturnValue {
-    glm::ivec2 position;
+    /// The window resolution
     glm::ivec2 resolution;
     struct ViewportInfo {
+        /// The configuration struct for the individual viewports
         config::MpcdiProjection proj;
+        /// The warping mesh for each viewport as included inthe MPCDI file
         std::vector<char> meshData;
     };
+    /// The list of all viewports in the MPCDI
     std::vector<ViewportInfo> viewports;
 };
 
 // throws std::runtime_error if the parsing fails
-ReturnValue parseConfiguration(const std::string& filenameMpcdi);
+ReturnValue parseMpcdiConfiguration(const std::string& filename);
 
 } //namespace sgct::core::mpcdi
 

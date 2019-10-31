@@ -222,7 +222,7 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
     }
 
     if (window.mpcdi) {
-        core::Mpcdi().parseConfiguration(*window.mpcdi, node, *this);
+        core::Mpcdi().parseConfiguration(*window.mpcdi, *this);
         return;
     }
 

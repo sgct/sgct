@@ -118,10 +118,12 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
             mpcdi.frustum->down,
             mpcdi.frustum->left,
             mpcdi.frustum->right,
-            *mpcdi.orientation,
-            *mpcdi.distance
+            mpcdi.orientation.value_or(glm::quat()),
+            mpcdi.distance.value_or(10.f)
         );
-        _projectionPlane.offset(*mpcdi.offset);
+        if (mpcdi.offset) {
+            _projectionPlane.offset(*mpcdi.offset);
+        }
     }
 }
 

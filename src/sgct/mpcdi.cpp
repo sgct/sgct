@@ -153,6 +153,7 @@ namespace {
                     );
                     return {};
                 }
+                proj.frustum = frustum;
 
                 const float x = pitch;
                 const float y = -yaw;
@@ -234,9 +235,7 @@ namespace {
 
 namespace sgct::core {
 
-bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
-                               Window& window)
-{
+bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Window& window) {
     FILE* cfgFile = nullptr;
     unzFile zipfile;
 
@@ -284,9 +283,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         }
 
         bool suc = processSubFile(_xmlFileContents, "xml", fileName, zipfile, fileInfo);
-        if (!suc) {
-            suc = processSubFile(_pfmFileContents, "pfm", fileName, zipfile, fileInfo);
-        }
+        suc &= processSubFile(_pfmFileContents, "pfm", fileName, zipfile, fileInfo);
         if (!suc) {
             unzClose(zipfile);
             return false;
@@ -309,7 +306,7 @@ bool Mpcdi::parseConfiguration(const std::string& filenameMpcdi, Node& node,
         return false;
     }
 
-    const bool parseSuccess = readAndParseString(node, window);
+    const bool parseSuccess = readAndParseString(window);
     return parseSuccess;
 }
 
@@ -332,6 +329,7 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
         return false;
     }
     sf.buffer.resize(fileInfo.uncompressed_size);
+    std::fill(sf.buffer.begin(), sf.buffer.end(), 0);
     int err = unzReadCurrentFile(
         zipfile,
         sf.buffer.data(),
@@ -348,7 +346,7 @@ bool Mpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     return true;
 }
 
-bool Mpcdi::readAndParseString(Node& node, Window& win) {
+bool Mpcdi::readAndParseString(Window& win) {
     if (_xmlFileContents.buffer.empty()) {
         return false;
     }
@@ -380,13 +378,12 @@ bool Mpcdi::readAndParseString(Node& node, Window& win) {
         );
         return false;
     }
-    else {
-        const bool success = readAndParseMpcdi(xmlDoc, node, win);
-        return success;
-    }
+
+    const bool success = readAndParseMpcdi(xmlDoc, win);
+    return success;
 }
 
-bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window& win) {
+bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Window& win) {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
     if (XMLroot == nullptr) {
         MessageHandler::printError("readAndParseMpcdi: Cannot find XML root");
@@ -435,7 +432,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
     while (element) {
         std::string_view val = element->Value();
         if (val == "display") {
-            const bool success = readAndParseDisplay(element, node, win, parsedItems);
+            const bool success = readAndParseDisplay(element, win, parsedItems);
             if (!success) {
                 return false;
             }
@@ -453,7 +450,7 @@ bool Mpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window&
     return true;
 }
 
-bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Window& win,
+bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Window& win,
                                 MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.hasDisplayElem) {
@@ -472,7 +469,6 @@ bool Mpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Windo
             if (!success) {
                 return false;
             }
-            node.addWindow(std::move(win));
         }
         child = child->NextSiblingElement();
     }
@@ -485,7 +481,7 @@ bool Mpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::Window& win) 
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
         std::string_view val = child->Value();
-        if (val == "fileset") {
+        if (val != "fileset") {
             child = child->NextSiblingElement();
             continue;
         }

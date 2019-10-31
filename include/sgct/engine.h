@@ -273,25 +273,6 @@ public:
     unsigned int getScreenShotNumber() const;
 
     /**
-     * Create a timer that counts down and call the given callback when finished. The
-     * timer runs only on the master and is not precies since it is triggered in end of
-     * the renderloop.
-     *
-     * \param millisec is the countdown time
-     * \param fnPtr is the function pointer to a timer callback (the argument will be the
-     *        timer handle/id).
-     * \return Handle/id to the created timer
-     */
-    int createTimer(double millisec, std::function<void(int)> fn);
-
-    /**
-     * Stops the specified timer.
-     *
-     * \param id/handle to a timer
-     */
-    void stopTimer(int id);
-
-    /**
      * This function sets the initOGL callback. The Engine will then use the callback only
      * once before the starting the render loop. Textures, Models, Buffers, etc. can be
      * loaded/allocated here.

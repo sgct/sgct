@@ -26,7 +26,7 @@ class Node;
 
 class Mpcdi {
 public:
-    bool parseConfiguration(const std::string& filenameMpcdi, Node& node, Window& window);
+    bool parseConfiguration(const std::string& filenameMpcdi, Window& window);
 
 private:
     struct MpcdiFoundItems {
@@ -42,9 +42,9 @@ private:
         bool hasFoundInterpolation = false;
     };
 
-    bool readAndParseString(Node& node, Window& win);
-    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Node& node, Window& win);
-    bool readAndParseDisplay(tinyxml2::XMLElement* element, Node& node, Window& win,
+    bool readAndParseString(Window& win);
+    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Window& win);
+    bool readAndParseDisplay(tinyxml2::XMLElement* element, Window& win,
         MpcdiFoundItems& parsedItems);
     bool readAndParseFiles(tinyxml2::XMLElement* element, Window& win);
     bool readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,

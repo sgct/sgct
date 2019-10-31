@@ -222,7 +222,18 @@ void Window::applyWindow(const config::Window& window, core::Node& node) {
     }
 
     if (window.mpcdi) {
-        core::Mpcdi().parseConfiguration(*window.mpcdi, *this);
+        core::mpcdi::ReturnValue r = core::mpcdi::parseConfiguration(*window.mpcdi);
+        setWindowPosition(r.position);
+        initWindowResolution(r.resolution);
+        setFramebufferResolution(r.resolution);
+        setFixResolution(true);
+
+        for (const core::mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
+            std::unique_ptr<core::Viewport> v = std::make_unique<core::Viewport>();
+            v->applySettings(vp.proj);
+            v->setMpcdiWarpMesh(vp.meshData);
+            addViewport(std::move(v));
+        }
         return;
     }
 

@@ -17,10 +17,6 @@ BaseViewport::BaseViewport()
     : _user(ClusterManager::instance()->getDefaultUser())
 {}
 
-void BaseViewport::setName(std::string name) {
-    _name = std::move(name);
-}
-
 void BaseViewport::setPos(glm::vec2 position) {
     _position = std::move(position);
 }
@@ -39,10 +35,6 @@ bool BaseViewport::isEnabled() const {
 
 void BaseViewport::setEye(Frustum::Mode eye) {
     _eye = eye;
-}
-
-const std::string& BaseViewport::getName() const {
-    return _name;
 }
 
 const glm::vec2& BaseViewport::getPosition() const {

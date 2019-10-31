@@ -28,8 +28,6 @@ public:
     BaseViewport();
     virtual ~BaseViewport() = default;
 
-    /// Name this viewport
-    void setName(std::string name);
     void setPos(glm::vec2 position);
     void setSize(glm::vec2 size);
     void setEnabled(bool state);
@@ -37,7 +35,6 @@ public:
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
     
-    const std::string& getName() const;
     const glm::vec2& getPosition() const;
     const glm::vec2& getSize() const;
     float getHorizontalFieldOfViewDegrees() const;
@@ -71,7 +68,6 @@ protected:
     Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
     User& _user;
-    std::string _name = "NoName";
 
     // @TODO (abock, 2019-10-13) I'm pretty sure that we can remove the _userName variable
     // which will ultimately remove the need to store multiple user pointers in the

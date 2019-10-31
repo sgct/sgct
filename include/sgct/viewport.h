@@ -36,7 +36,7 @@ class Viewport : public BaseViewport {
 public:
     void applyViewport(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);
-    void setMpcdiWarpMesh(std::vector<unsigned char> data);
+    void setMpcdiWarpMesh(std::vector<char> data);
     // void setTracked(bool state);
     void loadData();
 
@@ -58,7 +58,7 @@ public:
     unsigned int getBlendMaskTextureIndex() const;
     unsigned int getBlackLevelMaskTextureIndex() const;
     NonLinearProjection* getNonLinearProjection() const;
-    const std::vector<unsigned char>& mpcdiWarpMesh() const;
+    const std::vector<char>& mpcdiWarpMesh() const;
 
 private:
     void applyPlanarProjection(const sgct::config::PlanarProjection& proj);
@@ -78,7 +78,7 @@ private:
     unsigned int _blackLevelMaskTextureIndex = 0;
 
     std::unique_ptr<NonLinearProjection> _nonLinearProjection;
-    std::vector<unsigned char> _mpcdiWarpMesh;
+    std::vector<char> _mpcdiWarpMesh;
 };
 
 } // namespace sgct::core

@@ -9,67 +9,26 @@
 #ifndef __SGCT__MPCDI__H__
 #define __SGCT__MPCDI__H__
 
+#include <sgct/config.h>
 #include <glm/glm.hpp>
-#include <memory>
 #include <string>
 #include <vector>
 
-#include <tinyxml2.h>
-#include <unzip.h>
-#include <zip.h>
+namespace sgct::core::mpcdi {
 
-namespace sgct { class Window; }
-
-namespace sgct::core {
-
-class Node;
-
-class Mpcdi {
-public:
-    bool parseConfiguration(const std::string& filenameMpcdi, Window& window);
-
-private:
-    struct MpcdiFoundItems {
-        bool hasDisplayElem = false;
-        bool hasBufferElem = false;
-        glm::ivec2 resolution = glm::ivec2(-1);
+struct ReturnValue {
+    glm::ivec2 position;
+    glm::ivec2 resolution;
+    struct ViewportInfo {
+        config::MpcdiProjection proj;
+        std::vector<char> meshData;
     };
-
-    struct MpcdiWarp {
-        std::string id;
-        std::string pathWarpFile;
-        bool hasFoundPath = false;
-        bool hasFoundInterpolation = false;
-    };
-
-    bool readAndParseString(Window& win);
-    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, Window& win);
-    bool readAndParseDisplay(tinyxml2::XMLElement* element, Window& win,
-        MpcdiFoundItems& parsedItems);
-    bool readAndParseFiles(tinyxml2::XMLElement* element, Window& win);
-    bool readAndParseBuffer(tinyxml2::XMLElement* element, Window& win,
-        MpcdiFoundItems& parsedItems);
-    bool readAndParseRegion(tinyxml2::XMLElement* element, Window& win,
-        MpcdiFoundItems& parsedItems);
-    bool readAndParseGeoWarpFile(tinyxml2::XMLElement* element, Window& win,
-        std::string filesetRegionId);
-
-    struct SubFile {
-        bool isFound = false;
-        std::string fileName;
-        std::vector<char> buffer;
-    };
-
-    bool processSubFile(SubFile& sf, const std::string& suffix,
-        const std::string& filename, unzFile zipfile, const unz_file_info& fileInfo);
-
-    SubFile _xmlFileContents;
-    SubFile _pfmFileContents;
-
-    std::vector<std::string> _bufferRegions;
-    std::vector<std::unique_ptr<MpcdiWarp>> _warp;
+    std::vector<ViewportInfo> viewports;
 };
 
-} //namespace sgct::core
+// throws std::runtime_error if the parsing fails
+ReturnValue parseConfiguration(const std::string& filenameMpcdi);
+
+} //namespace sgct::core::mpcdi
 
 #endif // __SGCT__MPCDI__H__

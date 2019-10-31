@@ -18,7 +18,7 @@
 #endif
 
 namespace {
-    bool readMeshBuffer(float* dest, unsigned int& idx, const unsigned char* src,
+    bool readMeshBuffer(float* dest, unsigned int& idx, const char* src,
                         size_t srcSizeBytes, int readSizeBytes)
     {
         if ((idx + readSizeBytes) > srcSizeBytes) {
@@ -42,7 +42,7 @@ Buffer generateMpcdiMesh(const std::string& path, const core::Viewport& parent) 
 
     FILE* meshFile = nullptr;
     size_t srcSizeBytes = 0;
-    const unsigned char* srcBuff = nullptr;
+    const char* srcBuff = nullptr;
     if (isReadingFile) {
         MessageHandler::printInfo(
             "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'", path.c_str()

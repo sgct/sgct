@@ -34,9 +34,6 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.user) {
         setUserName(*viewport.user);
     }
-    if (viewport.name) {
-        setName(*viewport.name);
-    }
     if (viewport.overlayTexture) {
         _overlayFilename = *viewport.overlayTexture;
     }
@@ -103,9 +100,6 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 }
 
 void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
-    if (mpcdi.id) {
-        setName(*mpcdi.id);
-    }
     if (mpcdi.position) {
         setPos(*mpcdi.position);
     }
@@ -278,13 +272,11 @@ void Viewport::applySphericalMirrorProjection(
     _nonLinearProjection = std::move(sphericalMirrorProj);
 }
 
-void Viewport::setMpcdiWarpMesh(std::vector<unsigned char> data) {
+void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
     _mpcdiWarpMesh = std::move(data);
 }
 
 void Viewport::loadData() {
-    MessageHandler::printDebug("Viewport: loading GPU data for '%s'", _name.c_str());
-
     if (!_overlayFilename.empty()) {
         _overlayTextureIndex = TextureManager::instance()->loadTexture(
             _overlayFilename,
@@ -376,7 +368,7 @@ NonLinearProjection* Viewport::getNonLinearProjection() const {
     return _nonLinearProjection.get();
 }
 
-const std::vector<unsigned char>& Viewport::mpcdiWarpMesh() const {
+const std::vector<char>& Viewport::mpcdiWarpMesh() const {
     return _mpcdiWarpMesh;
 }
 

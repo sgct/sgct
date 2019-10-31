@@ -131,7 +131,9 @@ CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
     if (hintStr == "mpcdi") {
         return CorrectionMesh::Format::Mpcdi;
     }
-    MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+    if (!hintStr.empty()) {
+        MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+    }
     return CorrectionMesh::Format::None;
 }
 

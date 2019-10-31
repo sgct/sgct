@@ -451,7 +451,10 @@ int main(int argc, char* argv[]) {
 
     Engine::instance()->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
-    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    try {
+        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+    }
+    catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }

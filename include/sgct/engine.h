@@ -141,7 +141,7 @@ public:
      * \param rm The optional run mode.
      * \param cluster The cluster setup that should be used for this SGCT run
      */
-    bool init(RunMode rm, config::Cluster cluster);
+    void init(RunMode rm, config::Cluster cluster);
 
     /// Terminates SGCT.
     void terminate();
@@ -898,10 +898,10 @@ private:
     ~Engine();
 
     /// Initiates network communication.
-    bool initNetwork();
+    void initNetwork();
 
     /// Create and initiate a window.
-    bool initWindows();
+    void initWindows();
 
     /// Initiates OpenGL.
     void initOGL();
@@ -910,14 +910,14 @@ private:
      * Locks the rendering thread for synchronization. Locks the slaves until data is
      * successfully received.
      */
-    bool frameLockPreStage();
+    void frameLockPreStage();
 
     /**
      * Locks the rendering thread for synchronization. Locks master until slaves are ready
      * to swap buffers.
      * sync.
      */
-    bool frameLockPostStage();
+    void frameLockPostStage();
 
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();

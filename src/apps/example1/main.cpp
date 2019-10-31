@@ -134,12 +134,15 @@ int main(int argc, char* argv[]) {
     Engine::instance()->setEncodeFunction(encodeFun);
     Engine::instance()->setDecodeFunction(decodeFun);
 
-    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    try {
+        Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
+        Engine::instance()->render();
+    }
+    catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

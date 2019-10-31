@@ -115,7 +115,6 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    // Bind your functions
     Engine::instance()->setInitOGLFunction(initFun);
     Engine::instance()->setDrawFunction(drawFun);
     Engine::instance()->setPreSyncFunction(preSyncFun);
@@ -123,8 +122,10 @@ int main(int argc, char* argv[]) {
     Engine::instance()->setEncodeFunction(encodeFun);
     Engine::instance()->setDecodeFunction(decodeFun);
 
-    // Init the engine
-    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
+    try {
+        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+    }
+    catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }

@@ -104,7 +104,7 @@ namespace {
         file.close();
 
         sgct::MessageHandler::printInfo(
-            "CorrectionMesh: Mesh '%s' exported successfully", exportPath.c_str()
+            "Mesh '%s' exported successfully", exportPath.c_str()
         );
     }
 

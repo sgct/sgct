@@ -11,15 +11,6 @@
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 
-namespace {
-    void readMeshBuffer(float* dest, unsigned int& idx, const char* src, int size) {
-        float val;
-        memcpy(&val, &src[idx], size);
-        *dest = val;
-        idx += size;
-    }
-} // namespace
-
 namespace sgct::core::correction {
 
 Buffer generateMpcdiMesh(const core::Viewport& parent) {
@@ -64,12 +55,15 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     const int nCorrectionValues = nCols * nRows;
     std::vector<float> corrGridX(nCorrectionValues);
     std::vector<float> corrGridY(nCorrectionValues);
-    float errorPos;
-
     for (int i = 0; i < nCorrectionValues; ++i) {
-        readMeshBuffer(&corrGridX[i], srcIdx, srcBuff, 4);
-        readMeshBuffer(&corrGridY[i], srcIdx, srcBuff, 4);
-        readMeshBuffer(&errorPos, srcIdx, srcBuff, 4);
+        memcpy(&corrGridX[i], &srcBuff[srcIdx], sizeof(float));
+        srcIdx += sizeof(float);
+
+        memcpy(&corrGridY[i], &srcBuff[srcIdx], sizeof(float));
+        srcIdx += sizeof(float);
+
+        // error position; we skip those here
+        srcIdx += sizeof(float);
     }
 
     std::vector<glm::vec2> smoothPos(nCorrectionValues);

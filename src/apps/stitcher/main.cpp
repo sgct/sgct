@@ -617,7 +617,10 @@ int main(int argc, char* argv[]) {
 
     gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
-    if (!gEngine->init(Engine::RunMode::Default_Mode, cluster)) {
+    try {
+        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+    }
+    catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }

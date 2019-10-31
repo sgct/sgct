@@ -9,7 +9,10 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    if (!Engine::instance()->init(Engine::RunMode::Default_Mode, cluster)) {
+    try {
+        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+    }
+    catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }

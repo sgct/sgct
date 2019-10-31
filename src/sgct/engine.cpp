@@ -13,37 +13,28 @@
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
-#include <sgct/offscreenbuffer.h>
 #include <sgct/readconfig.h>
-#include <sgct/mutexes.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
-#include <sgct/viewport.h>
 #include <sgct/touch.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalshaders.h>
-#include <algorithm>
 #include <iostream>
 #include <numeric>
-#include <sstream>
-#include <stdexcept>
-#include <glm/gtc/type_ptr.hpp>
-#include <sgct/ogl_headers.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 // Callback wrappers for GLFW
-std::function<void(int, int, int, int)> gKeyboardCallbackFnPtr = nullptr;
-std::function<void(unsigned int, int)> gCharCallbackFnPtr = nullptr;
-std::function<void(int, int, int)> gMouseButtonCallbackFnPtr = nullptr;
-std::function<void(double, double)> gMousePosCallbackFnPtr = nullptr;
-std::function<void(double, double)> gMouseScrollCallbackFnPtr = nullptr;
-std::function<void(int, const char**)> gDropCallbackFnPtr = nullptr;
-std::function<void(const sgct::core::Touch*)> gTouchCallbackFnPtr = nullptr;
+std::function<void(int, int, int, int)> gKeyboardCallbackFn = nullptr;
+std::function<void(unsigned int, int)> gCharCallbackFn = nullptr;
+std::function<void(int, int, int)> gMouseButtonCallbackFn = nullptr;
+std::function<void(double, double)> gMousePosCallbackFn = nullptr;
+std::function<void(double, double)> gMouseScrollCallbackFn = nullptr;
+std::function<void(int, const char**)> gDropCallbackFn = nullptr;
+std::function<void(const sgct::core::Touch*)> gTouchCallbackFn = nullptr;
 sgct::core::Touch gCurrentTouchPoints;
 
 bool sRunUpdateFrameLockLoop = true;
@@ -107,11 +98,7 @@ namespace {
 
     template <typename Array>
     void addValue(Array& array, double value) {
-        std::rotate(
-            std::rbegin(array),
-            std::rbegin(array) + 1,
-            std::rend(array)
-        );
+        std::rotate(std::rbegin(array), std::rbegin(array) + 1, std::rend(array));
         array[0] = value;
     }
 } // namespace
@@ -289,11 +276,11 @@ Engine::~Engine() {
     _contextCreationFn = nullptr;
     _screenShotFn = nullptr;
 
-    gKeyboardCallbackFnPtr = nullptr;
-    gMouseButtonCallbackFnPtr = nullptr;
-    gMousePosCallbackFnPtr = nullptr;
-    gMouseScrollCallbackFnPtr = nullptr;
-    gDropCallbackFnPtr = nullptr;
+    gKeyboardCallbackFn = nullptr;
+    gMouseButtonCallbackFn = nullptr;
+    gMousePosCallbackFn = nullptr;
+    gMouseScrollCallbackFn = nullptr;
+    gDropCallbackFn = nullptr;
 
     // kill thread
     if (_thread) {
@@ -337,7 +324,7 @@ Engine::~Engine() {
 
 #ifdef SGCT_HAS_TEXT
     MessageHandler::printDebug("Destroying font manager");
-    sgct::text::FontManager::destroy();
+    text::FontManager::destroy();
 #endif // SGCT_HAS_TEXT
 
     // Window specific context
@@ -366,37 +353,27 @@ Engine::~Engine() {
     MessageHandler::printDebug("Finished cleaning");
 }
 
-bool Engine::init(RunMode rm, config::Cluster cluster) {
+void Engine::init(RunMode rm, config::Cluster cluster) {
     _runMode = rm;
     MessageHandler::printInfo("%s", getVersion().c_str());
 
     if (_helpMode) {
-        return false;
+        return;
     }
 
     if (_shouldTerminate) {
-        MessageHandler::printError("Failed to initialize GLFW");
-        return false;
+        throw std::runtime_error("Failed to initialize GLFW");
     }
 
     const bool validation = sgct::config::validateCluster(cluster);
     if (!validation) {
-        MessageHandler::printError("Validation of configuration failed");
-        return false;
+        throw std::runtime_error("Validation of configuration failed");
     }
          
     core::ClusterManager::instance()->applyCluster(cluster);
 
-    bool networkSuccess = initNetwork();
-    if (!networkSuccess) { 
-        MessageHandler::printError("Network initialization error");
-        return false;
-    }
-
-    if (!initWindows()) {
-        MessageHandler::printError("Window initialization error");
-        return false;
-    }
+    initNetwork();
+    initWindows();
 
     // Window resolution may have been set when reading config. However, it only sets a
     // pending resolution, so it needs to apply it using the same routine as in the end of
@@ -413,67 +390,67 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         GLFWwindow* window = getWindow(i).getWindowHandle();
-        if (gKeyboardCallbackFnPtr) {
+        if (gKeyboardCallbackFn) {
             glfwSetKeyCallback(
                 window,
                 [](GLFWwindow*, int key, int scancode, int action, int mods) {
-                    if (gKeyboardCallbackFnPtr) {
-                        gKeyboardCallbackFnPtr(key, scancode, action, mods);
+                    if (gKeyboardCallbackFn) {
+                        gKeyboardCallbackFn(key, scancode, action, mods);
                     }
                 }
             );
         }
-        if (gMouseButtonCallbackFnPtr) {
+        if (gMouseButtonCallbackFn) {
             glfwSetMouseButtonCallback(
                 window,
                 [](GLFWwindow*, int button, int action, int mods) {
-                    if (gMouseButtonCallbackFnPtr) {
-                        gMouseButtonCallbackFnPtr(button, action, mods);
+                    if (gMouseButtonCallbackFn) {
+                        gMouseButtonCallbackFn(button, action, mods);
                     }
                 }
             );
         }
-        if (gMousePosCallbackFnPtr) {
+        if (gMousePosCallbackFn) {
             glfwSetCursorPosCallback(
                 window,
                 [](GLFWwindow*, double xPos, double yPos) {
-                    if (gMousePosCallbackFnPtr) {
-                        gMousePosCallbackFnPtr(xPos, yPos);
+                    if (gMousePosCallbackFn) {
+                        gMousePosCallbackFn(xPos, yPos);
                     }
                 }
             );
         }
-        if (gCharCallbackFnPtr) {
+        if (gCharCallbackFn) {
             glfwSetCharModsCallback(
                 window,
                 [](GLFWwindow*, unsigned int ch, int mod) {
-                    if (gCharCallbackFnPtr) {
-                        gCharCallbackFnPtr(ch, mod);
+                    if (gCharCallbackFn) {
+                        gCharCallbackFn(ch, mod);
                     }
                 }
             );
         }
-        if (gMouseScrollCallbackFnPtr) {
+        if (gMouseScrollCallbackFn) {
             glfwSetScrollCallback(
                 window,
                 [](GLFWwindow*, double xOffset, double yOffset) {
-                    if (gMouseScrollCallbackFnPtr) {
-                        gMouseScrollCallbackFnPtr(xOffset, yOffset);
+                    if (gMouseScrollCallbackFn) {
+                        gMouseScrollCallbackFn(xOffset, yOffset);
                     }
                 }
             );
         }
-        if (gDropCallbackFnPtr) {
+        if (gDropCallbackFn) {
             glfwSetDropCallback(
                 window,
                 [](GLFWwindow*, int count, const char** paths) {
-                    if (gDropCallbackFnPtr) {
-                        gDropCallbackFnPtr(count, paths);
+                    if (gDropCallbackFn) {
+                        gDropCallbackFn(count, paths);
                     }
                 }
             );
         }
-        if (gTouchCallbackFnPtr) {
+        if (gTouchCallbackFn) {
             glfwSetTouchCallback(
                 window,
                 [](GLFWwindow*, GLFWtouch* touchPoints, int count){
@@ -493,26 +470,16 @@ bool Engine::init(RunMode rm, config::Cluster cluster) {
     if (isMaster()) {
         getTrackingManager().startSampling();
     }
-
-    return true;
 }
 
 void Engine::terminate() {
     _shouldTerminate = true;
 }
 
-bool Engine::initNetwork() {
-    try {
-        _networkConnections = std::make_unique<core::NetworkManager>(
-            core::ClusterManager::instance()->getNetworkMode()
-        );
-    }
-    catch (const std::runtime_error& e) {
-        MessageHandler::printError(
-            "Initiating network connections failed. Error: '%s'", e.what()
-        );
-        return false;
-    }
+void Engine::initNetwork() {
+    _networkConnections = std::make_unique<core::NetworkManager>(
+        core::ClusterManager::instance()->getNetworkMode()
+    );
 
     // check in cluster configuration which it is
     if (core::ClusterManager::instance()->getNetworkMode() ==
@@ -534,22 +501,20 @@ bool Engine::initNetwork() {
         static_cast<int>(core::ClusterManager::instance()->getNumberOfNodes()) ||
         core::ClusterManager::instance()->getThisNodeId() < 0)
     {
-        MessageHandler::printError(
-            "This computer is not a part of the cluster configuration"
-        );
         _networkConnections->close();
-        return false;
+        throw std::runtime_error("Computer is not a part of the cluster configuration");
     }
 
     const bool networkInitSuccess = _networkConnections->init();
-    return networkInitSuccess;
+    if (!networkInitSuccess) {
+        throw std::runtime_error("Error initializing network connections");
+    }
 }
 
-bool Engine::initWindows() {
+void Engine::initWindows() {
     core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
     if (thisNode.getNumberOfWindows() == 0) {
-        MessageHandler::printError("No windows exist in configuration");
-        return false;
+        throw std::runtime_error("No windows exist in configuration");
     }
 
     {
@@ -659,8 +624,7 @@ bool Engine::initWindows() {
         }
 
         if (!thisNode.getWindow(i).openWindow(share, lastWindowIdx)) {
-            MessageHandler::printError("Failed to open window %d", i);
-            return false;
+            throw std::runtime_error("Failed to open window " + std::to_string(i));
         }
     }
 
@@ -692,8 +656,7 @@ bool Engine::initWindows() {
         }
     }
     else {
-        MessageHandler::printError("No windows created on this node");
-        return false;
+        throw std::runtime_error("No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -714,8 +677,6 @@ bool Engine::initWindows() {
     if (thisNode.isUsingSwapGroups()) {
         Window::initNvidiaSwapGroups();
     }
-
-    return true;
 }
 
 void Engine::initOGL() {
@@ -838,7 +799,7 @@ void Engine::initOGL() {
     MessageHandler::printInfo("Ready to render");
 }
 
-bool Engine::frameLockPreStage() {
+void Engine::frameLockPreStage() {
     using namespace core;
 
     const double ts = glfwGetTime();
@@ -855,7 +816,7 @@ bool Engine::frameLockPreStage() {
     if (ClusterManager::instance()->getIgnoreSync() ||
         _networkConnections->isComputerServer())
     {
-        return true;
+        return;
     }
 
     // not server
@@ -895,10 +856,9 @@ bool Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
-            MessageHandler::printError(
-                "No sync signal from master after %.1f seconds", _syncTimeout
+            throw std::runtime_error(
+                "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
-            return false;
         }
     }
 
@@ -906,15 +866,14 @@ bool Engine::frameLockPreStage() {
     // Let's signal that back to the master/server.
     _networkConnections->sync(NetworkManager::SyncMode::AcknowledgeData);
     addValue(_statistics.syncTimes, glfwGetTime() - t0);
-    return true;
 }
 
-bool Engine::frameLockPostStage() {
+void Engine::frameLockPostStage() {
     // post stage
     if (core::ClusterManager::instance()->getIgnoreSync() ||
         !_networkConnections->isComputerServer())
     {
-        return true;
+        return;
     }
 
     const double t0 = glfwGetTime();
@@ -958,16 +917,13 @@ bool Engine::frameLockPostStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
-            MessageHandler::printError(
-                "No sync signal from all slaves after %.1f seconds", _syncTimeout
+            throw std::runtime_error(
+                "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
             );
-
-            return false;
         }
     }
 
     addValue(_statistics.syncTimes, glfwGetTime() - t0);
-    return true;
 }
 
 void Engine::render() {
@@ -999,13 +955,8 @@ void Engine::render() {
             break;
         }
 
-        const bool lockPreStageSuccess = frameLockPreStage();
-        if (!lockPreStageSuccess) {
-            break;
-        }
+        frameLockPreStage();
 
-        // check if re-size needed of VBO and PBO
-        // context switching may occur if multiple windows are used
         bool buffersNeedUpdate = false;
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
             const bool bufUpdate = thisNode.getWindow(i).update();
@@ -1187,10 +1138,7 @@ void Engine::render() {
         }
         
         // master will wait for nodes render before swapping
-        const bool lockPostStageSuccess = frameLockPostStage();
-        if (!lockPostStageSuccess) {
-            break;
-        }
+        frameLockPostStage();
 
         // Swap front and back rendering buffers
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -2256,31 +2204,31 @@ void Engine::setScreenShotCallback(std::function<void(core::Image*, size_t,
 }
 
 void Engine::setKeyboardCallbackFunction(std::function<void(int, int, int, int)> fn) {
-    gKeyboardCallbackFnPtr = std::move(fn);
+    gKeyboardCallbackFn = std::move(fn);
 }
 
 void Engine::setCharCallbackFunction(std::function<void(unsigned int, int)> fn) {
-    gCharCallbackFnPtr = std::move(fn);
+    gCharCallbackFn = std::move(fn);
 }
 
 void Engine::setMouseButtonCallbackFunction(std::function<void(int, int, int)> fn) {
-    gMouseButtonCallbackFnPtr = std::move(fn);
+    gMouseButtonCallbackFn = std::move(fn);
 }
 
 void Engine::setMousePosCallbackFunction(std::function<void(double, double)> fn) {
-    gMousePosCallbackFnPtr = std::move(fn);
+    gMousePosCallbackFn = std::move(fn);
 }
 
 void Engine::setMouseScrollCallbackFunction(std::function<void(double, double)> fn) {
-    gMouseScrollCallbackFnPtr = std::move(fn);
+    gMouseScrollCallbackFn = std::move(fn);
 }
 
 void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) {
-    gDropCallbackFnPtr = std::move(fn);
+    gDropCallbackFn = std::move(fn);
 }
 
  void Engine::setTouchCallbackFunction(std::function<void(const core::Touch*)> fn) {
-     gTouchCallbackFnPtr = std::move(fn);
+     gTouchCallbackFn = std::move(fn);
  }
 
 void Engine::clearBuffer() {

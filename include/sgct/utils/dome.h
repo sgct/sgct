@@ -20,7 +20,7 @@ namespace sgct::utils {
 class Dome {
 public:
     /// This constructor requires a valid OpenGL contex
-    Dome(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
+    Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
     ~Dome();
 
     /**

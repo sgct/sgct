@@ -15,8 +15,7 @@
 
 namespace sgct::utils {
 
-Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
-           unsigned int elevationSteps)
+Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps)
     : _elevationSteps(elevationSteps)
     , _azimuthSteps(azimuthSteps)
 {
@@ -34,7 +33,7 @@ Dome::Dome(float radius, float FOV, unsigned int azimuthSteps,
         _elevationSteps = 4;
     }
 
-    createVBO(radius, FOV);
+    createVBO(r, FOV);
 }
 
 Dome::~Dome() {

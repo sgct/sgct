@@ -50,7 +50,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/window.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdi.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdimesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/paulbourke.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/scalable.h
@@ -116,7 +116,7 @@ set(SOURCE_FILES
   viewport.cpp
   window.cpp
   correction/domeprojection.cpp
-  correction/mpcdi.cpp
+  correction/mpcdimesh.cpp
   correction/obj.cpp
   correction/paulbourke.cpp
   correction/scalable.cpp

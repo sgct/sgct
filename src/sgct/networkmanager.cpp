@@ -38,7 +38,7 @@
     #define SOCKET_ERROR (-1)
 #endif
 
-//missing function on mingw
+// missing function on mingw
 #if defined(__MINGW32__) || defined(__MINGW64__)
 const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
     sockaddr_in srcaddr;

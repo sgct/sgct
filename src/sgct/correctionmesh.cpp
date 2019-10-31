@@ -15,7 +15,7 @@
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 #include <sgct/correction/domeprojection.h>
-#include <sgct/correction/mpcdi.h>
+#include <sgct/correction/mpcdimesh.h>
 #include <sgct/correction/obj.h>
 #include <sgct/correction/paulbourke.h>
 #include <sgct/correction/scalable.h>
@@ -215,7 +215,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
             buf = generateOBJMesh(path);
         }
         else if (path.find(".mpcdi") != std::string::npos) {
-            buf = generateMpcdiMesh("", parent);
+            buf = generateMpcdiMesh(parent);
         }
         else if ((path.find(".simcad") != std::string::npos) &&
             (hint == Format::None || hint == Format::SimCad))

@@ -24,8 +24,7 @@ public:
         Important,
         Info,
         Warning,
-        Debug,
-        NotifyAll
+        Debug
     };
     
     /// Get the MessageHandler instance

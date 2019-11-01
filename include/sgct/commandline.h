@@ -30,6 +30,7 @@ struct Configuration {
     std::optional<int> msaaSamples;
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
+    std::optional<bool> checkOpenGL;
 };
 
 /**

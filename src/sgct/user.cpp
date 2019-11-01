@@ -30,19 +30,14 @@ void User::setTransform(glm::mat4 transform) {
     updateEyeTransform();
 }
 
-void User::setOrientation(float xRot, float yRot, float zRot) {
-    // create offset translation matrix
-    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
-    
-    _transform = transMat *
-        glm::eulerAngleX(xRot) * glm::eulerAngleY(yRot) * glm::eulerAngleZ(zRot);
+void User::setOrientation(float x, float y, float z) {
+    const glm::mat4 trans = glm::translate(glm::mat4(1.f), _posMono);
+    _transform = trans * glm::eulerAngleX(x) * glm::eulerAngleY(y) * glm::eulerAngleZ(z);
     updateEyeTransform();
 }
 
 void User::setOrientation(glm::quat q) {
-    // create offset translation matrix
     const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _posMono);
-
     _transform = transMat * glm::mat4_cast(q);
     updateEyeTransform();
 }

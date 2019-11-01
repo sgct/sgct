@@ -10,9 +10,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct {
 
 std::string getVersion() {
-    std::string major = std::to_string(VersionMajor);
-    std::string minor = std::to_string(VersionMinor);
-    std::string patch = std::to_string(VersionRevision);
+    const std::string major = std::to_string(VersionMajor);
+    const std::string minor = std::to_string(VersionMinor);
+    const std::string patch = std::to_string(VersionRevision);
     return "SGCT ver " + major + "." + minor + "." + patch;
 }
 

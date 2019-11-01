@@ -13,8 +13,7 @@
 #include <sgct/messagehandler.h>
 
 namespace {
-    unsigned int uploadImage(const sgct::core::Image& img, bool interpolate,
-                             int mipmapLevels,
+    unsigned int uploadImage(const sgct::core::Image& img, bool interpolate, int mipmap,
                              sgct::TextureManager::CompressionMode compression,
                              float anisotropicFilterSize)
     {
@@ -24,7 +23,6 @@ namespace {
 
         // if three channels
         GLenum textureType = GL_BGR;
-
         if (img.getChannels() == 1) {
             textureType = GL_RED;
         }
@@ -115,9 +113,9 @@ namespace {
             img.getData()
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels - 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
 
-        if (mipmapLevels > 1) {
+        if (mipmap > 1) {
             glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
 
             glTexParameteri(

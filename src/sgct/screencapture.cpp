@@ -22,9 +22,7 @@ namespace {
 
         const bool saveSuccess = ptr->frameBufferImage->save(ptr->filename);
         if (!saveSuccess) {
-            sgct::MessageHandler::printError(
-                "Error: Failed to save '%s'", ptr->filename.c_str()
-            );
+            sgct::MessageHandler::printError("Failed to save %s", ptr->filename.c_str());
         }
         ptr->isRunning = false;
     }
@@ -41,14 +39,10 @@ namespace {
 
     [[nodiscard]] GLenum getDownloadFormat(int nChannels) {
         switch (nChannels) {
-            default:
-                return GL_BGRA;
-            case 1:
-                return GL_RED;
-            case 2:
-                return GL_RG;
-            case 3:
-                return GL_BGR;
+            default: return GL_BGRA;
+            case 1: return GL_RED;
+            case 2: return GL_RG;
+            case 3: return GL_BGR;
         }
     }
 
@@ -200,12 +194,9 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
             default:
-            case CaptureFormat::PNG:
-                return "png";
-            case CaptureFormat::TGA:
-                return "tga";
-            case CaptureFormat::JPEG:
-                return "jpg";
+            case CaptureFormat::PNG: return "png";
+            case CaptureFormat::TGA: return "tga";
+            case CaptureFormat::JPEG: return "jpg";
         }
     }(_format);
 
@@ -310,9 +301,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
-        MessageHandler::printError(
-            "Error in finding availible thread for screenshot/capture"
-        );
+        MessageHandler::printError("Error finding available capture thread");
         return nullptr;
     }
 

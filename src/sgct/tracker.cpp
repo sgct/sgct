@@ -20,14 +20,13 @@ namespace sgct {
 Tracker::Tracker(std::string name) : _name(std::move(name)) {}
 
 void Tracker::setEnabled(bool state) {
-    for (std::unique_ptr<TrackingDevice>& dev : _trackingDevices) {
-        dev->setEnabled(state);
+    for (std::unique_ptr<TrackingDevice>& device : _trackingDevices) {
+        device->setEnabled(state);
     }
 }
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-
     MessageHandler::printInfo("%s: Adding device '%s'", _name.c_str(), name.c_str());
 }
 
@@ -70,7 +69,6 @@ void Tracker::setOrientation(glm::quat q) {
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
-    // create rotation quaternion based on x, y, z rotations
     glm::quat rotQuat;
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
@@ -115,10 +113,7 @@ const std::string& Tracker::getName() const {
 }
 
 void Tracker::calculateTransform() {
-    // create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
-
-    // calculate transform
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
     _transform = transMat * _orientation;
 }
 

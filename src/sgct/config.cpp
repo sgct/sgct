@@ -8,404 +8,300 @@
 
 #include <sgct/config.h>
 
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <glm/vector_relational.hpp>
 #include <algorithm>
 #include <variant>
 
+#define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
+
 namespace {
     // Helper structs for the visitor pattern of the std::variant on projections
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 } // namespace
 
 namespace sgct::config {
 
-bool validateUser(const User& user) {
-    bool success = true;
-
+void validateUser(const User& user) {
     if (user.tracking && user.tracking->device.empty()) {
-        MessageHandler::printError("Tracking device name must not be empty");
-        success = false;
+        throw Error(1000, "Tracking device name must not be empty");
     }
     if (user.tracking && user.tracking->tracker.empty()) {
-        MessageHandler::printError("Tracking tracker name must not be empty");
-        success = false;
+        throw Error(1001, "Tracking tracker name must not be empty");
     }
-
-    return success;
 }
 
-bool validateCapture(const Capture& capture) {
-    bool success = true;
-
+void validateCapture(const Capture& capture) {
     if (capture.monoPath && capture.monoPath->empty()) {
-        MessageHandler::printError("Mono path must not be empty");
-        success = false;
+        throw Error(1002, "Mono path must not be empty");
     }
     if (capture.monoPath && capture.leftPath->empty()) {
-        MessageHandler::printError("Left path must not be empty");
-        success = false;
+        throw Error(1003, "Left path must not be empty");
     }
     if (capture.monoPath && capture.rightPath->empty()) {
-        MessageHandler::printError("Right path must not be empty");
-        success = false;
+        throw Error(1004, "Right path must not be empty");
     }
-
-    return success;
 }
 
-bool validateScene(const Scene&) {
-    return true;
+void validateScene(const Scene&) {
 }
 
-bool validateSettings(const Settings& settings) {
-    bool success = true;
-
+void validateSettings(const Settings& settings) {
     if (settings.display && settings.display->swapInterval &&
         *settings.display->swapInterval < 0)
     {
-        MessageHandler::printError("Swap interval must not be negative");
-        success = false;
+        throw Error(1005, "Swap interval must not be negative");
     }
     if (settings.display && settings.display->refreshRate &&
         *settings.display->refreshRate < 0)
     {
-        MessageHandler::printError("Refresh rate must not be negative");
-        success = false;
+        throw Error(1006, "Refresh rate must not be negative");
     }
 
     if (settings.osdText && settings.osdText->name && settings.osdText->name->empty()) {
-        MessageHandler::printError("OSDText font name must not be negative");
-        success = false;
+        throw Error(1007, "OSDText font name must not be negative");
     }
 
     if (settings.osdText && settings.osdText->path && settings.osdText->path->empty()) {
-        MessageHandler::printError("OSDText font path must not be negative");
-        success = false;
+        throw Error(1008, "OSDText font path must not be empty");
     }
 
     if (settings.osdText && settings.osdText->size && *settings.osdText->size < 0) {
-        MessageHandler::printError("OSDText font size must not be negative");
-        success = false;
+        throw Error(1009, "OSDText font size must not be negative");
     }
 
     if (settings.fxaa && settings.fxaa->trim && *settings.fxaa->trim <= 0.f) {
-        MessageHandler::printError("FXAA trim must be postive");
-        success = false;
+        throw Error(1010, "FXAA trim must be postive");
     }
-    return success;
 }
 
-bool validateDevice(const Device& device) {
-    bool success = true;
-
+void validateDevice(const Device& device) {
     if (device.name.empty()) {
-        MessageHandler::printError("Device name must not be empty");
-        success = false;
+        throw Error(1011, "Device name must not be empty");
     }
 
-    auto validateAddress = [](const auto& v) -> bool {
-        if (v.vrpnAddress.empty()) {
-            MessageHandler::printError("VRPN address must not be empty");
-        }
-        return !v.vrpnAddress.empty();
-    };
+    auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty();};
 
-    success &= std::all_of(device.sensors.begin(), device.sensors.end(), validateAddress);
-    success &= std::all_of(device.buttons.begin(), device.buttons.end(), validateAddress);
-    success &= std::all_of(device.axes.begin(), device.axes.end(), validateAddress);
+    bool a = std::all_of(device.sensors.begin(), device.sensors.end(), validateAddress);
+    if (!a) {
+        throw Error(1012, "VRPN address for sensors must not be empty");
 
-    return success;
+    }
+    bool b = std::all_of(device.buttons.begin(), device.buttons.end(), validateAddress);
+    if (!b) {
+        throw Error(1013, "VRPN address for buttons must not be empty");
+
+    }
+    bool c = std::all_of(device.axes.begin(), device.axes.end(), validateAddress);
+    if (!c) {
+        throw Error(1014, "VRPN address for axes must not be empty");
+    }
 }
 
-bool validateTracker(const Tracker& tracker) {
-    bool success = true;
-
+void validateTracker(const Tracker& tracker) {
     if (tracker.name.empty()) {
-        MessageHandler::printError("Tracker name must not be empty");
-        success = false;
+        throw Error(1015, "Tracker name must not be empty");
     }
 
-    success &= std::all_of(
-        tracker.devices.begin(),
-        tracker.devices.end(),
-        validateDevice
-    );
-
-    return success;
+    std::for_each(tracker.devices.begin(), tracker.devices.end(), validateDevice);
 }
 
-bool validatePlanarProjection(const PlanarProjection& proj) {
-    bool success = true;
-
+void validatePlanarProjection(const PlanarProjection& proj) {
     if (proj.fov.up == proj.fov.down) {
-        MessageHandler::printError("Up and down field of views can not be the same");
-        success = false;
+        throw Error(1016, "Up and down field of views can not be the same");
     }
     if (proj.fov.left == proj.fov.right) {
-        MessageHandler::printError("Left and right field of views can not be the same");
-        success = false;
+        throw Error(1017, "Left and right field of views can not be the same");
     }
-    return success;
 }
 
-bool validateFisheyeProjection(const FisheyeProjection& proj) {
-    bool success = true;
-
+void validateFisheyeProjection(const FisheyeProjection& proj) {
     if (proj.fov && *proj.fov <= 0.f) {
-        MessageHandler::printError("Field of view setting must be positive");
-        success = false;
+        throw Error(1018, "Field of view setting must be positive");
     }
 
     if (proj.crop && proj.crop->left > proj.crop->right) {
-        MessageHandler::printError("Left and right crop must not overlap");
-        success = false;
+        throw Error(1019, "Left and right crop must not overlap");
     }
 
     if (proj.crop && proj.crop->bottom > proj.crop->top) {
-        MessageHandler::printError("Bottom and top crop must not overlap");
-        success = false;
+        throw Error(1020, "Bottom and top crop must not overlap");
     }
 
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::printError("Quality value must be positive");
-        success = false;
+        throw Error(1021, "Quality value must be positive");
     }
     
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::printError("Quality setting only allows powers of two");
-        success = false;
+        throw Error(1022, "Quality setting only allows powers of two");
     }
 
     if (proj.diameter && *proj.diameter <= 0.f) {
-        MessageHandler::printError("Diameter must be positive");
-        success = false;
+        throw Error(1023, "Diameter must be positive");
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::printError("Every background color component has to be positive");
-        success = false;
+        throw Error(1024, "Every background color component has to be positive");
     }
-
-    return success;
 }
 
-bool validateSphericalMirrorProjection(const SphericalMirrorProjection& proj) {
-    bool success = true;
-
+void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj) {
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::printError("Quality value must be positive");
-        success = false;
+        throw Error(1025, "Quality value must be positive");
     }
 
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::printError("Quality setting only allows powers of two");
-        success = false;
+        throw Error(1026, "Quality setting only allows powers of two");
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::printError("Every background color component has to be positive");
-        success = false;
+        throw Error(1027, "Every background color component has to be positive");
     }
-
-    return success;
 }
 
-bool validateSpoutOutputProjection(const SpoutOutputProjection& proj) {
-    bool success = true;
-
+void validateSpoutOutputProjection(const SpoutOutputProjection& proj) {
     if (proj.mappingSpoutName.empty()) {
-        MessageHandler::printError("Mapping name must not be empty");
-        success = false;
+        throw Error(1028, "Mapping name must not be empty");
     }
 
     if (proj.quality && *proj.quality <= 0) {
-        MessageHandler::printError("Quality value must be positive");
-        success = false;
+        throw Error(1029, "Quality value must be positive");
     }
 
     if (proj.quality && glm::fract(glm::log(*proj.quality)) == 0.f) {
-        MessageHandler::printError("Quality setting only allows powers of two");
-        success = false;
+        throw Error(1030, "Quality setting only allows powers of two");
     }
 
     if (proj.background && glm::any(glm::lessThan(*proj.background, glm::vec4(0.f)))) {
-        MessageHandler::printError("Every background color component has to be positive");
-        success = false;
+        throw Error(1031, "Every background color component has to be positive");
     }
-
-    return success;
 }
 
-bool validateProjectionPlane(const ProjectionPlane&) {
-    return true;
-}
+void validateProjectionPlane(const ProjectionPlane&) {}
 
-bool validateMpcdiProjection(const MpcdiProjection&) {
-    return true;
-}
+void validateMpcdiProjection(const MpcdiProjection&) {}
 
-bool validateViewport(const Viewport& viewport) {
-    bool success = true;
-    
+void validateViewport(const Viewport& viewport) {
     if (viewport.user && viewport.user->empty()) {
-        MessageHandler::printError("User must not be empty");
-        success = false;
+        throw Error(1032, "User must not be empty");
     }
 
     if (viewport.overlayTexture && viewport.overlayTexture->empty()) {
-        MessageHandler::printError("Overlay texture path must not be empty");
-        success = false;
+        throw Error(1033, "Overlay texture path must not be empty");
     }
 
     if (viewport.blendMaskTexture && viewport.blendMaskTexture->empty()) {
-        MessageHandler::printError("Blendmask texture path must not be empty");
-        success = false;
+        throw Error(1034, "Blendmask texture path must not be empty");
     }
 
     if (viewport.blendLevelMaskTexture && viewport.blendLevelMaskTexture->empty()) {
-        MessageHandler::printError("Blendmask level texture path must not be empty");
-        success = false;
+        throw Error(1035, "Blendmask level texture path must not be empty");
     }
 
     if (viewport.correctionMeshTexture && viewport.correctionMeshTexture->empty()) {
-        MessageHandler::printError("Correction mesh texture path must not be empty");
-        success = false;
+        throw Error(1036, "Correction mesh texture path must not be empty");
     }
 
     if (viewport.meshHint && viewport.meshHint->empty()) {
-        MessageHandler::printError("Mesh hint must not be empty");
-        success = false;
+        throw Error(1037, "Mesh hint must not be empty");
     }
 
     std::visit(overloaded {
-        [](const NoProjection&) { return true; },
-        [](const PlanarProjection& p) { return validatePlanarProjection(p); },
-        [](const FisheyeProjection& p) { return validateFisheyeProjection(p); },
-        [](const SphericalMirrorProjection& p) {
-            return validateSphericalMirrorProjection(p);
-        },
-        [](const SpoutOutputProjection& p) { return validateSpoutOutputProjection(p); },
-        [](const ProjectionPlane& p) { return validateProjectionPlane(p); }
+        [](const NoProjection&) {},
+        [](const PlanarProjection& p) { validatePlanarProjection(p); },
+        [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
+        [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
+        [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
+        [](const ProjectionPlane& p) { validateProjectionPlane(p); }
     }, viewport.projection);
-
-
-    return success;
 }
 
-bool validateWindow(const Window& window) {
-    bool success = true;
-
+void validateWindow(const Window& window) {
     if (window.name && window.name->empty()) {
-        MessageHandler::printError("Window name must not be empty");
-        success = false;
+        throw Error(1038, "Window name must not be empty");
     }
 
     for (const std::string& t : window.tags) {
         if (t.empty()) {
-            MessageHandler::printError("Empty tags are not allowed for windows");
-            success = false;
+            throw Error(1039, "Empty tags are not allowed for windows");
         }
     }
 
     if (window.gamma && *window.gamma <= 0.1f) {
-        MessageHandler::printError("Gamma value must be at least 0.1");
-        success = false;
+        throw Error(1040, "Gamma value must be at least 0.1");
     }
 
     if (window.contrast && *window.contrast <= 0.f) {
-        MessageHandler::printError("Contrast value must be postive");
-        success = false;
+        throw Error(1041, "Contrast value must be postive");
     }
 
     if (window.brightness && *window.brightness <= 0.f) {
-        MessageHandler::printError("Brightness value must be positive");
-        success = false;
+        throw Error(1042, "Brightness value must be positive");
     }
 
     if (window.msaa && *window.msaa < 0) {
-        MessageHandler::printError("Number of MSAA samples must be non-negative");
-        success = false;
+        throw Error(1043, "Number of MSAA samples must be non-negative");
     }
 
     if (window.monitor && *window.monitor < 0) {
-        MessageHandler::printError("Monitor index must be non-negative");
-        success = false;
+        throw Error(1044, "Monitor index must be non-negative");
     }
 
     if (window.mpcdi && window.mpcdi->empty()) {
-        MessageHandler::printError("MPCDI file must not be empty");
-        success = false;
+        throw Error(1045, "MPCDI file must not be empty");
     }
 
-    success &= std::all_of(
-        window.viewports.begin(),
-        window.viewports.end(),
-        validateViewport
-    );
-
-    return success;
+    std::for_each(window.viewports.begin(), window.viewports.end(), validateViewport);
 }
 
-bool validateNode(const Node& node) {
-    bool success = true;
-
+void validateNode(const Node& node) {
     if (node.address.empty()) {
-        MessageHandler::printError("Node address must not be empty");
-        success = false;
+        throw Error(1046, "Node address must not be empty");
     }
 
     if (node.port <= 0) {
-        MessageHandler::printError("Node port must be non-negative");
-        success = false;
+        throw Error(1047, "Node port must be non-negative");
     }
 
     if (node.name && node.name->empty()) {
-        MessageHandler::printError("Node name must not be empty");
-        success = false;
+        throw Error(1048, "Node name must not be empty");
     }
 
     if (node.dataTransferPort && *node.dataTransferPort <= 0) {
-        MessageHandler::printError("Node data transfer port must be non-negative");
-        success = false;
+        throw Error(1049, "Node data transfer port must be non-negative");
     }
 
-    success &= std::all_of(node.windows.begin(), node.windows.end(), validateWindow);
-    return success;
+    std::for_each(node.windows.begin(), node.windows.end(), validateWindow);
 }
 
-bool validateCluster(const Cluster& cluster) {
-    bool success = true;
-
+void validateCluster(const Cluster& cluster) {
     if (cluster.masterAddress.empty()) {
-        MessageHandler::printError("Cluster master address must not be empty");
-        success = false;
+        throw Error(1050, "Cluster master address must not be empty");
     }
 
     if (cluster.externalControlPort && *cluster.externalControlPort <= 0) {
-        MessageHandler::printError("Cluster external control port must be non-negative");
-        success = false;
+        throw Error(1051, "Cluster external control port must be non-negative");
     }
 
     if (cluster.scene) {
-        success &= validateScene(*cluster.scene);
+        validateScene(*cluster.scene);
     }
     if (cluster.user) {
-        success &= validateUser(*cluster.user);
+        validateUser(*cluster.user);
     }
     if (cluster.capture) {
-        success &= validateCapture(*cluster.capture);
+        validateCapture(*cluster.capture);
     }
     if (cluster.tracker) {
-        success &= validateTracker(*cluster.tracker);
+        validateTracker(*cluster.tracker);
     }
     if (cluster.settings) {
-        success &= validateSettings(*cluster.settings);
+        validateSettings(*cluster.settings);
     }
-    success &= std::all_of(cluster.nodes.begin(), cluster.nodes.end(), validateNode);
-
-    return success;
+    std::for_each(cluster.nodes.begin(), cluster.nodes.end(), validateNode);
 }
 
 } // namespace sgct::config

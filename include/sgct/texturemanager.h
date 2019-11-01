@@ -18,6 +18,8 @@ namespace sgct {
 
 namespace core { class Image; }
 
+// @TODO (abock, 2019-11-01) Remove compression methods as they are not really necessary
+
 /**
  * The TextureManager loads and handles textures. It is a singleton and can be accessed
  * anywhere using its static instance. Currently only PNG textures are supported.
@@ -25,7 +27,7 @@ namespace core { class Image; }
 class TextureManager {
 public:
     /**
-     * The compression mode modes. For more info about texute compression look here:
+     * The compression mode modes. For more info about texture compression look here:
      * <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">
      * S3 Texture compression</a>
      */

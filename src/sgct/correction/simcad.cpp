@@ -8,10 +8,13 @@
 
 #include <sgct/correction/simcad.h>
 
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <tinyxml2.h>
+
+#define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
 
 namespace sgct::core::correction {
 
@@ -24,9 +27,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     Buffer buf;
 
-    MessageHandler::printInfo(
-        "CorrectionMesh: Reading simcad warp data from '%s'", path.c_str()
-    );
+    MessageHandler::printInfo("Reading simcad warp data from '%s'", path.c_str());
 
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {
@@ -46,47 +47,21 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
             str = "File not found";
         }
 
-        char ErrorBuffer[1024];
-        sprintf(
-            ErrorBuffer,
-            "ReadConfig: Error occured while reading config file '%s'. Error: %s",
-            path.c_str(), str.c_str()
-        );
-        throw std::runtime_error(ErrorBuffer);
+        throw Error(2021, "Error parsing XML file " + path + ". " + str);
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        char ErrorBuffer[1024];
-        sprintf(
-            ErrorBuffer,
-            "Error occured while reading config file '%s'. Error: Cannot find XML root",
-            path.c_str()
-        );
-        throw std::runtime_error(ErrorBuffer);
+        throw Error(2022, "Error reading XML file " + path + ". Missing 'GeometryFile'");
     }
 
     using namespace tinyxml2;
-    XMLElement* element = XMLroot->FirstChildElement();
+    XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
-        char ErrorBuffer[1024];
-        sprintf(
-            ErrorBuffer,
-            "Error occured while reading config file '%s'. Error: Cannot find XML root",
-            path.c_str()
+        throw Error(
+            2023,
+            "Error reading XML file " + path + ". Missing 'GeometryDefinition'"
         );
-        throw std::runtime_error(ErrorBuffer);
-    }
-
-    std::string_view val = element->Value();
-    if (val != "GeometryDefinition") {
-        char ErrorBuffer[1024];
-        sprintf(
-            ErrorBuffer,
-            "Error occured while reading config file '%s'. "
-            "Error: Missing value 'GeometryDefinition'", path.c_str()
-        );
-        throw std::runtime_error(ErrorBuffer);
     }
 
     float xrange = 1.f;
@@ -119,18 +94,18 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        throw std::runtime_error("Not the same x coords as y coords");
+        throw Error(2024, "Not the same x coords as y coords");
     }
 
     const float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
     const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
-        throw std::runtime_error("Not a valid squared matrix read from SimCAD file");
+        throw Error(2025, "Not a valid squared matrix read from SimCAD file");
     }
 
-    const unsigned int numberOfCols = static_cast<unsigned int>(numberOfColsf);
-    const unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
+    const unsigned int nCols = static_cast<unsigned int>(numberOfColsf);
+    const unsigned int nRows = static_cast<unsigned int>(numberOfRowsf);
 
     // init to max intensity (opaque white)
     CorrectionMeshVertex vertex;
@@ -140,18 +115,17 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     vertex.a = 1.f;
 
     size_t i = 0;
-    for (unsigned int r = 0; r < numberOfRows; r++) {
-        for (unsigned int c = 0; c < numberOfCols; c++) {
+    for (unsigned int r = 0; r < nRows; r++) {
+        for (unsigned int c = 0; c < nCols; c++) {
             // vertex-mapping
-            const float u = (static_cast<float>(c) /
-                            (static_cast<float>(numberOfCols) - 1.f));
+            const float u = (static_cast<float>(c) / (static_cast<float>(nCols) - 1.f));
 
             // @TODO (abock, 2019-09-01);  Not sure why we are inverting the y coordinate
             // for this, but we do it multiple times in this file and I'm starting to get
             // the impression that there might be a flipping issue going on somewhere
             // deeper
             const float v = 1.f - (static_cast<float>(r) /
-                                  (static_cast<float>(numberOfRows) - 1.f));
+                                  (static_cast<float>(nRows) - 1.f));
 
             const float x = u + xcorrections[i];
             const float y = v - ycorrections[i];
@@ -170,26 +144,25 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     }
 
     // Make a triangle strip index list
-    buf.indices.reserve(4 * numberOfRows * numberOfCols);
-    for (unsigned int r = 0; r < numberOfRows - 1; r++) {
+    buf.indices.reserve(4 * nRows * nCols);
+    for (unsigned int r = 0; r < nRows - 1; r++) {
         if ((r % 2) == 0) {
             // even rows
-            for (unsigned int c = 0; c < numberOfCols; c++) {
-                buf.indices.push_back(c + r * numberOfCols);
-                buf.indices.push_back(c + (r + 1) * numberOfCols);
+            for (unsigned int c = 0; c < nCols; c++) {
+                buf.indices.push_back(c + r * nCols);
+                buf.indices.push_back(c + (r + 1) * nCols);
             }
         }
         else {
             // odd rows
-            for (unsigned int c = numberOfCols - 1; c > 0; c--) {
-                buf.indices.push_back(c + (r + 1) * numberOfCols);
-                buf.indices.push_back(c - 1 + r * numberOfCols);
+            for (unsigned int c = nCols - 1; c > 0; c--) {
+                buf.indices.push_back(c + (r + 1) * nCols);
+                buf.indices.push_back(c - 1 + r * nCols);
             }
         }
     }
 
     buf.geometryType = GL_TRIANGLE_STRIP;
-
     return buf;
 }
 

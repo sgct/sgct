@@ -88,29 +88,10 @@ public:
      * Get the location of the attribute, no explicit error checks are performed. Users
      * are responsible of checking the return value of the attribute location.
      *
-     * \param name Name of the attribute
-     * \return Uniform location within the program, -1 if not an active attribute
-     */
-    int getAttribLocation(const std::string& name) const;
-
-    /**
-     * Get the location of the attribute, no explicit error checks are performed. Users
-     * are responsible of checking the return value of the attribute location.
-     *
      * \param name Name of the uniform
      * \return Uniform location within the program, -1 if not an active uniform
      */
     int getUniformLocation(const std::string& name) const;
-
-    /**
-     * Wrapper for glBindFragDataLocation
-     * Bind a user-defined varying out variable to a fragment shader color number
-     *
-     * \param colorNumber The color number to bind the user-defined varying variable to
-     * \param name The name of the user-defined varying variable whose binding to modify
-     */
-
-    void bindFragDataLocation(unsigned int colorNumber, const std::string& name) const;
 
     /// Get the name of the program
     std::string getName() const;

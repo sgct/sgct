@@ -16,6 +16,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
@@ -120,9 +121,7 @@ bool NetworkManager::init() {
     ClusterManager& cm = ClusterManager::instance();
     const std::string& thisAddress = cm.getThisNode().getAddress();
     if (thisAddress.empty()) {
-        MessageHandler::printError(
-            "NetworkManager: No address information for this node available"
-        );
+        MessageHandler::printError("No address information for this node available");
         return false;
     }
 
@@ -131,9 +130,7 @@ bool NetworkManager::init() {
         remoteAddress = cm.getMasterAddress();
 
         if (remoteAddress.empty()) {
-            MessageHandler::printError(
-                "NetworkManager: No address information for master/host availible"
-            );
+            MessageHandler::printError("No address information for master available");
             return false;
         }
     }
@@ -157,7 +154,7 @@ bool NetworkManager::init() {
                 port == cm.getExternalControlPort())
             {
                 MessageHandler::printError(
-                    "NetworkManager: Port %d is already used by connection %u",
+                    "Port %d is already used by connection %u",
                     cm.getThisNode().getSyncPort(), i
                 );
                 return false;
@@ -179,7 +176,7 @@ bool NetworkManager::init() {
             }
             else {
                 MessageHandler::printError(
-                    "NetworkManager: Failed to add network connection to %s",
+                    "Failed to add network connection to %s",
                     cm.getMasterAddress().c_str()
                 );
                 return false;
@@ -225,7 +222,7 @@ bool NetworkManager::init() {
                 );
                 if (!addSyncPort) {
                     MessageHandler::printError(
-                        "NetworkManager: Failed to add network connection to %s",
+                        "Failed to add network connection to %s",
                         cm.getNode(i)->getAddress().c_str()
                     );
                     return false;
@@ -295,7 +292,7 @@ bool NetworkManager::init() {
     }
 
     MessageHandler::printDebug(
-        "NetworkManager: Cluster sync is set to %s",
+        "Cluster sync is set to %s",
         cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
 
@@ -435,25 +432,22 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         );
 
         if (err != Z_OK) {
-            std::string errStr;
+            std::string e;
             switch (err) {
                 case Z_BUF_ERROR:
-                    errStr = "Dest. buffer not large enough";
+                    e = "Dest. buffer not large enough";
                     break;
                 case Z_MEM_ERROR:
-                    errStr = "Insufficient memory";
+                    e = "Insufficient memory";
                     break;
                 case Z_STREAM_ERROR:
-                    errStr = "Incorrect compression level";
+                    e = "Incorrect compression level";
                     break;
                 default:
-                    errStr = "Unknown error";
+                    e = "Unknown error";
                     break;
             }
-
-            MessageHandler::printError(
-                "NetworkManager: Failed to compress data! Error: %s", errStr.c_str()
-            );
+            MessageHandler::printError("Failed to compress data. Error: %s", e.c_str());
             return false;
         }
 
@@ -525,9 +519,7 @@ const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    MessageHandler::printDebug(
-        "NetworkManager: Updating status for connection %d", connection->getId()
-    );
+    MessageHandler::printDebug("Updating status for connection %d", connection->getId());
 
     unsigned int numberOfConnectionsCounter = 0;
     unsigned int nConnectedSyncNodesCounter = 0;
@@ -556,15 +548,15 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
     MessageHandler::printInfo(
-        "NetworkManager: Number of active connections %u of %u",
+        "Number of active connections %u of %u",
         numberOfConnectionsCounter, totalNumberOfConnections
     );
     MessageHandler::printDebug(
-        "NetworkManager: Number of connected sync nodes %u of %u",
+        "Number of connected sync nodes %u of %u",
         nConnectedSyncNodesCounter, totalNumberOfSyncConnections
     );
     MessageHandler::printDebug(
-        "NetworkManager: Number of connected data transfer nodes %u of %u",
+        "Number of connected data transfer nodes %u of %u",
         nConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
@@ -692,7 +684,7 @@ void NetworkManager::close() {
 #ifdef _WIN_PLATFORM
     WSACleanup();
 #endif
-    MessageHandler::printInfo("NetworkManager: Network API closed");
+    MessageHandler::printInfo("Network API closed");
 }
 
 bool NetworkManager::addConnection(int port, const std::string& address,
@@ -700,16 +692,14 @@ bool NetworkManager::addConnection(int port, const std::string& address,
 {
     if (port == 0) {
         MessageHandler::printInfo(
-            "NetworkManager: No port set for %s",
-            Network::getTypeStr(connectionType).c_str()
+            "No port set for %s", Network::getTypeStr(connectionType).c_str()
         );
         return false;
     }
 
     if (address.empty()) {
         MessageHandler::printError(
-            "NetworkManager: Error: No address set for %s",
-            Network::getTypeStr(connectionType).c_str()
+            "No address set for %s", Network::getTypeStr(connectionType).c_str()
         );
         return false;
     }
@@ -717,7 +707,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
     try {
         std::unique_ptr<Network> netPtr = std::make_unique<Network>();
         MessageHandler::printDebug(
-            "NetworkManager: Initiating network connection %d at port %d",
+            "Initiating network connection %d at port %d",
             _networkConnections.size(), port
         );
         netPtr->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
@@ -764,7 +754,7 @@ void NetworkManager::initAPI() {
     if (error != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
         // incorrect WinSock version
         WSACleanup();
-        throw std::runtime_error("Winsock 2.2 startup failed");
+        throw Error(Error::Component::Network, 5005, "Winsock 2.2 startup failed");
     }
 #endif
 }
@@ -777,7 +767,7 @@ void NetworkManager::getHostInfo() {
 #ifdef _WIN_PLATFORM
         WSACleanup();
 #endif
-        throw std::runtime_error("Failed to get host name");
+        throw Error(Error::Component::Network, 5006, "Failed to get host name");
     }
 
     _hostName = tmpStr;
@@ -802,7 +792,7 @@ void NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         MessageHandler::printError(
-            "NetworkManager: Failed to get address info (%d)", Network::getLastError()
+            "Failed to get address info (%d)", Network::getLastError()
         );
     }
     else {
@@ -857,11 +847,8 @@ void NetworkManager::retrieveNodeId() const {
     for (int i = 0; i < ClusterManager::instance().getNumberOfNodes(); i++) {
         // check ip
         if (matchAddress(ClusterManager::instance().getNode(i)->getAddress())) {
-            ClusterManager::instance().setThisNodeId(static_cast<int>(i));
-            MessageHandler::printDebug(
-                "NetworkManager: Running in cluster mode as node %d",
-                ClusterManager::instance().getThisNodeId()
-            );
+            ClusterManager::instance().setThisNodeId(i);
+            MessageHandler::printDebug("Running in cluster mode as node %d", i);
             break;
         }
     }

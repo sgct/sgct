@@ -160,36 +160,16 @@ void Dome::createVBO(float radius, float FOV) {
         GL_STATIC_DRAW
     );
 
+    const GLsizei size = sizeof(helpers::VertexData);
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(0)
-    );
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(0));
     // normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(8)
-    );
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(8));
     // vert positions
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        2,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(20)
-    );
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(20));
 
     glGenBuffers(1, &_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);

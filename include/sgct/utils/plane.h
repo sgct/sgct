@@ -32,8 +32,6 @@ public:
     void draw();
 
 private:
-    void createVBO(float width, float height);
-
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 };

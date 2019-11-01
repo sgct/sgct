@@ -101,6 +101,10 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
+        else if (arg[i] == "-check-opengl") {
+            config.checkOpenGL = true;
+            arg.erase(arg.begin() + i);
+        }
         else {
             // Ignore unknown commands
             i++;

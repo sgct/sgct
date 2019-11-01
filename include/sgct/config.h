@@ -30,7 +30,7 @@ struct User {
     std::optional<glm::mat4> transformation;
     std::optional<Tracking> tracking;
 };
-bool validateUser(const User& user);
+void validateUser(const User& user);
 
 struct Capture {
     enum class Format { PNG, JPG, TGA };
@@ -39,14 +39,14 @@ struct Capture {
     std::optional<std::string> rightPath;
     std::optional<Format> format;
 };
-bool validateCapture(const Capture& capture);
+void validateCapture(const Capture& capture);
 
 struct Scene {
     std::optional<glm::vec3> offset;
     std::optional<glm::quat> orientation;
     std::optional<float> scale;
 };
-bool validateScene(const Scene& scene);
+void validateScene(const Scene& scene);
 
 struct Settings {
     enum class BufferFloatPrecision {
@@ -82,7 +82,7 @@ struct Settings {
     std::optional<OSDText> osdText;
     std::optional<FXAA> fxaa;
 };
-bool validateSettings(const Settings& settings);
+void validateSettings(const Settings& settings);
 
 struct Device {
     struct Sensors {
@@ -105,7 +105,7 @@ struct Device {
     std::optional<glm::vec3> offset;
     std::optional<glm::mat4> transformation;
 };
-bool validateDevice(const Device& device);
+void validateDevice(const Device& device);
 
 struct Tracker {
     std::string name;
@@ -114,7 +114,7 @@ struct Tracker {
     std::optional<double> scale;
     std::optional<glm::mat4> transformation;
 };
-bool validateTracker(const Tracker& tracker);
+void validateTracker(const Tracker& tracker);
 
 struct NoProjection {};
 struct PlanarProjection {
@@ -129,7 +129,7 @@ struct PlanarProjection {
     std::optional<glm::quat> orientation;
     std::optional<glm::vec3> offset;
 };
-bool validatePlanarProjection(const PlanarProjection& proj);
+void validatePlanarProjection(const PlanarProjection& proj);
 
 struct FisheyeProjection {
     enum class Method { FourFace, FiveFace };
@@ -152,7 +152,7 @@ struct FisheyeProjection {
     std::optional<glm::vec3> offset;
     std::optional<glm::vec4> background;
 };
-bool validateFisheyeProjection(const FisheyeProjection& proj);
+void validateFisheyeProjection(const FisheyeProjection& proj);
 
 struct SphericalMirrorProjection {
     struct Mesh {
@@ -166,7 +166,7 @@ struct SphericalMirrorProjection {
     std::optional<glm::vec4> background;
     Mesh mesh;
 };
-bool validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
+void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
 
 struct SpoutOutputProjection {
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
@@ -185,14 +185,14 @@ struct SpoutOutputProjection {
     std::optional<Channels> channels;
     std::optional<glm::vec3> orientation;
 };
-bool validateSpoutOutputProjection(const SpoutOutputProjection& proj);
+void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
 struct ProjectionPlane {
     std::optional<glm::vec3> lowerLeft;
     std::optional<glm::vec3> upperLeft;
     std::optional<glm::vec3> upperRight;
 };
-bool validateProjectionPlane(const ProjectionPlane& proj);
+void validateProjectionPlane(const ProjectionPlane& proj);
 
 struct MpcdiProjection {
     struct Frustum {
@@ -210,7 +210,7 @@ struct MpcdiProjection {
     std::optional<glm::quat> orientation;
     std::optional<glm::vec3> offset;
 };
-bool validateMpcdiProjection(const MpcdiProjection& proj);
+void validateMpcdiProjection(const MpcdiProjection& proj);
 
 struct Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
@@ -230,7 +230,7 @@ struct Viewport {
     std::variant<NoProjection, PlanarProjection, FisheyeProjection,
         SphericalMirrorProjection, SpoutOutputProjection, ProjectionPlane> projection;
 };
-bool validateViewport(const Viewport& viewport);
+void validateViewport(const Viewport& viewport);
 
 struct Window {
     enum class ColorBitDepth {
@@ -289,7 +289,7 @@ struct Window {
 
     std::vector<Viewport> viewports;
 };
-bool validateWindow(const Window& window);
+void validateWindow(const Window& window);
 
 struct Node {
     std::string address;
@@ -299,7 +299,7 @@ struct Node {
     std::optional<bool> swapLock;
     std::vector<Window> windows;
 };
-bool validateNode(const Node& node);
+void validateNode(const Node& node);
 
 struct Cluster {
     std::string masterAddress;
@@ -314,7 +314,7 @@ struct Cluster {
     std::optional<Tracker> tracker;
     std::optional<Settings> settings;
 };
-bool validateCluster(const Cluster& cluster);
+void validateCluster(const Cluster& cluster);
 
 } // namespace sgct::config
 

@@ -18,22 +18,6 @@
 namespace sgct::utils {
 
 Sphere::Sphere(float radius, unsigned int segments) {
-    createVBO(radius, segments);
-}
-
-Sphere::~Sphere() {
-    glDeleteVertexArrays(1, &_vao);
-    glDeleteBuffers(1, &_vbo);
-    glDeleteBuffers(1, &_ibo);
-}
-
-void Sphere::draw() {
-    glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-}
-
-void Sphere::createVBO(float radius, unsigned int segments) {
     unsigned int vsegs = std::max<unsigned int>(segments, 2);
     unsigned int hsegs = vsegs * 2;
     _nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
@@ -52,15 +36,15 @@ void Sphere::createVBO(float radius, unsigned int segments) {
     // (duplicates at texture seam s=0 / s=1)
     for (unsigned int j = 0; j < vsegs - 1; j++) {
         // vsegs-1 latitude rings of vertices
-        const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs)) *
-                              glm::pi<double>();
+        const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs))*
+            glm::pi<double>();
         const float y = static_cast<float>(cos(theta));
         const float R = static_cast<float>(sin(theta));
 
         for (unsigned int i = 0; i <= hsegs; i++) {
             // hsegs+1 vertices in each ring (duplicate for texcoords)
-            const double phi = (static_cast<double>(i) / static_cast<double>(hsegs)) *
-                                glm::two_pi<double>();
+            const double phi = (static_cast<double>(i) / static_cast<double>(hsegs))*
+                glm::two_pi<double>();
             const float x = R * static_cast<float>(cos(phi));
             const float z = R * static_cast<float>(sin(phi));
 
@@ -68,9 +52,9 @@ void Sphere::createVBO(float radius, unsigned int segments) {
                 static_cast<float>(i) / static_cast<float>(hsegs), // s
                 1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), // t
                 x, y, z, // normals
-                radius * x,
-                radius * y,
-                radius * z
+                radius* x,
+                radius* y,
+                radius* z
             };
         }
     }
@@ -116,38 +100,18 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
+    const GLsizei size = sizeof(helpers::VertexData);
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(0)
-    );
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(0));
 
     // normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(8)
-    );
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(8));
 
     // vert positions
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        2,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(20)
-    ); 
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(20));
 
     glGenBuffers(1, &_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
@@ -158,6 +122,18 @@ void Sphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
+    glBindVertexArray(0);
+}
+
+Sphere::~Sphere() {
+    glDeleteVertexArrays(1, &_vao);
+    glDeleteBuffers(1, &_vbo);
+    glDeleteBuffers(1, &_ibo);
+}
+
+void Sphere::draw() {
+    glBindVertexArray(_vao);
+    glDrawElements(GL_TRIANGLES, _nFaces * 3, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 

@@ -195,19 +195,15 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     _nonLinearProjection = std::move(fishProj);
 }
 
-void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& proj) {
-#ifndef SGCT_HAS_SPOUT
-    (void)proj;
-    MessageHandler::printWarning("Spout library not added to SGCT");
-#else
-   
-    std::unique_ptr<SpoutOutputProjection> spoutProj =
+void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
+#ifdef SGCT_HAS_SPOUT  
+    std::unique_ptr<SpoutOutputProjection> proj =
         std::make_unique<SpoutOutputProjection>();
-    spoutProj->setUser(_user);
-    if (proj.quality) {
-        spoutProj->setCubemapResolution(*proj.quality);
+    proj->setUser(_user);
+    if (p.quality) {
+        proj->setCubemapResolution(*p.quality);
     }
-    if (proj.mapping) {
+    if (p.mapping) {
         SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
             switch (m) {
                 default:
@@ -218,58 +214,54 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
                 case config::SpoutOutputProjection::Mapping::Cubemap:
                     return SpoutOutputProjection::Mapping::Cubemap;
             }
-        }(*proj.mapping);
-        spoutProj->setSpoutMapping(m);
+        }(*p.mapping);
+        proj->setSpoutMapping(m);
     }
-    spoutProj->setSpoutMappingName(proj.mappingSpoutName);
-    if (proj.background) {
-        spoutProj->setClearColor(*proj.background);
+    proj->setSpoutMappingName(p.mappingSpoutName);
+    if (p.background) {
+        proj->setClearColor(*p.background);
     }
-    if (proj.channels) {
-        spoutProj->setSpoutChannels(
-            proj.channels->right,
-            proj.channels->zLeft,
-            proj.channels->bottom,
-            proj.channels->top,
-            proj.channels->left,
-            proj.channels->zRight
+    if (p.channels) {
+        proj->setSpoutChannels(
+            p.channels->right,
+            p.channels->zLeft,
+            p.channels->bottom,
+            p.channels->top,
+            p.channels->left,
+            p.channels->zRight
         );
     }
-    if (proj.orientation) {
-        spoutProj->setSpoutRigOrientation(*proj.orientation);
+    if (p.orientation) {
+        proj->setSpoutRigOrientation(*p.orientation);
     }
 
-    spoutProj->setUseDepthTransformation(true);
-    _nonLinearProjection = std::move(spoutProj);
+    proj->setUseDepthTransformation(true);
+    _nonLinearProjection = std::move(proj);
+#else
+    (void)p;
+    MessageHandler::printWarning("Spout library not added to SGCT");
 #endif
 }
 
-void Viewport::applySphericalMirrorProjection(
-                                            const config::SphericalMirrorProjection& proj)
+void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
-    std::unique_ptr<SphericalMirrorProjection> sphericalMirrorProj =
+    std::unique_ptr<SphericalMirrorProjection> proj =
         std::make_unique<SphericalMirrorProjection>();
 
-    sphericalMirrorProj->setUser(_user);
-    if (proj.quality) {
-        sphericalMirrorProj->setCubemapResolution(*proj.quality);
+    proj->setUser(_user);
+    if (p.quality) {
+        proj->setCubemapResolution(*p.quality);
+    }
+    if (p.tilt) {
+        proj->setTilt(*p.tilt);
+    }
+    if (p.background) {
+        proj->setClearColor(*p.background);
     }
 
-    if (proj.tilt) {
-        sphericalMirrorProj->setTilt(*proj.tilt);
-    }
-    if (proj.background) {
-        sphericalMirrorProj->setClearColor(*proj.background);
-    }
-
-    sphericalMirrorProj->setMeshPaths(
-        proj.mesh.bottom,
-        proj.mesh.left,
-        proj.mesh.right,
-        proj.mesh.top
-    );
-    sphericalMirrorProj->setUseDepthTransformation(false);
-    _nonLinearProjection = std::move(sphericalMirrorProj);
+    proj->setMeshPaths(p.mesh.bottom, p.mesh.left, p.mesh.right, p.mesh.top);
+    proj->setUseDepthTransformation(false);
+    _nonLinearProjection = std::move(proj);
 }
 
 void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
@@ -277,28 +269,17 @@ void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
 }
 
 void Viewport::loadData() {
+    TextureManager& mgr = TextureManager::instance();
     if (!_overlayFilename.empty()) {
-        _overlayTextureIndex = TextureManager::instance().loadTexture(
-            _overlayFilename,
-            true,
-            1
-        );
+        _overlayTextureIndex = mgr.loadTexture(_overlayFilename, true, 1);
     }
 
     if (!_blendMaskFilename.empty()) {
-        _blendMaskTextureIndex = TextureManager::instance().loadTexture(
-            _blendMaskFilename,
-            true,
-            1
-        );
+        _blendMaskTextureIndex = mgr.loadTexture(_blendMaskFilename, true, 1);
     }
 
     if (!_blackLevelMaskFilename.empty()) {
-        _blackLevelMaskTextureIndex = TextureManager::instance().loadTexture(
-            _blackLevelMaskFilename,
-            true,
-            1
-        );
+        _blackLevelMaskTextureIndex = mgr.loadTexture(_blackLevelMaskFilename, true, 1);
     }
 
     if (!_mpcdiWarpMesh.empty()) {

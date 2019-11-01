@@ -95,7 +95,7 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 
     core::mutex::DataSync.unlock();
 
-    if (_decodeFn != nullptr) {
+    if (_decodeFn) {
         _decodeFn();
     }
 }
@@ -170,9 +170,7 @@ void SharedData::encode() {
         }
         else {
             core::mutex::DataSync.unlock();
-            MessageHandler::printError(
-                "SharedData: Failed to compress data (error %d)", err
-            );
+            MessageHandler::printError("Failed to compress data (error %d)", err);
             return;
         }
 

@@ -57,7 +57,7 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
 
     _viewMatrix = glm::mat4(invDCM) * glm::translate(glm::mat4(1.f), -(base + offset));
 
-    //calc frustum matrix
+    // calc frustum matrix
     _projectionMatrix = glm::frustum(
         _frustum.left,
         _frustum.right,

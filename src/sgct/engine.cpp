@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
+#include <sgct/error.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
@@ -27,6 +28,8 @@
 #include <numeric>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
+#define Error(code, msg) Error(Error::Component::Engine, code, msg)
 
 // Callback wrappers for GLFW
 std::function<void(int, int, int, int)> gKeyboardCallbackFn = nullptr;
@@ -54,9 +57,7 @@ namespace {
             sgct::core::mutex::FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
             sgct::core::mutex::FrameSync.unlock();
-
             sgct::core::NetworkManager::cond.notify_all();
-
             std::this_thread::sleep_for(FrameLockTimeout);
         }
     }
@@ -126,11 +127,10 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         try {
             return core::readConfig(*path);
         }
-        catch (const std::runtime_error& e) {
+        catch (...) {
             // (abock, 2019-10-11) This conversion from string_view to string is necessary
             // to keep this code compiling with VS 2017 15.9.16 (and probably before)
             std::cout << std::string(getHelpMessage()) << '\n';
-            MessageHandler::printError("Configuration error. %s", e.what());
             throw;
         }
     }
@@ -220,6 +220,9 @@ Engine::Engine(const Configuration& config) {
         else {
             MessageHandler::printError("Only positive number of capture threads allowed");
         }
+    }
+    if (config.checkOpenGL) {
+        _checkOpenGLCalls = *config.checkOpenGL;
     }
 
     if (_helpMode) {
@@ -356,13 +359,10 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
     }
 
     if (_shouldTerminate) {
-        throw std::runtime_error("Failed to initialize GLFW");
+        throw Error(3000, "Failed to initialize GLFW");
     }
 
-    const bool validation = sgct::config::validateCluster(cluster);
-    if (!validation) {
-        throw std::runtime_error("Validation of configuration failed");
-    }
+    config::validateCluster(cluster);
          
     core::ClusterManager::instance().applyCluster(cluster);
     if (cluster.tracker) {
@@ -500,27 +500,25 @@ void Engine::initNetwork() {
         core::ClusterManager::instance().getThisNodeId() < 0)
     {
         core::NetworkManager::instance().close();
-        throw std::runtime_error("Computer is not a part of the cluster configuration");
+        throw Error(3001, "Computer is not a part of the cluster configuration");
     }
 
     const bool networkInitSuccess = core::NetworkManager::instance().init();
     if (!networkInitSuccess) {
-        throw std::runtime_error("Error initializing network connections");
+        throw Error(3002, "Error initializing network connections");
     }
 }
 
 void Engine::initWindows() {
     core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     if (thisNode.getNumberOfWindows() == 0) {
-        throw std::runtime_error("No windows exist in configuration");
+        throw Error(3003, "No windows exist in configuration");
     }
 
     {
-        int glfwVersion[3];
-        glfwGetVersion(&glfwVersion[0], &glfwVersion[1], &glfwVersion[2]);
-        MessageHandler::printInfo(
-            "Using GLFW version %d.%d.%d", glfwVersion[0], glfwVersion[1], glfwVersion[2]
-        );
+        int ver[3];
+        glfwGetVersion(&ver[0], &ver[1], &ver[2]);
+        MessageHandler::printInfo("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
     }
 
     switch (_runMode) {
@@ -528,29 +526,22 @@ void Engine::initWindows() {
         case RunMode::OpenGL_3_3_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_0_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
-
         case RunMode::OpenGL_4_1_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[ fallthrough ]];
         case RunMode::OpenGL_4_1_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_2_Debug_Core_Profile:
@@ -559,9 +550,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_2_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_3_Debug_Core_Profile:
@@ -570,9 +559,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_3_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_4_Debug_Core_Profile:
@@ -581,9 +568,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_4_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_5_Debug_Core_Profile:
@@ -592,9 +577,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_5_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_6_Debug_Core_Profile:
@@ -603,9 +586,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_6_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
     }
@@ -622,7 +603,7 @@ void Engine::initWindows() {
         }
 
         if (!thisNode.getWindow(i).openWindow(share, lastWindowIdx)) {
-            throw std::runtime_error("Failed to open window " + std::to_string(i));
+            throw Error(3004, "Failed to open window " + std::to_string(i));
         }
     }
 
@@ -631,15 +612,21 @@ void Engine::initWindows() {
     if (_checkOpenGLCalls) {
         using namespace glbinding;
 
-        Binding::setCallbackMaskExcept(CallbackMask::After, { "glGetError" });
+        Binding::setCallbackMaskExcept(
+            CallbackMask::After,
+            { "glGetError", "glCheckFramebufferStatus" }
+        );
         Binding::setAfterCallback([](const FunctionCall& f) {
             const GLenum error = glGetError();
-            if (error == GL_NO_ERROR) {
+            const GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (error == GL_NO_ERROR && fboStatus == GL_FRAMEBUFFER_COMPLETE) {
                 return true;
             }
 
             const char* fn = f.function->name();
             switch (error) {
+                case GL_NO_ERROR:
+                    break;
                 case GL_INVALID_ENUM:
                     MessageHandler::printError(
                         "OpenGL error. Function %s: GL_INVALID_ENUM", fn
@@ -681,7 +668,61 @@ void Engine::initWindows() {
                         "OpenGL error. Function %s: %i", fn, static_cast<int>(error)
                     );
             }
-            return error == GL_NO_ERROR;
+
+            switch (fboStatus) {
+                case GL_FRAMEBUFFER_COMPLETE:
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: "
+                        "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_UNSUPPORTED:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_UNSUPPORTED", fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_UNDEFINED:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_UNDEFINED", fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER",
+                        fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER",
+                        fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE",
+                        fn
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS",
+                        fn
+                    );
+                    break;
+                default:
+                    MessageHandler::printError(
+                        "FBO error. Function %s: %i", fn, static_cast<int>(fboStatus)
+                    );
+            }
+            return false;
         });
     }
 
@@ -698,7 +739,7 @@ void Engine::initWindows() {
         }
     }
     else {
-        throw std::runtime_error("No windows created on this node");
+        throw Error(3005, "No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -723,15 +764,12 @@ void Engine::initWindows() {
 
 void Engine::initOGL() {
     // Get OpenGL version
-    int version[3];
+    int v[3];
     GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
-    version[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
-    version[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
-    version[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
-
-    MessageHandler::printInfo(
-        "OpenGL version %d.%d.%d %s", version[0], version[1], version[2], "core profile"
-    );
+    v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
+    v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
+    v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
+    MessageHandler::printInfo("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
 
     MessageHandler::printInfo("Vendor: %s", glGetString(GL_VENDOR));
     MessageHandler::printInfo("Renderer: %s", glGetString(GL_RENDERER));
@@ -898,8 +936,8 @@ void Engine::frameLockPreStage() {
         }
 
         if (glfwGetTime() - t0 > _syncTimeout) {
-            // more than a minute
-            throw std::runtime_error(
+            throw Error(
+                3006,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -940,7 +978,6 @@ void Engine::frameLockPostStage() {
             continue;
         }
         // more than a second
-
         core::NetworkManager& nm = core::NetworkManager::instance();
         for (int i = 0; i < nm.getSyncConnectionsCount(); ++i) {
             if (_printSyncMessage && !nm.getConnectionByIndex(i).isUpdated()) {
@@ -959,7 +996,8 @@ void Engine::frameLockPostStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
-            throw std::runtime_error(
+            throw Error(
+                3007,
                 "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -1531,7 +1569,6 @@ void Engine::renderFBOTexture() {
         glEnable(GL_BLEND);
 
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
@@ -1607,8 +1644,7 @@ void Engine::renderViewports(TextureIndex ti) {
                 );
             }
 
-            // check if we want to copy the previous window into this one before we go
-            // ahead with anyting else
+            // check if we want to blit the previous window before we do anything else
             if (getCurrentWindow().shouldBlitPreviousWindow()) {
                 blitPreviousWindowViewport(_currentFrustumMode);
             }
@@ -1632,15 +1668,14 @@ void Engine::renderViewports(TextureIndex ti) {
     glDisable(GL_DEPTH_TEST);
 
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
-    const bool splitScreenStereo = (sm >= Window::StereoMode::SideBySide);
-    if (!(splitScreenStereo && _currentFrustumMode == core::Frustum::Mode::StereoLeftEye))
-    {
+    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
+    if (!(isSplitScreen && _currentFrustumMode == core::Frustum::Mode::StereoLeftEye)) {
         if (getCurrentWindow().usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
             renderPostFX(ti);
             render2D();
-            if (splitScreenStereo) {
+            if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
@@ -1648,7 +1683,7 @@ void Engine::renderViewports(TextureIndex ti) {
         }
         else {
             render2D();
-            if (splitScreenStereo) {
+            if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
@@ -1987,7 +2022,6 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     else {
         MessageHandler::printInfo("Swap groups are not supported by hardware");
     }
-
     MessageHandler::printInfo("Waiting for all nodes to connect");
 
     while (core::NetworkManager::instance().isRunning() &&
@@ -2088,9 +2122,7 @@ void Engine::updateFrustums() {
 void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     // Check that we have a previous window
     if (getCurrentWindowIndex() < 1) {
-        MessageHandler::printWarning(
-            "Could not copy from previous window, as this window is the first one"
-        );
+        MessageHandler::printWarning("Cannot blit previous window, as this is the first");
         return;
     }
 
@@ -2224,7 +2256,7 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
  }
 
 void Engine::clearBuffer() {
-    glm::vec4 color = Engine::instance().getClearColor();
+    const glm::vec4 color = Engine::instance().getClearColor();
 
     const float alpha = instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
@@ -2401,6 +2433,7 @@ unsigned int Engine::getCurrentDrawTexture() const {
     }
 }
 
+// @TODO (abock, 2019-11-01) Remove the following three functions if possible
 unsigned int Engine::getCurrentDepthTexture() const {
     return getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth);
 }
@@ -2439,8 +2472,7 @@ void Engine::takeScreenshot() {
     _takeScreenshot = true;
 }
 
-void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int)
-{
+void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int) {
     if (_externalDecodeCallbackFn && length > 0) {
         _externalDecodeCallbackFn(data, length);
     }
@@ -2489,18 +2521,15 @@ void Engine::transferDataBetweenNodes(const void* data, int length, int packageI
     core::NetworkManager::instance().transferData(data, length, packageId);
 }
 
-void Engine::transferDataToNode(const void* data, int length, int packageId,
-                                size_t nodeIndex)
-{
-    core::NetworkManager::instance().transferData(data, length, packageId, nodeIndex);
+void Engine::transferDataToNode(const void* data, int length, int package, size_t node) {
+    core::NetworkManager::instance().transferData(data, length, package, node);
 }
 
 void Engine::sendMessageToExternalControl(const std::string& msg) {
     if (core::NetworkManager::instance().getExternalControlConnection()) {
-        const int size = static_cast<int>(msg.size());
         core::NetworkManager::instance().getExternalControlConnection()->sendData(
             msg.c_str(),
-            size
+            static_cast<int>(msg.size())
         );
     }
 }

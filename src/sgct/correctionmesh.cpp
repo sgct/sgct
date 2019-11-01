@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
@@ -26,7 +27,10 @@
 #include <fstream>
 #include <iomanip>
 
+#define Error(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
+
 namespace {
+
     sgct::core::correction::Buffer setupMaskMesh(const glm::vec2& pos,
                                                  const glm::vec2& size)
     {
@@ -127,19 +131,15 @@ namespace {
                     const sgct::core::correction::Buffer& buf)
     {
         if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
-            sgct::MessageHandler::printError(
-                "CorrectionMesh: Failed to export '%s'. Geometry type is not supported",
-                exportPath.c_str()
+            throw Error(
+                2000,
+                "Failed to export " + exportPath + ". Geometry type is not supported"
             );
-            return;
         }
 
         std::ofstream file(exportPath, std::ios::out);
         if (!file.is_open()) {
-            sgct::MessageHandler::printError(
-                "CorrectionMesh: Failed to export '%s'", exportPath.c_str()
-            );
-            return;
+            throw Error(2001, "Failed to export " + exportPath + ". Failed to open");
         }
 
         file << std::fixed;
@@ -256,7 +256,7 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        throw std::runtime_error("Error loading mesh, not path was specified");
+        throw Error(2002, "Error loading mesh, not path was specified");
     }
     
     Buffer buf;

@@ -107,12 +107,9 @@ void Settings::applyCapture(const config::Capture& capture) {
         CaptureFormat f = [](config::Capture::Format format) {
             switch (format) {
                 default:
-                case config::Capture::Format::PNG:
-                    return CaptureFormat::PNG;
-                case config::Capture::Format::JPG:
-                    return CaptureFormat::JPG;
-                case config::Capture::Format::TGA:
-                    return CaptureFormat::TGA;
+                case config::Capture::Format::PNG: return CaptureFormat::PNG;
+                case config::Capture::Format::JPG: return CaptureFormat::JPG;
+                case config::Capture::Format::TGA: return CaptureFormat::TGA;
             }
         }(*capture.format);
         setCaptureFormat(f);
@@ -223,12 +220,9 @@ void Settings::setCaptureFormat(CaptureFormat format) {
 const std::string& Settings::getCapturePath(CapturePath cpi) const {
     switch (cpi) {
         default:
-        case CapturePath::Mono:
-            return _capturePath.mono;
-        case CapturePath::LeftStereo:
-            return _capturePath.left;
-        case CapturePath::RightStereo:
-            return _capturePath.right;
+        case CapturePath::Mono: return _capturePath.mono;
+        case CapturePath::LeftStereo: return _capturePath.left;
+        case CapturePath::RightStereo: return _capturePath.right;
     }
 }
 
@@ -267,7 +261,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
     }
     else {
         MessageHandler::printWarning(
-            "Number of default MSAA samples must be a power of two", samples
+            "Number of MSAA samples must be power of two", samples
         );
     }
 }

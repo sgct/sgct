@@ -223,8 +223,7 @@ void TrackingManager::startSampling() {
 
     if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
         MessageHandler::printError(
-            "Tracking: Failed to set head tracker to %s@%s",
-            deviceName.c_str(), trackerName.c_str()
+            "Failed to set head tracker to %s@%s", deviceName.c_str(), trackerName.c_str()
         );
         return;
     }

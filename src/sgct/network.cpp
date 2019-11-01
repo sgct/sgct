@@ -33,6 +33,7 @@
 #endif
 
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/clustermanager.h>
 #include <sgct/messagehandler.h>
 #include <sgct/networkmanager.h>
@@ -41,6 +42,8 @@
 #include <zlib.h>
 #include <algorithm>
 
+#define Error(code, msg) Error(Error::Component::Network, code, msg)
+
 namespace {
     constexpr const int MaxNumberOfAttempts = 10;
     constexpr const int SocketBufferSize = 4096;
@@ -48,13 +51,11 @@ namespace {
     constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
     int32_t parseInt32(const char* str) {
-        int32_t val = *(reinterpret_cast<const int32_t*>(str));
-        return val;
+        return *(reinterpret_cast<const int32_t*>(str));
     }
 
     uint32_t parseUInt32(const char* str) {
-        uint32_t val = *(reinterpret_cast<const uint32_t*>(str));
-        return val;
+        return *(reinterpret_cast<const uint32_t*>(str));
     }
 
     std::string getUncompressionErrorAsStr(int err) {
@@ -93,9 +94,7 @@ Network::~Network() {
     closeNetwork(false);
 }
 
-void Network::init(int port, std::string address, bool isServer,
-                   ConnectionType type)
-{
+void Network::init(int port, std::string address, bool isServer, ConnectionType type) {
     _isServer = isServer;
     _connectionType = type;
     if (_connectionType == ConnectionType::SyncConnection) {
@@ -122,7 +121,7 @@ void Network::init(int port, std::string address, bool isServer,
         &res
     );
     if (addrRes != 0) {
-        throw std::runtime_error("Failed to parse hints for connection");
+        throw Error(5000, "Failed to parse hints for connection");
     }
 
     if (_isServer) {
@@ -130,7 +129,7 @@ void Network::init(int port, std::string address, bool isServer,
         _listenSocket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (_listenSocket == INVALID_SOCKET) {
             freeaddrinfo(res);
-            throw std::runtime_error("Failed to listen init socket");
+            throw Error(5001, "Failed to listen init socket");
         }
 
         setOptions(&_listenSocket);
@@ -148,7 +147,7 @@ void Network::init(int port, std::string address, bool isServer,
 #else
             close(_listenSocket);
 #endif
-            throw std::runtime_error("Bind socket failed");
+            throw Error(5002, "Bind socket failed");
         }
 
         if (listen(_listenSocket, SOMAXCONN) == SOCKET_ERROR) {
@@ -158,7 +157,7 @@ void Network::init(int port, std::string address, bool isServer,
 #else
             close(_listenSocket);
 #endif
-            throw std::runtime_error("Listen failed");
+            throw Error(5003, "Listen failed");
         }
     }
     else {
@@ -173,22 +172,17 @@ void Network::init(int port, std::string address, bool isServer,
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
             if (_socket == INVALID_SOCKET) {
                 freeaddrinfo(res);
-                throw std::runtime_error("Failed to init client socket");
+                throw Error(5004, "Failed to init client socket");
             }
 
             setOptions(&_socket);
 
-            int connectRes = connect(
-                _socket,
-                res->ai_addr,
-                static_cast<int>(res->ai_addrlen)
-            );
-            if (connectRes != SOCKET_ERROR) {
+            int r = connect(_socket, res->ai_addr, static_cast<int>(res->ai_addrlen));
+            if (r != SOCKET_ERROR) {
                 break;
             }
 
             MessageHandler::printDebug("Connect error code: %d", SGCT_ERRNO);
-
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
         }
     }
@@ -213,7 +207,7 @@ void Network::connectionHandler() {
                 );
             }
 
-            //wait for signal until next iteration in loop
+            // wait for signal until next iteration in loop
             if (!isTerminated()) {
                 std::unique_lock lk(_connectionMutex);
                 _startConnectionCond.wait(lk);
@@ -268,19 +262,16 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
 
         if (iResult != NO_ERROR) {
             MessageHandler::printError(
-                "Network: Failed to set no delay with error: %d. This will reduce "
-                "cluster performance", SGCT_ERRNO
+                "Failed to set network no-delay option with error: %d", SGCT_ERRNO
             );
         }
     }
     else {
-        MessageHandler::printInfo(
-            "Network: Enabling Nagle's Algorithm for connection %d", _id
-        );
+        MessageHandler::printInfo("Enabling Nagle's Algorithm for connection %d", _id);
     }
 
     // set timeout
-    int timeout = 0; //infinite
+    int timeout = 0; // infinite
     setsockopt(
         *socketPtr,
         SOL_SOCKET,
@@ -297,9 +288,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         sizeof(int)
     );
     if (sockoptRes == SOCKET_ERROR) {
-        MessageHandler::printWarning(
-            "Network: Failed to set reuse address with error: %d", SGCT_ERRNO
-        );
+        MessageHandler::printWarning("Failed to set reuse address. %d", SGCT_ERRNO);
     }
 
     // The default buffer value is 8k (8192 bytes) which is good for external control
@@ -315,8 +304,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         );
         if (iResult == SOCKET_ERROR) {
             MessageHandler::printError(
-                "Network: Failed to set send buffer size to %d with error: %d",
-                bufferSize, SGCT_ERRNO
+                "Failed to set send buffer size to %d. %d", bufferSize, SGCT_ERRNO
             );
         }
         iResult = setsockopt(
@@ -328,8 +316,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         );
         if (iResult == SOCKET_ERROR) {
             MessageHandler::printError(
-                "Network: Failed to set receive buffer size to %d with error: %d",
-                bufferSize, SGCT_ERRNO
+                "Failed to set receive buffer size to %d. %d", bufferSize, SGCT_ERRNO
             );
         }
     }
@@ -344,9 +331,7 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
             sizeof(int)
         );
         if (iResult == SOCKET_ERROR) {
-            MessageHandler::printWarning(
-                "Network: Failed to set keep alive with error: %d", SGCT_ERRNO
-            );
+            MessageHandler::printWarning("Failed to set keep alive. %d", SGCT_ERRNO);
         }
     }
 }
@@ -638,8 +623,7 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
             setRecvFrame(syncFrameNumber);
             if (syncFrameNumber < 0) {
                 MessageHandler::printError(
-                    "Network: Error sync in sync frame: %d for connection %d",
-                    syncFrameNumber, _id
+                    "Error sync in sync frame: %d for connection %d", syncFrameNumber, _id
                 );
             }
 
@@ -744,7 +728,7 @@ void Network::communicationHandler() {
 
         if (_socket == INVALID_SOCKET) {
             MessageHandler::printError(
-                "Accept connection %d failed! Error: %d", _id, accErr
+                "Accept connection %d failed. Error: %d", _id, accErr
             );
 
             if (_updateCallback) {
@@ -755,7 +739,7 @@ void Network::communicationHandler() {
     }
 
     setConnectedStatus(true);
-    MessageHandler::printInfo("Connection %d established!", _id);
+    MessageHandler::printInfo("Connection %d established", _id);
 
     if (_updateCallback) {
         _updateCallback(this);
@@ -778,7 +762,7 @@ void Network::communicationHandler() {
         // resize buffer request
         if (getType() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
             MessageHandler::printInfo(
-                "Re-sizing tcp buffer size from %d to %d",
+                "Re-sizing TCP buffer size from %d to %d",
                 _bufferSize, _requestedSize.load()
             );
 
@@ -826,9 +810,7 @@ void Network::communicationHandler() {
                         _shouldTerminate = true;
                     }
 
-                    MessageHandler::printInfo(
-                        "Network: Client %d terminated connection", _id
-                    );
+                    MessageHandler::printInfo("Client %d terminated connection", _id);
 
                     break;
                 }
@@ -864,8 +846,8 @@ void Network::communicationHandler() {
                         }
                         else {
                             MessageHandler::printError(
-                                "Network: Failed to uncompress data for connection %d. "
-                                "Error: %s", _id, getUncompressionErrorAsStr(err).c_str()
+                                "Failed to uncompress data for connection %d. Error: %s",
+                                _id, getUncompressionErrorAsStr(err).c_str()
                             );
                         }
                     }
@@ -944,7 +926,7 @@ void Network::communicationHandler() {
                 if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);
                     MessageHandler::printInfo(
-                        "Network: File transfer %d terminated connection", _id
+                        "File transfer %d terminated connection", _id
                     );
                 }
                 //  Handle communication
@@ -991,8 +973,7 @@ void Network::communicationHandler() {
                             }
                             else {
                                 MessageHandler::printError(
-                                    "Network: Failed to uncompress data for connection "
-                                    "%d! Error: %s",
+                                    "Failed to uncompress data for connection %d. %s",
                                     _id, getUncompressionErrorAsStr(err).c_str()
                                 );
                             }

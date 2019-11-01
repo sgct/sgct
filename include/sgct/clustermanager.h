@@ -50,7 +50,7 @@ public:
 
     /**
      * Get the current node. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return a reference to the node that this application is running on
      */
@@ -58,7 +58,7 @@ public:
 
     /**
      * Get the default user. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return the pointer to the default user
      */
@@ -66,7 +66,7 @@ public:
 
     /**
      * Get the user with the specific name. Please observe that the address of this object
-     * might change between frames and should not be kept around for long.
+     * might change between frames and should not be stored.
      *
      * \return the pointer to a named user. nullptr is returned if no user is found.
      */
@@ -74,7 +74,7 @@ public:
 
     /**
      * Get the tracked user. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return the pointer to the tracked user. Returns nullptr if no user is tracked.
      */
@@ -130,39 +130,10 @@ public:
     /// Get if software sync between nodes is disabled
     bool getIgnoreSync() const;
 
-    /// Set the scene transform.
-    void setSceneTransform(glm::mat4 mat);
-
-    /**
-     * Set the scene offset/translation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneOffset(glm::vec3 offset);
-
-    /**
-     * Set the scene rotation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneRotation(float yaw, float pitch, float roll);
-
-    /**
-     * Set the scene rotation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneRotation(glm::mat4 mat);
-    
-    /**
-     * Set the scene scale. This is set using the XML config file for easier transitions
-     * between different hardware setups.
-     */
-    void setSceneScale(float scale);
-
 private:
     ClusterManager();
 
     static ClusterManager* _instance;
-
-    std::vector<Node> _nodes;
 
     int _thisNodeId = -1;
     bool _firmFrameLockSync = false;
@@ -171,6 +142,7 @@ private:
     int _externalControlPort = 0;
     bool _useASCIIForExternalControl = true;
 
+    std::vector<Node> _nodes;
     std::vector<User> _users;
 
     glm::mat4 _sceneTransform = glm::mat4(1.f);

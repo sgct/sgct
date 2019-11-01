@@ -10,7 +10,6 @@
 
 #include <sgct/config.h>
 #include <sgct/user.h>
-#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -51,13 +50,16 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
     if (cluster.scene) {
         if (cluster.scene->offset) {
-            setSceneOffset(*cluster.scene->offset);
+            _sceneTranslate = glm::translate(glm::mat4(1.f), *cluster.scene->offset);
+            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
         if (cluster.scene->orientation) {
-            setSceneRotation(glm::mat4_cast(*cluster.scene->orientation));
+            _sceneRotation = glm::mat4_cast(*cluster.scene->orientation);
+            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
         if (cluster.scene->scale) {
-            setSceneScale(*cluster.scene->scale);
+            _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale));
+            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
     }
     for (const config::Node& node : cluster.nodes) {
@@ -152,25 +154,6 @@ void ClusterManager::setNetworkMode(NetworkManager::NetworkMode nm) {
     _netMode = nm;
 }
 
-void ClusterManager::setSceneTransform(glm::mat4 mat) {
-    _sceneTransform = std::move(mat);
-}
-
-void ClusterManager::setSceneOffset(glm::vec3 offset) {
-    _sceneTranslate = glm::translate(glm::mat4(1.f), std::move(offset));
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
-void ClusterManager::setSceneRotation(float yaw, float pitch, float roll) {
-    _sceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
-void ClusterManager::setSceneRotation(glm::mat4 mat) {
-    _sceneRotation = std::move(mat);
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
 bool ClusterManager::getIgnoreSync() const {
     return _ignoreSync;
 }
@@ -185,11 +168,6 @@ void ClusterManager::setUseASCIIForExternalControl(bool useASCII) {
 
 bool ClusterManager::getUseASCIIForExternalControl() const {
     return _useASCIIForExternalControl;
-}
-
-void ClusterManager::setSceneScale(float scale) {
-    _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(scale));
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
 }
 
 const std::string& ClusterManager::getMasterAddress() const {

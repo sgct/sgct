@@ -99,7 +99,7 @@ void Network::init(int port, std::string address, bool isServer,
     _isServer = isServer;
     _connectionType = type;
     if (_connectionType == ConnectionType::SyncConnection) {
-        _bufferSize = static_cast<uint32_t>(SharedData::instance()->getBufferSize());
+        _bufferSize = static_cast<uint32_t>(SharedData::instance().getBufferSize());
         _uncompressedBufferSize = _bufferSize;
     }
 
@@ -408,7 +408,7 @@ void Network::pushClientMessage() {
     int currentFrame = iterateFrameCounter();
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
-    if (MessageHandler::instance()->getDataSize() > HeaderSize) {
+    if (MessageHandler::instance().getDataSize() > HeaderSize) {
         core::mutex::DataSync.lock();
 
         // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
@@ -416,7 +416,7 @@ void Network::pushClientMessage() {
 
         // Don't remove this pointer, somehow the send function doesn't
         // work during the first call without setting the pointer first!!!
-        char* messageToSend = MessageHandler::instance()->getMessage();
+        char* messageToSend = MessageHandler::instance().getMessage();
         messageToSend[0] = Network::DataId;
         messageToSend[1] = p[0];
         messageToSend[2] = p[1];
@@ -426,7 +426,7 @@ void Network::pushClientMessage() {
         // crop if needed
         uint32_t size = _bufferSize;
         uint32_t messageSize = std::min(
-            static_cast<uint32_t>(MessageHandler::instance()->getDataSize()),
+            static_cast<uint32_t>(MessageHandler::instance().getDataSize()),
             size
         );
 
@@ -446,7 +446,7 @@ void Network::pushClientMessage() {
         );
 
         core::mutex::DataSync.unlock();
-        MessageHandler::instance()->clearBuffer();
+        MessageHandler::instance().clearBuffer();
     }
     else {
         char tmpca[HeaderSize];
@@ -500,14 +500,14 @@ double Network::getLoopTime() const {
 bool Network::isUpdated() const {
     bool state = false;
     if (_isServer) {
-        state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
+        state = ClusterManager::instance().getFirmFrameLockSyncStatus() ?
             // master sends first -> so on reply they should be equal
             (_currentRecvFrame == _currentSendFrame) :
             // don't check if loose sync
             true;
     }
     else {
-        state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
+        state = ClusterManager::instance().getFirmFrameLockSyncStatus() ?
             // slaves receive first and then send so the prev should be equal to the send
             (_previousRecvFrame == _currentSendFrame) :
             // if loose sync just check if updated

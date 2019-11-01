@@ -304,6 +304,7 @@ bool validateNode(const Node& node);
 struct Cluster {
     std::string masterAddress;
     std::optional<bool> debug;
+    std::optional<bool> checkOpenGL;
     std::optional<int> externalControlPort;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;

@@ -213,15 +213,15 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalTextureId);
 
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
                           scene;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    const glm::mat4 mv = Engine::instance()->getCurrentModelViewMatrix() * scene;
+    const glm::mat4 mv = Engine::instance().getCurrentModelViewMatrix() * scene;
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-    const glm::mat4 mvLight = Engine::instance()->getCurrentModelViewMatrix();
+    const glm::mat4 mvLight = Engine::instance().getCurrentModelViewMatrix();
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
@@ -240,31 +240,31 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster() && !mPause) {
-        currentTime.setVal(currentTime.getVal() + Engine::instance()->getAvgDt());
+    if (Engine::instance().isMaster() && !mPause) {
+        currentTime.setVal(currentTime.getVal() + Engine::instance().getAvgDt());
     }
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance()->setDisplayInfoVisibility(info.getVal());
-    Engine::instance()->setStatsGraphVisibility(stats.getVal());
-    Engine::instance()->getTrackingManager().setEnabled(useTracking.getVal());
+    Engine::instance().setDisplayInfoVisibility(info.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.getVal());
+    TrackingManager::instance().setEnabled(useTracking.getVal());
 
     if (takeScreenshot.getVal()) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void initOGLFun() {
-    stereoMode.setVal(Engine::instance()->getWindow(0).getStereoMode());
+    stereoMode.setVal(Engine::instance().getWindow(0).getStereoMode());
 
-    heightTextureId = TextureManager::instance()->loadTexture("heightmap.png", true, 0);
-    normalTextureId = TextureManager::instance()->loadTexture("normalmap.png", true, 0);
+    heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
+    normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
 
     // setup shader
-    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
 
     prog.bind();
     currTimeLoc = prog.getUniformLocation("currTime");
@@ -316,25 +316,25 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(info);
-    SharedData::instance()->writeBool(stats);
-    SharedData::instance()->writeBool(takeScreenshot);
-    SharedData::instance()->writeBool(useTracking);
-    SharedData::instance()->writeObj(stereoMode);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(info);
+    SharedData::instance().writeBool(stats);
+    SharedData::instance().writeBool(takeScreenshot);
+    SharedData::instance().writeBool(useTracking);
+    SharedData::instance().writeObj(stereoMode);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(info);
-    SharedData::instance()->readBool(stats);
-    SharedData::instance()->readBool(takeScreenshot);
-    SharedData::instance()->readBool(useTracking);
-    SharedData::instance()->readObj(stereoMode);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(info);
+    SharedData::instance().readBool(stats);
+    SharedData::instance().readBool(takeScreenshot);
+    SharedData::instance().readBool(useTracking);
+    SharedData::instance().readObj(stereoMode);
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance()->isMaster() && action == action::Press) {
+    if (Engine::instance().isMaster() && action == action::Press) {
         switch (key) {
             case key::S:
                 stats.setVal(!stats.getVal());
@@ -343,13 +343,13 @@ void keyCallback(int key, int, int action, int) {
                 info.setVal(!info.getVal());
                 break;
             case key::Q:
-                Engine::instance()->terminate();
+                Engine::instance().terminate();
                 break;
             case key::T:
                 useTracking.setVal(!useTracking.getVal());
                 break;
             case key::E:
-                sgct::core::ClusterManager::instance()->getDefaultUser().setTransform(
+                sgct::core::ClusterManager::instance().getDefaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;
@@ -357,9 +357,9 @@ void keyCallback(int key, int, int action, int) {
                 mPause = !mPause;
                 break;
             case key::F:
-                for (int i = 0; i < Engine::instance()->getNumberOfWindows(); i++) {
-                    Engine::instance()->getWindow(i).setUseFXAA(
-                        !Engine::instance()->getWindow(i).useFXAA()
+                for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
+                    Engine::instance().getWindow(i).setUseFXAA(
+                        !Engine::instance().getWindow(i).useFXAA()
                     );
                 }
                 break;
@@ -394,24 +394,24 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

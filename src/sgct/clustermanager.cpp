@@ -18,11 +18,11 @@ namespace sgct::core {
 
 ClusterManager* ClusterManager::_instance = nullptr;
 
-ClusterManager* ClusterManager::instance() {
+ClusterManager& ClusterManager::instance() {
     if (!_instance) {
-        _instance = new ClusterManager();
+        _instance = new ClusterManager;
     }
-    return _instance;
+    return *_instance;
 }
 
 void ClusterManager::destroy() {
@@ -35,9 +35,9 @@ ClusterManager::ClusterManager() {
 }
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
-    setMasterAddress(cluster.masterAddress);
+    _masterAddress = cluster.masterAddress;
     if (cluster.debug) {
-        MessageHandler::instance()->setNotifyLevel(
+        MessageHandler::instance().setNotifyLevel(
             *cluster.debug ?
             MessageHandler::Level::Debug :
             MessageHandler::Level::Warning
@@ -66,7 +66,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         addNode(std::move(n));
     }
     if (cluster.settings) {
-        Settings::instance()->applySettings(*cluster.settings);
+        Settings::instance().applySettings(*cluster.settings);
     }
     if (cluster.user) {
         User* usrPtr;
@@ -100,10 +100,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
     if (cluster.capture) {
-        Settings::instance()->applyCapture(*cluster.capture);
-    }
-    if (cluster.tracker) {
-        getTrackingManager().applyTracker(*cluster.tracker);
+        Settings::instance().applyCapture(*cluster.capture);
     }
 }
 
@@ -199,10 +196,6 @@ const std::string& ClusterManager::getMasterAddress() const {
     return _masterAddress;
 }
 
-void ClusterManager::setMasterAddress(std::string address) {
-    _masterAddress = std::move(address);
-}
-
 int ClusterManager::getExternalControlPort() const {
     return _externalControlPort;
 }
@@ -233,10 +226,6 @@ bool ClusterManager::getFirmFrameLockSyncStatus() const {
 
 void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
     _firmFrameLockSync = state;
-}
-
-TrackingManager& ClusterManager::getTrackingManager() {
-    return _trackingManager;
 }
 
 } // namespace sgct::core

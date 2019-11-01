@@ -9,8 +9,6 @@
 #include <iostream>
 
 namespace {
-    sgct::Engine* gEngine;
-
     enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };
     enum class Sides {
         Right_L = 0, Bottom_L, Top_L, Left_L,
@@ -110,7 +108,7 @@ void drawFace(Rotation rot) {
             break;
     }
 
-    ShaderManager::instance()->getShaderProgram("simple").bind();
+    ShaderManager::instance().getShaderProgram("simple").bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -201,7 +199,7 @@ void preSyncFun() {
 
             // load the texture
             std::string str(tmpStr);
-            textureIndices[i] = TextureManager::instance()->loadTexture(
+            textureIndices[i] = TextureManager::instance().loadTexture(
                 str,
                 true,
                 1
@@ -213,7 +211,7 @@ void preSyncFun() {
     }
     else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
         for (size_t i = 0; i < numberOfTextures; i++) {
-            textureIndices[i] = TextureManager::instance()->loadTexture(
+            textureIndices[i] = TextureManager::instance().loadTexture(
                 texturePaths[i],
                 true,
                 1
@@ -229,19 +227,19 @@ void preSyncFun() {
 
 void myPostSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
-        gEngine->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void preWinInitFun() {
-    gEngine->getDefaultUser().setEyeSeparation(settings.eyeSeparation);
-    for (int i = 0; i < gEngine->getNumberOfWindows(); i++) {
-        Window& win = gEngine->getWindow(i);
-        gEngine->setScreenShotNumber(startFrame);
+    Engine::instance().getDefaultUser().setEyeSeparation(settings.eyeSeparation);
+    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
+        Window& win = Engine::instance().getWindow(i);
+        Engine::instance().setScreenShotNumber(startFrame);
         win.setAlpha(settings.alpha);
 
-        for (int j = 0; j < gEngine->getWindow(i).getNumberOfViewports(); j++) {
+        for (int j = 0; j < Engine::instance().getWindow(i).getNumberOfViewports(); j++) {
             core::Viewport& vp = win.getViewport(j);
             if (!vp.hasSubViewports()) {
                 continue;
@@ -277,7 +275,7 @@ void initOGLFun() {
     // load all textures
     if (!sequence) {
         for (size_t i = 0; i < numberOfTextures; i++) {
-            textureIndices[i] = TextureManager::instance()->loadTexture(
+            textureIndices[i] = TextureManager::instance().loadTexture(
                 texturePaths[i],
                 true,
                 8.f
@@ -390,19 +388,19 @@ void initOGLFun() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
 }
 
 void encodeFun() {
-    SharedData::instance()->writeBool(takeScreenshot);
+    SharedData::instance().writeBool(takeScreenshot);
 }
 
 void decodeFun() {
-    SharedData::instance()->readBool(takeScreenshot);
+    SharedData::instance().readBool(takeScreenshot);
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (gEngine->isMaster() && action == action::Press) {
+    if (Engine::instance().isMaster() && action == action::Press) {
         switch (key) {
             case key::P:
             case key::F10:
@@ -440,7 +438,6 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arguments);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -581,15 +578,15 @@ int main(int argc, char* argv[]) {
                     return Settings::CaptureFormat::PNG;
                 }
             } (arg2);
-            Settings::instance()->setCaptureFormat(f);
+            Settings::instance().setCaptureFormat(f);
             MessageHandler::printInfo("Format set to %s", argv[i + 1]);
         }
         else if (arg == "-leftPath" && argc > (i + 1)) {
-            Settings::instance()->setCapturePath(
+            Settings::instance().setCapturePath(
                 argv[i + 1],
                 Settings::CapturePath::Mono
             );
-            Settings::instance()->setCapturePath(
+            Settings::instance().setCapturePath(
                 argv[i + 1],
                 Settings::CapturePath::LeftStereo
             );
@@ -597,7 +594,7 @@ int main(int argc, char* argv[]) {
             MessageHandler::printInfo("Left path set to %s", argv[i + 1]);
         }
         else if (arg == "-rightPath" && argc > (i + 1)) {
-            Settings::instance()->setCapturePath(
+            Settings::instance().setCapturePath(
                 argv[i + 1],
                 Settings::CapturePath::RightStereo
             );
@@ -606,26 +603,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    gEngine->setInitOGLFunction(initOGLFun);
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
-    gEngine->setKeyboardCallbackFunction(keyCallback);
-    gEngine->setPreWindowFunction(preWinInitFun);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setPreWindowFunction(preWinInitFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
-    gEngine->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+    Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

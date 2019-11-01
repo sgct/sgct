@@ -160,7 +160,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         rotQuat
     );
 
-    Engine::instance()->updateFrustums();
+    Engine::instance().updateFrustums();
 
     for (unsigned int c = 0; c < (sizeX - 1); c++) {
         for (unsigned int r = 0; r < (sizeY - 1); r++) {

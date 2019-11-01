@@ -117,6 +117,20 @@ namespace {
 
 namespace sgct {
 
+TrackingManager* TrackingManager::_instance = nullptr;
+
+TrackingManager& TrackingManager::instance() {
+    if (!_instance) {
+        _instance = new TrackingManager;
+    }
+    return *_instance;
+}
+
+void TrackingManager::destroy() {
+    delete _instance;
+    _instance = nullptr;
+}
+
 TrackingManager::~TrackingManager() {
 #ifdef SGCT_HAS_VRPN
     MessageHandler::printInfo("Disconnecting VRPN");
@@ -191,11 +205,11 @@ void TrackingManager::startSampling() {
         return;
     }
     // find user with headtracking
-    _headUser = core::ClusterManager::instance()->getTrackedUser();
+    _headUser = core::ClusterManager::instance().getTrackedUser();
 
     // if tracked user not found
     if (_headUser == nullptr) {
-        _headUser = &core::ClusterManager::instance()->getDefaultUser();
+        _headUser = &core::ClusterManager::instance().getDefaultUser();
     }
 
     // link the head tracker

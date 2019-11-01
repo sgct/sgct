@@ -57,12 +57,11 @@ namespace sgct::text {
 
 FontManager* FontManager::_instance = nullptr;
 
-FontManager* FontManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new FontManager();
+FontManager& FontManager::instance() {
+    if (!_instance) {
+        _instance = new FontManager;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void FontManager::destroy() {

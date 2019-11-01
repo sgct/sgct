@@ -62,7 +62,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
                 node.getWindow(i).setWindowResolution(glm::ivec2(width, height));
@@ -74,7 +74,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
                 node.getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
@@ -83,7 +83,7 @@ namespace {
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
@@ -93,7 +93,7 @@ namespace {
     }
 
     void windowIconifyCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
@@ -114,8 +114,8 @@ GLFWwindow* Window::_sharedHandle = nullptr;
 Window::Window(int id)
     : _id(id)
 {
-    _useFXAA = Settings::instance()->getDefaultFXAAState();
-    _nAASamples = Settings::instance()->getDefaultNumberOfAASamples();
+    _useFXAA = Settings::instance().getDefaultFXAAState();
+    _nAASamples = Settings::instance().getDefaultNumberOfAASamples();
 
     // pointers
     _sharedHandle = nullptr;
@@ -390,8 +390,8 @@ void Window::init() {
 
     using namespace core;
     std::string title = "SGCT node: " +
-        ClusterManager::instance()->getThisNode().getAddress() +
-        " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
+        ClusterManager::instance().getThisNode().getAddress() +
+        " (" + (NetworkManager::instance().isComputerServer() ? "master" : "slave") +
         + ": " + std::to_string(_id) + ")";
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
@@ -596,7 +596,7 @@ void Window::swap(bool takeScreenshot) {
     makeOpenGLContextCurrent(Context::Window);
         
     if (takeScreenshot) {
-        if (Settings::instance()->getCaptureFromBackBuffer() && _isDoubleBuffered) {
+        if (Settings::instance().getCaptureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono != nullptr) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -714,7 +714,7 @@ bool Window::update() {
 
     auto resizePBO = [this](core::ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance().getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
@@ -906,7 +906,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
-        const int refreshRateHint = Settings::instance()->getRefreshRateHint();
+        const int refreshRateHint = Settings::instance().getRefreshRateHint();
         if (refreshRateHint > 0) {
             glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
         }
@@ -961,7 +961,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     // Setting last window to the requested interval, which does mean all other
     // windows will respect the last window in the pipeline.
     if (getId() == lastWindowIdx) {
-        glfwSwapInterval(Settings::instance()->getSwapInterval());
+        glfwSwapInterval(Settings::instance().getSwapInterval());
     }
     else {
         glfwSwapInterval(0);
@@ -970,7 +970,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     updateTransferCurve();
 
     //if slave disable mouse pointer
-    if (!Engine::instance()->isMaster()) {
+    if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
@@ -1029,7 +1029,7 @@ void Window::initNvidiaSwapGroups() {
 void Window::initScreenCapture() {
     auto initializeCapture = [this](core::ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance().getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
@@ -1042,7 +1042,7 @@ void Window::initScreenCapture() {
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
 
-        Settings::CaptureFormat format = Settings::instance()->getCaptureFormat();
+        Settings::CaptureFormat format = Settings::instance().getCaptureFormat();
         switch (format) {
             case Settings::CaptureFormat::PNG:
                 sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::PNG);
@@ -1053,12 +1053,6 @@ void Window::initScreenCapture() {
             case Settings::CaptureFormat::JPG:
                 sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::JPEG);
                 break;
-        }
-
-        if (!Engine::checkForOGLErrors("Window::initScreenCapture")) {
-            MessageHandler::printError(
-                "Window %d: OpenGL error occured in screen capture init", _id
-            );
         }
     };
 
@@ -1131,7 +1125,7 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (!_postFXPasses.empty()) {
@@ -1143,23 +1137,14 @@ void Window::createTextures() {
     if (_useFXAA || !_postFXPasses.empty()) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    if (Engine::checkForOGLErrors("Window::createTextures")) {
-        MessageHandler::printDebug(
-            "Texture targets initialized successfully for window %d", _id
-        );
-    }
-    else {
-        MessageHandler::printError(
-            "Texture targets failed to initialize for window %d", _id
-        );
-    }
+    MessageHandler::printDebug("Targets initialized successfully for window %d", _id);
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1182,7 +1167,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 case TextureType::Normal:
                 case TextureType::Position:
                     return {
-                         Settings::instance()->getBufferFloatPrecision(),
+                         Settings::instance().getBufferFloatPrecision(),
                          GL_RGB,
                          GL_FLOAT
                     };
@@ -1302,12 +1287,6 @@ void Window::loadShaders() {
     glUniform1i(_stereo.leftTexLoc, 0);
     glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
-
-    if (!Engine::checkForOGLErrors("Window::loadShaders")) {
-        MessageHandler::printError(
-            "Window %d: OpenGL error occured while loading shaders", _id
-        );
-    }
 }
 
 void Window::bindVAO() const {

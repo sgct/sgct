@@ -160,12 +160,11 @@ namespace sgct {
 
 TextureManager* TextureManager::_instance = nullptr;
 
-TextureManager* TextureManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new TextureManager();
+TextureManager& TextureManager::instance() {
+    if (!_instance) {
+        _instance = new TextureManager;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void TextureManager::destroy() {

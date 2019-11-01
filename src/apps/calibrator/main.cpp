@@ -101,8 +101,8 @@ void main() {
 using namespace sgct;
 
 void draw() {
-    ShaderManager::instance()->getShaderProgram("simple").bind();
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix();
+    ShaderManager::instance().getShaderProgram("simple").bind();
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
 
     // Inverting tilt to keep the backwards compatibility with the previous implementation
     const glm::mat4 mat = glm::rotate(mvp, -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
@@ -122,13 +122,13 @@ void draw() {
     }
     glBindVertexArray(0);
 
-    ShaderManager::instance()->getShaderProgram("simple").unbind();
+    ShaderManager::instance().getShaderProgram("simple").unbind();
 }
 
 void draw2D() {
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
-        Window& win = Engine::instance()->getCurrentWindow();
+        Window& win = Engine::instance().getCurrentWindow();
         core::BaseViewport* vp = win.getCurrentViewport();
         const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
         const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
@@ -137,7 +137,7 @@ void draw2D() {
 
         const float s1 = h / 8.f;
         const unsigned int fontSize1 = static_cast<unsigned int>(s1);
-        text::Font* f1 = text::FontManager::instance()->getFont("SGCTFont", fontSize1);
+        text::Font* f1 = text::FontManager::instance().getFont("SGCTFont", fontSize1);
 
         text::print(
             *f1,
@@ -146,12 +146,12 @@ void draw2D() {
             h / 2.f - s1,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%d",
-            sgct::core::ClusterManager::instance()->getThisNodeId()
+            sgct::core::ClusterManager::instance().getThisNodeId()
         );
 
         const float s2 = h / 20.f;
         const unsigned int fontSize2 = static_cast<unsigned int>(s2);
-        text::Font* f2 = text::FontManager::instance()->getFont("SGCTFont", fontSize2);
+        text::Font* f2 = text::FontManager::instance().getFont("SGCTFont", fontSize2);
         text::print(
             *f2,
             text::TextAlignMode::TopLeft,
@@ -159,7 +159,7 @@ void draw2D() {
             h / 2.f - (s1 + s2) * 1.2f,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%s",
-            core::ClusterManager::instance()->getThisNode().getAddress().c_str()
+            core::ClusterManager::instance().getThisNode().getAddress().c_str()
         );
     }
 #endif // SGCT_HAS_TEXT
@@ -269,11 +269,11 @@ void initGL() {
     glBindVertexArray(0);
 
     if (!texture.empty()) {
-        textureId = TextureManager::instance()->loadTexture(texture, true, 0);
+        textureId = TextureManager::instance().loadTexture(texture, true, 0);
     }
 
-    ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("simple");
+    ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
     prog.bind();
     matrixLocation = prog.getUniformLocation("matrix");
 
@@ -285,10 +285,10 @@ void initGL() {
 }
 
 void postSyncPreDraw() {
-    Settings::instance()->setCaptureFromBackBuffer(captureBackbuffer.getVal());
-    Engine::instance()->setStatsGraphVisibility(showStats.getVal());
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.getVal());
+    Engine::instance().setStatsGraphVisibility(showStats.getVal());
     if (takeScreenshot.getVal()) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
@@ -312,17 +312,17 @@ void keyboardCallback(int key, int, int action, int) {
 }
 
 void encode() {
-    SharedData::instance()->writeBool(showId);
-    SharedData::instance()->writeBool(showStats);
-    SharedData::instance()->writeBool(takeScreenshot);
-    SharedData::instance()->writeBool(captureBackbuffer);
+    SharedData::instance().writeBool(showId);
+    SharedData::instance().writeBool(showStats);
+    SharedData::instance().writeBool(takeScreenshot);
+    SharedData::instance().writeBool(captureBackbuffer);
 }
 
 void decode() {
-    SharedData::instance()->readBool(showId);
-    SharedData::instance()->readBool(showStats);
-    SharedData::instance()->readBool(takeScreenshot);
-    SharedData::instance()->readBool(captureBackbuffer);
+    SharedData::instance().readBool(showId);
+    SharedData::instance().readBool(showStats);
+    SharedData::instance().readBool(takeScreenshot);
+    SharedData::instance().readBool(captureBackbuffer);
 }
 
 void cleanUp() {
@@ -355,18 +355,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDraw);
-    Engine::instance()->setDrawFunction(draw);
-    Engine::instance()->setDraw2DFunction(draw2D);
-    Engine::instance()->setInitOGLFunction(initGL);
-    Engine::instance()->setCleanUpFunction(cleanUp);
-    Engine::instance()->setKeyboardCallbackFunction(keyboardCallback);
-    Engine::instance()->setEncodeFunction(encode);
-    Engine::instance()->setDecodeFunction(decode);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDraw);
+    Engine::instance().setDrawFunction(draw);
+    Engine::instance().setDraw2DFunction(draw2D);
+    Engine::instance().setInitOGLFunction(initGL);
+    Engine::instance().setCleanUpFunction(cleanUp);
+    Engine::instance().setKeyboardCallbackFunction(keyboardCallback);
+    Engine::instance().setEncodeFunction(encode);
+    Engine::instance().setDecodeFunction(decode);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
-        Engine::instance()->render();
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().render();
     }
     catch (const std::runtime_error&) {
         Engine::destroy();

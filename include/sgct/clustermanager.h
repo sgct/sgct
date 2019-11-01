@@ -11,7 +11,6 @@
 
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/trackingmanager.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -28,10 +27,7 @@ class User;
  */
 class ClusterManager {
 public:
-    /// Get the ClusterManager instance
-    static ClusterManager* instance();
-
-    /// Destroy the ClusterManager
+    static ClusterManager& instance();
     static void destroy();
 
     void applyCluster(const config::Cluster& cluster);
@@ -110,19 +106,13 @@ public:
     /// \return the dns, name or IP of the master in the cluster
     const std::string& getMasterAddress() const;
 
-    /// \param the DNS, IP or name of the master in the cluster
-    void setMasterAddress(std::string address);
-
     /// \return state of the firm frame lock lock sync
     bool getFirmFrameLockSyncStatus() const;
 
     /// \param the state of the firm frame lock sync
     void setFirmFrameLockSyncStatus(bool state);
 
-    /**
-     * \return the external control port number if it's set or specified in the XML
-     *         configuration
-     */
+    /// \return the external control port number
     int getExternalControlPort() const;
 
     /// \param the external control port number
@@ -167,9 +157,6 @@ public:
      */
     void setSceneScale(float scale);
 
-    /// \return the pointer to the tracking manager
-    TrackingManager& getTrackingManager();
-
 private:
     ClusterManager();
 
@@ -185,7 +172,6 @@ private:
     bool _useASCIIForExternalControl = true;
 
     std::vector<User> _users;
-    TrackingManager _trackingManager;
 
     glm::mat4 _sceneTransform = glm::mat4(1.f);
     glm::mat4 _sceneScale = glm::mat4(1.f);

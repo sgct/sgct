@@ -10,14 +10,14 @@ int main(int argc, char* argv[]) {
     Engine::create(config);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit( EXIT_SUCCESS );
 }

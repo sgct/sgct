@@ -90,7 +90,7 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
+    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
 
     glActiveTexture(GL_TEXTURE0);
     
@@ -101,17 +101,17 @@ void drawFun() {
         glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     box->draw();
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
         
         // if texture is uploaded then iterate the index
@@ -124,20 +124,20 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance()->setDisplayInfoVisibility(info.getVal());
-    Engine::instance()->setStatsGraphVisibility(stats.getVal());
+    Engine::instance().setDisplayInfoVisibility(info.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.getVal());
 }
 
 void initOGLFun() {
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     // Set up backface culling
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW); // our polygon winding is counter clockwise
 
-    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     glUniform1i(prog.getUniformLocation("tex"), 0);
@@ -145,17 +145,17 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(info);
-    SharedData::instance()->writeBool(stats);
-    SharedData::instance()->writeInt32(texIndex);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(info);
+    SharedData::instance().writeBool(stats);
+    SharedData::instance().writeInt32(texIndex);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(info);
-    SharedData::instance()->readBool(stats);
-    SharedData::instance()->readInt32(texIndex);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(info);
+    SharedData::instance().readBool(stats);
+    SharedData::instance().readInt32(texIndex);
 }
 
 void cleanUpFun() {
@@ -175,7 +175,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance()->isMaster() && (action == action::Press)) {
+    if (Engine::instance().isMaster() && (action == action::Press)) {
         switch (key) {
             case key::S:
                 stats.setVal(!stats.getVal());
@@ -222,7 +222,7 @@ void startDataTransfer() {
     std::vector<char> buffer(size);
     if (file.read(buffer.data(), size)) {
         const int s = static_cast<int>(size);
-        Engine::instance()->transferDataBetweenNodes(buffer.data(), s, id);
+        Engine::instance().transferDataBetweenNodes(buffer.data(), s, id);
 
         // read the image on master
         readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
@@ -330,7 +330,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct::core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (sgct::core::ClusterManager::instance().getNumberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -352,7 +352,7 @@ void contextCreationCallback(GLFWwindow* win) {
 
     glfwMakeContextCurrent(sharedWindow);
 
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         loadThread = std::make_unique<std::thread>(threadWorker);
     }
 }
@@ -383,7 +383,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == currentPackage.getVal()) {
         counter++;
-        if (counter == (sgct::core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
+        if (counter == (sgct::core::ClusterManager::instance().getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
 
@@ -396,7 +396,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 }
 
 void dropCallback(int, const char** paths) {
-    if (!Engine::instance()->isMaster()) {
+    if (!Engine::instance().isMaster()) {
         return;
     }
 
@@ -426,29 +426,29 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setContextCreationCallback(contextCreationCallback);
-    Engine::instance()->setDropCallbackFunction(dropCallback);
-    Engine::instance()->setDataTransferCallback(dataTransferDecoder);
-    Engine::instance()->setDataTransferStatusCallback(dataTransferStatus);
-    Engine::instance()->setDataAcknowledgeCallback(dataTransferAcknowledge);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setContextCreationCallback(contextCreationCallback);
+    Engine::instance().setDropCallbackFunction(dropCallback);
+    Engine::instance().setDataTransferCallback(dataTransferDecoder);
+    Engine::instance().setDataTransferStatusCallback(dataTransferStatus);
+    Engine::instance().setDataAcknowledgeCallback(dataTransferAcknowledge);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
 
     isRunning = false;
 

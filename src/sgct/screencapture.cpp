@@ -57,7 +57,7 @@ namespace {
 namespace sgct::core {
 
 ScreenCapture::ScreenCapture()
-    : _nThreads(Settings::instance()->getNumberOfCaptureThreads())
+    : _nThreads(Settings::instance().getNumberOfCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
@@ -125,7 +125,7 @@ ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    addFrameNumberToFilename(Engine::instance()->getScreenShotNumber());
+    addFrameNumberToFilename(Engine::instance().getScreenShotNumber());
     checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
@@ -218,18 +218,18 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         switch (_eyeIndex) {
             case EyeIndex::Mono:
             default:
-                filename = Settings::instance()->getCapturePath(CapturePath::Mono);
+                filename = Settings::instance().getCapturePath(CapturePath::Mono);
                 break;
             case EyeIndex::StereoLeft:
                 eye = "_L";
-                filename = Settings::instance()->getCapturePath(CapturePath::LeftStereo);
+                filename = Settings::instance().getCapturePath(CapturePath::LeftStereo);
                 break;
             case EyeIndex::StereoRight:
                 eye = "_R";
-                filename = Settings::instance()->getCapturePath(CapturePath::RightStereo);
+                filename = Settings::instance().getCapturePath(CapturePath::RightStereo);
                 break;
         }
-        Window& win = Engine::instance()->getWindow(_windowIndex);
+        Window& win = Engine::instance().getWindow(_windowIndex);
         
         if (win.getName().empty()) {
             filename += "_win" + std::to_string(_windowIndex);
@@ -290,7 +290,7 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
-    Window& win = Engine::instance()->getWindow(_windowIndex);
+    Window& win = Engine::instance().getWindow(_windowIndex);
 
     if (captureSource == CaptureSource::Texture) {
         if (_resolution != win.getFramebufferResolution()) {

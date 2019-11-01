@@ -14,7 +14,7 @@
 namespace sgct::core {
 
 BaseViewport::BaseViewport()
-    : _user(ClusterManager::instance()->getDefaultUser())
+    : _user(ClusterManager::instance().getDefaultUser())
 {}
 
 void BaseViewport::setPos(glm::vec2 position) {
@@ -79,7 +79,7 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
-    User* user = ClusterManager::instance()->getUser(_userName);
+    User* user = ClusterManager::instance().getUser(_userName);
     if (user) {
         _user = *user;
     }

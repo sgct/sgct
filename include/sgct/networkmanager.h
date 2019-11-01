@@ -26,9 +26,12 @@ public:
     enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
     enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
 
+    static NetworkManager& instance();
+    static void create(NetworkMode nm);
+    static void destroy();
+
     static std::condition_variable cond;
 
-    NetworkManager(NetworkMode nm);
     ~NetworkManager();
     bool init();
 
@@ -48,8 +51,6 @@ public:
     bool isSyncComplete() const;
     void close();
 
-    /// \return the static pointer to the NetworkManager instance
-    static NetworkManager* instance();
 
     bool matchAddress(const std::string& address) const;
 
@@ -83,6 +84,8 @@ public:
     const std::vector<std::string>& getLocalAddresses() const;
 
 private:
+    NetworkManager(NetworkMode nm);
+
     bool addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void initAPI();

@@ -233,7 +233,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
             static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
         );
 
-        if (Settings::instance()->getExportWarpingMeshes()) {
+        if (Settings::instance().getExportWarpingMeshes()) {
             const size_t found = path.find_last_of(".");
             std::string filename = path.substr(0, found) + "_export.obj";
             exportMesh(_warpGeometry.type, std::move(filename), buf);

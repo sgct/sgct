@@ -31,10 +31,7 @@ public:
      */
     enum class CompressionMode { None = 0, Generic, S3TC_DXT };
 
-    /// Get the TextureManager instance
-    static TextureManager* instance();
-
-    /// Destroy the TextureManager
+    static TextureManager& instance();
     static void destroy();
 
     /**

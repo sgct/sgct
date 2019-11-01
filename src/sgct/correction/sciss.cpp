@@ -253,7 +253,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
     );
 
-    Engine::instance()->updateFrustums();
+    Engine::instance().updateFrustums();
 
     buf.vertices.resize(numberOfVertices);
     for (unsigned int i = 0; i < numberOfVertices; i++) {

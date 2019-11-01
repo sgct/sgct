@@ -3,8 +3,6 @@
 #include <sgct/shareddata.h>
 
 namespace {
-    sgct::Engine* gEngine;
-
     sgct::SharedDouble currentTime(0.0);
 
     sgct::SharedBool showStats(false);
@@ -34,32 +32,32 @@ void drawFun() {
 
 void preSyncFun() {
     // set the time only on the master
-    if (gEngine->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
-    gEngine->setDisplayInfoVisibility(showStats.getVal());
-    gEngine->setStatsGraphVisibility(showGraph.getVal());
+    Engine::instance().setDisplayInfoVisibility(showStats.getVal());
+    Engine::instance().setStatsGraphVisibility(showGraph.getVal());
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeFloat(sizeFactor);
-    SharedData::instance()->writeBool(showStats);
-    SharedData::instance()->writeBool(showGraph);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeFloat(sizeFactor);
+    SharedData::instance().writeBool(showStats);
+    SharedData::instance().writeBool(showGraph);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readFloat(sizeFactor);
-    SharedData::instance()->readBool(showStats);
-    SharedData::instance()->readBool(showGraph);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readFloat(sizeFactor);
+    SharedData::instance().readBool(showStats);
+    SharedData::instance().readBool(showGraph);
 }
 
 void externalControlMessageCallback(const char* receivedChars, int size) {
-    if (gEngine->isMaster()) {
+    if (Engine::instance().isMaster()) {
         std::string_view msg(receivedChars, size);
         if (size == 7 && msg.substr(0, 5) == "stats") {
             showStats.setVal(msg.substr(6, 1) == "1");
@@ -92,25 +90,24 @@ int main(int argc, char* argv[]) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
-    gEngine = Engine::instance();
 
-    gEngine->setDrawFunction(drawFun);
-    gEngine->setPreSyncFunction(preSyncFun);
-    gEngine->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    gEngine->setExternalControlCallback(externalControlMessageCallback);
-    gEngine->setExternalControlStatusCallback(externalControlStatusCallback);
-    gEngine->setEncodeFunction(encodeFun);
-    gEngine->setDecodeFunction(decodeFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setExternalControlCallback(externalControlMessageCallback);
+    Engine::instance().setExternalControlStatusCallback(externalControlStatusCallback);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    gEngine->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

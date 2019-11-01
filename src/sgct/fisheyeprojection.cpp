@@ -34,7 +34,7 @@ void FisheyeProjection::update(glm::vec2 size) {
 
     float x = 1.f;
     float y = 1.f;
-    if (Settings::instance()->getTryKeepAspectRatio()) {
+    if (Settings::instance().getTryKeepAspectRatio()) {
         float aspect = frameBufferAspect * cropAspect;
         if (aspect >= 1.f) {
             x = 1.f / aspect;
@@ -65,7 +65,7 @@ void FisheyeProjection::update(glm::vec2 size) {
 
 void FisheyeProjection::render() {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance()->enterCurrentViewport();
+    Engine::instance().enterCurrentViewport();
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -78,26 +78,26 @@ void FisheyeProjection::render() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
         glUniform1i(_shaderLoc.depthCubemapLoc, 1);
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
         glUniform1i(_shaderLoc.normalCubemapLoc, 2);
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
         glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+    const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -133,7 +133,7 @@ void FisheyeProjection::render() {
 }
 
 void FisheyeProjection::renderCubemap() {
-    switch (Engine::instance()->getCurrentFrustumMode()) {
+    switch (Engine::instance().getCurrentFrustumMode()) {
         default:
             break;
         case Frustum::Mode::StereoLeftEye:
@@ -162,7 +162,7 @@ void FisheyeProjection::renderCubemap() {
             attachTextures(idx);
         }
 
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(vp);
 
         // blit MSAA fbo to texture
@@ -171,7 +171,7 @@ void FisheyeProjection::renderCubemap() {
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (Settings::instance()->useDepthTexture()) {
+        if (Settings::instance().useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
@@ -185,7 +185,7 @@ void FisheyeProjection::renderCubemap() {
             Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+            const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -208,13 +208,13 @@ void FisheyeProjection::renderCubemap() {
             glUniform1i(_shaderLoc.swapDepthLoc, 1);
             glUniform1f(
                 _shaderLoc.swapNearLoc,
-                Engine::instance()->getNearClippingPlane()
+                Engine::instance().getNearClippingPlane()
             );
-            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance()->getFarClippingPlane());
+            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance().getFarClippingPlane());
 
-            Engine::instance()->getCurrentWindow().bindVAO();
+            Engine::instance().getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance()->getCurrentWindow().unbindVAO();
+            Engine::instance().getCurrentWindow().unbindVAO();
 
             ShaderProgram::unbind();
 
@@ -560,8 +560,8 @@ void FisheyeProjection::initShaders() {
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     // (abock, 2019-10-15) I trid making this a bit prettier, but I failed
     if (_isOffAxis) {
-        if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getDrawBufferType()) {
+        if (Settings::instance().useDepthTexture()) {
+            switch (Settings::instance().getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -587,7 +587,7 @@ void FisheyeProjection::initShaders() {
         }
         else {
             // no depth
-            switch (Settings::instance()->getDrawBufferType()) {
+            switch (Settings::instance().getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -614,8 +614,8 @@ void FisheyeProjection::initShaders() {
     }
     else {
         // not off axis
-        if (Settings::instance()->useDepthTexture()) {
-            switch (Settings::instance()->getDrawBufferType()) {
+        if (Settings::instance().useDepthTexture()) {
+            switch (Settings::instance().getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -641,7 +641,7 @@ void FisheyeProjection::initShaders() {
         }
         else {
             // no depth
-            switch (Settings::instance()->getDrawBufferType()) {
+            switch (Settings::instance().getDrawBufferType()) {
                 case Settings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragmentShader = isCubic ?
@@ -668,7 +668,7 @@ void FisheyeProjection::initShaders() {
     }
 
     // depth correction shader only
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
             shaders_fisheye::FisheyeDepthCorrectionFrag
@@ -757,17 +757,17 @@ void FisheyeProjection::initShaders() {
     _shaderLoc.cubemapLoc = _shader.getUniformLocation("cubemap");
     glUniform1i(_shaderLoc.cubemapLoc, 0);
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _shaderLoc.depthCubemapLoc = _shader.getUniformLocation("depthmap");
         glUniform1i(_shaderLoc.depthCubemapLoc, 1);
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         _shaderLoc.normalCubemapLoc = _shader.getUniformLocation("normalmap");
         glUniform1i(_shaderLoc.normalCubemapLoc, 2);
     }
     
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         _shaderLoc.positionCubemapLoc = _shader.getUniformLocation("positionmap");
         glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
@@ -782,7 +782,7 @@ void FisheyeProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
@@ -811,7 +811,7 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()->_drawFn();
+    Engine::instance()._drawFn();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -825,7 +825,7 @@ void FisheyeProjection::blitCubeFace(int face) {
 }
 
 void FisheyeProjection::attachTextures(int face) {
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap);
     }
@@ -833,7 +833,7 @@ void FisheyeProjection::attachTextures(int face) {
         _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapNormals,
             face,
@@ -841,7 +841,7 @@ void FisheyeProjection::attachTextures(int face) {
         );
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapPositions,
             face,

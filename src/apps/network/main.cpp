@@ -89,7 +89,7 @@ void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
 }
 
 void connect() {
-    if (!Engine::instance()->isMaster()) {
+    if (!Engine::instance().isMaster()) {
         return;
     }
 
@@ -160,7 +160,7 @@ void disconnect() {
 
 void sendData(const void* data, int length, int packageId) {
     if (networkPtr) {
-        sgct::core::NetworkManager::instance()->transferData(
+        sgct::core::NetworkManager::instance().transferData(
             data,
             length,
             packageId,
@@ -197,57 +197,57 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
                           scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     box->draw();
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void initOGLFun() {
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     // Set up backface culling
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    sgct::ShaderManager::instance()->addShaderProgram(
+    sgct::ShaderManager::instance().addShaderProgram(
         "xform",
         vertexShader,
         fragmentShader
     );
-    const ShaderProgram& prg = sgct::ShaderManager::instance()->getShaderProgram("xform");
+    const ShaderProgram& prg = sgct::ShaderManager::instance().getShaderProgram("xform");
     prg.bind();
     matrixLoc = prg.getUniformLocation("mvp");
     glUniform1i(prg.getUniformLocation("tex"), 0 );
     prg.unbind();
 
-    for (int i = 0; i < Engine::instance()->getNumberOfWindows(); i++) {
-        Engine::instance()->getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
+    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
+        Engine::instance().getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
     }
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
+    sgct::SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
+    sgct::SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -266,7 +266,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance()->isMaster() && key == key::Space && action == action::Press) {
+    if (Engine::instance().isMaster() && key == key::Space && action == action::Press) {
         sendTestMessage();
     }
 }
@@ -296,16 +296,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
 
     connectionThread = std::make_unique<std::thread>(networkLoop);
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

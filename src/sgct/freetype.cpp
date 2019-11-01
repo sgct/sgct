@@ -23,7 +23,7 @@
 namespace {
 
 void setupViewport() {
-    sgct::Window& cWin = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& cWin = sgct::Engine::instance().getCurrentWindow();
 
     glm::ivec2 position = glm::ivec2(
         cWin.getCurrentViewport()->getPosition() *
@@ -35,7 +35,7 @@ void setupViewport() {
 
     sgct::Window::StereoMode sm = cWin.getStereoMode();
     if (sm >= sgct::Window::StereoMode::SideBySide) {
-        if (sgct::Engine::instance()->getCurrentFrustumMode() ==
+        if (sgct::Engine::instance().getCurrentFrustumMode() ==
             sgct::core::Frustum::Mode::StereoLeftEye)
         {
             switch (sm) {
@@ -88,7 +88,7 @@ void setupViewport() {
 
 glm::mat4 setupOrthoMat() {
     glm::mat4 orthoMat;
-    sgct::Window& win = sgct::Engine::instance()->getCurrentWindow();
+    sgct::Window& win = sgct::Engine::instance().getCurrentWindow();
 
     glm::ivec2 res = win.getResolution();
     glm::vec2 size = win.getCurrentViewport()->getSize();
@@ -179,7 +179,7 @@ void render2d(const std::vector<std::string>& lines, sgct::text::Font& font,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // FontManager::instance()->getShader().bind();
+    // FontManager::instance().getShader().bind();
 
     glBindVertexArray(font.getVAO());
     glActiveTexture(GL_TEXTURE0);
@@ -211,7 +211,7 @@ void render2d(const std::vector<std::string>& lines, sgct::text::Font& font,
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-            FontManager::instance()->bindShader(scale, color, strokeColor, 0);
+            FontManager::instance().bindShader(scale, color, strokeColor, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -268,7 +268,7 @@ void render3d(const std::vector<std::string>& lines, sgct::text::Font& font,
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-            FontManager::instance()->bindShader(scale, color, strokeColor, 0);
+            FontManager::instance().bindShader(scale, color, strokeColor, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

@@ -77,7 +77,7 @@ void SpoutOutputProjection::update(glm::vec2) {
 
 void SpoutOutputProjection::render() {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance()->enterCurrentViewport();
+    Engine::instance().enterCurrentViewport();
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -106,7 +106,7 @@ void SpoutOutputProjection::render() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+        bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,7 +210,7 @@ void SpoutOutputProjection::renderCubemap() {
             attachTextures(idx);
         }
 
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
@@ -219,7 +219,7 @@ void SpoutOutputProjection::renderCubemap() {
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (Settings::instance()->useDepthTexture()) {
+        if (Settings::instance().useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
@@ -233,7 +233,7 @@ void SpoutOutputProjection::renderCubemap() {
             Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+            const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -255,12 +255,12 @@ void SpoutOutputProjection::renderCubemap() {
             _depthCorrectionShader.bind();
             glUniform1i(_swapColorLoc, 0);
             glUniform1i(_swapDepthLoc, 1);
-            glUniform1f(_swapNearLoc, Engine::instance()->_nearClippingPlaneDist);
-            glUniform1f(_swapFarLoc, Engine::instance()->_farClippingPlaneDist);
+            glUniform1f(_swapNearLoc, Engine::instance()._nearClippingPlaneDist);
+            glUniform1f(_swapFarLoc, Engine::instance()._farClippingPlaneDist);
 
-            Engine::instance()->getCurrentWindow().bindVAO();
+            Engine::instance().getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance()->getCurrentWindow().unbindVAO();
+            Engine::instance().getCurrentWindow().unbindVAO();
 
             // unbind shader
             ShaderProgram::unbind();
@@ -626,8 +626,8 @@ void SpoutOutputProjection::initShaders() {
 
     fisheyeVertShader = shaders_fisheye::FisheyeVert;
 
-    if (Settings::instance()->useDepthTexture()) {
-        switch (Settings::instance()->getDrawBufferType()) {
+    if (Settings::instance().useDepthTexture()) {
+        switch (Settings::instance().getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
@@ -646,7 +646,7 @@ void SpoutOutputProjection::initShaders() {
     }
     else {
         //no depth
-        switch (Settings::instance()->getDrawBufferType()) {
+        switch (Settings::instance().getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFrag;
@@ -664,7 +664,7 @@ void SpoutOutputProjection::initShaders() {
     }
 
     //depth correction shader only
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
             shaders_fisheye::FisheyeDepthCorrectionFrag
@@ -754,7 +754,7 @@ void SpoutOutputProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
@@ -855,7 +855,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()->_drawFn();
+    Engine::instance()._drawFn();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -871,7 +871,7 @@ void SpoutOutputProjection::blitCubeFace(int face) {
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap);
     }
@@ -879,7 +879,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapNormals,
             face,
@@ -887,7 +887,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         );
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapPositions,
             face,

@@ -16,11 +16,11 @@ namespace sgct {
 
 ShaderManager* ShaderManager::_instance = nullptr;
 
-ShaderManager* ShaderManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new ShaderManager();
+ShaderManager& ShaderManager::instance() {
+    if (!_instance) {
+        _instance = new ShaderManager;
     }
-    return _instance;
+    return *_instance;
 }
 
 void ShaderManager::destroy() {

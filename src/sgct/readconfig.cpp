@@ -1114,6 +1114,7 @@ namespace {
         cluster.masterAddress = masterAddress;
 
         cluster.debug = parseValue<bool>(root, "debug");
+        cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");
         cluster.externalControlPort = parseValue<int>(root, "externalControlPort");
         cluster.firmSync = parseValue<bool>(root, "firmSync");
 

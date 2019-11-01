@@ -16,25 +16,10 @@
 namespace sgct::utils {
 
 Box::Box(float size, TextureMappingMode mode) {
-    createVBO(size, mode);
-}
-
-Box::~Box() {
-    glDeleteVertexArrays(1, &_vao);
-    glDeleteBuffers(1, &_vbo);
-}
-
-void Box::draw() {
-    glBindVertexArray(_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-}
-
-void Box::createVBO(float size, TextureMappingMode tmm) {
     const float halfSize = size / 2.f;
     std::array<helpers::VertexData, 36> v;
 
-    if (tmm == TextureMappingMode::Regular) {
+    if (mode == TextureMappingMode::Regular) {
         // A (front/+z)
         v[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -halfSize,  halfSize, halfSize };
         v[1] = { 0.f, 0.f, 0.f, 0.f, 1.f, -halfSize, -halfSize, halfSize };
@@ -83,7 +68,7 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
         v[34] = { 1.f, 0.f, 0.f, -1.f, 0.f,  halfSize, -halfSize, -halfSize };
         v[35] = { 1.f, 1.f, 0.f, -1.f, 0.f,  halfSize, -halfSize,  halfSize };
     }
-    else if (tmm == TextureMappingMode::CubeMap) {
+    else if (mode == TextureMappingMode::CubeMap) {
         // A (front/+z)
         v[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -halfSize, halfSize, halfSize };
         v[1] = { 0.f, 0.5f, 0.f, 0.f, 1.f, -halfSize, -halfSize, halfSize };
@@ -182,10 +167,9 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
         v[35] = { 0.499f, 0.f, 0.f, -1.f, 0.f,  halfSize, -halfSize,  halfSize };
     }
 
-
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
-    
+
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(
@@ -228,6 +212,17 @@ void Box::createVBO(float size, TextureMappingMode tmm) {
         reinterpret_cast<void*>(20)
     );
 
+    glBindVertexArray(0);
+}
+
+Box::~Box() {
+    glDeleteVertexArrays(1, &_vao);
+    glDeleteBuffers(1, &_vbo);
+}
+
+void Box::draw() {
+    glBindVertexArray(_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
 

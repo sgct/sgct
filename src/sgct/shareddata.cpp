@@ -17,19 +17,16 @@ namespace sgct {
 
 SharedData* SharedData::_instance = nullptr;
 
-SharedData* SharedData::instance() {
-    if (_instance == nullptr) {
-        _instance = new SharedData();
+SharedData& SharedData::instance() {
+    if (!_instance) {
+        _instance = new SharedData;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void SharedData::destroy() {
-    if (_instance != nullptr) {
-        delete _instance;
-        _instance = nullptr;
-    }
+    delete _instance;
+    _instance = nullptr;
 }
 
 SharedData::SharedData() {

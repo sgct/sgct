@@ -90,14 +90,14 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
-    const glm::mat4 mv = Engine::instance()->getCurrentModelViewMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mv = Engine::instance().getCurrentModelViewMatrix() * scene;
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance()->getShaderProgram("MRT").bind();
+    ShaderManager::instance().getShaderProgram("MRT").bind();
     glUniformMatrix4fv(mvpMatrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniformMatrix4fv(worldMatrixTransposeLoc, 1, GL_TRUE, glm::value_ptr(mv));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
@@ -105,28 +105,28 @@ void drawFun() {
 
     box->draw();
 
-    ShaderManager::instance()->getShaderProgram("MRT").unbind();
+    ShaderManager::instance().getShaderProgram("MRT").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void initOGLFun() {
-    ShaderManager::instance()->addShaderProgram("MRT", vertexShader, fragmentShader);
-    const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("MRT");
+    ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
+    const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("MRT");
     prg.bind();
     textureLoc = prg.getUniformLocation("tDiffuse");
     worldMatrixTransposeLoc = prg.getUniformLocation("worldMatrixTranspose");
@@ -134,7 +134,7 @@ void initOGLFun() {
     normalMatrixLoc = prg.getUniformLocation("normalMatrix");
 
     prg.bind();
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
@@ -143,13 +143,13 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance()->writeDouble(currentTime);
-    sgct::SharedData::instance()->writeBool(takeScreenshot);
+    sgct::SharedData::instance().writeDouble(currentTime);
+    sgct::SharedData::instance().writeBool(takeScreenshot);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
-    sgct::SharedData::instance()->readBool(takeScreenshot);
+    sgct::SharedData::instance().readDouble(currentTime);
+    sgct::SharedData::instance().readBool(takeScreenshot);
 }
 
 void cleanUpFun() {
@@ -157,7 +157,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance()->isMaster() && (action == action::Press) && (key == key::P)) {
+    if (Engine::instance().isMaster() && (action == action::Press) && (key == key::P)) {
         takeScreenshot.setVal(true);
     }
 }
@@ -179,24 +179,24 @@ int main(int argc, char* argv[]) {
 
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

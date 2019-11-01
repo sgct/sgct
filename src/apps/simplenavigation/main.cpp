@@ -210,10 +210,10 @@ void createPyramid(float width) {
 
 
 void drawPyramid(int index) {
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
         xform.getVal() * pyramidTransforms[index];
 
-    ShaderManager::instance()->getShaderProgram("pyramidShader").bind();
+    ShaderManager::instance().getShaderProgram("pyramidShader").bind();
 
     glUniformMatrix4fv(pyramid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
@@ -230,14 +230,14 @@ void drawPyramid(int index) {
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
     glBindVertexArray(0);
-    ShaderManager::instance()->getShaderProgram("pyramidShader").unbind();
+    ShaderManager::instance().getShaderProgram("pyramidShader").unbind();
 }
 
 void drawXZGrid() {
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
                           xform.getVal();
 
-    ShaderManager::instance()->getShaderProgram("gridShader").bind();
+    ShaderManager::instance().getShaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
     glBindVertexArray(grid.vao);
     glLineWidth(3.f);
@@ -245,7 +245,7 @@ void drawXZGrid() {
     glDrawArrays(GL_LINES, 0, grid.nVerts);
 
     glBindVertexArray(0);
-    ShaderManager::instance()->getShaderProgram("gridShader").unbind();
+    ShaderManager::instance().getShaderProgram("gridShader").unbind();
 }
 
 void cleanUpFun() {
@@ -275,23 +275,23 @@ void initOGLFun() {
         pyramidTransforms[i] = glm::translate(glm::mat4(1.f), glm::vec3(x, -1.5f, z));
     }
 
-    ShaderManager::instance()->addShaderProgram(
+    ShaderManager::instance().addShaderProgram(
         "gridShader",
         gridVertexShader,
         gridFragmentShader
     );
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("gridShader");
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("gridShader");
     prog.bind();
     grid.matrixLocation = prog.getUniformLocation("mvp");
     prog.unbind();
 
-    ShaderManager::instance()->addShaderProgram(
+    ShaderManager::instance().addShaderProgram(
         "pyramidShader",
         pyramidVertexShader,
         pyramidFragmentShader
     );
     const ShaderProgram& pyramidProg =
-        ShaderManager::instance()->getShaderProgram("pyramidShader");
+        ShaderManager::instance().getShaderProgram("pyramidShader");
     pyramidProg.bind();
     pyramid.matrixLocation = pyramidProg.getUniformLocation("mvp");
     alphaLocation = pyramidProg.getUniformLocation("alpha");
@@ -299,11 +299,11 @@ void initOGLFun() {
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         if (mouseLeftButton) {
             double yPos;
             Engine::getMousePos(
-                Engine::instance()->getFocusedWindowIndex(),
+                Engine::instance().getFocusedWindowIndex(),
                 &mouseXPos[0],
                 &yPos
             );
@@ -315,7 +315,7 @@ void preSyncFun() {
 
         static float panRot = 0.f;
         panRot += static_cast<float>(
-            mouseDx * RotationSpeed * Engine::instance()->getDt()
+            mouseDx * RotationSpeed * Engine::instance().getDt()
         );
 
         //rotation around the y-axis
@@ -332,19 +332,19 @@ void preSyncFun() {
 
         if (buttonForward) {
             pos +=
-                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * view);
+                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * view);
         }
         if (buttonBackward) {
             pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * view);
+                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * view);
         }
         if (buttonLeft) {
             pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * right);
+                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * right);
         }
         if (buttonRight) {
             pos += 
-                (WalkingSpeed * static_cast<float>(Engine::instance()->getDt()) * right);
+                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * right);
         }
 
         /**
@@ -392,15 +392,15 @@ void drawFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeObj(xform);
+    SharedData::instance().writeObj(xform);
 }
 
 void decodeFun() {
-    SharedData::instance()->readObj(xform);
+    SharedData::instance().readObj(xform);
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         switch (key) {
             case key::Up:
             case key::W:
@@ -423,11 +423,11 @@ void keyCallback(int key, int, int action, int) {
 }
 
 void mouseButtonCallback(int button, int action, int) {
-    if (Engine::instance()->isMaster() && button == mouse::ButtonLeft) {
+    if (Engine::instance().isMaster() && button == mouse::ButtonLeft) {
         mouseLeftButton = (action == action::Press);
         double yPos;
         Engine::getMousePos(
-            Engine::instance()->getFocusedWindowIndex(),
+            Engine::instance().getFocusedWindowIndex(),
             &mouseXPos[1],
             &yPos)
         ;
@@ -440,26 +440,26 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setMouseButtonCallbackFunction(mouseButtonCallback);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setMouseButtonCallbackFunction(mouseButtonCallback);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
-    Engine::instance()->setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    Engine::instance().setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error&) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

@@ -75,8 +75,8 @@ void initFun() {
 
     glBindVertexArray(0);
 
-    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prg = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("xform");
     prg.bind();
     matrixLoc = prg.getUniformLocation("mvp");
     prg.unbind(); 
@@ -90,29 +90,29 @@ void drawFun() {
         static_cast<float>(currentTime.getVal()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
-    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
+    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     glBindVertexArray(vertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -127,16 +127,16 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
-        Engine::instance()->render();
+        Engine::instance().init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
+        Engine::instance().render();
     }
     catch (const std::runtime_error&) {
         Engine::destroy();

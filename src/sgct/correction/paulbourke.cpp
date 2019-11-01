@@ -120,7 +120,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
         }
     }
 
-    const float aspect = Engine::instance()->getCurrentWindow().getAspectRatio() *
+    const float aspect = Engine::instance().getCurrentWindow().getAspectRatio() *
                    (size.x / size.y);
     for (CorrectionMeshVertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)

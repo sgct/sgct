@@ -26,9 +26,9 @@ namespace sgct::core {
 void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render() {
-    Engine::instance()->enterCurrentViewport();
+    Engine::instance().enterCurrentViewport();
 
-    Window& winPtr = Engine::instance()->getCurrentWindow();
+    Window& winPtr = Engine::instance().getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -43,7 +43,7 @@ void SphericalMirrorProjection::render() {
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+    const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -93,7 +93,7 @@ void SphericalMirrorProjection::renderCubemap() {
             attachTextures(texture);
         }
 
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&bv);
+        Engine::instance().getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture
@@ -129,18 +129,10 @@ void core::SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat);
-        if (Engine::checkForOGLErrors("SphericalMirrorProjection::initTextures")) {
-            MessageHandler::printDebug(
-                "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
-                _cubemapResolution, _cubemapResolution, texture
-            );
-        }
-        else {
-            MessageHandler::printError(
-                "NonLinearProjection: Error occured while generating %dx%d cube face "
-                "texture (id: %d)", _cubemapResolution, _cubemapResolution, texture
-            );
-        }
+        MessageHandler::printDebug(
+            "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
+            _cubemapResolution, _cubemapResolution, texture
+        );
     };
 
     generate(_subViewports.right, _textures.cubeFaceRight);
@@ -153,7 +145,7 @@ void core::SphericalMirrorProjection::initTextures() {
 
 void SphericalMirrorProjection::initVBO() {
     Viewport* vp = dynamic_cast<Viewport*>(
-        Engine::instance()->getCurrentWindow().getCurrentViewport()
+        Engine::instance().getCurrentWindow().getCurrentViewport()
     );
     if (vp) {
         _meshes.bottom.readAndGenerateMesh(_meshPaths.bottom, *vp);
@@ -410,7 +402,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     Engine::clearBuffer();
 #endif
 
-    Engine::instance()->_drawFn();
+    Engine::instance()._drawFn();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

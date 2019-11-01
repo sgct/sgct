@@ -278,7 +278,7 @@ void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
 
 void Viewport::loadData() {
     if (!_overlayFilename.empty()) {
-        _overlayTextureIndex = TextureManager::instance()->loadTexture(
+        _overlayTextureIndex = TextureManager::instance().loadTexture(
             _overlayFilename,
             true,
             1
@@ -286,7 +286,7 @@ void Viewport::loadData() {
     }
 
     if (!_blendMaskFilename.empty()) {
-        _blendMaskTextureIndex = TextureManager::instance()->loadTexture(
+        _blendMaskTextureIndex = TextureManager::instance().loadTexture(
             _blendMaskFilename,
             true,
             1
@@ -294,7 +294,7 @@ void Viewport::loadData() {
     }
 
     if (!_blackLevelMaskFilename.empty()) {
-        _blackLevelMaskTextureIndex = TextureManager::instance()->loadTexture(
+        _blackLevelMaskTextureIndex = TextureManager::instance().loadTexture(
             _blackLevelMaskFilename,
             true,
             1

@@ -13,6 +13,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
+#include <sgct/trackingmanager.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -47,8 +48,7 @@ void TrackingDevice::setNumberOfAxes(int numOfAxes) {
 }
 
 void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
-    core::ClusterManager& cm = *core::ClusterManager::instance();
-    Tracker* parent = cm.getTrackingManager().getTracker(_parentIndex);
+    Tracker* parent = TrackingManager::instance().getTracker(_parentIndex);
 
     if (parent == nullptr) {
         MessageHandler::printError(

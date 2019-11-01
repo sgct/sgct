@@ -15,7 +15,6 @@ namespace sgct {
 Configuration parseArguments(std::vector<std::string> arg) {
     Configuration config;
 
-    MessageHandler::printInfo("Parsing arguments");
     size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {

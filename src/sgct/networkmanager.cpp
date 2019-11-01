@@ -68,16 +68,26 @@ namespace sgct::core {
 std::condition_variable NetworkManager::cond;
 NetworkManager* NetworkManager::_instance = nullptr;
 
-NetworkManager* NetworkManager::instance() {
-    return _instance;
+NetworkManager& NetworkManager::instance() {
+    return *_instance;
+}
+
+void NetworkManager::create(NetworkMode nm) {
+    if (_instance) {
+        throw std::logic_error("NetworkManager has already been created");
+    }
+    _instance = new NetworkManager(nm);
+}
+
+void NetworkManager::destroy() {
+    delete _instance;
+    _instance = nullptr;
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) 
     : _compressionLevel(Z_BEST_SPEED)
     , _mode(nm)
 {
-    _instance = this;
-
     MessageHandler::printDebug("NetworkManager: Initiating network API");
     initAPI();
 
@@ -85,7 +95,7 @@ NetworkManager::NetworkManager(NetworkMode nm)
     getHostInfo();
 
     if (_mode == NetworkMode::Remote) {
-        _isServer = matchAddress(ClusterManager::instance()->getMasterAddress());
+        _isServer = matchAddress(ClusterManager::instance().getMasterAddress());
     }
     else if (_mode == NetworkMode::LocalServer) {
         _isServer = true;
@@ -107,7 +117,7 @@ NetworkManager::~NetworkManager() {
 }
 
 bool NetworkManager::init() {
-    ClusterManager& cm = *ClusterManager::instance();
+    ClusterManager& cm = ClusterManager::instance();
     const std::string& thisAddress = cm.getThisNode().getAddress();
     if (thisAddress.empty()) {
         MessageHandler::printError(
@@ -138,7 +148,7 @@ bool NetworkManager::init() {
     }
 
     // Add Cluster Functionality
-    if (ClusterManager::instance()->getNumberOfNodes() > 1) {
+    if (ClusterManager::instance().getNumberOfNodes() > 1) {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->getPort();
@@ -163,7 +173,7 @@ bool NetworkManager::init() {
             if (addSyncPort) {
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
-                        SharedData::instance()->decode(data, length, index);
+                        SharedData::instance().decode(data, length, index);
                     }
                 );
             }
@@ -184,7 +194,7 @@ bool NetworkManager::init() {
             if (addTransferPort) {
                 _networkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
-                        Engine::instance()->invokeDecodeCallbackForDataTransfer(
+                        Engine::instance().invokeDecodeCallbackForDataTransfer(
                             data,
                             length,
                             packageId,
@@ -196,7 +206,7 @@ bool NetworkManager::init() {
                 // acknowledge callback
                 _networkConnections.back()->setAcknowledgeFunction(
                     [](int packageId, int clientId) {
-                        Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                        Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
                             clientId
                         );
@@ -223,7 +233,7 @@ bool NetworkManager::init() {
 
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
-                        MessageHandler::instance()->decode(
+                        MessageHandler::instance().decode(
                             std::vector<char>(data, data + length),
                            index
                         );
@@ -239,7 +249,7 @@ bool NetworkManager::init() {
                 if (addTransferPort) {
                     _networkConnections.back()->setPackageDecodeFunction(
                         [](void* data, int length, int packageId, int clientId) {
-                            Engine::instance()->invokeDecodeCallbackForDataTransfer(
+                            Engine::instance().invokeDecodeCallbackForDataTransfer(
                                 data,
                                 length,
                                 packageId,
@@ -251,7 +261,7 @@ bool NetworkManager::init() {
                     // acknowledge callback
                     _networkConnections.back()->setAcknowledgeFunction(
                         [](int packageId, int clientId) {
-                            Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                            Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
                                 clientId
                             );
@@ -274,7 +284,7 @@ bool NetworkManager::init() {
         if (addExternalPort) {
             _networkConnections.back()->setDecodeFunction(
                 [](const char* data, int length, int client) {
-                    Engine::instance()->invokeDecodeCallbackForExternalControl(
+                    Engine::instance().invokeDecodeCallbackForExternalControl(
                         data,
                         length,
                         client
@@ -311,19 +321,19 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             minTime = std::min(currentTime, minTime);
 
             const int currentSize =
-                static_cast<int>(SharedData::instance()->getDataSize()) -
+                static_cast<int>(SharedData::instance().getDataSize()) -
                 Network::HeaderSize;
 
             // iterate counter
             const int currentFrame = connection->iterateFrameCounter();
 
-            unsigned char* dataBlock = SharedData::instance()->getDataBlock();
+            unsigned char* dataBlock = SharedData::instance().getDataBlock();
             std::memcpy(dataBlock + 1, &currentFrame, sizeof(int));
             std::memcpy(dataBlock + 5, &currentSize, sizeof(int));
 
             connection->sendData(
-                SharedData::instance()->getDataBlock(),
-                static_cast<int>(SharedData::instance()->getDataSize())
+                SharedData::instance().getDataBlock(),
+                static_cast<int>(SharedData::instance().getDataSize())
             );
         }
 
@@ -615,14 +625,14 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
             const bool externalControlConnectionStatus = connection->isConnected();
             std::string_view msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.data(), static_cast<int>(msg.size()));
-            Engine::instance()->invokeUpdateCallbackForExternalControl(
+            Engine::instance().invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
         }
         else if (connection->getType() == Network::ConnectionType::ExternalRawConnection)
         {
             const bool externalControlConnectionStatus = connection->isConnected();
-            Engine::instance()->invokeUpdateCallbackForExternalControl(
+            Engine::instance().invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
         }
@@ -634,7 +644,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 
     if (connection->getType() == Network::ConnectionType::DataTransfer) {
         const bool dataTransferConnectionStatus = connection->isConnected();
-        Engine::instance()->invokeUpdateCallbackForDataTransfer(
+        Engine::instance().invokeUpdateCallbackForDataTransfer(
             dataTransferConnectionStatus,
             connection->getId()
         );
@@ -844,13 +854,13 @@ bool NetworkManager::areAllNodesConnected() const {
 }
 
 void NetworkManager::retrieveNodeId() const {
-    for (int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
+    for (int i = 0; i < ClusterManager::instance().getNumberOfNodes(); i++) {
         // check ip
-        if (matchAddress(ClusterManager::instance()->getNode(i)->getAddress())) {
-            ClusterManager::instance()->setThisNodeId(static_cast<int>(i));
+        if (matchAddress(ClusterManager::instance().getNode(i)->getAddress())) {
+            ClusterManager::instance().setThisNodeId(static_cast<int>(i));
             MessageHandler::printDebug(
                 "NetworkManager: Running in cluster mode as node %d",
-                ClusterManager::instance()->getThisNodeId()
+                ClusterManager::instance().getThisNodeId()
             );
             break;
         }

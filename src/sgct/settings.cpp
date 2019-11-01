@@ -15,12 +15,11 @@ namespace sgct {
 
 Settings* Settings::_instance = nullptr;
 
-Settings* Settings::instance() {
-    if (_instance == nullptr) {
-        _instance = new Settings();
+Settings& Settings::instance() {
+    if (!_instance) {
+        _instance = new Settings;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void Settings::destroy() {

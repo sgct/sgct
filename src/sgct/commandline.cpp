@@ -22,15 +22,15 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--client" || arg[i] == "--slave") {
+        else if (arg[i] == "-client" || arg[i] == "-slave") {
             config.isServer = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--debug") {
+        else if (arg[i] == "-debug") {
             config.logLevel = MessageHandler::Level::Debug;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--help") {
+        else if (arg[i] == "-help") {
             config.showHelpText = true;
             arg.erase(arg.begin() + i);
         }
@@ -63,19 +63,19 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Firm-Sync") {
+        else if (arg[i] == "-Firm-Sync") {
             config.firmSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Loose-Sync") {
+        else if (arg[i] == "-Loose-Sync") {
             config.firmSync = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Ignore-Sync" || arg[i] == "--No-Sync") {
+        else if (arg[i] == "-Ignore-Sync" || arg[i] == "-No-Sync") {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--FXAA") {
+        else if (arg[i] == "-FXAA") {
             config.fxaa = true;
             arg.erase(arg.begin() + i);
         }
@@ -84,15 +84,15 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-TGA") {
+        else if (arg[i] == "-Capture-TGA") {
             config.captureFormat = Settings::CaptureFormat::TGA;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-PNG") {
+        else if (arg[i] == "-Capture-PNG") {
             config.captureFormat = Settings::CaptureFormat::PNG;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-JPG") {
+        else if (arg[i] == "-Capture-JPG") {
             config.captureFormat = Settings::CaptureFormat::JPG;
             arg.erase(arg.begin() + i);
         }
@@ -113,42 +113,41 @@ Configuration parseArguments(std::vector<std::string> arg) {
 std::string_view getHelpMessage() {
     return R"(
 Parameters:
-------------------------------------
 -config <filename.xml>
     Set XML confiuration file
 -logPath <filepath>
     Set log file path
---help
+-help
     Display help message and exit
 -local <integer>
     Force node in configuration to localhost (index starts at 0)
---client
+-client
     Run the application as client\n\t(only available when running as local)
---slave
+-slave
     Run the application as client\n\t(only available when running as local)
---debug
+-debug
     Set the notify level of messagehandler to debug
---Firm-Sync
+-Firm-Sync
     Enable firm frame sync
---Loose-Sync
+-Loose-Sync
     Disable firm frame sync
---Ignore-Sync
+-Ignore-Sync
     Disable frame sync
 -MSAA <integer>
     Enable MSAA as default (argument must be a power of two)
---FXAA
+-FXAA
     Enable FXAA as default
 -notify <integer>
     Set the notify level used in the MessageHandler\n\t(0 = highest priority)
---Capture-PNG
+-Capture-PNG
     Use png images for screen capture (default)
---Capture-JPG
+-Capture-JPG
     Use jpg images for screen capture
---Capture-TGA
+-Capture-TGA
     Use tga images for screen capture
 -numberOfCaptureThreads <integer>
     Set the maximum amount of thread that should be used during framecapture
-------------------------------------)";
+)";
 }
 
 } // namespace sgct

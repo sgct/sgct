@@ -13,6 +13,8 @@
 
 namespace sgct::core::correction {
 
+
+
 Buffer generateMpcdiMesh(const core::Viewport& parent) {
     Buffer buf;
 
@@ -44,8 +46,8 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     unsigned int nRows = 0;
     const int res = sscanf(headerBuffer, "%2c %d %d", fileFormatHeader, &nCols, &nRows);
 
-    if (res != 4) {
-        throw std::runtime_error("Invalid header syntax");
+    if (res != 3) {
+        throw std::runtime_error("Invalid header information in MPCDI mesh");
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {

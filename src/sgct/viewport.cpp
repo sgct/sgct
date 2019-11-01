@@ -302,15 +302,11 @@ void Viewport::loadData() {
     }
 
     if (!_mpcdiWarpMesh.empty()) {
-        _mesh.readAndGenerateMesh("mesh.mpcdi", *this, parseCorrectionMeshHint("mpcdi"));
+        _mesh.loadMesh("mesh.mpcdi", *this, parseCorrectionMeshHint("mpcdi"));
     }
     else {
         // load default if _meshFilename is empty
-        _mesh.readAndGenerateMesh(
-            _meshFilename,
-            *this,
-            parseCorrectionMeshHint(_meshHint)
-        );
+        _mesh.loadMesh(_meshFilename, *this, parseCorrectionMeshHint(_meshHint));
     }
 }
 

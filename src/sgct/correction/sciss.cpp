@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/correction/simple.h>
+#include <sgct/correction/sciss.h>
 
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>

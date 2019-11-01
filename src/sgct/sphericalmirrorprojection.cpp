@@ -148,10 +148,10 @@ void SphericalMirrorProjection::initVBO() {
         Engine::instance().getCurrentWindow().getCurrentViewport()
     );
     if (vp) {
-        _meshes.bottom.readAndGenerateMesh(_meshPaths.bottom, *vp);
-        _meshes.left.readAndGenerateMesh(_meshPaths.left, *vp);
-        _meshes.right.readAndGenerateMesh(_meshPaths.right, *vp);
-        _meshes.top.readAndGenerateMesh(_meshPaths.top, *vp);
+        _meshes.bottom.loadMesh(_meshPaths.bottom, *vp);
+        _meshes.left.loadMesh(_meshPaths.left, *vp);
+        _meshes.right.loadMesh(_meshPaths.right, *vp);
+        _meshes.top.loadMesh(_meshPaths.top, *vp);
     }
 }
 

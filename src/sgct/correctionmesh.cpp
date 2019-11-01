@@ -21,13 +21,108 @@
 #include <sgct/correction/scalable.h>
 #include <sgct/correction/sciss.h>
 #include <sgct/correction/simcad.h>
-#include <sgct/correction/simple.h>
 #include <sgct/correction/skyskan.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 
 namespace {
+    sgct::core::correction::Buffer setupMaskMesh(const glm::vec2& pos,
+                                                 const glm::vec2& size)
+    {
+        sgct::core::correction::Buffer buff;
+        buff.indices = { 0, 3, 1, 2 };
+
+        buff.vertices.resize(4);
+        buff.vertices[0].r = 1.f;
+        buff.vertices[0].g = 1.f;
+        buff.vertices[0].b = 1.f;
+        buff.vertices[0].a = 1.f;
+        buff.vertices[0].s = 0.f;
+        buff.vertices[0].t = 0.f;
+        buff.vertices[0].x = 2.f * pos.x - 1.f;
+        buff.vertices[0].y = 2.f * pos.y - 1.f;
+
+        buff.vertices[1].r = 1.f;
+        buff.vertices[1].g = 1.f;
+        buff.vertices[1].b = 1.f;
+        buff.vertices[1].a = 1.f;
+        buff.vertices[1].s = 1.f;
+        buff.vertices[1].t = 0.f;
+        buff.vertices[1].x = 2.f * (pos.x + size.x) - 1.f;
+        buff.vertices[1].y = 2.f * pos.y - 1.f;
+
+        buff.vertices[2].r = 1.f;
+        buff.vertices[2].g = 1.f;
+        buff.vertices[2].b = 1.f;
+        buff.vertices[2].a = 1.f;
+        buff.vertices[2].s = 1.f;
+        buff.vertices[2].t = 1.f;
+        buff.vertices[2].x = 2.f * (pos.x + size.x) - 1.f;
+        buff.vertices[2].y = 2.f * (pos.y + size.y) - 1.f;
+
+        buff.vertices[3].r = 1.f;
+        buff.vertices[3].g = 1.f;
+        buff.vertices[3].b = 1.f;
+        buff.vertices[3].a = 1.f;
+        buff.vertices[3].s = 0.f;
+        buff.vertices[3].t = 1.f;
+        buff.vertices[3].x = 2.f * pos.x - 1.f;
+        buff.vertices[3].y = 2.f * (pos.y + size.y) - 1.f;
+
+        buff.geometryType = GL_TRIANGLE_STRIP;
+
+        return buff;
+    }
+
+    sgct::core::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
+                                                   const glm::vec2& size)
+    {
+        sgct::core::correction::Buffer buff;
+        buff.indices = { 0, 3, 1, 2 };
+
+        buff.vertices.resize(4);
+        buff.vertices[0].r = 1.f;
+        buff.vertices[0].g = 1.f;
+        buff.vertices[0].b = 1.f;
+        buff.vertices[0].a = 1.f;
+        buff.vertices[0].s = pos.x;
+        buff.vertices[0].t = pos.y;
+        buff.vertices[0].x = 2.f * pos.x - 1.f;
+        buff.vertices[0].y = 2.f * pos.y - 1.f;
+
+        buff.vertices[1].r = 1.f;
+        buff.vertices[1].g = 1.f;
+        buff.vertices[1].b = 1.f;
+        buff.vertices[1].a = 1.f;
+        buff.vertices[1].s = pos.x + size.x;
+        buff.vertices[1].t = pos.y;
+        buff.vertices[1].x = 2.f * (pos.x + size.x) - 1.f;
+        buff.vertices[1].y = 2.f * pos.y - 1.f;
+
+        buff.vertices[2].r = 1.f;
+        buff.vertices[2].g = 1.f;
+        buff.vertices[2].b = 1.f;
+        buff.vertices[2].a = 1.f;
+        buff.vertices[2].s = 1.f * size.x + pos.x;
+        buff.vertices[2].t = 1.f * size.y + pos.y;
+        buff.vertices[2].x = 2.f * (pos.x + size.x) - 1.f;
+        buff.vertices[2].y = 2.f * (pos.y + size.y) - 1.f;
+
+        buff.vertices[3].r = 1.f;
+        buff.vertices[3].g = 1.f;
+        buff.vertices[3].b = 1.f;
+        buff.vertices[3].a = 1.f;
+        buff.vertices[3].s = pos.x;
+        buff.vertices[3].t = pos.y + size.y;
+        buff.vertices[3].x = 2.f * pos.x - 1.f;
+        buff.vertices[3].y = 2.f * (pos.y + size.y) - 1.f;
+
+        buff.geometryType = GL_TRIANGLE_STRIP;
+
+        return buff;
+    }
+
     void exportMesh(GLenum type, const std::string& exportPath,
                     const sgct::core::correction::Buffer& buf)
     {
@@ -107,7 +202,6 @@ namespace {
             "Mesh '%s' exported successfully", exportPath.c_str()
         );
     }
-
 } // namespace
 
 namespace sgct::core {
@@ -143,8 +237,7 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     glDeleteBuffers(1, &ibo);
 }
 
-bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, Format hint)
-{
+void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
     using namespace correction;
 
     // generate unwarped mask
@@ -163,89 +256,73 @@ bool CorrectionMesh::readAndGenerateMesh(std::string path, Viewport& parent, For
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
-        createMesh(_warpGeometry, buf);
-        return false;
+        throw std::runtime_error("Error loading mesh, not path was specified");
     }
     
-    try {
-        Buffer buf;
+    Buffer buf;
 
-        // find a suitable format
-        if (path.find(".sgc") != std::string::npos) {
-            buf = generateScissMesh(path, parent);
-        }
-        else if (path.find(".ol") != std::string::npos) {
-            buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
-        }
-        else if (path.find(".skyskan") != std::string::npos) {
-            buf = generateSkySkanMesh(path, parent);
-        }
-        else if ((path.find(".txt") != std::string::npos) &&
-            (hint == Format::None || hint == Format::SkySkan))
-        {
-            buf = generateSkySkanMesh(path, parent);
-        }
-        else if ((path.find(".csv") != std::string::npos) &&
-            (hint == Format::None || hint == Format::DomeProjection))
-        {
-            buf = generateDomeProjectionMesh(
-                path,
-                parent.getPosition(),
-                parent.getSize()
-            );
-        }
-        else if ((path.find(".data") != std::string::npos) &&
-            (hint == Format::None || hint == Format::PaulBourke))
-        {
-            buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
-
-            // force regeneration of dome render quad
-            FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
-                parent.getNonLinearProjection()
-            );
-            if (fishPrj) {
-                fishPrj->setIgnoreAspectRatio(true);
-                fishPrj->update(glm::ivec2(1.f, 1.f));
-            }
-        }
-        else if ((path.find(".obj") != std::string::npos) &&
-            (hint == Format::None || hint == Format::Obj))
-        {
-            buf = generateOBJMesh(path);
-        }
-        else if (path.find(".mpcdi") != std::string::npos) {
-            buf = generateMpcdiMesh(parent);
-        }
-        else if ((path.find(".simcad") != std::string::npos) &&
-            (hint == Format::None || hint == Format::SimCad))
-        {
-            buf = generateSimCADMesh(path, parent);
-        }
-        else {
-            throw std::runtime_error("Could not find format");
-        }
-
-        createMesh(_warpGeometry, buf);
-
-        MessageHandler::printDebug(
-            "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
-            static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
-        );
-
-        if (Settings::instance().getExportWarpingMeshes()) {
-            const size_t found = path.find_last_of(".");
-            std::string filename = path.substr(0, found) + "_export.obj";
-            exportMesh(_warpGeometry.type, std::move(filename), buf);
-        }
-
-        return true;
+    // find a suitable format
+    if (path.find(".sgc") != std::string::npos) {
+        buf = generateScissMesh(path, parent);
     }
-    catch (const std::runtime_error & e) {
-        MessageHandler::printError("%s", e.what());
-        Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
-        createMesh(_warpGeometry, buf);
-        return false;
+    else if (path.find(".ol") != std::string::npos) {
+        buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
+    }
+    else if (path.find(".skyskan") != std::string::npos) {
+        buf = generateSkySkanMesh(path, parent);
+    }
+    else if ((path.find(".txt") != std::string::npos) &&
+            (hint == Format::None || hint == Format::SkySkan))
+    {
+        buf = generateSkySkanMesh(path, parent);
+    }
+    else if ((path.find(".csv") != std::string::npos) &&
+            (hint == Format::None || hint == Format::DomeProjection))
+    {
+        buf = generateDomeProjectionMesh(path, parent.getPosition(), parent.getSize());
+    }
+    else if ((path.find(".data") != std::string::npos) &&
+            (hint == Format::None || hint == Format::PaulBourke))
+    {
+        buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
+
+        // force regeneration of dome render quad
+        FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
+            parent.getNonLinearProjection()
+        );
+        if (fishPrj) {
+            fishPrj->setIgnoreAspectRatio(true);
+            fishPrj->update(glm::ivec2(1.f, 1.f));
+        }
+    }
+    else if ((path.find(".obj") != std::string::npos) &&
+        (hint == Format::None || hint == Format::Obj))
+    {
+        buf = generateOBJMesh(path);
+    }
+    else if (path.find(".mpcdi") != std::string::npos) {
+        buf = generateMpcdiMesh(parent);
+    }
+    else if ((path.find(".simcad") != std::string::npos) &&
+            (hint == Format::None || hint == Format::SimCad))
+    {
+        buf = generateSimCADMesh(path, parent);
+    }
+    else {
+        throw std::runtime_error("Could not find format");
+    }
+
+    createMesh(_warpGeometry, buf);
+
+    MessageHandler::printDebug(
+        "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
+        static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
+    );
+
+    if (Settings::instance().getExportWarpingMeshes()) {
+        const size_t found = path.find_last_of(".");
+        std::string filename = path.substr(0, found) + "_export.obj";
+        exportMesh(_warpGeometry.type, std::move(filename), buf);
     }
 }
 

@@ -626,14 +626,13 @@ void sgct::SGCTWindow::setHorizFieldOfView(float hFovDeg) {
     // aspect ratio, adjusting only the horizontal (x) values.
     for (std::size_t j = 0; j < getNumberOfViewports(); ++j) {
         sgct_core::Viewport* vpPtr = getViewport(j);
-        vpPtr->setHorizontalFieldOfView(hFovDeg, mAspectRatio);
+        vpPtr->setHorizontalFieldOfView(hFovDeg);
     }
     MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
-        "SGCTWindow: Horizontal FOV changed to %f deg. in %d viewports for window %d using aspect ratio %f...\n",
+        "SGCTWindow: Horizontal FOV changed to %f deg. in %d viewports for window %d",
         hFovDeg,
         getNumberOfViewports(),
-        mId,
-        mAspectRatio);
+        mId);
 }
 
 /*!

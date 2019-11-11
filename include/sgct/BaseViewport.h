@@ -56,7 +56,7 @@ public:
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
     void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
-    void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
+    void setHorizontalFieldOfView(float horizFovDeg);
 
     
 protected:

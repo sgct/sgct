@@ -166,21 +166,35 @@ float sgct_core::BaseViewport::getHorizontalFieldOfViewDegrees()
     return (glm::degrees(atanf(fabs(xDist / zDist)))) * 2;
 }
 
-void sgct_core::BaseViewport::setHorizontalFieldOfView(float horizFovDeg,
-                                                       float aspectRatio)
+void sgct_core::BaseViewport::setHorizontalFieldOfView(float horizFovDeg)
 {
-    glm::vec2 projPlaneDims;
+    const float tanLeftAngle =
+        mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).x /
+        -mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).z;
+
+    const float tanRightAngle =
+        mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).x /
+        -mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
+
+    const float tanUpAngle =
+        mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).y /
+        -mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).z;
+
+    const float tanDownAngle =
+        mProjectionPlane.getCoordinate(SGCTProjectionPlane::LowerLeft).y /
+        -mProjectionPlane.getCoordinate(SGCTProjectionPlane::LowerLeft).z;
+
+    const float currentHorizontalFieldOfView = getHorizontalFieldOfViewDegrees();
+    const float ratio = horizFovDeg / currentHorizontalFieldOfView;
+
     float zDist = mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
-    projPlaneDims.x = fabs(zDist) * tanf(glm::radians<float>(horizFovDeg) / 2);
-    projPlaneDims.y = projPlaneDims.x / aspectRatio;
-    float verticalAngle = glm::degrees(atanf(projPlaneDims.y / fabs(zDist)));
 
     setViewPlaneCoordsUsingFOVs(
-         verticalAngle,
-        -verticalAngle,
-        -horizFovDeg / 2,
-         horizFovDeg / 2,
-         mRot,
-         fabs(zDist)
+        glm::degrees(atanf(ratio * tanUpAngle)),
+        glm::degrees(atanf(ratio * tanDownAngle)),
+        glm::degrees(atanf(ratio * tanLeftAngle)),
+        glm::degrees(atanf(ratio * tanRightAngle)),
+        mRot,
+        fabs(zDist)
     );
 }

@@ -659,11 +659,11 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
         core::Viewport& vp = getViewport(j);
-        vp.setHorizontalFieldOfView(hFovDeg, _aspectRatio);
+        vp.setHorizontalFieldOfView(hFovDeg);
     }
     MessageHandler::printDebug(
-        "Horizontal FOV changed to %f for window %d using aspect ratio %f",
-        hFovDeg, getNumberOfViewports(), _id, _aspectRatio
+        "Horizontal FOV changed to %f for window %d",
+        hFovDeg, getNumberOfViewports(), _id
     );
 }
 

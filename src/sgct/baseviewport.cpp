@@ -189,15 +189,18 @@ float BaseViewport::getHorizontalFieldOfViewDegrees() const {
     return (glm::degrees(atan(abs(xDist / zDist)))) * 2;
 }
 
-void BaseViewport::setHorizontalFieldOfView(float hFov, float aspectRatio) {
-    const float hFov2 = hFov / 2.f;
-    const float zDist = abs(_projectionPlane.getCoordinateUpperRight().z);
+void BaseViewport::setHorizontalFieldOfView(float hFov) {
+    const glm::vec3 upperLeft = _projectionPlane.getCoordinateUpperLeft();
+    const glm::vec3 lowerLeft = _projectionPlane.getCoordinateLowerLeft();
+    const glm::vec3 upperRight = _projectionPlane.getCoordinateUpperRight();
 
-    const float projDimX = zDist * tan(glm::radians(hFov2));
-    const float projDimY = projDimX / aspectRatio;
-    const float vAngle = glm::degrees(atan(projDimY / zDist));
+    const float ratio = hFov / getHorizontalFieldOfViewDegrees();
+    const float up = glm::degrees(atan(ratio * upperLeft.y / -upperLeft.z));
+    const float down = glm::degrees(atan(ratio * lowerLeft.y / -lowerLeft.z));
+    const float left = glm::degrees(atan(ratio * upperLeft.x / -upperLeft.z));
+    const float right = glm::degrees(atan(ratio * upperRight.x / -upperRight.z));
 
-    setViewPlaneCoordsUsingFOVs(vAngle, -vAngle, -hFov2, hFov2, _rotation, zDist);
+    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, abs(upperLeft.z));
 }
 
 } // namespace sgct::core

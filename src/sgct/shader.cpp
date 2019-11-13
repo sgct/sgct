@@ -29,7 +29,7 @@ namespace {
         GLint compilationStatus;
         glGetShaderiv(id, GL_COMPILE_STATUS, &compilationStatus);
 
-        if (compilationStatus != 0) {
+        if (compilationStatus == 0) {
             GLint logLength;
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 

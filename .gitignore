@@ -4,3 +4,4 @@ build
 include/sgct/version.h
 obj
 Doxyfile
+build-vs2017/

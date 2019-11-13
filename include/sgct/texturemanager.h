@@ -18,21 +18,12 @@ namespace sgct {
 
 namespace core { class Image; }
 
-// @TODO (abock, 2019-11-01) Remove compression methods as they are not really necessary
-
 /**
  * The TextureManager loads and handles textures. It is a singleton and can be accessed
  * anywhere using its static instance. Currently only PNG textures are supported.
  */
 class TextureManager {
 public:
-    /**
-     * The compression mode modes. For more info about texture compression look here:
-     * <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">
-     * S3 Texture compression</a>
-     */
-    enum class CompressionMode { None = 0, Generic, S3TC_DXT };
-
     static TextureManager& instance();
     static void destroy();
 
@@ -45,12 +36,10 @@ public:
      *        filtering. If this value is 1.f, only bilinear filtering is used
      * \param mipmapLevels is the number of mipmap levels that will be generated, setting
                            this value to 1 or less disables mipmaps
-     * \param compression The compression method that is used for this texture
      * \return true The OpenGL name for the texture that was loaded
      */
     unsigned int loadTexture(const std::string& filename, bool interpolate,
-        float anisotropicFilterSize = 1.f, int mipmapLevels = 8,
-        CompressionMode compression = CompressionMode::None);
+        float anisotropicFilterSize = 1.f, int mipmapLevels = 8);
 
 private:
     ~TextureManager();

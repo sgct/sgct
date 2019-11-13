@@ -30,7 +30,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
     meshFile = fopen(path.c_str(), "r");
     loadSuccess = meshFile != nullptr;
     if (!loadSuccess) {
-        throw Error(Error::Component::DomeProjection, 2003, "Failed to open " + path);
+        throw Error(Error::Component::DomeProjection, 2002, "Failed to open " + path);
     }
 
     Buffer buf;

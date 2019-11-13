@@ -47,19 +47,19 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
             str = "File not found";
         }
 
-        throw Error(2021, "Error parsing XML file " + path + ". " + str);
+        throw Error(2060, "Error parsing XML file " + path + ". " + str);
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        throw Error(2022, "Error reading XML file " + path + ". Missing 'GeometryFile'");
+        throw Error(2061, "Error reading XML file " + path + ". Missing 'GeometryFile'");
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
         throw Error(
-            2023,
+            2062,
             "Error reading XML file " + path + ". Missing 'GeometryDefinition'"
         );
     }
@@ -94,14 +94,14 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        throw Error(2024, "Not the same x coords as y coords");
+        throw Error(2063, "Not the same x coords as y coords");
     }
 
     const float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
     const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
-        throw Error(2025, "Not a valid squared matrix read from SimCAD file");
+        throw Error(2064, "Not a valid squared matrix read from SimCAD file");
     }
 
     const unsigned int nCols = static_cast<unsigned int>(numberOfColsf);

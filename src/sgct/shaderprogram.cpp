@@ -100,13 +100,13 @@ int ShaderProgram::getId() const {
 
 void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        throw Error(7002,  "No shaders have been added to the program " + _name);
+        throw Error(7010,  "No shaders have been added to the program " + _name);
     }
 
     // Create the program
     bool createSuccess = createProgram();
     if (!createSuccess) {
-        throw Error(7003, "Error creating the program " + _name);
+        throw Error(7011, "Error creating the program " + _name);
     }
 
     // Link shaders
@@ -118,7 +118,7 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     _isLinked = checkLinkStatus(_programId, _name);
     if (!_isLinked) {
-        throw Error(7004, "Error linking the program " + _name);
+        throw Error(7012, "Error linking the program " + _name);
     }
 }
 

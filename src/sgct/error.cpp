@@ -51,86 +51,85 @@ Error::Error(Component component, int code, std::string message)
     1000s: Config
     1000: User / Tracking device name must not be empty
     1001: User / Tracking tracker name must not be empty
-    1002: Capture / Mono path must not be empty
-    1003: Capture / Left path must not be empty
-    1004: Capture / Right path must not be empty
-    1005: Settings / Swap interval must not be negative
-    1006: Settings / Refresh rate must not be negative
-    1007: Settings / OSDText font name must not be negative
-    1008: Settings / OSDText font path must not be empty
-    1009: Settings / OSDText font size must not be negative
-    1010: Settings / FXAA trim must be postive
-    1011: Device / Device name must not be empty
-    1012: Device / VRPN address for sensors must not be empty
-    1013: Device / VRPN address for buttons must not be empty
-    1014: Device / VRPN address for axes must not be empty
-    1015: Tracker / Tracker name must not be empty
-    1016: Planar Projection / Up and down field of views can not be the same
-    1017: Planar Projection / Left and right field of views can not be the same
-    1018: Fisheye Projection / Field of view setting must be positive
-    1019: Fisheye Projection / Left and right crop must not overlap
-    1020: Fisheye Projection / Bottom and top crop must not overlap
-    1021: Fisheye Projection / Quality value must be positive
-    1022: Fisheye Projection / Quality setting only allows powers of two
-    1023: Fisheye Projection / Diameter must be positive
-    1024: Fisheye Projection / Every background color component has to be positive
-    1025: Spherical Mirror Projection / Quality value must be positive
-    1026: Spherical Mirror Projection / Quality setting only allows powers of two
-    1027: Spherical Mirror Projection / Every background color component has to be positive
-    1028: Spout Output Projection / Mapping name must not be empty
-    1029: Spout Output Projection / Quality value must be positive
-    1030: Spout Output Projection / Quality setting only allows powers of two
-    1031: Spout Output Projection / Every background color component has to be positive
-    1032: Viewport / User must not be empty
-    1033: Viewport / Overlay texture path must not be empty
-    1034: Viewport / Blendmask texture path must not be empty
-    1035: Viewport / Blendmask level texture path must not be empty
-    1036: Viewport / Correction mesh texture path must not be empty
-    1037: Viewport / Mesh hint must not be empty
-    1038: Window / Window name must not be empty
-    1039: Window / Empty tags are not allowed for windows
-    1040: Window / Gamma value must be at least 0.1
-    1041: Window / Contrast value must be postive
-    1042: Window / Brightness value must be positive
-    1043: Window / Number of MSAA samples must be non-negative
-    1044: Window / Monitor index must be non-negative
-    1045: Window / MPCDI file must not be empty
-    1046: Node / Node address must not be empty
-    1047: Node / Node port must be non-negative
-    1048: Node / Node name must not be empty
-    1049: Node / Node data transfer port must be non-negative
-    1050: Cluster / Cluster master address must not be empty
-    1051: Cluster / Cluster external control port must be non-negative
+    1010: Capture / Mono path must not be empty
+    1011: Capture / Left path must not be empty
+    1012: Capture / Right path must not be empty
+    1020: Settings / Swap interval must not be negative
+    1021: Settings / Refresh rate must not be negative
+    1022: Settings / OSDText font name must not be negative
+    1023: Settings / OSDText font path must not be empty
+    1024: Settings / OSDText font size must not be negative
+    1025: Settings / FXAA trim must be postive
+    1030: Device / Device name must not be empty
+    1031: Device / VRPN address for sensors must not be empty
+    1032: Device / VRPN address for buttons must not be empty
+    1033: Device / VRPN address for axes must not be empty
+    1040: Tracker / Tracker name must not be empty
+    1050: Planar Projection / Up and down field of views can not be the same
+    1051: Planar Projection / Left and right field of views can not be the same
+    1060: Fisheye Projection / Field of view setting must be positive
+    1061: Fisheye Projection / Left and right crop must not overlap
+    1062: Fisheye Projection / Bottom and top crop must not overlap
+    1063: Fisheye Projection / Quality value must be positive
+    1064: Fisheye Projection / Quality setting only allows powers of two
+    1065: Fisheye Projection / Diameter must be positive
+    1066: Fisheye Projection / Every background color component has to be positive
+    1070: Spherical Mirror Projection / Quality value must be positive
+    1071: Spherical Mirror Projection / Quality setting only allows powers of two
+    1072: Spherical Mirror Projection / Every background color component has to be positive
+    1080: Spout Output Projection / Mapping name must not be empty
+    1081: Spout Output Projection / Quality value must be positive
+    1082: Spout Output Projection / Quality setting only allows powers of two
+    1083: Spout Output Projection / Every background color component has to be positive
+    1090: Viewport / User must not be empty
+    1091: Viewport / Overlay texture path must not be empty
+    1092: Viewport / Blendmask texture path must not be empty
+    1093: Viewport / Blendmask level texture path must not be empty
+    1094: Viewport / Correction mesh texture path must not be empty
+    1095: Viewport / Mesh hint must not be empty
+    1100: Window / Window name must not be empty
+    1101: Window / Empty tags are not allowed for windows
+    1102: Window / Gamma value must be at least 0.1
+    1103: Window / Contrast value must be postive
+    1104: Window / Brightness value must be positive
+    1105: Window / Number of MSAA samples must be non-negative
+    1106: Window / Monitor index must be non-negative
+    1107: Window / MPCDI file must not be empty
+    1110: Node / Node address must not be empty
+    1111: Node / Node port must be non-negative
+    1112: Node / Node name must not be empty
+    1113: Node / Node data transfer port must be non-negative
+    1120: Cluster / Cluster master address must not be empty
+    1121: Cluster / Cluster external control port must be non-negative
 
     2000s: CorrectionMeshes
     2000: CorrectionMesh / "Failed to export. Geometry type is not supported"
     2001: CorrectionMesh / "Failed to export " + exportPath + ". Failed to open"
-    2002: CorrectionMesh / "Error loading mesh, not path was specified"
-    2003: DomeProjection / "Failed to open " + path
-    2004: MPCDIMesh / Error reading from file. Could not find lines
-    2005: MPCDIMesh / Invalid header information in MPCDI mesh
-    2006: MPCDIMesh / Incorrect file type. Unknown header type
-    2007: OBJ / Failed to open warping mesh file
-    2008: OBJ / Vertex count doesn't match number of texture coordinates
-    2009: PaulBourke / Failed to open warping mesh file
-    2010: PaulBourke / Invalid data
-    2011: Scalable / Failed to open warping mesh file
-    2012: Scalable / Incorrect mesh data geometry
-    2013: SCISS / Failed to open warping mesh file
-    2014: SCISS / Incorrect file id
-    2015: SCISS / Error parsing file version from file
-    2016: SCISS / Error parsing type from file
-    2017: SCISS / Error parsing view data from file
-    2018: SCISS / Error parsing vertices from file
-    2019: SCISS / Error parsing indices from file
-    2020: SCISS / Error parsing faces from file
-    2021: SimCAD / Error parsing XML file
-    2022: SimCAD / Error reading XML file. Missing 'GeometryFile'
-    2023: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
-    2024: SimCAD / Not the same x coords as y coords
-    2025: SimCAD / Not a valid squared matrix read from SimCAD file
-    2026: SkySkan / Not a valid squared matrix read from SimCAD file
-    2027: SkySkan / Data reading error
+    2002: DomeProjection / "Failed to open " + path
+    2010: MPCDIMesh / Error reading from file. Could not find lines
+    2011: MPCDIMesh / Invalid header information in MPCDI mesh
+    2012: MPCDIMesh / Incorrect file type. Unknown header type
+    2020: OBJ / Failed to open warping mesh file
+    2021: OBJ / Vertex count doesn't match number of texture coordinates
+    2030: PaulBourke / Failed to open warping mesh file
+    2031: PaulBourke / Invalid data
+    2040: Scalable / Failed to open warping mesh file
+    2041: Scalable / Incorrect mesh data geometry
+    2050: SCISS / Failed to open warping mesh file
+    2051: SCISS / Incorrect file id
+    2052: SCISS / Error parsing file version from file
+    2053: SCISS / Error parsing type from file
+    2054: SCISS / Error parsing view data from file
+    2055: SCISS / Error parsing vertices from file
+    2056: SCISS / Error parsing indices from file
+    2057: SCISS / Error parsing faces from file
+    2060: SimCAD / Error parsing XML file
+    2061: SimCAD / Error reading XML file. Missing 'GeometryFile'
+    2062: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
+    2063: SimCAD / Not the same x coords as y coords
+    2064: SimCAD / Not a valid squared matrix read from SimCAD file
+    2070: SkySkan / Not a valid squared matrix read from SimCAD file
+    2071: SkySkan / Data reading error
 
     3000s: Engine
     3000: Engine / Failed to initialize GLFW
@@ -184,30 +183,30 @@ Error::Error(Component component, int code, std::string message)
     6000s: XML configuration parsing
     6000: PlanarProjection / Missing specification of field-of-view values
     6001: PlanarProjection / Failed to parse planar projection FOV
-    6002: ProjectionPlane / Failed parsing coordinates. Missing XML children
-    6003: ProjectionPlane / Failed parsing ProjectionPlane coordinates. Type error
-    6004: Viewport / Failed to parse position. Type error
-    6005: Viewport / Failed to parse size. Type error
-    6006: Window / Could not parse window size. Type error
-    6007: Node / Missing field address in node
-    6008: Settings / Wrong buffer precision value. Must be 16 or 32
-    6009: Settings / Wrong buffer precision value type
-    6010: Capture / Unknown capturing format. Needs to be png, tga, jpg
-    6011: Tracker / Tracker is missing 'name'
-    6012: XML Parsing / No XML file provided
-    6013: XML Parsing / Error parsing XML file
-    6014: XML Parsing / Cannot find 'Cluster' node
-    6015: XML Parsing / Cannot find master address or DNS name in XML
-    6016: XML Parsing / SGCT doesn't support usage of % in the path
-    6017: XML Parsing / Bad configuration path string
-    6018: XML Parsing / Cannot fetch environment variable
+    6010: ProjectionPlane / Failed parsing coordinates. Missing XML children
+    6011: ProjectionPlane / Failed parsing ProjectionPlane coordinates. Type error
+    6020: Viewport / Failed to parse position. Type error
+    6021: Viewport / Failed to parse size. Type error
+    6030: Window / Could not parse window size. Type error
+    6040: Node / Missing field address in node
+    6050: Settings / Wrong buffer precision value. Must be 16 or 32
+    6051: Settings / Wrong buffer precision value type
+    6060: Capture / Unknown capturing format. Needs to be png, tga, jpg
+    6070: Tracker / Tracker is missing 'name'
+    6080: XML Parsing / No XML file provided
+    6081: XML Parsing / Error parsing XML file
+    6082: XML Parsing / Cannot find 'Cluster' node
+    6083: XML Parsing / Cannot find master address or DNS name in XML
+    6084: XML Parsing / SGCT doesn't support usage of % in the path
+    6085: XML Parsing / Bad configuration path string
+    6086: XML Parsing / Cannot fetch environment variable
 
     7000s: Shader Handling
     7000: ShaderManager / Cannot add shader program %s: Already exists
     7001: ShaderManager / Could not find shader with name %s
-    7002: ShaderProgram / No shaders have been added to the program %s
-    7003: ShaderProgram / Error creating the program %s
-    7004: ShaderProgram / Error linking the program %s
+    7010: ShaderProgram / No shaders have been added to the program %s
+    7011: ShaderProgram / Error creating the program %s
+    7012: ShaderProgram / Error linking the program %s
 
     8000s: Window
     8000: Error resolving swapgroup functions

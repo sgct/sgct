@@ -256,7 +256,9 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        throw Error(2002, "Error loading mesh, not path was specified");
+        Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
+        createMesh(_warpGeometry, buf);
+        return;
     }
     
     Buffer buf;

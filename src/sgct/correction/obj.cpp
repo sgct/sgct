@@ -27,7 +27,7 @@ Buffer generateOBJMesh(const std::string& path) {
     FILE* meshFile = nullptr;
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::OBJ, 2007, "Failed to open " + path);
+        throw Error(Error::Component::OBJ, 2020, "Failed to open " + path);
     }
 
     unsigned int counter = 0;
@@ -66,7 +66,7 @@ Buffer generateOBJMesh(const std::string& path) {
     if (counter != buffer.vertices.size() || buffer.vertices.empty()) {
         throw Error(
             Error::Component::OBJ,
-            2008,
+            2021,
             "Vertex count doesn't match number of texture coordinates"
         );
     }

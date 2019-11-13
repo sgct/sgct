@@ -285,7 +285,7 @@ void Viewport::loadData() {
     if (!_mpcdiWarpMesh.empty()) {
         _mesh.loadMesh("mesh.mpcdi", *this, parseCorrectionMeshHint("mpcdi"));
     }
-    else if (!_meshFilename.empty()) {
+    else {
         // load default if _meshFilename is empty
         _mesh.loadMesh(_meshFilename, *this, parseCorrectionMeshHint(_meshHint));
     }

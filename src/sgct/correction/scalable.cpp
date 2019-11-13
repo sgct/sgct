@@ -29,7 +29,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     FILE* meshFile = nullptr;
     meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::Scalable, 2011, "Failed to open " + path);
+        throw Error(Error::Component::Scalable, 2040, "Failed to open " + path);
     }
 
     unsigned int numOfVerticesRead = 0;
@@ -120,7 +120,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        throw Error(Error::Component::Scalable, 2012, "Incorrect mesh data geometry");
+        throw Error(Error::Component::Scalable, 2041, "Incorrect mesh data geometry");
     }
 
     // normalize

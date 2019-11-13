@@ -40,6 +40,7 @@
 #include <sgct/shareddata.h>
 #include <zlib.h>
 #include <algorithm>
+#include <cstring>
 
 namespace {
     constexpr const int MaxNumberOfAttempts = 10;

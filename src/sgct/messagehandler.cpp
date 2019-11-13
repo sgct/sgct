@@ -139,7 +139,7 @@ void MessageHandler::logToFile(const std::vector<char>& buffer) {
         return;
     }
     
-    std::ofstream file(_filename, 'a');
+    std::ofstream file(_filename.c_str(), std::ios_base::app);
     if (!file.good()) {
         std::cerr << "Failed to open '" << _filename << "'!" << std::endl;
         return;

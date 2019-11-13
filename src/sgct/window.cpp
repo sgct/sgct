@@ -367,11 +367,11 @@ void Window::close() {
         }
 #else
     #ifndef __APPLE__
-        if (glfwExtensionSupported("GLX_NV_swap_group")) {
-            
-            glXBindSwapBarrierNV(disp, 1, 0); // un-bind
-            glXJoinSwapGroupNV(disp, hDC, 0); // un-join
-        }
+        //if (glfwExtensionSupported("GLX_NV_swap_group")) {
+        //
+        //    glXBindSwapBarrierNV(disp, 1, 0); // un-bind
+        //    glXJoinSwapGroupNV(disp, hDC, 0); // un-join
+        //}
     #endif
 #endif
     }
@@ -1409,7 +1409,21 @@ const core::Viewport& Window::getViewport(size_t index) const {
     return *_viewports[index];
 }
 
+const core::Viewport& Window::getViewport(size_t index, bool& validReference) const {
+    if (_viewports[index] != nullptr) {
+        validReference = true;
+    }
+    return *_viewports[index];
+}
+
 core::Viewport& Window::getViewport(size_t index) {
+    return *_viewports[index];
+}
+
+core::Viewport& Window::getViewport(size_t index, bool& validReference) {
+    if (_viewports[index] != nullptr) {
+        validReference = true;
+    }
     return *_viewports[index];
 }
 

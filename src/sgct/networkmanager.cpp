@@ -37,6 +37,7 @@
     #include <netdb.h>
     #define SOCKET_ERROR (-1)
 #endif
+#include <cstring>
 
 // missing function on mingw
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -318,8 +319,8 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             const int currentFrame = connection->iterateFrameCounter();
 
             unsigned char* dataBlock = SharedData::instance()->getDataBlock();
-            std::memcpy(dataBlock + 1, &currentFrame, sizeof(int));
-            std::memcpy(dataBlock + 5, &currentSize, sizeof(int));
+            memcpy(dataBlock + 1, &currentFrame, sizeof(int));
+            memcpy(dataBlock + 5, &currentSize, sizeof(int));
 
             connection->sendData(
                 SharedData::instance()->getDataBlock(),
@@ -448,7 +449,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         }
 
         // send original size
-        std::memcpy(buffer.data() + 9, &length, sizeof(int));
+        memcpy(buffer.data() + 9, &length, sizeof(int));
 
         length = static_cast<int>(compressedSize);
         // re-calculate the true send size
@@ -462,7 +463,7 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         memcpy(buffer.data() + Network::HeaderSize, data, length - Network::HeaderSize);
     }
 
-    std::memcpy(buffer.data() + 5, &messageLength, sizeof(int));
+    memcpy(buffer.data() + 5, &messageLength, sizeof(int));
 
     return true;
 }
@@ -782,7 +783,7 @@ void NetworkManager::getHostInfo() {
 
     addrinfo hints;
     sockaddr_in* sockaddr_ipv4;
-    std::memset(&hints, 0, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     // hints.ai_family = AF_UNSPEC; // either IPV4 or IPV6
     hints.ai_socktype = SOCK_STREAM;

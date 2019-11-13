@@ -362,11 +362,17 @@ public:
     /// \return a pointer to the viewport that is beeing rendered to at the moment
     core::BaseViewport* getCurrentViewport() const;
 
-    /// \return a pointer to a specific viewport
+    /// \return a reference to a specific viewport
     core::Viewport& getViewport(size_t index);
 
-    /// \return a pointer to a specific viewport
+    /// \return a reference to a specific viewport, checking validity of reference
+    core::Viewport& getViewport(size_t index, bool& validReference);
+
+    /// \return a const reference to a specific viewport
     const core::Viewport& getViewport(size_t index) const;
+
+    /// \return a const reference to a specific viewport, checking validity of reference
+    const core::Viewport& getViewport(size_t index, bool& validReference) const;
 
     /// Get the current viewport data in pixels.
     glm::ivec4 getCurrentViewportPixelCoords() const;

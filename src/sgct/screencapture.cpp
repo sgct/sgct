@@ -13,6 +13,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
+#include <cstring>
 #include <string>
 
 namespace {

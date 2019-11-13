@@ -10,6 +10,7 @@
 
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
+#include <cstring>
 
 namespace sgct::core::correction {
 
@@ -56,10 +57,10 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     std::vector<float> corrGridX(nCorrectionValues);
     std::vector<float> corrGridY(nCorrectionValues);
     for (int i = 0; i < nCorrectionValues; ++i) {
-        memcpy(&corrGridX[i], &srcBuff[srcIdx], sizeof(float));
+        std::memcpy(&corrGridX[i], &srcBuff[srcIdx], sizeof(float));
         srcIdx += sizeof(float);
 
-        memcpy(&corrGridY[i], &srcBuff[srcIdx], sizeof(float));
+        std::memcpy(&corrGridY[i], &srcBuff[srcIdx], sizeof(float));
         srcIdx += sizeof(float);
 
         // error position; we skip those here

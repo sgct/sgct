@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 2.4.4)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+cmake_policy(SET CMP0026 OLD)
 
 ADD_SUBDIRECTORY(../zlib "${CMAKE_CURRENT_BINARY_DIR}/zlib")
 

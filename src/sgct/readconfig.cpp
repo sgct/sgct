@@ -970,6 +970,7 @@ namespace {
 
         cluster.debug = parseValue<bool>(root, "debug");
         cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");
+        cluster.checkFBOs = parseValue<bool>(root, "checkFBO");
         cluster.externalControlPort = parseValue<int>(root, "externalControlPort");
         cluster.firmSync = parseValue<bool>(root, "firmSync");
 

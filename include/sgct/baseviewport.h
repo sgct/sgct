@@ -69,10 +69,6 @@ protected:
 
     User* _user;
 
-    // @TODO (abock, 2019-10-13) I'm pretty sure that we can remove the _userName variable
-    // which will ultimately remove the need to store multiple user pointers in the
-    // ClusterManager. I'm fairly certain that that feature was never used and probably
-    // wasn't working anyway
     std::string _userName;
     bool _isEnabled = true;
     glm::vec2 _position = glm::vec2(0.f, 0.f);

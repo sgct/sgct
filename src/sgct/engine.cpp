@@ -224,6 +224,9 @@ Engine::Engine(const Configuration& config) {
     if (config.checkOpenGL) {
         _checkOpenGLCalls = *config.checkOpenGL;
     }
+    if (config.checkFBOs) {
+        _checkFBOs = *config.checkFBOs;
+    }
 
     if (_helpMode) {
         return;
@@ -371,6 +374,9 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
     }
     if (cluster.checkOpenGL) {
         _checkOpenGLCalls = *cluster.checkOpenGL;
+    }
+    if (cluster.checkFBOs) {
+        _checkFBOs = *cluster.checkFBOs;
     }
 
     initNetwork();
@@ -610,64 +616,55 @@ void Engine::initWindows() {
 
     glbinding::Binding::initialize(glfwGetProcAddress);
 
-    if (_checkOpenGLCalls) {
+    if (_checkOpenGLCalls || _checkFBOs) {
         using namespace glbinding;
 
+        // The callback mask needs to be set in order to prevent an infinite loop when
+        // calling these functions in the error checking callback
         Binding::setCallbackMaskExcept(
             CallbackMask::After,
             { "glGetError", "glCheckFramebufferStatus" }
         );
-        Binding::setAfterCallback([](const FunctionCall& f) {
-            const GLenum error = glGetError();
-            const GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        Binding::setAfterCallback([this](const FunctionCall& f) {
+            const GLenum error = _checkOpenGLCalls ? glGetError() : GL_NO_ERROR;
+            const GLenum fboStatus = _checkFBOs ?
+                glCheckFramebufferStatus(GL_FRAMEBUFFER) :
+                GL_FRAMEBUFFER_COMPLETE;
             if (error == GL_NO_ERROR && fboStatus == GL_FRAMEBUFFER_COMPLETE) {
-                return true;
+                return;
             }
 
-            const char* fn = f.function->name();
+            const char* n = f.function->name();
             switch (error) {
                 case GL_NO_ERROR:
                     break;
                 case GL_INVALID_ENUM:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_INVALID_ENUM", fn
-                    );
+                    MessageHandler::printError("OpenGL error. %s: GL_INVALID_ENUM", n);
                     break;
                 case GL_INVALID_VALUE:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_INVALID_VALUE", fn
-                    );
+                    MessageHandler::printError("OpenGL error. %s: GL_INVALID_VALUE", n);
                     break;
                 case GL_INVALID_OPERATION:
                     MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_INVALID_OPERATION", fn
+                        "OpenGL error. %s: GL_INVALID_OPERATION", n
                     );
                     break;
                 case GL_INVALID_FRAMEBUFFER_OPERATION:
                     MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_INVALID_FRAMEBUFFER_OPERATION",
-                        fn
+                        "OpenGL error. %s: GL_INVALID_FRAMEBUFFER_OPERATION", n
                     );
                     break;
                 case GL_STACK_OVERFLOW:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_STACK_OVERFLOW", fn
-                    );
+                    MessageHandler::printError("OpenGL error. %s: GL_STACK_OVERFLOW", n);
                     break;
                 case GL_STACK_UNDERFLOW:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_STACK_UNDERFLOW", fn
-                    );
+                    MessageHandler::printError("OpenGL error. %s: GL_STACK_UNDERFLOW", n);
                     break;
                 case GL_OUT_OF_MEMORY:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: GL_OUT_OF_MEMORY", fn
-                    );
+                    MessageHandler::printError("OpenGL error. %s: GL_OUT_OF_MEMORY", n);
                     break;
                 default:
-                    MessageHandler::printError(
-                        "OpenGL error. Function %s: %i", fn, static_cast<int>(error)
-                    );
+                    MessageHandler::printError("OpenGL error. %s: %i", n, error);
             }
 
             switch (fboStatus) {
@@ -675,55 +672,49 @@ void Engine::initWindows() {
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", n
                     );
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
                     MessageHandler::printError(
-                        "FBO error. Function %s: "
-                        "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", n
                     );
                     break;
                 case GL_FRAMEBUFFER_UNSUPPORTED:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_UNSUPPORTED", fn
+                        "FBO error. %s: GL_FRAMEBUFFER_UNSUPPORTED", n
                     );
                     break;
                 case GL_FRAMEBUFFER_UNDEFINED:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_UNDEFINED", fn
+                        "FBO error. %s: GL_FRAMEBUFFER_UNDEFINED", n
                     );
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER",
-                        fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER", n
                     );
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER",
-                        fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER", n
                     );
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE",
-                        fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE", n
                     );
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                     MessageHandler::printError(
-                        "FBO error. Function %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS",
-                        fn
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS", n
                     );
                     break;
                 default:
                     MessageHandler::printError(
-                        "FBO error. Function %s: %i", fn, static_cast<int>(fboStatus)
+                        "FBO error. %s: %i", n, static_cast<int>(fboStatus)
                     );
             }
-            return false;
         });
     }
 

@@ -305,6 +305,7 @@ struct Cluster {
     std::string masterAddress;
     std::optional<bool> debug;
     std::optional<bool> checkOpenGL;
+    std::optional<bool> checkFBOs;
     std::optional<int> externalControlPort;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;

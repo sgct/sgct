@@ -51,6 +51,13 @@ namespace {
 namespace sgct::core {
 
 void OffScreenBuffer::createFBO(int width, int height, int samples) {
+    // @TODO (abock, 2019-11-15)  When calling this function initially with checking
+    // FBO mode enabled, the bind functions further down will trigger missing attachment
+    // warnings due to the fact that SGCT handles the creation of the FBO and attachments
+    // separately.  This should be fixed properly, but that is going to be a problem for
+    // later as it doesn't impact the rendering.  All FBOs will be complete before we
+    // render anything either way
+
     glGenFramebuffers(1, &_frameBuffer);
     glGenRenderbuffers(1, &_depthBuffer);
 

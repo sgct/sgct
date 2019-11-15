@@ -1025,6 +1025,7 @@ private:
     bool _showInfo = false;
     bool _showGraph = false;
     bool _checkOpenGLCalls = false;
+    bool _checkFBOs = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
     bool _renderingOffScreen = false;

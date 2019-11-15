@@ -13,6 +13,7 @@
 #include <sgct/settings.h>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct {
@@ -31,15 +32,20 @@ struct Configuration {
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
     std::optional<bool> checkOpenGL;
+    std::optional<bool> checkFBOs;
 };
 
 /**
- * Command line parameters are used to load a configuration file and settings. Note that
- * parameter with one '\-' are followed by arguments but parameters with '\-\-' are just
- * options without arguments.
+ * Command line parameters are used to load a configuration file and settings. The
+ * arguments that were successfully extracted are removed from the vector that is passed
+ * into this function.
+ *
+ * \param arg The list of arguments that should be processed by this function
+ * \return The filled struct with commandline options
  */
-Configuration parseArguments(std::vector<std::string> arg);
+Configuration parseArguments(std::vector<std::string>& arg);
 
+/// Returns the text providing information about the available commandline options
 std::string_view getHelpMessage();
 
 } // namespace sgct

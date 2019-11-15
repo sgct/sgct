@@ -96,7 +96,7 @@ NetworkManager::NetworkManager(NetworkMode nm)
     getHostInfo();
 
     if (_mode == NetworkMode::Remote) {
-        _isServer = matchAddress(ClusterManager::instance().getMasterAddress());
+        _isServer = matchesAddress(ClusterManager::instance().getMasterAddress());
     }
     else if (_mode == NetworkMode::LocalServer) {
         _isServer = true;
@@ -214,16 +214,14 @@ bool NetworkManager::init() {
 
         // add all connections from config file
         for (int i = 0; i < cm.getNumberOfNodes(); i++) {
+            const Node& n = cm.getNode(i);
+
             // don't add itself if server
-            if (_isServer && !matchAddress(cm.getNode(i)->getAddress())) {
-                const bool addSyncPort = addConnection(
-                    cm.getNode(i)->getSyncPort(),
-                    remoteAddress
-                );
+            if (_isServer && !matchesAddress(n.getAddress())) {
+                const bool addSyncPort = addConnection(n.getSyncPort(), remoteAddress);
                 if (!addSyncPort) {
                     MessageHandler::printError(
-                        "Failed to add network connection to %s",
-                        cm.getNode(i)->getAddress().c_str()
+                        "Failed to add network connection to %s", n.getAddress().c_str()
                     );
                     return false;
                 }
@@ -231,7 +229,7 @@ bool NetworkManager::init() {
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
                         MessageHandler::instance().decode(
-                            std::vector<char>(data, data + length),
+                           std::vector<char>(data, data + length),
                            index
                         );
                     }
@@ -239,7 +237,7 @@ bool NetworkManager::init() {
 
                 // add data transfer connection
                 const bool addTransferPort = addConnection(
-                    cm.getNode(i)->getDataTransferPort(),
+                    n.getDataTransferPort(),
                     remoteAddress,
                     Network::ConnectionType::DataTransfer
                 );
@@ -274,9 +272,7 @@ bool NetworkManager::init() {
         const bool addExternalPort = addConnection(
             cm.getExternalControlPort(),
             "127.0.0.1",
-            cm.getUseASCIIForExternalControl() ?
-                Network::ConnectionType::ExternalASCIIConnection :
-                Network::ConnectionType::ExternalRawConnection
+            Network::ConnectionType::ExternalConnection
         );
         if (addExternalPort) {
             _networkConnections.back()->setDecodeFunction(
@@ -613,17 +609,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // Check if any external connection
-        if (connection->getType() == Network::ConnectionType::ExternalASCIIConnection) {
+        if (connection->getType() == Network::ConnectionType::ExternalConnection) {
             const bool externalControlConnectionStatus = connection->isConnected();
             std::string_view msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.data(), static_cast<int>(msg.size()));
-            Engine::instance().invokeUpdateCallbackForExternalControl(
-                externalControlConnectionStatus
-            );
-        }
-        else if (connection->getType() == Network::ConnectionType::ExternalRawConnection)
-        {
-            const bool externalControlConnectionStatus = connection->isConnected();
             Engine::instance().invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
@@ -824,7 +813,7 @@ void NetworkManager::getHostInfo() {
     _localAddresses.emplace_back("localhost");
 }
 
-bool NetworkManager::matchAddress(const std::string& address) const {
+bool NetworkManager::matchesAddress(const std::string& address) const {
     auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);
     return it != _localAddresses.cend();
 }
@@ -841,17 +830,6 @@ bool NetworkManager::isRunning() const {
 bool NetworkManager::areAllNodesConnected() const {
     std::unique_lock lock(core::mutex::DataSync);
     return _allNodesConnected;
-}
-
-void NetworkManager::retrieveNodeId() const {
-    for (int i = 0; i < ClusterManager::instance().getNumberOfNodes(); i++) {
-        // check ip
-        if (matchAddress(ClusterManager::instance().getNode(i)->getAddress())) {
-            ClusterManager::instance().setThisNodeId(i);
-            MessageHandler::printDebug("Running in cluster mode as node %d", i);
-            break;
-        }
-    }
 }
 
 } // namespace sgct::core

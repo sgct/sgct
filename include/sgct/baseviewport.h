@@ -31,7 +31,7 @@ public:
     void setPos(glm::vec2 position);
     void setSize(glm::vec2 size);
     void setEnabled(bool state);
-    void setUser(User& user);
+    void setUser(User* user);
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
     

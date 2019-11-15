@@ -84,7 +84,7 @@ public:
      */
     void setPreferedMonoFrustumMode(Frustum::Mode fm);
 
-    void setUser(User& user);
+    void setUser(User* user);
 
     /// \return the resolution of the cubemap
     int getCubemapResolution() const;

@@ -137,7 +137,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     std::unique_ptr<FisheyeProjection> fishProj = std::make_unique<FisheyeProjection>();
-    fishProj->setUser(*_user);
+    fishProj->setUser(_user);
     
     if (proj.fov) {
         fishProj->setFOV(*proj.fov);
@@ -248,7 +248,7 @@ void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProje
     std::unique_ptr<SphericalMirrorProjection> proj =
         std::make_unique<SphericalMirrorProjection>();
 
-    proj->setUser(*_user);
+    proj->setUser(_user);
     if (p.quality) {
         proj->setCubemapResolution(*p.quality);
     }

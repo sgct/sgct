@@ -52,10 +52,9 @@ public:
     void close();
 
 
-    bool matchAddress(const std::string& address) const;
+    bool matchesAddress(const std::string& address) const;
 
     /// Retrieve the node id if this node is part of the cluster configuration
-    void retrieveNodeId() const;
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;

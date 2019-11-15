@@ -168,11 +168,9 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 
 Engine::Engine(const Configuration& config) {
     if (config.isServer) {
-        core::ClusterManager::instance().setNetworkMode(
-            *config.isServer ?
-                core::NetworkManager::NetworkMode::LocalServer :
-                core::NetworkManager::NetworkMode::LocalClient
-        );
+        _networkMode = *config.isServer ?
+            core::NetworkManager::NetworkMode::LocalServer :
+            core::NetworkManager::NetworkMode::LocalClient;
     }
     if (config.logPath) {
         MessageHandler::instance().setLogPath(
@@ -484,28 +482,31 @@ void Engine::terminate() {
 }
 
 void Engine::initNetwork() {
-    core::NetworkManager::create(core::ClusterManager::instance().getNetworkMode());
+    core::ClusterManager& cm = core::ClusterManager::instance();
+
+    core::NetworkManager::create(_networkMode);
 
     // check in cluster configuration which it is
-    if (core::ClusterManager::instance().getNetworkMode() ==
-        core::NetworkManager::NetworkMode::Remote)
-    {
+    if (_networkMode == core::NetworkManager::NetworkMode::Remote) {
         MessageHandler::printDebug("Matching ip address to find node in configuration");
-        core::NetworkManager::instance().retrieveNodeId();
+
+        for (int i = 0; i < cm.getNumberOfNodes(); i++) {
+            // check ip
+            const std::string& addr = cm.getNode(i).getAddress();
+            if (core::NetworkManager::instance().matchesAddress(addr)) {
+                cm.setThisNodeId(i);
+                MessageHandler::printDebug("Running in cluster mode as node %d", i);
+                break;
+            }
+        }
     }
     else {
-        MessageHandler::printDebug(
-            "Running locally as node %d",
-            core::ClusterManager::instance().getThisNodeId()
-        );
+        MessageHandler::printDebug("Running locally as node %d", cm.getThisNodeId());
     }
 
     // If the user has provided the node _id as an incorrect cmd argument then make the
     // _thisNode invalid
-    if (core::ClusterManager::instance().getThisNodeId() >=
-        static_cast<int>(core::ClusterManager::instance().getNumberOfNodes()) ||
-        core::ClusterManager::instance().getThisNodeId() < 0)
-    {
+    if (cm.getThisNodeId() >= cm.getNumberOfNodes() || cm.getThisNodeId() < 0) {
         core::NetworkManager::instance().close();
         throw Error(3001, "Computer is not a part of the cluster configuration");
     }

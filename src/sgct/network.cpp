@@ -235,10 +235,8 @@ std::string Network::getTypeStr(ConnectionType ct) {
         case ConnectionType::SyncConnection:
         default:
             return "sync";
-        case ConnectionType::ExternalASCIIConnection:
+        case ConnectionType::ExternalConnection:
             return "external ASCII control";
-        case ConnectionType::ExternalRawConnection:
-            return "external binary control";
         case ConnectionType::DataTransfer:
             return "data transfer";
     }
@@ -561,12 +559,12 @@ int Network::getLastError() {
     return SGCT_ERRNO;
 }
 
-_ssize_t Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
-    _ssize_t iResult = 0;
+int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
+    int iResult = 0;
     int attempts = 1;
 
     while (iResult < length) {
-        _ssize_t tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
+        int tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
         if (tmpRes > 0) {
             iResult += tmpRes;
         }
@@ -754,10 +752,10 @@ void Network::communicationHandler() {
     _uncompressBuffer.resize(_uncompressedBufferSize);
     _connectionMutex.unlock();
     
-    std::string extBuffer; //for external comm
+    std::string extBuffer; // for external communication
 
     // Receive data until the server closes the connection
-    _ssize_t iResult = 0;
+    int iResult = 0;
     do {
         // resize buffer request
         if (getType() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
@@ -860,7 +858,7 @@ void Network::communicationHandler() {
                 }
             }
             // handle external ascii communication
-            else if (getType() == ConnectionType::ExternalASCIIConnection) {
+            else if (getType() == ConnectionType::ExternalConnection) {
                 extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
 
                 bool breakConnection = false;
@@ -912,12 +910,6 @@ void Network::communicationHandler() {
                     std::string msg = "OK\r\n";
                     sendData(msg.c_str(), static_cast<int>(msg.size()));
                     found = extBuffer.find("\r\n");
-                }
-            }
-            // handle external raw/binary communication
-            else if (getType() == ConnectionType::ExternalRawConnection) {
-                if (decoderCallback) {
-                    decoderCallback(_recvBuffer.data(), iResult, _id);
                 }
             }
             // handle data transfer communication
@@ -1048,7 +1040,7 @@ void Network::communicationHandler() {
 }
 
 void Network::sendData(const void* data, int length) {
-    _ssize_t sentLen;
+    int sentLen;
     int sendSize = length;
 
     while (sendSize > 0) {

@@ -37,9 +37,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     _masterAddress = cluster.masterAddress;
     if (cluster.debug) {
         MessageHandler::instance().setNotifyLevel(
-            *cluster.debug ?
-            MessageHandler::Level::Debug :
-            MessageHandler::Level::Warning
+            *cluster.debug ? MessageHandler::Level::Debug : MessageHandler::Level::Warning
         );
     }
     if (cluster.externalControlPort) {
@@ -51,19 +49,16 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     if (cluster.scene) {
         if (cluster.scene->offset) {
             _sceneTranslate = glm::translate(glm::mat4(1.f), *cluster.scene->offset);
-            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
         if (cluster.scene->orientation) {
             _sceneRotation = glm::mat4_cast(*cluster.scene->orientation);
-            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
         if (cluster.scene->scale) {
             _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale));
-            _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
+        _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
     }
-    // The users have to be handled before the nodes as handling the nodes will require
-    // the users to be already added for the linking
+    // The users must be handled before the nodes due to the nodes depending on the users
     for (const config::User& user : cluster.users) {
         User* usrPtr;
         if (user.name) {
@@ -110,8 +105,8 @@ void ClusterManager::addUser(User user) {
     _users.push_back(std::move(user));
 }
 
-Node* ClusterManager::getNode(int index) {
-    return (index < _nodes.size()) ? &_nodes[index] : nullptr;
+const Node& ClusterManager::getNode(int index) const {
+    return _nodes[index];
 }
 
 Node& ClusterManager::getThisNode() {
@@ -120,7 +115,7 @@ Node& ClusterManager::getThisNode() {
 
 User& ClusterManager::getDefaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
-    // possible to clear the mUsers list
+    // possible to clear the _users list
     return _users[0];
 }
 
@@ -142,28 +137,12 @@ User* ClusterManager::getTrackedUser() {
     return it != _users.end() ? &*it : nullptr;
 }
 
-NetworkManager::NetworkMode ClusterManager::getNetworkMode() const {
-    return _netMode;
-}
-
-void ClusterManager::setNetworkMode(NetworkManager::NetworkMode nm) {
-    _netMode = nm;
-}
-
 bool ClusterManager::getIgnoreSync() const {
     return _ignoreSync;
 }
 
 void ClusterManager::setUseIgnoreSync(bool state) {
     _ignoreSync = state;
-}
-
-void ClusterManager::setUseASCIIForExternalControl(bool useASCII) {
-    _useASCIIForExternalControl = useASCII;
-}
-
-bool ClusterManager::getUseASCIIForExternalControl() const {
-    return _useASCIIForExternalControl;
 }
 
 const std::string& ClusterManager::getMasterAddress() const {

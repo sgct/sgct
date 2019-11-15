@@ -45,8 +45,8 @@ const glm::vec2& BaseViewport::getSize() const {
     return _size;
 }
 
-void BaseViewport::setUser(User& user) {
-    _user = &user;
+void BaseViewport::setUser(User* user) {
+    _user = user;
 }
 
 User& BaseViewport::getUser() const {

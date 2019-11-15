@@ -9,8 +9,8 @@
 #ifndef __SGCT__CLUSTER_MANAGER__H__
 #define __SGCT__CLUSTER_MANAGER__H__
 
-#include <sgct/networkmanager.h>
 #include <sgct/node.h>
+#include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -18,8 +18,6 @@
 namespace sgct::config { struct Cluster; }
 
 namespace sgct::core {
-
-class User;
 
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
@@ -36,17 +34,17 @@ public:
     void addNode(Node node);
 
     /// Add a new user.
-    void addUser(User userPtr);
+    void addUser(User user);
 
     /**
      * Get a pointer to a specific node. Please observe that the address of this object
      * might change between frames and should not be kept around for long.
      *
      * \param int the index to a node in the vector
-     * \return the pointer to the requested node or nullptr if not found. This pointer is
+     * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    Node* getNode(int index);
+    const Node& getNode(int index) const;
 
     /**
      * Get the current node. Please observe that the address of this object might change
@@ -80,12 +78,6 @@ public:
      */
     User* getTrackedUser();
 
-    /// \return the current network mode
-    NetworkManager::NetworkMode getNetworkMode() const;
-
-    /// Sets the current network mode
-    void setNetworkMode(NetworkManager::NetworkMode nm);
-
     /// \return the number of nodes in the cluster
     int getNumberOfNodes() const;
     
@@ -118,12 +110,6 @@ public:
     /// \param the external control port number
     void setExternalControlPort(int port);
 
-    /// Set if external control should use ASCII (Telnet) or raw binary parsing.
-    void setUseASCIIForExternalControl(bool useASCII);
-
-    /// Get if external control is using ASCII (Telnet) or raw binary parsing.
-    bool getUseASCIIForExternalControl() const;
-
     /// Set if software sync between nodes should be ignored
     void setUseIgnoreSync(bool state);
 
@@ -140,7 +126,6 @@ private:
     bool _ignoreSync = false;
     std::string _masterAddress;
     int _externalControlPort = 0;
-    bool _useASCIIForExternalControl = true;
 
     std::vector<Node> _nodes;
     std::vector<User> _users;
@@ -149,7 +134,6 @@ private:
     glm::mat4 _sceneScale = glm::mat4(1.f);
     glm::mat4 _sceneTranslate = glm::mat4(1.f);
     glm::mat4 _sceneRotation = glm::mat4(1.f);
-    NetworkManager::NetworkMode _netMode = NetworkManager::NetworkMode::Remote;
 };
 
 } // namespace sgct::core

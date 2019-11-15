@@ -25,8 +25,6 @@
     using SGCT_SOCKET = int;
 #endif
 
-using _ssize_t = int;
-
 namespace sgct::core {
 
 /**
@@ -44,8 +42,7 @@ public:
 
     enum class ConnectionType {
         SyncConnection = 0,
-        ExternalASCIIConnection,
-        ExternalRawConnection,
+        ExternalConnection,
         DataTransfer
     };
 
@@ -71,7 +68,7 @@ public:
 
     void setDecodeFunction(std::function<void(const char*, int, int)> fn);
     void setPackageDecodeFunction(std::function<void(void*, int, int, int)> fn);
-    void setUpdateFunction(std::function<void(Network *)> fn);
+    void setUpdateFunction(std::function<void(Network*)> fn);
     void setConnectedFunction(std::function<void (void)> fn);
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
     
@@ -108,9 +105,9 @@ public:
     void setRecvFrame(int i);
     void sendData(const void* data, int length);
 
-    /// @return last error code 
+    /// \return last error code 
     static int getLastError();
-    static _ssize_t receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
+    static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
 
     /// Iterates the send frame number and returns the new frame number
     int iterateFrameCounter();

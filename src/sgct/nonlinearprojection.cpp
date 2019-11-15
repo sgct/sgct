@@ -107,7 +107,7 @@ void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::Mode fm) {
     _preferedMonoFrustumMode = fm;
 }
 
-void NonLinearProjection::setUser(User& user) {
+void NonLinearProjection::setUser(User* user) {
     _subViewports.right.setUser(user);
     _subViewports.left.setUser(user);
     _subViewports.bottom.setUser(user);

@@ -15,6 +15,7 @@
 #include <sgct/config.h>
 #include <sgct/keys.h>
 #include <sgct/mouse.h>
+#include <sgct/networkmanager.h>
 #include <sgct/joystick.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/fisheyeprojection.h>
@@ -38,7 +39,6 @@ class Window;
 
 namespace core {
     class Image;
-    class NetworkManager;
     class Node;
     class StatisticsRenderer;
     class Touch;
@@ -1058,6 +1058,8 @@ private:
     unsigned int _shotCounter = 0;
 
     RunMode _runMode = RunMode::Default_Mode;
+    core::NetworkManager::NetworkMode _networkMode =
+        core::NetworkManager::NetworkMode::Remote;
     int _exitKey = key::Escape;
 
     unsigned int _timeQueryBegin = 0;

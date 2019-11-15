@@ -46,16 +46,19 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
     if (cluster.scene) {
-        if (cluster.scene->offset) {
-            _sceneTranslate = glm::translate(glm::mat4(1.f), *cluster.scene->offset);
-        }
-        if (cluster.scene->orientation) {
-            _sceneRotation = glm::mat4_cast(*cluster.scene->orientation);
-        }
-        if (cluster.scene->scale) {
-            _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale));
-        }
-        _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
+        const glm::mat4 sceneTranslate = cluster.scene->offset ?
+            glm::translate(glm::mat4(1.f), *cluster.scene->offset) :
+            glm::mat4(1.f);
+
+        const glm::mat4 sceneRotation = cluster.scene->orientation ?
+            glm::mat4_cast(*cluster.scene->orientation) :
+            glm::mat4(1.f);
+
+        const glm::mat4 sceneScale = cluster.scene->scale ?
+            glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) :
+            glm::mat4(1.f);
+
+        _sceneTransform = sceneRotation * sceneTranslate * sceneScale;
     }
     // The users must be handled before the nodes due to the nodes depending on the users
     for (const config::User& user : cluster.users) {

@@ -137,11 +137,7 @@ private:
 
     std::vector<Node> _nodes;
     std::vector<User> _users;
-
     glm::mat4 _sceneTransform = glm::mat4(1.f);
-    glm::mat4 _sceneScale = glm::mat4(1.f);
-    glm::mat4 _sceneTranslate = glm::mat4(1.f);
-    glm::mat4 _sceneRotation = glm::mat4(1.f);
 };
 
 } // namespace sgct::core

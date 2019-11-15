@@ -101,6 +101,7 @@ Error::Error(Component component, int code, std::string message)
     1113: Node / Node data transfer port must be non-negative
     1120: Cluster / Cluster master address must not be empty
     1121: Cluster / Cluster external control port must be non-negative
+    1122: Cluster / More than one unnamed users specified in the cluster
 
     2000s: CorrectionMeshes
     2000: CorrectionMesh / "Failed to export. Geometry type is not supported"

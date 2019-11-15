@@ -89,12 +89,12 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
             applySpoutOutputProjection(proj);
         },
         [this](const config::ProjectionPlane& proj) {
-            _projectionPlane.setCoordinateLowerLeft(*proj.lowerLeft);
-            _viewPlane.lowerLeft = *proj.lowerLeft;
-            _projectionPlane.setCoordinateUpperLeft(*proj.upperLeft);
-            _viewPlane.upperLeft = *proj.upperLeft;
-            _projectionPlane.setCoordinateUpperRight(*proj.upperRight);
-            _viewPlane.upperRight = *proj.upperRight;
+            _projectionPlane.setCoordinateLowerLeft(proj.lowerLeft);
+            _viewPlane.lowerLeft = proj.lowerLeft;
+            _projectionPlane.setCoordinateUpperLeft(proj.upperLeft);
+            _viewPlane.upperLeft = proj.upperLeft;
+            _projectionPlane.setCoordinateUpperRight(proj.upperRight);
+            _viewPlane.upperRight = proj.upperRight;
         },
     }, viewport.projection);
 }

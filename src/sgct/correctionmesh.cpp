@@ -8,9 +8,8 @@
 
 #include <sgct/correctionmesh.h>
 
-#include <sgct/clustermanager.h>
-#include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fisheyeprojection.h>
 #include <sgct/messagehandler.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
@@ -30,7 +29,6 @@
 #define Error(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
 namespace {
-
     sgct::core::correction::Buffer setupMaskMesh(const glm::vec2& pos,
                                                  const glm::vec2& size)
     {

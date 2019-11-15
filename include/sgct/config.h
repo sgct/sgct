@@ -49,10 +49,7 @@ struct Scene {
 void validateScene(const Scene& scene);
 
 struct Settings {
-    enum class BufferFloatPrecision {
-        Float16Bit = 0,
-        Float32Bit
-    };
+    enum class BufferFloatPrecision { Float16Bit, Float32Bit};
 
     struct Display {
         std::optional<int> swapInterval;
@@ -188,9 +185,9 @@ struct SpoutOutputProjection {
 void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
 struct ProjectionPlane {
-    std::optional<glm::vec3> lowerLeft;
-    std::optional<glm::vec3> upperLeft;
-    std::optional<glm::vec3> upperRight;
+    glm::vec3 lowerLeft;
+    glm::vec3 upperLeft;
+    glm::vec3 upperRight;
 };
 void validateProjectionPlane(const ProjectionPlane& proj);
 

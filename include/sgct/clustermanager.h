@@ -9,9 +9,8 @@
 #ifndef __SGCT__CLUSTER_MANAGER__H__
 #define __SGCT__CLUSTER_MANAGER__H__
 
-#include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/trackingmanager.h>
+#include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -20,18 +19,13 @@ namespace sgct::config { struct Cluster; }
 
 namespace sgct::core {
 
-class User;
-
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
  * singleton and is accessed using it's instance.
  */
 class ClusterManager {
 public:
-    /// Get the ClusterManager instance
-    static ClusterManager* instance();
-
-    /// Destroy the ClusterManager
+    static ClusterManager& instance();
     static void destroy();
 
     void applyCluster(const config::Cluster& cluster);
@@ -40,29 +34,37 @@ public:
     void addNode(Node node);
 
     /// Add a new user.
-    void addUser(User userPtr);
+    void addUser(User user);
 
     /**
      * Get a pointer to a specific node. Please observe that the address of this object
      * might change between frames and should not be kept around for long.
      *
      * \param int the index to a node in the vector
-     * \return the pointer to the requested node or nullptr if not found. This pointer is
+     * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    Node* getNode(int index);
+    const Node& getNode(int index) const;
 
     /**
      * Get the current node. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return a reference to the node that this application is running on
      */
     Node& getThisNode();
 
     /**
+     * Get the current node. Please observe that the address of this object might change
+     * between frames and should not be stored.
+     *
+     * \return a reference to the node that this application is running on
+     */
+    const Node& getThisNode() const;
+
+    /**
      * Get the default user. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return the pointer to the default user
      */
@@ -70,7 +72,7 @@ public:
 
     /**
      * Get the user with the specific name. Please observe that the address of this object
-     * might change between frames and should not be kept around for long.
+     * might change between frames and should not be stored.
      *
      * \return the pointer to a named user. nullptr is returned if no user is found.
      */
@@ -78,17 +80,11 @@ public:
 
     /**
      * Get the tracked user. Please observe that the address of this object might change
-     * between frames and should not be kept around for long.
+     * between frames and should not be stored.
      *
      * \return the pointer to the tracked user. Returns nullptr if no user is tracked.
      */
     User* getTrackedUser();
-
-    /// \return the current network mode
-    NetworkManager::NetworkMode getNetworkMode() const;
-
-    /// Sets the current network mode
-    void setNetworkMode(NetworkManager::NetworkMode nm);
 
     /// \return the number of nodes in the cluster
     int getNumberOfNodes() const;
@@ -110,29 +106,17 @@ public:
     /// \return the dns, name or IP of the master in the cluster
     const std::string& getMasterAddress() const;
 
-    /// \param the DNS, IP or name of the master in the cluster
-    void setMasterAddress(std::string address);
-
     /// \return state of the firm frame lock lock sync
     bool getFirmFrameLockSyncStatus() const;
 
     /// \param the state of the firm frame lock sync
     void setFirmFrameLockSyncStatus(bool state);
 
-    /**
-     * \return the external control port number if it's set or specified in the XML
-     *         configuration
-     */
+    /// \return the external control port number
     int getExternalControlPort() const;
 
     /// \param the external control port number
     void setExternalControlPort(int port);
-
-    /// Set if external control should use ASCII (Telnet) or raw binary parsing.
-    void setUseASCIIForExternalControl(bool useASCII);
-
-    /// Get if external control is using ASCII (Telnet) or raw binary parsing.
-    bool getUseASCIIForExternalControl() const;
 
     /// Set if software sync between nodes should be ignored
     void setUseIgnoreSync(bool state);
@@ -140,58 +124,20 @@ public:
     /// Get if software sync between nodes is disabled
     bool getIgnoreSync() const;
 
-    /// Set the scene transform.
-    void setSceneTransform(glm::mat4 mat);
-
-    /**
-     * Set the scene offset/translation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneOffset(glm::vec3 offset);
-
-    /**
-     * Set the scene rotation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneRotation(float yaw, float pitch, float roll);
-
-    /**
-     * Set the scene rotation. This is set using the XML config file for easier
-     * transitions between different hardware setups.
-     */
-    void setSceneRotation(glm::mat4 mat);
-    
-    /**
-     * Set the scene scale. This is set using the XML config file for easier transitions
-     * between different hardware setups.
-     */
-    void setSceneScale(float scale);
-
-    /// \return the pointer to the tracking manager
-    TrackingManager& getTrackingManager();
-
 private:
     ClusterManager();
 
     static ClusterManager* _instance;
-
-    std::vector<Node> _nodes;
 
     int _thisNodeId = -1;
     bool _firmFrameLockSync = false;
     bool _ignoreSync = false;
     std::string _masterAddress;
     int _externalControlPort = 0;
-    bool _useASCIIForExternalControl = true;
 
+    std::vector<Node> _nodes;
     std::vector<User> _users;
-    TrackingManager _trackingManager;
-
     glm::mat4 _sceneTransform = glm::mat4(1.f);
-    glm::mat4 _sceneScale = glm::mat4(1.f);
-    glm::mat4 _sceneTranslate = glm::mat4(1.f);
-    glm::mat4 _sceneRotation = glm::mat4(1.f);
-    NetworkManager::NetworkMode _netMode = NetworkManager::NetworkMode::Remote;
 };
 
 } // namespace sgct::core

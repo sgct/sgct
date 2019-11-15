@@ -248,33 +248,33 @@ void drawFun() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
     glBindVertexArray(0);
 
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void initOGLFun() {
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 4.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 4.f);
     loadModel("box.obj");
 
-    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
     mvpLoc = prog.getUniformLocation("mvp");
     glUniform1i(prog.getUniformLocation("tex"), 0);
@@ -282,11 +282,11 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -300,22 +300,23 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

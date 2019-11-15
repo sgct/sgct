@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
+#include <sgct/error.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
@@ -18,6 +19,7 @@
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
+#include <sgct/trackingmanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/touch.h>
@@ -26,6 +28,8 @@
 #include <numeric>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
+#define Error(code, msg) Error(Error::Component::Engine, code, msg)
 
 // Callback wrappers for GLFW
 std::function<void(int, int, int, int)> gKeyboardCallbackFn = nullptr;
@@ -40,9 +44,6 @@ sgct::core::Touch gCurrentTouchPoints;
 bool sRunUpdateFrameLockLoop = true;
 
 namespace {
-    // If this value is set to true, every OpenGL call will be checked for errors. This
-    // will detroy a lot of the performance, so it is disabled by default
-    constexpr const bool CheckOpenGLForErrors = true;
     constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
@@ -56,9 +57,7 @@ namespace {
             sgct::core::mutex::FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
             sgct::core::mutex::FrameSync.unlock();
-
             sgct::core::NetworkManager::cond.notify_all();
-
             std::this_thread::sleep_for(FrameLockTimeout);
         }
     }
@@ -107,8 +106,20 @@ namespace sgct {
 
 Engine* Engine::_instance = nullptr;
 
-Engine* Engine::instance() {
-    return _instance;
+Engine& Engine::instance() {
+    return *_instance;
+}
+
+void Engine::create(const Configuration& arg) {
+    if (_instance) {
+        throw std::logic_error("Engine has already been created");
+    }
+    _instance = new Engine(arg);
+}
+
+void Engine::destroy() {
+    delete _instance;
+    _instance = nullptr;
 }
 
 config::Cluster loadCluster(std::optional<std::string> path) {
@@ -116,11 +127,10 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         try {
             return core::readConfig(*path);
         }
-        catch (const std::runtime_error& e) {
+        catch (...) {
             // (abock, 2019-10-11) This conversion from string_view to string is necessary
             // to keep this code compiling with VS 2017 15.9.16 (and probably before)
             std::cout << std::string(getHelpMessage()) << '\n';
-            MessageHandler::printError("Configuration error. %s", e.what());
             throw;
         }
     }
@@ -148,46 +158,29 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         sgct::config::User user;
         user.eyeSeparation = 0.06f;
         user.position = glm::vec3(0.f, 0.f, 4.f);
+        cluster.users.push_back(user);
 
         cluster.masterAddress = "localhost";
         cluster.nodes.push_back(node);
-        cluster.user = user;
         return cluster;
     }
 }
 
-void Engine::create(const Configuration& arg) {
-    if (_instance) {
-        MessageHandler::printError(
-            "The Engine class is a singleton and can only be created once"
-        );
-        return;
-    }
-    _instance = new Engine(arg);
-}
-
-void Engine::destroy() {
-    delete _instance;
-    _instance = nullptr;
-}
-
 Engine::Engine(const Configuration& config) {
     if (config.isServer) {
-        core::ClusterManager::instance()->setNetworkMode(
-            *config.isServer ?
-                core::NetworkManager::NetworkMode::LocalServer :
-                core::NetworkManager::NetworkMode::LocalClient
-        );
+        _networkMode = *config.isServer ?
+            core::NetworkManager::NetworkMode::LocalServer :
+            core::NetworkManager::NetworkMode::LocalClient;
     }
     if (config.logPath) {
-        MessageHandler::instance()->setLogPath(
+        MessageHandler::instance().setLogPath(
             config.logPath->c_str(),
-            core::ClusterManager::instance()->getThisNodeId()
+            core::ClusterManager::instance().getThisNodeId()
         );
-        MessageHandler::instance()->setLogToFile(true);
+        MessageHandler::instance().setLogToFile(true);
     }
     if (config.logLevel) {
-        MessageHandler::instance()->setNotifyLevel(*config.logLevel);
+        MessageHandler::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
         _helpMode = true;
@@ -196,35 +189,41 @@ Engine::Engine(const Configuration& config) {
         std::cout << std::string(getHelpMessage()) << '\n';
     }
     if (config.nodeId) {
-        core::ClusterManager::instance()->setThisNodeId(*config.nodeId);
+        core::ClusterManager::instance().setThisNodeId(*config.nodeId);
     }
     if (config.firmSync) {
-        core::ClusterManager::instance()->setFirmFrameLockSyncStatus(*config.firmSync);
+        core::ClusterManager::instance().setFirmFrameLockSyncStatus(*config.firmSync);
     }
     if (config.ignoreSync) {
-        core::ClusterManager::instance()->setUseIgnoreSync(*config.ignoreSync);
+        core::ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
     }
     if (config.fxaa) {
-        Settings::instance()->setDefaultFXAAState(*config.fxaa);
+        Settings::instance().setDefaultFXAAState(*config.fxaa);
     }
     if (config.msaaSamples) {
         if (*config.msaaSamples > 0) {
-            Settings::instance()->setDefaultNumberOfAASamples(*config.msaaSamples);
+            Settings::instance().setDefaultNumberOfAASamples(*config.msaaSamples);
         }
         else {
             MessageHandler::printError("Number of MSAA samples must be positive");
         }
     }
     if (config.captureFormat) {
-        Settings::instance()->setCaptureFormat(*config.captureFormat);
+        Settings::instance().setCaptureFormat(*config.captureFormat);
     }
     if (config.nCaptureThreads) {
         if (*config.nCaptureThreads > 0) {
-            Settings::instance()->setNumberOfCaptureThreads(*config.nCaptureThreads);
+            Settings::instance().setNumberOfCaptureThreads(*config.nCaptureThreads);
         }
         else {
             MessageHandler::printError("Only positive number of capture threads allowed");
         }
+    }
+    if (config.checkOpenGL) {
+        _checkOpenGLCalls = *config.checkOpenGL;
+    }
+    if (config.checkFBOs) {
+        _checkFBOs = *config.checkFBOs;
     }
 
     if (_helpMode) {
@@ -249,7 +248,7 @@ Engine::Engine(const Configuration& config) {
 Engine::~Engine() {
     MessageHandler::printInfo("Cleaning up");
 
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     if (_cleanUpFn) {
         if (thisNode.getNumberOfWindows() > 0) {
             thisNode.getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
@@ -296,14 +295,15 @@ Engine::~Engine() {
     }
 
     // de-init window and unbind swapgroups
-    if (core::ClusterManager::instance()->getNumberOfNodes() > 0) {
+    if (core::ClusterManager::instance().getNumberOfNodes() > 0) {
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
             thisNode.getWindow(i).close();
         }
     }
 
     // close TCP connections
-    _networkConnections = nullptr;
+    MessageHandler::printDebug("Destroying network manager");
+    core::NetworkManager::destroy();
 
     // Shared contex
     if (thisNode.getNumberOfWindows() > 0) {
@@ -344,8 +344,6 @@ Engine::~Engine() {
     MessageHandler::printDebug("Destroying message handler");
     MessageHandler::destroy();
 
-    MessageHandler::printDebug("Destroying mutexes");
-
     // Close window and terminate GLFW
     MessageHandler::printDebug("Terminating glfw");
     glfwTerminate();
@@ -362,15 +360,22 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
     }
 
     if (_shouldTerminate) {
-        throw std::runtime_error("Failed to initialize GLFW");
+        throw Error(3000, "Failed to initialize GLFW");
     }
 
-    const bool validation = sgct::config::validateCluster(cluster);
-    if (!validation) {
-        throw std::runtime_error("Validation of configuration failed");
-    }
+    MessageHandler::printDebug("Validating cluster configuration");
+    config::validateCluster(cluster);
          
-    core::ClusterManager::instance()->applyCluster(cluster);
+    core::ClusterManager::instance().applyCluster(cluster);
+    for (const config::Tracker& tracker : cluster.trackers) {
+        TrackingManager::instance().applyTracker(tracker);
+    }
+    if (cluster.checkOpenGL) {
+        _checkOpenGLCalls = *cluster.checkOpenGL;
+    }
+    if (cluster.checkFBOs) {
+        _checkFBOs = *cluster.checkFBOs;
+    }
 
     initNetwork();
     initWindows();
@@ -378,14 +383,14 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
     // Window resolution may have been set when reading config. However, it only sets a
     // pending resolution, so it needs to apply it using the same routine as in the end of
     // a frame.
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         thisNode.getWindow(i).updateResolutions();
     }
 
     // if a single node, skip syncing
-    if (core::ClusterManager::instance()->getNumberOfNodes() == 1) {
-        core::ClusterManager::instance()->setUseIgnoreSync(true);
+    if (core::ClusterManager::instance().getNumberOfNodes() == 1) {
+        core::ClusterManager::instance().setUseIgnoreSync(true);
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -454,7 +459,7 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
             glfwSetTouchCallback(
                 window,
                 [](GLFWwindow*, GLFWtouch* touchPoints, int count){
-                    sgct::Engine& eng = *sgct::Engine::instance();
+                    sgct::Engine& eng = sgct::Engine::instance();
                     glm::ivec4 c = eng.getCurrentWindow().getCurrentViewportPixelCoords();
 
                     gCurrentTouchPoints.processPoints(touchPoints, count, c.z, c.w);
@@ -468,7 +473,7 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
 
     // start sampling tracking data
     if (isMaster()) {
-        getTrackingManager().startSampling();
+        TrackingManager::instance().startSampling();
     }
 }
 
@@ -477,52 +482,51 @@ void Engine::terminate() {
 }
 
 void Engine::initNetwork() {
-    _networkConnections = std::make_unique<core::NetworkManager>(
-        core::ClusterManager::instance()->getNetworkMode()
-    );
+    core::ClusterManager& cm = core::ClusterManager::instance();
+
+    core::NetworkManager::create(_networkMode);
 
     // check in cluster configuration which it is
-    if (core::ClusterManager::instance()->getNetworkMode() ==
-        core::NetworkManager::NetworkMode::Remote)
-    {
+    if (_networkMode == core::NetworkManager::NetworkMode::Remote) {
         MessageHandler::printDebug("Matching ip address to find node in configuration");
-        _networkConnections->retrieveNodeId();
+
+        for (int i = 0; i < cm.getNumberOfNodes(); i++) {
+            // check ip
+            const std::string& addr = cm.getNode(i).getAddress();
+            if (core::NetworkManager::instance().matchesAddress(addr)) {
+                cm.setThisNodeId(i);
+                MessageHandler::printDebug("Running in cluster mode as node %d", i);
+                break;
+            }
+        }
     }
     else {
-        MessageHandler::printDebug(
-            "Running locally as node %d",
-            core::ClusterManager::instance()->getThisNodeId()
-        );
+        MessageHandler::printDebug("Running locally as node %d", cm.getThisNodeId());
     }
 
     // If the user has provided the node _id as an incorrect cmd argument then make the
     // _thisNode invalid
-    if (core::ClusterManager::instance()->getThisNodeId() >=
-        static_cast<int>(core::ClusterManager::instance()->getNumberOfNodes()) ||
-        core::ClusterManager::instance()->getThisNodeId() < 0)
-    {
-        _networkConnections->close();
-        throw std::runtime_error("Computer is not a part of the cluster configuration");
+    if (cm.getThisNodeId() >= cm.getNumberOfNodes() || cm.getThisNodeId() < 0) {
+        core::NetworkManager::instance().close();
+        throw Error(3001, "Computer is not a part of the cluster configuration");
     }
 
-    const bool networkInitSuccess = _networkConnections->init();
+    const bool networkInitSuccess = core::NetworkManager::instance().init();
     if (!networkInitSuccess) {
-        throw std::runtime_error("Error initializing network connections");
+        throw Error(3002, "Error initializing network connections");
     }
 }
 
 void Engine::initWindows() {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     if (thisNode.getNumberOfWindows() == 0) {
-        throw std::runtime_error("No windows exist in configuration");
+        throw Error(3003, "No windows exist in configuration");
     }
 
     {
-        int glfwVersion[3];
-        glfwGetVersion(&glfwVersion[0], &glfwVersion[1], &glfwVersion[2]);
-        MessageHandler::printInfo(
-            "Using GLFW version %d.%d.%d", glfwVersion[0], glfwVersion[1], glfwVersion[2]
-        );
+        int ver[3];
+        glfwGetVersion(&ver[0], &ver[1], &ver[2]);
+        MessageHandler::printInfo("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
     }
 
     switch (_runMode) {
@@ -530,29 +534,22 @@ void Engine::initWindows() {
         case RunMode::OpenGL_3_3_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_0_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
-
         case RunMode::OpenGL_4_1_Debug_Core_Profile:
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
             [[ fallthrough ]];
         case RunMode::OpenGL_4_1_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_2_Debug_Core_Profile:
@@ -561,9 +558,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_2_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_3_Debug_Core_Profile:
@@ -572,9 +567,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_3_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_4_Debug_Core_Profile:
@@ -583,9 +576,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_4_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_5_Debug_Core_Profile:
@@ -594,9 +585,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_5_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
         case RunMode::OpenGL_4_6_Debug_Core_Profile:
@@ -605,9 +594,7 @@ void Engine::initWindows() {
         case RunMode::OpenGL_4_6_Core_Profile:
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-#ifdef __APPLE__
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-#endif
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             break;
     }
@@ -624,28 +611,117 @@ void Engine::initWindows() {
         }
 
         if (!thisNode.getWindow(i).openWindow(share, lastWindowIdx)) {
-            throw std::runtime_error("Failed to open window " + std::to_string(i));
+            throw Error(3004, "Failed to open window " + std::to_string(i));
         }
     }
 
     glbinding::Binding::initialize(glfwGetProcAddress);
 
-    if (CheckOpenGLForErrors) {
+    if (_checkOpenGLCalls || _checkFBOs) {
         using namespace glbinding;
 
-        Binding::setCallbackMaskExcept(CallbackMask::After, { "glGetError" });
-        Binding::setAfterCallback([](const FunctionCall& f) {
-            checkForOGLErrors(f.function->name());
+        // The callback mask needs to be set in order to prevent an infinite loop when
+        // calling these functions in the error checking callback
+        Binding::setCallbackMaskExcept(
+            CallbackMask::After,
+            { "glGetError", "glCheckFramebufferStatus" }
+        );
+        Binding::setAfterCallback([this](const FunctionCall& f) {
+            const GLenum error = _checkOpenGLCalls ? glGetError() : GL_NO_ERROR;
+            const GLenum fboStatus = _checkFBOs ?
+                glCheckFramebufferStatus(GL_FRAMEBUFFER) :
+                GL_FRAMEBUFFER_COMPLETE;
+            if (error == GL_NO_ERROR && fboStatus == GL_FRAMEBUFFER_COMPLETE) {
+                return;
+            }
+
+            const char* n = f.function->name();
+            switch (error) {
+                case GL_NO_ERROR:
+                    break;
+                case GL_INVALID_ENUM:
+                    MessageHandler::printError("OpenGL error. %s: GL_INVALID_ENUM", n);
+                    break;
+                case GL_INVALID_VALUE:
+                    MessageHandler::printError("OpenGL error. %s: GL_INVALID_VALUE", n);
+                    break;
+                case GL_INVALID_OPERATION:
+                    MessageHandler::printError(
+                        "OpenGL error. %s: GL_INVALID_OPERATION", n
+                    );
+                    break;
+                case GL_INVALID_FRAMEBUFFER_OPERATION:
+                    MessageHandler::printError(
+                        "OpenGL error. %s: GL_INVALID_FRAMEBUFFER_OPERATION", n
+                    );
+                    break;
+                case GL_STACK_OVERFLOW:
+                    MessageHandler::printError("OpenGL error. %s: GL_STACK_OVERFLOW", n);
+                    break;
+                case GL_STACK_UNDERFLOW:
+                    MessageHandler::printError("OpenGL error. %s: GL_STACK_UNDERFLOW", n);
+                    break;
+                case GL_OUT_OF_MEMORY:
+                    MessageHandler::printError("OpenGL error. %s: GL_OUT_OF_MEMORY", n);
+                    break;
+                default:
+                    MessageHandler::printError("OpenGL error. %s: %i", n, error);
+            }
+
+            switch (fboStatus) {
+                case GL_FRAMEBUFFER_COMPLETE:
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_UNSUPPORTED:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_UNSUPPORTED", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_UNDEFINED:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_UNDEFINED", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE", n
+                    );
+                    break;
+                case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+                    MessageHandler::printError(
+                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS", n
+                    );
+                    break;
+                default:
+                    MessageHandler::printError(
+                        "FBO error. %s: %i", n, static_cast<int>(fboStatus)
+                    );
+            }
         });
     }
 
     // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (!checkForOGLErrors("initWindows")) {
-        MessageHandler::printError("Initialization triggered an OpenGL error");
-    }
 
     // Window/Context creation callback
     if (thisNode.getNumberOfWindows() > 0) {
@@ -656,7 +732,7 @@ void Engine::initWindows() {
         }
     }
     else {
-        throw std::runtime_error("No windows created on this node");
+        throw Error(3005, "No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -668,7 +744,7 @@ void Engine::initWindows() {
     waitForAllWindowsInSwapGroupToOpen();
 
     if (RunFrameLockCheckThread) {
-        if (core::ClusterManager::instance()->getNumberOfNodes() > 1) {
+        if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
             _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
         }
     }
@@ -681,26 +757,23 @@ void Engine::initWindows() {
 
 void Engine::initOGL() {
     // Get OpenGL version
-    int version[3];
+    int v[3];
     GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
-    version[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
-    version[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
-    version[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
-
-    MessageHandler::printInfo(
-        "OpenGL version %d.%d.%d %s", version[0], version[1], version[2], "core profile"
-    );
+    v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
+    v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
+    v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
+    MessageHandler::printInfo("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
 
     MessageHandler::printInfo("Vendor: %s", glGetString(GL_VENDOR));
     MessageHandler::printInfo("Renderer: %s", glGetString(GL_RENDERER));
 
-    if (core::ClusterManager::instance()->getNumberOfNodes() > 1) {
-        std::string path = Settings::instance()->getCapturePath() + "_node";
-        path += std::to_string(core::ClusterManager::instance()->getThisNodeId());
+    if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
+        std::string path = Settings::instance().getCapturePath() + "_node";
+        path += std::to_string(core::ClusterManager::instance().getThisNodeId());
 
-        Settings::instance()->setCapturePath(path, Settings::CapturePath::Mono);
-        Settings::instance()->setCapturePath(path, Settings::CapturePath::LeftStereo);
-        Settings::instance()->setCapturePath(path, Settings::CapturePath::RightStereo);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
     }
 
     // init window opengl data
@@ -715,7 +788,7 @@ void Engine::initOGL() {
     }
 
     // create all textures, etc
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         _currentWindowIndex = i;
         // set context to shared
@@ -757,30 +830,30 @@ void Engine::initOGL() {
 
     // Add fonts
 #ifdef SGCT_HAS_TEXT
-    if (Settings::instance()->getOSDTextFontPath().empty()) {
-        const bool success = text::FontManager::instance()->addFont(
+    if (Settings::instance().getOSDTextFontPath().empty()) {
+        const bool success = text::FontManager::instance().addFont(
             "SGCTFont",
-            Settings::instance()->getOSDTextFontName()
+            Settings::instance().getOSDTextFontName()
         );
         if (!success) {
-            text::FontManager::instance()->getFont(
+            text::FontManager::instance().getFont(
                 "SGCTFont",
-                Settings::instance()->getOSDTextFontSize()
+                Settings::instance().getOSDTextFontSize()
             );
         }
     }
     else {
-        std::string tmpPath = Settings::instance()->getOSDTextFontPath() +
-                              Settings::instance()->getOSDTextFontName();
-        const bool success = text::FontManager::instance()->addFont(
+        std::string tmpPath = Settings::instance().getOSDTextFontPath() +
+                              Settings::instance().getOSDTextFontName();
+        const bool success = text::FontManager::instance().addFont(
             "SGCTFont",
             tmpPath,
             text::FontManager::Path::Local
         );
         if (!success) {
-            text::FontManager::instance()->getFont(
+            text::FontManager::instance().getFont(
                 "SGCTFont",
-                Settings::instance()->getOSDTextFontSize()
+                Settings::instance().getOSDTextFontSize()
             );
         }
     }
@@ -795,7 +868,6 @@ void Engine::initOGL() {
     }
 
     // check for errors
-    checkForOGLErrors("initOGL");
     MessageHandler::printInfo("Ready to render");
 }
 
@@ -804,8 +876,10 @@ void Engine::frameLockPreStage() {
 
     const double ts = glfwGetTime();
     // from server to clients
-    std::optional<std::pair<double, double>> minMax =
-        _networkConnections->sync(NetworkManager::SyncMode::SendDataToClients);
+    using P = std::pair<double, double>;
+    std::optional<P> minMax = core::NetworkManager::instance().sync(
+        NetworkManager::SyncMode::SendDataToClients
+    );
     if (minMax) {
         addValue(_statistics.loopTimeMin, minMax->first);
         addValue(_statistics.loopTimeMax, minMax->second);
@@ -813,16 +887,16 @@ void Engine::frameLockPreStage() {
     addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
 
     // run only on clients/slaves
-    if (ClusterManager::instance()->getIgnoreSync() ||
-        _networkConnections->isComputerServer())
+    if (ClusterManager::instance().getIgnoreSync() ||
+        core::NetworkManager::instance().isComputerServer())
     {
         return;
     }
 
     // not server
     const double t0 = glfwGetTime();
-    while (_networkConnections->isRunning() && _isRunning) {
-        if (_networkConnections->isSyncComplete()) {
+    while (core::NetworkManager::instance().isRunning() && _isRunning) {
+        if (core::NetworkManager::instance().isSyncComplete()) {
             break;
         }
 
@@ -841,7 +915,7 @@ void Engine::frameLockPreStage() {
         }
 
         // more than a second
-        conn = _networkConnections->getSyncConnectionByIndex(0);
+        conn = core::NetworkManager::instance().getSyncConnectionByIndex(0);
         if (_printSyncMessage && !conn->isUpdated()) {
             MessageHandler::printInfo(
                 "Slave: waiting for master... send frame %d != previous recv frame "
@@ -855,8 +929,8 @@ void Engine::frameLockPreStage() {
         }
 
         if (glfwGetTime() - t0 > _syncTimeout) {
-            // more than a minute
-            throw std::runtime_error(
+            throw Error(
+                3006,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -864,23 +938,23 @@ void Engine::frameLockPreStage() {
 
     // A this point all data needed for rendering a frame is received.
     // Let's signal that back to the master/server.
-    _networkConnections->sync(NetworkManager::SyncMode::AcknowledgeData);
+    core::NetworkManager::instance().sync(NetworkManager::SyncMode::AcknowledgeData);
     addValue(_statistics.syncTimes, glfwGetTime() - t0);
 }
 
 void Engine::frameLockPostStage() {
     // post stage
-    if (core::ClusterManager::instance()->getIgnoreSync() ||
-        !_networkConnections->isComputerServer())
+    if (core::ClusterManager::instance().getIgnoreSync() ||
+        !core::NetworkManager::instance().isComputerServer())
     {
         return;
     }
 
     const double t0 = glfwGetTime();
-    while (_networkConnections->isRunning() && _isRunning &&
-           _networkConnections->getActiveConnectionsCount() > 0)
+    while (core::NetworkManager::instance().isRunning() && _isRunning &&
+        core::NetworkManager::instance().getActiveConnectionsCount() > 0)
     {
-        if (_networkConnections->isSyncComplete()) {
+        if (core::NetworkManager::instance().isSyncComplete()) {
             break;
         }
 
@@ -897,17 +971,15 @@ void Engine::frameLockPostStage() {
             continue;
         }
         // more than a second
-
-        for (int i = 0; i < _networkConnections->getSyncConnectionsCount(); ++i) {
-            const core::Network& conn = _networkConnections->getConnectionByIndex(i);
-
-            if (_printSyncMessage && !conn.isUpdated()) {
+        core::NetworkManager& nm = core::NetworkManager::instance();
+        for (int i = 0; i < nm.getSyncConnectionsCount(); ++i) {
+            if (_printSyncMessage && !nm.getConnectionByIndex(i).isUpdated()) {
                 MessageHandler::printInfo(
                     "Waiting for slave%d: send frame %d != recv frame %d\n\t"
                     "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
                     "Nvidia universal frame number: %u\n\tSGCT frame number: %u",
-                    i, _networkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
-                    _networkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
+                    i, nm.getConnectionByIndex(i).getSendFrameCurrent(),
+                    nm.getConnectionByIndex(i).getRecvFrameCurrent(),
                     Window::isUsingSwapGroups() ? "enabled" : "disabled",
                     Window::isBarrierActive() ? "enabled" : "disabled",
                     Window::getSwapGroupFrameNumber(), _frameCounter
@@ -917,7 +989,8 @@ void Engine::frameLockPostStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
-            throw std::runtime_error(
+            throw Error(
+                3007,
                 "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -933,23 +1006,23 @@ void Engine::render() {
     glGenQueries(1, &_timeQueryBegin);
     glGenQueries(1, &_timeQueryEnd);
 
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     while (_isRunning) {
         _renderingOffScreen = false;
 
         // update tracking data
         if (isMaster()) {
-            getTrackingManager().updateTrackingDevices();
+            TrackingManager::instance().updateTrackingDevices();
         }
 
         if (_preSyncFn) {
             _preSyncFn();
         }
 
-        if (_networkConnections->isComputerServer()) {
-            SharedData::instance()->encode();
+        if (core::NetworkManager::instance().isComputerServer()) {
+            SharedData::instance().encode();
         }
-        else if (!_networkConnections->isRunning()) {
+        else if (!core::NetworkManager::instance().isRunning()) {
             // exit if not running
             MessageHandler::printError("Network disconnected. Exiting");
             break;
@@ -1153,7 +1226,7 @@ void Engine::render() {
         // Check if exit key was pressed or window was closed
         _isRunning = !(thisNode.getKeyPressed(_exitKey) ||
                      thisNode.closeAllWindows() || _shouldTerminate ||
-                     !_networkConnections->isRunning());
+                     !core::NetworkManager::instance().isRunning());
 
         // for all windows
         _frameCounter++;
@@ -1172,19 +1245,19 @@ void Engine::renderDisplayInfo() {
 #ifdef SGCT_HAS_TEXT
     const unsigned int lFrameNumber = Window::getSwapGroupFrameNumber();
 
-    unsigned int fontSize = Settings::instance()->getOSDTextFontSize();
+    unsigned int fontSize = Settings::instance().getOSDTextFontSize();
     fontSize = static_cast<unsigned int>(
         static_cast<float>(fontSize) * getCurrentWindow().getScale().x
     );
 
-    sgct::text::Font* font = text::FontManager::instance()->getFont("SGCTFont", fontSize);
+    sgct::text::Font* font = text::FontManager::instance().getFont("SGCTFont", fontSize);
 
     if (font) {
         const float lineHeight = font->getHeight() * 1.59f;
         const glm::vec2 pos = glm::vec2(getCurrentWindow().getResolution()) *
-                              Settings::instance()->getOSDTextOffset();
+                              Settings::instance().getOSDTextOffset();
         
-        const core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+        const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
         text::print(
             *font,
             text::TextAlignMode::TopLeft,
@@ -1193,7 +1266,7 @@ void Engine::renderDisplayInfo() {
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Node ip: %s (%s)",
             thisNode.getAddress().c_str(),
-            _networkConnections->isComputerServer() ? "master" : "slave"
+            core::NetworkManager::instance().isComputerServer() ? "master" : "slave"
         );
 
         const double accFrameTime = std::accumulate(
@@ -1243,8 +1316,8 @@ void Engine::renderDisplayInfo() {
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
                 "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)", avgSynctime * 1000.0, 
-                SharedData::instance()->getUserDataSize(),
-                SharedData::instance()->getCompressionRatio()
+                SharedData::instance().getUserDataSize(),
+                SharedData::instance().getCompressionRatio()
             );
         }
         else {
@@ -1371,20 +1444,20 @@ void Engine::prepareBuffer(TextureIndex ti) {
     // update attachments
     fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth)
         );
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
@@ -1428,7 +1501,7 @@ void Engine::renderFBOTexture() {
         glUniform1i(win.getStereoShaderRightTexLoc(), 1);
 
         for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            if (Settings::instance()->getUseWarping()) {
+            if (Settings::instance().getUseWarping()) {
                 win.getViewport(i).renderWarpMesh();
             }
             else {
@@ -1445,7 +1518,7 @@ void Engine::renderFBOTexture() {
         maskShaderSet = true;
 
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            if (Settings::instance()->getUseWarping()) {
+            if (Settings::instance().getUseWarping()) {
                 win.getViewport(i).renderWarpMesh();
             }
             else {
@@ -1466,7 +1539,7 @@ void Engine::renderFBOTexture() {
                 win.getFrameBufferTexture(TextureIndex::RightEye)
             );
             for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-                if (Settings::instance()->getUseWarping()) {
+                if (Settings::instance().getUseWarping()) {
                     win.getViewport(i).renderWarpMesh();
                 }
                 else {
@@ -1489,7 +1562,6 @@ void Engine::renderFBOTexture() {
         glEnable(GL_BLEND);
 
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
-
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
@@ -1565,8 +1637,7 @@ void Engine::renderViewports(TextureIndex ti) {
                 );
             }
 
-            // check if we want to copy the previous window into this one before we go
-            // ahead with anyting else
+            // check if we want to blit the previous window before we do anything else
             if (getCurrentWindow().shouldBlitPreviousWindow()) {
                 blitPreviousWindowViewport(_currentFrustumMode);
             }
@@ -1590,15 +1661,14 @@ void Engine::renderViewports(TextureIndex ti) {
     glDisable(GL_DEPTH_TEST);
 
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
-    const bool splitScreenStereo = (sm >= Window::StereoMode::SideBySide);
-    if (!(splitScreenStereo && _currentFrustumMode == core::Frustum::Mode::StereoLeftEye))
-    {
+    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
+    if (!(isSplitScreen && _currentFrustumMode == core::Frustum::Mode::StereoLeftEye)) {
         if (getCurrentWindow().usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
             renderPostFX(ti);
             render2D();
-            if (splitScreenStereo) {
+            if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
@@ -1606,7 +1676,7 @@ void Engine::renderViewports(TextureIndex ti) {
         }
         else {
             render2D();
-            if (splitScreenStereo) {
+            if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                 render2D();
@@ -1735,10 +1805,10 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
         glUniform1f(_shaderLoc.sizeX, static_cast<float>(framebufferSize.x));
         glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
         glUniform1i(_shaderLoc.fxaaTexture, 0);
-        glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance()->getFXAASubPixTrim());
+        glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance().getFXAASubPixTrim());
         glUniform1f(
             _shaderLoc.fxaaSubPixOffset,
-            Settings::instance()->getFXAASubPixOffset()
+            Settings::instance().getFXAASubPixOffset()
         );
 
         getCurrentWindow().bindVAO();
@@ -1766,20 +1836,20 @@ void Engine::updateRenderingTargets(TextureIndex ti) {
     // update attachments
     fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth)
         );
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
             getCurrentWindow().getFrameBufferTexture(TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
@@ -1803,10 +1873,10 @@ void Engine::loadShaders() {
     glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
 
     _shaderLoc.fxaaSubPixTrim = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_TRIM");
-    glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance()->getFXAASubPixTrim());
+    glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance().getFXAASubPixTrim());
 
     _shaderLoc.fxaaSubPixOffset = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_OFFSET");
-    glUniform1f(_shaderLoc.fxaaSubPixOffset, Settings::instance()->getFXAASubPixOffset());
+    glUniform1f(_shaderLoc.fxaaSubPixOffset, Settings::instance().getFXAASubPixOffset());
 
     _shaderLoc.fxaaTexture = _shader.fxaa.getUniformLocation("tex");
     glUniform1i(_shaderLoc.fxaaTexture, 0);
@@ -1864,59 +1934,8 @@ void Engine::setAndClearBuffer(BufferMode mode) {
     }
 }
 
-bool Engine::checkForOGLErrors(const std::string& function) {
-    const GLenum error = glGetError();
-    if (error == GL_NO_ERROR) {
-        return true;
-    }
-
-    switch (error) {
-        case GL_INVALID_ENUM:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_INVALID_ENUM", function.c_str()
-            );
-            break;
-        case GL_INVALID_VALUE:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_INVALID_VALUE", function.c_str()
-            );
-            break;
-        case GL_INVALID_OPERATION:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_INVALID_OPERATION", function.c_str()
-            );
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_INVALID_FRAMEBUFFER_OPERATION",
-                function.c_str()
-            );
-            break;
-        case GL_STACK_OVERFLOW:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_STACK_OVERFLOW", function.c_str()
-            );
-            break;
-        case GL_STACK_UNDERFLOW:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_STACK_UNDERFLOW", function.c_str()
-            );
-            break;
-        case GL_OUT_OF_MEMORY:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: GL_OUT_OF_MEMORY", function.c_str()
-            );
-            break;
-        default:
-            MessageHandler::printError(
-                "OpenGL error. Function %s: %i", function.c_str(), static_cast<int>(error)
-            );
-    }
-    return error == GL_NO_ERROR;
-}
-
 bool Engine::isMaster() const {
-    return _networkConnections->isComputerServer();
+    return core::NetworkManager::instance().isComputerServer();
 }
 
 core::Frustum::Mode Engine::getCurrentFrustumMode() const {
@@ -1934,7 +1953,7 @@ const glm::mat4& Engine::getCurrentViewMatrix() const {
 }
 
 const glm::mat4& Engine::getModelMatrix() const {
-    return core::ClusterManager::instance()->getSceneTransform();
+    return core::ClusterManager::instance().getSceneTransform();
 }
 
 const glm::mat4& Engine::getCurrentViewProjectionMatrix() const {
@@ -1945,13 +1964,13 @@ const glm::mat4& Engine::getCurrentViewProjectionMatrix() const {
 glm::mat4 Engine::getCurrentModelViewProjectionMatrix() const {
     const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(_currentFrustumMode).getViewProjectionMatrix() * 
-           core::ClusterManager::instance()->getSceneTransform();
+           core::ClusterManager::instance().getSceneTransform();
 }
 
 glm::mat4 Engine::getCurrentModelViewMatrix() const {
     const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
     return vp.getProjection(_currentFrustumMode).getViewMatrix() *
-           core::ClusterManager::instance()->getSceneTransform();
+           core::ClusterManager::instance().getSceneTransform();
 }
 
 unsigned int Engine::getCurrentFrameNumber() const {
@@ -1959,7 +1978,7 @@ unsigned int Engine::getCurrentFrameNumber() const {
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
 
     // clear the buffers initially
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -1978,8 +1997,8 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     glfwPollEvents();
     
     // Must wait until all nodes are running if using swap barrier
-    if (core::ClusterManager::instance()->getIgnoreSync() ||
-        core::ClusterManager::instance()->getNumberOfNodes() <= 1)
+    if (core::ClusterManager::instance().getIgnoreSync() ||
+        core::ClusterManager::instance().getNumberOfNodes() <= 1)
     {
         return;
     }
@@ -1996,11 +2015,11 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     else {
         MessageHandler::printInfo("Swap groups are not supported by hardware");
     }
-
     MessageHandler::printInfo("Waiting for all nodes to connect");
 
-    while (_networkConnections->isRunning() && !thisNode.getKeyPressed(_exitKey) &&
-            !thisNode.closeAllWindows() && !_shouldTerminate)
+    while (core::NetworkManager::instance().isRunning() &&
+           !thisNode.getKeyPressed(_exitKey) && !thisNode.closeAllWindows() &&
+           !_shouldTerminate)
     {
         // Swap front and back rendering buffers
         for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
@@ -2014,7 +2033,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         }
         glfwPollEvents();
 
-        if (_networkConnections->areAllNodesConnected()) {
+        if (core::NetworkManager::instance().areAllNodesConnected()) {
             break;
         }
 
@@ -2040,7 +2059,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 }
 
 void Engine::updateFrustums() {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
         Window& win = thisNode.getWindow(w);
         for (int i = 0; i < win.getNumberOfViewports(); i++) {
@@ -2096,9 +2115,7 @@ void Engine::updateFrustums() {
 void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     // Check that we have a previous window
     if (getCurrentWindowIndex() < 1) {
-        MessageHandler::printWarning(
-            "Could not copy from previous window, as this window is the first one"
-        );
+        MessageHandler::printWarning("Cannot blit previous window, as this is the first");
         return;
     }
 
@@ -2166,11 +2183,11 @@ void Engine::setCleanUpFunction(std::function<void()> fn) {
 }
 
 void Engine::setEncodeFunction(std::function<void()> fn) {
-    SharedData::instance()->setEncodeFunction(std::move(fn));
+    SharedData::instance().setEncodeFunction(std::move(fn));
 }
 
 void Engine::setDecodeFunction(std::function<void()> fn) {
-    SharedData::instance()->setDecodeFunction(std::move(fn));
+    SharedData::instance().setDecodeFunction(std::move(fn));
 }
 
 void Engine::setExternalControlCallback(std::function<void(const char*, int)> fn) {
@@ -2232,9 +2249,9 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
  }
 
 void Engine::clearBuffer() {
-    glm::vec4 color = Engine::instance()->getClearColor();
+    const glm::vec4 color = Engine::instance().getClearColor();
 
-    const float alpha = instance()->getCurrentWindow().hasAlpha() ? 0.f : color.a;
+    const float alpha = instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -2378,7 +2395,7 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 }
 
 void Engine::setEyeSeparation(float eyeSeparation) {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
         Window& window = thisNode.getWindow(w);
 
@@ -2409,6 +2426,7 @@ unsigned int Engine::getCurrentDrawTexture() const {
     }
 }
 
+// @TODO (abock, 2019-11-01) Remove the following three functions if possible
 unsigned int Engine::getCurrentDepthTexture() const {
     return getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth);
 }
@@ -2426,7 +2444,7 @@ glm::ivec2 Engine::getCurrentResolution() const {
 }
 
 int Engine::getFocusedWindowIndex() const {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
         if (thisNode.getWindow(i).isFocused()) {
             return i;
@@ -2447,8 +2465,7 @@ void Engine::takeScreenshot() {
     _takeScreenshot = true;
 }
 
-void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int)
-{
+void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int) {
     if (_externalDecodeCallbackFn && length > 0) {
         _externalDecodeCallbackFn(data, length);
     }
@@ -2481,49 +2498,54 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 }
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
-    if (_networkConnections->getExternalControlConnection()) {
-        _networkConnections->getExternalControlConnection()->sendData(data, length);
+    if (core::NetworkManager::instance().getExternalControlConnection()) {
+        core::NetworkManager::instance().getExternalControlConnection()->sendData(
+            data,
+            length
+        );
     }
 }
 
 void Engine::setDataTransferCompression(bool state, int level) {
-    _networkConnections->setDataTransferCompression(state, level);
+    core::NetworkManager::instance().setDataTransferCompression(state, level);
 }
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
-    _networkConnections->transferData(data, length, packageId);
+    core::NetworkManager::instance().transferData(data, length, packageId);
 }
 
-void Engine::transferDataToNode(const void* data, int length, int packageId,
-                                size_t nodeIndex)
-{
-    _networkConnections->transferData(data, length, packageId, nodeIndex);
+void Engine::transferDataToNode(const void* data, int length, int package, size_t node) {
+    core::NetworkManager::instance().transferData(data, length, package, node);
 }
 
 void Engine::sendMessageToExternalControl(const std::string& msg) {
-    if (_networkConnections->getExternalControlConnection()) {
-        const int size = static_cast<int>(msg.size());
-        _networkConnections->getExternalControlConnection()->sendData(msg.c_str(), size);
+    if (core::NetworkManager::instance().getExternalControlConnection()) {
+        core::NetworkManager::instance().getExternalControlConnection()->sendData(
+            msg.c_str(),
+            static_cast<int>(msg.size())
+        );
     }
 }
 
 bool Engine::isExternalControlConnected() const {
-    return (_networkConnections->getExternalControlConnection() &&
-            _networkConnections->getExternalControlConnection()->isConnected());
+    return (core::NetworkManager::instance().getExternalControlConnection() &&
+        core::NetworkManager::instance().getExternalControlConnection()->isConnected());
 }
 
 void Engine::setExternalControlBufferSize(unsigned int newSize) {
-    if (_networkConnections->getExternalControlConnection()) {
-        _networkConnections->getExternalControlConnection()->setBufferSize(newSize);
+    if (core::NetworkManager::instance().getExternalControlConnection()) {
+        core::NetworkManager::instance().getExternalControlConnection()->setBufferSize(
+            newSize
+        );
     }
 }
 
 void Engine::updateDrawBufferResolutions() {
-    core::Node& thisNode = core::ClusterManager::instance()->getThisNode();
+    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     _drawBufferResolutions.clear();
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        Window& win = getWindow(i);
+        const Window& win = thisNode.getWindow(i);
 
         // first add cubemap resolutions if any
         for (int j = 0; j < win.getNumberOfViewports(); ++j) {
@@ -2574,19 +2596,19 @@ const unsigned char* Engine::getJoystickButtons(int joystick, int* numOfValues) 
 }
 
 const core::Node& Engine::getThisNode() const {
-    return core::ClusterManager::instance()->getThisNode();
+    return core::ClusterManager::instance().getThisNode();
 }
 
 Window& Engine::getWindow(int index) const {
-    return core::ClusterManager::instance()->getThisNode().getWindow(index);
+    return core::ClusterManager::instance().getThisNode().getWindow(index);
 }
 
 int Engine::getNumberOfWindows() const {
-    return core::ClusterManager::instance()->getThisNode().getNumberOfWindows();
+    return core::ClusterManager::instance().getThisNode().getNumberOfWindows();
 }
 
 Window& Engine::getCurrentWindow() const {
-    return core::ClusterManager::instance()->getThisNode().getWindow(_currentWindowIndex);
+    return core::ClusterManager::instance().getThisNode().getWindow(_currentWindowIndex);
 }
 
 int Engine::getCurrentWindowIndex() const {
@@ -2594,11 +2616,7 @@ int Engine::getCurrentWindowIndex() const {
 }
 
 core::User& Engine::getDefaultUser() {
-    return core::ClusterManager::instance()->getDefaultUser();
-}
-
-TrackingManager& Engine::getTrackingManager() {
-    return core::ClusterManager::instance()->getTrackingManager();
+    return core::ClusterManager::instance().getDefaultUser();
 }
 
 double Engine::getTime() {

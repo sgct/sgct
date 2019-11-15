@@ -6,12 +6,15 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/correction/simple.h>
+#include <sgct/correction/sciss.h>
 
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
+
+#define Error(code, msg) sgct::Error(sgct::Error::Component::SCISS, code, msg)
 
 namespace {
     struct SCISSTexturedVertex {
@@ -39,7 +42,7 @@ namespace {
         float fovDown = 20.f;
         float fovLeft = 20.f;
         float fovRight = 20.f;
-};
+    };
 } // namespace
 
 namespace sgct::core::correction {
@@ -47,80 +50,53 @@ namespace sgct::core::correction {
 Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::printInfo(
-        "CorrectionMesh: Reading sciss mesh data from '%s'", path.c_str()
-    );
+    MessageHandler::printInfo("Reading SCISS mesh data from '%s'", path.c_str());
 
-    FILE* meshFile = nullptr;
-    bool loadSuccess = false;
-#if (_MSC_VER >= 1400)
-    loadSuccess = fopen_s(&meshFile, path.c_str(), "rb") == 0;
-#else
-    meshFile = fopen(path.c_str(), "rb");
-    loadSuccess = meshFile != nullptr;
-#endif
-    if (!loadSuccess) {
-        throw std::runtime_error("Failed to open warping mesh file");
+    FILE* file = nullptr;
+    file = fopen(path.c_str(), "rb");
+    if (file == nullptr) {
+        throw Error(2050, "Failed to open " + path);
     }
 
-    size_t ret;
-    unsigned int numberOfVertices = 0;
-    unsigned int numberOfIndices = 0;
 
     char fileID[3];
-#if (_MSC_VER >= 1400)
-    ret = fread_s(fileID, sizeof(char) * 3, sizeof(char), 3, meshFile);
-#else
-    ret = fread(fileID, sizeof(char), 3, meshFile);
-#endif
+    const size_t retHeader = fread(fileID, sizeof(char), 3, file);
 
     // check fileID
-    if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || ret != 3) {
-        fclose(meshFile);
-        throw std::runtime_error("Incorrect file id");
+    if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || retHeader != 3) {
+        fclose(file);
+        throw Error(2051, "Incorrect file id");
     }
 
     // read file version
     uint8_t fileVersion;
-#if (_MSC_VER >= 1400)
-    ret = fread_s(&fileVersion, sizeof(uint8_t), sizeof(uint8_t), 1, meshFile);
-#else
-    ret = fread(&fileVersion, sizeof(uint8_t), 1, meshFile);
-#endif
-    if (ret != 1) {
-        fclose(meshFile);
-        throw std::runtime_error("Error parsing file");
+    const size_t retVer = fread(&fileVersion, sizeof(uint8_t), 1, file);
+    if (retVer != 1) {
+        fclose(file);
+        throw Error(2052, "Error parsing file version from file");
     }
 
     MessageHandler::printDebug("CorrectionMesh: file version %u", fileVersion);
 
     // read mapping type
     unsigned int type;
-#if (_MSC_VER >= 1400)
-    ret = fread_s(&type, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
-#else
-    ret = fread(&type, sizeof(unsigned int), 1, meshFile);
-#endif
-    if (ret != 1) {
-        fclose(meshFile);
-        throw std::runtime_error("Error parsing file");
+    const size_t retType = fread(&type, sizeof(unsigned int), 1, file);
+    if (retType != 1) {
+        fclose(file);
+        throw Error(2053, "Error parsing type from file");
     }
 
     MessageHandler::printDebug(
-        "CorrectionMesh: Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
+        "Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
     );
 
     // read viewdata
     SCISSViewData viewData;
-#if (_MSC_VER >= 1400)
-    ret = fread_s(&viewData, sizeof(SCISSViewData), sizeof(SCISSViewData), 1, meshFile);
-#else
-    ret = fread(&viewData, sizeof(SCISSViewData), 1, meshFile);
-#endif
+    const size_t retData = fread(&viewData, sizeof(SCISSViewData), 1, file);
     double yaw, pitch, roll;
-    if (ret != 1) {
-        fclose(meshFile);
-        throw std::runtime_error("Error parsing file");
+    if (retData != 1) {
+        fclose(file);
+        throw Error(2054, "Error parsing view data from file");
     }
 
     const double x = static_cast<double>(viewData.qx);
@@ -136,112 +112,69 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     roll = -angles.z;
         
     MessageHandler::printDebug(
-        "CorrectionMesh: Rotation quat = [%f %f %f %f]. "
-        "yaw = %lf, pitch = %lf, roll = %lf",
+        "Rotation quat = [%f %f %f %f]. yaw = %lf, pitch = %lf, roll = %lf",
         viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-    MessageHandler::printDebug(
-        "CorrectionMesh: Position = [%f %f %f]", viewData.x, viewData.y, viewData.z
-    );
+    MessageHandler::printDebug("Position: %f %f %f", viewData.x, viewData.y, viewData.z);
 
-    MessageHandler::printDebug("CorrectionMesh: FOV up = %f", viewData.fovUp);
-    MessageHandler::printDebug("CorrectionMesh: FOV down = %f", viewData.fovDown);
-    MessageHandler::printDebug("CorrectionMesh: FOV left = %f", viewData.fovLeft);
-    MessageHandler::printDebug("CorrectionMesh: FOV right = %f", viewData.fovRight);
+    MessageHandler::printDebug(
+        "FOV: (up %f) (down %f) (left %f) (right %f)",
+        viewData.fovUp, viewData.fovDown, viewData.fovLeft, viewData.fovRight
+    );
 
     // read number of vertices
     unsigned int size[2];
-#if (_MSC_VER >= 1400)
-    ret = fread_s(size, sizeof(unsigned int) * 2, sizeof(unsigned int), 2, meshFile);
-#else
-    ret = fread(size, sizeof(unsigned int), 2, meshFile);
-#endif
-    if (ret != 2) {
-        fclose(meshFile);
+    const size_t retSize = fread(size, sizeof(unsigned int), 2, file);
+    if (retSize != 2) {
+        fclose(file);
         throw std::runtime_error("Error parsing file");
     }
 
+    unsigned int nVertices = 0;
     if (fileVersion == 2) {
-        numberOfVertices = size[1];
-        MessageHandler::printDebug(
-            "CorrectionMesh: Number of vertices = %u", numberOfVertices
-        );
+        nVertices = size[1];
+        MessageHandler::printDebug("Number of vertices = %u", nVertices);
     }
     else {
-        numberOfVertices = size[0] * size[1];
+        nVertices = size[0] * size[1];
         MessageHandler::printDebug(
-            "CorrectionMesh: Number of vertices = %u (%ux%u)",
-            numberOfVertices, size[0], size[1]
+            "Number of vertices = %u (%ux%u)", nVertices, size[0], size[1]
         );
     }
     // read vertices
-    std::vector<SCISSTexturedVertex> texturedVertexList(numberOfVertices);
-#if (_MSC_VER >= 1400)
-    ret = fread_s(
-        texturedVertexList.data(),
-        sizeof(SCISSTexturedVertex) * numberOfVertices,
-        sizeof(SCISSTexturedVertex),
-        numberOfVertices,
-        meshFile
-    );
-#else
-    ret = fread(
+    std::vector<SCISSTexturedVertex> texturedVertexList(nVertices);
+    const size_t retVertices = fread(
         texturedVertexList.data(),
         sizeof(SCISSTexturedVertex),
-        numberOfVertices,
-        meshFile
+        nVertices,
+        file
     );
-#endif
-    if (ret != numberOfVertices) {
-        fclose(meshFile);
-        throw std::runtime_error("Error parsing file");
+    if (retVertices != nVertices) {
+        fclose(file);
+        throw Error(2055, "Error parsing vertices from file");
     }
 
     // read number of indices
-#if (_MSC_VER >= 1400)
-    ret = fread_s(
-        &numberOfIndices,
-        sizeof(unsigned int),
-        sizeof(unsigned int),
-        1,
-        meshFile
-    );
-#else
-    ret = fread(&numberOfIndices, sizeof(unsigned int), 1, meshFile);
-#endif
+    unsigned int nIndices = 0;
+    const size_t retIndices = fread(&nIndices, sizeof(unsigned int), 1, file);
 
-    if (ret != 1) {
-        fclose(meshFile);
-        throw std::runtime_error("Error parsing file");
+    if (retIndices != 1) {
+        fclose(file);
+        throw Error(2056, "Error parsing indices from file");
     }
-    MessageHandler::printDebug("CorrectionMesh: Number of indices = %u", numberOfIndices);
+    MessageHandler::printDebug("Number of indices = %u", nIndices);
 
     // read faces
-    if (numberOfIndices > 0) {
-        buf.indices.resize(numberOfIndices);
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-        ret = fread_s(
-            buf.indices.data(),
-            sizeof(unsigned int) * numberOfIndices,
-            sizeof(unsigned int),
-            numberOfIndices,
-            meshFile
-        );
-#else
-        ret = fread(
-            buf.indices.data(),
-            sizeof(unsigned int),
-            numberOfIndices,
-            meshFile
-        );
-#endif
-        if (ret != numberOfIndices) {
-            fclose(meshFile);
-            throw std::runtime_error("Error parsing file");
+    if (nIndices > 0) {
+        buf.indices.resize(nIndices);
+        const size_t r = fread(buf.indices.data(), sizeof(unsigned int), nIndices, file);
+        if (r != nIndices) {
+            fclose(file);
+            throw Error(2057, "Error parsing faces from file");
         }
     }
 
-    fclose(meshFile);
+    fclose(file);
 
     parent.getUser().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
 
@@ -253,18 +186,11 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
     );
 
-    Engine::instance()->updateFrustums();
+    Engine::instance().updateFrustums();
 
-    buf.vertices.resize(numberOfVertices);
-    for (unsigned int i = 0; i < numberOfVertices; i++) {
-        CorrectionMeshVertex& vertex = buf.vertices[i];
+    buf.vertices.resize(nVertices);
+    for (unsigned int i = 0; i < nVertices; i++) {
         SCISSTexturedVertex& scissVertex = texturedVertexList[i];
-
-        vertex.r = 1.f;
-        vertex.g = 1.f;
-        vertex.b = 1.f;
-        vertex.a = 1.f;
-
         scissVertex.x = glm::clamp(scissVertex.x, 0.f, 1.f);
         scissVertex.y = glm::clamp(scissVertex.y, 0.f, 1.f);
         scissVertex.tx = glm::clamp(scissVertex.tx, 0.f, 1.f);
@@ -274,11 +200,17 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         const glm::vec2& p = parent.getPosition();
 
         // convert to [-1, 1]
+        CorrectionMeshVertex& vertex = buf.vertices[i];
         vertex.x = 2.f * (scissVertex.x * s.x + p.x) - 1.f;
         vertex.y = 2.f * ((1.f - scissVertex.y) * s.y + p.y) - 1.f;
 
         vertex.s = scissVertex.tx * parent.getSize().x + parent.getPosition().x;
         vertex.t = scissVertex.ty * parent.getSize().y + parent.getPosition().y;
+
+        vertex.r = 1.f;
+        vertex.g = 1.f;
+        vertex.b = 1.f;
+        vertex.a = 1.f;
     }
 
     if (fileVersion == '2' && size[0] == 4) {

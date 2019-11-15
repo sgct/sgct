@@ -14,7 +14,7 @@
 namespace sgct::core {
 
 BaseViewport::BaseViewport()
-    : _user(ClusterManager::instance()->getDefaultUser())
+    : _user(&ClusterManager::instance().getDefaultUser())
 {}
 
 void BaseViewport::setPos(glm::vec2 position) {
@@ -45,12 +45,12 @@ const glm::vec2& BaseViewport::getSize() const {
     return _size;
 }
 
-void BaseViewport::setUser(User& user) {
+void BaseViewport::setUser(User* user) {
     _user = user;
 }
 
 User& BaseViewport::getUser() const {
-    return _user;
+    return *_user;
 }
 
 Frustum::Mode BaseViewport::getEye() const {
@@ -79,9 +79,9 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
-    User* user = ClusterManager::instance()->getUser(_userName);
+    User* user = ClusterManager::instance().getUser(_userName);
     if (user) {
-        _user = *user;
+        _user = user;
     }
 }
 
@@ -90,7 +90,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
         default:
         case Frustum::Mode::MonoEye:
             _projections.mono.calculateProjection(
-                _user.getPosMono(),
+                _user->getPosMono(),
                 _projectionPlane,
                 nearClip,
                 farClip
@@ -98,7 +98,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
             break;
         case Frustum::Mode::StereoLeftEye:
             _projections.stereoLeft.calculateProjection(
-                _user.getPosLeftEye(),
+                _user->getPosLeftEye(),
                 _projectionPlane,
                 nearClip,
                 farClip
@@ -106,7 +106,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
             break;
         case Frustum::Mode::StereoRightEye:
             _projections.stereoRight.calculateProjection(
-                _user.getPosRightEye(),
+                _user->getPosRightEye(),
                 _projectionPlane,
                 nearClip,
                 farClip
@@ -118,7 +118,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
 void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                                              float farClip)
 {
-    const glm::vec3& eyePos = _user.getPosMono();
+    const glm::vec3& eyePos = _user->getPosMono();
 
     switch (mode) {
         case Frustum::Mode::MonoEye:
@@ -127,7 +127,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 _projectionPlane,
                 nearClip,
                 farClip,
-                _user.getPosMono() - eyePos
+                _user->getPosMono() - eyePos
             );
             break;
         case Frustum::Mode::StereoLeftEye:
@@ -136,7 +136,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 _projectionPlane,
                 nearClip,
                 farClip,
-                _user.getPosLeftEye() - eyePos
+                _user->getPosLeftEye() - eyePos
             );
             break;
         case Frustum::Mode::StereoRightEye:
@@ -145,7 +145,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 _projectionPlane,
                 nearClip,
                 farClip,
-                _user.getPosRightEye() - eyePos
+                _user->getPosRightEye() - eyePos
             );
             break;
     }
@@ -189,15 +189,18 @@ float BaseViewport::getHorizontalFieldOfViewDegrees() const {
     return (glm::degrees(atan(abs(xDist / zDist)))) * 2;
 }
 
-void BaseViewport::setHorizontalFieldOfView(float hFov, float aspectRatio) {
-    const float hFov2 = hFov / 2.f;
-    const float zDist = abs(_projectionPlane.getCoordinateUpperRight().z);
+void BaseViewport::setHorizontalFieldOfView(float hFov) {
+    const glm::vec3 upperLeft = _projectionPlane.getCoordinateUpperLeft();
+    const glm::vec3 lowerLeft = _projectionPlane.getCoordinateLowerLeft();
+    const glm::vec3 upperRight = _projectionPlane.getCoordinateUpperRight();
 
-    const float projDimX = zDist * tan(glm::radians(hFov2));
-    const float projDimY = projDimX / aspectRatio;
-    const float vAngle = glm::degrees(atan(projDimY / zDist));
+    const float ratio = hFov / getHorizontalFieldOfViewDegrees();
+    const float up = glm::degrees(atan(ratio * upperLeft.y / -upperLeft.z));
+    const float down = glm::degrees(atan(ratio * lowerLeft.y / -lowerLeft.z));
+    const float left = glm::degrees(atan(ratio * upperLeft.x / -upperLeft.z));
+    const float right = glm::degrees(atan(ratio * upperRight.x / -upperRight.z));
 
-    setViewPlaneCoordsUsingFOVs(vAngle, -vAngle, -hFov2, hFov2, _rotation, zDist);
+    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, abs(upperLeft.z));
 }
 
 } // namespace sgct::core

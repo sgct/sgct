@@ -32,7 +32,7 @@ void myDraw2DFun() {
         }
 
         text::print(
-            *text::FontManager::instance()->getFont("SGCTFont", 12),
+            *text::FontManager::instance().getFont("SGCTFont", 12),
             sgct::text::TextAlignMode::TopLeft,
             18,
             32,
@@ -50,9 +50,10 @@ int main(int argc, char* argv[]) {
     Engine::create(config);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
@@ -72,9 +73,9 @@ int main(int argc, char* argv[]) {
         );
     }
 
-    Engine::instance()->setDraw2DFunction(myDraw2DFun);
+    Engine::instance().setDraw2DFunction(myDraw2DFun);
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

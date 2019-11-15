@@ -15,20 +15,13 @@
 namespace {
     std::string getShaderTypeName(GLenum shaderType) {
         switch (shaderType) {
-            case GL_VERTEX_SHADER:
-                return "Vertex shader";
-            case GL_FRAGMENT_SHADER:
-                return "Fragment shader";
-            case GL_GEOMETRY_SHADER:
-                return "Geometry shader";
-            case GL_COMPUTE_SHADER:
-                return "Compute shader";
-            case GL_TESS_CONTROL_SHADER:
-                return "Tesselation control shader";
-            case GL_TESS_EVALUATION_SHADER:
-                return "Tesselation evaluation shader";
-            default:
-                return "Unknown shader";
+            case GL_VERTEX_SHADER:          return "Vertex shader";
+            case GL_FRAGMENT_SHADER:        return "Fragment shader";
+            case GL_GEOMETRY_SHADER:        return "Geometry shader";
+            case GL_COMPUTE_SHADER:         return "Compute shader";
+            case GL_TESS_CONTROL_SHADER:    return "Tesselation control shader";
+            case GL_TESS_EVALUATION_SHADER: return "Tesselation evaluation shader";
+            default:                        return "Unknown shader";
         };
     }
 
@@ -69,51 +62,35 @@ Shader::Shader(GLenum shaderType, const std::string& sourceString)
     glCompileShader(_shaderId);
     checkCompilationStatus(_shaderType, _shaderId);
 }
-    Shader::Shader(const Shader& rhs) {
+
+Shader::Shader(const Shader& rhs) {
+    _shaderId = rhs._shaderId;
+}
+Shader::Shader(Shader&& rhs) noexcept {
+    _shaderId = rhs._shaderId;
+    rhs._shaderId = 0;
+}
+
+Shader& Shader::operator=(const Shader& rhs) noexcept {
+    if (this != &rhs) {
         _shaderId = rhs._shaderId;
     }
-    Shader::Shader(Shader&& rhs) noexcept {
+    return *this;
+}
+Shader& Shader::operator=(Shader&& rhs) noexcept {
+    if (this != &rhs) {
         _shaderId = rhs._shaderId;
         rhs._shaderId = 0;
     }
-
-    Shader& Shader::operator=(const Shader& rhs) noexcept {
-        if (this != &rhs) {
-            _shaderId = rhs._shaderId;
-        }
-        return *this;
-    }
-    Shader& Shader::operator=(Shader&& rhs) noexcept {
-        if (this != &rhs) {
-            _shaderId = rhs._shaderId;
-            rhs._shaderId = 0;
-        }
-        return *this;
-    }
-
-// Shader::Shader(Shader&& rhs)
-//     : _shaderId(rhs._shaderId)
-// {
-//     _shaderId = 0;
-// }
+    return *this;
+}
 
 Shader::~Shader() {
     glDeleteShader(_shaderId);
 }
 
-// Shader& Shader::operator=(Shader&& rhs) {
-//     if (&rhs == this) {
-//         return *this;
-//     }
-
-//     _shaderId = rhs._shaderId;
-//     rhs._shaderId = 0;
-//     return *this;
-// }
-
 int Shader::getId() const {
     return _shaderId;
 }
-
 
 } // namespace sgct::core

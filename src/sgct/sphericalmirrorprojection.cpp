@@ -26,9 +26,9 @@ namespace sgct::core {
 void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render() {
-    Engine::instance()->enterCurrentViewport();
+    Engine::instance().enterCurrentViewport();
 
-    Window& winPtr = Engine::instance()->getCurrentWindow();
+    Window& winPtr = Engine::instance().getCurrentWindow();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
     float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
@@ -43,7 +43,7 @@ void SphericalMirrorProjection::render() {
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+    const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -93,7 +93,7 @@ void SphericalMirrorProjection::renderCubemap() {
             attachTextures(texture);
         }
 
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&bv);
+        Engine::instance().getCurrentWindow().setCurrentViewport(&bv);
         drawCubeFace(idx);
 
         // blit MSAA fbo to texture
@@ -129,18 +129,10 @@ void core::SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat);
-        if (Engine::checkForOGLErrors("SphericalMirrorProjection::initTextures")) {
-            MessageHandler::printDebug(
-                "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
-                _cubemapResolution, _cubemapResolution, texture
-            );
-        }
-        else {
-            MessageHandler::printError(
-                "NonLinearProjection: Error occured while generating %dx%d cube face "
-                "texture (id: %d)", _cubemapResolution, _cubemapResolution, texture
-            );
-        }
+        MessageHandler::printDebug(
+            "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
+            _cubemapResolution, _cubemapResolution, texture
+        );
     };
 
     generate(_subViewports.right, _textures.cubeFaceRight);
@@ -153,19 +145,19 @@ void core::SphericalMirrorProjection::initTextures() {
 
 void SphericalMirrorProjection::initVBO() {
     Viewport* vp = dynamic_cast<Viewport*>(
-        Engine::instance()->getCurrentWindow().getCurrentViewport()
+        Engine::instance().getCurrentWindow().getCurrentViewport()
     );
     if (vp) {
-        _meshes.bottom.readAndGenerateMesh(_meshPaths.bottom, *vp);
-        _meshes.left.readAndGenerateMesh(_meshPaths.left, *vp);
-        _meshes.right.readAndGenerateMesh(_meshPaths.right, *vp);
-        _meshes.top.readAndGenerateMesh(_meshPaths.top, *vp);
+        _meshes.bottom.loadMesh(_meshPaths.bottom, *vp);
+        _meshes.left.loadMesh(_meshPaths.left, *vp);
+        _meshes.right.loadMesh(_meshPaths.right, *vp);
+        _meshes.top.loadMesh(_meshPaths.top, *vp);
     }
 }
 
 void SphericalMirrorProjection::initViewports() {
     // radius is needed to calculate the distance to all view planes
-    float radius = _diameter / 2.f;
+    const float radius = _diameter / 2.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
@@ -209,20 +201,16 @@ void SphericalMirrorProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            tiltMat,
-            glm::radians(90.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
 
         _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -233,20 +221,16 @@ void SphericalMirrorProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
 
         _subViewports.bottom.setEnabled(false);
-        glm::mat4 rotMat = glm::rotate(
-            tiltMat,
-            glm::radians(-90.f),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
 
         _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -256,20 +240,16 @@ void SphericalMirrorProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            tiltMat,
-            glm::radians(90.f),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
 
         _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -298,20 +278,16 @@ void SphericalMirrorProjection::initViewports() {
         
         _subViewports.back.setEnabled(false);
 
-        glm::mat4 rotMat = glm::rotate(
-            tiltMat,
-            glm::radians(180.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 
         _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 }
@@ -410,7 +386,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     Engine::clearBuffer();
 #endif
 
-    Engine::instance()->_drawFn();
+    Engine::instance()._drawFn();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

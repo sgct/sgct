@@ -9,15 +9,12 @@
 #include <sgct/correction/skyskan.h>
 
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 
-#if (_MSC_VER >= 1400)
-    #define _sscanf sscanf_s
-#else
-    #define _sscanf sscanf
-#endif
+#define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
 namespace {
     constexpr const int MaxLineLength = 1024;
@@ -28,22 +25,12 @@ namespace sgct::core::correction {
 Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::printInfo(
-        "CorrectionMesh: Reading SkySkan mesh data from '%s'", path.c_str()
-    );
+    MessageHandler::printInfo("Reading SkySkan mesh data from '%s'", path.c_str());
 
     FILE* meshFile = nullptr;
-    bool loadSuccess = false;
-#if (_MSC_VER >= 1400)
-    loadSuccess = fopen_s(&meshFile, path.c_str(), "r") == 0;
-#else
     meshFile = fopen(path.c_str(), "r");
-    loadSuccess = meshFile != nullptr;
-#endif
-    if (!loadSuccess) {
-        char ErrorBuffer[1024];
-        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
-        throw std::runtime_error(ErrorBuffer);
+    if (meshFile == nullptr) {
+        throw Error(2070, "Failed to open file " + path);
     }
 
     float azimuth = 0.f;
@@ -52,11 +39,11 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     float vFov = 0.f;
     glm::vec2 fovTweaks(1.f);
     glm::vec2 uvTweaks(1.f);
-    bool dimensionsSet = false;
-    bool azimuthSet = false;
-    bool elevationSet = false;
-    bool hFovSet = false;
-    bool vFovSet = false;
+    bool areDimsSet = false;
+    bool isAzimuthSet = false;
+    bool isElevationSet = false;
+    bool isHFovSet = false;
+    bool isVFovSet = false;
     float x, y, u, v;
 
     unsigned int sizeX = 0;
@@ -70,38 +57,35 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
             continue;
         }
 
-        if (_sscanf(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1) {
-            azimuthSet = true;
+        if (sscanf(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1) {
+            isAzimuthSet = true;
         }
-        else if (_sscanf(lineBuffer, "Dome Elevation=%f", &elevation) == 1) {
-            elevationSet = true;
+        else if (sscanf(lineBuffer, "Dome Elevation=%f", &elevation) == 1) {
+            isElevationSet = true;
         }
-        else if (_sscanf(lineBuffer, "Horizontal FOV=%f", &hFov) == 1) {
-            hFovSet = true;
+        else if (sscanf(lineBuffer, "Horizontal FOV=%f", &hFov) == 1) {
+            isHFovSet = true;
         }
-        else if (_sscanf(lineBuffer, "Vertical FOV=%f", &vFov) == 1) {
-            vFovSet = true;
+        else if (sscanf(lineBuffer, "Vertical FOV=%f", &vFov) == 1) {
+            isVFovSet = true;
         }
-        else if (_sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1) {
+        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1) {
             ;
         }
-        else if (_sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1) {
+        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1) {
             ;
         }
-        else if (_sscanf(lineBuffer, "U Tweak=%f", &uvTweaks[0]) == 1) {
+        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks[0]) == 1) {
             ;
         }
-        else if (_sscanf(lineBuffer, "V Tweak=%f", &uvTweaks[1]) == 1) {
+        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks[1]) == 1) {
             ;
         }
-        else if (!dimensionsSet &&
-                 _sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2)
-        {
-            dimensionsSet = true;
+        else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
+            areDimsSet = true;
             buf.vertices.resize(sizeX * sizeY);
         }
-        else if (dimensionsSet && _sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
-        {
+        else if (areDimsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4) {
             if (uvTweaks[0] > -1.f) {
                 u *= uvTweaks[0];
             }
@@ -125,12 +109,12 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
 
     fclose(meshFile);
 
-    if (!dimensionsSet || !azimuthSet || !elevationSet || !hFovSet || hFov <= 0.f) {
-        throw std::runtime_error("Data reading error");
+    if (!areDimsSet || !isAzimuthSet || !isElevationSet || !isHFovSet || hFov <= 0.f) {
+        throw Error(2071, "Data reading error");
     }
 
     // create frustums and projection matrices
-    if (!vFovSet || vFov <= 0.f) {
+    if (!isVFovSet || vFov <= 0.f) {
         // half the width (radius is one unit, cancels it self out)
         const float hw = tan(glm::radians<float>(hFov) / 2.f);
         // half height
@@ -160,7 +144,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         rotQuat
     );
 
-    Engine::instance()->updateFrustums();
+    Engine::instance().updateFrustums();
 
     for (unsigned int c = 0; c < (sizeX - 1); c++) {
         for (unsigned int r = 0; r < (sizeY - 1); r++) {
@@ -213,7 +197,6 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     }
 
     buf.geometryType = GL_TRIANGLES;
-
     return buf;
 }
 

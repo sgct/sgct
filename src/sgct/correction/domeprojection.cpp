@@ -6,9 +6,10 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/correction/scalable.h>
+#include <sgct/correction/domeprojection.h>
 
 #include <sgct/correction/buffer.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 
 namespace {
@@ -29,9 +30,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
     meshFile = fopen(path.c_str(), "r");
     loadSuccess = meshFile != nullptr;
     if (!loadSuccess) {
-        char ErrorBuffer[1024];
-        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
-        throw std::runtime_error(ErrorBuffer);
+        throw Error(Error::Component::DomeProjection, 2002, "Failed to open " + path);
     }
 
     Buffer buf;

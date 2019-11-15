@@ -8,8 +8,11 @@
 
 #include <sgct/shaderprogram.h>
 
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
+
+#define Error(code, msg) Error(Error::Component::Shader, code, msg)
 
 namespace {
     bool checkLinkStatus(GLint programId, const std::string& name) {
@@ -79,18 +82,8 @@ void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentS
     addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
 }
 
-int ShaderProgram::getAttribLocation(const std::string& name) const {
-    return glGetAttribLocation(_programId, name.c_str());
-}
-
 int ShaderProgram::getUniformLocation(const std::string& name) const {
     return glGetUniformLocation(_programId, name.c_str());
-}
-
-void ShaderProgram::bindFragDataLocation(unsigned int colorNumber,
-                                         const std::string& name) const
-{
-    glBindFragDataLocation(_programId, colorNumber, name.c_str());
 }
 
 std::string ShaderProgram::getName() const {
@@ -107,15 +100,13 @@ int ShaderProgram::getId() const {
 
 void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        throw std::runtime_error(
-            "No shaders have been added the program: " + _name
-        );
+        throw Error(7010,  "No shaders have been added to the program " + _name);
     }
 
     // Create the program
     bool createSuccess = createProgram();
     if (!createSuccess) {
-        throw std::runtime_error("Error creating the program");
+        throw Error(7011, "Error creating the program " + _name);
     }
 
     // Link shaders
@@ -127,7 +118,7 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     _isLinked = checkLinkStatus(_programId, _name);
     if (!_isLinked) {
-        throw std::runtime_error("Error linking the program: " + _name);
+        throw Error(7012, "Error linking the program " + _name);
     }
 }
 
@@ -138,8 +129,7 @@ bool ShaderProgram::createProgram() {
         // if it has been linked already it can't be reused
         if (_isLinked) {
             MessageHandler::printError(
-                "Could not create shader program [%s]: Already linked to shaders",
-                _name.c_str()
+                "Could not create shader program [%s]: Already linked", _name.c_str()
             );
             return false;
         }

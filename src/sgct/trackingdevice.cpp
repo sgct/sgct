@@ -13,6 +13,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
+#include <sgct/trackingmanager.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -47,13 +48,11 @@ void TrackingDevice::setNumberOfAxes(int numOfAxes) {
 }
 
 void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
-    core::ClusterManager& cm = *core::ClusterManager::instance();
-    Tracker* parent = cm.getTrackingManager().getTracker(_parentIndex);
+    Tracker* parent = TrackingManager::instance().getTracker(_parentIndex);
 
     if (parent == nullptr) {
         MessageHandler::printError(
-            "TrackingDevice: Error getting handle to tracker for device '%s'",
-            _name.c_str()
+            "Error getting handle to tracker for device '%s'", _name.c_str()
         );
         return;
     }
@@ -151,9 +150,7 @@ int TrackingDevice::getNumberOfAxes() const {
 }
 
 void TrackingDevice::calculateTransform() {
-    // create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
-    // calculate transform
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
     _deviceTransform = transMat * glm::mat4_cast(_orientation);
 }
 
@@ -306,7 +303,6 @@ double TrackingDevice::getButtonTimeStampPrevious(size_t index) const {
     std::unique_lock lock(core::mutex::Tracking);
     return _buttonTimePrevious[index];
 }
-
 
 double TrackingDevice::getTrackerDeltaTime() const {
     std::unique_lock lock(core::mutex::Tracking);

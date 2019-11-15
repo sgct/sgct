@@ -107,7 +107,7 @@ void startDataTransfer() {
         std::vector<char> buffer(size);
         if (file.read(buffer.data(), size)) {
             const int s = static_cast<int>(buffer.size());
-            Engine::instance()->transferDataBetweenNodes(buffer.data(), s, i);
+            Engine::instance().transferDataBetweenNodes(buffer.data(), s, i);
             readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
         }
     }
@@ -209,7 +209,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (core::ClusterManager::instance()->getNumberOfNodes() == 1) {
+            if (core::ClusterManager::instance().getNumberOfNodes() == 1) {
                 clientsUploadDone = true;
             }
         }
@@ -227,12 +227,12 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glm::mat4 MVP = Engine::instance()->getCurrentModelViewProjectionMatrix();
+    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix();
 
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
-        Engine::instance()->getCurrentFrustumMode() ==
+        Engine::instance().getCurrentFrustumMode() ==
             sgct::core::Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal() + 1));
@@ -241,17 +241,17 @@ void drawFun() {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
     }
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
     dome->draw();
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
 
         // if texture is uploaded then iterate the index
@@ -268,8 +268,8 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance()->setDisplayInfoVisibility(info.getVal());
-    Engine::instance()->setStatsGraphVisibility(stats.getVal());
+    Engine::instance().setDisplayInfoVisibility(info.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.getVal());
 }
 
 void initOGLFun() {
@@ -280,8 +280,8 @@ void initOGLFun() {
     // our polygon winding is clockwise since we are inside of the dome
     glFrontFace(GL_CW);
 
-    ShaderManager::instance()->addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     glUniform1i(prog.getUniformLocation("tex"), 0);
@@ -289,19 +289,19 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(info);
-    SharedData::instance()->writeBool(stats);
-    SharedData::instance()->writeInt32(texIndex);
-    SharedData::instance()->writeInt32(incrIndex);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(info);
+    SharedData::instance().writeBool(stats);
+    SharedData::instance().writeInt32(texIndex);
+    SharedData::instance().writeInt32(incrIndex);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
-    SharedData::instance()->readBool(info);
-    SharedData::instance()->readBool(stats);
-    SharedData::instance()->readInt32(texIndex);
-    SharedData::instance()->readInt32(incrIndex);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(info);
+    SharedData::instance().readBool(stats);
+    SharedData::instance().readInt32(texIndex);
+    SharedData::instance().readInt32(incrIndex);
 }
 
 void cleanUpFun() {
@@ -322,7 +322,7 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (!Engine::instance()->isMaster() || action != action::Press) {
+    if (!Engine::instance().isMaster() || action != action::Press) {
         return;
     }
     switch (key) {
@@ -371,7 +371,7 @@ void contextCreationCallback(GLFWwindow* win) {
     // restore to normal
     glfwMakeContextCurrent(sharedWindow);
     
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         loadThread = std::make_unique<std::thread>(threadWorker);
     }
 }
@@ -405,7 +405,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == lastPackage.getVal()) {
         counter++;
-        if (counter == (sgct::core::ClusterManager::instance()->getNumberOfNodes() - 1)) {
+        if (counter == (sgct::core::ClusterManager::instance().getNumberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             
@@ -418,7 +418,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 }
 
 void dropCallback(int count, const char** paths) {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         std::vector<std::string> pathStrings;
         for (int i = 0; i < count; i++) {
             // simply pick the first path to transmit
@@ -468,29 +468,30 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyCallback);
-    Engine::instance()->setContextCreationCallback(contextCreationCallback);
-    Engine::instance()->setDropCallbackFunction(dropCallback);
-    Engine::instance()->setDataTransferCallback(dataTransferDecoder);
-    Engine::instance()->setDataTransferStatusCallback(dataTransferStatus);
-    Engine::instance()->setDataAcknowledgeCallback(dataTransferAcknowledge);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
+    Engine::instance().setContextCreationCallback(contextCreationCallback);
+    Engine::instance().setDropCallbackFunction(dropCallback);
+    Engine::instance().setDataTransferCallback(dataTransferDecoder);
+    Engine::instance().setDataTransferStatusCallback(dataTransferStatus);
+    Engine::instance().setDataAcknowledgeCallback(dataTransferAcknowledge);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
 
     isRunning = false;
 

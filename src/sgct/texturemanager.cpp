@@ -13,9 +13,7 @@
 #include <sgct/messagehandler.h>
 
 namespace {
-    unsigned int uploadImage(const sgct::core::Image& img, bool interpolate,
-                             int mipmapLevels,
-                             sgct::TextureManager::CompressionMode compression,
+    unsigned int uploadImage(const sgct::core::Image& img, bool interpolate, int mipmap,
                              float anisotropicFilterSize)
     {
         unsigned int tex;
@@ -23,80 +21,37 @@ namespace {
         glBindTexture(GL_TEXTURE_2D, tex);
 
         // if three channels
-        GLenum textureType = GL_BGR;
-
+        GLenum type = GL_BGR;
         if (img.getChannels() == 1) {
-            textureType = GL_RED;
+            type = GL_RED;
         }
         else if (img.getChannels() == 2) {
-            textureType = GL_RG;
+            type = GL_RG;
         }
         else if (img.getChannels() == 4) {
-            textureType = GL_BGRA;
+            type = GL_BGRA;
         }
 
         GLenum internalFormat = {};
         switch (img.getChannels()) {
             case 1:
-                if (compression == sgct::TextureManager::CompressionMode::None) {
-                    internalFormat = GL_R8;
-                }
-                else if (compression == sgct::TextureManager::CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RED;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RED_RGTC1;
-                }
+                internalFormat = GL_R8;
                 break;
             case 2:
-                if (compression == sgct::TextureManager::CompressionMode::None) {
-                    internalFormat = GL_RG8;
-                }
-                else if (compression == sgct::TextureManager::CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RG;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RG_RGTC2;
-                }
+                internalFormat = GL_RG8;
                 break;
             case 3:
-                if (compression == sgct::TextureManager::CompressionMode::None) {
-                    internalFormat = GL_RGB8;
-                }
-                else if (compression == sgct::TextureManager::CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RGB;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-                }
+                internalFormat = GL_RGB8;
                 break;
             case 4:
-                if (compression == sgct::TextureManager::CompressionMode::None) {
-                    internalFormat = GL_RGBA8;
-                }
-                else if (compression == sgct::TextureManager::CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RGBA;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-                }
+                internalFormat = GL_RGBA8;
                 break;
         }
 
-        std::string compressionStr = [](sgct::TextureManager::CompressionMode m){
-            switch (m) {
-                default:
-                case sgct::TextureManager::CompressionMode::None: return "none";
-                case sgct::TextureManager::CompressionMode::Generic: return "generic";
-                case sgct::TextureManager::CompressionMode::S3TC_DXT: return "S3TC/DXT";
-            }
-
-        }(compression);
         sgct::MessageHandler::printDebug(
-            "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
+            "TextureManager: Creating texture... size: %dx%d, %d-channels, "
             "Type: %#04x, Format: %#04x",
-            img.getSize().x, img.getSize().y, img.getChannels(), compressionStr.c_str(),
-            textureType, internalFormat
+            img.getSize().x, img.getSize().y, img.getChannels(), type, internalFormat
         );
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -110,14 +65,14 @@ namespace {
             static_cast<GLsizei>(img.getSize().x),
             static_cast<GLsizei>(img.getSize().y),
             0,
-            textureType,
+            type,
             format,
             img.getData()
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels - 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
 
-        if (mipmapLevels > 1) {
+        if (mipmap > 1) {
             glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
 
             glTexParameteri(
@@ -160,12 +115,11 @@ namespace sgct {
 
 TextureManager* TextureManager::_instance = nullptr;
 
-TextureManager* TextureManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new TextureManager();
+TextureManager& TextureManager::instance() {
+    if (!_instance) {
+        _instance = new TextureManager;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void TextureManager::destroy() {
@@ -180,37 +134,24 @@ TextureManager::~TextureManager() {
 }
 
 unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,
-                                         float anisotropicFilterSize, int mipmapLevels,
-                                         CompressionMode compression)
+                                         float anisotropicFilterSize, int mipmapLevels)
 {
-    GLuint texID = 0;
-
     // load image
     core::Image img;
     if (!img.load(filename)) {
         return 0;
     }
     
-    if (img.getData() != nullptr) {
-        texID = uploadImage(
-            img,
-            interpolate,
-            mipmapLevels,
-            compression,
-            anisotropicFilterSize
-        );
-        _textures.push_back(texID);
-
-        MessageHandler::printDebug(
-            "Texture created from '%s' [id=%d]", filename.c_str(), texID
-        );
-    }
-    else {
+    if (img.getData() == nullptr) {
         // image data not valid
         return 0;
     }
 
-    return texID;
+    GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
+    _textures.push_back(t);
+
+    MessageHandler::printDebug("Texture created from '%s' [id=%d]", filename.c_str(), t);
+    return t;
 }
 
 } // namespace sgct

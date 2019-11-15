@@ -31,7 +31,7 @@ public:
     void setPos(glm::vec2 position);
     void setSize(glm::vec2 size);
     void setEnabled(bool state);
-    void setUser(User& user);
+    void setUser(User* user);
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
     
@@ -55,7 +55,7 @@ public:
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
-    void setHorizontalFieldOfView(float hFov, float aspectRatio);
+    void setHorizontalFieldOfView(float hFov);
 
 protected:
     struct {
@@ -67,12 +67,8 @@ protected:
     ProjectionPlane _projectionPlane;
     Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
-    User& _user;
+    User* _user;
 
-    // @TODO (abock, 2019-10-13) I'm pretty sure that we can remove the _userName variable
-    // which will ultimately remove the need to store multiple user pointers in the
-    // ClusterManager. I'm fairly certain that that feature was never used and probably
-    // wasn't working anyway
     std::string _userName;
     bool _isEnabled = true;
     glm::vec2 _position = glm::vec2(0.f, 0.f);

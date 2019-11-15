@@ -134,9 +134,9 @@ void renderGrid(glm::mat4 transform) {
 }
 
 void initOmniStereo(bool mask) {
-    double t0 = Engine::instance()->getTime();
+    double t0 = Engine::instance().getTime();
 
-    if (Engine::instance()->getNumberOfWindows() < 2) {
+    if (Engine::instance().getNumberOfWindows() < 2) {
         MessageHandler::printError("Failed to allocate omni stereo in secondary window");
         return;
     }
@@ -153,7 +153,7 @@ void initOmniStereo(bool mask) {
         MessageHandler::printWarning("Failed to load separation map");
     }
 
-    Window& win = Engine::instance()->getWindow(1);
+    Window& win = Engine::instance().getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
     MessageHandler::printInfo(
@@ -167,7 +167,7 @@ void initOmniStereo(bool mask) {
     int VPCounter = 0;
 
     for (int eye = 0; eye <= 2; eye++) {
-        float eyeSep = Engine::instance()->getDefaultUser().getEyeSeparation();
+        float eyeSep = Engine::instance().getDefaultUser().getEyeSeparation();
 
         core::Frustum::Mode fm;
         glm::vec3 eyePos;
@@ -327,8 +327,8 @@ void initOmniStereo(bool mask) {
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
-                        Engine::instance()->getNearClippingPlane(),
-                        Engine::instance()->getFarClippingPlane()
+                        Engine::instance().getNearClippingPlane(),
+                        Engine::instance().getFarClippingPlane()
                     );
 
                     omniProjections[x][y].enabled = true;
@@ -343,7 +343,7 @@ void initOmniStereo(bool mask) {
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
     MessageHandler::printInfo(
         "Time to init viewports: %f s\n%d %% will be rendered.",
-        Engine::instance()->getTime() - t0, percentage
+        Engine::instance().getTime() - t0, percentage
     );
     omniInited = true;
 }
@@ -378,28 +378,28 @@ void drawOmniStereo() {
         return;
     }
 
-    double t0 = Engine::instance()->getTime();
+    double t0 = Engine::instance().getTime();
 
-    Window& win = Engine::instance()->getWindow(1);
+    Window& win = Engine::instance().getWindow(1);
     glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    sgct::core::Frustum::Mode fm = Engine::instance()->getCurrentFrustumMode();
+    sgct::core::Frustum::Mode fm = Engine::instance().getCurrentFrustumMode();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
                 const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
 
-                renderBoxes(vp * Engine::instance()->getModelMatrix());
+                renderBoxes(vp * Engine::instance().getModelMatrix());
             }
         }
     }
 
-    ShaderManager::instance()->getShaderProgram("grid").bind();
+    ShaderManager::instance().getShaderProgram("grid").bind();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -411,7 +411,7 @@ void drawOmniStereo() {
         }
     }
 
-    const double t1 = Engine::instance()->getTime();
+    const double t1 = Engine::instance().getTime();
     MessageHandler::printInfo("Time to draw frame: %f s", t1 - t0);
 }
 
@@ -419,17 +419,17 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (Engine::instance()->getCurrentWindowIndex() == 1) {
+    if (Engine::instance().getCurrentWindowIndex() == 1) {
         drawOmniStereo();
     }
     else {
-        glm::mat4 vp = Engine::instance()->getCurrentViewProjectionMatrix();
-        glm::mat4 model = Engine::instance()->getModelMatrix();
+        glm::mat4 vp = Engine::instance().getCurrentViewProjectionMatrix();
+        glm::mat4 model = Engine::instance().getModelMatrix();
 
-        ShaderManager::instance()->getShaderProgram("grid").bind();
+        ShaderManager::instance().getShaderProgram("grid").bind();
         renderGrid(vp);
 
-        ShaderManager::instance()->getShaderProgram("xform").bind();
+        ShaderManager::instance().getShaderProgram("xform").bind();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -441,25 +441,25 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void postDrawFun() {
     // render a single frame and exit
-    Engine::instance()->terminate();
+    Engine::instance().terminate();
 }
 
 void initOGLFun() {
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
     box = std::make_unique<utils::Box>(0.5f, utils::Box::TextureMappingMode::Regular);
     grid = std::make_unique<utils::DomeGrid>(Diameter / 2.f, 180.f, 64, 32, 256);
@@ -468,7 +468,7 @@ void initOGLFun() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager& sm = *ShaderManager::instance();
+    ShaderManager& sm = ShaderManager::instance();
     sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
     sm.getShaderProgram("grid").bind();
     gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
@@ -485,13 +485,13 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
-    SharedData::instance()->writeBool(takeScreenshot);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(takeScreenshot);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance()->readDouble(currentTime);
-    sgct::SharedData::instance()->readBool(takeScreenshot);
+    sgct::SharedData::instance().readDouble(currentTime);
+    sgct::SharedData::instance().readBool(takeScreenshot);
 }
 
 void cleanUpFun() {
@@ -540,24 +540,25 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance()->setPostDrawFunction(postDrawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
+    Engine::instance().setPostDrawFunction(postDrawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

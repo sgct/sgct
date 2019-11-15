@@ -37,10 +37,7 @@ public:
     };
     enum class BufferFloatPrecision { Float16Bit, Float32Bit };
 
-    /// Get the Settings instance
-    static Settings* instance();
-
-    /// Destroy the Settings instance
+    static Settings& instance();
     static void destroy();
 
     void applySettings(const config::Settings& settings);

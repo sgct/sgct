@@ -8,6 +8,7 @@
 
 #include <sgct/correction/scalable.h>
 
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 
 namespace {
@@ -26,15 +27,9 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     );
 
     FILE* meshFile = nullptr;
-    bool loadSuccess = false;
-#if (_MSC_VER >= 1400)
-    loadSuccess = fopen_s(&meshFile, path.c_str(), "r") == 0;
-#else
     meshFile = fopen(path.c_str(), "r");
-    loadSuccess = meshFile != nullptr;
-#endif
-    if (!loadSuccess) {
-        throw std::runtime_error("Failed to open warping mesh file");
+    if (meshFile == nullptr) {
+        throw Error(Error::Component::Scalable, 2040, "Failed to open " + path);
     }
 
     unsigned int numOfVerticesRead = 0;
@@ -125,7 +120,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        throw std::runtime_error("Incorrect mesh data geometry");
+        throw Error(Error::Component::Scalable, 2041, "Incorrect mesh data geometry");
     }
 
     // normalize

@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mpcdi.h>
 #include <sgct/ogl_headers.h>
@@ -32,6 +33,8 @@
 #ifdef WIN32
 HDC hDC;
 #endif
+
+#define Error(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
     // abock(2019-10-02); glbinding doesn't come with default bindings against the wgl.xml
@@ -62,7 +65,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
                 node.getWindow(i).setWindowResolution(glm::ivec2(width, height));
@@ -74,7 +77,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
                 node.getWindow(i).setFramebufferResolution(glm::ivec2(width, height));
@@ -83,7 +86,7 @@ namespace {
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
@@ -93,7 +96,7 @@ namespace {
     }
 
     void windowIconifyCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance()->getThisNode();
+        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
 
         for (int i = 0; i < node.getNumberOfWindows(); i++) {
             if (node.getWindow(i).getWindowHandle() == window) {
@@ -114,11 +117,8 @@ GLFWwindow* Window::_sharedHandle = nullptr;
 Window::Window(int id)
     : _id(id)
 {
-    _useFXAA = Settings::instance()->getDefaultFXAAState();
-    _nAASamples = Settings::instance()->getDefaultNumberOfAASamples();
-
-    // pointers
-    _sharedHandle = nullptr;
+    _useFXAA = Settings::instance().getDefaultFXAAState();
+    _nAASamples = Settings::instance().getDefaultNumberOfAASamples();
 }
 
 void Window::applyWindow(const config::Window& window) {
@@ -152,75 +152,57 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.bufferBitDepth);
         setColorBitDepth(bd);
     }
-
     if (window.isFullScreen) {
         setWindowMode(*window.isFullScreen);
     }
-
     if (window.isFloating) {
         setFloating(*window.isFloating);
     }
-
     if (window.alwaysRender) {
         setRenderWhileHidden(*window.alwaysRender);
     }
-
     if (window.isHidden) {
         setVisible(*window.isHidden);
     }
-
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);
     }
-
     if (window.gamma) {
         setGamma(*window.gamma);
     }
-
     if (window.contrast) {
         setContrast(*window.contrast);
     }
-
     if (window.brightness) {
         setBrightness(*window.brightness);
     }
-
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
     }
-
     if (window.hasAlpha) {
         setAlpha(*window.hasAlpha);
     }
-
     if (window.useFxaa) {
         setUseFXAA(*window.useFxaa);
     }
-
     if (window.isDecorated) {
         setWindowDecoration(*window.isDecorated);
     }
-
     if (window.hasBorder) {
         setWindowDecoration(*window.hasBorder);
     }
-
     if (window.draw2D) {
         setCallDraw2DFunction(*window.draw2D);
     }
-
     if (window.draw3D) {
         setCallDraw3DFunction(*window.draw3D);
     }
-
     if (window.blitPreviousWindow) {
         setBlitPreviousWindow(*window.blitPreviousWindow);
     }
-
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
     }
-
     if (window.mpcdi) {
         core::mpcdi::ReturnValue r = core::mpcdi::parseMpcdiConfiguration(*window.mpcdi);
         setWindowPosition(glm::ivec2(0, 0));
@@ -236,7 +218,6 @@ void Window::applyWindow(const config::Window& window) {
         }
         return;
     }
-
     if (window.stereo) {
         StereoMode sm = [](config::Window::StereoMode sm) {
             switch (sm) {
@@ -273,7 +254,6 @@ void Window::applyWindow(const config::Window& window) {
         }(*window.stereo);
         setStereoMode(sm);
     }
-
     if (window.pos) {
         setWindowPosition(*window.pos);
     }
@@ -350,10 +330,9 @@ void Window::close() {
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
-    // delete shaders
     _stereo.shader.deleteProgram();
 
-    // Current handle must be set at the end to propely destroy the window
+    // Current handle must be set at the end to properly destroy the window
     makeOpenGLContextCurrent(Context::Window);
 
     _currentViewport = nullptr;
@@ -380,11 +359,10 @@ void Window::init() {
         glfwSetWindowIconifyCallback(_windowHandle, windowIconifyCallback);
     }
 
-    using namespace core;
     std::string title = "SGCT node: " +
-        ClusterManager::instance()->getThisNode().getAddress() +
-        " (" + (NetworkManager::instance()->isComputerServer() ? "master" : "slave") +
-        + ": " + std::to_string(_id) + ")";
+        core::ClusterManager::instance().getThisNode().getAddress() + " (" +
+        (core::NetworkManager::instance().isComputerServer() ? "master" : "slave") +
+        ": " + std::to_string(_id) + ")";
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
@@ -408,7 +386,6 @@ void Window::initOGL() {
 
         setCurrentViewport(vp.get());
         vp->getNonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
-        vp->getNonLinearProjection()->setPreferedMonoFrustumMode(vp->getEye());
         vp->getNonLinearProjection()->init(
             _internalColorFormat,
             _colorFormat,
@@ -458,7 +435,7 @@ void Window::initOGL() {
                 wglBindSwapBarrierNV, wglJoinSwapGroupNV, wglQueryMaxSwapGroupsNV,
                 wglQueryFrameCountNV,wglResetFrameCountNV
             );
-            throw std::runtime_error("Error resolving swapgroup functions");
+            throw Error(8000, "Error resolving swapgroup functions");
         };
 
         AreFunctionsResolved = true;
@@ -588,7 +565,7 @@ void Window::swap(bool takeScreenshot) {
     makeOpenGLContextCurrent(Context::Window);
         
     if (takeScreenshot) {
-        if (Settings::instance()->getCaptureFromBackBuffer() && _isDoubleBuffered) {
+        if (Settings::instance().getCaptureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono != nullptr) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -631,20 +608,18 @@ void Window::swap(bool takeScreenshot) {
 void Window::updateResolutions() {
     if (_hasPendingWindowRes) {
         _windowRes = _pendingWindowRes;
-        float newAspectRatio =
-            static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
+        float ratio = static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
 
-        // Set field of view of each of this window's viewports to match new
-        // aspect ratio, adjusting only the horizontal (x) values.
+        // Set field of view of each of this window's viewports to match new aspect ratio,
+        // adjusting only the horizontal (x) values
         for (int j = 0; j < getNumberOfViewports(); ++j) {
             core::Viewport& vp = getViewport(j);
-            vp.updateFovToMatchAspectRatio(_aspectRatio, newAspectRatio);
+            vp.updateFovToMatchAspectRatio(_aspectRatio, ratio);
             MessageHandler::printDebug(
-                "Window: update aspect ratio in viewport# %d (%f --> %f)",
-                j, _aspectRatio, newAspectRatio
+                "Update aspect ratio in viewport# %d (%f --> %f)", j, _aspectRatio, ratio
             );
         }
-        _aspectRatio = newAspectRatio;
+        _aspectRatio = ratio;
 
         // Redraw window
         if (_windowHandle) {
@@ -652,8 +627,7 @@ void Window::updateResolutions() {
         }
 
         MessageHandler::printDebug(
-            "Window: Resolution changed to %dx%d in window %d",
-            _windowRes.x, _windowRes.y, _id
+            "Resolution changed to %dx%d in window %d", _windowRes.x, _windowRes.y, _id
         );
 
         _hasPendingWindowRes = false;
@@ -663,7 +637,7 @@ void Window::updateResolutions() {
         _framebufferRes = _pendingFramebufferRes;
 
         MessageHandler::printDebug(
-            "Window: Framebuffer resolution changed to %dx%d for window %d",
+            "Framebuffer resolution changed to %dx%d for window %d",
             _framebufferRes.x, _framebufferRes.y, _id
         );
 
@@ -676,12 +650,11 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
         core::Viewport& vp = getViewport(j);
-        vp.setHorizontalFieldOfView(hFovDeg, _aspectRatio);
+        vp.setHorizontalFieldOfView(hFovDeg);
     }
     MessageHandler::printDebug(
-        "Window: Horizontal FOV changed to %f deg. in %d viewports for window %d "
-        "using aspect ratio %f",
-        hFovDeg, getNumberOfViewports(), _id, _aspectRatio
+        "Horizontal FOV changed to %f for window %d",
+        hFovDeg, getNumberOfViewports(), _id
     );
 }
 
@@ -706,7 +679,7 @@ bool Window::update() {
 
     auto resizePBO = [this](core::ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance().getCaptureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
@@ -898,7 +871,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
-        const int refreshRateHint = Settings::instance()->getRefreshRateHint();
+        const int refreshRateHint = Settings::instance().getRefreshRateHint();
         if (refreshRateHint > 0) {
             glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
         }
@@ -953,7 +926,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     // Setting last window to the requested interval, which does mean all other
     // windows will respect the last window in the pipeline.
     if (getId() == lastWindowIdx) {
-        glfwSwapInterval(Settings::instance()->getSwapInterval());
+        glfwSwapInterval(Settings::instance().getSwapInterval());
     }
     else {
         glfwSwapInterval(0);
@@ -962,7 +935,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     updateTransferCurve();
 
     //if slave disable mouse pointer
-    if (!Engine::instance()->isMaster()) {
+    if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
@@ -985,7 +958,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 void Window::initNvidiaSwapGroups() {
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
-        MessageHandler::printInfo("Window: Joining Nvidia swap group");
+        MessageHandler::printInfo("Joining Nvidia swap group");
 
         hDC = wglGetCurrentDC();
 
@@ -1004,11 +977,11 @@ void Window::initNvidiaSwapGroups() {
         // the hDC is unbound from its current group, if any. If <group> is larger than
         // <maxGroups>, wglJoinSwapGroupNV fails.
         if (wglJoinSwapGroupNV(hDC, 1)) {
-            MessageHandler::printInfo("Window: Joining swapgroup 1 [ok]");
+            MessageHandler::printInfo("Joining swapgroup 1 [ok]");
             _useSwapGroups = true;
         }
         else {
-            MessageHandler::printInfo("Window: Joining swapgroup 1 [failed]");
+            MessageHandler::printInfo("Joining swapgroup 1 [failed]");
             _useSwapGroups = false;
         }
     }
@@ -1021,7 +994,7 @@ void Window::initNvidiaSwapGroups() {
 void Window::initScreenCapture() {
     auto initializeCapture = [this](core::ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
-        if (Settings::instance()->getCaptureFromBackBuffer()) {
+        if (Settings::instance().getCaptureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const glm::ivec2 res = getResolution();
@@ -1034,7 +1007,7 @@ void Window::initScreenCapture() {
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
 
-        Settings::CaptureFormat format = Settings::instance()->getCaptureFormat();
+        Settings::CaptureFormat format = Settings::instance().getCaptureFormat();
         switch (format) {
             case Settings::CaptureFormat::PNG:
                 sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::PNG);
@@ -1045,12 +1018,6 @@ void Window::initScreenCapture() {
             case Settings::CaptureFormat::JPG:
                 sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::JPEG);
                 break;
-        }
-
-        if (!Engine::checkForOGLErrors("Window::initScreenCapture")) {
-            MessageHandler::printError(
-                "Window %d: OpenGL error occured in screen capture init", _id
-            );
         }
     };
 
@@ -1092,27 +1059,22 @@ void Window::resetSwapGroupFrameNumber() {
                        wglResetFrameCountNV(hDC);
         if (success) {
             _isSwapGroupMaster = true;
-            MessageHandler::printInfo(
-                "Resetting frame counter. This computer is the master"
-            );
+            MessageHandler::printInfo("Resetting frame counter");
         }
         else {
             _isSwapGroupMaster = false;
-            MessageHandler::printInfo(
-                "Resetting frame counter failed. This computer is the slave"
-            );
+            MessageHandler::printInfo("Resetting frame counter failed");
         }
     }
 #endif
 }
 
 void Window::createTextures() {
-    GLint maxTexSize;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
-    if (_framebufferRes.x > maxTexSize || _framebufferRes.y > maxTexSize) {
+    GLint max;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+    if (_framebufferRes.x > max || _framebufferRes.y > max) {
         MessageHandler::printError(
-            "Window %d: Requested framebuffer is to big (Max: %dx%d)",
-            _id, maxTexSize, maxTexSize
+            "Window %d: Requested framebuffer is too big (Max: %dx%d)",_id, max, max
         );
         return;
     }
@@ -1123,7 +1085,7 @@ void Window::createTextures() {
     if (useRightEyeTexture()) {
         generateTexture(_frameBufferTextures.rightEye, TextureType::Color);
     }
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
     if (!_postFXPasses.empty()) {
@@ -1135,23 +1097,14 @@ void Window::createTextures() {
     if (_useFXAA || !_postFXPasses.empty()) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         generateTexture(_frameBufferTextures.normals, TextureType::Normal);
     }
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    if (Engine::checkForOGLErrors("Window::createTextures")) {
-        MessageHandler::printDebug(
-            "Texture targets initialized successfully for window %d", _id
-        );
-    }
-    else {
-        MessageHandler::printError(
-            "Texture targets failed to initialize for window %d", _id
-        );
-    }
+    MessageHandler::printDebug("Targets initialized successfully for window %d", _id);
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1174,7 +1127,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                 case TextureType::Normal:
                 case TextureType::Position:
                     return {
-                         Settings::instance()->getBufferFloatPrecision(),
+                         Settings::instance().getBufferFloatPrecision(),
                          GL_RGB,
                          GL_FLOAT
                     };
@@ -1199,18 +1152,10 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
 
-    if (_finalFBO->checkForErrors()) {
-        MessageHandler::printDebug(
-            "Window %d: FBO initiated successfully. Number of samples: %d",
-            _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-        );
-    }
-    else {
-        MessageHandler::printError(
-            "Window %d: FBO initiated with errors! Number of samples: %d",
-            _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-        );
-    }
+    MessageHandler::printDebug(
+        "Window %d: FBO initiated successfully. Number of samples: %d",
+        _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
+    );
 }
 
 void Window::createVBOs() {
@@ -1259,28 +1204,26 @@ void Window::loadShaders() {
         _stereo.shader.deleteProgram();
     }
 
-    using namespace core;
-
-    std::string stereoVertShader = shaders::AnaglyphVert;
+    std::string stereoVertShader = core::shaders::AnaglyphVert;
 
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
         switch (mode) {
             case StereoMode::AnaglyphRedCyan:
-                return shaders::AnaglyphRedCyanFrag;
+                return core::shaders::AnaglyphRedCyanFrag;
             case StereoMode::AnaglyphAmberBlue:
-                return shaders::AnaglyphAmberBlueFrag;
+                return core::shaders::AnaglyphAmberBlueFrag;
             case StereoMode::AnaglyphRedCyanWimmer:
-                return shaders::AnaglyphRedCyanWimmerFrag;
+                return core::shaders::AnaglyphRedCyanWimmerFrag;
             case StereoMode::Checkerboard:
-                return shaders::CheckerBoardFrag;
+                return core::shaders::CheckerBoardFrag;
             case StereoMode::CheckerboardInverted:
-                return shaders::CheckerBoardInvertedFrag;
+                return core::shaders::CheckerBoardInvertedFrag;
             case StereoMode::VerticalInterlaced:
-                return shaders::VerticalInterlacedFrag;
+                return core::shaders::VerticalInterlacedFrag;
             case StereoMode::VerticalInterlacedInverted:
-                return shaders::VerticalInterlacedInvertedFrag;
+                return core::shaders::VerticalInterlacedInvertedFrag;
             default:
-                return shaders::DummyStereoFrag;
+                return core::shaders::DummyStereoFrag;
         }
     }(_stereoMode);
 
@@ -1294,12 +1237,6 @@ void Window::loadShaders() {
     glUniform1i(_stereo.leftTexLoc, 0);
     glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
-
-    if (!Engine::checkForOGLErrors("Window::loadShaders")) {
-        MessageHandler::printError(
-            "Window %d: OpenGL error occured while loading shaders", _id
-        );
-    }
 }
 
 void Window::bindVAO() const {
@@ -1354,13 +1291,6 @@ void Window::resizeFBOs() {
         _finalFBO->bind();
         _finalFBO->attachColorTexture(_frameBufferTextures.leftEye);
         _finalFBO->unbind();
-    }
-
-    if (_finalFBO->checkForErrors()) {
-        MessageHandler::printDebug("Window %d: FBOs resized successfully", _id);
-    }
-    else {
-        MessageHandler::printError("Window %d: FBOs resized with GL errors", _id);
     }
 }
 
@@ -1446,10 +1376,8 @@ void Window::setStereoMode(StereoMode sm) {
 core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
         default:
-        case Eye::MonoOrLeft:
-            return _screenCaptureLeftOrMono.get();
-        case Eye::Right:
-            return _screenCaptureRight.get();
+        case Eye::MonoOrLeft: return _screenCaptureLeftOrMono.get();
+        case Eye::Right:      return _screenCaptureRight.get();
     }
 }
 

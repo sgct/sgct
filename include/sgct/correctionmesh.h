@@ -38,16 +38,14 @@ public:
     };
 
     /**
-     * This function finds a suitible parser for warping meshes and loads them into
-     * memory.
+     * This function finds a suitable parser for warping meshes and loads them.
      *
      * \param path the path to the mesh data
      * \param parent the pointer to parent viewport
      * \param hint a hint to pass to the parser selector
-     * \return true if mesh found and loaded successfully
+     * \throw std::runtime_error if mesh was not loaded successfully
      */
-    bool readAndGenerateMesh(std::string path, Viewport& parent,
-        Format hint = Format::None);
+    void loadMesh(std::string path, Viewport& parent, Format hint = Format::None);
 
     /// Render the final mesh where for mapping the frame buffer to the screen.
     void renderQuadMesh() const;

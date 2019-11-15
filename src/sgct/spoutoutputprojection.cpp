@@ -77,7 +77,7 @@ void SpoutOutputProjection::update(glm::vec2) {
 
 void SpoutOutputProjection::render() {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance()->enterCurrentViewport();
+    Engine::instance().enterCurrentViewport();
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -101,12 +101,12 @@ void SpoutOutputProjection::render() {
         glScissor(0, 0, _mappingWidth, _mappingHeight);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-        //if for some reson the active texture has been reset
+        // if for some reson the active texture has been reset
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+        bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
         if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -210,7 +210,7 @@ void SpoutOutputProjection::renderCubemap() {
             attachTextures(idx);
         }
 
-        Engine::instance()->getCurrentWindow().setCurrentViewport(&vp);
+        Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
         drawCubeFace(i);
 
         // blit MSAA fbo to texture
@@ -219,7 +219,7 @@ void SpoutOutputProjection::renderCubemap() {
         }
 
         // re-calculate depth values from a cube to spherical model
-        if (Settings::instance()->useDepthTexture()) {
+        if (Settings::instance().useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
@@ -233,7 +233,7 @@ void SpoutOutputProjection::renderCubemap() {
             Engine::clearBuffer();
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance()->getCurrentWindow().hasAlpha();
+            const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
             if (alpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -255,12 +255,12 @@ void SpoutOutputProjection::renderCubemap() {
             _depthCorrectionShader.bind();
             glUniform1i(_swapColorLoc, 0);
             glUniform1i(_swapDepthLoc, 1);
-            glUniform1f(_swapNearLoc, Engine::instance()->_nearClippingPlaneDist);
-            glUniform1f(_swapFarLoc, Engine::instance()->_farClippingPlaneDist);
+            glUniform1f(_swapNearLoc, Engine::instance()._nearClippingPlaneDist);
+            glUniform1f(_swapFarLoc, Engine::instance()._farClippingPlaneDist);
 
-            Engine::instance()->getCurrentWindow().bindVAO();
+            Engine::instance().getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance()->getCurrentWindow().unbindVAO();
+            Engine::instance().getCurrentWindow().unbindVAO();
 
             // unbind shader
             ShaderProgram::unbind();
@@ -475,22 +475,18 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            rollRot,
-            glm::radians(-90.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
         upperRight.x = radius;
         _subViewports.right.setSize(glm::vec2(1.f, 1.f));
 
         _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -500,24 +496,20 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            rollRot,
-            glm::radians(90.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
         lowerLeft.x = -radius;
         upperLeft.x = -radius;
         _subViewports.left.setPos(glm::vec2(0.f, 0.f));
         _subViewports.left.setSize(glm::vec2(1.f, 1.f));
 
         _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -527,23 +519,19 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            rollRot,
-            glm::radians(-90.f),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
         lowerLeft.y = -radius;
         _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
         _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
 
         _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -553,23 +541,19 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(
-            rollRot,
-            glm::radians(90.f),
-            glm::vec3(1.f, 0.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
         upperLeft.y = radius;
         upperRight.y = radius;
         _subViewports.top.setSize(glm::vec2(1.f, 1.f));
 
         _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 
@@ -598,19 +582,16 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        glm::mat4 rotMat = glm::rotate(rollRot,
-            glm::radians(180.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 
         _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
+            glm::vec3(r * lowerLeft)
         );
         _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
+            glm::vec3(r * upperLeft)
         );
         _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * upperRight)
         );
     }
 }
@@ -626,8 +607,8 @@ void SpoutOutputProjection::initShaders() {
 
     fisheyeVertShader = shaders_fisheye::FisheyeVert;
 
-    if (Settings::instance()->useDepthTexture()) {
-        switch (Settings::instance()->getDrawBufferType()) {
+    if (Settings::instance().useDepthTexture()) {
+        switch (Settings::instance().getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
@@ -639,14 +620,13 @@ void SpoutOutputProjection::initShaders() {
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
                 break;
             case Settings::DrawBufferType::DiffuseNormalPosition:
-                fisheyeFragShader =
-                    shaders_fisheye::FisheyeFragDepthNormalPosition;
+                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
                 break;
         }
     }
     else {
-        //no depth
-        switch (Settings::instance()->getDrawBufferType()) {
+        // no depth
+        switch (Settings::instance().getDrawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
             default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFrag;
@@ -664,7 +644,7 @@ void SpoutOutputProjection::initShaders() {
     }
 
     //depth correction shader only
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
             shaders_fisheye::FisheyeDepthCorrectionFrag
@@ -754,7 +734,7 @@ void SpoutOutputProjection::initShaders() {
 
     ShaderProgram::unbind();
 
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
@@ -776,13 +756,6 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO = std::make_unique<core::OffScreenBuffer>();
     _spoutFBO->setInternalColorFormat(_texInternalFormat);
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
-
-    if (_spoutFBO->checkForErrors()) {
-        MessageHandler::printDebug("Spout FBO created");
-    }
-    else {
-        MessageHandler::printError("Spout FBO created with errors");
-    }
 }
 
 void SpoutOutputProjection::drawCubeFace(int face) {
@@ -855,15 +828,13 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()->_drawFn();
+    Engine::instance()._drawFn();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void SpoutOutputProjection::blitCubeFace(int face) {
-    // copy AA-buffer to "regular"/non-AA buffer
-
     // bind separate read and draw buffers to prepare blit operation
     _cubeMapFbo->bindBlit();
     attachTextures(face);
@@ -871,7 +842,7 @@ void SpoutOutputProjection::blitCubeFace(int face) {
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
-    if (Settings::instance()->useDepthTexture()) {
+    if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap);
     }
@@ -879,7 +850,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
     }
 
-    if (Settings::instance()->useNormalTexture()) {
+    if (Settings::instance().useNormalTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapNormals,
             face,
@@ -887,7 +858,7 @@ void SpoutOutputProjection::attachTextures(int face) {
         );
     }
 
-    if (Settings::instance()->usePositionTexture()) {
+    if (Settings::instance().usePositionTexture()) {
         _cubeMapFbo->attachCubeMapTexture(
             _textures.cubeMapPositions,
             face,

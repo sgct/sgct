@@ -6,17 +6,40 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__CORRECTION_SIMPLE__H__
-#define __SGCT__CORRECTION_SIMPLE__H__
+#ifndef __SGCT__ERROR__H__
+#define __SGCT__ERROR__H__
 
-#include <sgct/correction/buffer.h>
-#include <glm/glm.hpp>
+#include <stdexcept>
 
-namespace sgct::core::correction {
+namespace sgct {
 
-Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size);
-Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size);
+struct Error : public std::runtime_error {
+    enum class Component {
+        Config,
+        CorrectionMesh,
+        DomeProjection,
+        Engine,
+        MPCDI,
+        MPCDIMesh,
+        Network,
+        OBJ,
+        PaulBourke,
+        ReadConfig,
+        Scalable,
+        SCISS,
+        Shader,
+        SimCAD,
+        SkySkan,
+        Window
+    };
 
-} // namespace sgct::core::correction
+    Error(Component component, int code, std::string message);
 
-#endif // __SGCT__CORRECTION_SIMPLE__H__
+    Component component;
+    int code;
+    std::string message;
+};
+
+} // namespace sgct
+
+#endif // __SGCT__ERROR__H__

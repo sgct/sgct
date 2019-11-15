@@ -15,6 +15,7 @@
 #include <sgct/config.h>
 #include <sgct/keys.h>
 #include <sgct/mouse.h>
+#include <sgct/networkmanager.h>
 #include <sgct/joystick.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/fisheyeprojection.h>
@@ -38,7 +39,6 @@ class Window;
 
 namespace core {
     class Image;
-    class NetworkManager;
     class Node;
     class StatisticsRenderer;
     class Touch;
@@ -121,11 +121,9 @@ public:
         std::array<double, HistoryLength> loopTimeMax;
     };
 
+    static Engine& instance();
     static void create(const Configuration& arg);
     static void destroy();
-
-    /// \return the static pointer to the Engine instance
-    static Engine* instance();
 
     /**
      * Engine initiation that:
@@ -793,19 +791,6 @@ public:
     /// \return a pointer to the user (VR observer position) object
     static core::User& getDefaultUser();
 
-    /// \return a pointer to the tracking manager pointer
-    static TrackingManager& getTrackingManager();
-
-    /**
-     * This functions checks for OpenGL errors and prints them using the MessageHandler
-     * (to commandline). Avoid this function in the render loop for release code since it
-     * can reduce performance.
-     *
-     * \param function The name of the function that asked for this check
-     * \return true if no errors occured
-     */
-    static bool checkForOGLErrors(const std::string& function);
-
     /// \return true if this node is the master
     bool isMaster() const;
 
@@ -1039,6 +1024,8 @@ private:
 
     bool _showInfo = false;
     bool _showGraph = false;
+    bool _checkOpenGLCalls = false;
+    bool _checkFBOs = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
     bool _renderingOffScreen = false;
@@ -1063,8 +1050,6 @@ private:
         int fxaaTexture = -1;
     } _shaderLoc;
 
-    std::unique_ptr<core::NetworkManager> _networkConnections;
-
     std::unique_ptr<std::thread> _thread;
 
     bool _isRunning = true;
@@ -1073,6 +1058,8 @@ private:
     unsigned int _shotCounter = 0;
 
     RunMode _runMode = RunMode::Default_Mode;
+    core::NetworkManager::NetworkMode _networkMode =
+        core::NetworkManager::NetworkMode::Remote;
     int _exitKey = key::Escape;
 
     unsigned int _timeQueryBegin = 0;

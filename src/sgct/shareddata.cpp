@@ -18,19 +18,16 @@ namespace sgct {
 
 SharedData* SharedData::_instance = nullptr;
 
-SharedData* SharedData::instance() {
-    if (_instance == nullptr) {
-        _instance = new SharedData();
+SharedData& SharedData::instance() {
+    if (!_instance) {
+        _instance = new SharedData;
     }
-
-    return _instance;
+    return *_instance;
 }
 
 void SharedData::destroy() {
-    if (_instance != nullptr) {
-        delete _instance;
-        _instance = nullptr;
-    }
+    delete _instance;
+    _instance = nullptr;
 }
 
 SharedData::SharedData() {
@@ -99,7 +96,7 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 
     core::mutex::DataSync.unlock();
 
-    if (_decodeFn != nullptr) {
+    if (_decodeFn) {
         _decodeFn();
     }
 }
@@ -174,9 +171,7 @@ void SharedData::encode() {
         }
         else {
             core::mutex::DataSync.unlock();
-            MessageHandler::printError(
-                "SharedData: Failed to compress data (error %d)", err
-            );
+            MessageHandler::printError("Failed to compress data (error %d)", err);
             return;
         }
 

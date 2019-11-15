@@ -56,14 +56,12 @@ void Touch::setLatestPointsHandled() {
     _touchPoints.clear();
 }
 
-void Touch::processPoint(int id, int action, double xpos, double ypos, int windowWidth,
-                         int windowHeight)
-{
+void Touch::processPoint(int id, int action, double x, double y, int width, int height) {
     glm::vec2 windowSize = glm::vec2(
-        static_cast<float>(windowWidth),
-        static_cast<float>(windowHeight)
+        static_cast<float>(width),
+        static_cast<float>(height)
     );
-    glm::vec2 pos = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+    glm::vec2 pos = glm::vec2(static_cast<float>(x), static_cast<float>(y));
     glm::vec2 normpos = pos / windowSize;
 
     using TouchAction = TouchPoint::TouchAction;
@@ -102,11 +100,7 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     }
 
     // Add to end of corrected ordered vector if new touch point
-    std::vector<int>::const_iterator lastIdIdx = std::find(
-        _prevTouchIds.begin(),
-        _prevTouchIds.end(),
-        id
-    );
+    auto lastIdIdx = std::find(_prevTouchIds.begin(), _prevTouchIds.end(), id);
     if (lastIdIdx == _prevTouchIds.end()) {
         _prevTouchIds.push_back(id);
     }
@@ -119,18 +113,10 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     _touchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / windowSize});
 }
 
-void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
-                          int windowHeight)
-{
+void Touch::processPoints(GLFWtouch* points, int count, int width, int height) {
     for (int i = 0; i < count; ++i) {
-        processPoint(
-            touchPoints[i].id,
-            touchPoints[i].action,
-            touchPoints[i].x,
-            touchPoints[i].y,
-            windowWidth,
-            windowHeight
-        );
+        GLFWtouch p = points[i];
+        processPoint(p.id, p.action, p.x, p.y, width, height);
     }
 
     // Ensure that the order to the touch points are the same as last touch event.
@@ -178,11 +164,7 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
     }
 
     for (int endedId : endedTouchIds) {
-        std::vector<int>::const_iterator foundIdx = std::find(
-            _prevTouchIds.begin(),
-            _prevTouchIds.end(),
-            endedId
-        );
+        auto foundIdx = std::find(_prevTouchIds.begin(), _prevTouchIds.end(), endedId);
         if (foundIdx != _prevTouchIds.end()) {
             _prevTouchIds.erase(foundIdx);
         }

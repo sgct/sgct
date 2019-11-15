@@ -9,6 +9,7 @@
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
+#include <sgct/config.h>
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
@@ -30,7 +31,8 @@ class TrackingDevice;
  */
 class TrackingManager {
 public:
-    ~TrackingManager();
+    static TrackingManager& instance();
+    static void destroy();
 
     void applyDevice(const config::Device& device);
     void applyTracker(const config::Tracker& tracker);
@@ -55,6 +57,11 @@ public:
     bool isRunning() const;
 
 private:
+    static TrackingManager* _instance;
+
+    TrackingManager() = default;
+    ~TrackingManager();
+    
     void addDeviceToCurrentTracker(std::string name);
     void addSensorToCurrentDevice(std::string address, int id);
     void addButtonsToCurrentDevice(std::string address, int nButtons);

@@ -23,9 +23,7 @@ namespace {
 
         const bool saveSuccess = ptr->frameBufferImage->save(ptr->filename);
         if (!saveSuccess) {
-            sgct::MessageHandler::printError(
-                "Error: Failed to save '%s'", ptr->filename.c_str()
-            );
+            sgct::MessageHandler::printError("Failed to save %s", ptr->filename.c_str());
         }
         ptr->isRunning = false;
     }
@@ -42,14 +40,10 @@ namespace {
 
     [[nodiscard]] GLenum getDownloadFormat(int nChannels) {
         switch (nChannels) {
-            default:
-                return GL_BGRA;
-            case 1:
-                return GL_RED;
-            case 2:
-                return GL_RG;
-            case 3:
-                return GL_BGR;
+            default: return GL_BGRA;
+            case 1: return GL_RED;
+            case 2: return GL_RG;
+            case 3: return GL_BGR;
         }
     }
 
@@ -58,7 +52,7 @@ namespace {
 namespace sgct::core {
 
 ScreenCapture::ScreenCapture()
-    : _nThreads(Settings::instance()->getNumberOfCaptureThreads())
+    : _nThreads(Settings::instance().getNumberOfCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
@@ -126,7 +120,7 @@ ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    addFrameNumberToFilename(Engine::instance()->getScreenShotNumber());
+    addFrameNumberToFilename(Engine::instance().getScreenShotNumber());
     checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
@@ -201,12 +195,9 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
             default:
-            case CaptureFormat::PNG:
-                return "png";
-            case CaptureFormat::TGA:
-                return "tga";
-            case CaptureFormat::JPEG:
-                return "jpg";
+            case CaptureFormat::PNG: return "png";
+            case CaptureFormat::TGA: return "tga";
+            case CaptureFormat::JPEG: return "jpg";
         }
     }(_format);
 
@@ -219,18 +210,18 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         switch (_eyeIndex) {
             case EyeIndex::Mono:
             default:
-                filename = Settings::instance()->getCapturePath(CapturePath::Mono);
+                filename = Settings::instance().getCapturePath(CapturePath::Mono);
                 break;
             case EyeIndex::StereoLeft:
                 eye = "_L";
-                filename = Settings::instance()->getCapturePath(CapturePath::LeftStereo);
+                filename = Settings::instance().getCapturePath(CapturePath::LeftStereo);
                 break;
             case EyeIndex::StereoRight:
                 eye = "_R";
-                filename = Settings::instance()->getCapturePath(CapturePath::RightStereo);
+                filename = Settings::instance().getCapturePath(CapturePath::RightStereo);
                 break;
         }
-        Window& win = Engine::instance()->getWindow(_windowIndex);
+        Window& win = Engine::instance().getWindow(_windowIndex);
         
         if (win.getName().empty()) {
             filename += "_win" + std::to_string(_windowIndex);
@@ -291,7 +282,7 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
-    Window& win = Engine::instance()->getWindow(_windowIndex);
+    Window& win = Engine::instance().getWindow(_windowIndex);
 
     if (captureSource == CaptureSource::Texture) {
         if (_resolution != win.getFramebufferResolution()) {
@@ -311,9 +302,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
-        MessageHandler::printError(
-            "Error in finding availible thread for screenshot/capture"
-        );
+        MessageHandler::printError("Error finding available capture thread");
         return nullptr;
     }
 

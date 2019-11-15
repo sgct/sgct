@@ -82,8 +82,8 @@ void main() { FragOut = color; }
 using namespace sgct;
 
 void draw() {
-    ShaderManager::instance()->getShaderProgram("simple").bind();
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix();
+    ShaderManager::instance().getShaderProgram("simple").bind();
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glBindVertexArray(geometry.vao);
@@ -99,7 +99,7 @@ void draw() {
     }
     glBindVertexArray(0);
 
-    ShaderManager::instance()->getShaderProgram("simple").unbind();
+    ShaderManager::instance().getShaderProgram("simple").unbind();
 }
 
 void initGL() {
@@ -206,11 +206,11 @@ void initGL() {
     glBindVertexArray(0);
 
     if (!texture.empty()) {
-        textureId = TextureManager::instance()->loadTexture(texture, true, 0);
+        textureId = TextureManager::instance().loadTexture(texture, true, 0);
     }
 
-    ShaderManager::instance()->addShaderProgram("simple", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("simple");
+    ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
     prog.bind();
     matrixLocation = prog.getUniformLocation("matrix");
 
@@ -220,44 +220,44 @@ void initGL() {
 }
 
 void postSyncPreDraw() {
-    Settings::instance()->setCaptureFromBackBuffer(captureBackbuffer.getVal());
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.getVal());
     if (takeScreenshot.getVal()) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
     }
 }
 
 void postDraw() {
-    if (Engine::instance()->isMaster()) {
-        if (Engine::instance()->getCurrentFrameNumber() == 10) {
+    if (Engine::instance().isMaster()) {
+        if (Engine::instance().getCurrentFrameNumber() == 10) {
             MessageHandler::printInfo("Taking first screenshot");
             takeScreenshot.setVal(true);
         }
 
-        if (Engine::instance()->getCurrentFrameNumber() == 15) {
+        if (Engine::instance().getCurrentFrameNumber() == 15) {
             MessageHandler::printInfo("Capturing from Back buffer");
             captureBackbuffer.setVal(true);
         }
 
-        if (Engine::instance()->getCurrentFrameNumber() == 20) {
+        if (Engine::instance().getCurrentFrameNumber() == 20) {
             MessageHandler::printInfo("Taking second screenshot");
             takeScreenshot.setVal(true);
         }
 
-        if (Engine::instance()->getCurrentFrameNumber() == 25) {
-            Engine::instance()->terminate();
+        if (Engine::instance().getCurrentFrameNumber() == 25) {
+            Engine::instance().terminate();
         }
     }
 }
 
 void encode() {
-    SharedData::instance()->writeBool(takeScreenshot);
-    SharedData::instance()->writeBool(captureBackbuffer);
+    SharedData::instance().writeBool(takeScreenshot);
+    SharedData::instance().writeBool(captureBackbuffer);
 }
 
 void decode() {
-    SharedData::instance()->readBool(takeScreenshot);
-    SharedData::instance()->readBool(captureBackbuffer);
+    SharedData::instance().readBool(takeScreenshot);
+    SharedData::instance().readBool(captureBackbuffer);
 }
 
 void cleanUp() {
@@ -273,23 +273,24 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setPostSyncPreDrawFunction(postSyncPreDraw);
-    Engine::instance()->setDrawFunction(draw);
-    Engine::instance()->setPostDrawFunction(postDraw);
-    Engine::instance()->setInitOGLFunction(initGL);
-    Engine::instance()->setCleanUpFunction(cleanUp);
-    Engine::instance()->setEncodeFunction(encode);
-    Engine::instance()->setDecodeFunction(decode);
+    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDraw);
+    Engine::instance().setDrawFunction(draw);
+    Engine::instance().setPostDrawFunction(postDraw);
+    Engine::instance().setInitOGLFunction(initGL);
+    Engine::instance().setCleanUpFunction(cleanUp);
+    Engine::instance().setEncodeFunction(encode);
+    Engine::instance().setDecodeFunction(decode);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

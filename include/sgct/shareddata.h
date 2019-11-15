@@ -27,10 +27,7 @@ namespace sgct {
  */
 class SharedData {
 public:
-    /// Get the SharedData instance
-    static SharedData* instance();
-
-    /// Destroy the SharedData
+    static SharedData& instance();
     static void destroy();
 
     /**
@@ -99,7 +96,7 @@ public:
      * \code{.cpp}
 void encodeFun()
 {
-    sgct::SharedData::instance()->writeDouble(currentTime);
+    sgct::SharedData::instance().writeDouble(currentTime);
 }
 \endcode
     */
@@ -111,7 +108,7 @@ void encodeFun()
 \code{.cpp}
 void decodeFun()
 {
-    currentTime = sgct::SharedData::instance()->readDouble();
+    currentTime = sgct::SharedData::instance().readDouble();
 }
 \endcode
     */

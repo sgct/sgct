@@ -76,15 +76,7 @@ public:
      */
     void setAlpha(float alpha);
 
-    /**
-     * Set which projection frustum to use for mono projections (can be used for custom
-     * passive stereo).
-     *
-     * \param fm the prefered mono frustum mode
-     */
-    void setPreferedMonoFrustumMode(Frustum::Mode fm);
-
-    void setUser(User& user);
+    void setUser(User* user);
 
     /// \return the resolution of the cubemap
     int getCubemapResolution() const;

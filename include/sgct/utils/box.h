@@ -9,10 +9,6 @@
 #ifndef __SGCT__BOX__H__
 #define __SGCT__BOX__H__
 
-/**
- * \namespace sgct::utils
- * \brief SGCT utils namespace contains basic utilities for geometry rendering
- */
 namespace sgct::utils {
 
 /**
@@ -34,8 +30,6 @@ public:
      void draw();
 
 private:
-    void createVBO(float size, TextureMappingMode tmm);
-
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 };

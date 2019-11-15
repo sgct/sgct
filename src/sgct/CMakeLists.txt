@@ -6,6 +6,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/config.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/error.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fisheyeprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/font.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
@@ -56,7 +57,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/scalable.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/sciss.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/simcad.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/correction/simple.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/skyskan.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
@@ -79,6 +79,7 @@ set(SOURCE_FILES
   config.cpp
   correctionmesh.cpp
   engine.cpp
+  error.cpp
   fisheyeprojection.cpp
   font.cpp
   fontmanager.cpp
@@ -122,7 +123,6 @@ set(SOURCE_FILES
   correction/scalable.cpp
   correction/sciss.cpp
   correction/simcad.cpp
-  correction/simple.cpp
   correction/skyskan.cpp
   utils/box.cpp
   utils/dome.cpp

@@ -8,19 +8,22 @@
 
 #include <sgct/shadermanager.h>
 
+#include <sgct/error.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/messagehandler.h>
 #include <algorithm>
+
+#define Error(code, msg) Error(Error::Component::Shader, code, msg)
 
 namespace sgct {
 
 ShaderManager* ShaderManager::_instance = nullptr;
 
-ShaderManager* ShaderManager::instance() {
-    if (_instance == nullptr) {
-        _instance = new ShaderManager();
+ShaderManager& ShaderManager::instance() {
+    if (!_instance) {
+        _instance = new ShaderManager;
     }
-    return _instance;
+    return *_instance;
 }
 
 void ShaderManager::destroy() {
@@ -41,9 +44,7 @@ void ShaderManager::addShaderProgram(const std::string& name,
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
-        throw std::runtime_error(
-            "Unable to add shader program [" + name + "]: Name already exists"
-        );
+        throw Error(7000, "Cannot add shader program [" + name + "]: Already exists");
     }
 
     // If shader don't exist, create it and add to container
@@ -67,7 +68,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
 
     if (shaderIt == _shaderPrograms.end()) {
         MessageHandler::printWarning(
-            "Unable to remove shader program [%s]: Not found in current bin", name.c_str()
+            "Unable to remove shader program [%s]: Not found", name.c_str()
         );
         return false;
     }
@@ -85,7 +86,7 @@ const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) co
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
-        throw std::runtime_error("Could not find shader with name " + name);
+        throw Error(7001, "Could not find shader with name " + name);
     }
     return *shaderIt;
 }

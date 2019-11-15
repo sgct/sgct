@@ -28,8 +28,6 @@ public:
     void draw();
 
 private:
-    void createVBO(float radius, unsigned int segments);
-
     unsigned int _nVertices = 0;
     unsigned int _nFaces = 0;
 

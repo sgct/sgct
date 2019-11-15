@@ -35,24 +35,24 @@ class Font;
  *
  * \code{.cpp}
  * //Add Verdana size 14 to the FontManager using the system font path
- * if (!sgct::text::FontManager::instance()->addFont( "Verdana", "verdana.ttf"))
- *    sgct::text::FontManager::instance()->getFont( "Verdana", 14 );
+ * if (!sgct::text::FontManager::instance().addFont( "Verdana", "verdana.ttf"))
+ *    sgct::text::FontManager::instance().getFont( "Verdana", 14 );
  *
  * //Add Special font from local path
- * if (!sgct::text::FontManager::instance()->addFont(
+ * if (!sgct::text::FontManager::instance().addFont(
  *       "Special",
  *       "Special.ttf",
  *       sgct::text::FontManager::Local
  *  ))
  * {
- *   sgct::text::FontManager::instance()->getFont("Special", 14);
+ *   sgct::text::FontManager::instance().getFont("Special", 14);
  * }
  * \endcode
  *
  * Then in the draw or draw2d callback the font can be rendered:
  * \code{.cpp}
  * sgct::text::print(
- *     sgct::text::FontManager::instance()->getFont("Verdana", 14),
+ *     sgct::text::FontManager::instance().getFont("Verdana", 14),
  *     sgct::text::TopLeft,
  *     50,
  *     50,
@@ -63,7 +63,7 @@ class Font;
  * SGCT has an internal font that can be used as well:
  * \code{.cpp}
  * sgct::text::print(
- *     sgct::text::FontManager::instance()->getDefaultFont(14),
+ *     sgct::text::FontManager::instance().getDefaultFont(14),
  *     sgct::text::TopLeft,
  *     50,
  *     50,
@@ -74,7 +74,7 @@ class Font;
  * Non ASCII characters are supported as well:
  * \code{.cpp}
  * sgct::text::print(
- *     sgct::text::FontManager::instance()->getDefaultFont(14),
+ *     sgct::text::FontManager::instance().getDefaultFont(14),
  *     sgct::text::TopLeft,
  *     50,
  *     50,
@@ -87,7 +87,7 @@ public:
     /// Enum from where to load font files
     enum class Path { System, Local };
 
-    static FontManager* instance();
+    static FontManager& instance();
     static void destroy();
 
     /// Destructor cleans up all font objects, textures and shaders

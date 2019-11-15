@@ -55,7 +55,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -67,7 +67,7 @@ void setupPostFXs() {
                 glUniform1i(postFXTextureLocation.pass2, 0);
                 glUniform1f(
                     sizeLocation.pass2,
-                    static_cast<float>(Engine::instance()->getCurrentResolution().x)
+                    static_cast<float>(Engine::instance().getCurrentResolution().x)
                 );
             }
         );
@@ -76,7 +76,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
         sizeLocation.pass2 = sp.getUniformLocation("size");
         sp.unbind();
-        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -88,7 +88,7 @@ void setupPostFXs() {
                 glUniform1i(postFXTextureLocation.pass3, 0);
                 glUniform1f(
                     sizeLocation.pass3,
-                    static_cast<float>(Engine::instance()->getCurrentResolution().y)
+                    static_cast<float>(Engine::instance().getCurrentResolution().y)
                 );
             }
         );
@@ -97,7 +97,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
         sizeLocation.pass3 = sp.getUniformLocation("size");
         sp.unbind();
-        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
 
     {
@@ -107,7 +107,7 @@ void setupPostFXs() {
             loadFile("glow.frag"),
             [](){
                 glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, Engine::instance()->getCurrentDrawTexture());
+                glBindTexture(GL_TEXTURE_2D, Engine::instance().getCurrentDrawTexture());
                 glUniform1i(postFXTextureLocation.pass4, 0);
                 glUniform1i(originalTextureLocation, 1);
             }
@@ -117,7 +117,7 @@ void setupPostFXs() {
         postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
         originalTextureLocation = sp.getUniformLocation("texOrig");
         sp.unbind();
-        Engine::instance()->getCurrentWindow().addPostFX(std::move(fx));
+        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
 }
 
@@ -139,42 +139,42 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
                           scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance()->getShaderProgram("xform").bind();
+    ShaderManager::instance().getShaderProgram("xform").bind();
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
     box->draw();
-    ShaderManager::instance()->getShaderProgram("xform").unbind();
+    ShaderManager::instance().getShaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
 
 void initOGLFun() {
-    textureId = TextureManager::instance()->loadTexture("box.png", true, 8.f);
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram(
+    ShaderManager::instance().addShaderProgram(
         "xform",
         loadFile("simple.vert"),
         loadFile("simple.frag")
     );
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
     matrixLoc = prog.getUniformLocation("mvp");
     glUniform1i(prog.getUniformLocation("tex"), 0);
@@ -184,11 +184,11 @@ void initOGLFun() {
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -201,22 +201,23 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setEncodeFunction(encodeFun);
-    Engine::instance()->setDecodeFunction(decodeFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setEncodeFunction(encodeFun);
+    Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance()->init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
-    catch (const std::runtime_error&) {
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
-    Engine::instance()->render();
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

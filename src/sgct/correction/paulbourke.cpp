@@ -9,15 +9,10 @@
 #include <sgct/correction/paulbourke.h>
 
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
-
-#if (_MSC_VER >= 1400)
-    #define _sscanf sscanf_s
-#else
-    #define _sscanf sscanf
-#endif
 
 namespace {
     constexpr const int MaxLineLength = 1024;
@@ -31,22 +26,13 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     Buffer buf;
 
     MessageHandler::printInfo(
-        "CorrectionMesh: Reading Paul Bourke spherical mirror mesh data from '%s'",
-        path.c_str()
+        "Reading Paul Bourke spherical mirror mesh data from '%s'", path.c_str()
     );
 
     FILE* meshFile = nullptr;
-    bool loadSuccess = false;
-#if (_MSC_VER >= 1400)
-    loadSuccess = fopen_s(&meshFile, path.c_str(), "r") == 0;
-#else
     meshFile = fopen(path.c_str(), "r");
-    loadSuccess = meshFile != nullptr;
-#endif
-    if (!loadSuccess) {
-        char ErrorBuffer[1024];
-        sprintf(ErrorBuffer, "Failed to open warping mesh file '%s'", path.c_str());
-        throw std::runtime_error(ErrorBuffer);
+    if (meshFile == nullptr) {
+        throw Error(Error::Component::PaulBourke, 2030, "Failed to open " + path);
     }
 
     char lineBuffer[MaxLineLength];
@@ -54,27 +40,27 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     // get the fist line containing the mapping type _id
     int mappingType = -1;
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
-        _sscanf(lineBuffer, "%d", &mappingType);
+        sscanf(lineBuffer, "%d", &mappingType);
     }
 
     // get the mesh dimensions
     glm::ivec2 meshSize = glm::ivec2(-1, -1);
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
-        if (_sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
+        if (sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
             buf.vertices.reserve(meshSize.x * meshSize.y);
         }
     }
 
     // check if everyting useful is set
     if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        throw std::runtime_error("Invalid data");
+        throw Error(Error::Component::PaulBourke, 2031, "Invalid data");
     }
 
     // get all data
     float x, y, s, t, intensity;
     while (!feof(meshFile)) {
         if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
-            if (_sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5) {
+            if (sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5) {
                 CorrectionMeshVertex vertex;
                 vertex.x = x;
                 vertex.y = y;
@@ -120,7 +106,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
         }
     }
 
-    const float aspect = Engine::instance()->getCurrentWindow().getAspectRatio() *
+    const float aspect = Engine::instance().getCurrentWindow().getAspectRatio() *
                    (size.x / size.y);
     for (CorrectionMeshVertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)

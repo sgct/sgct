@@ -8,14 +8,11 @@
 
 #include <sgct/commandline.h>
 
-#include <string_view>
-
 namespace sgct {
 
-Configuration parseArguments(std::vector<std::string> arg) {
+Configuration parseArguments(std::vector<std::string>& arg) {
     Configuration config;
 
-    MessageHandler::printInfo("Parsing arguments");
     size_t i = 0;
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
@@ -23,15 +20,15 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--client" || arg[i] == "--slave") {
+        else if (arg[i] == "-client" || arg[i] == "-slave") {
             config.isServer = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--debug") {
+        else if (arg[i] == "-debug") {
             config.logLevel = MessageHandler::Level::Debug;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--help") {
+        else if (arg[i] == "-help") {
             config.showHelpText = true;
             arg.erase(arg.begin() + i);
         }
@@ -41,7 +38,7 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-logPath") {
+        else if (arg[i] == "-log") {
             // Remove unwanted chars
             std::string tmpStr = arg[i + 1];
             tmpStr.erase(remove(tmpStr.begin(), tmpStr.end(), '\"'), tmpStr.end());
@@ -64,42 +61,50 @@ Configuration parseArguments(std::vector<std::string> arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Firm-Sync") {
+        else if (arg[i] == "-firm-sync") {
             config.firmSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Loose-Sync") {
+        else if (arg[i] == "-loose-sync") {
             config.firmSync = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Ignore-Sync" || arg[i] == "--No-Sync") {
+        else if (arg[i] == "-ignore-sync" || arg[i] == "-no-sync") {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--FXAA") {
+        else if (arg[i] == "-fxaa") {
             config.fxaa = true;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-MSAA" && arg.size() > (i + 1)) {
+        else if (arg[i] == "-msaa" && arg.size() > (i + 1)) {
             config.msaaSamples = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-TGA") {
+        else if (arg[i] == "-capture-tga") {
             config.captureFormat = Settings::CaptureFormat::TGA;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-PNG") {
+        else if (arg[i] == "-capture-png") {
             config.captureFormat = Settings::CaptureFormat::PNG;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "--Capture-JPG") {
+        else if (arg[i] == "-capture-jpg") {
             config.captureFormat = Settings::CaptureFormat::JPG;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-numberOfCaptureThreads" && arg.size() > (i + 1)) {
+        else if (arg[i] == "-number-capture-threads" && arg.size() > (i + 1)) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-check-opengl") {
+            config.checkOpenGL = true;
+            arg.erase(arg.begin() + i);
+        }
+        else if (arg[i] == "-check-fbos") {
+            config.checkFBOs = true;
             arg.erase(arg.begin() + i);
         }
         else {
@@ -114,42 +119,45 @@ Configuration parseArguments(std::vector<std::string> arg) {
 std::string_view getHelpMessage() {
     return R"(
 Parameters:
-------------------------------------
 -config <filename.xml>
-    Set XML confiuration file
--logPath <filepath>
+    Set XML configuration file
+-log <filepath>
     Set log file path
---help
+-help
     Display help message and exit
 -local <integer>
     Force node in configuration to localhost (index starts at 0)
---client
+-client
     Run the application as client\n\t(only available when running as local)
---slave
+-slave
     Run the application as client\n\t(only available when running as local)
---debug
+-debug
     Set the notify level of messagehandler to debug
---Firm-Sync
+-firm-sync
     Enable firm frame sync
---Loose-Sync
+-loose-sync
     Disable firm frame sync
---Ignore-Sync
+-ignore-sync
     Disable frame sync
--MSAA <integer>
+-msaa <integer>
     Enable MSAA as default (argument must be a power of two)
---FXAA
+-fxaa
     Enable FXAA as default
 -notify <integer>
     Set the notify level used in the MessageHandler\n\t(0 = highest priority)
---Capture-PNG
+-capture-png
     Use png images for screen capture (default)
---Capture-JPG
+-capture-jpg
     Use jpg images for screen capture
---Capture-TGA
+-capture-tga
     Use tga images for screen capture
--numberOfCaptureThreads <integer>
+-number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
-------------------------------------)";
+-check-opengl
+    Enables checking of OpenGL calls. This will reduce the overall performance
+-check-fbos
+    Enables the checking of framebuffer objects after window creation
+)";
 }
 
 } // namespace sgct

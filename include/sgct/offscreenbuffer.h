@@ -70,9 +70,6 @@ public:
     /// \return the opengl internal texture format of the color buffer 
     GLenum getInternalColorFormat() const;
 
-    /// \return true if no errors
-    bool checkForErrors();
-
 private:
     unsigned int _frameBuffer = 0;
     unsigned int _multiSampledFrameBuffer = 0;

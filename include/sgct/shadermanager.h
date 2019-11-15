@@ -21,6 +21,9 @@ namespace sgct {
  */
 class ShaderManager {
 public:
+    static ShaderManager& instance();
+    static void destroy();
+
     /// Destructor deallocates and deletes all shaders
     ~ShaderManager();
 
@@ -63,12 +66,6 @@ public:
      * \throws std::runtime_error If the shader program with the \p name was not found
      */
     const ShaderProgram& getShaderProgram(const std::string& name) const;
-
-    /// Get the manager instance
-    static ShaderManager* instance();
-
-    /// Destroy the ShaderManager
-    static void destroy();
 
 private:
     static ShaderManager* _instance;

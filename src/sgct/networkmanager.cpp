@@ -16,6 +16,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
@@ -69,16 +70,26 @@ namespace sgct::core {
 std::condition_variable NetworkManager::cond;
 NetworkManager* NetworkManager::_instance = nullptr;
 
-NetworkManager* NetworkManager::instance() {
-    return _instance;
+NetworkManager& NetworkManager::instance() {
+    return *_instance;
+}
+
+void NetworkManager::create(NetworkMode nm) {
+    if (_instance) {
+        throw std::logic_error("NetworkManager has already been created");
+    }
+    _instance = new NetworkManager(nm);
+}
+
+void NetworkManager::destroy() {
+    delete _instance;
+    _instance = nullptr;
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) 
     : _compressionLevel(Z_BEST_SPEED)
     , _mode(nm)
 {
-    _instance = this;
-
     MessageHandler::printDebug("NetworkManager: Initiating network API");
     initAPI();
 
@@ -86,7 +97,7 @@ NetworkManager::NetworkManager(NetworkMode nm)
     getHostInfo();
 
     if (_mode == NetworkMode::Remote) {
-        _isServer = matchAddress(ClusterManager::instance()->getMasterAddress());
+        _isServer = matchesAddress(ClusterManager::instance().getMasterAddress());
     }
     else if (_mode == NetworkMode::LocalServer) {
         _isServer = true;
@@ -108,12 +119,10 @@ NetworkManager::~NetworkManager() {
 }
 
 bool NetworkManager::init() {
-    ClusterManager& cm = *ClusterManager::instance();
+    ClusterManager& cm = ClusterManager::instance();
     const std::string& thisAddress = cm.getThisNode().getAddress();
     if (thisAddress.empty()) {
-        MessageHandler::printError(
-            "NetworkManager: No address information for this node available"
-        );
+        MessageHandler::printError("No address information for this node available");
         return false;
     }
 
@@ -122,9 +131,7 @@ bool NetworkManager::init() {
         remoteAddress = cm.getMasterAddress();
 
         if (remoteAddress.empty()) {
-            MessageHandler::printError(
-                "NetworkManager: No address information for master/host availible"
-            );
+            MessageHandler::printError("No address information for master available");
             return false;
         }
     }
@@ -139,7 +146,7 @@ bool NetworkManager::init() {
     }
 
     // Add Cluster Functionality
-    if (ClusterManager::instance()->getNumberOfNodes() > 1) {
+    if (ClusterManager::instance().getNumberOfNodes() > 1) {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->getPort();
@@ -148,7 +155,7 @@ bool NetworkManager::init() {
                 port == cm.getExternalControlPort())
             {
                 MessageHandler::printError(
-                    "NetworkManager: Port %d is already used by connection %u",
+                    "Port %d is already used by connection %u",
                     cm.getThisNode().getSyncPort(), i
                 );
                 return false;
@@ -164,13 +171,13 @@ bool NetworkManager::init() {
             if (addSyncPort) {
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
-                        SharedData::instance()->decode(data, length, index);
+                        SharedData::instance().decode(data, length, index);
                     }
                 );
             }
             else {
                 MessageHandler::printError(
-                    "NetworkManager: Failed to add network connection to %s",
+                    "Failed to add network connection to %s",
                     cm.getMasterAddress().c_str()
                 );
                 return false;
@@ -185,7 +192,7 @@ bool NetworkManager::init() {
             if (addTransferPort) {
                 _networkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
-                        Engine::instance()->invokeDecodeCallbackForDataTransfer(
+                        Engine::instance().invokeDecodeCallbackForDataTransfer(
                             data,
                             length,
                             packageId,
@@ -197,7 +204,7 @@ bool NetworkManager::init() {
                 // acknowledge callback
                 _networkConnections.back()->setAcknowledgeFunction(
                     [](int packageId, int clientId) {
-                        Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                        Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
                             clientId
                         );
@@ -208,24 +215,22 @@ bool NetworkManager::init() {
 
         // add all connections from config file
         for (int i = 0; i < cm.getNumberOfNodes(); i++) {
+            const Node& n = cm.getNode(i);
+
             // don't add itself if server
-            if (_isServer && !matchAddress(cm.getNode(i)->getAddress())) {
-                const bool addSyncPort = addConnection(
-                    cm.getNode(i)->getSyncPort(),
-                    remoteAddress
-                );
+            if (_isServer && !matchesAddress(n.getAddress())) {
+                const bool addSyncPort = addConnection(n.getSyncPort(), remoteAddress);
                 if (!addSyncPort) {
                     MessageHandler::printError(
-                        "NetworkManager: Failed to add network connection to %s",
-                        cm.getNode(i)->getAddress().c_str()
+                        "Failed to add network connection to %s", n.getAddress().c_str()
                     );
                     return false;
                 }
 
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
-                        MessageHandler::instance()->decode(
-                            std::vector<char>(data, data + length),
+                        MessageHandler::instance().decode(
+                           std::vector<char>(data, data + length),
                            index
                         );
                     }
@@ -233,14 +238,14 @@ bool NetworkManager::init() {
 
                 // add data transfer connection
                 const bool addTransferPort = addConnection(
-                    cm.getNode(i)->getDataTransferPort(),
+                    n.getDataTransferPort(),
                     remoteAddress,
                     Network::ConnectionType::DataTransfer
                 );
                 if (addTransferPort) {
                     _networkConnections.back()->setPackageDecodeFunction(
                         [](void* data, int length, int packageId, int clientId) {
-                            Engine::instance()->invokeDecodeCallbackForDataTransfer(
+                            Engine::instance().invokeDecodeCallbackForDataTransfer(
                                 data,
                                 length,
                                 packageId,
@@ -252,7 +257,7 @@ bool NetworkManager::init() {
                     // acknowledge callback
                     _networkConnections.back()->setAcknowledgeFunction(
                         [](int packageId, int clientId) {
-                            Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
+                            Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
                                 clientId
                             );
@@ -268,14 +273,12 @@ bool NetworkManager::init() {
         const bool addExternalPort = addConnection(
             cm.getExternalControlPort(),
             "127.0.0.1",
-            cm.getUseASCIIForExternalControl() ?
-                Network::ConnectionType::ExternalASCIIConnection :
-                Network::ConnectionType::ExternalRawConnection
+            Network::ConnectionType::ExternalConnection
         );
         if (addExternalPort) {
             _networkConnections.back()->setDecodeFunction(
                 [](const char* data, int length, int client) {
-                    Engine::instance()->invokeDecodeCallbackForExternalControl(
+                    Engine::instance().invokeDecodeCallbackForExternalControl(
                         data,
                         length,
                         client
@@ -286,7 +289,7 @@ bool NetworkManager::init() {
     }
 
     MessageHandler::printDebug(
-        "NetworkManager: Cluster sync is set to %s",
+        "Cluster sync is set to %s",
         cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
 
@@ -312,19 +315,19 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             minTime = std::min(currentTime, minTime);
 
             const int currentSize =
-                static_cast<int>(SharedData::instance()->getDataSize()) -
+                static_cast<int>(SharedData::instance().getDataSize()) -
                 Network::HeaderSize;
 
             // iterate counter
             const int currentFrame = connection->iterateFrameCounter();
 
-            unsigned char* dataBlock = SharedData::instance()->getDataBlock();
+            unsigned char* dataBlock = SharedData::instance().getDataBlock();
             memcpy(dataBlock + 1, &currentFrame, sizeof(int));
             memcpy(dataBlock + 5, &currentSize, sizeof(int));
 
             connection->sendData(
-                SharedData::instance()->getDataBlock(),
-                static_cast<int>(SharedData::instance()->getDataSize())
+                SharedData::instance().getDataBlock(),
+                static_cast<int>(SharedData::instance().getDataSize())
             );
         }
 
@@ -426,25 +429,22 @@ bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         );
 
         if (err != Z_OK) {
-            std::string errStr;
+            std::string e;
             switch (err) {
                 case Z_BUF_ERROR:
-                    errStr = "Dest. buffer not large enough";
+                    e = "Dest. buffer not large enough";
                     break;
                 case Z_MEM_ERROR:
-                    errStr = "Insufficient memory";
+                    e = "Insufficient memory";
                     break;
                 case Z_STREAM_ERROR:
-                    errStr = "Incorrect compression level";
+                    e = "Incorrect compression level";
                     break;
                 default:
-                    errStr = "Unknown error";
+                    e = "Unknown error";
                     break;
             }
-
-            MessageHandler::printError(
-                "NetworkManager: Failed to compress data! Error: %s", errStr.c_str()
-            );
+            MessageHandler::printError("Failed to compress data. Error: %s", e.c_str());
             return false;
         }
 
@@ -516,9 +516,7 @@ const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    MessageHandler::printDebug(
-        "NetworkManager: Updating status for connection %d", connection->getId()
-    );
+    MessageHandler::printDebug("Updating status for connection %d", connection->getId());
 
     unsigned int numberOfConnectionsCounter = 0;
     unsigned int nConnectedSyncNodesCounter = 0;
@@ -547,15 +545,15 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
     MessageHandler::printInfo(
-        "NetworkManager: Number of active connections %u of %u",
+        "Number of active connections %u of %u",
         numberOfConnectionsCounter, totalNumberOfConnections
     );
     MessageHandler::printDebug(
-        "NetworkManager: Number of connected sync nodes %u of %u",
+        "Number of connected sync nodes %u of %u",
         nConnectedSyncNodesCounter, totalNumberOfSyncConnections
     );
     MessageHandler::printDebug(
-        "NetworkManager: Number of connected data transfer nodes %u of %u",
+        "Number of connected data transfer nodes %u of %u",
         nConnectedDataTransferNodesCounter, totalNumberOfTransferConnections
     );
 
@@ -612,18 +610,11 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // Check if any external connection
-        if (connection->getType() == Network::ConnectionType::ExternalASCIIConnection) {
+        if (connection->getType() == Network::ConnectionType::ExternalConnection) {
             const bool externalControlConnectionStatus = connection->isConnected();
             std::string_view msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.data(), static_cast<int>(msg.size()));
-            Engine::instance()->invokeUpdateCallbackForExternalControl(
-                externalControlConnectionStatus
-            );
-        }
-        else if (connection->getType() == Network::ConnectionType::ExternalRawConnection)
-        {
-            const bool externalControlConnectionStatus = connection->isConnected();
-            Engine::instance()->invokeUpdateCallbackForExternalControl(
+            Engine::instance().invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
         }
@@ -635,7 +626,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 
     if (connection->getType() == Network::ConnectionType::DataTransfer) {
         const bool dataTransferConnectionStatus = connection->isConnected();
-        Engine::instance()->invokeUpdateCallbackForDataTransfer(
+        Engine::instance().invokeUpdateCallbackForDataTransfer(
             dataTransferConnectionStatus,
             connection->getId()
         );
@@ -683,7 +674,7 @@ void NetworkManager::close() {
 #ifdef _WIN_PLATFORM
     WSACleanup();
 #endif
-    MessageHandler::printInfo("NetworkManager: Network API closed");
+    MessageHandler::printInfo("Network API closed");
 }
 
 bool NetworkManager::addConnection(int port, const std::string& address,
@@ -691,16 +682,14 @@ bool NetworkManager::addConnection(int port, const std::string& address,
 {
     if (port == 0) {
         MessageHandler::printInfo(
-            "NetworkManager: No port set for %s",
-            Network::getTypeStr(connectionType).c_str()
+            "No port set for %s", Network::getTypeStr(connectionType).c_str()
         );
         return false;
     }
 
     if (address.empty()) {
         MessageHandler::printError(
-            "NetworkManager: Error: No address set for %s",
-            Network::getTypeStr(connectionType).c_str()
+            "No address set for %s", Network::getTypeStr(connectionType).c_str()
         );
         return false;
     }
@@ -708,7 +697,7 @@ bool NetworkManager::addConnection(int port, const std::string& address,
     try {
         std::unique_ptr<Network> netPtr = std::make_unique<Network>();
         MessageHandler::printDebug(
-            "NetworkManager: Initiating network connection %d at port %d",
+            "Initiating network connection %d at port %d",
             _networkConnections.size(), port
         );
         netPtr->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
@@ -755,7 +744,7 @@ void NetworkManager::initAPI() {
     if (error != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
         // incorrect WinSock version
         WSACleanup();
-        throw std::runtime_error("Winsock 2.2 startup failed");
+        throw Error(Error::Component::Network, 5005, "Winsock 2.2 startup failed");
     }
 #endif
 }
@@ -768,7 +757,7 @@ void NetworkManager::getHostInfo() {
 #ifdef _WIN_PLATFORM
         WSACleanup();
 #endif
-        throw std::runtime_error("Failed to get host name");
+        throw Error(Error::Component::Network, 5006, "Failed to get host name");
     }
 
     _hostName = tmpStr;
@@ -793,7 +782,7 @@ void NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         MessageHandler::printError(
-            "NetworkManager: Failed to get address info (%d)", Network::getLastError()
+            "Failed to get address info (%d)", Network::getLastError()
         );
     }
     else {
@@ -825,7 +814,7 @@ void NetworkManager::getHostInfo() {
     _localAddresses.emplace_back("localhost");
 }
 
-bool NetworkManager::matchAddress(const std::string& address) const {
+bool NetworkManager::matchesAddress(const std::string& address) const {
     auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);
     return it != _localAddresses.cend();
 }
@@ -842,20 +831,6 @@ bool NetworkManager::isRunning() const {
 bool NetworkManager::areAllNodesConnected() const {
     std::unique_lock lock(core::mutex::DataSync);
     return _allNodesConnected;
-}
-
-void NetworkManager::retrieveNodeId() const {
-    for (int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
-        // check ip
-        if (matchAddress(ClusterManager::instance()->getNode(i)->getAddress())) {
-            ClusterManager::instance()->setThisNodeId(static_cast<int>(i));
-            MessageHandler::printDebug(
-                "NetworkManager: Running in cluster mode as node %d",
-                ClusterManager::instance()->getThisNodeId()
-            );
-            break;
-        }
-    }
 }
 
 } // namespace sgct::core

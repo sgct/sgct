@@ -9,8 +9,6 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/user.h>
-#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -18,11 +16,11 @@ namespace sgct::core {
 
 ClusterManager* ClusterManager::_instance = nullptr;
 
-ClusterManager* ClusterManager::instance() {
+ClusterManager& ClusterManager::instance() {
     if (!_instance) {
-        _instance = new ClusterManager();
+        _instance = new ClusterManager;
     }
-    return _instance;
+    return *_instance;
 }
 
 void ClusterManager::destroy() {
@@ -35,12 +33,10 @@ ClusterManager::ClusterManager() {
 }
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
-    setMasterAddress(cluster.masterAddress);
+    _masterAddress = cluster.masterAddress;
     if (cluster.debug) {
-        MessageHandler::instance()->setNotifyLevel(
-            *cluster.debug ?
-            MessageHandler::Level::Debug :
-            MessageHandler::Level::Warning
+        MessageHandler::instance().setNotifyLevel(
+            *cluster.debug ? MessageHandler::Level::Debug : MessageHandler::Level::Warning
         );
     }
     if (cluster.externalControlPort) {
@@ -50,14 +46,44 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
     if (cluster.scene) {
-        if (cluster.scene->offset) {
-            setSceneOffset(*cluster.scene->offset);
+        const glm::mat4 sceneTranslate = cluster.scene->offset ?
+            glm::translate(glm::mat4(1.f), *cluster.scene->offset) :
+            glm::mat4(1.f);
+
+        const glm::mat4 sceneRotation = cluster.scene->orientation ?
+            glm::mat4_cast(*cluster.scene->orientation) :
+            glm::mat4(1.f);
+
+        const glm::mat4 sceneScale = cluster.scene->scale ?
+            glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) :
+            glm::mat4(1.f);
+
+        _sceneTransform = sceneRotation * sceneTranslate * sceneScale;
+    }
+    // The users must be handled before the nodes due to the nodes depending on the users
+    for (const config::User& user : cluster.users) {
+        User* usrPtr;
+        if (user.name) {
+            User usr(*user.name);
+            addUser(std::move(usr));
+            usrPtr = &_users.back();
+            MessageHandler::printInfo("Adding user '%s'", user.name->c_str());
         }
-        if (cluster.scene->orientation) {
-            setSceneRotation(glm::mat4_cast(*cluster.scene->orientation));
+        else {
+            usrPtr = &getDefaultUser();
         }
-        if (cluster.scene->scale) {
-            setSceneScale(*cluster.scene->scale);
+
+        if (user.eyeSeparation) {
+            usrPtr->setEyeSeparation(*user.eyeSeparation);
+        }
+        if (user.position) {
+            usrPtr->setPos(*user.position);
+        }
+        if (user.transformation) {
+            usrPtr->setTransform(*user.transformation);
+        }
+        if (user.tracking) {
+            usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
         }
     }
     for (const config::Node& node : cluster.nodes) {
@@ -66,44 +92,10 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         addNode(std::move(n));
     }
     if (cluster.settings) {
-        Settings::instance()->applySettings(*cluster.settings);
-    }
-    if (cluster.user) {
-        User* usrPtr;
-        if (cluster.user->name) {
-            // @TODO (2019-10-23) This doesn't seem to be used and probably can be removed
-            // which would cause all of the username in the viewports to disappear as well
-            // as noone else uses User's having a name
-            User usr(*cluster.user->name);
-            addUser(std::move(usr));
-            usrPtr = &_users.back();
-            MessageHandler::printInfo("Adding user '%s'", cluster.user->name->c_str());
-        }
-        else {
-            usrPtr = &getDefaultUser();
-        }
-
-        if (cluster.user->eyeSeparation) {
-            usrPtr->setEyeSeparation(*cluster.user->eyeSeparation);
-        }
-        if (cluster.user->position) {
-            usrPtr->setPos(*cluster.user->position);
-        }
-        if (cluster.user->transformation) {
-            usrPtr->setTransform(*cluster.user->transformation);
-        }
-        if (cluster.user->tracking) {
-            usrPtr->setHeadTracker(
-                cluster.user->tracking->tracker,
-                cluster.user->tracking->device
-            );
-        }
+        Settings::instance().applySettings(*cluster.settings);
     }
     if (cluster.capture) {
-        Settings::instance()->applyCapture(*cluster.capture);
-    }
-    if (cluster.tracker) {
-        getTrackingManager().applyTracker(*cluster.tracker);
+        Settings::instance().applyCapture(*cluster.capture);
     }
 }
 
@@ -115,17 +107,21 @@ void ClusterManager::addUser(User user) {
     _users.push_back(std::move(user));
 }
 
-Node* ClusterManager::getNode(int index) {
-    return (index < _nodes.size()) ? &_nodes[index] : nullptr;
+const Node& ClusterManager::getNode(int index) const {
+    return _nodes[index];
 }
 
 Node& ClusterManager::getThisNode() {
     return _nodes[_thisNodeId];
 }
 
+const Node& ClusterManager::getThisNode() const {
+    return _nodes[_thisNodeId];
+}
+
 User& ClusterManager::getDefaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
-    // possible to clear the mUsers list
+    // possible to clear the _users list
     return _users[0];
 }
 
@@ -147,33 +143,6 @@ User* ClusterManager::getTrackedUser() {
     return it != _users.end() ? &*it : nullptr;
 }
 
-NetworkManager::NetworkMode ClusterManager::getNetworkMode() const {
-    return _netMode;
-}
-
-void ClusterManager::setNetworkMode(NetworkManager::NetworkMode nm) {
-    _netMode = nm;
-}
-
-void ClusterManager::setSceneTransform(glm::mat4 mat) {
-    _sceneTransform = std::move(mat);
-}
-
-void ClusterManager::setSceneOffset(glm::vec3 offset) {
-    _sceneTranslate = glm::translate(glm::mat4(1.f), std::move(offset));
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
-void ClusterManager::setSceneRotation(float yaw, float pitch, float roll) {
-    _sceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
-void ClusterManager::setSceneRotation(glm::mat4 mat) {
-    _sceneRotation = std::move(mat);
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
 bool ClusterManager::getIgnoreSync() const {
     return _ignoreSync;
 }
@@ -182,25 +151,8 @@ void ClusterManager::setUseIgnoreSync(bool state) {
     _ignoreSync = state;
 }
 
-void ClusterManager::setUseASCIIForExternalControl(bool useASCII) {
-    _useASCIIForExternalControl = useASCII;
-}
-
-bool ClusterManager::getUseASCIIForExternalControl() const {
-    return _useASCIIForExternalControl;
-}
-
-void ClusterManager::setSceneScale(float scale) {
-    _sceneScale = glm::scale(glm::mat4(1.f), glm::vec3(scale));
-    _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
-}
-
 const std::string& ClusterManager::getMasterAddress() const {
     return _masterAddress;
-}
-
-void ClusterManager::setMasterAddress(std::string address) {
-    _masterAddress = std::move(address);
 }
 
 int ClusterManager::getExternalControlPort() const {
@@ -233,10 +185,6 @@ bool ClusterManager::getFirmFrameLockSyncStatus() const {
 
 void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
     _firmFrameLockSync = state;
-}
-
-TrackingManager& ClusterManager::getTrackingManager() {
-    return _trackingManager;
 }
 
 } // namespace sgct::core

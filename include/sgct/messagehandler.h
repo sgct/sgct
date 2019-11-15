@@ -27,10 +27,7 @@ public:
         Debug
     };
     
-    /// Get the MessageHandler instance
-    static MessageHandler* instance();
-
-    /// Destroy the MessageHandler
+    static MessageHandler& instance();
     static void destroy();
 
     /**

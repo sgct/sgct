@@ -54,6 +54,9 @@ public:
     /// Get the window pointer at index in window vector.
     Window& getWindow(int index);
 
+    /// Get the window pointer at index in window vector.
+    const Window& getWindow(int index) const;
+
     /// \param address is the hostname, DNS-name or ip
     void setAddress(std::string address);
 

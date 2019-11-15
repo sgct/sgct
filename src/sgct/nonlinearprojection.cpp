@@ -103,10 +103,6 @@ void NonLinearProjection::setAlpha(float alpha) {
     _clearColor.a = alpha;
 }
 
-void NonLinearProjection::setPreferedMonoFrustumMode(Frustum::Mode fm) {
-    _preferedMonoFrustumMode = fm;
-}
-
 void NonLinearProjection::setUser(User* user) {
     _subViewports.right.setUser(user);
     _subViewports.left.setUser(user);

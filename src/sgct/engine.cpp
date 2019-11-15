@@ -2444,7 +2444,7 @@ glm::ivec2 Engine::getCurrentResolution() const {
 }
 
 int Engine::getFocusedWindowIndex() const {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
         if (thisNode.getWindow(i).isFocused()) {
             return i;
@@ -2541,11 +2541,11 @@ void Engine::setExternalControlBufferSize(unsigned int newSize) {
 }
 
 void Engine::updateDrawBufferResolutions() {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     _drawBufferResolutions.clear();
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        Window& win = getWindow(i);
+        const Window& win = thisNode.getWindow(i);
 
         // first add cubemap resolutions if any
         for (int j = 0; j < win.getNumberOfViewports(); ++j) {

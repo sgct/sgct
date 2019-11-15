@@ -55,6 +55,14 @@ public:
     Node& getThisNode();
 
     /**
+     * Get the current node. Please observe that the address of this object might change
+     * between frames and should not be stored.
+     *
+     * \return a reference to the node that this application is running on
+     */
+    const Node& getThisNode() const;
+
+    /**
      * Get the default user. Please observe that the address of this object might change
      * between frames and should not be stored.
      *

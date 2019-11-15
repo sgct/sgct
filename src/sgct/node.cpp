@@ -65,6 +65,10 @@ Window& Node::getWindow(int index) {
     return _windows[index];
 }
 
+const Window& Node::getWindow(int index) const {
+    return _windows[index];
+}
+
 bool Node::closeAllWindows() {
     for (Window& window : _windows) {
         if (glfwWindowShouldClose(window.getWindowHandle())) {

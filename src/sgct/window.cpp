@@ -394,7 +394,6 @@ void Window::initOGL() {
 
         setCurrentViewport(vp.get());
         vp->getNonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
-        vp->getNonLinearProjection()->setPreferedMonoFrustumMode(vp->getEye());
         vp->getNonLinearProjection()->init(
             _internalColorFormat,
             _colorFormat,

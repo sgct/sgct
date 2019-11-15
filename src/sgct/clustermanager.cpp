@@ -9,7 +9,6 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/user.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -110,6 +109,10 @@ const Node& ClusterManager::getNode(int index) const {
 }
 
 Node& ClusterManager::getThisNode() {
+    return _nodes[_thisNodeId];
+}
+
+const Node& ClusterManager::getThisNode() const {
     return _nodes[_thisNodeId];
 }
 

@@ -323,7 +323,7 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
         for (int j = 0; j < thisNode.getWindow(i).getNumberOfViewports(); j++) {
             if (thisNode.getWindow(i).getViewport(j).isEnabled()) {

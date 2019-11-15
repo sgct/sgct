@@ -62,6 +62,33 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             _sceneTransform = _sceneRotation * _sceneTranslate * _sceneScale;
         }
     }
+    // The users have to be handled before the nodes as handling the nodes will require
+    // the users to be already added for the linking
+    for (const config::User& user : cluster.users) {
+        User* usrPtr;
+        if (user.name) {
+            User usr(*user.name);
+            addUser(std::move(usr));
+            usrPtr = &_users.back();
+            MessageHandler::printInfo("Adding user '%s'", user.name->c_str());
+        }
+        else {
+            usrPtr = &getDefaultUser();
+        }
+
+        if (user.eyeSeparation) {
+            usrPtr->setEyeSeparation(*user.eyeSeparation);
+        }
+        if (user.position) {
+            usrPtr->setPos(*user.position);
+        }
+        if (user.transformation) {
+            usrPtr->setTransform(*user.transformation);
+        }
+        if (user.tracking) {
+            usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
+        }
+    }
     for (const config::Node& node : cluster.nodes) {
         Node n;
         n.applyNode(node);
@@ -69,37 +96,6 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
     if (cluster.settings) {
         Settings::instance().applySettings(*cluster.settings);
-    }
-    if (cluster.user) {
-        User* usrPtr;
-        if (cluster.user->name) {
-            // @TODO (2019-10-23) This doesn't seem to be used and probably can be removed
-            // which would cause all of the username in the viewports to disappear as well
-            // as noone else uses User's having a name
-            User usr(*cluster.user->name);
-            addUser(std::move(usr));
-            usrPtr = &_users.back();
-            MessageHandler::printInfo("Adding user '%s'", cluster.user->name->c_str());
-        }
-        else {
-            usrPtr = &getDefaultUser();
-        }
-
-        if (cluster.user->eyeSeparation) {
-            usrPtr->setEyeSeparation(*cluster.user->eyeSeparation);
-        }
-        if (cluster.user->position) {
-            usrPtr->setPos(*cluster.user->position);
-        }
-        if (cluster.user->transformation) {
-            usrPtr->setTransform(*cluster.user->transformation);
-        }
-        if (cluster.user->tracking) {
-            usrPtr->setHeadTracker(
-                cluster.user->tracking->tracker,
-                cluster.user->tracking->device
-            );
-        }
     }
     if (cluster.capture) {
         Settings::instance().applyCapture(*cluster.capture);

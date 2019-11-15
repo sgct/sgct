@@ -26,24 +26,24 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     const glm::vec3 planeZ = glm::normalize(glm::cross(planeX, planeY));
 
     // calculate plane rotation using Direction Cosine Matrix (DCM)
-    glm::mat3 DCM(1.f); // init as identity matrix
-    DCM[0][0] = glm::dot(planeX, glm::vec3(1.f, 0.f, 0.f));
-    DCM[0][1] = glm::dot(planeX, glm::vec3(0.f, 1.f, 0.f));
-    DCM[0][2] = glm::dot(planeX, glm::vec3(0.f, 0.f, 1.f));
+    glm::mat3 dcm(1.f); // init as identity matrix
+    dcm[0][0] = glm::dot(planeX, glm::vec3(1.f, 0.f, 0.f));
+    dcm[0][1] = glm::dot(planeX, glm::vec3(0.f, 1.f, 0.f));
+    dcm[0][2] = glm::dot(planeX, glm::vec3(0.f, 0.f, 1.f));
 
-    DCM[1][0] = glm::dot(planeY, glm::vec3(1.f, 0.f, 0.f));
-    DCM[1][1] = glm::dot(planeY, glm::vec3(0.f, 1.f, 0.f));
-    DCM[1][2] = glm::dot(planeY, glm::vec3(0.f, 0.f, 1.f));
+    dcm[1][0] = glm::dot(planeY, glm::vec3(1.f, 0.f, 0.f));
+    dcm[1][1] = glm::dot(planeY, glm::vec3(0.f, 1.f, 0.f));
+    dcm[1][2] = glm::dot(planeY, glm::vec3(0.f, 0.f, 1.f));
 
-    DCM[2][0] = glm::dot(planeZ, glm::vec3(1.f, 0.f, 0.f));
-    DCM[2][1] = glm::dot(planeZ, glm::vec3(0.f, 1.f, 0.f));
-    DCM[2][2] = glm::dot(planeZ, glm::vec3(0.f, 0.f, 1.f));
+    dcm[2][0] = glm::dot(planeZ, glm::vec3(1.f, 0.f, 0.f));
+    dcm[2][1] = glm::dot(planeZ, glm::vec3(0.f, 1.f, 0.f));
+    dcm[2][2] = glm::dot(planeZ, glm::vec3(0.f, 0.f, 1.f));
 
     // invert & transform
-    const glm::mat3 invDCM = glm::inverse(DCM);
-    const glm::vec3 viewPlaneLowerLeft = invDCM * lowerLeft;
-    const glm::vec3 viewPlaneUpperRight = invDCM * upperRight;
-    const glm::vec3 eyePos = invDCM * base;
+    const glm::mat3 invDcm = glm::inverse(dcm);
+    const glm::vec3 viewPlaneLowerLeft = invDcm * lowerLeft;
+    const glm::vec3 viewPlaneUpperRight = invDcm * upperRight;
+    const glm::vec3 eyePos = invDcm * base;
 
     // nearFactor = near clipping plane / focus plane dist
     const float nearF = abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
@@ -55,7 +55,7 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     _frustum.nearPlane = nearClip;
     _frustum.farPlane = farClip;
 
-    _viewMatrix = glm::mat4(invDCM) * glm::translate(glm::mat4(1.f), -(base + offset));
+    _viewMatrix = glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(base + offset));
 
     // calc frustum matrix
     _projectionMatrix = glm::frustum(

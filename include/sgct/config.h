@@ -309,9 +309,9 @@ struct Cluster {
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;
-    std::optional<User> user;
+    std::vector<User> users;
     std::optional<Capture> capture;
-    std::optional<Tracker> tracker;
+    std::vector<Tracker> trackers;
     std::optional<Settings> settings;
 };
 void validateCluster(const Cluster& cluster);

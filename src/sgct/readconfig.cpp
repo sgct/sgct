@@ -976,8 +976,11 @@ namespace {
         if (tinyxml2::XMLElement* e = root.FirstChildElement("Scene"); e) {
             cluster.scene = parseScene(*e);
         }
-        if (tinyxml2::XMLElement* e = root.FirstChildElement("User"); e) {
-            cluster.user = parseUser(*e);
+        tinyxml2::XMLElement* u = root.FirstChildElement("User");
+        while (u) {
+            sgct::config::User user = parseUser(*u);
+            cluster.users.push_back(user);
+            u = u->NextSiblingElement("User");
         }
         if (tinyxml2::XMLElement* e = root.FirstChildElement("Settings"); e) {
             cluster.settings = parseSettings(*e);
@@ -985,8 +988,12 @@ namespace {
         if (tinyxml2::XMLElement* e = root.FirstChildElement("Capture"); e) {
             cluster.capture = parseCapture(*e);
         }
-        if (tinyxml2::XMLElement* e = root.FirstChildElement("Tracker"); e) {
-            cluster.tracker = parseTracker(*e);
+
+        tinyxml2::XMLElement* trackerElem = root.FirstChildElement("Tracker");
+        while (trackerElem) {
+            sgct::config::Tracker tracker = parseTracker(*trackerElem);
+            cluster.trackers.push_back(tracker);
+            trackerElem = trackerElem->NextSiblingElement("Tracker");
         }
 
         tinyxml2::XMLElement* nodeElem = root.FirstChildElement("Node");

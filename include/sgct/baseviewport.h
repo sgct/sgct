@@ -67,7 +67,7 @@ protected:
     ProjectionPlane _projectionPlane;
     Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
-    User& _user;
+    User* _user;
 
     // @TODO (abock, 2019-10-13) I'm pretty sure that we can remove the _userName variable
     // which will ultimately remove the need to store multiple user pointers in the

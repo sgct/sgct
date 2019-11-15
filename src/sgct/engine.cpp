@@ -158,10 +158,10 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         sgct::config::User user;
         user.eyeSeparation = 0.06f;
         user.position = glm::vec3(0.f, 0.f, 4.f);
+        cluster.users.push_back(user);
 
         cluster.masterAddress = "localhost";
         cluster.nodes.push_back(node);
-        cluster.user = user;
         return cluster;
     }
 }
@@ -362,11 +362,12 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
         throw Error(3000, "Failed to initialize GLFW");
     }
 
+    MessageHandler::printDebug("Validating cluster configuration");
     config::validateCluster(cluster);
          
     core::ClusterManager::instance().applyCluster(cluster);
-    if (cluster.tracker) {
-        TrackingManager::instance().applyTracker(*cluster.tracker);
+    for (const config::Tracker& tracker : cluster.trackers) {
+        TrackingManager::instance().applyTracker(tracker);
     }
     if (cluster.checkOpenGL) {
         _checkOpenGLCalls = *cluster.checkOpenGL;

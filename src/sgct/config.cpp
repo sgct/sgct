@@ -285,22 +285,18 @@ void validateCluster(const Cluster& cluster) {
     if (cluster.externalControlPort && *cluster.externalControlPort <= 0) {
         throw Error(1121, "Cluster external control port must be non-negative");
     }
-
     if (cluster.scene) {
         validateScene(*cluster.scene);
-    }
-    if (cluster.user) {
-        validateUser(*cluster.user);
     }
     if (cluster.capture) {
         validateCapture(*cluster.capture);
     }
-    if (cluster.tracker) {
-        validateTracker(*cluster.tracker);
-    }
     if (cluster.settings) {
         validateSettings(*cluster.settings);
     }
+
+    std::for_each(cluster.users.begin(), cluster.users.end(), validateUser);
+    std::for_each(cluster.trackers.begin(), cluster.trackers.end(), validateTracker);
     std::for_each(cluster.nodes.begin(), cluster.nodes.end(), validateNode);
 }
 

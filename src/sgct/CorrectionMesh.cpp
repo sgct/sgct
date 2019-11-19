@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define MAX_LINE_LENGTH 1024
 #define CONVERT_SCISS_TO_DOMEPROJECTION 0
 #define CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC 0
+#define CONVERT_PFM_TO_DOMEPROJECTION_AND_SGC 1
 
 #include <stdio.h>
 #include <fstream>
@@ -194,6 +195,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
         if (hint == NO_HINT || hint == SIMCAD_HINT)//default for this suffix
             meshFmt = SIMCAD_FMT;
     }
+    else if (path.find(".pfm") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == PFM_HINT)//default for this suffix
+            meshFmt = PFM_FMT;
+    }
 
     //select parser
     bool loadStatus = false;
@@ -229,6 +235,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 
     case MPCDI_FMT:
         loadStatus = readAndGenerateMpcdiMesh("", parent);
+        break;
+
+    case PFM_FMT:
+        loadStatus = readAndGeneratePerEyeMeshFromPFMImage(meshPath, parent);
         break;
             
     case NO_FMT:
@@ -2086,6 +2096,395 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     createMesh(&mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Mpcdi Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+
+    return true;
+}
+
+bool sgct_core::CorrectionMesh::readAndGeneratePerEyeMeshFromPFMImage(const std::string & meshPath, Viewport * parent) {
+    bool isReadingFile = (meshPath.length() > 0) ? true : false;
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+        "CorrectionMesh: Reading 3D/stereo mesh data (in PFM image) from '%s'.\n", meshPath.c_str());
+
+    FILE * meshFile = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if (fopen_s(&meshFile, meshPath.c_str(), "rb") != 0 || !meshFile)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+        return false;
+    }
+#else
+    meshFile = fopen(meshPath.c_str(), "rb");
+    if (meshFile == NULL)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+        return false;
+    }
+#endif
+
+    size_t retval;
+    unsigned int srcIdx = 0;
+    char headerChar;
+    char headerBuffer[MAX_LINE_LENGTH];
+    int index = 0;
+    int nNewlines = 0;
+    const int read3lines = 3;
+
+    do {
+        if (isReadingFile)
+        {
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+            retval = fread_s(&headerChar, sizeof(char) * 1, sizeof(char), 1, meshFile);
+#else
+            retval = fread(&headerChar, sizeof(char), 1, meshFile);
+#endif
+        }
+        if (retval != 1) {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "CorrectionMesh: Error reading from file.\n");
+            fclose(meshFile);
+            return false;
+        }
+        headerBuffer[index++] = headerChar;
+        if (headerChar == '\n')
+            nNewlines++;
+    } while (nNewlines < read3lines);
+
+    char fileFormatHeader[2];
+    unsigned int numberOfCols = 0;
+    unsigned int numberOfRows = 0;
+    float endiannessIndicator = 0;
+
+#ifdef __WIN32__
+    _sscanf(&headerBuffer[0], "%2c\n", &fileFormatHeader, static_cast<unsigned int>(sizeof(fileFormatHeader)));
+    //Read header past the 2 character start
+    _sscanf(&headerBuffer[3], "%d %d\n", &numberOfCols, &numberOfRows);
+    int indexForEndianness = 3 + numberOfDigitsInInt(numberOfCols)
+        + numberOfDigitsInInt(numberOfRows) + 2;
+    _sscanf(&headerBuffer[indexForEndianness], "%f\n", &endiannessIndicator);
+#else
+    if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
+        &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "CorrectionMesh: Invalid header syntax.\n");
+        if (isReadingFile)
+            fclose(meshFile);
+        return false;
+    }
+#endif
+
+    if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
+        //The 'Pf' header is invalid because PFM grayscale type is not supported.
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "CorrectionMesh: Incorrect file type.\n");
+    }
+    int numCorrectionValues = numberOfCols * numberOfRows;
+    float* xcorrections = new float[numCorrectionValues];
+    float* ycorrections = new float[numCorrectionValues];
+    float  dumpValue;
+    const int value32bit = 4;
+
+    if (isReadingFile)
+    {
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#define SGCT_READ fread_s
+#else
+#define SGCT_READ fread
+#endif
+        for (int i = 0; i < numCorrectionValues; ++i)
+        {
+#ifdef __WIN32__
+            retval = SGCT_READ(xcorrections + i, numCorrectionValues, value32bit, 1, meshFile);
+            retval = SGCT_READ(ycorrections + i, numCorrectionValues, value32bit, 1, meshFile);
+            //PFM format is designed for 3 RGB values. Currently storing Red for X correction, Green for Y
+            // correction, and Blue is just same as Red.
+            retval = SGCT_READ(&dumpValue, numCorrectionValues, value32bit, 1, meshFile);
+#else
+            retval = SGCT_READ(xcorrections + i, value32bit, 1, meshFile);
+            retval = SGCT_READ(correctycorrectionsionGridY + i, value32bit, 1, meshFile);
+            retval = SGCT_READ(&errorPosition, value32bit, 1, meshFile);
+#endif
+        }
+        fclose(meshFile);
+        if (retval != 1)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "CorrectionMesh: Error reading all correction values!\n");
+            return false;
+        }
+    }
+
+    fclose(meshFile);
+    numberOfCols /= 2;
+    std::string fileNameAdd[3] = { "_L", "_R", "" };
+
+    //Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
+
+    //We assume we loaded side-by-side images, i.e. different warp per eye
+    for (int e = 0; e < 2; e++) {
+
+#if CONVERT_PFM_TO_DOMEPROJECTION_AND_SGC
+        //export to dome projection
+        std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".pfm") - 3) + fileNameAdd[e];
+
+        //export domeprojection frustum
+        std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
+        std::ofstream outFrustumFile;
+        outFrustumFile.open(outFrustumFilename, std::ios::out);
+        outFrustumFile << "x;y;z;heading;pitch;bank;left;right;bottom;top;tanLeft;tanRight;tanBottom;tanTop;width;height" << std::endl;
+        outFrustumFile << std::fixed;
+        outFrustumFile << std::setprecision(8);
+
+        //write viewdata
+        SCISSViewData viewData;
+
+        glm::quat rotation = parent->getRotation();
+        viewData.qw = rotation.w;
+        viewData.qx = rotation.x;
+        viewData.qy = rotation.y;
+        viewData.qz = rotation.z;
+
+        glm::vec3 position = parent->getUser()->getPos();
+        viewData.x = position.x;
+        viewData.y = position.y;
+        viewData.z = position.z;
+
+        glm::vec4 fov = parent->getFOV();
+        viewData.fovUp = fov.x;
+        viewData.fovDown = -fov.y;
+        viewData.fovLeft = -fov.z;
+        viewData.fovRight = fov.w;
+
+        double yaw, pitch, roll;
+        glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(static_cast<double>(viewData.qw), static_cast<double>(viewData.qy), static_cast<double>(viewData.qx), static_cast<double>(viewData.qz))));
+        yaw = -angles.x;
+        pitch = angles.y;
+        roll = -angles.z;
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Rotation quat = [%f %f %f %f]\nyaw = %lf, pitch = %lf, roll = %lf\n",
+            viewData.qx, viewData.qy, viewData.qz, viewData.qw,
+            yaw, pitch, roll);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Position = [%f %f %f]\n",
+            viewData.x, viewData.y, viewData.z);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV up = %f\n",
+            viewData.fovUp);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV down = %f\n",
+            viewData.fovDown);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV left = %f\n",
+            viewData.fovLeft);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV right = %f\n",
+            viewData.fovRight);
+
+
+        outFrustumFile << viewData.x << ";" << viewData.y << ";" << viewData.z << ";"; //x y z
+        outFrustumFile << yaw << ";" << pitch << ";" << roll << ";";
+        outFrustumFile << viewData.fovLeft << ";" << viewData.fovRight << ";" << viewData.fovDown << ";" << viewData.fovUp << ";";
+        float tanLeft = tan(glm::radians(viewData.fovLeft));
+        float tanRight = tan(glm::radians(viewData.fovRight));
+        float tanBottom = tan(glm::radians(viewData.fovDown));
+        float tanTop = tan(glm::radians(viewData.fovUp));
+        outFrustumFile << tanLeft << ";" << tanRight << ";" << tanBottom << ";" << tanTop << ";";
+        outFrustumFile << tanRight - tanLeft << ";";
+        outFrustumFile << tanTop - tanBottom << std::endl;
+        outFrustumFile.close();
+
+        //start sgc export
+        std::string outSGCFilenames[2] = { baseOutFilename + std::string("_u2.sgc"), baseOutFilename + std::string("_u3.sgc") };
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "CorrectionMesh: Exporting sgc v1(u2) file \"%s\" and v2(u3) file \"%s\"\n", outSGCFilenames[0].c_str(), outSGCFilenames[1].c_str());
+        std::ofstream outSGCFiles[2];
+        outSGCFiles[0].open(outSGCFilenames[0], std::ios::out | std::ios::binary);
+        outSGCFiles[1].open(outSGCFilenames[1], std::ios::out | std::ios::binary);
+
+        outSGCFiles[0] << 'S' << 'G' << 'C';
+        outSGCFiles[1] << 'S' << 'G' << 'C';
+
+        uint8_t SGCversion1 = 1;
+        uint8_t SGCversion2 = 2;
+
+        SCISSDistortionType dT = MESHTYPE_PLANAR;
+        unsigned int vertexCount = numberOfCols * numberOfRows;
+        unsigned int primType = 5; //Triangle list
+
+        viewData.fovLeft = -viewData.fovLeft;
+        viewData.fovDown = -viewData.fovDown;
+
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&SGCversion1), sizeof(uint8_t));
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfCols), sizeof(unsigned int));
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfRows), sizeof(unsigned int));
+
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&SGCversion2), sizeof(uint8_t));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&primType), sizeof(unsigned int));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&vertexCount), sizeof(unsigned int));
+
+        //test export mesh
+        std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "CorrectionMesh: Exporting dome projection mesh file \"%s\"\n", outMeshFilename.c_str());
+        std::ofstream outMeshFile;
+        outMeshFile.open(outMeshFilename, std::ios::out);
+        outMeshFile << "x;y;u;v;column;row" << std::endl;
+        outMeshFile << std::fixed;
+        outMeshFile << std::setprecision(6);
+#endif
+
+        CorrectionMeshVertex vertex;
+        std::vector<CorrectionMeshVertex> vertices;
+        SCISSTexturedVertex scissVertex;
+
+        //init to max intensity (opaque white)
+        vertex.r = 1.0f;
+        vertex.g = 1.0f;
+        vertex.b = 1.0f;
+        vertex.a = 1.0f;
+
+        float x, y, u, v;
+        size_t i = 0;
+
+        for (unsigned int r = 0; r < numberOfRows; r++)
+        {
+            for (unsigned int c = 0; c < numberOfCols; c++)
+            {
+                //vertex-mapping
+                u = (static_cast<float>(c) / (static_cast<float>(numberOfCols+1) - 1.f)) + ((1.f/ numberOfCols)*0.5f);
+                v = 1.f - ((static_cast<float>(r) / (static_cast<float>(numberOfRows+1) - 1.f)) + ((1.f / numberOfRows)*0.5f));
+
+                if (e < 2) {
+                    x = xcorrections[i + (e*numberOfCols)];
+                    y = ycorrections[i + (e*numberOfCols)];
+                }
+                else {
+                    x = u;
+                    y = v;
+                }
+
+                //convert to [-1, 1]
+                vertex.x = 2.0f * (x * parent->getXSize() + parent->getX()) - 1.0f;
+                vertex.y = 2.0f * (y * parent->getYSize() + parent->getY()) - 1.0f;
+
+                //scale to viewport coordinates
+                vertex.s = u * parent->getXSize() + parent->getX();
+                vertex.t = v * parent->getYSize() + parent->getY();
+
+                vertices.push_back(vertex);
+
+                i++;
+
+#if CONVERT_PFM_TO_DOMEPROJECTION_AND_SGC
+                outMeshFile << x << ";";
+                outMeshFile << 1.0f - y << ";";
+                outMeshFile << u << ";";
+                outMeshFile << 1.0f - v << ";";
+                outMeshFile << c << ";";
+                outMeshFile << r << std::endl;
+
+                scissVertex.x = x;
+                scissVertex.y = 1.f - y;
+                scissVertex.tx = u;
+                scissVertex.ty = v;
+
+                outSGCFiles[0].write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
+                outSGCFiles[1].write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
+#endif
+            }
+            i += numberOfCols;
+        }
+
+        //copy vertices
+        unsigned int numberOfVertices = numberOfCols * numberOfRows;
+        mTempVertices = new CorrectionMeshVertex[numberOfVertices];
+        memcpy(mTempVertices, vertices.data(), numberOfVertices * sizeof(CorrectionMeshVertex));
+        mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
+        vertices.clear();
+
+        // Make a triangle strip index list
+        std::vector<unsigned int> indices_trilist;
+        for (unsigned int r = 0; r < numberOfRows - 1; r++) {
+            if ((r & 1) == 0) { // even rows
+                for (unsigned int c = 0; c < numberOfCols; c++) {
+                    indices_trilist.push_back(c + r * numberOfCols);
+                    indices_trilist.push_back(c + (r + 1) * numberOfCols);
+                }
+            }
+            else { // odd rows
+                for (unsigned int c = numberOfCols - 1; c > 0; c--) {
+                    indices_trilist.push_back(c + (r + 1) * numberOfCols);
+                    indices_trilist.push_back(c - 1 + r * numberOfCols);
+                }
+            }
+        }
+
+#if CONVERT_PFM_TO_DOMEPROJECTION_AND_SGC
+        // Implementation of individual triangle index list
+        /*std::vector<unsigned int> indices_tris;
+        unsigned int i0, i1, i2, i3;
+        for (unsigned int c = 0; c < (numberOfCols - 1); c++)
+        {
+            for (unsigned int r = 0; r < (numberOfRows - 1); r++)
+            {
+                i0 = r * numberOfCols + c;
+                i1 = r * numberOfCols + (c + 1);
+                i2 = (r + 1) * numberOfCols + (c + 1);
+                i3 = (r + 1) * numberOfCols + c;
+
+                //triangle 1
+                indices_tris.push_back(i0);
+                indices_tris.push_back(i1);
+                indices_tris.push_back(i2);
+
+                //triangle 2
+                indices_tris.push_back(i0);
+                indices_tris.push_back(i2);
+                indices_tris.push_back(i3);
+            }
+        }*/
+
+        outMeshFile.close();
+
+        unsigned int indicesCount = static_cast<unsigned int>(indices_trilist.size());
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+        for (size_t i = 0; i < indices_trilist.size(); i++) {
+            outSGCFiles[0].write(reinterpret_cast<const char *>(&indices_trilist[i]), sizeof(unsigned int));
+            outSGCFiles[1].write(reinterpret_cast<const char *>(&indices_trilist[i]), sizeof(unsigned int));
+        }
+
+        /*indicesCount = static_cast<unsigned int>(indices_tris.size());
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+        for (size_t i = 0; i < indices_tris.size(); i++) {
+            outSGCFiles[1].write(reinterpret_cast<const char *>(&indices_tris[i]), sizeof(unsigned int));
+        }
+        indices_tris.clear();*/
+
+        outSGCFiles[0].close();
+        outSGCFiles[1].close();
+#endif
+
+        //allocate and copy indices
+        mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices_trilist.size());
+        mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
+        memcpy(mTempIndices, indices_trilist.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+        indices_trilist.clear();
+
+        mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
+
+        createMesh(&mGeometries[WARP_MESH]);
+
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+
+    }
 
     return true;
 }

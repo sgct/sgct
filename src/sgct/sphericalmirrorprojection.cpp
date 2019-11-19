@@ -313,7 +313,7 @@ void SphericalMirrorProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _texLoc = _shader.getUniformLocation("Tex");
+    _texLoc = _shader.getUniformLocation("tex");
     glUniform1i(_texLoc, 0);
 
     _matrixLoc = _shader.getUniformLocation("MVP");
@@ -383,10 +383,13 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    Engine::clearBuffer();
+    const glm::vec4 color = Engine::instance().getClearColor();
+    const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+    glClearColor(color.r, color.g, color.b, alpha);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
-    Engine::instance()._drawFn();
+    Engine::instance().getDrawFunction()();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

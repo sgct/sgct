@@ -14,33 +14,32 @@ namespace sgct::core::shaders {
 constexpr const char* SphericalProjectionVert = R"(
   #version 330 core
 
-  layout (location = 0) in vec2 Position;
-  layout (location = 1) in vec2 TexCoords;
-  layout (location = 2) in vec4 VertColor;
+  layout (location = 0) in vec2 in_position;
+  layout (location = 1) in vec2 in_texCoords;
+  layout (location = 2) in vec4 in_vertColor;
+  out vec2 tr_uv;
+  out vec4 tr_color;
 
   uniform mat4 MVP;
 
-  out vec2 UV;
-  out vec4 Col;
-
   void main() {
-    gl_Position = MVP * vec4(Position, 0.0, 1.0);
-    UV = TexCoords;
-    Col = VertColor;
+    gl_Position = MVP * vec4(in_position, 0.0, 1.0);
+    tr_uv = in_texCoords;
+    tr_color = in_vertColor;
   }
 )";
 
 constexpr const char* SphericalProjectionFrag = R"(
   #version 330 core
 
-  in vec2 UV;
-  in vec4 Col;
-  out vec4 Color;
+  in vec2 tr_uv;
+  in vec4 tr_color;
+  out vec4 out_color;
 
-  uniform sampler2D Tex;
+  uniform sampler2D tex;
 
   void main() {
-    Color = Col * texture(Tex, UV);
+    out_color = tr_color * texture(tex, tr_uv);
   }
 )";
 

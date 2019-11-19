@@ -25,14 +25,11 @@
 
 #ifdef WIN32
 #include <windows.h>
+HDC hDC;
 #endif // WIN32
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
-#ifdef WIN32
-HDC hDC;
-#endif
 
 #define Error(code, msg) Error(Error::Component::Window, code, msg)
 
@@ -131,7 +128,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.bufferBitDepth) {
         ColorBitDepth bd = [](config::Window::ColorBitDepth bd) {
             switch (bd) {
-                default:
                 case config::Window::ColorBitDepth::Depth8:
                     return ColorBitDepth::Depth8;
                 case config::Window::ColorBitDepth::Depth16:
@@ -148,6 +144,8 @@ void Window::applyWindow(const config::Window& window) {
                     return ColorBitDepth::Depth16UInt;
                 case config::Window::ColorBitDepth::Depth32UInt:
                     return ColorBitDepth::Depth32UInt;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*window.bufferBitDepth);
         setColorBitDepth(bd);
@@ -221,7 +219,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.stereo) {
         StereoMode sm = [](config::Window::StereoMode sm) {
             switch (sm) {
-                default:
                 case config::Window::StereoMode::NoStereo:
                     return StereoMode::NoStereo;
                 case config::Window::StereoMode::Active:
@@ -250,6 +247,8 @@ void Window::applyWindow(const config::Window& window) {
                     return StereoMode::TopBottom;
                 case config::Window::StereoMode::TopBottomInverted:
                     return StereoMode::TopBottomInverted;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*window.stereo);
         setStereoMode(sm);
@@ -338,14 +337,12 @@ void Window::close() {
     _currentViewport = nullptr;
     _viewports.clear();
 
-    if (_useSwapGroups) {
 #ifdef WIN32
-        if (glfwExtensionSupported("WGL_NV_swap_group")) {
-            wglBindSwapBarrierNV(1, 0); // un-bind
-            wglJoinSwapGroupNV(hDC, 0); // un-join
-        }
-#endif
+    if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
+        wglBindSwapBarrierNV(1, 0); // un-bind
+        wglJoinSwapGroupNV(hDC, 0); // un-join
     }
+#endif
 }
 
 void Window::init() {
@@ -399,8 +396,8 @@ void Window::initOGL() {
 
 #ifdef WIN32
     if (!AreFunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
-        // abock (2019-10-02); I had to hand-resolve these functions as glbindings does
-        // not come with build-in support for the wgl.xml functions
+        // abock(2019-10-02); I had to hand-resolve these functions as glbindings does not
+        // come with build-in support for the wgl.xml functions
         // See https://github.com/cginternals/glbinding/issues/132 for when it is resolved
 
         wglBindSwapBarrierNV = reinterpret_cast<BindSwapBarrier>(
@@ -497,10 +494,7 @@ unsigned int Window::getFrameBufferTexture(Engine::TextureIndex index) {
             }
             return _frameBufferTextures.positions;
         default:
-            MessageHandler::printError(
-                "Window: Requested framebuffer texture index %d is out of bounds", index
-            );
-            return 0;
+            throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -543,7 +537,6 @@ void Window::setWindowResolution(glm::ivec2 resolution) {
     // other half with resolution b, which is undefined behaviour. mHasNewPendingWindowRes
     // is checked in Window::updateResolution, which is called from SGCTEngine's
     // render loop after glfwPollEvents.
-
     _hasPendingWindowRes = true;
     _pendingWindowRes = std::move(resolution);
 }
@@ -566,7 +559,7 @@ void Window::swap(bool takeScreenshot) {
         
     if (takeScreenshot) {
         if (Settings::instance().getCaptureFromBackBuffer() && _isDoubleBuffered) {
-            if (_screenCaptureLeftOrMono != nullptr) {
+            if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
                     _stereoMode == StereoMode::Active ?
@@ -574,7 +567,6 @@ void Window::swap(bool takeScreenshot) {
                         core::ScreenCapture::CaptureSource::BackBuffer
                 );
             }
-
             if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
@@ -649,12 +641,10 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values.
     for (int j = 0; j < getNumberOfViewports(); ++j) {
-        core::Viewport& vp = getViewport(j);
-        vp.setHorizontalFieldOfView(hFovDeg);
+        getViewport(j).setHorizontalFieldOfView(hFovDeg);
     }
     MessageHandler::printDebug(
-        "Horizontal FOV changed to %f for window %d",
-        hFovDeg, getNumberOfViewports(), _id
+        "Horizontal FOV changed to %f for window %d", hFovDeg, getNumberOfViewports(), _id
     );
 }
 
@@ -796,7 +786,7 @@ void Window::setFullScreenMonitorIndex(int index) {
 
 void Window::setBarrier(bool state) {
     if (_useSwapGroups && state != _isBarrierActive) {
-        MessageHandler::printInfo("Window: Enabling Nvidia swap barrier");
+        MessageHandler::printInfo("Enabling Nvidia swap barrier");
 
 #ifdef WIN32
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
@@ -850,13 +840,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
     const int antiAliasingSamples = getNumberOfAASamples();
-    if (antiAliasingSamples > 1) {
-        // if multisample is used
-        glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples);
-    }
-    else {
-        glfwWindowHint(GLFW_SAMPLES, 0);
-    }
+    glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
 
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
     glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
@@ -916,15 +900,14 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     //
     // Swap inerval:
     //  -1 = adaptive sync
-    //   0  = vertical sync off
-    //   1  = wait for vertical sync
-    //   2  = fix when using swapgroups in xp and running half the framerate
+    //   0 = vertical sync off
+    //   1 = wait for vertical sync
+    //   2 = fix when using swapgroups in xp and running half the framerate
 
-    // If we would set multiple windows to use vsync, with would get a framerate of
-    // (monitor refreshrate)/(number of windows),
-    // which is something that might really slow down a multi-monitor application.
-    // Setting last window to the requested interval, which does mean all other
-    // windows will respect the last window in the pipeline.
+    // If we would set multiple windows to use vsync, we would get a framerate of (monitor
+    // refreshrate)/(number of windows), which is something that might really slow down a
+    // multi-monitor application. Setting last window to the requested interval, which
+    // does mean all other windows will respect the last window in the pipeline.
     if (getId() == lastWindowIdx) {
         glfwSwapInterval(Settings::instance().getSwapInterval());
     }
@@ -934,7 +917,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 
     updateTransferCurve();
 
-    //if slave disable mouse pointer
+    // if slave disable mouse pointer
     if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
@@ -945,11 +928,9 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     glfwMakeContextCurrent(_sharedHandle);
 
     _screenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
-
     if (useRightEyeTexture()) {
         _screenCaptureRight = std::make_unique<core::ScreenCapture>();
     }
-
     _finalFBO = std::make_unique<core::OffScreenBuffer>();
 
     return true;
@@ -970,19 +951,17 @@ void Window::initNvidiaSwapGroups() {
             "Max number of barriers: %d", maxGroup, maxBarrier
         );
 
-        // wglJoinSwapGroupNV adds <hDC> to the swap group specified by <group>. If <hDC>
-        // is already a member of a different group, it is implicitly removed from that
-        // group first. A swap group is specified as an integer value between 0 and the
-        // value returned in <maxGroups> by wglQueryMaxSwapGroupsNV. If <group> is zero,
-        // the hDC is unbound from its current group, if any. If <group> is larger than
-        // <maxGroups>, wglJoinSwapGroupNV fails.
-        if (wglJoinSwapGroupNV(hDC, 1)) {
+        // wglJoinSwapGroupNV adds hDC to the swap group specified by group. If hDC is a
+        // member of a different group, it is implicitly removed from that group first. A
+        // swap group is specified as an integer between 0 and maxGroups returned by
+        // wglQueryMaxSwapGroupsNV. If group is zero, the hDC is unbound from its current
+        // group, if any. If group is larger than maxGroups, wglJoinSwapGroupNV fails.
+        _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
+        if (_useSwapGroups) {
             MessageHandler::printInfo("Joining swapgroup 1 [ok]");
-            _useSwapGroups = true;
         }
         else {
             MessageHandler::printInfo("Joining swapgroup 1 [failed]");
-            _useSwapGroups = false;
         }
     }
     else {
@@ -1018,6 +997,8 @@ void Window::initScreenCapture() {
             case Settings::CaptureFormat::JPG:
                 sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::JPEG);
                 break;
+            default:
+                throw std::logic_error("Unhandled case label");
         }
     };
 
@@ -1042,27 +1023,23 @@ void Window::initScreenCapture() {
 unsigned int Window::getSwapGroupFrameNumber() {
     unsigned int frameNumber = 0;
 
-    if (_isBarrierActive) {
-    #ifdef WIN32
-        if (glfwExtensionSupported("WGL_NV_swap_group")) {
-            wglQueryFrameCountNV(hDC, &frameNumber);
-        }
-    #endif
+#ifdef WIN32
+    if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
+        wglQueryFrameCountNV(hDC, &frameNumber);
     }
+#endif
     return frameNumber;
 }
 
 void Window::resetSwapGroupFrameNumber() {
 #ifdef WIN32
     if (_isBarrierActive) {
-        bool success = glfwExtensionSupported("WGL_NV_swap_group") &&
-                       wglResetFrameCountNV(hDC);
-        if (success) {
-            _isSwapGroupMaster = true;
+        _isSwapGroupMaster = glfwExtensionSupported("WGL_NV_swap_group") &&
+                             wglResetFrameCountNV(hDC);
+        if (_isSwapGroupMaster) {
             MessageHandler::printInfo("Resetting frame counter");
         }
         else {
-            _isSwapGroupMaster = false;
             MessageHandler::printInfo("Resetting frame counter failed");
         }
     }
@@ -1119,7 +1096,6 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     const auto [internalFormat, format, pType] =
         [this](Window::TextureType type) -> std::tuple<GLenum, GLenum, GLenum> {
             switch (type) {
-                default:
                 case TextureType::Color:
                     return { _internalColorFormat, _colorFormat, _colorDataType };
                 case TextureType::Depth:
@@ -1131,6 +1107,8 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
                          GL_RGB,
                          GL_FLOAT
                     };
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(type);
 
@@ -1138,8 +1116,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
 
     MessageHandler::printDebug(
-        "%dx%d texture (id: %d) generated for window %d",
-        _framebufferRes.x, _framebufferRes.y, id, id
+        "%dx%d texture generated for window %d", _framebufferRes.x, _framebufferRes.y, id
     );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1205,7 +1182,6 @@ void Window::loadShaders() {
     }
 
     std::string stereoVertShader = core::shaders::AnaglyphVert;
-
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
         switch (mode) {
             case StereoMode::AnaglyphRedCyan:
@@ -1231,10 +1207,9 @@ void Window::loadShaders() {
     _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();
-    _stereo.mvpLoc = _stereo.shader.getUniformLocation("MVP");
-    _stereo.leftTexLoc = _stereo.shader.getUniformLocation("LeftTex");
-    _stereo.rightTexLoc = _stereo.shader.getUniformLocation("RightTex");
+    _stereo.leftTexLoc = _stereo.shader.getUniformLocation("leftTex");
     glUniform1i(_stereo.leftTexLoc, 0);
+    _stereo.rightTexLoc = _stereo.shader.getUniformLocation("rightTex");
     glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
 }
@@ -1322,25 +1297,25 @@ void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
 
 core::BaseViewport* Window::getCurrentViewport() const {
     if (_currentViewport == nullptr) {
-        MessageHandler::printError("Window %d error: No current viewport", _id);
+        MessageHandler::printError("Window %d: No current viewport", _id);
     }
     return _currentViewport;
 }
 
-const core::Viewport& Window::getViewport(size_t index) const {
+const core::Viewport& Window::getViewport(int index) const {
     return *_viewports[index];
 }
 
-const core::Viewport& Window::getViewport(size_t index, bool& validReference) const {
+const core::Viewport& Window::getViewport(int index, bool& validReference) const {
     validReference = (_viewports[index] != nullptr);
     return *_viewports[(validReference) ? index : 0];
 }
 
-core::Viewport& Window::getViewport(size_t index) {
+core::Viewport& Window::getViewport(int index) {
     return *_viewports[index];
 }
 
-core::Viewport& Window::getViewport(size_t index, bool& validReference) {
+core::Viewport& Window::getViewport(int index, bool& validReference) {
     validReference = (_viewports[index] != nullptr);
     return *_viewports[(validReference) ? index : 0];
 }
@@ -1375,9 +1350,9 @@ void Window::setStereoMode(StereoMode sm) {
 
 core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     switch (eye) {
-        default:
         case Eye::MonoOrLeft: return _screenCaptureLeftOrMono.get();
         case Eye::Right:      return _screenCaptureRight.get();
+        default:              throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -1404,7 +1379,7 @@ void Window::updateTransferCurve() {
         const float c = ((static_cast<float>(i) / 255.f) - 0.5f) * _contrast + 0.5f;
         const float b = c + (_brightness - 1.f);
         const float g = powf(b, gammaExp);
-        unsigned short t = static_cast<unsigned short>(
+        const unsigned short t = static_cast<unsigned short>(
             glm::clamp(65535.f * g, 0.f, 65535.f) + 0.5f
         );
 
@@ -1425,7 +1400,6 @@ void Window::updateColorBufferData() {
     _colorFormat = GL_BGRA;
     
     switch (_bufferColorBitDepth) {
-        default:
         case ColorBitDepth::Depth8:
             _internalColorFormat = GL_RGBA8;
             _colorDataType = GL_UNSIGNED_BYTE;
@@ -1466,6 +1440,8 @@ void Window::updateColorBufferData() {
             _colorDataType = GL_UNSIGNED_INT;
             _bytesPerColor = 4;
             break;
+        default:
+            throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -1566,10 +1542,6 @@ bool Window::usePostFX() const {
 
 void Window::bindStereoShaderProgram() const {
     _stereo.shader.bind();
-}
-
-int Window::getStereoShaderMVPLoc() const {
-    return _stereo.mvpLoc;
 }
 
 int Window::getStereoShaderLeftTexLoc() const {

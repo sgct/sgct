@@ -48,7 +48,6 @@ public:
 
     void decode(std::vector<char> receivedData, int clientIndex);
 
-
     /// Set the notify level for displaying messages.
     void setNotifyLevel(Level nl);
 

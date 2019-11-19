@@ -296,7 +296,7 @@ void validateCluster(const Cluster& c) {
         c.users.begin(),
         c.users.end(),
         0,
-        [](int i, const User& user) { return i + user.name.has_value(); }
+        [](int i, const User& user) { return user.name.has_value() ? i : i + 1; }
     );
     if (nDefaultUsers > 1) {
         throw Error(1122, "More than one unnamed users specified");

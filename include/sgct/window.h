@@ -363,16 +363,16 @@ public:
     core::BaseViewport* getCurrentViewport() const;
 
     /// \return a reference to a specific viewport
-    core::Viewport& getViewport(size_t index);
+    core::Viewport& getViewport(int index);
 
     /// \return a reference to a specific viewport, checking validity of reference
-    core::Viewport& getViewport(size_t index, bool& validReference);
+    core::Viewport& getViewport(int index, bool& validReference);
 
     /// \return a const reference to a specific viewport
-    const core::Viewport& getViewport(size_t index) const;
+    const core::Viewport& getViewport(int index) const;
 
     /// \return a const reference to a specific viewport, checking validity of reference
-    const core::Viewport& getViewport(size_t index, bool& validReference) const;
+    const core::Viewport& getViewport(int index, bool& validReference) const;
 
     /// Get the current viewport data in pixels.
     glm::ivec4 getCurrentViewportPixelCoords() const;
@@ -444,7 +444,6 @@ public:
     bool usePostFX() const;
 
     void bindStereoShaderProgram() const;
-    int getStereoShaderMVPLoc() const;
     int getStereoShaderLeftTexLoc() const;
     int getStereoShaderRightTexLoc() const;
 
@@ -550,7 +549,6 @@ private:
     //Shaders
     struct {
         ShaderProgram shader;
-        int mvpLoc = -1;
         int leftTexLoc = -1;
         int rightTexLoc = -1;
     } _stereo;

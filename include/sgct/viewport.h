@@ -61,10 +61,10 @@ public:
     const std::vector<char>& mpcdiWarpMesh() const;
 
 private:
-    void applyPlanarProjection(const sgct::config::PlanarProjection& proj);
-    void applyFisheyeProjection(const sgct::config::FisheyeProjection& proj);
-    void applySpoutOutputProjection(const sgct::config::SpoutOutputProjection& proj);
-    void applySphericalMirrorProjection(const sgct::config::SphericalMirrorProjection& proj);
+    void applyPlanarProjection(const config::PlanarProjection& proj);
+    void applyFisheyeProjection(const config::FisheyeProjection& proj);
+    void applySpoutOutputProjection(const config::SpoutOutputProjection& proj);
+    void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);
 
     CorrectionMesh _mesh;
     std::string _overlayFilename;

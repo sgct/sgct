@@ -77,7 +77,8 @@ bool bindSpout() {
 }
 
 void drawFun() {
-    ShaderManager::instance()->bindShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    prog.bind();
 
     glActiveTexture(GL_TEXTURE0);
     bindSpout();
@@ -85,11 +86,11 @@ void drawFun() {
     glBindVertexArray(geometry.vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
     receiver->UnBindSharedTexture();
 
     if (shouldTakeScreenshot) {
-        Engine::instance()->takeScreenshot();
+        Engine::instance().takeScreenshot();
         shouldTakeScreenshot = false;
     }
 }
@@ -125,28 +126,20 @@ void initOGLFun() {
     receiver = GetSpout();
     
     // set background
-    Engine::instance()->setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
-    
-    TextureManager::instance()->setAnisotropicFilterSize(8.f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
+    Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
-    ShaderManager::instance()->bindShaderProgram("xform");
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    prog.bind();
 
     GLint textureLoc = prog.getUniformLocation("tex");
     glUniform1i(textureLoc, 0);
 
-    ShaderManager::instance()->unBindShaderProgram();
-    Engine::checkForOGLErrors();
+    prog.unbind();
 }
 
 void cleanUpFun() {
@@ -197,18 +190,22 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
+    Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
-    Engine::instance()->setKeyboardCallbackFunction(keyboardCallback);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
+    Engine::instance().setKeyboardCallbackFunction(keyboardCallback);
 
-    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete Engine::instance();
+    try {
+        Engine::instance().init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
+        Engine::instance().render();
+    }
+    catch (const std::runtime_error & e) {
+        MessageHandler::printError("%s", e.what());
+        Engine::destroy();
         return EXIT_FAILURE;
     }
-
-    gEngine->render();
-    delete gEngine;
+    Engine::destroy();
     exit(EXIT_SUCCESS);
 }

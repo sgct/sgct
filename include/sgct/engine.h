@@ -9,8 +9,6 @@
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
-#include <sgct/ogl_headers.h>
-
 #include <sgct/action.h>
 #include <sgct/config.h>
 #include <sgct/keys.h>
@@ -49,19 +47,8 @@ config::Cluster loadCluster(std::optional<std::string> path);
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
  * rendering, network handling, input devices etc.
- * 
- * The figure below illustrates when different callbacks (gray and blue boxes) are called
- * in the renderloop. The blue boxes illustrates internal processess.
- *
- * \image html render_diagram.jpg
- * \image latex render_diagram.eps "Render diagram" width=7cm
  */
 class Engine {
-    // needs to access draw callbacks
-    friend class core::FisheyeProjection;
-    friend class core::SphericalMirrorProjection;
-    friend class core::SpoutOutputProjection;
-
 public:
     /// The different run modes used by the init function
     enum class RunMode { 
@@ -141,10 +128,10 @@ public:
      */
     void init(RunMode rm, config::Cluster cluster);
 
-    /// Terminates SGCT.
+    /// Terminates SGCT
     void terminate();
 
-    /// This is SGCT's renderloop where rendering & synchronization takes place.
+    /// This is SGCT's renderloop where rendering & synchronization takes place
     void render();
 
     /// Returns the statistic object containing all information about the frametimes, etc
@@ -172,10 +159,10 @@ public:
     glm::vec4 getClearColor() const;
     
     /// \return the near clipping plane distance in meters
-    float getNearClippingPlane() const;
+    float getNearClipPlane() const;
 
     /// \return the far clipping plane distance in meters
-    float getFarClippingPlane() const;
+    float getFarClipPlane() const;
 
     /**
      * Set the near and far clipping planes. This operation recalculates all frustums for
@@ -201,6 +188,7 @@ public:
      */
     void setClearColor(glm::vec4 color);
 
+    // @TODO (abock, 2019-11-19) remove the exit key concept entirely from SGCT
     /**
      * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
      * is: sgct::key:ESC. To diable shutdown or escaping SGCT then use: sgct::key::Unknown
@@ -213,100 +201,91 @@ public:
      */
     void updateFrustums();
 
-    /**
-     * \return the active draw texture if frame buffer objects are used,
-     *         otherwise GL_FALSE
-     */
+    /// \return the active draw texture
     unsigned int getCurrentDrawTexture() const;
 
-    /**
-     * \return the active depth texture if depth texture rendering is enabled through
-     *         Settings and if frame buffer objects are used otherwise GL_FALSE
-     */
+    /// \return the active depth texture if depth texture rendering is enabled
     unsigned int getCurrentDepthTexture() const;
 
-    /**
-     * \return the active normal texture if normal texture rendering is enabled through
-     *         Settings and if frame buffer objects are used otherwise GL_FALSE
-     */
+    /// \return the active normal texture if normal texture rendering is enabled
     unsigned int getCurrentNormalTexture() const;
 
-    /**
-     * \return the active position texture if position texture rendering is enabled
-     *         through Settings and if frame buffer objects are used otherwise GL_FALSE
-     */
+    /// \return the active position texture if position texture rendering is enabled
     unsigned int getCurrentPositionTexture() const;
 
     /// \return the resolution in pixels for the active window's framebuffer
     glm::ivec2 getCurrentResolution() const;
 
-    /// \return the index of the focus window. If no window has focus, 0 is returned.
+    /// \return the index of the focus window. If no window has focus, 0 is returned
     int getFocusedWindowIndex() const;
 
-    /**
-     * Set if the info text should be visible or not
-     *
-     * \param state of the info text rendering
-     */
+    /// Sets if the info text should be visible or not.
     void setDisplayInfoVisibility(bool state);
 
+    /// Sets if the statistics graph should be rendered or not
     void setStatsGraphVisibility(bool state);
 
     /**
-     * Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled
+     * Take an RGBA screenshot and save it as a PNG file. If stereo rendering is enabled
      * then two screenshots will be saved per frame, one for the left eye and one for the
      * right eye.
      *
      * To record frames for a movie simply call this function every frame you wish to
      * record. The read to disk is multi-threaded and maximum number of threads can be set
      * using:
-     *   - numberOfCaptureThreads command line argument.
+     *   -number-capture-threads command line argument.
      */
     void takeScreenshot();
 
-    ///  Set the screenshot number (file index)
+    /// Set the screenshot number (file index)
     void setScreenShotNumber(unsigned int number);
 
-    ///  \return the current screenshot number (file index)
+    /// \return the current screenshot number (file index)
     unsigned int getScreenShotNumber() const;
 
     /**
      * This function sets the initOGL callback. The Engine will then use the callback only
-     * once before the starting the render loop. Textures, Models, Buffers, etc. can be
-     * loaded/allocated here.
+     * once before the starting the render loop.
      */
     void setInitOGLFunction(std::function<void(void)> fn);
 
     /**
      * This callback is called before the window is created (before OpenGL context is
      * created). At this stage the config file has been read and network initialized.
-     * Therefore it's suitable for loading master or slave specific data.
      */
     void setPreWindowFunction(std::function<void()> fn);
 
     /**
      * This function sets the pre-sync callback. The Engine will then use the callback
-     * before the sync stage. In the callback set the variables that will be shared.
+     * before the sync stage.
      */
     void setPreSyncFunction(std::function<void()> fn);
 
     /**
      * This function sets the post-sync-pre-draw callback. The Engine will then use the
      * callback after the sync stage but before the draw stage. Compared to the draw
-     * callback the post-sync-pre-draw callback is called only once per frame. In this
-     * callback synchronized variables can be applied or simulations depending on
-     * synchronized input can run.
+     * callback the post-sync-pre-draw callback is called only once per frame.
      */
     void setPostSyncPreDrawFunction(std::function<void()> fn);
 
     /**
      * This function sets the draw callback. It's possible to have several draw functions
-     * and change the callback on the fly preferably in a stage before the draw like the
-     * post-sync-pre-draw stage or the pre-sync stage. The draw callback can be called
-     * several times per frame since it's called once for every viewport and once for
-     * every eye if stereoscopy is used.
+     * and change the callback on the fly preferably in a stage before the draw step, for
+     * example the post-sync-pre-draw stage or the pre-sync stage. The draw callback could
+     * be called several times per frame since it's called once for every viewport and
+     * once for every eye if stereoscopy is used.
      */
     void setDrawFunction(std::function<void()> fn);
+
+    /**
+     * This function returns the currently assigned draw function to be used in internal
+     * classes that need to repeatedly call this. In general, there is no need for
+     * external applications to store the draw function, but they are free to do so. Be
+     * aware that the user (i.e. you) is allowed to change the draw function at any time.
+     *
+     * \return The currently bound draw function
+     */
+    const std::function<void()>& getDrawFunction() const;
 
     /**
      * This function sets the draw 2D callback. This callback will be called after
@@ -318,14 +297,13 @@ public:
     /**
      * This function sets the post-draw callback. The Engine will then use the callback
      * after the draw stage but before the OpenGL buffer swap. Compared to the draw
-     * callback the post-draw callback is called only once per frame. In this callback
-     * data/buffer swaps can be made.
+     * callback the post-draw callback is called only once per frame.
      */
     void setPostDrawFunction(std::function<void()> fn);
 
     /**
      * This function sets the clean up callback which will be called in the Engine
-     * destructor before all sgct components (like window, OpenGL context, network, etc.)
+     * destructor before all sGCT components (like window, OpenGL context, network, etc.)
      * will be destroyed.
      */
     void setCleanUpFunction(std::function<void()> fn);
@@ -345,145 +323,10 @@ public:
     /**
      * This function sets the keyboard callback (GLFW wrapper) where the four parameters
      * are: int key, int scancode, int action, int mods. Modifier keys can be a
-     * combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All
-     * windows are connected to this callback.
+     * combination of sgct::modifier::Shift, sgct::modifier::Control, sgct::modifier::Alt,
+     * or sgct::modifier::Super. All windows are connected to this callback.
      *
      * \param fn is the std function of a keyboard callback function
-     *
-     * Name          | Description
-     * ------------- | -------------
-     * SGCT_KEY_UNKNOWN  | Unknown
-     * SGCT_KEY_SPACE  | Space
-     * SGCT_KEY_APOSTROPHE | Apostrophe
-     * SGCT_KEY_COMMA | Comma
-     * SGCT_KEY_MINUS | Minus
-     * SGCT_KEY_PERIOD | Period
-     * SGCT_KEY_SLASH | Slash
-     * SGCT_KEY_0 | 0
-     * SGCT_KEY_1 | 1
-     * SGCT_KEY_2 | 2
-     * SGCT_KEY_3 | 3
-     * SGCT_KEY_4 | 4
-     * SGCT_KEY_5 | 5
-     * SGCT_KEY_6 | 6
-     * SGCT_KEY_7 | 7
-     * SGCT_KEY_8 | 8
-     * SGCT_KEY_9 | 9
-     * SGCT_KEY_SEMICOLON | Semicolon
-     * SGCT_KEY_EQUAL | Equal
-     * SGCT_KEY_A | A
-     * SGCT_KEY_B | B
-     * SGCT_KEY_C | C
-     * SGCT_KEY_D | D
-     * SGCT_KEY_E | E
-     * SGCT_KEY_F | F
-     * SGCT_KEY_G | G
-     * SGCT_KEY_H | H
-     * SGCT_KEY_I | I
-     * SGCT_KEY_J | J
-     * SGCT_KEY_K | K
-     * SGCT_KEY_L | L
-     * SGCT_KEY_M | M
-     * SGCT_KEY_N | N
-     * SGCT_KEY_O | O
-     * SGCT_KEY_P | P
-     * SGCT_KEY_Q | Q
-     * SGCT_KEY_R | R
-     * SGCT_KEY_S | S
-     * SGCT_KEY_T | T
-     * SGCT_KEY_U | U
-     * SGCT_KEY_V | V
-     * SGCT_KEY_W | W
-     * SGCT_KEY_X | X
-     * SGCT_KEY_Y | Y
-     * SGCT_KEY_Z | Z
-     * SGCT_KEY_LEFT_BRACKET | Left bracket
-     * SGCT_KEY_BACKSLASH | backslash
-     * SGCT_KEY_RIGHT_BRACKET | Right bracket
-     * SGCT_KEY_GRAVE_ACCENT | Grave accent
-     * SGCT_KEY_WORLD_1 | World 1
-     * SGCT_KEY_WORLD_2 | World 2
-     * SGCT_KEY_ESC | Escape
-     * SGCT_KEY_ESCAPE | Escape
-     * SGCT_KEY_ENTER | Enter
-     * SGCT_KEY_TAB | Tab
-     * SGCT_KEY_BACKSPACE | Backspace
-     * SGCT_KEY_INSERT | Insert
-     * SGCT_KEY_DEL | Delete
-     * SGCT_KEY_DELETE | Delete
-     * SGCT_KEY_RIGHT | Right
-     * SGCT_KEY_LEFT | Left
-     * SGCT_KEY_DOWN | Down
-     * SGCT_KEY_UP | Up
-     * SGCT_KEY_PAGEUP | Page up
-     * SGCT_KEY_PAGEDOWN | Page down
-     * SGCT_KEY_PAGE_UP | Page up
-     * SGCT_KEY_PAGE_DOWN | Page down
-     * SGCT_KEY_HOME | Home
-     * SGCT_KEY_END | End
-     * SGCT_KEY_CAPS_LOCK | Caps lock
-     * SGCT_KEY_SCROLL_LOCK | Scroll lock
-     * SGCT_KEY_NUM_LOCK | Num lock
-     * SGCT_KEY_PRINT_SCREEN | Print screen
-     * SGCT_KEY_PAUSE | Pause
-     * SGCT_KEY_F1 | F1
-     * SGCT_KEY_F2 | F2
-     * SGCT_KEY_F3 | F3
-     * SGCT_KEY_F4 | F4
-     * SGCT_KEY_F5 | F5
-     * SGCT_KEY_F6 | F6
-     * SGCT_KEY_F7 | F7
-     * SGCT_KEY_F8 | F8
-     * SGCT_KEY_F9 | F9
-     * SGCT_KEY_F10 | F10
-     * SGCT_KEY_F11 | F11
-     * SGCT_KEY_F12 | F12
-     * SGCT_KEY_F13 | F13
-     * SGCT_KEY_F14 | F14
-     * SGCT_KEY_F15 | F15
-     * SGCT_KEY_F16 | F16
-     * SGCT_KEY_F17 | F17
-     * SGCT_KEY_F18 | F18
-     * SGCT_KEY_F19 | F19
-     * SGCT_KEY_F20 | F20
-     * SGCT_KEY_F21 | F21
-     * SGCT_KEY_F22 | F22
-     * SGCT_KEY_F23 | F23
-     * SGCT_KEY_F24 | F24
-     * SGCT_KEY_F25 | F25
-     * SGCT_KEY_KP_0 | Keypad 0
-     * SGCT_KEY_KP_1 | Keypad 1
-     * SGCT_KEY_KP_2 | Keypad 2
-     * SGCT_KEY_KP_3 | Keypad 3
-     * SGCT_KEY_KP_4 | Keypad 4
-     * SGCT_KEY_KP_5 | Keypad 5
-     * SGCT_KEY_KP_6 | Keypad 6
-     * SGCT_KEY_KP_7 | Keypad 7
-     * SGCT_KEY_KP_8 | Keypad 8
-     * SGCT_KEY_KP_9 | Keypad 9
-     * SGCT_KEY_KP_DECIMAL| Keypad decimal
-     * SGCT_KEY_KP_DIVIDE | Keypad divide
-     * SGCT_KEY_KP_MULTIPLY | Keypad multiply
-     * SGCT_KEY_KP_SUBTRACT | Keypad subtract
-     * SGCT_KEY_KP_ADD | Keypad add
-     * SGCT_KEY_KP_ENTER | Keypad enter
-     * SGCT_KEY_KP_EQUAL | Keypad equal
-     * SGCT_KEY_LSHIFT | Left shift
-     * SGCT_KEY_LEFT_SHIFT | Left shift
-     * SGCT_KEY_LCTRL | Left control
-     * SGCT_KEY_LEFT_CONTROL | Left control
-     * SGCT_KEY_LALT | Left alt
-     * SGCT_KEY_LEFT_ALT | Left alt
-     * SGCT_KEY_LEFT_SUPER | Left super
-     * SGCT_KEY_RSHIFT | Right shift
-     * SGCT_KEY_RIGHT_SHIFT | Right shift
-     * SGCT_KEY_RCTRL | Right control
-     * SGCT_KEY_RIGHT_CONTROL | Right control
-     * SGCT_KEY_RALT | Right alt
-     * SGCT_KEY_RIGHT_ALT | Right alt
-     * SGCT_KEY_RIGHT_SUPER | Right super
-     * SGCT_KEY_MENU | Menu
-     * SGCT_KEY_LAST | Last key index
      */
     void setKeyboardCallbackFunction(
         std::function<void(int key, int scanCode, int action, int modifiers)> fn);
@@ -495,25 +338,10 @@ public:
     /**
      * This function sets the mouse button callback (GLFW wrapper) where the two
      * parameters are: int button, int action. Button id's are listed in the table below.
-     * Action can either be SGCT_PRESS or SGCT_RELEASE. All windows are connected to this
-     * callback.
+     * Action can either be sgct::action::Press or sgct::action::Release. All windows are
+     * connected to this callback.
      *
-     * \param fn is the function pointer to a mouse button callback function
-     *
-     * Name          | Description
-     * ------------- | -------------
-     * SGCT_MOUSE_BUTTON_LEFT | Left button
-     * SGCT_MOUSE_BUTTON_RIGHT | Right button
-     * SGCT_MOUSE_BUTTON_MIDDLE | Middle button
-     * SGCT_MOUSE_BUTTON_1 | Button 1
-     * SGCT_MOUSE_BUTTON_2 | Button 2
-     * SGCT_MOUSE_BUTTON_3 | Button 3
-     * SGCT_MOUSE_BUTTON_4 | Button 4
-     * SGCT_MOUSE_BUTTON_5 | Button 5
-     * SGCT_MOUSE_BUTTON_6 | Button 6
-     * SGCT_MOUSE_BUTTON_7 | Button 7
-     * SGCT_MOUSE_BUTTON_8 | Button 8
-     * SGCT_MOUSE_BUTTON_LAST | Last mouse button index
+     * \param fn is the std function to a mouse button callback function
      */
     void setMouseButtonCallbackFunction(
         std::function<void(int button, int action, int modifiers)> fn);
@@ -527,8 +355,7 @@ public:
     /// Drop files to any window. All windows are connected to this callback.
     void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
 
-    void setTouchCallbackFunction(
-        std::function<void(const sgct::core::Touch* touches)> fn);
+    void setTouchCallbackFunction(std::function<void(const core::Touch* touches)> fn);
 
     /**
      * This callback must be set before Engine::init is called. Parameters to the callback
@@ -539,7 +366,6 @@ public:
      */
     void setScreenShotCallback(std::function<void(core::Image*, size_t,
         core::ScreenCapture::EyeIndex, GLenum type)> fn);
-
 
     /**
      * This function sets the external control message callback which will be called when
@@ -603,8 +429,6 @@ public:
      */
     void setDataAcknowledgeCallback(std::function<void(int packageId, int clientId)> fn);
 
-    // external control network functions
-
     /**
      * This function sends a message to the external control interface.
      *
@@ -659,17 +483,6 @@ public:
      * \param packageId is the identification id of this specific package
      */
     void transferDataBetweenNodes(const void* data, int length, int packageId);
-
-    /**
-     * This function sends data to a specific node.
-     *
-     * \param data a pointer to the data buffer
-     * \param length is the number of bytes of data that will be sent
-     * \param packageId is the identification id of this specific package
-     * \param nodeIndex is the index of a specific node
-     */
-    void transferDataToNode(const void* data, int length, int packageId,
-        size_t nodeIndex);
 
     /**
      * Don't use this. This function is called from Network and will invoke the data
@@ -738,36 +551,21 @@ public:
     static void setMouseCursorVisibility(int winIndex, bool state);
 
     /**
-     * \param joystick is the joystick id. Availible ids:
-     *   - SGCT_JOYSTICK_1
-     *   - SGCT_JOYSTICK_2
-     *   - SGCT_JOYSTICK_3
-     *   - SGCT_JOYSTICK_4
-     *   - SGCT_JOYSTICK_5
-     *   - SGCT_JOYSTICK_6
-     *   - SGCT_JOYSTICK_7
-     *   - SGCT_JOYSTICK_8
-     *   - SGCT_JOYSTICK_9
-     *   - SGCT_JOYSTICK_10
-     *   - SGCT_JOYSTICK_11
-     *   - SGCT_JOYSTICK_12
-     *   - SGCT_JOYSTICK_13
-     *   - SGCT_JOYSTICK_14
-     *   - SGCT_JOYSTICK_15
-     *   - SGCT_JOYSTICK_16
-     *   - SGCT_JOYSTICK_LAST
+     * Returns the name of the requested joystick
+     *
+     * \param joystick is the joystick id. Available IDs are in the joystick.h
      */
     static const char* getJoystickName(int joystick);
 
     /**
-     * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
+     * \param joystick the joystick id: Available IDs are in the joystick.h
      * \param numOfValues is the number of analog axes
      * \return the analog float values (array)
      */
     static const float* getJoystickAxes(int joystick, int* numOfValues);
 
     /**
-     * \param joystick the joystick id: Availibe id's are specified here: getJoystickName
+     * \param joystick the joystick id: Available IDs are in the joystick.h
      * \param numOfValues is the number of buttons
      * \return the button values (array)
      */
@@ -788,7 +586,7 @@ public:
     /// \return an index to the current window that is beeing rendered
     int getCurrentWindowIndex() const;
 
-    /// \return a pointer to the user (VR observer position) object
+    /// \return a pointer to the user (observer position) object
     static core::User& getDefaultUser();
 
     /// \return true if this node is the master
@@ -803,13 +601,12 @@ public:
     core::Frustum::Mode getCurrentFrustumMode() const;
 
     /**
-     * \return the active projection matrix (only valid inside in the draw callback
-     *         function)
+     * \return the projection matrix (only valid inside in the draw callback function)
      */
     const glm::mat4& getCurrentProjectionMatrix() const;
 
     /**
-     * \return the active view matrix (only valid inside in the draw callback function)
+     * \return the view matrix (only valid inside in the draw callback function)
      */
     const glm::mat4& getCurrentViewMatrix() const;
 
@@ -859,8 +656,8 @@ public:
     RenderTarget getCurrentRenderTarget() const;
 
     /**
-     * Returns the active viewport in pixels (only valid inside in the draw callback
-     * function)
+     * Returns the active viewport information in pixels (only valid inside in the draw
+     * callback function)
      */
     glm::ivec4 getCurrentViewportPixelCoords() const;
 
@@ -874,8 +671,18 @@ public:
      */
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
+    /**
+     * Set up the current viewport, sets the framebuffer resolutions, windowing and
+     * scissoring in OpenGL. This is a function that will be called by internal classes of
+     * SGCT and in general does not have to be called by any external application using
+     * this library.
+     */
+    void enterCurrentViewport();
+
 private:
     enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+
+    static Engine* _instance;
 
     Engine(const Configuration& config);
 
@@ -907,9 +714,6 @@ private:
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
 
-    /// Set up the current viewport.
-    void enterCurrentViewport();
-
     void updateDrawBufferResolutions();
 
     /**
@@ -927,12 +731,12 @@ private:
      */
     void renderFBOTexture();
     
-    /// This function combines a texture and a shader into a new texture.
+    /// This function combines a texture and a shader into a new texture
     void renderPostFX(TextureIndex targetIndex);
 
     void renderViewports(TextureIndex ti);
 
-    /// This function renders stats, OSD and overlays.
+    /// This function renders stats, OSD and overlays
     void render2D();
 
     /// This function attaches targets to FBO if FBO is in use
@@ -940,12 +744,6 @@ private:
 
     /// This function updates the renderingtargets.
     void updateRenderingTargets(TextureIndex ti);
-
-    /**
-     * This function loads shaders that handles different 3D modes. The shaders are only
-     * loaded once in the initOGL function.
-     */
-    void loadShaders();
 
     /**
      * This function clears and sets the appropriate buffer from:
@@ -973,10 +771,6 @@ private:
      * it exists) into this window
      */
     void blitPreviousWindowViewport(core::Frustum::Mode mode);
-
-    static void clearBuffer();
-
-    static Engine* _instance;
 
     std::function<void()> _drawFn;
     std::function<void()> _preSyncFn;
@@ -1017,8 +811,8 @@ private:
     std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
 
     struct {
-        size_t main = 0;
-        size_t sub = 0;
+        int main = 0;
+        int sub = 0;
     } _currentViewportIndex;
     RenderTarget _currentRenderTarget = RenderTarget::WindowBuffer;
 

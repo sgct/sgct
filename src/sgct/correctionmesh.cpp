@@ -230,9 +230,19 @@ CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
 }
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    glDeleteBuffers(1, &ibo);
+    // Yes, glDeleteVertexArrays and glDeleteBuffers work with values of 0, but we use
+    // this check as a standin for checking whether they were created in the first place.
+    // This would only fail if the OpenGL context was not created, which would cause these
+    // functions to fail, too.
+    if (vao) {
+        glDeleteVertexArrays(1, &vao);
+    }
+    if (vbo) {
+        glDeleteBuffers(1, &vbo);
+    }
+    if (ibo) {
+        glDeleteBuffers(1, &ibo);
+    }
 }
 
 void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {

@@ -31,14 +31,14 @@ namespace {
                       int& height, std::vector<unsigned char>& pixels, GlyphData& gd)
     {
         // Move the face's glyph into a Glyph object
-        FT_Error glyphErr = FT_Get_Glyph(face->glyph, &(gd.glyph));
-        FT_Error strokeErr = FT_Get_Glyph(face->glyph, &(gd.strokeGlyph));
+        FT_Error glyphErr = FT_Get_Glyph(face->glyph, &gd.glyph);
+        FT_Error strokeErr = FT_Get_Glyph(face->glyph, &gd.strokeGlyph);
         if (glyphErr || strokeErr) {
             return false;
         }
 
         gd.stroker = nullptr;
-        FT_Error error = FT_Stroker_New(library, &(gd.stroker));
+        FT_Error error = FT_Stroker_New(library, &gd.stroker);
         if (!error) {
             FT_Stroker_Set(
                 gd.stroker,
@@ -48,22 +48,22 @@ namespace {
                 0
             );
 
-            FT_Glyph_Stroke(&(gd.strokeGlyph), gd.stroker, 1);
+            FT_Glyph_Stroke(&gd.strokeGlyph, gd.stroker, 1);
         }
 
         // Convert the glyph to a bitmap
-        FT_Glyph_To_Bitmap(&(gd.glyph), ft_render_mode_normal, nullptr, 1);
+        FT_Glyph_To_Bitmap(&gd.glyph, ft_render_mode_normal, nullptr, 1);
         gd.bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.glyph);
 
-        FT_Glyph_To_Bitmap(&(gd.strokeGlyph), ft_render_mode_normal, nullptr, 1);
+        FT_Glyph_To_Bitmap(&gd.strokeGlyph, ft_render_mode_normal, nullptr, 1);
         gd.bitmapStrokeGlyph = reinterpret_cast<FT_BitmapGlyph>(gd.strokeGlyph);
 
         // This pointer will make accessing the bitmap easier
-        gd.bitmap = &(gd.bitmapGlyph->bitmap);
-        gd.strokeBitmap = &(gd.bitmapStrokeGlyph->bitmap);
+        gd.bitmap = &gd.bitmapGlyph->bitmap;
+        gd.strokeBitmap = &gd.bitmapStrokeGlyph->bitmap;
 
-        // Use our helper function to get the widths of the bitmap data that we will need in
-        // order to create our texture
+        // Use our helper function to get the widths of the bitmap data that we will need
+        // in order to create our texture
         width = gd.strokeBitmap->width;
         height = gd.strokeBitmap->rows;
 
@@ -71,9 +71,9 @@ namespace {
         pixels.resize(2 * width * height);
         std::fill(pixels.begin(), pixels.end(), static_cast<unsigned char>(0));
 
-        // read alpha to one channel and stroke - alpha in the second channel. We use the ?:
-        // operator so that value which we use will be 0 if we are in the padding zone, and
-        // whatever is the the Freetype bitmap otherwise
+        // read alpha to one channel and stroke - alpha in the second channel. We use the
+        // ?: operator so that value which we use will be 0 if we are in the padding zone,
+        // and whatever is the the Freetype bitmap otherwise
         const int offsetWidth = (gd.strokeBitmap->width - gd.bitmap->width) / 2;
         const int offsetRows = (gd.strokeBitmap->rows - gd.bitmap->rows) / 2;
         for (int j = 0; j < height; ++j) {
@@ -175,7 +175,7 @@ namespace {
         ffd.pos.x = static_cast<float>(gd.bitmapGlyph->left);
         // abock (2010-10-19) Don't remove this variable;  if the expression is directly
         // inserted in the static_cast, something goes wrong when rows > top and things
-        // // get wrongly converted into unsigned integer type before the cast
+        // get wrongly converted into unsigned integer type before the cast
         const int y = gd.bitmapGlyph->top - gd.bitmap->rows;
         ffd.pos.y = static_cast<float>(y);
         ffd.size.x = static_cast<float>(width);
@@ -216,10 +216,8 @@ Font::Font(FT_Library lib, FT_Face face, unsigned int height)
     glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
-
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
         2,

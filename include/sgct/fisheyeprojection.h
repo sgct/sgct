@@ -25,7 +25,7 @@ public:
     /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;
 
-    /// Render the non linear projection to currently bounded FBO
+    /// Render the non-linear projection to currently bounded FBO
     void render() override;
 
     /// Render the enabled faces of the cubemap

@@ -183,6 +183,8 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
                 break;
             }
 
+            // @TODO (abock, 2019-11-19) This will spam out messages on end, maybe it
+            // would be better to print more informative messages than just error codes
             MessageHandler::printDebug("Connect error code: %d", SGCT_ERRNO);
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
         }

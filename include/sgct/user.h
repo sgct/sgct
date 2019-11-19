@@ -14,9 +14,7 @@
 
 namespace sgct::core {
 
-/**
- * Helper class for setting user variables
- */
+/// Helper class for setting user variables
 class User {
 public:
     /// Default contructor

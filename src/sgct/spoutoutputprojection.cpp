@@ -230,11 +230,13 @@ void SpoutOutputProjection::renderCubemap() {
             glScissor(0, 0, _mappingWidth, _mappingHeight);
             glEnable(GL_SCISSOR_TEST);
 
-            Engine::clearBuffer();
+            const glm::vec4 color = Engine::instance().getClearColor();
+            const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+            glClearColor(color.r, color.g, color.b, hasAlpha ? 0.f : color.a);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glDisable(GL_CULL_FACE);
-            const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
-            if (alpha) {
+            if (hasAlpha) {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
@@ -255,8 +257,8 @@ void SpoutOutputProjection::renderCubemap() {
             _depthCorrectionShader.bind();
             glUniform1i(_swapColorLoc, 0);
             glUniform1i(_swapDepthLoc, 1);
-            glUniform1f(_swapNearLoc, Engine::instance()._nearClippingPlaneDist);
-            glUniform1f(_swapFarLoc, Engine::instance()._farClippingPlaneDist);
+            glUniform1f(_swapNearLoc, Engine::instance().getNearClipPlane());
+            glUniform1f(_swapFarLoc, Engine::instance().getFarClipPlane());
 
             Engine::instance().getCurrentWindow().bindVAO();
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -267,7 +269,7 @@ void SpoutOutputProjection::renderCubemap() {
 
             glDisable(GL_DEPTH_TEST);
 
-            if (alpha) {
+            if (hasAlpha) {
                 glDisable(GL_BLEND);
             }
 
@@ -703,11 +705,10 @@ void SpoutOutputProjection::initShaders() {
     helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
 
     // replace color
-    std::stringstream ssColor;
-    ssColor.precision(2);
-    ssColor << std::fixed << "vec4(" << _clearColor.r << ", " << _clearColor.g
-            << ", " << _clearColor.b << ", " << _clearColor.a << ")";
-    helpers::findAndReplace(fisheyeFragShader, "**bgColor**", ssColor.str());
+    std::string color = "vec4(" + std::to_string(_clearColor.r) + ',' +
+        std::to_string(_clearColor.g) + ',' + std::to_string(_clearColor.b) + ',' +
+        std::to_string(_clearColor.a) + ')';
+    helpers::findAndReplace(fisheyeFragShader, "**bgColor**", color);
 
     std::string name;
     switch (_mappingType) {
@@ -823,12 +824,15 @@ void SpoutOutputProjection::drawCubeFace(int face) {
     glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    Engine::clearBuffer();
+    const glm::vec4 color = Engine::instance().getClearColor();
+    const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+    glClearColor(color.r, color.g, color.b, alpha);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance()._drawFn();
+    Engine::instance().getDrawFunction()();
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

@@ -9,9 +9,6 @@
 #ifndef __SGCT__DOME__H__
 #define __SGCT__DOME__H__
 
-#include <sgct/helpers/vertexdata.h>
-#include <vector>
-
 namespace sgct::utils {
 
 /**
@@ -19,20 +16,15 @@ namespace sgct::utils {
  */
 class Dome {
 public:
-    /// This constructor requires a valid OpenGL contex
+    /// This constructor requires a valid OpenGL context
     Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
+
+    /// The destructor requires a valid OpenGL context
     ~Dome();
 
-    /**
-     * layout 0 contains texture coordinates (vec2)
-     * layout 1 contains vertex normals (vec3)
-     * layout 2 contains vertex positions (vec3).
-     */
     void draw();
 
 private:
-    void createVBO(float radius, float FOV);
-
     int _elevationSteps;
     int _azimuthSteps;
 

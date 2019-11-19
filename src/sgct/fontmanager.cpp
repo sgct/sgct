@@ -26,30 +26,30 @@ namespace {
 
     constexpr const char* FontVertShader = R"(
 #version 330 core
-layout (location = 0) in vec2 TexCoord;
-layout (location = 1) in vec2 Position;
+layout (location = 0) in vec2 in_texCoord;
+layout (location = 1) in vec2 in_position;
+out vec2 tr_uv;
 
 uniform mat4 mvp;
-out vec2 uv;
 
 void main() {
-    gl_Position = mvp * vec4(Position, 0.0, 1.0);
-    uv = TexCoord;
+    gl_Position = mvp * vec4(in_position, 0.0, 1.0);
+    tr_uv = in_texCoord;
 })";
 
     constexpr const char* FontFragShader = R"(
 #version 330 core
+in vec2 tr_uv;
+out vec4 out_color;
+
 uniform vec4 col;
 uniform vec4 strokeCol;
 uniform sampler2D tex;
 
-in vec2 uv;
-out vec4 Color;
-
 void main() {
-    vec2 luminanceAlpha = texture(tex, uv.st).rg;
+    vec2 luminanceAlpha = texture(tex, tr_uv).rg;
     vec4 blend = mix(strokeCol, col, luminanceAlpha.r);
-    Color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
+    out_color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
 })";
 } // namespace
 
@@ -153,16 +153,13 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        MessageHandler::printError(
-            "FontManager: No font file specified for font [%s]", name.c_str()
-        );
+        MessageHandler::printError("No font file specified for font [%s]", name.c_str());
         return nullptr;
     }
 
     if (_library == nullptr) {
         MessageHandler::printError(
-            "FontManager: Freetype library is not initialized, can't create font [%s]",
-            name.c_str()
+            "Freetype library is not initialized, can't create font [%s]", name.c_str()
         );
         return nullptr;
     }
@@ -172,23 +169,18 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
     if (error == FT_Err_Unknown_File_Format) {
         MessageHandler::printError(
-            "FontManager: Unsupperted file format [%s] for font [%s]",
-            it->second.c_str(), name.c_str()
+            "Unsupperted file format [%s] for font [%s]", it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        MessageHandler::printError(
-            "FontManager: Font '%s' not found!", it->second.c_str()
-        );
+        MessageHandler::printError("Font '%s' not found!", it->second.c_str());
         return nullptr;
     }
 
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        MessageHandler::printError(
-            "FontManager: Could not set pixel size for font[%s]", name.c_str()
-        );
+        MessageHandler::printError("Could not set pixel size for font[%s]", name.c_str());
         return nullptr;
     }
 

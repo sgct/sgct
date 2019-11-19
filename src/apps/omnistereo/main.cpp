@@ -327,8 +327,8 @@ void initOmniStereo(bool mask) {
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
-                        Engine::instance().getNearClippingPlane(),
-                        Engine::instance().getFarClippingPlane()
+                        Engine::instance().getNearClipPlane(),
+                        Engine::instance().getFarClipPlane()
                     );
 
                     omniProjections[x][y].enabled = true;

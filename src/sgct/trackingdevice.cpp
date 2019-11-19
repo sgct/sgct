@@ -268,7 +268,7 @@ void TrackingDevice::setAnalogTimeStamp() {
     _analogTime = Engine::getTime();
 }
 
-void TrackingDevice::setButtonTimeStamp(size_t index) {
+void TrackingDevice::setButtonTimeStamp(int index) {
     std::unique_lock lock(core::mutex::Tracking);
     _buttonTimePrevious[index] = _buttonTime[index];
     _buttonTime[index] = Engine::getTime();
@@ -294,12 +294,12 @@ double TrackingDevice::getAnalogTimeStampPrevious() const {
     return _analogTimePrevious;
 }
 
-double TrackingDevice::getButtonTimeStamp(size_t index) const {
+double TrackingDevice::getButtonTimeStamp(int index) const {
     std::unique_lock lock(core::mutex::Tracking);
     return _buttonTime[index];
 }
 
-double TrackingDevice::getButtonTimeStampPrevious(size_t index) const {
+double TrackingDevice::getButtonTimeStampPrevious(int index) const {
     std::unique_lock lock(core::mutex::Tracking);
     return _buttonTimePrevious[index];
 }
@@ -314,7 +314,7 @@ double TrackingDevice::getAnalogDeltaTime() const {
     return _analogTime - _analogTimePrevious;
 }
 
-double TrackingDevice::getButtonDeltaTime(size_t index) const {
+double TrackingDevice::getButtonDeltaTime(int index) const {
     std::unique_lock lock(core::mutex::Tracking);
     return _buttonTime[index] - _buttonTimePrevious[index];
 }

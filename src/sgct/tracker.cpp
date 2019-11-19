@@ -11,7 +11,6 @@
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
-#include <sgct/trackingdevice.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -42,9 +41,7 @@ TrackingDevice* Tracker::getDevice(const std::string& name) const {
     auto it = std::find_if(
         _trackingDevices.begin(),
         _trackingDevices.end(),
-        [name](const std::unique_ptr<TrackingDevice>& dev) {
-            return dev->getName() == name;
-        }
+        [name](const std::unique_ptr<TrackingDevice>& d) { return d->getName() == name; }
     );
     return it != _trackingDevices.end() ? it->get() : nullptr;
 }
@@ -53,9 +50,7 @@ TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
     auto it = std::find_if(
         _trackingDevices.begin(),
         _trackingDevices.end(),
-        [id](const std::unique_ptr<TrackingDevice>& dev) {
-            return dev->getSensorId() == id;
-        }
+        [id](const std::unique_ptr<TrackingDevice>& d) { return d->getSensorId() == id; }
     );
     return it != _trackingDevices.end() ? it->get() : nullptr;
 }

@@ -21,9 +21,7 @@ namespace sgct::core::correction {
 Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos,
                                   const glm::ivec2& size)
 {
-    MessageHandler::printInfo(
-        "CorrectionMesh: Reading DomeProjection mesh data from '%s'", path.c_str()
-    );
+    MessageHandler::printInfo("Reading DomeProjection mesh data from '%s'", path.c_str());
 
     FILE* meshFile = nullptr;
     bool loadSuccess = false;

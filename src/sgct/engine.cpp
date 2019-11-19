@@ -189,6 +189,8 @@ Engine::Engine(const Configuration& config) {
         std::cout << std::string(getHelpMessage()) << '\n';
     }
     if (config.nodeId) {
+        // This nodeId might not be a valid node, but we have no way of knowing this yet
+        // as the configuration hasn't been loaded yet
         core::ClusterManager::instance().setThisNodeId(*config.nodeId);
     }
     if (config.firmSync) {
@@ -248,12 +250,17 @@ Engine::Engine(const Configuration& config) {
 Engine::~Engine() {
     MessageHandler::printInfo("Cleaning up");
 
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    if (_cleanUpFn) {
-        if (thisNode.getNumberOfWindows() > 0) {
-            thisNode.getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+    // First check whether we ever created a node for ourselves.  This might have failed
+    // if the configuration was illformed
+    core::ClusterManager& cm = core::ClusterManager::instance();
+    const bool hasNode =
+        cm.getThisNodeId() > -1 && cm.getThisNodeId() < cm.getNumberOfNodes();
+
+    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
+        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+        if (_cleanUpFn) {
+            _cleanUpFn();
         }
-        _cleanUpFn();
     }
 
     // @TODO (abock, 2019-10-15) I don't think this is necessary unless someone is using
@@ -295,9 +302,9 @@ Engine::~Engine() {
     }
 
     // de-init window and unbind swapgroups
-    if (core::ClusterManager::instance().getNumberOfNodes() > 0) {
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            thisNode.getWindow(i).close();
+    if (hasNode && core::ClusterManager::instance().getNumberOfNodes() > 0) {
+        for (int i = 0; i < cm.getThisNode().getNumberOfWindows(); ++i) {
+            cm.getThisNode().getWindow(i).close();
         }
     }
 
@@ -306,16 +313,18 @@ Engine::~Engine() {
     core::NetworkManager::destroy();
 
     // Shared contex
-    if (thisNode.getNumberOfWindows() > 0) {
-        thisNode.getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
+        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
     }
 
     MessageHandler::printDebug("Destroying shader manager and internal shaders");
     ShaderManager::destroy();
 
-    _shader.fboQuad.deleteProgram();
-    _shader.fxaa.deleteProgram();
-    _shader.overlay.deleteProgram();
+    if (hasNode) {
+        _shader.fboQuad.deleteProgram();
+        _shader.fxaa.deleteProgram();
+        _shader.overlay.deleteProgram();
+    }
 
     _statisticsRenderer = nullptr;
 
@@ -328,8 +337,8 @@ Engine::~Engine() {
 #endif // SGCT_HAS_TEXT
 
     // Window specific context
-    if (thisNode.getNumberOfWindows() > 0) {
-        thisNode.getWindow(0).makeOpenGLContextCurrent(Window::Context::Window);
+    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
+        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Window);
     }
     
     MessageHandler::printDebug("Destroying shared data");
@@ -506,21 +515,25 @@ void Engine::initNetwork() {
 
     // If the user has provided the node _id as an incorrect cmd argument then make the
     // _thisNode invalid
-    if (cm.getThisNodeId() >= cm.getNumberOfNodes() || cm.getThisNodeId() < 0) {
+    if (cm.getThisNodeId() < 0) {
         core::NetworkManager::instance().close();
         throw Error(3001, "Computer is not a part of the cluster configuration");
+    }
+    if (cm.getThisNodeId() >= cm.getNumberOfNodes()) {
+        core::NetworkManager::instance().close();
+        throw Error(3002, "Requested node id was not found in the cluster configuration");
     }
 
     const bool networkInitSuccess = core::NetworkManager::instance().init();
     if (!networkInitSuccess) {
-        throw Error(3002, "Error initializing network connections");
+        throw Error(3003, "Error initializing network connections");
     }
 }
 
 void Engine::initWindows() {
     core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     if (thisNode.getNumberOfWindows() == 0) {
-        throw Error(3003, "No windows exist in configuration");
+        throw Error(3004, "No windows exist in configuration");
     }
 
     {
@@ -611,7 +624,7 @@ void Engine::initWindows() {
         }
 
         if (!thisNode.getWindow(i).openWindow(share, lastWindowIdx)) {
-            throw Error(3004, "Failed to open window " + std::to_string(i));
+            throw Error(3005, "Failed to open window " + std::to_string(i));
         }
     }
 
@@ -732,7 +745,7 @@ void Engine::initWindows() {
         }
     }
     else {
-        throw Error(3005, "No windows created on this node");
+        throw Error(3006, "No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -779,7 +792,51 @@ void Engine::initOGL() {
     // init window opengl data
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
 
-    loadShaders();
+    //
+    // Load Shaders
+    //
+    _shader.fxaa = ShaderProgram("FXAAShader");
+    _shader.fxaa.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
+    _shader.fxaa.createAndLinkProgram();
+    _shader.fxaa.bind();
+
+    _shaderLoc.sizeX = _shader.fxaa.getUniformLocation("rt_w");
+    const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
+    glUniform1f(_shaderLoc.sizeX, static_cast<float>(framebufferSize.x));
+
+    _shaderLoc.sizeY = _shader.fxaa.getUniformLocation("rt_h");
+    glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
+
+    _shaderLoc.fxaaSubPixTrim = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_TRIM");
+    glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance().getFXAASubPixTrim());
+
+    _shaderLoc.fxaaSubPixOffset = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_OFFSET");
+    glUniform1f(_shaderLoc.fxaaSubPixOffset, Settings::instance().getFXAASubPixOffset());
+
+    _shaderLoc.fxaaTexture = _shader.fxaa.getUniformLocation("tex");
+    glUniform1i(_shaderLoc.fxaaTexture, 0);
+    ShaderProgram::unbind();
+
+    // Used for overlays & mono.
+    _shader.fboQuad = ShaderProgram("FBOQuadShader");
+    _shader.fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
+    _shader.fboQuad.createAndLinkProgram();
+    _shader.fboQuad.bind();
+    _shaderLoc.monoTex = _shader.fboQuad.getUniformLocation("tex");
+    glUniform1i(_shaderLoc.monoTex, 0);
+    ShaderProgram::unbind();
+
+    _shader.overlay = ShaderProgram("OverlayShader");
+    _shader.overlay.addShaderSource(
+        core::shaders::OverlayVert,
+        core::shaders::OverlayFrag
+    );
+    _shader.overlay.createAndLinkProgram();
+    _shader.overlay.bind();
+    _shaderLoc.overlayTex = _shader.overlay.getUniformLocation("Tex");
+    glUniform1i(_shaderLoc.overlayTex, 0);
+    ShaderProgram::unbind();
+
 
     if (_initOpenGLFn) {
         MessageHandler::printInfo("Calling init callback");
@@ -930,7 +987,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             throw Error(
-                3006,
+                3007,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -990,7 +1047,7 @@ void Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
             throw Error(
-                3007,
+                3008,
                 "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -1859,50 +1916,6 @@ void Engine::updateRenderingTargets(TextureIndex ti) {
     fbo->blit();
 }
 
-void Engine::loadShaders() {
-    _shader.fxaa = ShaderProgram("FXAAShader");
-    _shader.fxaa.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
-    _shader.fxaa.createAndLinkProgram();
-    _shader.fxaa.bind();
-
-    _shaderLoc.sizeX = _shader.fxaa.getUniformLocation("rt_w");
-    const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
-    glUniform1f(_shaderLoc.sizeX, static_cast<float>(framebufferSize.x));
-
-    _shaderLoc.sizeY = _shader.fxaa.getUniformLocation("rt_h");
-    glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
-
-    _shaderLoc.fxaaSubPixTrim = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_TRIM");
-    glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance().getFXAASubPixTrim());
-
-    _shaderLoc.fxaaSubPixOffset = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_OFFSET");
-    glUniform1f(_shaderLoc.fxaaSubPixOffset, Settings::instance().getFXAASubPixOffset());
-
-    _shaderLoc.fxaaTexture = _shader.fxaa.getUniformLocation("tex");
-    glUniform1i(_shaderLoc.fxaaTexture, 0);
-    ShaderProgram::unbind();
-
-    // Used for overlays & mono.
-    _shader.fboQuad = ShaderProgram("FBOQuadShader");
-    _shader.fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
-    _shader.fboQuad.createAndLinkProgram();
-    _shader.fboQuad.bind();
-    _shaderLoc.monoTex = _shader.fboQuad.getUniformLocation("Tex");
-    glUniform1i(_shaderLoc.monoTex, 0);
-    ShaderProgram::unbind();
-
-    _shader.overlay = ShaderProgram("OverlayShader");
-    _shader.overlay.addShaderSource(
-        core::shaders::OverlayVert,
-        core::shaders::OverlayFrag
-    );
-    _shader.overlay.createAndLinkProgram();
-    _shader.overlay.bind();
-    _shaderLoc.overlayTex = _shader.overlay.getUniformLocation("Tex");
-    glUniform1i(_shaderLoc.overlayTex, 0);
-    ShaderProgram::unbind();
-}
-
 void Engine::setAndClearBuffer(BufferMode mode) {
     if (mode < BufferMode::RenderToTexture) {
         const bool doubleBuffered = getCurrentWindow().isDoubleBuffered();
@@ -1925,7 +1938,10 @@ void Engine::setAndClearBuffer(BufferMode mode) {
 
     // clear
     if (mode != BufferMode::BackBufferBlack) {
-        clearBuffer();
+        const glm::vec4 color = instance().getClearColor();
+        const float alpha = instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+        glClearColor(color.r, color.g, color.b, alpha);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else {
         // when rendering textures to backbuffer (using fbo)
@@ -2154,6 +2170,10 @@ void Engine::setDrawFunction(std::function<void()> fn) {
     _drawFn = std::move(fn);
 }
 
+const std::function<void()>& Engine::getDrawFunction() const {
+    return _drawFn;
+}
+
 void Engine::setDraw2DFunction(std::function<void()> fn) {
     _draw2DFn = std::move(fn);
 }
@@ -2247,14 +2267,6 @@ void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) 
  void Engine::setTouchCallbackFunction(std::function<void(const core::Touch*)> fn) {
      gTouchCallbackFn = std::move(fn);
  }
-
-void Engine::clearBuffer() {
-    const glm::vec4 color = Engine::instance().getClearColor();
-
-    const float alpha = instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
-    glClearColor(color.r, color.g, color.b, alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
 
 void Engine::enterCurrentViewport() {
     core::BaseViewport* vp = getCurrentWindow().getCurrentViewport();
@@ -2380,11 +2392,11 @@ glm::vec4 Engine::getClearColor() const {
     return _clearColor;
 }
 
-float Engine::getNearClippingPlane() const {
+float Engine::getNearClipPlane() const {
     return _nearClippingPlaneDist;
 }
 
-float Engine::getFarClippingPlane() const {
+float Engine::getFarClipPlane() const {
     return _farClippingPlaneDist;
 }
 
@@ -2512,10 +2524,6 @@ void Engine::setDataTransferCompression(bool state, int level) {
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
     core::NetworkManager::instance().transferData(data, length, packageId);
-}
-
-void Engine::transferDataToNode(const void* data, int length, int package, size_t node) {
-    core::NetworkManager::instance().transferData(data, length, package, node);
 }
 
 void Engine::sendMessageToExternalControl(const std::string& msg) {

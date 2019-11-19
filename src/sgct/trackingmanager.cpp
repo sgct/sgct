@@ -9,11 +9,9 @@
 #include <sgct/trackingmanager.h>
 
 #include <sgct/clustermanager.h>
-#include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
-#include <sgct/tracker.h>
 #include <sgct/trackingdevice.h>
 #include <sgct/user.h>
 #ifdef SGCT_HAS_VRPN
@@ -36,14 +34,12 @@ namespace {
     std::vector<std::vector<VRPNPointer>> gTrackers;
 
     void VRPN_CALLBACK updateTracker(void* userdata, const vrpn_TRACKERCB t) {
-        using namespace sgct;
-
         if (userdata == nullptr) {
             return;
         }
 
-        Tracker* trackerPtr = reinterpret_cast<Tracker*>(userdata);
-        TrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
+        sgct::Tracker* trackerPtr = reinterpret_cast<sgct::Tracker*>(userdata);
+        sgct::TrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
 
         if (devicePtr == nullptr) {
             return;
@@ -57,26 +53,22 @@ namespace {
     }
 
     void VRPN_CALLBACK updateButton(void* userdata, const vrpn_BUTTONCB b) {
-        using namespace sgct;
-        TrackingDevice* devicePtr = reinterpret_cast<TrackingDevice*>(userdata);
-
-        devicePtr->setButtonValue(b.state != 0, b.button);
+        sgct::TrackingDevice* device = reinterpret_cast<sgct::TrackingDevice*>(userdata);
+        device->setButtonValue(b.state != 0, b.button);
     }
 
     void VRPN_CALLBACK updateAnalog(void* userdata, const vrpn_ANALOGCB a) {
-        using namespace sgct;
-        TrackingDevice* tdPtr = reinterpret_cast<TrackingDevice*>(userdata);
+        sgct::TrackingDevice* tdPtr = reinterpret_cast<sgct::TrackingDevice*>(userdata);
         tdPtr->setAnalogValue(a.channel, static_cast<int>(a.num_channel));
     }
 
     void samplingLoop(void* arg) {
-        using namespace sgct;
-        TrackingManager* tmPtr = reinterpret_cast<TrackingManager*>(arg);
+        sgct::TrackingManager* tmPtr = reinterpret_cast<sgct::TrackingManager*>(arg);
 
         while (true) {
-            const double t = Engine::getTime();
+            const double t = sgct::Engine::getTime();
             for (int i = 0; i < tmPtr->getNumberOfTrackers(); ++i) {
-                Tracker* trackerPtr = tmPtr->getTracker(i);
+                sgct::Tracker* trackerPtr = tmPtr->getTracker(i);
 
                 if (trackerPtr == nullptr) {
                     continue;
@@ -87,7 +79,6 @@ namespace {
                     }
 
                     const VRPNPointer& ptr = gTrackers[i][j];
-
                     if (ptr.mSensorDevice) {
                         ptr.mSensorDevice->mainloop();
                     }
@@ -100,9 +91,8 @@ namespace {
                 }
             }
 
-            bool isRunning = tmPtr->isRunning();
-
-            tmPtr->setSamplingTime(Engine::getTime() - t);
+            const bool isRunning = tmPtr->isRunning();
+            tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
 
             // Sleep for 1ms so we don't eat the CPU
             vrpn_SleepMsecs(1);
@@ -314,17 +304,16 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->getLastDevice();
 
-    if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
+    if (ptr.mButtonDevice == nullptr && device) {
         MessageHandler::printInfo(
             "Connecting to buttons '%s' on device %s",
-            address.c_str(), devicePtr->getName().c_str()
+            address.c_str(), device->getName().c_str()
         );
-
         ptr.mButtonDevice = std::make_unique<vrpn_Button_Remote>(address.c_str());
-        ptr.mButtonDevice->register_change_handler(devicePtr, updateButton);
-        devicePtr->setNumberOfButtons(nButtons);
+        ptr.mButtonDevice->register_change_handler(device, updateButton);
+        device->setNumberOfButtons(nButtons);
     }
     else {
         MessageHandler::printError("Failed to connect to buttons '%s'", address.c_str());
@@ -343,17 +332,17 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->getLastDevice();
 
-    if (ptr.mAnalogDevice == nullptr && devicePtr) {
+    if (ptr.mAnalogDevice == nullptr && device) {
         MessageHandler::printInfo(
             "Connecting to analogs '%s' on device %s",
-            address.c_str(), devicePtr->getName().c_str()
+            address.c_str(), device->getName().c_str()
         );
 
         ptr.mAnalogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
-        ptr.mAnalogDevice->register_change_handler(devicePtr, updateAnalog);
-        devicePtr->setNumberOfAxes(nAxes);
+        ptr.mAnalogDevice->register_change_handler(device, updateAnalog);
+        device->setNumberOfAxes(nAxes);
     }
     else {
         MessageHandler::printError("Failed to connect to analogs '%s'", address.c_str());
@@ -385,9 +374,7 @@ Tracker* TrackingManager::getTracker(const std::string& name) const {
     const auto it = std::find_if(
         _trackers.cbegin(),
         _trackers.cend(),
-        [name](const std::unique_ptr<Tracker>& tracker) {
-            return tracker->getName() == name;
-        }
+        [name](const std::unique_ptr<Tracker>& tr) { return tr->getName() == name; }
     );
     return it != _trackers.cend() ? it->get() : nullptr;
 }

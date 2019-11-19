@@ -16,9 +16,7 @@
 
 namespace sgct {
 
-/**
- * Helper class that holds tracking device/sensor data
- */
+/// Helper class that holds tracking device/sensor data
 class TrackingDevice {
 public:
     /// Constructor
@@ -116,18 +114,18 @@ public:
 
     double getAnalogTimeStamp() const;
     double getAnalogTimeStampPrevious() const;
-    double getButtonTimeStamp(size_t index) const;
-    double getButtonTimeStampPrevious(size_t index) const;
+    double getButtonTimeStamp(int index) const;
+    double getButtonTimeStampPrevious(int index) const;
 
     double getTrackerDeltaTime() const;
     double getAnalogDeltaTime() const;
-    double getButtonDeltaTime(size_t index) const;
+    double getButtonDeltaTime(int index) const;
 
 private:
     void calculateTransform();
     void setTrackerTimeStamp();
     void setAnalogTimeStamp();
-    void setButtonTimeStamp(size_t index);
+    void setButtonTimeStamp(int index);
 
     bool _enabled = true;
     std::string _name;

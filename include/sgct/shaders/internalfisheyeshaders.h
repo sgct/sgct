@@ -66,63 +66,59 @@ constexpr const char* SampleOffsetFun = R"(
 constexpr const char* BaseVert = R"(
   #version 330 core
 
-  layout (location = 0) in vec2 TexCoords;
-  layout (location = 1) in vec3 Position;
-
-  out vec2 UV;
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 1) in vec3 in_position;
+  out vec2 tr_uv;
 
   void main() {
-    gl_Position = vec4(Position, 1.0);
-    UV = TexCoords;
+    gl_Position = vec4(in_position, 1.0);
+    tr_uv = in_texCoords;
   }
 )";
 
 constexpr const char* FisheyeVert = R"(
   #version 330 core
 
-  layout (location = 0) in vec2 TexCoords;
-  layout (location = 1) in vec3 Position;
-
-  out vec2 UV;
+  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 1) in vec3 in_position;
+  out vec2 tr_uv;
 
   void main() {
-    gl_Position = vec4(Position, 1.0);
-    UV = TexCoords;
+    gl_Position = vec4(in_position, 1.0);
+    tr_uv = in_texCoords;
   }
 )";
 
 constexpr const char* FisheyeFrag = R"(
   #version 330 core
 
-  in vec2 UV;
-  out vec4 diffuse;
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   **sample_fun**
 
   void main() {
-    diffuse = getCubeSample(UV, cubemap, **bgColor**);
+    out_diffuse = getCubeSample(tr_uv, cubemap, **bgColor**);
   }
 )";
 
 constexpr const char* FisheyeFragNormal = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -131,12 +127,12 @@ constexpr const char* FisheyeFragNormal = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
     }
   }
 )";
@@ -144,18 +140,17 @@ constexpr const char* FisheyeFragNormal = R"(
 constexpr const char* FisheyeFragPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -164,12 +159,12 @@ constexpr const char* FisheyeFragPosition = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_position = texture(positionmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_position = vec3(0.0);
     }
   }
 )";
@@ -177,20 +172,19 @@ constexpr const char* FisheyeFragPosition = R"(
 constexpr const char* FisheyeFragNormalPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
-  layout(location = 2) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
+  layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -199,14 +193,14 @@ constexpr const char* FisheyeFragNormalPosition = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
+      out_position = texture(positionmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
+      out_position = vec3(0.0);
     }
   }
 )";
@@ -214,17 +208,16 @@ constexpr const char* FisheyeFragNormalPosition = R"(
 constexpr const char* FisheyeFragDepth = R"(
   #version 330 core
 
-  in vec2 UV;
-  out vec4 diffuse;
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -233,11 +226,11 @@ constexpr const char* FisheyeFragDepth = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
+      out_diffuse = texture(cubemap, rotVec);
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
+      out_diffuse = **bgColor**;
       gl_FragDepth = 1.0;
     }
   }
@@ -246,19 +239,18 @@ constexpr const char* FisheyeFragDepth = R"(
 constexpr const char* FisheyeFragDepthNormal = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube depthmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -267,13 +259,13 @@ constexpr const char* FisheyeFragDepthNormal = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -282,19 +274,18 @@ constexpr const char* FisheyeFragDepthNormal = R"(
 constexpr const char* FisheyeFragDepthPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform samplerCube depthmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -303,13 +294,13 @@ constexpr const char* FisheyeFragDepthPosition = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_position = texture(positionmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_position = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -318,21 +309,20 @@ constexpr const char* FisheyeFragDepthPosition = R"(
 constexpr const char* FisheyeFragDepthNormalPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
-  layout(location = 2) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
+  layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
-  niform samplerCube positionmap;
+  uniform samplerCube positionmap;
   uniform samplerCube depthmap;
   uniform float halfFov;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -341,15 +331,15 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
       float y = -sin(phi) * cos(theta);
       float z = cos(phi);
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
+      out_position = texture(positionmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
+      out_position = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -358,37 +348,35 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
 constexpr const char* FisheyeFragOffAxis = R"(
   #version 330 core
 
-  in vec2 UV;
-  out vec4 diffuse;
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
   uniform float halfFov;
   uniform vec3 offset;
-  float angle45Factor = 0.7071067812;
 
   **sample_fun**
 
   void main() {
-    diffuse = getCubeSample(UV, cubemap, **bgColor**);
+    out_diffuse = getCubeSample(tr_uv, cubemap, **bgColor**);
   }
 )";
 
 constexpr const char* FisheyeFragOffAxisNormal = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -397,12 +385,12 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
     }
   }
 )";
@@ -410,19 +398,18 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
 constexpr const char* FisheyeFragOffAxisPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -431,12 +418,12 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_position = texture(positionmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_position = vec3(0.0);
     }
   }
 )";
@@ -444,21 +431,20 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
 constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
-  layout(location = 2) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
+  layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -467,14 +453,14 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
+      out_position = texture(positionmap, rotVec).xyz;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
+      out_position = vec3(0.0);
     }
   }
 )";
@@ -482,18 +468,17 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
 constexpr const char* FisheyeFragOffAxisDepth = R"(
   #version 330 core
 
-  in vec2 UV;
-  out vec4 diffuse;
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -502,11 +487,11 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
+      out_diffuse = texture(cubemap, rotVec);
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
+      out_diffuse = **bgColor**;
       gl_FragDepth = 1.0;
     }
   }
@@ -515,20 +500,19 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
 constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube depthmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -537,13 +521,13 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -552,20 +536,19 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
 constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform samplerCube depthmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -574,13 +557,13 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_position = texture(positionmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_position = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -589,10 +572,10 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
 constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   #version 330 core
 
-  in vec2 UV;
-  layout(location = 0) out vec4 diffuse;
-  layout(location = 1) out vec3 normal;
-  layout(location = 2) out vec3 position;
+  in vec2 tr_uv;
+  layout(location = 0) out vec4 out_diffuse;
+  layout(location = 1) out vec3 out_normal;
+  layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
@@ -600,11 +583,10 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   uniform samplerCube depthmap;
   uniform float halfFov;
   uniform vec3 offset;
-  const float angle45Factor = 0.7071067812;
 
   void main() {
-    float s = 2.0 * (UV.s - 0.5);
-    float t = 2.0 * (UV.t - 0.5);
+    float s = 2.0 * (tr_uv.s - 0.5);
+    float t = 2.0 * (tr_uv.t - 0.5);
     float r2 = s*s + t*t;
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
@@ -613,15 +595,15 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
       **rotVec**;
-      diffuse = texture(cubemap, rotVec);
-      normal = texture(normalmap, rotVec).xyz;
-      position = texture(positionmap, rotVec).xyz;
+      out_diffuse = texture(cubemap, rotVec);
+      out_normal = texture(normalmap, rotVec).xyz;
+      out_position = texture(positionmap, rotVec).xyz;
       gl_FragDepth = texture(depthmap, rotVec).x;
     }
     else {
-      diffuse = **bgColor**;
-      normal = vec3(0.0);
-      position = vec3(0.0);
+      out_diffuse = **bgColor**;
+      out_normal = vec3(0.0);
+      out_position = vec3(0.0);
       gl_FragDepth = 1.0;
     }
   }
@@ -630,7 +612,7 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
 constexpr const char* FisheyeDepthCorrectionFrag = R"(
   #version 330 core
 
-  in vec2 UV;
+  in vec2 tr_uv;
   out vec4 Color;
 
   uniform sampler2D cTex;
@@ -641,19 +623,17 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
   void main() {
     float a = far / (far - near);
     float b = far * near / (near - far);
-    float z = b / (texture(dTex, UV).x - a);
+    float z = b / (texture(dTex, tr_uv).x - a);
 
     // get angle from -45 to 45 degrees (-pi/4 to +pi/4)
-    vec2 angle = 1.57079632679 * UV - 0.5;
+    vec2 angle = 1.57079632679 * tr_uv - 0.5;
 
     float x_norm = tan(angle.x); 
     float y_norm = tan(angle.y); 
     float r = z * sqrt(x_norm * x_norm + y_norm * y_norm + 1.0); 
 
-    Color = texture(cTex, UV);
+    Color = texture(cTex, tr_uv);
     gl_FragDepth = a + b / r;
-    //No correction
-    //gl_FragDepth = texture(dTex, UV).x; 
   }
 )";
 

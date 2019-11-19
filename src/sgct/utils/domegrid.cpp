@@ -27,32 +27,7 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
         _resolution = 4;
     }
 
-    createVBO(radius, FOV);
-}
-
-DomeGrid::~DomeGrid() {
-    glDeleteBuffers(1, &_vbo);
-    glDeleteVertexArrays(1, &_vao);
-}
-
-void DomeGrid::draw() {
-    glBindVertexArray(_vao);
-
-    for (unsigned int r = 0; r < _rings; r++) {
-        glDrawArrays(GL_LINE_LOOP, r * _resolution, _resolution);
-    }
-    for (unsigned int s = 0; s < _segments; s++) {
-        glDrawArrays(
-            GL_LINE_STRIP,
-            _rings * _resolution + s * ((_resolution / 4) + 1),
-            (_resolution / 4) + 1
-        );
-    }
-
-    glBindVertexArray(0);
-}
-
-void DomeGrid::createVBO(float radius, float FOV) {
+    // Create VAO
     const unsigned int numberOfVertices = (_segments * ((_resolution / 4) + 1) +
                                            _rings * _resolution) * 6;
     std::vector<float> verts(numberOfVertices, 0.f);
@@ -107,6 +82,28 @@ void DomeGrid::createVBO(float radius, float FOV) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+DomeGrid::~DomeGrid() {
+    glDeleteVertexArrays(1, &_vao);
+    glDeleteBuffers(1, &_vbo);
+}
+
+void DomeGrid::draw() {
+    glBindVertexArray(_vao);
+
+    for (unsigned int r = 0; r < _rings; r++) {
+        glDrawArrays(GL_LINE_LOOP, r * _resolution, _resolution);
+    }
+    for (unsigned int s = 0; s < _segments; s++) {
+        glDrawArrays(
+            GL_LINE_STRIP,
+            _rings * _resolution + s * ((_resolution / 4) + 1),
+            (_resolution / 4) + 1
+        );
+    }
+
+    glBindVertexArray(0);
 }
 
 } // namespace sgct::utils

@@ -14,6 +14,7 @@ namespace {
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
     GLint flipLoc = -1;
+    GLuint texture = 0;
 
     SPOUTHANDLE receiver = nullptr;
     char senderName[256];
@@ -105,7 +106,7 @@ void drawFun() {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance()->getCurrentModelViewProjectionMatrix() *
+    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
                           scene;
 
     glActiveTexture(GL_TEXTURE0);
@@ -117,12 +118,13 @@ void drawFun() {
         spoutStatus = bindSpout();
     }
 
-    ShaderManager::instance()->bindShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    prog.bind();
 
-    //DirectX textures are flipped around the Y axis compared to OpenGL
+    // DirectX textures are flipped around the Y axis compared to OpenGL
     if (!spoutStatus) {
         glUniform1i(flipLoc, 0);
-        glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureId("box"));
+        glBindTexture(GL_TEXTURE_2D, texture);
     }
     else {
         glUniform1i(flipLoc, 1);
@@ -132,7 +134,7 @@ void drawFun() {
 
     box->draw();
 
-    ShaderManager::instance()->unBindShaderProgram();
+    prog.unbind();
 
     if (spoutStatus) {
         receiver->UnBindSharedTexture();
@@ -143,7 +145,7 @@ void drawFun() {
 }
 
 void preSyncFun() {
-    if (Engine::instance()->isMaster()) {
+    if (Engine::instance().isMaster()) {
         currentTime.setVal(Engine::getTime());
     }
 }
@@ -154,25 +156,18 @@ void initOGLFun() {
     receiver = GetSpout();
     
     // set background
-    Engine::instance()->setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
+    Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
     
-    TextureManager::instance()->setAnisotropicFilterSize(8.f);
-    TextureManager::instance()->setCompression(TextureManager::CompressionMode::S3TC_DXT);
-    TextureManager::instance()->loadTexture("box", "box.png", true);
+    texture = TextureManager::instance().loadTexture("box", "box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance()->addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader,
-        ShaderProgram::ShaderSourceType::String
-    );
-    ShaderManager::instance()->bindShaderProgram("xform");
-    const ShaderProgram& prog = ShaderManager::instance()->getShaderProgram("xform");
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    prog.bind();
 
     matrixLoc = prog.getUniformLocation("mvp");
     GLint textureLoc = prog.getUniformLocation("tex");
@@ -180,16 +175,15 @@ void initOGLFun() {
     flipLoc = prog.getUniformLocation("flip");
     glUniform1i(flipLoc, 0);
 
-    ShaderManager::instance()->unBindShaderProgram();
-    Engine::checkForOGLErrors();
+    prog.unbind();
 }
 
 void encodeFun() {
-    SharedData::instance()->writeDouble(currentTime);
+    SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    SharedData::instance()->readDouble(currentTime);
+    SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {
@@ -205,22 +199,25 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    gEngine = new Engine(config);
+    Engine::create(config);
 
-    Engine::instance()->setInitOGLFunction(initOGLFun);
-    Engine::instance()->setDrawFunction(drawFun);
-    Engine::instance()->setPreSyncFunction(preSyncFun);
-    Engine::instance()->setCleanUpFunction(cleanUpFun);
+    Engine::instance().setInitOGLFunction(initOGLFun);
+    Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setCleanUpFunction(cleanUpFun);
 
-    if (!Engine::instance()->init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster)) {
-        delete Engine::instance();
+    SharedData::instance().setEncodeFunction(encodeFun);
+    SharedData::instance().setDecodeFunction(decodeFun);
+
+    try {
+        Engine::instance().init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
+        Engine::instance().render();
+    }
+    catch (const std::runtime_error & e) {
+        MessageHandler::printError("%s", e.what());
+        Engine::destroy();
         return EXIT_FAILURE;
     }
-
-    SharedData::instance()->setEncodeFunction(encodeFun);
-    SharedData::instance()->setDecodeFunction(decodeFun);
-
-    gEngine->render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

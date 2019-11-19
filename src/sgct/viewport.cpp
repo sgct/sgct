@@ -55,13 +55,14 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.eye) {
         Frustum::Mode e = [](config::Viewport::Eye e) {
             switch (e) {
-                default:
                 case config::Viewport::Eye::Mono:
                     return Frustum::Mode::MonoEye;
                 case config::Viewport::Eye::StereoLeft:
                     return Frustum::Mode::StereoLeftEye;
                 case config::Viewport::Eye::StereoRight:
                     return Frustum::Mode::StereoRightEye;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*viewport.eye);
         setEye(e);
@@ -146,27 +147,28 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setCubemapResolution(*proj.quality);
     }
     if (proj.method) {
-        core::FisheyeProjection::FisheyeMethod m = [](config::FisheyeProjection::Method m)
-        {
+        FisheyeProjection::FisheyeMethod m = [](config::FisheyeProjection::Method m) {
             switch (m) {
-                default:
                 case config::FisheyeProjection::Method::FourFace:
-                    return core::FisheyeProjection::FisheyeMethod::FourFaceCube;
+                    return FisheyeProjection::FisheyeMethod::FourFaceCube;
                 case config::FisheyeProjection::Method::FiveFace:
-                    return core::FisheyeProjection::FisheyeMethod::FiveFaceCube;
+                    return FisheyeProjection::FisheyeMethod::FiveFaceCube;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*proj.method);
         fishProj->setRenderingMethod(m);
     }
     if (proj.interpolation) {
-        core::NonLinearProjection::InterpolationMode i =
+        NonLinearProjection::InterpolationMode i =
             [](config::FisheyeProjection::Interpolation i) {
                 switch (i) {
-                    default:
                     case config::FisheyeProjection::Interpolation::Linear:
                         return core::NonLinearProjection::InterpolationMode::Linear;
                     case config::FisheyeProjection::Interpolation::Cubic:
                         return core::NonLinearProjection::InterpolationMode::Cubic;
+                    default:
+                        throw std::logic_error("Unhandled case label");
                 }
             }(*proj.interpolation);
         fishProj->setInterpolationMode(i);
@@ -206,13 +208,14 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     if (p.mapping) {
         SpoutOutputProjection::Mapping m = [](config::SpoutOutputProjection::Mapping m) {
             switch (m) {
-                default:
                 case config::SpoutOutputProjection::Mapping::Fisheye:
                     return SpoutOutputProjection::Mapping::Fisheye;
                 case config::SpoutOutputProjection::Mapping::Equirectangular:
                     return SpoutOutputProjection::Mapping::Equirectangular;
                 case config::SpoutOutputProjection::Mapping::Cubemap:
                     return SpoutOutputProjection::Mapping::Cubemap;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*p.mapping);
         proj->setSpoutMapping(m);

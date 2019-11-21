@@ -241,11 +241,11 @@ Engine::Engine(const Configuration& config) {
     }
 
     glfwSetErrorCallback([](int error, const char* desc) {
-        MessageHandler::printError("GLFW error (%i): %s", error, desc);
+        throw Error(3010, "GLFW error (" + std::to_string(error) + "): " + desc);
     });
     const int res = glfwInit();
     if (res == GLFW_FALSE) {
-        _shouldTerminate = true;
+        throw Error(3000, "Failed to initialize GLFW");
     }
 
     std::fill(_statistics.frametimes.begin(), _statistics.frametimes.end(), 0.0);
@@ -377,7 +377,7 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
     }
 
     if (_shouldTerminate) {
-        throw Error(3000, "Failed to initialize GLFW");
+        return;
     }
 
     MessageHandler::printDebug("Validating cluster configuration");

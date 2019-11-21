@@ -14,12 +14,12 @@
 
 namespace sgct::core {
 
-/**
- * Helper class for creating frame buffer objects and render buffer objects.
- */
+/// Helper class for creating frame buffer objects and render buffer objects.
 class OffScreenBuffer {
 public:
     static void unbind();
+
+    ~OffScreenBuffer();
 
     void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);
@@ -45,14 +45,6 @@ public:
     void bind();
 
     /**
-     * Bind framebuffer, auto-set multisampling.
-     *
-     * \param n number of color buffers
-     * \param bufs array with color buffers (GL_COLOR_ATTACHMENTn)
-     */
-    void bind(GLsizei n, const GLenum* bufs);
-
-    /**
      * Bind framebuffer.
      *
      * \param isMultisampled is true if MSAA should be used
@@ -62,13 +54,7 @@ public:
     void bind(bool isMultisampled, GLsizei n, const GLenum* bufs);
     void bindBlit();
     void blit();
-    void destroy();
     bool isMultiSampled() const;
-
-    unsigned int getBufferID() const;
-    
-    /// \return the opengl internal texture format of the color buffer 
-    GLenum getInternalColorFormat() const;
 
 private:
     unsigned int _frameBuffer = 0;

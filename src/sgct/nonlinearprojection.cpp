@@ -31,10 +31,6 @@ NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &_textures.cubeFaceFront);
     glDeleteTextures(1, &_textures.cubeFaceBack);
 
-    if (_cubeMapFbo) {
-        _cubeMapFbo->destroy();
-    }
-
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
     _shader.deleteProgram();
@@ -114,14 +110,6 @@ void NonLinearProjection::setUser(User* user) {
 
 int NonLinearProjection::getCubemapResolution() const {
     return _cubemapResolution;
-}
-
-NonLinearProjection::InterpolationMode NonLinearProjection::getInterpolationMode() const {
-    return _interpolationMode;
-}
-
-OffScreenBuffer* NonLinearProjection::getOffScreenBuffer() {
-    return _cubeMapFbo.get();
 }
 
 glm::ivec4 NonLinearProjection::getViewportCoords() {
@@ -220,7 +208,6 @@ void NonLinearProjection::initVBO() {
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void NonLinearProjection::setupViewport(BaseViewport& vp) {
@@ -240,11 +227,11 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
 void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat) {
     glDeleteTextures(1, &texture);
 
-    GLint MaxMapRes;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
-    if (_cubemapResolution > MaxMapRes) {
+    GLint maxMapRes;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
+    if (_cubemapResolution > maxMapRes) {
         MessageHandler::printError(
-            "Requested map size is too big (%d > %d)", _cubemapResolution, MaxMapRes
+            "Requested map size is too big (%d > %d)", _cubemapResolution, maxMapRes
         );
     }
 
@@ -275,11 +262,11 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    GLint MaxCubeMapRes;
-    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
-    if (_cubemapResolution > MaxCubeMapRes) {
-        _cubemapResolution = MaxCubeMapRes;
-        MessageHandler::printDebug("Cubemap size set to max size: %d", MaxCubeMapRes);
+    GLint maxCubeMapRes;
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapRes);
+    if (_cubemapResolution > maxCubeMapRes) {
+        _cubemapResolution = maxCubeMapRes;
+        MessageHandler::printDebug("Cubemap size set to max size: %d", maxCubeMapRes);
     }
 
     // set up texture target

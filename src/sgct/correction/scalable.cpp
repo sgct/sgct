@@ -11,10 +11,6 @@
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
 
-namespace {
-    constexpr const int MaxLineLength = 1024;
-} // namespace
-
 namespace sgct::core::correction {
 
 Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
@@ -22,9 +18,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
 {
     Buffer buf;
 
-    MessageHandler::printInfo(
-        "CorrectionMesh: Reading scalable mesh data from '%s'", path.c_str()
-    );
+    MessageHandler::printInfo("Reading scalable mesh data from '%s'", path.c_str());
 
     FILE* meshFile = nullptr;
     meshFile = fopen(path.c_str(), "r");
@@ -45,6 +39,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     glm::ivec2 res;
 
     while (!feof(meshFile)) {
+        constexpr const int MaxLineLength = 1024;
         char lineBuffer[MaxLineLength];
 
         if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {

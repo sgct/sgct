@@ -82,10 +82,6 @@ void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentS
     addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
 }
 
-int ShaderProgram::getUniformLocation(const std::string& name) const {
-    return glGetUniformLocation(_programId, name.c_str());
-}
-
 std::string ShaderProgram::getName() const {
     return _name;
 }
@@ -124,9 +120,9 @@ void ShaderProgram::createAndLinkProgram() {
 
 bool ShaderProgram::createProgram() {
     if (_programId > 0) {
-        // If the program is already created don't recreate it.
-        // but should only return true if it hasn't been linked yet.
-        // if it has been linked already it can't be reused
+        // If the program is already created don't recreate it. But the function should
+        // only return true if it hasn't been linked yet. If it has been already linked
+        // it can't be reused
         if (_isLinked) {
             MessageHandler::printError(
                 "Could not create shader program [%s]: Already linked", _name.c_str()
@@ -139,7 +135,6 @@ bool ShaderProgram::createProgram() {
     }
 
     _programId = glCreateProgram();
-
     if (_programId == 0) {
         MessageHandler::printError(
             "Could not create shader program [%s]: Unknown error", _name.c_str()
@@ -150,14 +145,8 @@ bool ShaderProgram::createProgram() {
     return true;
 }
 
-bool ShaderProgram::bind() const {
-    // Make sure the program is linked before it can be used
-    if (!_isLinked) {
-        return false;
-    }
-
+void ShaderProgram::bind() const {
     glUseProgram(_programId);
-    return true;
 }
 
 void ShaderProgram::unbind() {

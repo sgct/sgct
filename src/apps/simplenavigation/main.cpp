@@ -282,7 +282,7 @@ void initOGLFun() {
     );
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("gridShader");
     prog.bind();
-    grid.matrixLocation = prog.getUniformLocation("mvp");
+    grid.matrixLocation = glGetUniformLocation(prog.getId(), "mvp");
     prog.unbind();
 
     ShaderManager::instance().addShaderProgram(
@@ -293,8 +293,8 @@ void initOGLFun() {
     const ShaderProgram& pyramidProg =
         ShaderManager::instance().getShaderProgram("pyramidShader");
     pyramidProg.bind();
-    pyramid.matrixLocation = pyramidProg.getUniformLocation("mvp");
-    alphaLocation = pyramidProg.getUniformLocation("alpha");
+    pyramid.matrixLocation = glGetUniformLocation(pyramidProg.getId(), "mvp");
+    alphaLocation = glGetUniformLocation(pyramidProg.getId(), "alpha");
     pyramidProg.unbind();
 }
 

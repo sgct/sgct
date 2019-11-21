@@ -120,8 +120,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _shader.addShaderSource(StatsVertShader, StatsFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();
-    _mvpLoc = _shader.getUniformLocation("mvp");
-    _colorLoc = _shader.getUniformLocation("col");
+    _mvpLoc = glGetUniformLocation(_shader.getId(), "mvp");
+    _colorLoc = glGetUniformLocation(_shader.getId(), "col");
     _shader.unbind();
 
     _vertexBuffer = std::make_unique<Vertices>();

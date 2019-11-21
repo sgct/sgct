@@ -15,15 +15,13 @@
 namespace sgct {
 
 /**
- * Helper class for handling compiling, linking and using shader programs. Current
- * implementation only supports vertex and fragment shader. Uniform and attribute handling
- * must be managed explicitly but it is possible to poll the Shader program for uniform
- * and attribute locations.
+ * Class for handling compiling, linking and using shader programs. Uniform and attribute
+ * handling must be managed explicitly.
 */
 class ShaderProgram {
 public:
     /**
-     * Default only sets the program name.Shaders objects won't be created until any
+     * Default only sets the program name. Shaders objects won't be created until any
      * shader source code is set. The program will be created when the createAndLink()
      * function is called. Make sure the shader sources are set before calling it.
      *
@@ -42,9 +40,6 @@ public:
 
     ShaderProgram& operator=(ShaderProgram&&) noexcept;
 
-    // ShaderProgram& operator=(ShaderProgram&&) = default;
-    // ShaderProgram& operator=(const ShaderProgram&) = delete;
-
     /// Will detach all attached shaders, delete them and then delete the program
     void deleteProgram();
 
@@ -60,8 +55,7 @@ public:
     void addShaderSource(std::string src, GLenum type);
 
     /**
-     * Creates and adds a vertex and a fragment shader and adds them to this shader
-     * program.
+     * Creates and adds a vertex and fragment shader and adds them to the shader program.
      * 
      * \param vertexSrc Source text for the vertex program
      * \param fragmentSrc Source text for the fragment program
@@ -79,19 +73,10 @@ public:
     void createAndLinkProgram();
     
     /// Use the shader program in the current rendering pipeline
-    bool bind() const;
+    void bind() const;
 
     /// Unset the shader program in the current rendering pipeline
     static void unbind();
-
-    /**
-     * Get the location of the attribute, no explicit error checks are performed. Users
-     * are responsible of checking the return value of the attribute location.
-     *
-     * \param name Name of the uniform
-     * \return Uniform location within the program, -1 if not an active uniform
-     */
-    int getUniformLocation(const std::string& name) const;
 
     /// Get the name of the program
     std::string getName() const;
@@ -103,11 +88,7 @@ public:
     int getId() const;
 
 private:
-    /**
-     * Will create the program.
-     *
-     * \return Whether the program was properly created or not
-     */
+    /// Will create and the program and return whether it was properly created or not
     bool createProgram();
     
     std::string _name = "SGCT_NULL"; /// Name of the program, has to be unique

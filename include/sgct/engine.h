@@ -101,6 +101,8 @@ public:
     struct Statistics {
         static inline const int HistoryLength = 512;
 
+        Statistics();
+
         std::array<double, HistoryLength> frametimes;
         std::array<double, HistoryLength> drawTimes;
         std::array<double, HistoryLength> syncTimes;

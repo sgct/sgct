@@ -51,6 +51,19 @@ namespace {
 
     constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
+    std::string getTypeStr(sgct::core::Network::ConnectionType ct) {
+        switch (ct) {
+            case sgct::core::Network::ConnectionType::SyncConnection:
+                return "sync";
+            case sgct::core::Network::ConnectionType::ExternalConnection:
+                return "external ASCII control";
+            case sgct::core::Network::ConnectionType::DataTransfer:
+                return "data transfer";
+            default:
+                throw std::logic_error("Unhandled case label");
+        }
+    }
+
     int32_t parseInt32(const char* str) {
         return *(reinterpret_cast<const int32_t*>(str));
     }
@@ -85,6 +98,7 @@ namespace sgct::core {
 Network::Network()
     : _socket(INVALID_SOCKET)
     , _listenSocket(INVALID_SOCKET)
+    , _headerId(0)
 {
     static int id = 0;
     _id = id;
@@ -167,7 +181,7 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
         while (!_shouldTerminate) {
             MessageHandler::printInfo(
                 "Attempting to connect to server (id: %d, ip: %s, type: %s)",
-                _id, getAddress().c_str(), getTypeStr(getType()).c_str()
+                _id, _address.c_str(), getTypeStr(getType()).c_str()
             );
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -196,7 +210,7 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
 
 void Network::connectionHandler() {
     if (_isServer) {
-        while (!isTerminated()) {
+        while (!_shouldTerminate) {
             if (!_isConnected) {
                 // first time the thread is NULL so the wait will not run
                 if (_commThread) {
@@ -211,7 +225,7 @@ void Network::connectionHandler() {
             }
 
             // wait for signal until next iteration in loop
-            if (!isTerminated()) {
+            if (!_shouldTerminate) {
                 std::unique_lock lk(_connectionMutex);
                 _startConnectionCond.wait(lk);
             }
@@ -229,20 +243,8 @@ int Network::getPort() const {
     return _port;
 }
 
-const std::string& Network::getAddress() const {
-    return _address;
-}
-
-std::string Network::getTypeStr(ConnectionType ct) {
-    switch (ct) {
-        case ConnectionType::SyncConnection:
-        default:
-            return "sync";
-        case ConnectionType::ExternalConnection:
-            return "external ASCII control";
-        case ConnectionType::DataTransfer:
-            return "data transfer";
-    }
+std::condition_variable& Network::getStartConnectionConditionVar() {
+    return _startConnectionCond;
 }
 
 void Network::setOptions(SGCT_SOCKET* socketPtr) {
@@ -251,24 +253,19 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
     }
     int flag = 1;
 
-    if (!(getType() == ConnectionType::DataTransfer && _useNaglesAlgorithmInTransfer)) {
-        // intset no delay, disable nagle's algorithm
-        int iResult = setsockopt(
-            *socketPtr,    // socket affected
-            IPPROTO_TCP,   // set option at TCP level
-            TCP_NODELAY,   // name of option
-            reinterpret_cast<char*>(&flag), // the cast is historical cruft
-            sizeof(int)    // length of option value
-        );
+    // insert no delay, disable nagle's algorithm
+    const int delayRes = setsockopt(
+        *socketPtr,    // socket affected
+        IPPROTO_TCP,   // set option at TCP level
+        TCP_NODELAY,   // name of option
+        reinterpret_cast<char*>(&flag), // the cast is historical cruft
+        sizeof(int)    // length of option value
+    );
 
-        if (iResult != NO_ERROR) {
-            MessageHandler::printError(
-                "Failed to set network no-delay option with error: %d", SGCT_ERRNO
-            );
-        }
-    }
-    else {
-        MessageHandler::printInfo("Enabling Nagle's Algorithm for connection %d", _id);
+    if (delayRes != NO_ERROR) {
+        MessageHandler::printError(
+            "Failed to set network no-delay option with error: %d", SGCT_ERRNO
+        );
     }
 
     // set timeout
@@ -458,10 +455,6 @@ void Network::pushClientMessage() {
     }
 }
 
-void Network::enableNaglesAlgorithmInDataTransfer() {
-    _useNaglesAlgorithmInTransfer = true;
-}
-
 int Network::getSendFrameCurrent() const {
     return _currentSendFrame;
 }
@@ -543,10 +536,6 @@ int Network::getId() const {
 
 bool Network::isServer() const {
     return _isServer;
-}
-
-bool Network::isTerminated() const {
-    return _shouldTerminate;
 }
 
 void Network::setRecvFrame(int i) {
@@ -701,7 +690,7 @@ int Network::readExternalMessage() {
 
 void Network::communicationHandler() {
     // exit if terminating
-    if (isTerminated()) {
+    if (_shouldTerminate) {
         return;
     }
 
@@ -715,9 +704,9 @@ void Network::communicationHandler() {
 
         int accErr = SGCT_ERRNO;
 #ifdef WIN32
-        while (!isTerminated() && _socket == INVALID_SOCKET && accErr == WSAEINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && accErr == WSAEINTR)
 #else
-        while ( !isTerminated() && _socket == INVALID_SOCKET && accErr == EINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && accErr == EINTR)
 #endif
         {
             MessageHandler::printInfo(

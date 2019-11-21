@@ -29,9 +29,7 @@ public:
      * \param sourceString String with shader source code
      */
     Shader(GLenum shaderType, const std::string& sourceString);
-    // Shader(Shader&& rhs);
-    // Shader& operator=(Shader&&) noexcept;
-    // 
+
     Shader(const Shader& rhs);
     Shader(Shader&& rhs) noexcept;
 
@@ -42,9 +40,8 @@ public:
     ~Shader();
 
     /**
-     * Get the id for this shader used for linking against programs. The shader source
-     * must be set before the id can be used. The shader won't be created until it has a
-     * source.
+     * Gets the id for this shader. The shader source must be set before the id can be
+     * used. The shader won't be created until it has a source.
      *
      * \return Shader id that can be used for program linking
      */
@@ -52,7 +49,7 @@ public:
 
 private:
     GLenum _shaderType; // The shader type
-    int _shaderId = 0;      // The shader _id used for reference
+    int _shaderId = 0;  // The shader _id used for reference
 };
 
 } // namespace sgct::core

@@ -136,8 +136,7 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
 
-    GLint textureLoc = prog.getUniformLocation("tex");
-    glUniform1i(textureLoc, 0);
+    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
 
     prog.unbind();
 }

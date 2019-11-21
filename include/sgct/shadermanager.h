@@ -15,10 +15,7 @@
 
 namespace sgct {
 
-/**
- * For managing shader programs. Implemented as a singleton
- * The current implementation of shader programs only support vertex and fragment shaders.
- */
+/// For managing shader programs. Implemented as a singleton
 class ShaderManager {
 public:
     static ShaderManager& instance();
@@ -28,10 +25,10 @@ public:
     ~ShaderManager();
 
     /**
-     * Add a shader program to the manager. The shaders will be compiled and linked to the
-     * program. The name of the shader needs to be unique or it won't be added. Both
-     * vertex shader and fragment shader source need to be provided, either as a link to a
-     * shader source code file or as shader source code.
+     * Adds shader programs to the manager. The shaders will be compiled and linked to the
+     * program. The name of the shader needs to be unique or it won't be added and an
+     * exception is thrown. Both vertex shader and fragment shader source need to be
+     * provided, either as a link to a shader source code file or as shader source code.
      *
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
@@ -54,7 +51,7 @@ public:
     /**
      * Check if a shader program exists in the manager.
      *
-     * \param name Name of the shader program.
+     * \param name Name of the shader program
      */
     bool shaderProgramExists(const std::string& name) const;
     

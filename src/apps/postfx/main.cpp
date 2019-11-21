@@ -32,6 +32,9 @@ namespace {
 
     std::string loadFile(const std::string& filename) {
         std::ifstream vertexFile(filename);
+        if (!vertexFile.good()) {
+            sgct::MessageHandler::printError("Could not open file %s", filename.c_str());
+        }
         std::string vertexString(
             (std::istreambuf_iterator<char>(vertexFile)),
             std::istreambuf_iterator<char>()
@@ -52,8 +55,8 @@ void setupPostFXs() {
         );
         const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass1 = sp.getUniformLocation("tex");
-        originalTextureLocation = sp.getUniformLocation("texOrig");
+        postFXTextureLocation.pass1 = glGetUniformLocation(sp.getId(), "tex");
+        originalTextureLocation = glGetUniformLocation(sp.getId(), "texOrig");
         sp.unbind();
         Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
@@ -73,8 +76,8 @@ void setupPostFXs() {
         );
         const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass2 = sp.getUniformLocation("tex");
-        sizeLocation.pass2 = sp.getUniformLocation("size");
+        postFXTextureLocation.pass2 = glGetUniformLocation(sp.getId(), "tex");
+        sizeLocation.pass2 = glGetUniformLocation(sp.getId(), "size");
         sp.unbind();
         Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
@@ -94,8 +97,8 @@ void setupPostFXs() {
         );
         const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass3 = sp.getUniformLocation("tex");
-        sizeLocation.pass3 = sp.getUniformLocation("size");
+        postFXTextureLocation.pass3 = glGetUniformLocation(sp.getId(), "tex");
+        sizeLocation.pass3 = glGetUniformLocation(sp.getId(), "size");
         sp.unbind();
         Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
@@ -114,8 +117,8 @@ void setupPostFXs() {
         );
         const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
-        postFXTextureLocation.pass4 = sp.getUniformLocation("tex");
-        originalTextureLocation = sp.getUniformLocation("texOrig");
+        postFXTextureLocation.pass4 = glGetUniformLocation(sp.getId(), "tex");
+        originalTextureLocation = glGetUniformLocation(sp.getId(), "texOrig");
         sp.unbind();
         Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
     }
@@ -176,8 +179,8 @@ void initOGLFun() {
     );
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
-    matrixLoc = prog.getUniformLocation("mvp");
-    glUniform1i(prog.getUniformLocation("tex"), 0);
+    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
     prog.unbind();
 
     setupPostFXs();

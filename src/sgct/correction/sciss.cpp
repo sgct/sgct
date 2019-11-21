@@ -58,7 +58,6 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         throw Error(2050, "Failed to open " + path);
     }
 
-
     char fileID[3];
     const size_t retHeader = fread(fileID, sizeof(char), 3, file);
 
@@ -76,7 +75,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         throw Error(2052, "Error parsing file version from file");
     }
 
-    MessageHandler::printDebug("CorrectionMesh: file version %u", fileVersion);
+    MessageHandler::printDebug("SCISS file version %u", fileVersion);
 
     // read mapping type
     unsigned int type;
@@ -87,13 +86,12 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     }
 
     MessageHandler::printDebug(
-        "Mapping type = %s (%u)", type == 0 ? "planar" : "cube", type
+        "Mapping type: %s (%u)", type == 0 ? "planar" : "cube", type
     );
 
     // read viewdata
     SCISSViewData viewData;
     const size_t retData = fread(&viewData, sizeof(SCISSViewData), 1, file);
-    double yaw, pitch, roll;
     if (retData != 1) {
         fclose(file);
         throw Error(2054, "Error parsing view data from file");
@@ -107,9 +105,9 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     // Switching the Euler angles to switch from a right-handed coordinate system to
     // a left-handed one
     glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
-    yaw = -angles.x;
-    pitch = angles.y;
-    roll = -angles.z;
+    double yaw = -angles.x;
+    double pitch = angles.y;
+    double roll = -angles.z;
         
     MessageHandler::printDebug(
         "Rotation quat = [%f %f %f %f]. yaw = %lf, pitch = %lf, roll = %lf",
@@ -127,18 +125,18 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     const size_t retSize = fread(size, sizeof(unsigned int), 2, file);
     if (retSize != 2) {
         fclose(file);
-        throw std::runtime_error("Error parsing file");
+        throw Error(2055, "Error parsing file");
     }
 
     unsigned int nVertices = 0;
     if (fileVersion == 2) {
         nVertices = size[1];
-        MessageHandler::printDebug("Number of vertices = %u", nVertices);
+        MessageHandler::printDebug("Number of vertices: %u", nVertices);
     }
     else {
         nVertices = size[0] * size[1];
         MessageHandler::printDebug(
-            "Number of vertices = %u (%ux%u)", nVertices, size[0], size[1]
+            "Number of vertices: %u (%ux%u)", nVertices, size[0], size[1]
         );
     }
     // read vertices
@@ -151,18 +149,17 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
     );
     if (retVertices != nVertices) {
         fclose(file);
-        throw Error(2055, "Error parsing vertices from file");
+        throw Error(2056, "Error parsing vertices from file");
     }
 
     // read number of indices
     unsigned int nIndices = 0;
     const size_t retIndices = fread(&nIndices, sizeof(unsigned int), 1, file);
-
     if (retIndices != 1) {
         fclose(file);
-        throw Error(2056, "Error parsing indices from file");
+        throw Error(2057, "Error parsing indices from file");
     }
-    MessageHandler::printDebug("Number of indices = %u", nIndices);
+    MessageHandler::printDebug("Number of indices: %u", nIndices);
 
     // read faces
     if (nIndices > 0) {
@@ -170,14 +167,13 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
         const size_t r = fread(buf.indices.data(), sizeof(unsigned int), nIndices, file);
         if (r != nIndices) {
             fclose(file);
-            throw Error(2057, "Error parsing faces from file");
+            throw Error(2058, "Error parsing faces from file");
         }
     }
 
     fclose(file);
 
     parent.getUser().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
-
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,

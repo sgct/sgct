@@ -168,18 +168,22 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
     _viewPlane.upperRight.y = dist * tan(glm::radians(up));
     _viewPlane.upperRight.z = -dist;
 
-    _projectionPlane.setCoordinateLowerLeft(_rotation * _viewPlane.lowerLeft);
-    _projectionPlane.setCoordinateUpperLeft(_rotation * _viewPlane.upperLeft);
-    _projectionPlane.setCoordinateUpperRight(_rotation * _viewPlane.upperRight);
+    _projectionPlane.setCoordinates(
+        _rotation * _viewPlane.lowerLeft,
+        _rotation * _viewPlane.upperLeft,
+        _rotation * _viewPlane.upperRight
+    );
 }
 
 void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
     _viewPlane.lowerLeft.x *= newRatio / oldRatio;
     _viewPlane.upperLeft.x *= newRatio / oldRatio;
     _viewPlane.upperRight.x *= newRatio / oldRatio;
-    _projectionPlane.setCoordinateLowerLeft(_rotation * _viewPlane.lowerLeft);
-    _projectionPlane.setCoordinateUpperLeft(_rotation * _viewPlane.upperLeft);
-    _projectionPlane.setCoordinateUpperRight(_rotation * _viewPlane.upperRight);
+    _projectionPlane.setCoordinates(
+        _rotation * _viewPlane.lowerLeft,
+        _rotation * _viewPlane.upperLeft,
+        _rotation * _viewPlane.upperRight
+    );
 }
 
 float BaseViewport::getHorizontalFieldOfViewDegrees() const {

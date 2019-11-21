@@ -18,18 +18,15 @@
 #include <thread>
 #include <vector>
 
-#if defined(WIN32)
-    #define _WIN_PLATFORM
+#ifdef WIN32
     using SGCT_SOCKET = size_t;
-#else //linux & OS X
+#else // linux & OS X
     using SGCT_SOCKET = int;
 #endif
 
 namespace sgct::core {
 
-/**
- * Network manages peer-to-peer tcp connections.
- */
+/// Network manages peer-to-peer tcp connections.
 class Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
@@ -40,11 +37,7 @@ public:
     static constexpr const char DisconnectId = 19;
     static constexpr const char CompressedDataId = 21;
 
-    enum class ConnectionType {
-        SyncConnection = 0,
-        ExternalConnection,
-        DataTransfer
-    };
+    enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 
     static const size_t HeaderSize = 13;
 
@@ -59,8 +52,7 @@ public:
      * \param isServer indicates if this connection is a server or client
      * \param id is a unique id of this connection
      * \param connectionType is the type of connection
-     * \param firmSync if set to true then firm framesync will be used for the whole
-                       cluster
+     * \param firmSync if set to true then firm framesync will be used for the cluster
      */
     void init(int port, std::string address, bool isServer, ConnectionType serverType);
     void closeNetwork(bool forced);
@@ -82,7 +74,6 @@ public:
     bool isServer() const;
     bool isConnected() const;
 
-    bool isTerminated() const;
     int getSendFrameCurrent() const;
     int getSendFramePrevious() const;
     int getRecvFrameCurrent() const;
@@ -92,17 +83,14 @@ public:
     double getLoopTime() const;
 
     /**
-     * This function compares the received frame number with the sent frame number.
-     *
-     * The server starts by sending a frame sync number to the client. The client receives
-     * the sync frame number and sends it back after drawing when ready for buffer swap.
-     * When the server recieves a frame sync number equal to the send frame number it
-     * swaps buffers.
+     * This function compares the received frame number with the sent frame number. The
+     * server starts by sending a frame sync number to the client. The client receives the
+     * sync frame number and sends it back after drawing when ready for buffer swap. When
+     * the server gets a frame sync number equal to the sent number it swaps buffers.
      *
      * \return true if updates has been received
      */
     bool isUpdated() const;
-    void setRecvFrame(int i);
     void sendData(const void* data, int length);
 
     /// \return last error code 
@@ -114,26 +102,14 @@ public:
 
     /// The client sends ack message to server + console messages
     void pushClientMessage();
-    void enableNaglesAlgorithmInDataTransfer();
 
     /// \return the port of this connection
     int getPort() const;
 
-    /// \return the address of this connection
-    const std::string& getAddress() const;
-
-    /// \return the connection type as string
-    static std::string getTypeStr(ConnectionType ct);
-
-    std::function<void(const char*, int, int)> decoderCallback;
-    std::function<void(void*, int, int, int)> _packageDecoderCallback;
-    std::function<void(Network*)> _updateCallback;
-    std::function<void(void)> _connectedCallback;
-    std::function<void(int, int)> _acknowledgeCallback;
-
-    std::condition_variable _startConnectionCond;
+    std::condition_variable& getStartConnectionConditionVar();
 
 private:
+    void setRecvFrame(int i);
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
     int readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
         uint32_t& uncompressedDataSize);
@@ -175,7 +151,13 @@ private:
     std::vector<char> _uncompressBuffer;
     char _headerId;
 
-    bool _useNaglesAlgorithmInTransfer = false;
+    std::condition_variable _startConnectionCond;
+
+    std::function<void(const char*, int, int)> decoderCallback;
+    std::function<void(void*, int, int, int)> _packageDecoderCallback;
+    std::function<void(Network*)> _updateCallback;
+    std::function<void(void)> _connectedCallback;
+    std::function<void(int, int)> _acknowledgeCallback;
 };
 
 } // namespace sgct::core

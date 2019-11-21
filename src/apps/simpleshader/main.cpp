@@ -64,8 +64,8 @@ void initFun() {
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
-    matrixLoc = prog.getUniformLocation("mvp");
-    timeLoc = prog.getUniformLocation("currTime");
+    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
+    timeLoc = glGetUniformLocation(prog.getId(), "currTime");
     prog.unbind();
 }
 

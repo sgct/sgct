@@ -78,7 +78,7 @@ void initFun() {
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("xform");
     prg.bind();
-    matrixLoc = prg.getUniformLocation("mvp");
+    matrixLoc = glGetUniformLocation(prg.getId(), "mvp");
     prg.unbind(); 
 }
 

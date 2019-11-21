@@ -14,41 +14,39 @@
 
 namespace {
     void setDrawBuffers() {
+        GLenum b1[] = { GL_COLOR_ATTACHMENT0 };
+        GLenum b2[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+        GLenum b3[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
+        GLenum b4[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         switch (sgct::Settings::instance().getDrawBufferType()) {
             case sgct::Settings::DrawBufferType::Diffuse:
-            default:
-            {
-                GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-                glDrawBuffers(1, buffers);
+                glDrawBuffers(1, b1);
                 break;
-            }
             case sgct::Settings::DrawBufferType::DiffuseNormal:
-            {
-                GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-                glDrawBuffers(2, buffers);
+                glDrawBuffers(2, b2);
                 break;
-            }
             case sgct::Settings::DrawBufferType::DiffusePosition:
-            {
-                GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
-                glDrawBuffers(2, buffers);
+                glDrawBuffers(2, b3);
                 break;
-            }
             case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
-            {
-                GLenum buffers[] = {
-                    GL_COLOR_ATTACHMENT0,
-                    GL_COLOR_ATTACHMENT1,
-                    GL_COLOR_ATTACHMENT2
-                };
-                glDrawBuffers(3, buffers);
+                glDrawBuffers(3, b4);
                 break;
-            }
+            default:
+                throw std::logic_error("Unhandled case label");
         }
     }
 } // namespace
 
 namespace sgct::core {
+
+OffScreenBuffer::~OffScreenBuffer() {
+    glDeleteFramebuffers(1, &_frameBuffer);
+    glDeleteRenderbuffers(1, &_depthBuffer);
+    glDeleteFramebuffers(1, &_multiSampledFrameBuffer);
+    glDeleteRenderbuffers(1, &_colorBuffer);
+    glDeleteRenderbuffers(1, &_normalBuffer);
+    glDeleteRenderbuffers(1, &_positionBuffer);
+}
 
 void OffScreenBuffer::createFBO(int width, int height, int samples) {
     // @TODO (abock, 2019-11-15)  When calling this function initially with checking
@@ -226,10 +224,6 @@ void OffScreenBuffer::bind() {
     setDrawBuffers();
 }
 
-void OffScreenBuffer::bind(GLsizei n, const GLenum* bufs) {
-    bind(_isMultiSampled, n, bufs);
-}
-
 void OffScreenBuffer::bind(bool isMultisampled, GLsizei n, const GLenum* bufs) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -296,30 +290,8 @@ void OffScreenBuffer::blit() {
     }
 }
 
-void OffScreenBuffer::destroy() {
-    glDeleteFramebuffers(1, &_frameBuffer);
-    _frameBuffer = 0;
-    glDeleteRenderbuffers(1, &_depthBuffer);
-    _depthBuffer = 0;
-
-    if (_isMultiSampled) {
-        glDeleteFramebuffers(1, &_multiSampledFrameBuffer);
-        _multiSampledFrameBuffer = 0;
-        glDeleteRenderbuffers(1, &_colorBuffer);
-        _colorBuffer = 0;
-        glDeleteRenderbuffers(1, &_normalBuffer);
-        _normalBuffer = 0;
-        glDeleteRenderbuffers(1, &_positionBuffer);
-        _positionBuffer = 0;
-    }
-}
-
 bool OffScreenBuffer::isMultiSampled() const {
     return _isMultiSampled;
-}
-
-unsigned int OffScreenBuffer::getBufferID() const {
-    return _isMultiSampled ? _multiSampledFrameBuffer : _frameBuffer;
 }
 
 void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) {
@@ -327,7 +299,7 @@ void OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment) 
 }
 
 void OffScreenBuffer::attachDepthTexture(unsigned int texId) {
-    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0);
 }
 
 void OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face,
@@ -350,10 +322,6 @@ void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int
         texId,
         0
     );
-}
-
-GLenum OffScreenBuffer::getInternalColorFormat() const {
-    return _internalColorFormat;
 }
 
 } // namespace sgct::core

@@ -16,10 +16,6 @@
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
-namespace {
-    constexpr const int MaxLineLength = 1024;
-} // namespace
-
 namespace sgct::core::correction {
 
 Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
@@ -51,6 +47,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     unsigned int counter = 0;
 
     while (!feof(meshFile)) {
+        constexpr const int MaxLineLength = 1024;
         char lineBuffer[MaxLineLength];
         char* res = fgets(lineBuffer, MaxLineLength, meshFile);
         if (res == nullptr) {

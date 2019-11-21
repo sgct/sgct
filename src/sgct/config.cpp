@@ -263,12 +263,8 @@ void validateNode(const Node& n) {
         throw Error(1111, "Node port must be non-negative");
     }
 
-    if (n.name && n.name->empty()) {
-        throw Error(1112, "Node name must not be empty");
-    }
-
     if (n.dataTransferPort && *n.dataTransferPort <= 0) {
-        throw Error(1113, "Node data transfer port must be non-negative");
+        throw Error(1112, "Node data transfer port must be non-negative");
     }
 
     std::for_each(n.windows.begin(), n.windows.end(), validateWindow);

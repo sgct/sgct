@@ -212,9 +212,8 @@ void initGL() {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
     prog.bind();
-    matrixLocation = prog.getUniformLocation("matrix");
-
-    glUniform1f(prog.getUniformLocation("radius"), radius);
+    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
+    glUniform1f(glGetUniformLocation(prog.getId(), "radius"), radius);
 
     prog.unbind();
 }

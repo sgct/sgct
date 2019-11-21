@@ -17,9 +17,7 @@ namespace sgct {
 
 class Window;
 
-/**
- * Class that holds a post effect pass
- */
+/// Class that holds a post effect pass
 class PostFX {
 public:
     /// \return true if shader and output/target texture created successfully
@@ -44,18 +42,12 @@ public:
     /// \return the shader pointer
     const ShaderProgram& getShaderProgram() const;
     
-    /// \return name of this post effect pass
-    const std::string& getName() const;
-
 private:
     std::function<void()> _updateFunction;
 
     ShaderProgram _shaderProgram;
     unsigned int _inputTexture = 0;
     unsigned int _outputTexture = 0;
-
-    glm::ivec2 _size = glm::ivec2(1, 1);
-    std::string _name;
 };
 
 } // namespace sgct

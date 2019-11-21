@@ -63,11 +63,15 @@ Shader::Shader(GLenum shaderType, const std::string& sourceString)
     checkCompilationStatus(_shaderType, _shaderId);
 }
 
-Shader::Shader(const Shader& rhs) {
-    _shaderId = rhs._shaderId;
-}
-Shader::Shader(Shader&& rhs) noexcept {
-    _shaderId = rhs._shaderId;
+Shader::Shader(const Shader& rhs)
+    : _shaderId(rhs._shaderId)
+    , _shaderType(rhs._shaderType)
+{}
+
+Shader::Shader(Shader&& rhs) noexcept 
+    : _shaderId(rhs._shaderId)
+    , _shaderType(rhs._shaderType)
+{
     rhs._shaderId = 0;
 }
 

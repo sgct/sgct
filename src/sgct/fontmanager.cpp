@@ -18,6 +18,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 #include <Windows.h>
 #endif // WIN32
 
@@ -194,10 +196,10 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         _shader.createAndLinkProgram();
         _shader.bind();
 
-        _mvpLocation = _shader.getUniformLocation("mvp");
-        _colorLocation = _shader.getUniformLocation("col");
-        _strokeLocation = _shader.getUniformLocation("strokeCol");
-        _textureLocation = _shader.getUniformLocation("tex");
+        _mvpLocation = glGetUniformLocation(_shader.getId(), "mvp");
+        _colorLocation = glGetUniformLocation(_shader.getId(), "col");
+        _strokeLocation = glGetUniformLocation(_shader.getId(), "strokeCol");
+        _textureLocation = glGetUniformLocation(_shader.getId(), "tex");
         ShaderProgram::unbind();
 
         isShaderCreated = true;

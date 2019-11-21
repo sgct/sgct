@@ -21,9 +21,7 @@ namespace config {
     struct Settings;
 } // namespace config
 
-/**
- * This singleton class will hold global SGCT settings.
- */
+/// This singleton class will hold global SGCT settings.
 class Settings {
 public:
     enum class CapturePath { Mono, LeftStereo, RightStereo };
@@ -46,15 +44,15 @@ public:
     /**
      * Set swap interval for all windows
      *   -1 = adaptive sync (Nvidia)
-     *    0  = vertical sync off
-     *    1  = wait for vertical sync
-     *    2  = fix when using swapgroups in xp and running half the framerate
+     *    0 = vertical sync off
+     *    1 = wait for vertical sync
+     *    2 = fix when using swapgroups in xp and running half the framerate
      */
     void setSwapInterval(int val);
 
     /**
-     * Set the refreshrate hint of the window in fullscreen mode.
-     * If it's not listed in your monitor's video-mode list than it will not be used.
+     * Set the refreshrate hint of the window in fullscreen mode. If it's not listed in
+     * your monitor's video-mode list than it will not be used.
      *
      * \param freq the refresh frequency/rate
      */
@@ -71,8 +69,7 @@ public:
 
     /**
      * Set the float precision of the float buffers (normal and position buffer).
-     * \param bfp is the float precition that will be used in next buffer resize or
-     *        creation
+     * \param bfp is the float precition that will be used in next resize or creation
      */
     void setBufferFloatPrecision(BufferFloatPrecision bfp);
 
@@ -87,9 +84,7 @@ public:
      */
     void setCapturePath(std::string path, CapturePath cpi = CapturePath::Mono);
 
-    /**
-     * Set the screenshot capture format.
-     */
+    /// Set the screenshot capture format.
     void setCaptureFormat(CaptureFormat format);
 
     /**
@@ -145,7 +140,7 @@ public:
     void setTryKeepAspectRatio(bool state);
     
     /**
-     * Get the capture/screenshot path
+     * Get the capture/screenshot path.
      *
      * \param cpi index to which path to get (Mono = default, Left or Right)
      */
@@ -154,9 +149,9 @@ public:
     /**
      * Get swap interval for all windows
      *   -1 = adaptive sync (Nvidia)
-     *    0  = vertical sync off
-     *    1  = wait for vertical sync
-     *    2  = fix when using swapgroups in xp and running half the framerate
+     *    0 = vertical sync off
+     *    1 = wait for vertical sync
+     *    2 = fix when using swapgroups in xp and running half the framerate
      */
     int getSwapInterval() const;
 

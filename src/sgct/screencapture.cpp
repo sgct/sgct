@@ -38,7 +38,7 @@ namespace {
         }
     }
 
-    [[nodiscard]] GLenum getDownloadFormat(int nChannels) {
+    GLenum getDownloadFormat(int nChannels) {
         switch (nChannels) {
             default: return GL_BGRA;
             case 1: return GL_RED;
@@ -115,16 +115,12 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
     _format = cf;
 }
 
-ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
-    return _format;
-}
-
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    addFrameNumberToFilename(Engine::instance().getScreenShotNumber());
+    std::string file = addFrameNumberToFilename(Engine::instance().getScreenShotNumber());
     checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
-    Image* imPtr = prepareImage(threadIndex);
+    Image* imPtr = prepareImage(threadIndex, std::move(file));
     if (!imPtr) {
         return;
     }
@@ -149,7 +145,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
     );
     if (ptr) {
-        memcpy(imPtr->getData(), ptr, _dataSize);
+        std::memcpy(imPtr->getData(), ptr, _dataSize);
 
         if (_captureCallback) {
             _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
@@ -191,13 +187,13 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     MessageHandler::printDebug("Number of screencapture threads is set to %d", _nThreads);
 }
 
-void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
+std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
-            default:
             case CaptureFormat::PNG: return "png";
             case CaptureFormat::TGA: return "tga";
             case CaptureFormat::JPEG: return "jpg";
+            default: throw std::logic_error("Unhandled case label");
         }
     }(_format);
 
@@ -209,7 +205,6 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         using CapturePath = Settings::CapturePath;
         switch (_eyeIndex) {
             case EyeIndex::Mono:
-            default:
                 filename = Settings::instance().getCapturePath(CapturePath::Mono);
                 break;
             case EyeIndex::StereoLeft:
@@ -220,6 +215,8 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 eye = "_R";
                 filename = Settings::instance().getCapturePath(CapturePath::RightStereo);
                 break;
+            default:
+                throw std::logic_error("Unhandled case label");
         }
         Window& win = Engine::instance().getWindow(_windowIndex);
         
@@ -257,7 +254,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     }
 
     filename += '.' + suffix;
-    _filename = std::move(filename);
+    return filename;
 }
 
 int ScreenCapture::getAvailableCaptureThread() {
@@ -300,7 +297,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
     }
 }
 
-Image* ScreenCapture::prepareImage(int index) {
+Image* ScreenCapture::prepareImage(int index, std::string file) {
     if (index == -1) {
         MessageHandler::printError("Error finding available capture thread");
         return nullptr;
@@ -313,13 +310,13 @@ Image* ScreenCapture::prepareImage(int index) {
         _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
         _captureInfos[index].frameBufferImage->setChannels(_nChannels);
         _captureInfos[index].frameBufferImage->setSize(_resolution);
-        const bool success = _captureInfos[index].frameBufferImage->allocateOrResizeData();
-        if (!success) {
+        const bool res = _captureInfos[index].frameBufferImage->allocateOrResizeData();
+        if (!res) {
             _captureInfos[index].frameBufferImage = nullptr;
             return nullptr;
         }
     }
-    _captureInfos[index].filename = _filename;
+    _captureInfos[index].filename = std::move(file);
 
     return _captureInfos[index].frameBufferImage.get();
 }

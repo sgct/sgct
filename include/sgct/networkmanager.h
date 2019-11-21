@@ -18,9 +18,7 @@
 
 namespace sgct::core {
 
-/**
- * The network manager manages all network connections for SGCT.
- */
+/// The network manager manages all network connections for SGCT.
 class NetworkManager {
 public:
     enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
@@ -36,7 +34,6 @@ public:
     bool init();
 
     /**
-     *
      * \param if this application is server/master in cluster then set to true
      * \return min-max pair of the looping time to all connections if data was sent to the
      *         clients. If it was the acknowledge data call or no connections are
@@ -49,8 +46,6 @@ public:
      * And if send frame == recieved frame
      */
     bool isSyncComplete() const;
-    void close();
-
 
     bool matchesAddress(const std::string& address) const;
 
@@ -60,8 +55,7 @@ public:
     bool areAllNodesConnected() const;
     Network* getExternalControlConnection();
     void transferData(const void* data, int length, int packageId);
-    void transferData(const void* data, int length, int packageId, size_t nodeIndex);
-    void transferData(const void* data, int length, int packageId, Network* connection);
+    void transferData(const void* data, int length, int packageId, Network& connection);
 
     /**
      * Compression levels 1-9.
@@ -73,21 +67,16 @@ public:
     void setDataTransferCompression(bool state, int level = 1);
 
     unsigned int getActiveConnectionsCount() const;
-    unsigned int getActiveSyncConnectionsCount() const;
-    unsigned int getActiveDataTransferConnectionsCount() const;
     int getConnectionsCount() const;
     int getSyncConnectionsCount() const;
-    int getDataTransferConnectionsCount() const;
-    const Network& getConnectionByIndex(unsigned int index) const;
-    Network* getSyncConnectionByIndex(unsigned int index) const;
-    const std::vector<std::string>& getLocalAddresses() const;
+    const Network& getConnectionByIndex(int index) const;
+    Network* getSyncConnectionByIndex(int index) const;
 
 private:
     NetworkManager(NetworkMode nm);
 
     bool addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
-    void initAPI();
     void getHostInfo();
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
@@ -103,8 +92,6 @@ private:
     std::vector<Network*> _dataTransferConnections;
     Network* _externalControlConnection = nullptr;
 
-    std::string _hostName; // stores this computers hostname
-    std::vector<std::string> _dnsNames;
     std::vector<std::string> _localAddresses; // stores this computers ip addresses
 
     bool _isServer = true;

@@ -276,24 +276,18 @@ void initOGLFun() {
     }
 
     ShaderManager& sm = ShaderManager::instance();
-    sm.addShaderProgram(
-        "gridShader",
-        gridVertexShader,
-        gridFragmentShader
-    );
-    sm.getShaderProgram("gridShader").bind();
-    grid.matrixLoc = sm.getShaderProgram("gridShader").getUniformLocation("mvp");
-    sm.getShaderProgram("gridShader").unbind();
+    sm.addShaderProgram("gridShader", gridVertexShader, gridFragmentShader);
+    const ShaderProgram& gridProg = sm.getShaderProgram("gridShader");
+    gridProg.bind();
+    grid.matrixLoc = glGetUniformLocation(gridProg.getId(), "mvp");
+    gridProg.unbind();
 
-    sm.addShaderProgram(
-        "pyramidShader",
-        pyramidVertexShader,
-        pyramidFragmentShader
-    );
-    sm.getShaderProgram("pyramidShader").bind();
-    pyramid.matrixLoc = sm.getShaderProgram("pyramidShader").getUniformLocation("mvp");
-    alphaLocation = sm.getShaderProgram("pyramidShader").getUniformLocation("alpha");
-    sm.getShaderProgram("pyramidShader").unbind();
+    sm.addShaderProgram("pyramidShader", pyramidVertexShader, pyramidFragmentShader);
+    const ShaderProgram& pyramidProg = sm.getShaderProgram("pyramidShader");
+    pyramidProg.bind();
+    pyramid.matrixLoc = glGetUniformLocation(pyramidProg.getId(), "mvp");
+    alphaLocation = glGetUniformLocation(pyramidProg.getId(), "alpha");
+    pyramidProg.unbind();
 }
 
 void preSyncFun() {

@@ -92,9 +92,8 @@ void initOGLFun() {
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("xform");
     prg.bind();
-    matrixLoc = prg.getUniformLocation("mvp");
-    GLint textureLoc = prg.getUniformLocation("tex");
-    glUniform1i(textureLoc, 0);
+    matrixLoc = glGetUniformLocation(prg.getId(), "mvp");
+    glUniform1i(glGetUniformLocation(prg.getId(), "tex"), 0);
     prg.unbind();
 }
 

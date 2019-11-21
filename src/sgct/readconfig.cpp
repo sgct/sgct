@@ -8,7 +8,6 @@
 
 #include <sgct/readconfig.h>
 
-#include <sgct/config.h>
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/helpers/stringfunctions.h>
@@ -16,7 +15,6 @@
 #include <tinyxml2.h>
 #include <algorithm>
 #include <optional>
-#include <sstream>
 #include <unordered_map>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
@@ -157,21 +155,18 @@ namespace {
         if (type == "16") {
             return sgct::config::Window::ColorBitDepth::Depth16;
         }
-
         if (type == "16f") {
             return sgct::config::Window::ColorBitDepth::Depth16Float;
         }
         if (type == "32f") {
             return sgct::config::Window::ColorBitDepth::Depth32Float;
         }
-
         if (type == "16i") {
             return sgct::config::Window::ColorBitDepth::Depth16Int;
         }
         if (type == "32i") {
             return sgct::config::Window::ColorBitDepth::Depth32Int;
         }
-
         if (type == "16ui") {
             return sgct::config::Window::ColorBitDepth::Depth16UInt;
         }
@@ -205,19 +200,20 @@ namespace {
         };
 
         const auto it = Map.find(quality);
-        return (it != Map.cend()) ? it->second : -1;
+        if (it != Map.cend()) {
+            return it->second;
+        }
+        else {
+            sgct::MessageHandler::printError("Unknown resolution %s", quality.c_str());
+            return -1;
+        }
     }
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
         glm::ivec2 value;
         bool xe = e.QueryIntAttribute("x", &value[0]) == tinyxml2::XML_NO_ERROR;
         bool ye = e.QueryIntAttribute("y", &value[1]) == tinyxml2::XML_NO_ERROR;
-        if (xe && ye) {
-            return value;
-        }
-        else {
-            return std::nullopt;
-        }
+        return (xe && ye) ? std::optional(value) : std::nullopt;
     }
 
     std::optional<glm::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
@@ -612,20 +608,16 @@ namespace {
         if (const char* a = elem.Attribute("name"); a) {
             window.name = a;
         }
-
         if (const char* a = elem.Attribute("tags"); a) {
             window.tags = sgct::helpers::split(a, ',');
         }
-
         if (const char* a = elem.Attribute("bufferBitDepth"); a) {
             window.bufferBitDepth = getBufferColorBitDepth(a);
         }
-
         // compatibility with older versions
         if (elem.Attribute("fullScreen")) {
             window.isFullScreen = parseValue<bool>(elem, "fullScreen");
         }
-
         if (elem.Attribute("fullscreen")) {
             window.isFullScreen = parseValue<bool>(elem, "fullscreen");
         }
@@ -637,11 +629,8 @@ namespace {
         window.gamma = parseValue<float>(elem, "gamma");
         window.contrast = parseValue<float>(elem, "contrast");
         window.brightness = parseValue<float>(elem, "brightness");
-        window.msaa = parseValue<int>(elem, "numberOfSamples");
 
-        if (elem.Attribute("numberOfSamples")) {
-            window.msaa = parseValue<int>(elem, "numberOfSamples");
-        }
+        window.msaa = parseValue<int>(elem, "numberOfSamples");
         if (elem.Attribute("msaa")) {
             window.msaa = parseValue<int>(elem, "msaa");
         }
@@ -714,10 +703,7 @@ namespace {
             node.port = *parseValue<int>(elem, "port");
         }
         else {
-            throw std::runtime_error("Missing field port in node");
-        }
-        if (const char* a = elem.Attribute("name"); a) {
-            node.name = a;
+            throw Error(6041, "Missing field port in node");
         }
         node.dataTransferPort = parseValue<int>(elem, "dataTransferPort");
         node.swapLock = parseValue<bool>(elem, "swapLock");
@@ -850,7 +836,6 @@ namespace {
                 if (format == "jpg" || format == "JPG") {
                     return sgct::config::Capture::Format::JPG;
                 }
-
                 throw Error(6060, "Unknown capturing format");
             }(a);
         }
@@ -905,8 +890,6 @@ namespace {
     }
 
     sgct::config::Tracker parseTracker(tinyxml2::XMLElement& element) {
-        using namespace sgct::core;
-
         sgct::config::Tracker tracker;
         if (const char* a = element.Attribute("name"); a) {
             tracker.name = a;
@@ -962,11 +945,12 @@ namespace {
         }
         tinyxml2::XMLElement& root = *xmlRoot;
 
-        const char* masterAddress = root.Attribute("masterAddress");
-        if (!masterAddress) {
+        if (const char* a = root.Attribute("masterAddress"); a) {
+            cluster.masterAddress = a;
+        }
+        else {
             throw Error(6083, "Cannot find master address or DNS name in XML");
         }
-        cluster.masterAddress = masterAddress;
 
         cluster.debug = parseValue<bool>(root, "debug");
         cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");

@@ -17,16 +17,26 @@
 namespace sgct::core {
 
 void Node::applyNode(const config::Node& node) {
-    setAddress(node.address);
-    if (node.name) {
-        setName(*node.name);
-    }
-    setSyncPort(node.port);
+    // Set network address
+    std::string address = node.address;
+    std::transform(
+        address.cbegin(),
+        address.cend(),
+        address.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
+    _address = address;
+    MessageHandler::printDebug("Setting address to %s", address.c_str());
+
+    _syncPort = node.port;
+    MessageHandler::printDebug("Setting sync port to %d", _syncPort);
+
     if (node.dataTransferPort) {
-        setDataTransferPort(*node.dataTransferPort);
+        _dataTransferPort = *node.dataTransferPort;
+        MessageHandler::printDebug("Setting data transfer port to %d", _dataTransferPort);
     }
     if (node.swapLock) {
-        setUseSwapGroups(*node.swapLock);
+        _useSwapGroups = *node.swapLock;
     }
 
     for (const config::Window& window : node.windows) {
@@ -38,10 +48,6 @@ void Node::applyNode(const config::Node& node) {
 
 void Node::addWindow(Window window) {
     _windows.emplace_back(std::move(window));
-}
-
-void Node::setUseSwapGroups(bool state) {
-    _useSwapGroups = state;
 }
 
 bool Node::getKeyPressed(int key) {
@@ -87,47 +93,8 @@ bool Node::closeAllWindows() {
     return (counter == _windows.size());
 }
 
-void Node::showAllWindows() {
-    for (Window& window : _windows) {
-        window.setVisible(true);
-    }
-}
-
-void Node::hideAllWindows() {
-    for (Window& window : _windows) {
-        window.setVisible(false);
-    }
-}
-
 bool Node::isUsingSwapGroups() const {
     return _useSwapGroups;
-}
-
-void Node::setAddress(std::string address) {
-    std::transform(
-        address.cbegin(),
-        address.cend(),
-        address.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-    _address = std::move(address);
-
-    MessageHandler::printDebug("Setting address to %s", _address.c_str());
-}
-
-void Node::setSyncPort(int port) {
-    _syncPort = port;
-    MessageHandler::printDebug("Setting sync port to %d", _syncPort);
-}
-
-void Node::setDataTransferPort(int port) {
-    _dataTransferPort = port;
-
-    MessageHandler::printDebug("Setting data transfer port to %d", _dataTransferPort);
-}
-
-void Node::setName(std::string name) {
-    _name = std::move(name);
 }
 
 const std::string& Node::getAddress() const {
@@ -140,10 +107,6 @@ int Node::getSyncPort() const {
 
 int Node::getDataTransferPort() const {
     return _dataTransferPort;
-}
-
-const std::string& Node::getName() const {
-    return _name;
 }
 
 } // namespace sgct::core

@@ -19,7 +19,6 @@ PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
                const std::string& fragShaderSrc, std::function<void()> updateFunction)
     : _updateFunction(std::move(updateFunction))
     , _shaderProgram(name)
-    , _name(std::move(name))
 {
     _shaderProgram.addShaderSource(vertShaderSrc, fragShaderSrc);
     _shaderProgram.createAndLinkProgram();
@@ -34,8 +33,6 @@ PostFX::PostFX(PostFX&& rhs) noexcept {
     _shaderProgram = std::move(rhs._shaderProgram);
     _inputTexture = std::move(rhs._inputTexture);
     _outputTexture = std::move(rhs._outputTexture);
-    _size = std::move(rhs._size);
-    _name = std::move(rhs._name);
 }
 
 PostFX::~PostFX() {
@@ -46,9 +43,8 @@ void PostFX::render(Window& window) {
     // bind target FBO
     window.getFBO()->attachColorTexture(_outputTexture);
 
-    _size = window.getFramebufferResolution();
-
-    glViewport(0, 0, _size.x, _size.y);
+    glm::ivec2 size = window.getFramebufferResolution();
+    glViewport(0, 0, size.x, size.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -86,10 +82,6 @@ unsigned int PostFX::getInputTexture() const {
 
 const ShaderProgram& PostFX::getShaderProgram() const {
     return _shaderProgram;
-}
-
-const std::string& PostFX::getName() const {
-    return _name;
 }
 
 } // namespace sgct

@@ -63,8 +63,7 @@ namespace sgct {
     1107: Window / MPCDI file must not be empty
     1110: Node / Node address must not be empty
     1111: Node / Node port must be non-negative
-    1112: Node / Node name must not be empty
-    1113: Node / Node data transfer port must be non-negative
+    1112: Node / Node data transfer port must be non-negative
     1120: Cluster / Cluster master address must not be empty
     1121: Cluster / Cluster external control port must be non-negative
     1122: Cluster / More than one unnamed users specified in the cluster
@@ -79,7 +78,8 @@ namespace sgct {
     2020: OBJ / Failed to open warping mesh file
     2021: OBJ / Vertex count doesn't match number of texture coordinates
     2030: PaulBourke / Failed to open warping mesh file
-    2031: PaulBourke / Invalid data
+    2031: PaulBourke / Error reading mapping type
+    2032: PaulBourke / Invalid data
     2040: Scalable / Failed to open warping mesh file
     2041: Scalable / Incorrect mesh data geometry
     2050: SCISS / Failed to open warping mesh file
@@ -87,9 +87,10 @@ namespace sgct {
     2052: SCISS / Error parsing file version from file
     2053: SCISS / Error parsing type from file
     2054: SCISS / Error parsing view data from file
-    2055: SCISS / Error parsing vertices from file
-    2056: SCISS / Error parsing indices from file
-    2057: SCISS / Error parsing faces from file
+    2055: SCISS / Error parsing file
+    2056: SCISS / Error parsing vertices from file
+    2057: SCISS / Error parsing indices from file
+    2058: SCISS / Error parsing faces from file
     2060: SimCAD / Error parsing XML file
     2061: SimCAD / Error reading XML file. Missing 'GeometryFile'
     2062: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
@@ -157,6 +158,7 @@ namespace sgct {
     6021: Viewport / Failed to parse size. Type error
     6030: Window / Could not parse window size. Type error
     6040: Node / Missing field address in node
+    6041: Node / Missing field port in node
     6050: Settings / Wrong buffer precision value. Must be 16 or 32
     6051: Settings / Wrong buffer precision value type
     6060: Capture / Unknown capturing format. Needs to be png, tga, jpg

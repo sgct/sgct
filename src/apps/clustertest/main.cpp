@@ -420,7 +420,7 @@ void initOGLFun() {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
     prog.bind();
-    matrixLocation = prog.getUniformLocation("matrix");
+    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
     prog.unbind();
 }
 

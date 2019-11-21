@@ -62,7 +62,7 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
-        conn->_startConnectionCond.notify_all();
+        conn->getStartConnectionConditionVar().notify_all();
     }
 
     connected = conn->isConnected();
@@ -158,16 +158,11 @@ void disconnect() {
     }
 }
 
-void sendData(const void* data, int length, int packageId) {
+void sendData(const void* data, int length, int id) {
     if (networkPtr) {
-        sgct::core::NetworkManager::instance().transferData(
-            data,
-            length,
-            packageId,
-            networkPtr.get()
-        );
+        core::NetworkManager::instance().transferData(data, length, id, *networkPtr);
         timerData.first = Engine::getTime();
-        timerData.second = packageId;
+        timerData.second = id;
     }
 }
 
@@ -233,8 +228,8 @@ void initOGLFun() {
     );
     const ShaderProgram& prg = sgct::ShaderManager::instance().getShaderProgram("xform");
     prg.bind();
-    matrixLoc = prg.getUniformLocation("mvp");
-    glUniform1i(prg.getUniformLocation("tex"), 0 );
+    matrixLoc = glGetUniformLocation(prg.getId(), "mvp");
+    glUniform1i(glGetUniformLocation(prg.getId(), "tex"), 0 );
     prg.unbind();
 
     for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {

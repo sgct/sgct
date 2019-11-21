@@ -44,7 +44,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
         _blackLevelMaskFilename = *viewport.blendLevelMaskTexture;
     }
     if (viewport.correctionMeshTexture) {
-        _meshFilename = std::move(*viewport.correctionMeshTexture);
+        _meshFilename = *viewport.correctionMeshTexture;
     }
     if (viewport.meshHint) {
         _meshHint = *viewport.meshHint;
@@ -77,25 +77,23 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 
     std::visit(overloaded {
         [](const config::NoProjection&) {},
-        [this](const config::PlanarProjection& proj) {
-            applyPlanarProjection(proj);
+        [this](const config::PlanarProjection& p) {
+            applyPlanarProjection(p);
         },
-        [this](const config::FisheyeProjection& proj) {
-            applyFisheyeProjection(proj);
+        [this](const config::FisheyeProjection& p) {
+            applyFisheyeProjection(p);
         },
-        [this](const config::SphericalMirrorProjection& proj) {
-            applySphericalMirrorProjection(proj);
+        [this](const config::SphericalMirrorProjection& p) {
+            applySphericalMirrorProjection(p);
         },
-        [this](const config::SpoutOutputProjection& proj) {
-            applySpoutOutputProjection(proj);
+        [this](const config::SpoutOutputProjection& p) {
+            applySpoutOutputProjection(p);
         },
-        [this](const config::ProjectionPlane& proj) {
-            _projectionPlane.setCoordinateLowerLeft(proj.lowerLeft);
-            _viewPlane.lowerLeft = proj.lowerLeft;
-            _projectionPlane.setCoordinateUpperLeft(proj.upperLeft);
-            _viewPlane.upperLeft = proj.upperLeft;
-            _projectionPlane.setCoordinateUpperRight(proj.upperRight);
-            _viewPlane.upperRight = proj.upperRight;
+        [this](const config::ProjectionPlane& p) {
+            _projectionPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
+            _viewPlane.lowerLeft = p.lowerLeft;
+            _viewPlane.upperLeft = p.upperLeft;
+            _viewPlane.upperRight = p.upperRight;
         },
     }, viewport.projection);
 }

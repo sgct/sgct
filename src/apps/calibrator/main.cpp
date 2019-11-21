@@ -275,11 +275,11 @@ void initGL() {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
     prog.bind();
-    matrixLocation = prog.getUniformLocation("matrix");
+    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
 
-    glUniform1f(prog.getUniformLocation("radius"), radius);
-    glUniform1i(prog.getUniformLocation("tex"), 0);
-    glUniform1i(prog.getUniformLocation("hasTex"), (textureId != 0) ? 1 : 0);
+    glUniform1f(glGetUniformLocation(prog.getId(), "radius"), radius);
+    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
+    glUniform1i(glGetUniformLocation(prog.getId(), "hasTex"), (textureId != 0) ? 1 : 0);
 
     prog.unbind();
 }

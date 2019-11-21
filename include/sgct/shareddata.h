@@ -39,12 +39,12 @@ public:
      */
     void setCompression(bool state, int level = 1);
 
-    /** Get the compresson ratio:
-     *  ratio = (compressed data size + Huffman tree)/(original data size)
-     *
+    /**
+     * Get the compresson ratio:
+     *   ratio = (compressed data size + Huffman tree)/(original data size)
      * If the ratio is larger than 1.0 then there is no use for using compression.
      */
-    float getCompressionRatio();
+    float getCompressionRatio() const;
 
     template<class T>
     void writeObj(const SharedObject<T>& sobj);
@@ -138,11 +138,13 @@ private:
     std::vector<unsigned char>* _currentStorage;
     std::vector<unsigned char> _compressedBuffer;
     std::array<unsigned char, core::Network::HeaderSize> _headerSpace;
-    unsigned int _pos;
+    unsigned int _pos = 0;
     int _compressionLevel;
     float _compressionRatio = 1.f;
     bool _useCompression = false;
 };
+
+
 
 template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {

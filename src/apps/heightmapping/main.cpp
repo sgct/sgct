@@ -267,13 +267,13 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
 
     prog.bind();
-    currTimeLoc = prog.getUniformLocation("currTime");
-    mvpLoc = prog.getUniformLocation("mvp");
-    mvLoc = prog.getUniformLocation("mv");
-    mvLightLoc = prog.getUniformLocation("mvLight");
-    nmLoc = prog.getUniformLocation("normalMatrix");
-    glUniform1i(prog.getUniformLocation("hTex"), 0);
-    glUniform1i(prog.getUniformLocation("nTex"), 1);
+    currTimeLoc = glGetUniformLocation(prog.getId(), "currTime");
+    mvpLoc = glGetUniformLocation(prog.getId(), "mvp");
+    mvLoc = glGetUniformLocation(prog.getId(), "mv");
+    mvLightLoc = glGetUniformLocation(prog.getId(), "mvLight");
+    nmLoc = glGetUniformLocation(prog.getId(), "normalMatrix");
+    glUniform1i(glGetUniformLocation(prog.getId(), "hTex"), 0);
+    glUniform1i(glGetUniformLocation(prog.getId(), "nTex"), 1);
 
     // light data
     const glm::vec4 position(-2.f, 5.f, 5.f, 1.f);
@@ -281,10 +281,18 @@ void initOGLFun() {
     const glm::vec4 diffuse(0.8f, 0.8f, 0.8f, 1.f);
     const glm::vec4 specular(1.f, 1.f, 1.f, 1.f);
 
-    glUniform4fv(prog.getUniformLocation("lightPos"), 1, glm::value_ptr(position));
-    glUniform4fv(prog.getUniformLocation("lightAmbient"), 1, glm::value_ptr(ambient));
-    glUniform4fv(prog.getUniformLocation("lightDiffuse"), 1, glm::value_ptr(diffuse));
-    glUniform4fv(prog.getUniformLocation("lightSpecular"), 1, glm::value_ptr(specular));
+    glUniform4fv(
+        glGetUniformLocation(prog.getId(), "lightPos"), 1, glm::value_ptr(position)
+    );
+    glUniform4fv(
+        glGetUniformLocation(prog.getId(), "lightAmbient"), 1, glm::value_ptr(ambient)
+    );
+    glUniform4fv(
+        glGetUniformLocation(prog.getId(), "lightDiffuse"), 1, glm::value_ptr(diffuse)
+    );
+    glUniform4fv(
+        glGetUniformLocation(prog.getId(), "lightSpecular"), 1, glm::value_ptr(specular)
+    );
     prog.unbind();
 
     Geometry geometry = generateTerrainGrid(1.f, 1.f, GridSize, GridSize);

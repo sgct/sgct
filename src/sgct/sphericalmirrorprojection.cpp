@@ -184,13 +184,9 @@ void SphericalMirrorProjection::initViewports() {
             glm::vec3(0.f, 1.f, 0.f)
         );
 
-        _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
-        );
-        _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
-        );
-        _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.right.getProjectionPlane().setCoordinates(
+            glm::vec3(rotMat * lowerLeft),
+            glm::vec3(rotMat * upperLeft),
             glm::vec3(rotMat * upperRight)
         );
     }
@@ -203,13 +199,9 @@ void SphericalMirrorProjection::initViewports() {
 
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
 
-        _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.left.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -223,13 +215,9 @@ void SphericalMirrorProjection::initViewports() {
         _subViewports.bottom.setEnabled(false);
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
 
-        _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.bottom.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -242,13 +230,9 @@ void SphericalMirrorProjection::initViewports() {
 
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
 
-        _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.top.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -259,13 +243,9 @@ void SphericalMirrorProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         glm::vec4 upperRight = upperRightBase;
 
-        _subViewports.front.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(tiltMat * lowerLeft)
-        );
-        _subViewports.front.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(tiltMat * upperLeft)
-        );
-        _subViewports.front.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.front.getProjectionPlane().setCoordinates(
+            glm::vec3(tiltMat * lowerLeft),
+            glm::vec3(tiltMat * upperLeft),
             glm::vec3(tiltMat * upperRight)
         );
     }
@@ -280,13 +260,9 @@ void SphericalMirrorProjection::initViewports() {
 
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 
-        _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.back.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -313,10 +289,10 @@ void SphericalMirrorProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _texLoc = _shader.getUniformLocation("tex");
+    _texLoc = glGetUniformLocation(_shader.getId(), "tex");
     glUniform1i(_texLoc, 0);
 
-    _matrixLoc = _shader.getUniformLocation("MVP");
+    _matrixLoc = glGetUniformLocation(_shader.getId(), "MVP");
 
     ShaderProgram::unbind();
 }

@@ -104,6 +104,14 @@ namespace {
 
 namespace sgct {
 
+Engine::Statistics::Statistics() {
+    std::fill(frametimes.begin(), frametimes.end(), 0.0);
+    std::fill(drawTimes.begin(), drawTimes.end(), 0.0);
+    std::fill(syncTimes.begin(), syncTimes.end(), 0.0);
+    std::fill(loopTimeMin.begin(), loopTimeMin.end(), 0.0);
+    std::fill(loopTimeMax.begin(), loopTimeMax.end(), 0.0);
+}
+
 Engine* Engine::_instance = nullptr;
 
 Engine& Engine::instance() {
@@ -516,11 +524,11 @@ void Engine::initNetwork() {
     // If the user has provided the node _id as an incorrect cmd argument then make the
     // _thisNode invalid
     if (cm.getThisNodeId() < 0) {
-        core::NetworkManager::instance().close();
+        core::NetworkManager::destroy();
         throw Error(3001, "Computer is not a part of the cluster configuration");
     }
     if (cm.getThisNodeId() >= cm.getNumberOfNodes()) {
-        core::NetworkManager::instance().close();
+        core::NetworkManager::destroy();
         throw Error(3002, "Requested node id was not found in the cluster configuration");
     }
 
@@ -800,20 +808,22 @@ void Engine::initOGL() {
     _shader.fxaa.createAndLinkProgram();
     _shader.fxaa.bind();
 
-    _shaderLoc.sizeX = _shader.fxaa.getUniformLocation("rt_w");
+    _shaderLoc.sizeX = glGetUniformLocation(_shader.fxaa.getId(), "rt_w");
     const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
     glUniform1f(_shaderLoc.sizeX, static_cast<float>(framebufferSize.x));
 
-    _shaderLoc.sizeY = _shader.fxaa.getUniformLocation("rt_h");
+    _shaderLoc.sizeY = glGetUniformLocation(_shader.fxaa.getId(), "rt_h");
     glUniform1f(_shaderLoc.sizeY, static_cast<float>(framebufferSize.y));
 
-    _shaderLoc.fxaaSubPixTrim = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_TRIM");
+    _shaderLoc.fxaaSubPixTrim =
+        glGetUniformLocation(_shader.fxaa.getId(), "FXAA_SUBPIX_TRIM");
     glUniform1f(_shaderLoc.fxaaSubPixTrim, Settings::instance().getFXAASubPixTrim());
 
-    _shaderLoc.fxaaSubPixOffset = _shader.fxaa.getUniformLocation("FXAA_SUBPIX_OFFSET");
+    _shaderLoc.fxaaSubPixOffset =
+        glGetUniformLocation(_shader.fxaa.getId(), "FXAA_SUBPIX_OFFSET");
     glUniform1f(_shaderLoc.fxaaSubPixOffset, Settings::instance().getFXAASubPixOffset());
 
-    _shaderLoc.fxaaTexture = _shader.fxaa.getUniformLocation("tex");
+    _shaderLoc.fxaaTexture = glGetUniformLocation(_shader.fxaa.getId(), "tex");
     glUniform1i(_shaderLoc.fxaaTexture, 0);
     ShaderProgram::unbind();
 
@@ -822,7 +832,7 @@ void Engine::initOGL() {
     _shader.fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
     _shader.fboQuad.createAndLinkProgram();
     _shader.fboQuad.bind();
-    _shaderLoc.monoTex = _shader.fboQuad.getUniformLocation("tex");
+    _shaderLoc.monoTex = glGetUniformLocation(_shader.fboQuad.getId(), "tex");
     glUniform1i(_shaderLoc.monoTex, 0);
     ShaderProgram::unbind();
 
@@ -833,7 +843,7 @@ void Engine::initOGL() {
     );
     _shader.overlay.createAndLinkProgram();
     _shader.overlay.bind();
-    _shaderLoc.overlayTex = _shader.overlay.getUniformLocation("Tex");
+    _shaderLoc.overlayTex = glGetUniformLocation(_shader.overlay.getId() ,"Tex");
     glUniform1i(_shaderLoc.overlayTex, 0);
     ShaderProgram::unbind();
 

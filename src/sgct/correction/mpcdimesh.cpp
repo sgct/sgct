@@ -47,7 +47,6 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     unsigned int nCols = 0;
     unsigned int nRows = 0;
     const int res = sscanf(headerBuffer, "%2c %d %d", fileFormatHeader, &nCols, &nRows);
-
     if (res != 3) {
         throw Error(2011, "Invalid header information in MPCDI mesh");
     }
@@ -57,14 +56,17 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
         throw Error(2012, "Incorrect file type. Unknown header type");
     }
     const int nCorrectionValues = nCols * nRows;
-    std::vector<float> corrGridX(nCorrectionValues);
-    std::vector<float> corrGridY(nCorrectionValues);
+    std::vector<glm::vec2> corrGrid(nCorrectionValues);
     for (int i = 0; i < nCorrectionValues; ++i) {
-        std::memcpy(&corrGridX[i], &srcBuff[srcIdx], sizeof(float));
+        float x;
+        std::memcpy(&x, &srcBuff[srcIdx], sizeof(float));
         srcIdx += sizeof(float);
+        corrGrid[i].x = x;
 
-        std::memcpy(&corrGridY[i], &srcBuff[srcIdx], sizeof(float));
+        float y;
+        std::memcpy(&y, &srcBuff[srcIdx], sizeof(float));
         srcIdx += sizeof(float);
+        corrGrid[i].y = y;
 
         // error position; we skip those here
         srcIdx += sizeof(float);
@@ -81,12 +83,10 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
         // Reverse the y position as the values from the PFM file are given in raster-scan
         // order, which is left to right but starts at upper-left rather than lower-left.
         smoothPos[i].y = 1.f - (gridIdxRow / static_cast<float>(nRows - 1));
-        warpedPos[i].x = smoothPos[i].x + corrGridX[i];
-        warpedPos[i].y = smoothPos[i].y + corrGridY[i];
+        warpedPos[i] = smoothPos[i] + corrGrid[i];
     }
 
-    corrGridX.clear();
-    corrGridY.clear();
+    corrGrid.clear();
 
     buf.vertices.reserve(nCorrectionValues);
     for (int i = 0; i < nCorrectionValues; ++i) {
@@ -115,15 +115,6 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
             const unsigned int i1 = r * nCols + (c + 1);
             const unsigned int i2 = (r + 1) * nCols + (c + 1);
             const unsigned int i3 = (r + 1) * nCols + c;
-
-            // 3      2
-            //  x____x
-            //  |   /|
-            //  |  / |
-            //  | /  |
-            //  |/   |
-            //  x----x
-            // 0      1
 
             // triangle 1
             buf.indices.push_back(i0);

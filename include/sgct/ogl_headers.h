@@ -9,10 +9,6 @@
 #ifndef __SGCT__OGL_HEADERS__H__
 #define __SGCT__OGL_HEADERS__H__
 
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
@@ -28,9 +24,5 @@
 // Evil 'using namespace' in the header to make the transition from GLEW to glbinding
 // as easy as possible
 using namespace gl;
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
 
 #endif // __SGCT__OGL_HEADERS__H__

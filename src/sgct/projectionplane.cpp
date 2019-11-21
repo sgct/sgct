@@ -19,16 +19,12 @@ void ProjectionPlane::offset(const glm::vec3& p) {
     _upperRight += p;
 }
 
-void ProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
-    _lowerLeft = std::move(coordinate);
-}
-
-void ProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
-    _upperLeft = std::move(coordinate);
-}
-
-void ProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
-    _upperRight = std::move(coordinate);
+void ProjectionPlane::setCoordinates(glm::vec3 lowerLeft, glm::vec3 upperLeft,
+                                     glm::vec3 upperRight)
+{
+    _lowerLeft = std::move(lowerLeft);
+    _upperLeft = std::move(upperLeft);
+    _upperRight = std::move(upperRight);
 }
 
 const glm::vec3& ProjectionPlane::getCoordinateLowerLeft() const {

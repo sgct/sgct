@@ -27,23 +27,11 @@ public:
      */
     void addWindow(Window window);
 
-    /**
-     * Set to true if this node's windows should belong to a nvida swap group. Only valid
-     * before window opens.
-     */
-    void setUseSwapGroups(bool state);
-
     /// Check if all windows are set to close and close them.
     bool closeAllWindows();
 
     /// Is this node using nvidia swap groups for it's windows?
     bool isUsingSwapGroups() const;
-
-    /// Show all hidden windows.
-    void showAllWindows();
-
-    /// Hide all windows.
-    void hideAllWindows();
 
     /// Check if a key is pressed for all windows.
     bool getKeyPressed(int key);
@@ -57,24 +45,6 @@ public:
     /// Get the window pointer at index in window vector.
     const Window& getWindow(int index) const;
 
-    /// \param address is the hostname, DNS-name or ip
-    void setAddress(std::string address);
-
-    /**
-     * \param sync port is the number of the tcp port used for communication with this
-     * node
-     */
-    void setSyncPort(int port);
-
-    /**
-     * \param data transfer port is the number of the tcp port used for data transfers to 
-     *        this node
-     */
-    void setDataTransferPort(int port);
-
-    /// \param name the name identification string of this node
-    void setName(std::string name);
-
     /// \return the address of this node
     const std::string& getAddress() const;
 
@@ -84,11 +54,7 @@ public:
     /// \return the data transfer port of this node
     int getDataTransferPort() const;
 
-    /// \return the name if this node
-    const std::string& getName() const;
-
 private:
-    std::string _name;
     std::string _address;
     int _syncPort = 0;
     int _dataTransferPort = 0;

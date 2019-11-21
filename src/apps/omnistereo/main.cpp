@@ -297,14 +297,11 @@ void initOmniStereo(bool mask) {
 
                     sgct::core::ProjectionPlane projPlane;
                   
-                    const glm::vec2 ll = glm::vec2(0.f, 0.f);
-                    projPlane.setCoordinateLowerLeft(convertCoords(ll));
-
-                    const glm::vec2 ul = glm::vec2(0.f, 1.f);
-                    projPlane.setCoordinateUpperLeft(convertCoords(ul));
-
-                    const glm::vec2 ur = glm::vec2(1.f, 1.f);
-                    projPlane.setCoordinateUpperRight(convertCoords(ur));
+                    projPlane.setCoordinates(
+                        convertCoords(glm::vec2(0.f, 0.f)),
+                        convertCoords(glm::vec2(0.f, 1.f)),
+                        convertCoords(glm::vec2(1.f, 1.f))
+                    );
 
                     const glm::mat4 rotEyeMat = glm::rotate(
                         glm::mat4(1.f),
@@ -470,16 +467,18 @@ void initOGLFun() {
 
     ShaderManager& sm = ShaderManager::instance();
     sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
-    sm.getShaderProgram("grid").bind();
-    gridMatrixLoc = sm.getShaderProgram("grid").getUniformLocation("mvp");
-    sm.getShaderProgram("grid").unbind();
+    const ShaderProgram& gridProg = sm.getShaderProgram("grid");
+    gridProg.bind();
+    gridMatrixLoc = glGetUniformLocation(gridProg.getId(), "mvp");
+    gridProg.unbind();
 
     sm.addShaderProgram("xform", baseVertexShader, baseFragmentShader);
-    sm.getShaderProgram("xform").bind();
-    matrixLoc = sm.getShaderProgram("xform").getUniformLocation("mvp");
-    GLint textureLoc = sm.getShaderProgram("xform").getUniformLocation("tex");
+    const ShaderProgram& xformProg = sm.getShaderProgram("xform");
+    xformProg.bind();
+    matrixLoc = glGetUniformLocation(xformProg.getId(), "mvp");
+    GLint textureLoc = glGetUniformLocation(xformProg.getId(), "tex");
     glUniform1i(textureLoc, 0);
-    sm.getShaderProgram("xform").unbind();
+    xformProg.unbind();
 
     initOmniStereo(maskOutSimilarities);
 }

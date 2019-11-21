@@ -128,10 +128,10 @@ void initOGLFun() {
     ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("MRT");
     prg.bind();
-    textureLoc = prg.getUniformLocation("tDiffuse");
-    worldMatrixTransposeLoc = prg.getUniformLocation("worldMatrixTranspose");
-    mvpMatrixLoc = prg.getUniformLocation("mvpMatrix");
-    normalMatrixLoc = prg.getUniformLocation("normalMatrix");
+    textureLoc = glGetUniformLocation(prg.getId(), "tDiffuse");
+    worldMatrixTransposeLoc = glGetUniformLocation(prg.getId(), "worldMatrixTranspose");
+    mvpMatrixLoc = glGetUniformLocation(prg.getId(), "mvpMatrix");
+    normalMatrixLoc = glGetUniformLocation(prg.getId(), "normalMatrix");
 
     prg.bind();
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);

@@ -41,11 +41,12 @@ void Settings::applySettings(const config::Settings& settings) {
         BufferFloatPrecision p =
             [](config::Settings::BufferFloatPrecision p) {
             switch (p) {
-                default:
                 case config::Settings::BufferFloatPrecision::Float16Bit:
                     return BufferFloatPrecision::Float16Bit;
                 case config::Settings::BufferFloatPrecision::Float32Bit:
                     return BufferFloatPrecision::Float32Bit;
+                default:
+                    throw std::logic_error("Unhandled case label");
             }
         }(*settings.bufferFloatPrecision);
         setBufferFloatPrecision(p);
@@ -106,10 +107,10 @@ void Settings::applyCapture(const config::Capture& capture) {
     if (capture.format) {
         CaptureFormat f = [](config::Capture::Format format) {
             switch (format) {
-                default:
                 case config::Capture::Format::PNG: return CaptureFormat::PNG;
                 case config::Capture::Format::JPG: return CaptureFormat::JPG;
                 case config::Capture::Format::TGA: return CaptureFormat::TGA;
+                default:      throw std::logic_error("Unhandled case label");
             }
         }(*capture.format);
         setCaptureFormat(f);
@@ -210,6 +211,8 @@ void Settings::setCapturePath(std::string path, CapturePath cpi) {
         case CapturePath::RightStereo:
             _capturePath.right = std::move(path);
             break;
+        default:
+            throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -219,10 +222,10 @@ void Settings::setCaptureFormat(CaptureFormat format) {
 
 const std::string& Settings::getCapturePath(CapturePath cpi) const {
     switch (cpi) {
-        default:
         case CapturePath::Mono: return _capturePath.mono;
         case CapturePath::LeftStereo: return _capturePath.left;
         case CapturePath::RightStereo: return _capturePath.right;
+        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -260,9 +263,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
         _defaultNumberOfAASamples = samples;
     }
     else {
-        MessageHandler::printWarning(
-            "Number of MSAA samples must be power of two", samples
-        );
+        MessageHandler::printWarning("Number of MSAA samples must be power of two");
     }
 }
 
@@ -315,9 +316,8 @@ const std::string& Settings::getOSDTextFontPath() const {
 }
 
 GLenum Settings::getBufferFloatPrecision() const {
-    return _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ?
-        GL_RGB16F :
-        GL_RGB32F;
+    return
+        _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
 }
 
 int Settings::getDefaultNumberOfAASamples() const {

@@ -16,9 +16,7 @@ namespace sgct::core {
 
 class ProjectionPlane;
 
-/**
- * This class holds and manages 3D projections
- */
+/// This class holds and manages 3D projections
 class Projection {
 public:
     void calculateProjection(glm::vec3 base, const ProjectionPlane& projectionPlane,
@@ -29,7 +27,7 @@ public:
     const glm::mat4& getViewMatrix() const;
     const glm::mat4& getProjectionMatrix() const;
 
-protected:
+private:
     glm::mat4 _viewMatrix = glm::mat4(1.f);
     glm::mat4 _viewProjectionMatrix = glm::mat4(1.f);
     glm::mat4 _projectionMatrix = glm::mat4(1.f);

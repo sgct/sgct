@@ -48,11 +48,6 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     }
 
     glDeleteTextures(1, &_mappingTexture);
-
-    if (_spoutFBO) {
-        _spoutFBO->destroy();
-        _spoutFBO = nullptr;
-    }
 }
 
 void SpoutOutputProjection::update(glm::vec2) {
@@ -481,13 +476,9 @@ void SpoutOutputProjection::initViewports() {
         upperRight.x = radius;
         _subViewports.right.setSize(glm::vec2(1.f, 1.f));
 
-        _subViewports.right.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.right.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.right.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.right.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -504,13 +495,9 @@ void SpoutOutputProjection::initViewports() {
         _subViewports.left.setPos(glm::vec2(0.f, 0.f));
         _subViewports.left.setSize(glm::vec2(1.f, 1.f));
 
-        _subViewports.left.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.left.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.left.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.left.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -526,13 +513,9 @@ void SpoutOutputProjection::initViewports() {
         _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
         _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
 
-        _subViewports.bottom.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.bottom.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.bottom.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.bottom.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -548,13 +531,9 @@ void SpoutOutputProjection::initViewports() {
         upperRight.y = radius;
         _subViewports.top.setSize(glm::vec2(1.f, 1.f));
 
-        _subViewports.top.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.top.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.top.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.top.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -567,13 +546,9 @@ void SpoutOutputProjection::initViewports() {
 
         glm::mat4 rotMat = rollRot;
 
-        _subViewports.front.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(rotMat * lowerLeft)
-        );
-        _subViewports.front.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(rotMat * upperLeft)
-        );
-        _subViewports.front.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.front.getProjectionPlane().setCoordinates(
+            glm::vec3(rotMat * lowerLeft),
+            glm::vec3(rotMat * upperLeft),
             glm::vec3(rotMat * upperRight)
         );
     }
@@ -586,13 +561,9 @@ void SpoutOutputProjection::initViewports() {
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 
-        _subViewports.back.getProjectionPlane().setCoordinateLowerLeft(
-            glm::vec3(r * lowerLeft)
-        );
-        _subViewports.back.getProjectionPlane().setCoordinateUpperLeft(
-            glm::vec3(r * upperLeft)
-        );
-        _subViewports.back.getProjectionPlane().setCoordinateUpperRight(
+        _subViewports.back.getProjectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeft),
+            glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
@@ -727,10 +698,10 @@ void SpoutOutputProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _cubemapLoc = _shader.getUniformLocation("cubemap");
+    _cubemapLoc = glGetUniformLocation(_shader.getId(), "cubemap");
     glUniform1i(_cubemapLoc, 0);
 
-    _halfFovLoc = _shader.getUniformLocation("halfFov");
+    _halfFovLoc = glGetUniformLocation(_shader.getId(), "halfFov");
     glUniform1f(_halfFovLoc, glm::half_pi<float>());
 
     ShaderProgram::unbind();
@@ -740,12 +711,12 @@ void SpoutOutputProjection::initShaders() {
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
 
-        _swapColorLoc = _depthCorrectionShader.getUniformLocation("cTex");
+        _swapColorLoc = glGetUniformLocation(_depthCorrectionShader.getId(), "cTex");
         glUniform1i(_swapColorLoc, 0);
-        _swapDepthLoc = _depthCorrectionShader.getUniformLocation("dTex");
+        _swapDepthLoc = glGetUniformLocation(_depthCorrectionShader.getId(), "dTex");
         glUniform1i(_swapDepthLoc, 1);
-        _swapNearLoc = _depthCorrectionShader.getUniformLocation("near");
-        _swapFarLoc = _depthCorrectionShader.getUniformLocation("far");
+        _swapNearLoc = glGetUniformLocation(_depthCorrectionShader.getId(), "near");
+        _swapFarLoc = glGetUniformLocation(_depthCorrectionShader.getId(), "far");
 
         ShaderProgram::unbind();
     }

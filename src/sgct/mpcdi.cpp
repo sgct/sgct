@@ -29,8 +29,8 @@ namespace {
 
     [[nodiscard]] config::MpcdiProjection parseRegion(const tinyxml2::XMLElement& elem) {
         config::MpcdiProjection proj;
-        if (elem.Attribute("id")) {
-            proj.id = elem.Attribute("id");
+        if (const char* a = elem.Attribute("id"); a) {
+            proj.id = a;
         }
 
         glm::vec2 vpPosition;
@@ -171,9 +171,8 @@ namespace {
 
         const tinyxml2::XMLElement* child = e.FirstChildElement("fileset");
         while (child) {
-            std::string_view val = child->Value();
-            if (child->Attribute("region")) {
-                fileRegion = child->Attribute("region");
+            if (const char* a = child->Attribute("region"); a) {
+                fileRegion = a;
             }
 
             const tinyxml2::XMLElement* c = child->FirstChildElement("geometryWarpFile");

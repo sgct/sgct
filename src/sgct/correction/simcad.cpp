@@ -31,37 +31,22 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {
-        std::string str = "Parsing failed after: ";
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-            str += xmlDoc.GetErrorStr1();
-            str += ' ';
-            str += xmlDoc.GetErrorStr2();
-        }
-        else if (xmlDoc.GetErrorStr1()) {
-            str += xmlDoc.GetErrorStr1();
-        }
-        else if (xmlDoc.GetErrorStr2()) {
-            str += xmlDoc.GetErrorStr2();
-        }
-        else {
-            str = "File not found";
-        }
-
-        throw Error(2060, "Error parsing XML file " + path + ". " + str);
+        std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
+        std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
+        std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
+        std::string s4 = s1 + ' ' + s2 + ' ' + s3;
+        throw Error(2060, "Error loading XML file '" + path + "'. " + s4);
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        throw Error(2061, "Error reading XML file " + path + ". Missing 'GeometryFile'");
+        throw Error(2061, "Error reading file " + path + ". Missing GeometryFile");
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
-        throw Error(
-            2062,
-            "Error reading XML file " + path + ". Missing 'GeometryDefinition'"
-        );
+        throw Error(2062, "Error reading file " + path + ". Missing GeometryDefinition");
     }
 
     float xrange = 1.f;

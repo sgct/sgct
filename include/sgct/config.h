@@ -84,15 +84,15 @@ void validateSettings(const Settings& settings);
 struct Device {
     struct Sensors {
         std::string vrpnAddress;
-        int identifier;
+        int identifier = -1;
     };
     struct Buttons {
         std::string vrpnAddress;
-        int count;
+        int count = 0;
     };
     struct Axes {
         std::string vrpnAddress;
-        int count;
+        int count = 0;
     };
     
     std::string name;
@@ -116,10 +116,10 @@ void validateTracker(const Tracker& tracker);
 struct NoProjection {};
 struct PlanarProjection {
     struct FOV {
-        float down;
-        float left;
-        float right;
-        float up;
+        float down = 0.f;
+        float left = 0.f;
+        float right = 0.f;
+        float up = 0.f;
         std::optional<float> distance;
     };
     FOV fov;
@@ -291,7 +291,6 @@ void validateWindow(const Window& window);
 struct Node {
     std::string address;
     int port = 0;
-    std::optional<std::string> name;
     std::optional<int> dataTransferPort;
     std::optional<bool> swapLock;
     std::vector<Window> windows;

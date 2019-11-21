@@ -24,6 +24,8 @@
 #include <algorithm>
 
 #ifdef WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 HDC hDC;
 #endif // WIN32
@@ -315,9 +317,7 @@ void Window::close() {
     // delete FBO stuff
     if (_finalFBO) {
         MessageHandler::printInfo("Releasing OpenGL buffers for window %d", _id);
-        _finalFBO->destroy();
         _finalFBO = nullptr;
-
         destroyFBOs();
     }
 
@@ -1207,9 +1207,9 @@ void Window::loadShaders() {
     _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();
-    _stereo.leftTexLoc = _stereo.shader.getUniformLocation("leftTex");
+    _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.getId(), "leftTex");
     glUniform1i(_stereo.leftTexLoc, 0);
-    _stereo.rightTexLoc = _stereo.shader.getUniformLocation("rightTex");
+    _stereo.rightTexLoc = glGetUniformLocation(_stereo.shader.getId(), "rightTex");
     glUniform1i(_stereo.rightTexLoc, 1);
     ShaderProgram::unbind();
 }

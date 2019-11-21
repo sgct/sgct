@@ -38,9 +38,9 @@ ShaderManager::~ShaderManager() {
 }
 
 void ShaderManager::addShaderProgram(const std::string& name,
-                                        const std::string& vertexSrc,
-                                        const std::string& fragmentSrc,
-                                        const std::string& geometrySrc)
+                                     const std::string& vertexSrc,
+                                     const std::string& fragmentSrc,
+                                     const std::string& geometrySrc)
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
@@ -60,7 +60,7 @@ void ShaderManager::addShaderProgram(const std::string& name,
 }
 
 bool ShaderManager::removeShaderProgram(const std::string& name) {
-    auto shaderIt = std::find_if(
+    const auto shaderIt = std::find_if(
         _shaderPrograms.begin(),
         _shaderPrograms.end(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
@@ -80,7 +80,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
 }
 
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
-    auto shaderIt = std::find_if(
+    const auto shaderIt = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }
@@ -92,7 +92,7 @@ const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) co
 }
 
 bool ShaderManager::shaderProgramExists(const std::string& name) const {
-    auto exists = std::find_if(
+    const auto exists = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
         [name](const ShaderProgram& prg) { return prg.getName() == name; }

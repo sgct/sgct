@@ -15,20 +15,13 @@
 */
 namespace sgct::utils {
 
-/**
- * This class creates and renders a textured box.
-*/
+/// This class creates and renders a textured box.
 class Plane {
 public:
     /// This constructor requires a valid OpenGL contex 
     Plane(float width, float height);
     ~Plane();
 
-    /**
-     * layout 0 contains texture coordinates (vec2)
-     * layout 1 contains vertex normals (vec3)
-     * layout 2 contains vertex positions (vec3).
-     */
     void draw();
 
 private:

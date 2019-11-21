@@ -19,9 +19,7 @@ namespace sgct::core {
 
 class OffScreenBuffer;
 
-/**
- * Base class for non linear projections
- */
+/// Base class for non linear projections
 class NonLinearProjection {
 public:
     enum class InterpolationMode { Linear, Cubic };
@@ -39,8 +37,7 @@ public:
     virtual void renderCubemap() = 0;
     virtual void update(glm::vec2 size) = 0;
 
-    void updateFrustums(const Frustum::Mode& frustumMode, float nearClipPlane,
-        float farClipPlane);
+    void updateFrustums(const Frustum::Mode& frustumMode, float nearClip, float farClip);
     
     /**
      * Set the resolution of the cubemap faces.
@@ -80,11 +77,6 @@ public:
 
     /// \return the resolution of the cubemap
     int getCubemapResolution() const;
-
-    /// \return the interpolation mode used for the non linear rendering
-    InterpolationMode getInterpolationMode() const;
-
-    OffScreenBuffer* getOffScreenBuffer();
 
     glm::ivec4 getViewportCoords();
 

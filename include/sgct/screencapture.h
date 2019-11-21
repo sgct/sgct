@@ -10,12 +10,12 @@
 #define __SGCT__SCREEN_CAPTURE__H__
 
 #include <sgct/ogl_headers.h>
+#include <glm/glm.hpp>
 #include <functional>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
-#include <glm/glm.hpp>
 
 namespace sgct::core {
 
@@ -24,7 +24,6 @@ class Image;
 /**
  * This class is used internally by SGCT and is called when using the takeScreenshot
  * function from the Engine.
- * 
  * Screenshots are saved as PNG or TGA images and and can also be used for movie recording
  */
 class ScreenCapture {
@@ -48,14 +47,10 @@ public:
     void init(int windowIndex, EyeIndex ei);
 
     /**
-     * Initializes the pixel buffer object (PBO) or re-sizes it if the frame buffer size
-     * have changed.
+     * Initializes the PBO or re-sizes it if the frame buffer size have changed.
      *
      * \param resolution the  pixel resolution of the frame buffer
      * \param channels the number of color channels
-     *
-     * If PBOs are not supported nothing will and the screenshot process will fall back on
-     * slower GPU data fetching.
      */
     void initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor);
 
@@ -69,9 +64,6 @@ public:
     /// Set the image format to use
     void setCaptureFormat(CaptureFormat cf);
 
-    /// Get the image format
-    CaptureFormat getCaptureFormat() const;
-
     /**
      * This function saves the images to disc.
      *
@@ -81,7 +73,6 @@ public:
     void saveScreenCapture(unsigned int textureId,
         CaptureSource capSrc = CaptureSource::Texture);
     void setPathAndFileName(std::string path, std::string filename);
-    void setUsePBO(bool state);
 
     /**
      * Set the screen capture callback
@@ -94,11 +85,10 @@ public:
         std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback);
 
 private:
-    void addFrameNumberToFilename(unsigned int frameNumber);
+    std::string addFrameNumberToFilename(unsigned int frameNumber);
     int getAvailableCaptureThread();
-    void updateDownloadFormat();
     void checkImageBuffer(CaptureSource captureSource);
-    Image* prepareImage(int index);
+    Image* prepareImage(int index, std::string file);
 
     std::mutex _mutex;
     std::vector<ScreenCaptureThreadInfo> _captureInfos;
@@ -115,7 +105,6 @@ private:
 
     std::function<void(Image*, size_t, EyeIndex, GLenum type)> _captureCallback;
 
-    std::string _filename;
     std::string _baseName;
     std::string _path;
     EyeIndex _eyeIndex = EyeIndex::Mono;

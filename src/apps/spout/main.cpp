@@ -169,10 +169,9 @@ void initOGLFun() {
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
 
-    matrixLoc = prog.getUniformLocation("mvp");
-    GLint textureLoc = prog.getUniformLocation("tex");
-    glUniform1i(textureLoc, 0);
-    flipLoc = prog.getUniformLocation("flip");
+    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
+    flipLoc = glGetUniformLocation(prog.getId(), "flip");
     glUniform1i(flipLoc, 0);
 
     prog.unbind();

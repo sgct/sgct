@@ -18,20 +18,12 @@ struct GLFWtouch;
 
 namespace sgct::core {
 
-/**
- * This class holds and manages touch points
- */
+/// This class holds and manages touch points
 class Touch {
 public:
     /// Touch point information
     struct TouchPoint {
-        enum class TouchAction {
-            NoAction,
-            Released,
-            Pressed,
-            Stationary,
-            Moved
-        };
+        enum class TouchAction { NoAction, Released, Pressed, Stationary, Moved };
         int id;
         TouchAction action;
         glm::vec2 pixelCoords;
@@ -46,8 +38,8 @@ public:
     void setLatestPointsHandled();
 
     /**
-     * Adding touch points to the touch class
-     * As an id is constant over the touch point, the order will be preserved
+     * Adding touch points to the touch class. As an id is constant over the touch point,
+     * the order will be preserved
      */
     void processPoint(int id, int action, double xpos, double ypos, int windowWidth,
         int windowHeight);

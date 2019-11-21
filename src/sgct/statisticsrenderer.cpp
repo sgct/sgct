@@ -25,25 +25,19 @@ namespace {
 
     constexpr const char* StatsVertShader = R"(
 #version 330 core
-
-layout (location = 0) in vec2 vertPosition;
-
+layout (location = 0) in vec2 in_vertPosition;
 uniform mat4 mvp;
-
-void main() {
-  gl_Position = mvp * vec4(vertPosition, 0.0, 1.0);
-}
+void main() { gl_Position = mvp * vec4(in_vertPosition, 0.0, 1.0); }
 )";
 
     constexpr const char* StatsFragShader = R"(
 #version 330 core
 
 uniform vec4 col;
-out vec4 color;
+out vec4 out_color;
 
-void main() { color = col; }
+void main() { out_color = col; }
 )";
-
 } // namespace
 
 namespace sgct::core {
@@ -173,7 +167,7 @@ void StatisticsRenderer::update() {
 void StatisticsRenderer::render() {
     _shader.bind();
 
-    float size = static_cast<float>(_statistics.HistoryLength);
+    const float size = static_cast<float>(_statistics.HistoryLength);
 
     glm::mat4 orthoMat = glm::ortho(0.f, size, 0.f, size);
     orthoMat = glm::translate(orthoMat, glm::vec3(0.f, size / 4.f, 0.f));

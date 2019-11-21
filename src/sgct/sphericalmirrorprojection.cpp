@@ -64,7 +64,9 @@ SphericalMirrorProjection::SphericalMirrorProjection(std::string bottomMesh,
         std::move(rightMesh),
         std::move(topMesh)
     }
-{}
+{
+    setUseDepthTransformation(false);
+}
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 

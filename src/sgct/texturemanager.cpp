@@ -8,9 +8,9 @@
 
 #include <sgct/texturemanager.h>
 
-#include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/messagehandler.h>
+#include <sgct/ogl_headers.h>
 
 namespace {
     unsigned int uploadImage(const sgct::core::Image& img, bool interpolate, int mipmap,
@@ -46,11 +46,12 @@ namespace {
             case 4:
                 internalFormat = GL_RGBA8;
                 break;
+            default:
+                throw std::logic_error("Unhandled case label");
         }
 
         sgct::MessageHandler::printDebug(
-            "TextureManager: Creating texture... size: %dx%d, %d-channels, "
-            "Type: %#04x, Format: %#04x",
+            "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
             img.getSize().x, img.getSize().y, img.getChannels(), type, internalFormat
         );
 

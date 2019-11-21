@@ -16,9 +16,7 @@
 
 namespace sgct {
 
-/**
- * Class that manages a tracking system's properties and devices/sensors
- */
+/// Class that manages a tracking system's properties and devices/sensors
 class Tracker {
 public:
     explicit Tracker(std::string name);
@@ -51,8 +49,6 @@ public:
     const std::string& getName() const;
 
 private:
-    void calculateTransform();
-
     std::vector<std::unique_ptr<TrackingDevice>> _trackingDevices;
     std::string _name;
 

@@ -77,18 +77,12 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 
     std::visit(overloaded {
         [](const config::NoProjection&) {},
-        [this](const config::PlanarProjection& p) {
-            applyPlanarProjection(p);
-        },
-        [this](const config::FisheyeProjection& p) {
-            applyFisheyeProjection(p);
-        },
+        [this](const config::PlanarProjection& p) { applyPlanarProjection(p); },
+        [this](const config::FisheyeProjection& p) { applyFisheyeProjection(p); },
         [this](const config::SphericalMirrorProjection& p) {
             applySphericalMirrorProjection(p);
         },
-        [this](const config::SpoutOutputProjection& p) {
-            applySpoutOutputProjection(p);
-        },
+        [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
         [this](const config::ProjectionPlane& p) {
             _projectionPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
             _viewPlane.lowerLeft = p.lowerLeft;
@@ -178,12 +172,8 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setDomeDiameter(*proj.diameter);
     }
     if (proj.crop) {
-        fishProj->setCropFactors(
-            proj.crop->left,
-            proj.crop->right,
-            proj.crop->bottom,
-            proj.crop->top
-        );
+        config::FisheyeProjection::Crop crop = *proj.crop;
+        fishProj->setCropFactors(crop.left, crop.right, crop.bottom, crop.top);
     }
     if (proj.offset) {
         fishProj->setBaseOffset(*proj.offset);
@@ -223,20 +213,13 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
         proj->setClearColor(*p.background);
     }
     if (p.channels) {
-        proj->setSpoutChannels(
-            p.channels->right,
-            p.channels->zLeft,
-            p.channels->bottom,
-            p.channels->top,
-            p.channels->left,
-            p.channels->zRight
-        );
+        config::SpoutOutputProjection::Channels c = *p.channels;
+        proj->setSpoutChannels(c.right, c.zLeft, c.bottom, c.top, c.left, c.zRight);
     }
     if (p.orientation) {
         proj->setSpoutRigOrientation(*p.orientation);
     }
 
-    proj->setUseDepthTransformation(true);
     _nonLinearProjection = std::move(proj);
 #else
     (void)p;
@@ -264,7 +247,6 @@ void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProje
         proj->setClearColor(*p.background);
     }
 
-    proj->setUseDepthTransformation(false);
     _nonLinearProjection = std::move(proj);
 }
 

@@ -24,7 +24,7 @@ class SpoutOutputProjection : public NonLinearProjection {
 public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 
-    SpoutOutputProjection() = default;
+    SpoutOutputProjection();
     virtual ~SpoutOutputProjection();
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
@@ -50,7 +50,7 @@ private:
     void initShaders() override;
     void initFBO() override;
 
-    void drawCubeFace(int face);
+    void drawCubeFace(BaseViewport& viewport);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

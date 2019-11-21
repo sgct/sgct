@@ -8,6 +8,7 @@
 
 #include <sgct/trackingmanager.h>
 
+#include <sgct/config.h>
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
@@ -38,18 +39,16 @@ namespace {
             return;
         }
 
-        sgct::Tracker* trackerPtr = reinterpret_cast<sgct::Tracker*>(userdata);
-        sgct::TrackingDevice* devicePtr = trackerPtr->getDeviceBySensorId(t.sensor);
+        sgct::Tracker* tracker = reinterpret_cast<sgct::Tracker*>(userdata);
+        sgct::TrackingDevice* device = tracker->getDeviceBySensorId(t.sensor);
 
-        if (devicePtr == nullptr) {
+        if (device == nullptr) {
             return;
         }
 
-        glm::dvec3 posVec(t.pos[0], t.pos[1], t.pos[2]);
-        posVec *= trackerPtr->getScale();
-
+        glm::dvec3 pos = glm::dvec3(t.pos[0], t.pos[1], t.pos[2]) * tracker->getScale();
         glm::dquat rotation(t.quat[3], t.quat[0], t.quat[1], t.quat[2]);
-        devicePtr->setSensorTransform(posVec, rotation);
+        device->setSensorTransform(pos, rotation);
     }
 
     void VRPN_CALLBACK updateButton(void* userdata, const vrpn_BUTTONCB b) {
@@ -63,18 +62,18 @@ namespace {
     }
 
     void samplingLoop(void* arg) {
-        sgct::TrackingManager* tmPtr = reinterpret_cast<sgct::TrackingManager*>(arg);
+        sgct::TrackingManager* tm = reinterpret_cast<sgct::TrackingManager*>(arg);
 
         while (true) {
             const double t = sgct::Engine::getTime();
-            for (int i = 0; i < tmPtr->getNumberOfTrackers(); ++i) {
-                sgct::Tracker* trackerPtr = tmPtr->getTracker(i);
+            for (int i = 0; i < tm->getNumberOfTrackers(); ++i) {
+                sgct::Tracker* tracker = tm->getTracker(i);
 
-                if (trackerPtr == nullptr) {
+                if (tracker == nullptr) {
                     continue;
                 }
-                for (int j = 0; j < trackerPtr->getNumberOfDevices(); ++j) {
-                    if (!trackerPtr->getDevice(j)->isEnabled()) {
+                for (int j = 0; j < tracker->getNumberOfDevices(); ++j) {
+                    if (!tracker->getDevice(j)->isEnabled()) {
                         continue;
                     }
 
@@ -91,8 +90,8 @@ namespace {
                 }
             }
 
-            const bool isRunning = tmPtr->isRunning();
-            tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
+            const bool isRunning = tm->isRunning();
+            tm->setSamplingTime(sgct::Engine::getTime() - t);
 
             // Sleep for 1ms so we don't eat the CPU
             vrpn_SleepMsecs(1);
@@ -204,11 +203,11 @@ void TrackingManager::startSampling() {
 
     // link the head tracker
     const std::string& trackerName = _headUser->getHeadTrackerName();
-    Tracker* trackerPtr = getTracker(trackerName);
+    Tracker* tracker = getTracker(trackerName);
 
     const std::string& deviceName = _headUser->getHeadTrackerDeviceName();
-    if (trackerPtr) {
-        _head = trackerPtr->getDevice(deviceName);
+    if (tracker) {
+        _head = tracker->getDevice(deviceName);
     }
 
     if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
@@ -244,7 +243,6 @@ void TrackingManager::addTracker(std::string name) {
     if (!getTracker(name)) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.emplace_back(std::vector<VRPNPointer>());
-
         MessageHandler::printInfo("Tracker '%s' added successfully", name.c_str());
     }
     else {
@@ -273,10 +271,10 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     std::pair<std::set<std::string>::iterator, bool> retVal = _addresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* devicePtr = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->getLastDevice();
 
-    if (devicePtr) {
-        devicePtr->setSensorId(id);
+    if (device) {
+        device->setSensorId(id);
 
         if (retVal.second && ptr.mSensorDevice == nullptr) {
             MessageHandler::printInfo("Connecting to sensor '%s'", address.c_str());

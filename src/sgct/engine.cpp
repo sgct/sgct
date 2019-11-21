@@ -631,9 +631,7 @@ void Engine::initWindows() {
             share = thisNode.getWindow(0).getWindowHandle();
         }
 
-        if (!thisNode.getWindow(i).openWindow(share, lastWindowIdx)) {
-            throw Error(3005, "Failed to open window " + std::to_string(i));
-        }
+        thisNode.getWindow(i).openWindow(share, lastWindowIdx);
     }
 
     glbinding::Binding::initialize(glfwGetProcAddress);
@@ -753,7 +751,7 @@ void Engine::initWindows() {
         }
     }
     else {
-        throw Error(3006, "No windows created on this node");
+        throw Error(3005, "No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -997,7 +995,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             throw Error(
-                3007,
+                3006,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -1057,7 +1055,7 @@ void Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
             throw Error(
-                3008,
+                3007,
                 "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
             );
         }

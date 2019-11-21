@@ -9,7 +9,6 @@
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
-#include <sgct/config.h>
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
@@ -22,13 +21,12 @@ namespace config {
     struct Device;
     struct Tracker;
 } // namespace config
+
 namespace core { class User; }
 
 class TrackingDevice;
 
-/**
- * Class that manages tracking systems
- */
+/// Class that manages tracking systems
 class TrackingManager {
 public:
     static TrackingManager& instance();

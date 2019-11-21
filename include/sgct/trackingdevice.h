@@ -33,7 +33,7 @@ public:
 
     /// Set the number of analog axes
     void setNumberOfAxes(int numOfAxes);
-    void setSensorTransform(glm::dvec3 vec, glm::dquat rot);
+    void setSensorTransform(glm::vec3 vec, glm::quat rot);
     void setButtonValue(bool val, int index);
     void setAnalogValue(const double* array, int size);
 

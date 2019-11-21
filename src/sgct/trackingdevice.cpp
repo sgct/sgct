@@ -47,7 +47,7 @@ void TrackingDevice::setNumberOfAxes(int numOfAxes) {
     _nAxes = numOfAxes;
 }
 
-void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
+void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
     Tracker* parent = TrackingManager::instance().getTracker(_parentIndex);
 
     if (parent == nullptr) {
@@ -57,15 +57,11 @@ void TrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
         return;
     }
     
-    glm::mat4 parentTrans = parent->getTransform();
-
-    // convert from double to float
-    glm::quat sensorRot = rot;
-    glm::vec3 sensorPos(vec);
+    const glm::mat4 parentTrans = parent->getTransform();
 
     // create matrixes
-    const glm::mat4 sensorTransMat = glm::translate(glm::mat4(1.f), sensorPos);
-    const glm::mat4 sensorRotMat(glm::mat4_cast(sensorRot));
+    const glm::mat4 sensorTransMat = glm::translate(glm::mat4(1.f), vec);
+    const glm::mat4 sensorRotMat(glm::mat4_cast(rot));
 
     {
         std::unique_lock lock(core::mutex::Tracking);

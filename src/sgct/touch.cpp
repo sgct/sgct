@@ -8,6 +8,7 @@
 
 #include <sgct/touch.h>
 
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <algorithm>
 
@@ -47,7 +48,6 @@ std::string getTouchPointInfo(const Touch::TouchPoint& tp) {
     return result;
 }
 
-
 std::vector<Touch::TouchPoint> Touch::getLatestTouchPoints() const {
     return _touchPoints;
 }
@@ -57,35 +57,24 @@ void Touch::setLatestPointsHandled() {
 }
 
 void Touch::processPoint(int id, int action, double x, double y, int width, int height) {
-    glm::vec2 windowSize = glm::vec2(
-        static_cast<float>(width),
-        static_cast<float>(height)
-    );
+    glm::vec2 size = glm::vec2(static_cast<float>(width), static_cast<float>(height));
     glm::vec2 pos = glm::vec2(static_cast<float>(x), static_cast<float>(y));
-    glm::vec2 normpos = pos / windowSize;
+    glm::vec2 normpos = pos / size;
 
     using TouchAction = TouchPoint::TouchAction;
-    TouchAction touchAction;
-    switch (action) {
-        case GLFW_PRESS:
-            touchAction = TouchAction::Pressed;
-            break;
-        case GLFW_MOVE:
-            touchAction = TouchAction::Moved;
-            break;
-        case GLFW_RELEASE:
-            touchAction = TouchAction::Released;
-            break;
-        case GLFW_REPEAT:
-            touchAction = TouchAction::Stationary;
-            break;
-        default:
-            touchAction = TouchAction::NoAction;
-    }
+    TouchAction touchAction = [](int action) -> TouchPoint::TouchAction {
+        switch (action) {
+            case GLFW_PRESS:   return TouchAction::Pressed;
+            case GLFW_MOVE:    return TouchAction::Moved;
+            case GLFW_RELEASE: return TouchAction::Released;
+            case GLFW_REPEAT:  return TouchAction::Stationary;
+            default:           return TouchAction::NoAction;
+        }
+    }(action);
 
     glm::vec2 prevPos = pos;
 
-    auto prevPosMapIt = _previousTouchPositions.find(id);
+    const auto prevPosMapIt = _previousTouchPositions.find(id);
     if (prevPosMapIt != _previousTouchPositions.end()) {
         prevPos = prevPosMapIt->second;
         if (touchAction == TouchAction::Released) {
@@ -100,7 +89,7 @@ void Touch::processPoint(int id, int action, double x, double y, int width, int 
     }
 
     // Add to end of corrected ordered vector if new touch point
-    auto lastIdIdx = std::find(_prevTouchIds.begin(), _prevTouchIds.end(), id);
+    const auto lastIdIdx = std::find(_prevTouchIds.begin(), _prevTouchIds.end(), id);
     if (lastIdIdx == _prevTouchIds.end()) {
         _prevTouchIds.push_back(id);
     }
@@ -110,7 +99,7 @@ void Touch::processPoint(int id, int action, double x, double y, int width, int 
         touchAction = TouchAction::Stationary;
     }
 
-    _touchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / windowSize});
+    _touchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / size});
 }
 
 void Touch::processPoints(GLFWtouch* points, int count, int width, int height) {
@@ -119,10 +108,9 @@ void Touch::processPoints(GLFWtouch* points, int count, int width, int height) {
         processPoint(p.id, p.action, p.x, p.y, width, height);
     }
 
-    // Ensure that the order to the touch points are the same as last touch event.
-    // Note that the ID of a touch point is always the same but the order in which
-    // they are given can vary.
-    // Example
+    // Ensure that the order to the touch points are the same as last touch event. Note
+    // that the ID of a touch point is always the same but their order can vary.
+    // Example:
     // lastTouchIds_    touchPoints
     //     0                 0
     //     3                 1 

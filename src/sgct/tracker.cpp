@@ -38,21 +38,21 @@ TrackingDevice* Tracker::getDevice(size_t index) const {
 }
 
 TrackingDevice* Tracker::getDevice(const std::string& name) const {
-    auto it = std::find_if(
-        _trackingDevices.begin(),
-        _trackingDevices.end(),
+    const auto it = std::find_if(
+        _trackingDevices.cbegin(),
+        _trackingDevices.cend(),
         [name](const std::unique_ptr<TrackingDevice>& d) { return d->getName() == name; }
     );
-    return it != _trackingDevices.end() ? it->get() : nullptr;
+    return it != _trackingDevices.cend() ? it->get() : nullptr;
 }
 
 TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
-    auto it = std::find_if(
-        _trackingDevices.begin(),
-        _trackingDevices.end(),
+    const auto it = std::find_if(
+        _trackingDevices.cbegin(),
+        _trackingDevices.cend(),
         [id](const std::unique_ptr<TrackingDevice>& d) { return d->getSensorId() == id; }
     );
-    return it != _trackingDevices.end() ? it->get() : nullptr;
+    return it != _trackingDevices.cend() ? it->get() : nullptr;
 }
 
 void Tracker::setOrientation(glm::quat q) {
@@ -60,7 +60,8 @@ void Tracker::setOrientation(glm::quat q) {
 
     // create inverse rotation matrix
     _orientation = glm::inverse(glm::mat4_cast(q));
-    calculateTransform();
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
+    _transform = transMat * _orientation;
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -74,7 +75,8 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
 void Tracker::setOffset(glm::vec3 offset) {
     std::unique_lock lock(core::mutex::Tracking);
     _offset = std::move(offset);
-    calculateTransform();
+    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
+    _transform = transMat * _orientation;
 }
 
 void Tracker::setScale(double scaleVal) {
@@ -105,11 +107,6 @@ int Tracker::getNumberOfDevices() const {
 
 const std::string& Tracker::getName() const {
     return _name;
-}
-
-void Tracker::calculateTransform() {
-    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
-    _transform = transMat * _orientation;
 }
 
 } // namespace sgct

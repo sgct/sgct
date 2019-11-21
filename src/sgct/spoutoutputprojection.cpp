@@ -34,6 +34,10 @@ namespace {
 
 namespace sgct::core {
 
+SpoutOutputProjection::SpoutOutputProjection() {
+    setUseDepthTransformation(true);
+}
+        
 SpoutOutputProjection::~SpoutOutputProjection() {
 #ifdef SGCT_HAS_SPOUT
     for (int i = 0; i < NFaces; i++) {
@@ -60,7 +64,6 @@ void SpoutOutputProjection::update(glm::vec2) {
         1.f, 1.f,  1.f,  1.f, -1.f
     };
 
-    // update VBO
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
@@ -178,32 +181,18 @@ void SpoutOutputProjection::render() {
 }
 
 void SpoutOutputProjection::renderCubemap() {
-    for (int i = 0; i < 6; i++) {
-        BaseViewport& vp = [this](int face) -> BaseViewport& {
-            switch (face) {
-            default:
-            case 0: return _subViewports.right;
-            case 1: return _subViewports.left;
-            case 2: return _subViewports.bottom;
-            case 3: return _subViewports.top;
-            case 4: return _subViewports.front;
-            case 5: return _subViewports.back;
-            }
-        }(i);
-        unsigned int idx = static_cast<unsigned int>(i);
-
-        if (!_spout[i].enabled || !vp.isEnabled()) {
-            continue;
+    auto renderFace = [this](BaseViewport& vp, unsigned int idx) {
+        if (!_spout[idx].enabled || !vp.isEnabled()) {
+            return;
         }
 
-        // bind & attach buffer
         _cubeMapFbo->bind();
         if (!_cubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
         Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
-        drawCubeFace(i);
+        drawCubeFace(vp);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -273,7 +262,7 @@ void SpoutOutputProjection::renderCubemap() {
         if (_mappingType == Mapping::Cubemap) {
             _cubeMapFbo->unbind();
 
-            if (_spout[i].handle) {
+            if (_spout[idx].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glCopyImageSubData(
                     _textures.cubeMapColor,
@@ -282,7 +271,7 @@ void SpoutOutputProjection::renderCubemap() {
                     0,
                     0,
                     idx,
-                    _spout[i].texture,
+                    _spout[idx].texture,
                     GL_TEXTURE_2D,
                     0,
                     0,
@@ -294,7 +283,14 @@ void SpoutOutputProjection::renderCubemap() {
                 );
             }
         }
-    }
+    };
+
+    renderFace(_subViewports.right, 0);
+    renderFace(_subViewports.left, 1);
+    renderFace(_subViewports.bottom, 2);
+    renderFace(_subViewports.top, 3);
+    renderFace(_subViewports.front, 4);
+    renderFace(_subViewports.back, 5);
 }
 
 void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom,
@@ -368,9 +364,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 4;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            MessageHandler::printDebug(
-                "SpoutOutputProjection initTextures Equirectangular"
-            );
+            MessageHandler::printDebug("Spout Projection initTextures Equirectangular");
             _mappingHandle = GetSpout();
             if (_mappingHandle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
@@ -436,16 +430,14 @@ void SpoutOutputProjection::initTextures() {
 }
 
 void SpoutOutputProjection::initViewports() {
-    enum class CubeFaces { PosX = 0, NegX, PosY, NegY, PosZ, NegZ };
-
-    // radius is needed to calculate the distance to all view planes
-    const float radius = 1.f;
+    // distance is needed to calculate the distance to all view planes
+    constexpr const float Distance = 1.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
-    const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
-    const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
-    const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
+    const glm::vec4 lowerLeftBase(-Distance, -Distance, Distance, 1.f);
+    const glm::vec4 upperLeftBase(-Distance, Distance, Distance, 1.f);
+    const glm::vec4 upperRightBase(Distance, Distance, Distance, 1.f);
 
     const glm::mat4 pitchRot = glm::rotate(
         glm::mat4(1.f),
@@ -463,105 +455,86 @@ void SpoutOutputProjection::initViewports() {
         glm::vec3(0.f, 0.f, 1.f)
     );
 
-    // right, left, bottom, top, front, back
+    // right
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
+        _subViewports.right.setSize(glm::vec2(1.f, 1.f));
+       
         glm::vec4 upperRight = upperRightBase;
+        upperRight.x = Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
-        upperRight.x = radius;
-        _subViewports.right.setSize(glm::vec2(1.f, 1.f));
-
         _subViewports.right.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
             glm::vec3(r * upperRight)
         );
     }
 
     // left
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-        lowerLeft.x = -radius;
-        upperLeft.x = -radius;
         _subViewports.left.setPos(glm::vec2(0.f, 0.f));
         _subViewports.left.setSize(glm::vec2(1.f, 1.f));
 
+        glm::vec4 lowerLeft = lowerLeftBase;
+        lowerLeft.x = -Distance;
+        glm::vec4 upperLeft = upperLeftBase;
+        upperLeft.x = -Distance;
+
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.left.getProjectionPlane().setCoordinates(
             glm::vec3(r * lowerLeft),
             glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            glm::vec3(r * upperRightBase)
         );
     }
 
     // bottom
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
-        lowerLeft.y = -radius;
         _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
         _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
 
+        glm::vec4 lowerLeft = lowerLeftBase;
+        lowerLeft.y = -Distance;
+
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
         _subViewports.bottom.getProjectionPlane().setCoordinates(
             glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
         );
     }
 
     // top
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
         glm::vec4 upperLeft = upperLeftBase;
+        upperLeft.y = Distance;
         glm::vec4 upperRight = upperRightBase;
+        upperRight.y = Distance;
 
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-        upperLeft.y = radius;
-        upperRight.y = radius;
         _subViewports.top.setSize(glm::vec2(1.f, 1.f));
 
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
         _subViewports.top.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
+            glm::vec3(r * lowerLeftBase),
             glm::vec3(r * upperLeft),
             glm::vec3(r * upperRight)
         );
     }
 
     // front
-    {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
-        glm::mat4 rotMat = rollRot;
-
-        _subViewports.front.getProjectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeft),
-            glm::vec3(rotMat * upperLeft),
-            glm::vec3(rotMat * upperRight)
-        );
-    }
+    _subViewports.front.getProjectionPlane().setCoordinates(
+        glm::vec3(rollRot * lowerLeftBase),
+        glm::vec3(rollRot * upperLeftBase),
+        glm::vec3(rollRot * upperRightBase)
+    );
 
     // back
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
         glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
-
         _subViewports.back.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
         );
     }
 }
@@ -689,6 +662,8 @@ void SpoutOutputProjection::initShaders() {
         case Mapping::Cubemap:
             name = "None";
             break;
+        default:
+            throw std::logic_error("Unhandled case label");
     }
     _shader = ShaderProgram(std::move(name));
     _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
@@ -727,76 +702,19 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 }
 
-void SpoutOutputProjection::drawCubeFace(int face) {
-    BaseViewport& vp = [this](int face) -> BaseViewport& {
-        switch (face) {
-            default:
-            case 0: return _subViewports.right;
-            case 1: return _subViewports.left;
-            case 2: return _subViewports.bottom;
-            case 3: return _subViewports.top;
-            case 4: return _subViewports.front;
-            case 5: return _subViewports.back;
-        }
-    }(face);
-
+void SpoutOutputProjection::drawCubeFace(BaseViewport& viewport) {
     glLineWidth(1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    // reset depth function (to opengl default)
     glDepthFunc(GL_LESS);
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(vp);
+    setupViewport(viewport);
 
-#ifdef DebugCubemap
-    glm::vec4 color;
-    switch (face) {
-        case 0:
-            color.r = 0.5f;
-            color.g = 0.f;
-            color.b = 0.f;
-            color.a = 1.0f;
-            break;
-        case 1:
-            color.r = 0.5f;
-            color.g = 0.5f;
-            color.b = 0.f;
-            color.a = 1.f;
-            break;
-        case 2:
-            color.r = 0.f;
-            color.g = 0.5f;
-            color.b = 0.f;
-            color.a = 1.f;
-            break;
-        case 3:
-            color.r = 0.f;
-            color.g = 0.5f;
-            color.b = 0.5f;
-            color.a = 1.f;
-            break;
-        case 4:
-            color.r = 0.f;
-            color.g = 0.f;
-            color.b = 0.5f;
-            color.a = 1.f;
-            break;
-        case 5:
-            color.r = 0.5f;
-            color.g = 0.f;
-            color.b = 0.5f;
-            color.a = 1.f;
-            break;
-    }
-    glClearColor(color.r, color.g, color.b, color.a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#else
     const glm::vec4 color = Engine::instance().getClearColor();
     const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
 
     glDisable(GL_SCISSOR_TEST);
 
@@ -807,7 +725,6 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 }
 
 void SpoutOutputProjection::blitCubeFace(int face) {
-    // bind separate read and draw buffers to prepare blit operation
     _cubeMapFbo->bindBlit();
     attachTextures(face);
     _cubeMapFbo->blit();

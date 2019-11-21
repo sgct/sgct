@@ -10,14 +10,12 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
-#include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <sgct/mpcdi.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
-#include <sgct/viewport.h>
 #include <sgct/shaders/internalshaders.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,13 +50,6 @@ namespace {
     using ResetFrameCount = GLboolean(*)(HDC hDC);
     ResetFrameCount wglResetFrameCountNV = nullptr;
 #endif // WIN32
-
-    constexpr const std::array<const float, 20> QuadVerts = {
-        0.f, 0.f, -1.f, -1.f, -1.f,
-        1.f, 0.f,  1.f, -1.f, -1.f,
-        0.f, 1.f, -1.f,  1.f, -1.f,
-        1.f, 1.f,  1.f,  1.f, -1.f
-    };
 
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
         width = std::max(width, 1);
@@ -113,9 +104,7 @@ bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_currentContextOwner = nullptr;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window(int id)
-    : _id(id)
-{
+Window::Window(int id) : _id(id) {
     _useFXAA = Settings::instance().getDefaultFXAAState();
     _nAASamples = Settings::instance().getDefaultNumberOfAASamples();
 }
@@ -368,7 +357,52 @@ void Window::init() {
 }
 
 void Window::initOGL() {
-    updateColorBufferData();
+    _colorFormat = GL_BGRA;
+    
+    switch (_bufferColorBitDepth) {
+        case ColorBitDepth::Depth8:
+            _internalColorFormat = GL_RGBA8;
+            _colorDataType = GL_UNSIGNED_BYTE;
+            _bytesPerColor = 1;
+            break;
+        case ColorBitDepth::Depth16:
+            _internalColorFormat = GL_RGBA16;
+            _colorDataType = GL_UNSIGNED_SHORT;
+            _bytesPerColor = 2;
+            break;
+        case ColorBitDepth::Depth16Float:
+            _internalColorFormat = GL_RGBA16F;
+            _colorDataType = GL_HALF_FLOAT;
+            _bytesPerColor = 2;
+            break;
+        case ColorBitDepth::Depth32Float:
+            _internalColorFormat = GL_RGBA32F;
+            _colorDataType = GL_FLOAT;
+            _bytesPerColor = 4;
+            break;
+        case ColorBitDepth::Depth16Int:
+            _internalColorFormat = GL_RGBA16I;
+            _colorDataType = GL_SHORT;
+            _bytesPerColor = 2;
+            break;
+        case ColorBitDepth::Depth32Int:
+            _internalColorFormat = GL_RGBA32I;
+            _colorDataType = GL_INT;
+            _bytesPerColor = 2;
+            break;
+        case ColorBitDepth::Depth16UInt:
+            _internalColorFormat = GL_RGBA16UI;
+            _colorDataType = GL_UNSIGNED_SHORT;
+            _bytesPerColor = 2;
+            break;
+        case ColorBitDepth::Depth32UInt:
+            _internalColorFormat = GL_RGBA32UI;
+            _colorDataType = GL_UNSIGNED_INT;
+            _bytesPerColor = 4;
+            break;
+        default:
+            throw std::logic_error("Unhandled case label");
+    }
     
     createTextures();
     createVBOs(); // must be created before FBO
@@ -798,7 +832,6 @@ void Window::setFixResolution(bool state) {
     _useFixResolution = state;
 }
 
-
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
     MessageHandler::printDebug(
@@ -835,7 +868,7 @@ void Window::setBlitPreviousWindow(bool state) {
     }
 }
 
-bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
+void Window::openWindow(GLFWwindow* share, int lastWindow) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
@@ -881,7 +914,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
 
     _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", _monitor, share);
     if (_windowHandle == nullptr) {
-        return false;
+        throw Error(8001, "Error opening window");
     }
 
     _sharedHandle = share != nullptr ? share : _windowHandle;
@@ -897,7 +930,6 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         _framebufferRes = bufferSize;
     }
         
-    //
     // Swap inerval:
     //  -1 = adaptive sync
     //   0 = vertical sync off
@@ -908,12 +940,7 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    if (getId() == lastWindowIdx) {
-        glfwSwapInterval(Settings::instance().getSwapInterval());
-    }
-    else {
-        glfwSwapInterval(0);
-    }
+    glfwSwapInterval(getId() == lastWindow ? Settings::instance().getSwapInterval() : 0);
 
     updateTransferCurve();
 
@@ -932,8 +959,6 @@ bool Window::openWindow(GLFWwindow* share, int lastWindowIdx) {
         _screenCaptureRight = std::make_unique<core::ScreenCapture>();
     }
     _finalFBO = std::make_unique<core::OffScreenBuffer>();
-
-    return true;
 }
 
 void Window::initNvidiaSwapGroups() {
@@ -957,12 +982,9 @@ void Window::initNvidiaSwapGroups() {
         // wglQueryMaxSwapGroupsNV. If group is zero, the hDC is unbound from its current
         // group, if any. If group is larger than maxGroups, wglJoinSwapGroupNV fails.
         _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-        if (_useSwapGroups) {
-            MessageHandler::printInfo("Joining swapgroup 1 [ok]");
-        }
-        else {
-            MessageHandler::printInfo("Joining swapgroup 1 [failed]");
-        }
+        MessageHandler::printInfo(
+            "Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed"
+        );
     }
     else {
         _useSwapGroups = false;
@@ -1085,10 +1107,7 @@ void Window::createTextures() {
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
-    // clean up if needed
     glDeleteTextures(1, &id);
-    id = 0;
-
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     
@@ -1136,6 +1155,13 @@ void Window::createFBOs() {
 }
 
 void Window::createVBOs() {
+    constexpr const std::array<const float, 20> QuadVerts = {
+        0.f, 0.f, -1.f, -1.f, -1.f,
+        1.f, 0.f,  1.f, -1.f, -1.f,
+        0.f, 1.f, -1.f,  1.f, -1.f,
+        1.f, 1.f,  1.f,  1.f, -1.f
+    };
+
     glGenVertexArrays(1, &_vao);
     MessageHandler::printDebug("Window: Generating VAO: %d", _vao);
 
@@ -1144,6 +1170,7 @@ void Window::createVBOs() {
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
     //2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
@@ -1167,11 +1194,9 @@ void Window::createVBOs() {
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Window::loadShaders() {
-    // load shaders
     if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
         return;
     }
@@ -1218,14 +1243,6 @@ void Window::bindVAO() const {
     glBindVertexArray(_vao);
 }
 
-void Window::bindVBO() const {
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-}
-
-void Window::unbindVBO() const {
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
 void Window::unbindVAO() const {
     glBindVertexArray(0);
 }
@@ -1262,7 +1279,6 @@ void Window::resizeFBOs() {
     _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
         
     if (!_finalFBO->isMultiSampled()) {
-        //attatch color buffer to prevent GL errors
         _finalFBO->bind();
         _finalFBO->attachColorTexture(_frameBufferTextures.leftEye);
         _finalFBO->unbind();
@@ -1306,6 +1322,7 @@ const core::Viewport& Window::getViewport(int index) const {
     return *_viewports[index];
 }
 
+// @TODO (abock, 2019-11-22) I'd like to remove these functions if possible
 const core::Viewport& Window::getViewport(int index, bool& validReference) const {
     validReference = (_viewports[index] != nullptr);
     return *_viewports[(validReference) ? index : 0];
@@ -1356,7 +1373,7 @@ core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     }
 }
 
-void Window::setCurrentViewport(size_t index) {
+void Window::setCurrentViewport(int index) {
     _currentViewport = _viewports[index].get();
 }
 
@@ -1394,55 +1411,6 @@ void Window::updateTransferCurve() {
     ramp.green = green.data();
     ramp.blue = blue.data();
     glfwSetGammaRamp(_monitor, &ramp);
-}
-
-void Window::updateColorBufferData() {
-    _colorFormat = GL_BGRA;
-    
-    switch (_bufferColorBitDepth) {
-        case ColorBitDepth::Depth8:
-            _internalColorFormat = GL_RGBA8;
-            _colorDataType = GL_UNSIGNED_BYTE;
-            _bytesPerColor = 1;
-            break;
-        case ColorBitDepth::Depth16:
-            _internalColorFormat = GL_RGBA16;
-            _colorDataType = GL_UNSIGNED_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth16Float:
-            _internalColorFormat = GL_RGBA16F;
-            _colorDataType = GL_HALF_FLOAT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32Float:
-            _internalColorFormat = GL_RGBA32F;
-            _colorDataType = GL_FLOAT;
-            _bytesPerColor = 4;
-            break;
-        case ColorBitDepth::Depth16Int:
-            _internalColorFormat = GL_RGBA16I;
-            _colorDataType = GL_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32Int:
-            _internalColorFormat = GL_RGBA32I;
-            _colorDataType = GL_INT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth16UInt:
-            _internalColorFormat = GL_RGBA16UI;
-            _colorDataType = GL_UNSIGNED_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32UInt:
-            _internalColorFormat = GL_RGBA32UI;
-            _colorDataType = GL_UNSIGNED_INT;
-            _bytesPerColor = 4;
-            break;
-        default:
-            throw std::logic_error("Unhandled case label");
-    }
 }
 
 bool Window::useRightEyeTexture() const {

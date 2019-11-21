@@ -105,10 +105,9 @@ namespace sgct {
     3002: Engine / Requested node id was not found in the cluster configuration
     3003: Engine / Error initializing network connections
     3004: Engine / No windows exist in configuration
-    3005: Engine / Failed to open window
-    3006: Engine / No windows created on this node
-    3007: Engine / No sync signal from master after X seconds
-    3008: Engine / No sync signal from slaves after X seconds
+    3005: Engine / No windows created on this node
+    3006: Engine / No sync signal from master after X seconds
+    3007: Engine / No sync signal from slaves after X seconds
 
     4000s: MPCDI
     4000: MPCDI / Failed to parse position from XML
@@ -180,6 +179,7 @@ namespace sgct {
 
     8000s: Window
     8000: Error resolving swapgroup functions
+    8001: Error opening window
 */
 
 struct Error : public std::runtime_error {

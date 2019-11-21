@@ -23,10 +23,7 @@ struct GLFWwindow;
 namespace sgct {
 
 namespace config { struct Window; }
-namespace core {
-    class BaseViewport;
-    class ScreenCapture;
-} // namespace core
+namespace core { class BaseViewport; }
 
 /**
  * Helper class for window data.
@@ -81,9 +78,8 @@ public:
     void applyWindow(const config::Window& window);
 
     /**
-     * Init Nvidia swap groups if they are supported by hardware. Supported hardware is
-     * Nvidia Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync
-     * card.
+     * Init Nvidia swap groups if supported by hardware. Supported hardware is Nvidia
+     * Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync card.
      */
     static void initNvidiaSwapGroups();
 
@@ -101,7 +97,7 @@ public:
     void close();
     void init();
 
-    /// Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
+    /// Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs
     void initOGL();
 
     /// Init context specific data such as viewport corrections/warping meshes
@@ -124,14 +120,15 @@ public:
     /**
      * This function is used internally within sgct to open the window.
      *
-     * /return True if window was created successfully.
+     * \param share The context that is shared between windows. Might be nullptr
+     * \param lastWindow the index of the last window. This is necessary as we only want
+     *        to set the vsync setting once per node
      */
-    bool openWindow(GLFWwindow* share, int lastWindowIdx);
+    void openWindow(GLFWwindow* share, int lastWindow);
 
     /**
-     * Set this window's OpenGL context or the shared context as current. This function
-     * keeps track of which context is in use and only set the context to current if it's
-     * not.
+     * Set this window's or the shared OpenGL context as current. This function keeps
+     * track of which context is in use and only set the context to current if it's not.
      */
     void makeOpenGLContextCurrent(Context context);
 
@@ -162,6 +159,7 @@ public:
 
     /**
      * Set the window title.
+     *
      * \param title The title of the window.
      */
     void setWindowTitle(const char* title);
@@ -177,8 +175,6 @@ public:
     /**
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
      * resolution is used that is different from the window resolution.
-     * This might be useful in fullscreen mode on Apples retina displays to force 1080p
-     * resolution or similar.
      *
      * \param x The width of the frame buffer in pixels.
      * \param y The height of the frame buffer in pixels.
@@ -186,7 +182,7 @@ public:
     void setFramebufferResolution(glm::ivec2 resolution);
 
     /**
-     * Set this window's position in screen coordinates
+     * Set this window's position in screen coordinates.
      *
      * \param x horizontal position in pixels
      * \param y vertical position in pixels
@@ -199,10 +195,7 @@ public:
     /// Set if the window should float (be on top / topmost)
     void setFloating(bool floating);
 
-    /**
-     * Set if the window should be double buffered (can only be set before window is
-     * created)
-     */
+    /// Set if the window is double buffered (can only be set before window creation)
     void setDoubleBuffered(bool doubleBuffered);
 
     /// Set if window borders should be visible
@@ -211,10 +204,7 @@ public:
     /// Set which monitor that should be used for fullscreen mode
     void setFullScreenMonitorIndex(int index);
 
-    /**
-     * Force the framebuffer to have a fixed size which may be different from the window
-     * size.
-     */
+    /// Force the framebuffer to a fixed size which may be different from the window size
     void setFixResolution(bool state);
     void setHorizFieldOfView(float hFovDeg);
 
@@ -250,7 +240,7 @@ public:
      * Set the which viewport that is the current. This is done from the Engine and end
      * users shouldn't change this
      */
-    void setCurrentViewport(size_t index);
+    void setCurrentViewport(int index);
 
     /**
      * Set the which viewport that is the current. This is done internally from SGCT and
@@ -297,7 +287,7 @@ public:
     /// \return true if the window is set to render while hidden
     bool isRenderingWhileHidden() const;
 
-    /// \return If the frame buffer has a fix resolution this function returns true.
+    /// \return If the frame buffer has a fix resolution this function returns true
     bool isFixResolution() const;
 
     /// \return true if any kind of stereo is enabled
@@ -330,17 +320,14 @@ public:
      * This function returns the screen capture pointer if it's set otherwise nullptr.
      *
      * \param eye can either be 0 (left) or 1 (right)
-     * \return pointer to screen capture ptr
+     * \return pointer to screen capture pointer
      */
     core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
 
     /// \return the number of samples used in multisampled anti-aliasing
     int getNumberOfAASamples() const;
 
-    /**
-     * Returns the stereo mode. The value can be compared to the
-     * sgct::core::ClusterManager::StereoMode enum
-     */
+    /// \return the stereo mode
     StereoMode getStereoMode() const;
 
     /**
@@ -426,8 +413,6 @@ public:
     int getFramebufferBPCC() const;
 
     void bindVAO() const;
-    void bindVBO() const;
-    void unbindVBO() const;
     void unbindVAO() const;
 
     /// Add a post effect for this window
@@ -459,16 +444,10 @@ private:
     void createTextures();
     void generateTexture(unsigned int& id, TextureType type);
 
-    /**
-     * This function creates FBOs if they are supported. This is done in the initOGL
-     * function.
-     */
+    /// This function creates FBOs. This is done in the initOGL function.
     void createFBOs();
 
-    /**
-     * This function resizes the FBOs when the window is resized to achive 1:1 pixel-texel
-     * mapping.
-     */
+    /// This function resizes the FBOs when the window is resized to achive 1:1 mapping
     void resizeFBOs();
 
     void destroyFBOs();
@@ -477,7 +456,6 @@ private:
     void createVBOs();
     void loadShaders();
     void updateTransferCurve();
-    void updateColorBufferData();
     bool useRightEyeTexture() const;
 
     std::string _name;

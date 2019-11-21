@@ -1322,19 +1322,8 @@ const core::Viewport& Window::getViewport(int index) const {
     return *_viewports[index];
 }
 
-// @TODO (abock, 2019-11-22) I'd like to remove these functions if possible
-const core::Viewport& Window::getViewport(int index, bool& validReference) const {
-    validReference = (_viewports[index] != nullptr);
-    return *_viewports[(validReference) ? index : 0];
-}
-
 core::Viewport& Window::getViewport(int index) {
     return *_viewports[index];
-}
-
-core::Viewport& Window::getViewport(int index, bool& validReference) {
-    validReference = (_viewports[index] != nullptr);
-    return *_viewports[(validReference) ? index : 0];
 }
 
 glm::ivec4 Window::getCurrentViewportPixelCoords() const {

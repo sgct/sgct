@@ -25,9 +25,7 @@ namespace sgct {
 namespace config { struct Window; }
 namespace core { class BaseViewport; }
 
-/**
- * Helper class for window data.
- */
+/// Helper class for window data.
 class Window {
 public:
     /// Different stereo modes used for rendering
@@ -352,14 +350,8 @@ public:
     /// \return a reference to a specific viewport
     core::Viewport& getViewport(int index);
 
-    /// \return a reference to a specific viewport, checking validity of reference
-    core::Viewport& getViewport(int index, bool& validReference);
-
     /// \return a const reference to a specific viewport
     const core::Viewport& getViewport(int index) const;
-
-    /// \return a const reference to a specific viewport, checking validity of reference
-    const core::Viewport& getViewport(int index, bool& validReference) const;
 
     /// Get the current viewport data in pixels.
     glm::ivec4 getCurrentViewportPixelCoords() const;

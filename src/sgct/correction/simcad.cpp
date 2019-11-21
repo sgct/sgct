@@ -19,11 +19,9 @@
 namespace sgct::core::correction {
 
 Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& parent) {
-    // During projector alignment, a 33x33 matrix is used. This means 33x33 points can be
-    // set to define geometry correction. So(x, y) coordinates are defined by the 33x33
-    // matrix and the resolution used, defined by the tag. And the corrections to be
-    // applied for every point in that 33x33 matrix, are stored in the warp file. This 
-    // explains why this file only contains zero’s when no warp is applied.
+    // During projector alignment of 33x33 matrix is used to define geometry correction.
+    // The corrections are stored in the warp file. This explains why this file only
+    // contains zero’s when no warp is applied.
 
     Buffer buf;
 
@@ -49,14 +47,13 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
         throw Error(2062, "Error reading file " + path + ". Missing GeometryDefinition");
     }
 
-    float xrange = 1.f;
-    float yrange = 1.f;
     std::vector<float> xcorrections, ycorrections;
     XMLElement* child = element->FirstChildElement();
     while (child) {
         std::string_view childVal = child->Value();
 
         if (childVal == "X-FlatParameters") {
+            float xrange = 1.f;
             if (child->QueryFloatAttribute("range", &xrange) == XML_NO_ERROR) {
                 std::string xcoordstr(child->GetText());
                 std::vector<std::string> xcoords = helpers::split(xcoordstr, ' ');
@@ -66,6 +63,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
             }
         }
         else if (childVal == "Y-FlatParameters") {
+            float yrange = 1.f;
             if (child->QueryFloatAttribute("range", &yrange) == XML_NO_ERROR) {
                 std::string ycoordstr(child->GetText());
                 std::vector<std::string> ycoords = helpers::split(ycoordstr, ' ');
@@ -82,15 +80,15 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
         throw Error(2063, "Not the same x coords as y coords");
     }
 
-    const float numberOfColsf = sqrt(static_cast<float>(xcorrections.size()));
-    const float numberOfRowsf = sqrt(static_cast<float>(ycorrections.size()));
+    const float nColumnsf = sqrt(static_cast<float>(xcorrections.size()));
+    const float nRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
-    if (ceil(numberOfColsf) != numberOfColsf || ceil(numberOfRowsf) != numberOfRowsf) {
+    if (ceil(nColumnsf) != nColumnsf || ceil(nRowsf) != nRowsf) {
         throw Error(2064, "Not a valid squared matrix read from SimCAD file");
     }
 
-    const unsigned int nCols = static_cast<unsigned int>(numberOfColsf);
-    const unsigned int nRows = static_cast<unsigned int>(numberOfRowsf);
+    const unsigned int nCols = static_cast<unsigned int>(nColumnsf);
+    const unsigned int nRows = static_cast<unsigned int>(nRowsf);
 
     // init to max intensity (opaque white)
     CorrectionMeshVertex vertex;

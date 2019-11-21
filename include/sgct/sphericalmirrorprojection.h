@@ -16,12 +16,11 @@
 
 namespace sgct::core {
 
-/**
- * This class manages and renders non-linear fisheye projections
- */
+/// This class manages and renders non-linear fisheye projections
 class SphericalMirrorProjection : public NonLinearProjection {
 public:
-    SphericalMirrorProjection() = default;
+    SphericalMirrorProjection(std::string bottomMesh, std::string leftMesh,
+        std::string rightMesh, std::string topMesh);
     virtual ~SphericalMirrorProjection() = default;
 
     void update(glm::vec2 size) override;
@@ -40,25 +39,12 @@ public:
      */
     void setTilt(float angle);
 
-    /**
-     * Set the mesh path for selected cube face.
-     *
-     * \param mt the mesh face
-     * \param str the path to the mesh
-     */
-    void setMeshPaths(std::string bottom, std::string left, std::string right,
-        std::string top);
-
 private:
     void initTextures() override;
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
-        
-    void drawCubeFace(size_t face);
-    void blitCubeFace(unsigned int texture);
-    void attachTextures(unsigned int texture);
-
+       
     float _tilt = 0.f;
     float _diameter = 2.4f;
 

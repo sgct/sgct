@@ -8,7 +8,6 @@
 
 #include <sgct/utils/sphere.h>
 
-#include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>
@@ -18,43 +17,39 @@
 namespace sgct::utils {
 
 Sphere::Sphere(float radius, unsigned int segments) {
-    unsigned int vsegs = std::max<unsigned int>(segments, 2);
-    unsigned int hsegs = vsegs * 2;
-    _nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
+    const unsigned int vsegs = std::max<unsigned int>(segments, 2);
+    const unsigned int hsegs = vsegs * 2;
+    unsigned int nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
     _nFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
 
-    std::vector<helpers::VertexData> verts(_nVertices);
+    std::vector<helpers::VertexData> verts(nVertices);
 
     // First vertex: top pole (+y is "up" in object local coords)
     verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
 
     // Last vertex: bottom pole
-    verts[_nVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
+    verts[nVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
 
     // All other vertices:
     // vsegs-1 latitude rings of hsegs+1 vertices each
     // (duplicates at texture seam s=0 / s=1)
     for (unsigned int j = 0; j < vsegs - 1; j++) {
         // vsegs-1 latitude rings of vertices
-        const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs))*
-            glm::pi<double>();
+        const double theta = (static_cast<double>(j + 1) / vsegs ) * glm::pi<double>();
         const float y = static_cast<float>(cos(theta));
-        const float R = static_cast<float>(sin(theta));
+        const float r = static_cast<float>(sin(theta));
 
         for (unsigned int i = 0; i <= hsegs; i++) {
             // hsegs+1 vertices in each ring (duplicate for texcoords)
-            const double phi = (static_cast<double>(i) / static_cast<double>(hsegs))*
-                glm::two_pi<double>();
-            const float x = R * static_cast<float>(cos(phi));
-            const float z = R * static_cast<float>(sin(phi));
+            const double phi = (static_cast<double>(i) / hsegs) * glm::two_pi<double>();
+            const float x = r * static_cast<float>(cos(phi));
+            const float z = r * static_cast<float>(sin(phi));
 
             verts[1 + j * (hsegs + 1) + i] = {
                 static_cast<float>(i) / static_cast<float>(hsegs), // s
                 1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), // t
                 x, y, z, // normals
-                radius* x,
-                radius* y,
-                radius* z
+                radius * x, radius * y, radius * z
             };
         }
     }
@@ -83,24 +78,20 @@ Sphere::Sphere(float radius, unsigned int segments) {
     // Bottom cap
     for (unsigned int i = 0; i < hsegs; i++) {
         const unsigned int base = 3 * (hsegs + 2 * (vsegs - 2) * hsegs);
-        indices[base + 3 * i] = _nVertices - 1;
-        indices[base + 3 * i + 2] = _nVertices - 2 - i;
-        indices[base + 3 * i + 1] = _nVertices - 3 - i;
+        indices[base + 3 * i] = nVertices - 1;
+        indices[base + 3 * i + 2] = nVertices - 2 - i;
+        indices[base + 3 * i + 1] = nVertices - 3 - i;
     }
+
+    const GLsizei size = sizeof(helpers::VertexData);
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        _nVertices * sizeof(helpers::VertexData),
-        verts.data(),
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER, nVertices * size, verts.data(), GL_STATIC_DRAW);
 
-    const GLsizei size = sizeof(helpers::VertexData);
     // texcoords
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(0));

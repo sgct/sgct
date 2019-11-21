@@ -13,6 +13,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
+#include <optional>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
@@ -23,24 +24,18 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
 
     MessageHandler::printInfo("Reading SkySkan mesh data from '%s'", path.c_str());
 
-    FILE* meshFile = nullptr;
-    meshFile = fopen(path.c_str(), "r");
+    FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
         throw Error(2070, "Failed to open file " + path);
     }
 
-    float azimuth = 0.f;
-    float elevation = 0.f;
-    float hFov = 0.f;
-    float vFov = 0.f;
+    std::optional<float> azimuth;
+    std::optional<float> elevation;
+    std::optional<float> hFov;
+    std::optional<float> vFov;
     glm::vec2 fovTweaks(1.f);
     glm::vec2 uvTweaks(1.f);
     bool areDimsSet = false;
-    bool isAzimuthSet = false;
-    bool isElevationSet = false;
-    bool isHFovSet = false;
-    bool isVFovSet = false;
-    float x, y, u, v;
 
     unsigned int sizeX = 0;
     unsigned int sizeY = 0;
@@ -54,30 +49,23 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
             continue;
         }
 
-        if (sscanf(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1) {
-            isAzimuthSet = true;
+        float x, y, u, v;
+        if (sscanf(lineBuffer, "Dome Azimuth=%f", &v) == 1) {
+            azimuth = v;
         }
-        else if (sscanf(lineBuffer, "Dome Elevation=%f", &elevation) == 1) {
-            isElevationSet = true;
+        else if (sscanf(lineBuffer, "Dome Elevation=%f", &v) == 1) {
+            elevation = v;
         }
-        else if (sscanf(lineBuffer, "Horizontal FOV=%f", &hFov) == 1) {
-            isHFovSet = true;
+        else if (sscanf(lineBuffer, "Horizontal FOV=%f", &v) == 1) {
+            hFov = v;
         }
-        else if (sscanf(lineBuffer, "Vertical FOV=%f", &vFov) == 1) {
-            isVFovSet = true;
+        else if (sscanf(lineBuffer, "Vertical FOV=%f", &v) == 1) {
+            vFov = v;
         }
-        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1) {
-            ;
-        }
-        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1) {
-            ;
-        }
-        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks[0]) == 1) {
-            ;
-        }
-        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks[1]) == 1) {
-            ;
-        }
+        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1) {}
+        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1) {}
+        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks[0]) == 1) {}
+        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks[1]) == 1) {}
         else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
             areDimsSet = true;
             buf.vertices.resize(sizeX * sizeY);
@@ -106,41 +94,38 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
 
     fclose(meshFile);
 
-    if (!areDimsSet || !isAzimuthSet || !isElevationSet || !isHFovSet || hFov <= 0.f) {
+    if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
+        !hFov.has_value() || *hFov <= 0.f)
+    {
         throw Error(2071, "Data reading error");
     }
 
     // create frustums and projection matrices
-    if (!isVFovSet || vFov <= 0.f) {
+    if (!vFov.has_value() || *vFov <= 0.f) {
         // half the width (radius is one unit, cancels it self out)
-        const float hw = tan(glm::radians<float>(hFov) / 2.f);
+        const float hw = tan(glm::radians<float>(*hFov) / 2.f);
         // half height
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(atan(hh));
 
-        MessageHandler::printInfo("HFOV: %f VFOV: %f", hFov, vFov);
+        MessageHandler::printInfo("HFOV: %f VFOV: %f", *hFov, *vFov);
     }
 
     if (fovTweaks[0] > 0.f) {
-        hFov *= fovTweaks[0];
+        hFov = *hFov * fovTweaks[0];
     }
     if (fovTweaks[1] > 0.f) {
-        vFov *= fovTweaks[1];
+        vFov = *vFov * fovTweaks[1];
     }
 
     glm::quat rotQuat;
-    rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.f, 1.f, 0.f));
-    rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.f, 0.f, 0.f));
+    rotQuat = glm::rotate(rotQuat, glm::radians(-*azimuth), glm::vec3(0.f, 1.f, 0.f));
+    rotQuat = glm::rotate(rotQuat, glm::radians(*elevation), glm::vec3(1.f, 0.f, 0.f));
 
     parent.getUser().setPos(glm::vec3(0.f));
-    parent.setViewPlaneCoordsUsingFOVs(
-        vFov / 2.f,
-        -vFov / 2.f,
-        -hFov / 2.f,
-        hFov / 2.f,
-        rotQuat
-    );
-
+    const float vHalf = *vFov / 2.f;
+    const float hHalf = *hFov / 2.f;
+    parent.setViewPlaneCoordsUsingFOVs(vHalf, -vHalf, -hHalf, hHalf, rotQuat);
     Engine::instance().updateFrustums();
 
     for (unsigned int c = 0; c < (sizeX - 1); c++) {
@@ -149,15 +134,6 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
             const unsigned int i1 = r * sizeX + (c + 1);
             const unsigned int i2 = (r + 1) * sizeX + (c + 1);
             const unsigned int i3 = (r + 1) * sizeX + c;
-
-            // 3      2
-            //  x____x
-            //  |   /|
-            //  |  / |
-            //  | /  |
-            //  |/   |
-            //  x----x
-            // 0      1
 
             // triangle 1
             if (buf.vertices[i0].x != -1.f && buf.vertices[i0].y != -1.f &&

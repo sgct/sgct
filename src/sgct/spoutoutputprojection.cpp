@@ -11,7 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
-#include <sgct/settings.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
@@ -19,39 +19,41 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <sstream>
 
 #ifdef SGCT_HAS_SPOUT
 #define WIN32_LEAN_AND_MEAN
 #include <SpoutLibrary.h>
 #endif
 
+namespace {
+    constexpr const int NFaces = 6;
+    constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
+        "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
+    };
+}
+
 namespace sgct::core {
 
-//#define DebugCubemap
-
 SpoutOutputProjection::~SpoutOutputProjection() {
+#ifdef SGCT_HAS_SPOUT
     for (int i = 0; i < NFaces; i++) {
         if (_spout[i].handle) {
-#ifdef SGCT_HAS_SPOUT
             reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->ReleaseSender();
             reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->Release();
-#endif
         }
     }
 
     if (_mappingHandle) {
-#ifdef SGCT_HAS_SPOUT
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->ReleaseSender();
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->Release();
-#endif
     }
+#endif
 
     glDeleteTextures(1, &_mappingTexture);
 }
 
 void SpoutOutputProjection::update(glm::vec2) {
-    const std::array<const float, 20> vertices = {
+    constexpr const std::array<const float, 20> v = {
         0.f, 0.f, -1.f, -1.f, -1.f,
         0.f, 1.f, -1.f,  1.f, -1.f,
         1.f, 0.f,  1.f, -1.f, -1.f,
@@ -61,12 +63,7 @@ void SpoutOutputProjection::update(glm::vec2) {
     // update VBO
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        vertices.size() * sizeof(float),
-        vertices.data(),
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
 }
 
@@ -87,7 +84,7 @@ void SpoutOutputProjection::render() {
 
 
         GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-        _spoutFBO->bind(false, 1, buffers); //bind no multi-sampled
+        _spoutFBO->bind(false, 1, buffers); // bind no multi-sampled
         _spoutFBO->attachColorTexture(_mappingTexture);
 
         _shader.bind();
@@ -101,8 +98,8 @@ void SpoutOutputProjection::render() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
-        if (alpha) {
+        bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+        if (hasAlpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -114,10 +111,10 @@ void SpoutOutputProjection::render() {
 
         glUniform1i(_cubemapLoc, 0);
         if (_mappingType == Mapping::Fisheye) {
-            glUniform1f(_halfFovLoc, glm::radians<float>(180.f / 2.f));
+            glUniform1f(_halfFovLoc, glm::half_pi<float>());
         }
         else if (_mappingType == Mapping::Equirectangular) {
-            glUniform1f(_halfFovLoc, glm::radians<float>(360.f / 2.f));
+            glUniform1f(_halfFovLoc, glm::pi<float>());
         }
 
         glBindVertexArray(_vao);
@@ -129,7 +126,7 @@ void SpoutOutputProjection::render() {
         glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glDisable(GL_DEPTH_TEST);
 
-        if (alpha) {
+        if (hasAlpha) {
             glDisable(GL_BLEND);
         }
 

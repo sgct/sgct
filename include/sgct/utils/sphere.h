@@ -11,24 +11,18 @@
 
 namespace sgct::utils {
 
-/**
- * This class creates and renders a textured sphere.
- */
+/// This class creates and renders a textured sphere.
 class Sphere {
 public:
-    /// This constructor requires a valid openGL contex
+    /// This constructor requires a valid OpenGL context
     Sphere(float radius, unsigned int segments);
+
+    /// The destructor requires a valid OpenGL context
     ~Sphere();
 
-    /**
-     * layout 0 contains texture coordinates (vec2)
-     * layout 1 contains vertex normals (vec3)
-     * layout 2 contains vertex positions (vec3).
-     */
     void draw();
 
 private:
-    unsigned int _nVertices = 0;
     unsigned int _nFaces = 0;
 
     unsigned int _vao = 0;

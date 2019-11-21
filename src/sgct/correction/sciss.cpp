@@ -52,8 +52,7 @@ Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
 
     MessageHandler::printInfo("Reading SCISS mesh data from '%s'", path.c_str());
 
-    FILE* file = nullptr;
-    file = fopen(path.c_str(), "rb");
+    FILE* file = fopen(path.c_str(), "rb");
     if (file == nullptr) {
         throw Error(2050, "Failed to open " + path);
     }

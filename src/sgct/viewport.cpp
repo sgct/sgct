@@ -246,8 +246,12 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
-    std::unique_ptr<SphericalMirrorProjection> proj =
-        std::make_unique<SphericalMirrorProjection>();
+    auto proj = std::make_unique<SphericalMirrorProjection>(
+        p.mesh.bottom,
+        p.mesh.left,
+        p.mesh.right,
+        p.mesh.top
+    );
 
     proj->setUser(_user);
     if (p.quality) {
@@ -260,7 +264,6 @@ void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProje
         proj->setClearColor(*p.background);
     }
 
-    proj->setMeshPaths(p.mesh.bottom, p.mesh.left, p.mesh.right, p.mesh.top);
     proj->setUseDepthTransformation(false);
     _nonLinearProjection = std::move(proj);
 }

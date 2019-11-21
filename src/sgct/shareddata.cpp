@@ -96,7 +96,6 @@ void SharedData::decode(const char* receivedData, int receivedLength, int) {
 void SharedData::encode() {
     {
         std::unique_lock lk(core::mutex::DataSync);
-        lk.unlock()
         _dataBlock.clear();
         if (_useCompression) {
             _dataBlockToCompress.clear();
@@ -188,71 +187,71 @@ size_t SharedData::getBufferSize() {
 
 void SharedData::writeFloat(const SharedFloat& sf) {
     float val = sf.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(float));
 }
 
 void SharedData::writeDouble(const SharedDouble& sd) {
     double val = sd.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(double));
 }
 
 void SharedData::writeInt64(const SharedInt64& si) {
     int64_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char* >(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int64_t));
 }
 
 void SharedData::writeInt32(const SharedInt32& si) {
     int32_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int32_t));
 }
 
 void SharedData::writeInt16(const SharedInt16& si) {
     int16_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int16_t));
 }
 
 void SharedData::writeInt8(const SharedInt8& si) {
     int8_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int8_t));
 }
 
 void SharedData::writeUInt64(const SharedUInt64& si) {
     uint64_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint64_t));
 }
 
 void SharedData::writeUInt32(const SharedUInt32& si) {
     uint32_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
 }
 
 void SharedData::writeUInt16(const SharedUInt16& si) {
     uint16_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint16_t));
 }
 
 void SharedData::writeUInt8(const SharedUInt8& si) {
     uint8_t val = si.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint8_t));
 }
 
@@ -270,21 +269,21 @@ void SharedData::writeBool(const SharedBool& sb) {
 
 void SharedData::writeString(const SharedString& ss) {
     std::string tmpStr = ss.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
     _currentStorage->insert(_currentStorage->end(), tmpStr.data(), tmpStr.data() + length);
 }
 
 void SharedData::writeWString(const SharedWString& ss) {
     std::wstring tmpStr = ss.getVal();
-    std::unique_lock lk(core::mutex::DataSync);
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     unsigned char* ws = reinterpret_cast<unsigned char*>(&tmpStr[0]);
 
+    std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
     _currentStorage->insert(_currentStorage->end(), ws, ws + length * sizeof(wchar_t));
 }

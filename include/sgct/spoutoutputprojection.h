@@ -11,27 +11,21 @@
 
 #include <sgct/nonlinearprojection.h>
 
-#include <sgct/offscreenbuffer.h>
-#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <array>
 #include <memory>
 
 namespace sgct::core {
 
-/**
- * This class manages and renders non linear fisheye projections
- */
+class OffScreenBuffer;
+
+/// This class manages and renders non linear fisheye projections
 class SpoutOutputProjection : public NonLinearProjection {
 public:
+    enum class Mapping { Fisheye, Equirectangular, Cubemap };
+
     SpoutOutputProjection() = default;
     virtual ~SpoutOutputProjection();
-
-    enum class Mapping {
-        Fisheye,
-        Equirectangular,
-        Cubemap
-    };
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
         bool zRight);
@@ -48,17 +42,9 @@ public:
     /// Render the enabled faces of the cubemap
     void renderCubemap() override;
 
-    static const int NFaces = 6;
-    inline static const std::array<const char*, 6> CubeMapFaceName = {
-        "Right",
-        "zLeft",
-        "Bottom",
-        "Top",
-        "Left",
-        "zRight"
-    };
-
 private:
+    static const int NFaces = 6;
+
     void initTextures() override;
     void initViewports() override;
     void initShaders() override;
@@ -81,12 +67,12 @@ private:
     struct SpoutInfo {
         bool enabled = true;
         void* handle = nullptr;
-        GLuint texture = 0;
+        unsigned int texture = 0;
     };
     std::array<SpoutInfo, NFaces> _spout;
 
     void* _mappingHandle = nullptr;
-    GLuint _mappingTexture = 0;
+    unsigned int _mappingTexture = 0;
     Mapping _mappingType = Mapping::Cubemap;
     std::string _mappingName = "SPOUT_OS_MAPPING";
     glm::vec3 _rigOrientation = glm::vec3(0.f);

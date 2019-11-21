@@ -14,37 +14,79 @@
 #include <sgct/window.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
-#include <sgct/shaders/internalsphericalprojectionshaders.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//#define DebugCubemap
+namespace {
+    constexpr const char* SphericalProjectionVert = R"(
+  #version 330 core
+
+  layout (location = 0) in vec2 in_position;
+  layout (location = 1) in vec2 in_texCoords;
+  layout (location = 2) in vec4 in_vertColor;
+  out vec2 tr_uv;
+  out vec4 tr_color;
+
+  uniform mat4 mvp;
+
+  void main() {
+    gl_Position = mvp * vec4(in_position, 0.0, 1.0);
+    tr_uv = in_texCoords;
+    tr_color = in_vertColor;
+  }
+)";
+
+    constexpr const char* SphericalProjectionFrag = R"(
+  #version 330 core
+
+  in vec2 tr_uv;
+  in vec4 tr_color;
+  out vec4 out_color;
+
+  uniform sampler2D tex;
+
+  void main() {
+    out_color = tr_color * texture(tex, tr_uv);
+  }
+)";
+} // namespace
 
 namespace sgct::core {
+
+SphericalMirrorProjection::SphericalMirrorProjection(std::string bottomMesh,
+                                                     std::string leftMesh,
+                                                     std::string rightMesh,
+                                                     std::string topMesh)
+    : _meshPaths{
+        std::move(bottomMesh),
+        std::move(leftMesh),
+        std::move(rightMesh),
+        std::move(topMesh)
+    }
+{}
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render() {
     Engine::instance().enterCurrentViewport();
 
-    Window& winPtr = Engine::instance().getCurrentWindow();
-    BaseViewport* vpPtr = winPtr.getCurrentViewport();
+    Window& win = Engine::instance().getCurrentWindow();
+    BaseViewport* vpPtr = win.getCurrentViewport();
 
-    float aspect = winPtr.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
-    glm::mat4 MVP = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
+    float aspect = win.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
+    glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _shader.bind();
 
-    // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool alpha = Engine::instance().getCurrentWindow().hasAlpha();
-    if (alpha) {
+    const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+    if (hasAlpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -55,7 +97,7 @@ void SphericalMirrorProjection::render() {
     glDepthFunc(GL_ALWAYS);
 
     glUniform1i(_texLoc, 0);
-    glUniformMatrix4fv(_matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(_matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glBindTexture(GL_TEXTURE_2D, _textures.cubeFaceFront);
     _meshes.bottom.renderWarpMesh();
@@ -73,54 +115,58 @@ void SphericalMirrorProjection::render() {
 
     glDisable(GL_DEPTH_TEST);
 
-    if (alpha) {
+    if (hasAlpha) {
         glDisable(GL_BLEND);
     }
 
-    // restore depth func
     glDepthFunc(GL_LESS);
 }
 
 void SphericalMirrorProjection::renderCubemap() {
-    auto renderInternal =
-        [this](BaseViewport& bv, unsigned int& texture, int idx)
-    {
+    auto renderInternal = [this](BaseViewport& bv, unsigned int texture) {
         if (!bv.isEnabled()) {
             return;
         }
         _cubeMapFbo->bind();
         if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(texture);
+            _cubeMapFbo->attachColorTexture(texture);
         }
 
         Engine::instance().getCurrentWindow().setCurrentViewport(&bv);
-        drawCubeFace(idx);
 
-        // blit MSAA fbo to texture
+        // Draw Cube Face
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDepthFunc(GL_LESS);
+
+        setupViewport(bv);
+
+        const glm::vec4 color = Engine::instance().getClearColor();
+        const float a = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+        glClearColor(color.r, color.g, color.b, a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Engine::instance().getDrawFunction()();
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
         if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(texture);
+            // blit MSAA fbo to texture
+            _cubeMapFbo->bindBlit();
+            _cubeMapFbo->attachColorTexture(texture);
+            _cubeMapFbo->blit();
         }
     };
 
-    renderInternal(_subViewports.right, _textures.cubeFaceRight, 0);
-    renderInternal(_subViewports.left, _textures.cubeFaceLeft, 1);
-    renderInternal(_subViewports.bottom, _textures.cubeFaceBottom, 2);
-    renderInternal(_subViewports.top, _textures.cubeFaceTop, 3);
-    renderInternal(_subViewports.front, _textures.cubeFaceFront, 4);
-    renderInternal(_subViewports.back, _textures.cubeFaceBack, 5);
+    renderInternal(_subViewports.right, _textures.cubeFaceRight);
+    renderInternal(_subViewports.left, _textures.cubeFaceLeft);
+    renderInternal(_subViewports.bottom, _textures.cubeFaceBottom);
+    renderInternal(_subViewports.top, _textures.cubeFaceTop);
+    renderInternal(_subViewports.front, _textures.cubeFaceFront);
+    renderInternal(_subViewports.back, _textures.cubeFaceBack);
 }
 
 void SphericalMirrorProjection::setTilt(float angle) {
     _tilt = angle;
-}
-
-void SphericalMirrorProjection::setMeshPaths(std::string bottom, std::string left,
-                                             std::string right, std::string top)
-{
-    _meshPaths.bottom = std::move(bottom);
-    _meshPaths.left = std::move(left);
-    _meshPaths.right = std::move(right);
-    _meshPaths.top = std::move(top);
 }
 
 void core::SphericalMirrorProjection::initTextures() {
@@ -130,7 +176,7 @@ void core::SphericalMirrorProjection::initTextures() {
         }
         generateMap(texture, _texInternalFormat);
         MessageHandler::printDebug(
-            "NonLinearProjection: %dx%d cube face texture (id: %d) generated",
+            "%dx%d cube face texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, texture
         );
     };
@@ -174,106 +220,54 @@ void SphericalMirrorProjection::initViewports() {
 
     // Right
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
-        glm::mat4 rotMat = glm::rotate(
-            tiltMat,
-            glm::radians(-90.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
-
+        glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.right.getProjectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeft),
-            glm::vec3(rotMat * upperLeft),
-            glm::vec3(rotMat * upperRight)
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
         );
     }
 
     // left
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-
         _subViewports.left.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
         );
     }
 
     // bottom
-    {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
-        _subViewports.bottom.setEnabled(false);
-        glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
-
-        _subViewports.bottom.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
-        );
-    }
+    _subViewports.bottom.setEnabled(false);
 
     // top
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-
         _subViewports.top.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
         );
     }
 
     // front
     {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-
         _subViewports.front.getProjectionPlane().setCoordinates(
-            glm::vec3(tiltMat * lowerLeft),
-            glm::vec3(tiltMat * upperLeft),
-            glm::vec3(tiltMat * upperRight)
+            glm::vec3(tiltMat * lowerLeftBase),
+            glm::vec3(tiltMat * upperLeftBase),
+            glm::vec3(tiltMat * upperRightBase)
         );
     }
 
     // back
-    {
-        glm::vec4 lowerLeft = lowerLeftBase;
-        glm::vec4 upperLeft = upperLeftBase;
-        glm::vec4 upperRight = upperRightBase;
-        
-        _subViewports.back.setEnabled(false);
-
-        glm::mat4 r = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
-
-        _subViewports.back.getProjectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
-        );
-    }
+    _subViewports.back.setEnabled(false);
 }
 
 void SphericalMirrorProjection::initShaders() {
     if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        MessageHandler::printWarning(
-            "Stereo rendering not supported in spherical projection"
-        );
+        MessageHandler::printWarning("Stereo not supported in spherical projection");
     }
 
     // reload shader program if it exists
@@ -282,105 +276,16 @@ void SphericalMirrorProjection::initShaders() {
     }
 
     _shader = ShaderProgram("SphericalMirrorShader");
-    _shader.addShaderSource(
-        core::shaders::SphericalProjectionVert,
-        core::shaders::SphericalProjectionFrag
-    );
+    _shader.addShaderSource(SphericalProjectionVert, SphericalProjectionFrag);
     _shader.createAndLinkProgram();
     _shader.bind();
 
     _texLoc = glGetUniformLocation(_shader.getId(), "tex");
     glUniform1i(_texLoc, 0);
 
-    _matrixLoc = glGetUniformLocation(_shader.getId(), "MVP");
+    _matrixLoc = glGetUniformLocation(_shader.getId(), "mvp");
 
     ShaderProgram::unbind();
-}
-
-void SphericalMirrorProjection::drawCubeFace(size_t face) {
-    BaseViewport& vp = [this](size_t face) -> BaseViewport& {
-        switch (face) {
-            default:
-            case 0: return _subViewports.right;
-            case 1: return _subViewports.left;
-            case 2: return _subViewports.bottom;
-            case 3: return _subViewports.top;
-            case 4: return _subViewports.front;
-            case 5: return _subViewports.back;
-        }
-    }(face);
-
-    glLineWidth(1.0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDepthFunc(GL_LESS);
-
-    setupViewport(vp);
-
-#ifdef DebugCubemap
-    float color[4];
-    switch (face) {
-        case 0:
-            color[0] = 0.5f;
-            color[1] = 0.f;
-            color[2] = 0.f;
-            color[3] = 1.f;
-            break;
-        case 1:
-            color[0] = 0.5f;
-            color[1] = 0.5f;
-            color[2] = 0.f;
-            color[3] = 1.f;
-            break;
-        case 2:
-            color[0] = 0.f;
-            color[1] = 0.5f;
-            color[2] = 0.f;
-            color[3] = 1.f;
-            break;
-        case 3:
-            color[0] = 0.f;
-            color[1] = 0.5f;
-            color[2] = 0.5f;
-            color[3] = 1.f;
-            break;
-        case 4:
-            color[0] = 0.f;
-            color[1] = 0.f;
-            color[2] = 0.5f;
-            color[3] = 1.f;
-            break;
-        case 5:
-            color[0] = 0.5f;
-            color[1] = 0.f;
-            color[2] = 0.5f;
-            color[3] = 1.f;
-            break;
-    }
-    glClearColor(color[0], color[1], color[2], color[3]);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#else
-    const glm::vec4 color = Engine::instance().getClearColor();
-    const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
-    glClearColor(color.r, color.g, color.b, alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
-
-    Engine::instance().getDrawFunction()();
-
-    // restore polygon mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-void SphericalMirrorProjection::blitCubeFace(unsigned int texture) {
-    // copy AA-buffer to "regular"/non-AA buffer
-    // bind separate read and draw buffers to prepare blit operation
-    _cubeMapFbo->bindBlit();
-    attachTextures(texture);
-    _cubeMapFbo->blit();
-}
-
-void SphericalMirrorProjection::attachTextures(unsigned int texture) {
-    _cubeMapFbo->attachColorTexture(texture);
 }
 
 } // namespace sgct::core

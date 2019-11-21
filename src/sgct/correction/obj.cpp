@@ -18,8 +18,7 @@ Buffer generateOBJMesh(const std::string& path) {
 
     MessageHandler::printInfo("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
 
-    FILE* meshFile = nullptr;
-    meshFile = fopen(path.c_str(), "r");
+    FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
         throw Error(Error::Component::OBJ, 2020, "Failed to open " + path);
     }

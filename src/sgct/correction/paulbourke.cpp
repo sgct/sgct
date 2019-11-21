@@ -25,8 +25,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
         "Reading Paul Bourke spherical mirror mesh data from '%s'", path.c_str()
     );
 
-    FILE* meshFile = nullptr;
-    meshFile = fopen(path.c_str(), "r");
+    FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
         throw Error(Error::Component::PaulBourke, 2030, "Failed to open " + path);
     }

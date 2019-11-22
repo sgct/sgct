@@ -9,6 +9,7 @@
 #include <sgct/user.h>
 #include <sgct/window.h>
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 
 namespace {

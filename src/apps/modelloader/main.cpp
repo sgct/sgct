@@ -112,12 +112,12 @@ namespace {
                     );
                 }
                 // vertex + uv + normal valid
-                if (sscanf(face0, "%d/%d/%d", &vIdx0, &uvIdx0, &dummy) == 3) {
-                    if (sscanf(face1, "%d/%d/%d", &vIdx1, &uvIdx1, &dummy) != 3) {
+                if (sscanf(face0, "%u/%u/%u", &vIdx0, &uvIdx0, &dummy) == 3) {
+                    if (sscanf(face1, "%u/%u/%u", &vIdx1, &uvIdx1, &dummy) != 3) {
                         throw std::runtime_error("Parser can't read 2nd face index");
                     }
                     
-                    if (sscanf(face2, "%d/%d/%d", &vIdx2, &uvIdx2, &dummy) != 3) {
+                    if (sscanf(face2, "%u/%u/%u", &vIdx2, &uvIdx2, &dummy) != 3) {
                         throw std::runtime_error("Parser can't read 3rd face index");
                     }
 
@@ -128,12 +128,12 @@ namespace {
                     uvIndices.push_back(uvIdx1);
                     uvIndices.push_back(uvIdx2);
                 }
-                else if (sscanf(face0, "%d/%d//", &vIdx0, &uvIdx0) == 2) {
-                    if (sscanf(face1, "%d/%d//", &vIdx1, &uvIdx1) != 2) {
+                else if (sscanf(face0, "%u/%u//", &vIdx0, &uvIdx0) == 2) {
+                    if (sscanf(face1, "%u/%u//", &vIdx1, &uvIdx1) != 2) {
                         throw std::runtime_error("Parser can't read 2nd face index");
                     }
                     
-                    if (sscanf(face2, "%d/%d//", &vIdx2, &uvIdx2) != 2) {
+                    if (sscanf(face2, "%u/%u//", &vIdx2, &uvIdx2) != 2) {
                         throw std::runtime_error("Parser can't read 3rd face index");
                     }
 
@@ -146,12 +146,12 @@ namespace {
                 }
 
                 // vertex only
-                else if (sscanf(face0, "%d///", &vIdx0) == 1) {
-                    if (sscanf(face1, "%d///", &vIdx1) != 1) {
+                else if (sscanf(face0, "%u///", &vIdx0) == 1) {
+                    if (sscanf(face1, "%u///", &vIdx1) != 1) {
                         throw std::runtime_error("Parser can't read 2nd face index");
                     }
                     
-                    if (sscanf(face2, "%d///", &vIdx2) != 1) {
+                    if (sscanf(face2, "%u///", &vIdx2) != 1) {
                         throw std::runtime_error("Parser can't read 3rd face index");
                     }
 

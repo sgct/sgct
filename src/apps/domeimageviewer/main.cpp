@@ -77,7 +77,7 @@ void readImage(unsigned char* data, int len) {
 
     std::unique_ptr<sgct::core::Image> img = std::make_unique<sgct::core::Image>();
     try {
-        img->load(reinterpret_cast<unsigned char*>(data), len);
+        img->load(data, len);
         transImages.push_back(std::move(img));
     }
     catch (const std::runtime_error& e) {

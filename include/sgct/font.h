@@ -29,8 +29,8 @@ public:
     struct FontFaceData {
         unsigned int texId = 0;
         float distToNextChar = 0.f;
-        glm::vec2 pos;
-        glm::vec2 size;
+        glm::vec2 pos = glm::vec2(0.f);
+        glm::vec2 size = glm::vec2(0.f);
         FT_Glyph glyph;
     };
 

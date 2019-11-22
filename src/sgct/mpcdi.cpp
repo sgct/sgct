@@ -68,7 +68,7 @@ namespace {
         }
 
         config::MpcdiProjection::Frustum frustum;
-        glm::quat quat;
+        glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
         try {
             frustum.down = std::stof(down->GetText());
             frustum.up = std::stof(up->GetText());

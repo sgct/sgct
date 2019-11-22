@@ -185,9 +185,9 @@ struct SpoutOutputProjection {
 void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
 struct ProjectionPlane {
-    glm::vec3 lowerLeft;
-    glm::vec3 upperLeft;
-    glm::vec3 upperRight;
+    glm::vec3 lowerLeft = glm::vec3(0.f);
+    glm::vec3 upperLeft = glm::vec3(0.f);
+    glm::vec3 upperRight = glm::vec3(0.f);
 };
 void validateProjectionPlane(const ProjectionPlane& proj);
 
@@ -281,7 +281,7 @@ struct Window {
     std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;
     std::optional<glm::ivec2> pos;
-    glm::ivec2 size;
+    glm::ivec2 size = glm::ivec2(1);
     std::optional<glm::ivec2> resolution;
 
     std::vector<Viewport> viewports;

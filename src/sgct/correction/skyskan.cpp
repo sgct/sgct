@@ -118,7 +118,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         vFov = *vFov * fovTweaks[1];
     }
 
-    glm::quat rotQuat;
+    glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
     rotQuat = glm::rotate(rotQuat, glm::radians(-*azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(*elevation), glm::vec3(1.f, 0.f, 0.f));
 

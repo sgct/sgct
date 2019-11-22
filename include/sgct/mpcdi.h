@@ -18,7 +18,7 @@ namespace sgct::core::mpcdi {
 
 struct ReturnValue {
     /// The window resolution
-    glm::ivec2 resolution;
+    glm::ivec2 resolution = glm::ivec2(0);
     struct ViewportInfo {
         /// The configuration struct for the individual viewports
         config::MpcdiProjection proj;

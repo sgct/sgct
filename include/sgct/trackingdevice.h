@@ -144,8 +144,8 @@ private:
 
     glm::dvec3 _sensorPos = glm::dvec3(0.0);
     glm::dvec3 _sensorPosPrevious = glm::dvec3(0.0);
-    glm::quat _orientation;
-    glm::vec3 _offset;
+    glm::quat _orientation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    glm::vec3 _offset = glm::vec3(0.f);
 
     double _trackerTime = 0.0;
     double _trackerTimePrevious = 0.0;

@@ -36,7 +36,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     double rightOrtho = 0.0;
     double bottomOrtho = 0.0;
     double topOrtho = 0.0;
-    glm::ivec2 res;
+    glm::ivec2 res = glm::ivec2(0);
 
     while (!feof(meshFile)) {
         constexpr const int MaxLineLength = 1024;

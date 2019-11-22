@@ -54,7 +54,7 @@ private:
 
     double _scale = 1.0;
     glm::mat4 _transform = glm::mat4(1.f);
-    glm::mat4 _orientation;
+    glm::mat4 _orientation = glm::mat4(1.f);
     glm::vec3 _offset = glm::vec3(0.f);
 };
 

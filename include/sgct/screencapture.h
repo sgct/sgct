@@ -99,7 +99,7 @@ private:
     GLenum _downloadType = GL_UNSIGNED_BYTE;
     GLenum _downloadTypeSetByUser = _downloadType;
     int _dataSize = 0;
-    glm::ivec2 _resolution;
+    glm::ivec2 _resolution = glm::ivec2(0);
     int _nChannels = 0;
     int _bytesPerColor = 1;
 

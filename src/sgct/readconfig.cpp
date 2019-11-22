@@ -28,7 +28,7 @@ namespace {
         bool eulerMode = false;
         bool quatMode = false;
 
-        glm::quat quat;
+        glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
 
         float value;
         if (element.QueryFloatAttribute("w", &value) == tinyxml2::XML_NO_ERROR) {

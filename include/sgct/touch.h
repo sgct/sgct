@@ -26,9 +26,9 @@ public:
         enum class TouchAction { NoAction, Released, Pressed, Stationary, Moved };
         int id;
         TouchAction action;
-        glm::vec2 pixelCoords;
-        glm::vec2 normPixelCoords;
-        glm::vec2 normPixelDiff;
+        glm::vec2 pixelCoords = glm::vec2(0.f);
+        glm::vec2 normPixelCoords = glm::vec2(0.f);
+        glm::vec2 normPixelDiff = glm::vec2(0.f);
     };
 
     /// Retrieve the lastest touch points to process them in an event

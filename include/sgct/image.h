@@ -49,7 +49,7 @@ private:
     bool savePNG(std::string filename, int compressionLevel = -1);
 
     int _nChannels = 0;
-    glm::ivec2 _size;
+    glm::ivec2 _size = glm::ivec2(0);
     unsigned int _dataSize = 0;
     int _bytesPerChannel = 1;
     unsigned char* _data = nullptr;

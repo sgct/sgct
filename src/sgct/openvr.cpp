@@ -30,13 +30,13 @@ namespace {
     FBODesc rightEyeFBODesc;
 
     // Matries updated every rendering cycle
-    glm::mat4 poseHMDMat;
+    glm::mat4 poseHMDMat = glm::mat4(1.f);
 
     // Matrices updated on statup
-    glm::mat4 eyeLeftProjectionMat;
-    glm::mat4 eyeLeftToHeadMat;
-    glm::mat4 eyeRightProjectionMat;
-    glm::mat4 eyeRightToHeadMat;
+    glm::mat4 eyeLeftProjectionMat = glm::mat4(1.f);
+    glm::mat4 eyeLeftToHeadMat = glm::mat4(1.f);
+    glm::mat4 eyeRightProjectionMat = glm::mat4(1.f);
+    glm::mat4 eyeRightToHeadMat = glm::mat4(1.f);
 
     bool createHMDFrameBuffer(int width, int height, FBODesc& fboDesc) {
         glGenFramebuffers(1, &fboDesc.fboID);

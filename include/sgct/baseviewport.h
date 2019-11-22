@@ -75,11 +75,11 @@ protected:
     glm::vec2 _size = glm::vec2(1.f, 1.f);
 
     struct {
-        glm::vec3 lowerLeft;
-        glm::vec3 upperLeft;
-        glm::vec3 upperRight;
+        glm::vec3 lowerLeft = glm::vec3(0.0);
+        glm::vec3 upperLeft = glm::vec3(0.0);
+        glm::vec3 upperRight = glm::vec3(0.0);
     } _viewPlane;
-    glm::quat _rotation;
+    glm::quat _rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 };
 
 } // namespace sgct::core

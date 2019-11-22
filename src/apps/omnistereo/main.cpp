@@ -142,16 +142,10 @@ void initOmniStereo(bool mask) {
     }
 
     sgct::core::Image turnMap;
-    const bool turnMapSuccess = turnMap.load(turnMapSrc);
-    if (!turnMapSuccess) {
-        MessageHandler::printWarning("Failed to load turn map");
-    }
+    turnMap.load(turnMapSrc);
 
     sgct::core::Image sepMap;
-    const bool sepMapSuccess = sepMap.load(sepMapSrc);
-    if (!sepMapSuccess) {
-        MessageHandler::printWarning("Failed to load separation map");
-    }
+    sepMap.load(sepMapSrc);
 
     Window& win = Engine::instance().getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;

@@ -193,8 +193,11 @@ void readImage(unsigned char* data, int len) {
 
     transImg = std::make_unique<sgct::core::Image>();
 
-    const bool result = transImg->load(reinterpret_cast<unsigned char*>(data), len);
-    if (!result) {
+    try {
+        transImg->load(reinterpret_cast<unsigned char*>(data), len);
+    }
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
         transImg = nullptr;
     }
 }

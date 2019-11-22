@@ -22,11 +22,11 @@ public:
     ~Image();
 
     bool allocateOrResizeData();
-    bool load(const std::string& filename);
-    bool load(unsigned char* data, int length);
+    void load(const std::string& filename);
+    void load(unsigned char* data, int length);
 
     /// Save the buffer to file. Type is automatically set by filename suffix.
-    bool save(const std::string& filename);
+    void save(const std::string& filename);
 
     unsigned char* getData();
     const unsigned char* getData() const;

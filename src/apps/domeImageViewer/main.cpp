@@ -76,10 +76,12 @@ void readImage(unsigned char* data, int len) {
     std::unique_lock lk(mutex);
 
     std::unique_ptr<sgct::core::Image> img = std::make_unique<sgct::core::Image>();
-    bool result = img->load(reinterpret_cast<unsigned char*>(data), len);
-
-    if (result) {
+    try {
+        img->load(reinterpret_cast<unsigned char*>(data), len);
         transImages.push_back(std::move(img));
+    }
+    catch (const std::runtime_error& e) {
+        MessageHandler::printError("%s", e.what());
     }
 }
 

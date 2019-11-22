@@ -139,9 +139,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
 {
     // load image
     core::Image img;
-    if (!img.load(filename)) {
-        return 0;
-    }
+    img.load(filename);
     
     if (img.getData() == nullptr) {
         // image data not valid

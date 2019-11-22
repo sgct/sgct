@@ -21,9 +21,11 @@ namespace {
         using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
-        const bool saveSuccess = ptr->frameBufferImage->save(ptr->filename);
-        if (!saveSuccess) {
-            sgct::MessageHandler::printError("Failed to save %s", ptr->filename.c_str());
+        try {
+            ptr->frameBufferImage->save(ptr->filename);
+        }
+        catch (const std::runtime_error& e) {
+            sgct::MessageHandler::printError("%s", e.what());
         }
         ptr->isRunning = false;
     }
@@ -46,7 +48,6 @@ namespace {
             case 3: return GL_BGR;
         }
     }
-
 } // namespace
 
 namespace sgct::core {

@@ -181,6 +181,14 @@ namespace sgct {
     8000s: Window
     8000: Error resolving swapgroup functions
     8001: Error opening window
+
+    9000s: Image
+    9000: Image / Cannot load empty filepath
+    9001: Image / Filename not set for saving image
+    9002: Image / Cannot save file %s
+    9003: Image / Could not save file %s as PNG
+    9004: Image / Could not save file %s as JPG
+    9005: Image / Could not save file %s as TGA
 */
 
 struct Error : public std::runtime_error {
@@ -189,6 +197,7 @@ struct Error : public std::runtime_error {
         CorrectionMesh,
         DomeProjection,
         Engine,
+        Image,
         MPCDI,
         MPCDIMesh,
         Network,

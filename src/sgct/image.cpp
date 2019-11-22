@@ -9,6 +9,7 @@
 #include <sgct/image.h>
 
 #include <sgct/engine.h>
+#include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <chrono>
 #include <png.h>
@@ -24,6 +25,8 @@
 #pragma warning(push)
 #pragma warning(disable : 4611)
 #endif // WIN32
+
+#define Error(code, msg) Error(Error::Component::Image, code, msg)
 
 namespace {
     sgct::core::Image::FormatType getFormatType(std::string filename) {
@@ -60,10 +63,9 @@ Image::~Image() {
     }
 }
 
-bool Image::load(const std::string& filename) {
+void Image::load(const std::string& filename) {
     if (filename.empty()) {
-        MessageHandler::printError("Image error: Cannot load empty filepath");
-        return false;
+        throw Error(9000, "Cannot load empty filepath");
     }
 
     stbi_set_flip_vertically_on_load(1);
@@ -79,11 +81,9 @@ bool Image::load(const std::string& filename) {
             _data[i + 2] = tmp;
         }
     }
-
-    return _data != nullptr;
 }
 
-bool Image::load(unsigned char* data, int length) {
+void Image::load(unsigned char* data, int length) {
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load_from_memory(data, length, &_size[0], &_size[1], &_nChannels, 0);
     _bytesPerChannel = 1;
@@ -97,25 +97,23 @@ bool Image::load(unsigned char* data, int length) {
             _data[i + 2] = tmp;
         }
     }
-
-    return _data != nullptr;
 }
 
-bool Image::save(const std::string& filename) {
+void Image::save(const std::string& filename) {
     if (filename.empty()) {
-        MessageHandler::printError("Image error: Filename not set for saving image");
-        return false;
+        throw Error(9001, "Filename not set for saving image");
     }
 
     FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
-        // not found
-        MessageHandler::printError("Image error: Cannot save file %s", filename.c_str());
-        return false;
+        throw Error(9002, "Cannot save file " + filename);
     }
     if (type == FormatType::PNG) {
         const bool success = savePNG(filename);
-        return success;
+        if (!success) {
+            throw Error(9003, "Could not save file '" + filename + "' as PNG");
+        }
+        return;
     }
 
     if (_nChannels >= 3) {
@@ -136,16 +134,21 @@ bool Image::save(const std::string& filename) {
             _data,
             100
         );
-        return r != 0;
+        if (r == 0) {
+            throw Error(9004, "Could not save file '" + filename + "' as JPG");
+        }
+        return;
     }
     if (type == FormatType::TGA) {
         int r = stbi_write_tga(filename.c_str(), _size.x, _size.y, _nChannels, _data);
-        return r != 0;
+        if (r == 0) {
+            throw Error(9005, "Could not save file '" + filename + "' as TGA");
+
+        }
+        return;
     }
 
-    // We should never get here unless someone added a type and forgot to save it
-    assert(false);
-    return false;
+    throw std::logic_error("We should never get here");
 }
 
 bool Image::savePNG(std::string filename, int compressionLevel) {
@@ -154,9 +157,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        MessageHandler::printError(
-            "Image error: Cannot save %d-bit PNG", _bytesPerChannel * 8
-        );
+        MessageHandler::printError("Cannot save %d-bit PNG", _bytesPerChannel * 8);
         return false;
     }
 
@@ -164,9 +165,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        MessageHandler::printError(
-            "Image error: Can't create PNG file '%s'", filename.c_str()
-        );
+        MessageHandler::printError("Can't create PNG file '%s'", filename.c_str());
         return false;
     }
 
@@ -261,7 +260,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     fclose(fp);
 
     MessageHandler::printDebug(
-        "Image: '%s' was saved successfully (%.2f ms)",
+        "'%s' was saved successfully (%.2f ms)",
         filename.c_str(), (Engine::getTime() - t0) * 1000.0
     );
 
@@ -307,8 +306,7 @@ bool Image::allocateOrResizeData() {
 
     if (dataSize == 0) {
         MessageHandler::printError(
-            "Image error: Invalid image size %dx%d %d channels",
-            _size.x, _size.y, _nChannels
+            "Invalid image size %dx%d %d channels", _size.x, _size.y, _nChannels
         );
         return false;
     }
@@ -328,7 +326,7 @@ bool Image::allocateOrResizeData() {
         _isExternalData = false;
 
         MessageHandler::printDebug(
-            "Image: Allocated %d bytes for image data (%.2f ms)",
+            "Allocated %d bytes for image data (%.2f ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
         );
     }

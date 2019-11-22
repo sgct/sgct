@@ -350,7 +350,7 @@ void updateHMDMatrices(float nearClip, float farClip) {
 
 glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip) {
     if (!HMD) {
-        return glm::mat4();
+        return glm::mat4(1.f);
     }
 
     vr::HmdMatrix44_t mat = HMD->GetProjectionMatrix(nEye, nearClip, farClip);
@@ -364,7 +364,7 @@ glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farC
 
 glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye) {
     if (!HMD) {
-        return glm::mat4();
+        return glm::mat4(1.f);
     }
 
     vr::HmdMatrix34_t mat = HMD->GetEyeToHeadTransform(nEye);

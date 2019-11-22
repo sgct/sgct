@@ -194,7 +194,7 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.mpcdi) {
         core::mpcdi::ReturnValue r = core::mpcdi::parseMpcdiConfiguration(*window.mpcdi);
-        setWindowPosition(glm::ivec2(0, 0));
+        setWindowPosition(glm::ivec2(0));
         initWindowResolution(r.resolution);
         setFramebufferResolution(r.resolution);
         setFixResolution(true);

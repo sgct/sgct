@@ -105,7 +105,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
             mpcdi.frustum->down,
             mpcdi.frustum->left,
             mpcdi.frustum->right,
-            mpcdi.orientation.value_or(glm::quat()),
+            mpcdi.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
             mpcdi.distance.value_or(10.f)
         );
         if (mpcdi.offset) {
@@ -120,7 +120,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
         proj.fov.down,
         proj.fov.left,
         proj.fov.right,
-        proj.orientation.value_or(glm::quat()),
+        proj.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
         proj.fov.distance.value_or(10.f)
     );
     if (proj.offset) {

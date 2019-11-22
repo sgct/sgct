@@ -2164,8 +2164,8 @@ void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     glUniform1i(_shaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    Window::TextureIndex m = [](core::Frustum::Mode m) {
-        switch (m) {
+    Window::TextureIndex m = [](core::Frustum::Mode v) {
+        switch (v) {
             // abock (2019-09-27) Yep, I'm confused about this mapping, too. But I just
             // took the enumerations values as they were and I assume that it was an
             // undetected bug

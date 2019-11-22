@@ -62,8 +62,8 @@ void Touch::processPoint(int id, int action, double x, double y, int width, int 
     glm::vec2 normpos = pos / size;
 
     using TouchAction = TouchPoint::TouchAction;
-    TouchAction touchAction = [](int action) -> TouchPoint::TouchAction {
-        switch (action) {
+    TouchAction touchAction = [](int a) -> TouchPoint::TouchAction {
+        switch (a) {
             case GLFW_PRESS:   return TouchAction::Pressed;
             case GLFW_MOVE:    return TouchAction::Moved;
             case GLFW_RELEASE: return TouchAction::Released;

@@ -180,14 +180,7 @@ Box::Box(float size, TextureMappingMode mode) {
 
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(0)
-    );
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(helpers::VertexData), nullptr);
 
     // normals
     glEnableVertexAttribArray(1);

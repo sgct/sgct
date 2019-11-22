@@ -40,9 +40,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     std::vector<unsigned int> indices;
 
     for (int a = 0; a < _azimuthSteps; a++) {
-        const float azimuth = glm::radians(
-            static_cast<float>(a * 360.f) / static_cast<float>(_azimuthSteps)
-        );
+        const float azimuth = glm::radians((a * 360.f) / _azimuthSteps);
 
         const float elevation = glm::radians(lift);
         const float x = cos(elevation) * sin(azimuth);
@@ -66,9 +64,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
         const float y = sin(elevation);
 
         for (int a = 0; a < _azimuthSteps; a++) {
-            const float azimuth = glm::radians(
-                static_cast<float>(a * 360.f) / static_cast<float>(_azimuthSteps)
-            );
+            const float azimuth = glm::radians((a * 360.f) / _azimuthSteps);
 
             const float x = cos(elevation) * sin(azimuth);
             const float z = -cos(elevation) * cos(azimuth);
@@ -127,7 +123,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     const GLsizei size = sizeof(helpers::VertexData);
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, nullptr);
     // normals
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(8));

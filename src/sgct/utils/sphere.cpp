@@ -94,7 +94,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
 
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, nullptr);
 
     // normals
     glEnableVertexAttribArray(1);

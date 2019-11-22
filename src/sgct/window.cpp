@@ -120,8 +120,8 @@ void Window::applyWindow(const config::Window& window) {
         setTags(window.tags);
     }
     if (window.bufferBitDepth) {
-        ColorBitDepth bd = [](config::Window::ColorBitDepth bd) {
-            switch (bd) {
+        ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
+            switch (cbd) {
                 case config::Window::ColorBitDepth::Depth8:
                     return ColorBitDepth::Depth8;
                 case config::Window::ColorBitDepth::Depth16:
@@ -211,8 +211,8 @@ void Window::applyWindow(const config::Window& window) {
         return;
     }
     if (window.stereo) {
-        StereoMode sm = [](config::Window::StereoMode sm) {
-            switch (sm) {
+        StereoMode sm = [](config::Window::StereoMode mode) {
+            switch (mode) {
                 case config::Window::StereoMode::NoStereo:
                     return StereoMode::NoStereo;
                 case config::Window::StereoMode::Active:
@@ -1115,20 +1115,16 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glBindTexture(GL_TEXTURE_2D, id);
     
     // Determine the internal texture format, the texture format, and the pixel type
-    const auto [internalFormat, format, pType] =
-        [this](Window::TextureType type) -> std::tuple<GLenum, GLenum, GLenum> {
-            switch (type) {
+    const auto [internalFormat, format] =
+        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum> {
+            switch (t) {
                 case TextureType::Color:
-                    return { _internalColorFormat, _colorFormat, _colorDataType };
+                    return { _internalColorFormat, _colorFormat };
                 case TextureType::Depth:
-                    return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
+                    return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT };
                 case TextureType::Normal:
                 case TextureType::Position:
-                    return {
-                         Settings::instance().getBufferFloatPrecision(),
-                         GL_RGB,
-                         GL_FLOAT
-                    };
+                    return { Settings::instance().getBufferFloatPrecision(), GL_RGB };
                 default:
                     throw std::logic_error("Unhandled case label");
             }
@@ -1177,14 +1173,7 @@ void Window::createVBOs() {
     //2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        5 * sizeof(float),
-        reinterpret_cast<void*>(0)
-    );
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(

@@ -46,7 +46,7 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     char fileFormatHeader[2];
     unsigned int nCols = 0;
     unsigned int nRows = 0;
-    const int res = sscanf(headerBuffer, "%2c %d %d", fileFormatHeader, &nCols, &nRows);
+    const int res = sscanf(headerBuffer, "%2c %u %u", fileFormatHeader, &nCols, &nRows);
     if (res != 3) {
         throw Error(2011, "Invalid header information in MPCDI mesh");
     }

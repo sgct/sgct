@@ -162,23 +162,13 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
 
     double t0 = Engine::getTime();
     
-    FILE* fp = nullptr;
-#if (_MSC_VER >= 1400)
-    if (fopen_s( &fp, filename.c_str(), "wb") != 0 || !fp) {
-        MessageHandler::printError(
-            "Image error: Can't create PNG file '%s'", filename.c_str()
-        );
-        return false;
-    }
-#else
-    fp = fopen(filename.c_str(), "wb");
+    FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
         MessageHandler::printError(
             "Image error: Can't create PNG file '%s'", filename.c_str()
         );
         return false;
     }
-#endif
 
     // initialize stuff
     png_structp png_ptr = png_create_write_struct(
@@ -211,21 +201,15 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
 
     png_init_io(png_ptr, fp);
 
-    int colorType = -1;
-    switch (_nChannels) {
-        case 1:
-            colorType = PNG_COLOR_TYPE_GRAY;
-            break;
-        case 2:
-            colorType = PNG_COLOR_TYPE_GRAY_ALPHA;
-            break;
-        case 3:
-            colorType = PNG_COLOR_TYPE_RGB;
-            break;
-        case 4:
-            colorType = PNG_COLOR_TYPE_RGB_ALPHA;
-            break;
-    }
+    int colorType = [](int channels) {
+        switch (channels) {
+            case 1: return PNG_COLOR_TYPE_GRAY;
+            case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
+            case 3: return PNG_COLOR_TYPE_RGB;
+            case 4: return PNG_COLOR_TYPE_RGB_ALPHA;
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }(_nChannels);
 
     if (colorType == -1) {
         return false;

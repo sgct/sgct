@@ -53,7 +53,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
         _isTracked = *viewport.isTracked;
     }
     if (viewport.eye) {
-        Frustum::Mode e = [](config::Viewport::Eye e) {
+        Frustum::Mode eye = [](config::Viewport::Eye e) {
             switch (e) {
                 case config::Viewport::Eye::Mono:
                     return Frustum::Mode::MonoEye;
@@ -65,7 +65,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
                     throw std::logic_error("Unhandled case label");
             }
         }(*viewport.eye);
-        setEye(e);
+        setEye(eye);
     }
 
     if (viewport.position) {
@@ -139,7 +139,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
         fishProj->setCubemapResolution(*proj.quality);
     }
     if (proj.method) {
-        FisheyeProjection::FisheyeMethod m = [](config::FisheyeProjection::Method m) {
+        FisheyeProjection::FisheyeMethod meth = [](config::FisheyeProjection::Method m) {
             switch (m) {
                 case config::FisheyeProjection::Method::FourFace:
                     return FisheyeProjection::FisheyeMethod::FourFaceCube;
@@ -149,10 +149,10 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
                     throw std::logic_error("Unhandled case label");
             }
         }(*proj.method);
-        fishProj->setRenderingMethod(m);
+        fishProj->setRenderingMethod(meth);
     }
     if (proj.interpolation) {
-        NonLinearProjection::InterpolationMode i =
+        NonLinearProjection::InterpolationMode interp =
             [](config::FisheyeProjection::Interpolation i) {
                 switch (i) {
                     case config::FisheyeProjection::Interpolation::Linear:
@@ -163,7 +163,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
                         throw std::logic_error("Unhandled case label");
                 }
             }(*proj.interpolation);
-        fishProj->setInterpolationMode(i);
+        fishProj->setInterpolationMode(interp);
     }
     if (proj.tilt) {
         fishProj->setTilt(*proj.tilt);

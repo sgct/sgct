@@ -1115,20 +1115,19 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glBindTexture(GL_TEXTURE_2D, id);
     
     // Determine the internal texture format, the texture format, and the pixel type
-    const auto [internalFormat, format] =
-        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum> {
-            switch (t) {
-                case TextureType::Color:
-                    return { _internalColorFormat, _colorFormat };
-                case TextureType::Depth:
-                    return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT };
-                case TextureType::Normal:
-                case TextureType::Position:
-                    return { Settings::instance().getBufferFloatPrecision(), GL_RGB };
-                default:
-                    throw std::logic_error("Unhandled case label");
-            }
-        }(type);
+    GLenum internalFormat = [this](Window::TextureType t) -> GLenum {
+        switch (t) {
+            case TextureType::Color:
+                return _internalColorFormat;
+            case TextureType::Depth:
+                return GL_DEPTH_COMPONENT32;
+            case TextureType::Normal:
+            case TextureType::Position:
+                return Settings::instance().getBufferFloatPrecision();
+            default:
+                throw std::logic_error("Unhandled case label");
+        }
+    }(type);
 
     const glm::ivec2 res = _framebufferRes;
     glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);

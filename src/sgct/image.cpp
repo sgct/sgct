@@ -246,9 +246,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     std::vector<png_bytep> rowPtrs(_size.y);
 
     for (int y = 0; y < _size.y; y++) {
-        rowPtrs[(_size.y - 1) - y] = reinterpret_cast<png_bytep>(
-            &_data[y * _size.x * _nChannels * _bytesPerChannel]
-        );
+        rowPtrs[(_size.y - 1) - y] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
     }
     png_write_image(png_ptr, rowPtrs.data());
     rowPtrs.clear();

@@ -186,14 +186,7 @@ void NonLinearProjection::initVBO() {
     // 2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertices.data(), GL_STREAM_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        5 * sizeof(float),
-        reinterpret_cast<void*>(0)
-    );
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(

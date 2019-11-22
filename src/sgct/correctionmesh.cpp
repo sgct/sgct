@@ -375,7 +375,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
         GL_FLOAT,
         GL_FALSE,
         sizeof(correction::CorrectionMeshVertex),
-        reinterpret_cast<void*>(0)
+        nullptr
     );
 
     glEnableVertexAttribArray(1);

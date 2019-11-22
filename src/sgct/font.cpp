@@ -245,7 +245,7 @@ Font::~Font() {
 
 void Font::setStrokeSize(int size) {
     _strokeSize = size;
-};
+}
 
 const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
     if (_fontFaceData.count(c) == 0) {

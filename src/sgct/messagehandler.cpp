@@ -71,12 +71,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
         
     _parseBuffer[0] = '\0';
     
-#if (_MSC_VER >= 1400)
-    // And Converts Symbols To Actual Numbers
-    vsprintf_s(_parseBuffer.data(), _maxMessageSize, fmt, ap);
-#else
     vsprintf(_parseBuffer.data(), fmt, ap);
-#endif
     va_end(ap); // Results Are Stored In Text
 
     // print local
@@ -84,29 +79,10 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
         time_t now = time(nullptr);
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-        tm timeInfo;
-        errno_t err = localtime_s(&timeInfo, &now);
-        if (err == 0) {
-            strftime(TimeBuffer, TimeBufferSize, "%X", &timeInfo);
-        }
-#else
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
-#endif
-
-#if (_MSC_VER >= 1400)
-        sprintf_s(
-            _combinedBuffer.data(),
-            _combinedMessageSize,
-            "%s| %s",
-            TimeBuffer,
-            _parseBuffer.data()
-        );
-#else
         sprintf(_combinedBuffer.data(), "%s| %s", TimeBuffer, _parseBuffer.data());
-#endif
 
         if (_logToConsole) {
             std::cout << _combinedBuffer.data() << '\n';
@@ -157,19 +133,6 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
     }
 
     char Buffer[64];
-#if (_MSC_VER >= 1400)
-    tm timeInfo;
-    errno_t err = localtime_s(&timeInfo, &now);
-    if (err == 0) {
-        strftime(Buffer, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
-        if (nodeId > -1) {
-            ss << Buffer << "_node" << nodeId << ".txt";
-        }
-        else {
-            ss << Buffer << ".txt";
-        }
-    }
-#else
     tm* timeInfoPtr;
     timeInfoPtr = localtime(&now);
 
@@ -180,7 +143,6 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
     else {
         ss << Buffer << ".txt";
     }
-#endif
 
     _filename = ss.str();
 }
@@ -279,8 +241,8 @@ void MessageHandler::setNotifyLevel(Level nl) {
     _level = nl;
 }
 
-MessageHandler::Level MessageHandler::getNotifyLevel() {
-    return static_cast<Level>(_level.load());
+MessageHandler::Level MessageHandler::getNotifyLevel() const {
+    return _level.load();
 }
 
 void MessageHandler::setShowTime(bool state) {
@@ -303,7 +265,7 @@ void MessageHandler::setLogCallback(std::function<void(const char *)> fn) {
     _messageCallback = std::move(fn);
 }
 
-size_t MessageHandler::getDataSize() {
+size_t MessageHandler::getDataSize() const {
     return _buffer.size();
 }
 

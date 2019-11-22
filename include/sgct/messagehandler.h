@@ -52,7 +52,7 @@ public:
     void setNotifyLevel(Level nl);
 
     /// Get the notify level for displaying messages.
-    Level getNotifyLevel();
+    Level getNotifyLevel() const;
 
     /// Set if time of day should be displayed with each print message
     void setShowTime(bool state);
@@ -78,8 +78,7 @@ public:
      */
     void setLogCallback(std::function<void(const char *)> fn);
 
-    std::size_t getDataSize();
-
+    size_t getDataSize() const;
     char* getMessage();
 
 private:

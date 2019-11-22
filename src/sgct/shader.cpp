@@ -62,13 +62,13 @@ Shader::Shader(GLenum shaderType, const std::string& sourceString)
 }
 
 Shader::Shader(const Shader& rhs)
-    : _shaderId(rhs._shaderId)
-    , _shaderType(rhs._shaderType)
+    : _shaderType(rhs._shaderType)
+    , _shaderId(rhs._shaderId)
 {}
 
 Shader::Shader(Shader&& rhs) noexcept 
-    : _shaderId(rhs._shaderId)
-    , _shaderType(rhs._shaderType)
+    : _shaderType(rhs._shaderType)
+    , _shaderId(rhs._shaderId)
 {
     rhs._shaderId = 0;
 }

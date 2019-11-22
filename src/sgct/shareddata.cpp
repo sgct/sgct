@@ -249,7 +249,7 @@ void SharedData::writeUInt16(const SharedUInt16& si) {
 
 void SharedData::writeUInt8(const SharedUInt8& si) {
     uint8_t val = si.getVal();
-    unsigned char* p = reinterpret_cast<unsigned char*>(&val);
+    unsigned char* p = &val;
     std::unique_lock lk(core::mutex::DataSync);
     _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint8_t));
 }
@@ -370,7 +370,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
 
 void SharedData::readUInt8(SharedUInt8& si) {
     core::mutex::DataSync.lock();
-    uint8_t val = *reinterpret_cast<uint8_t*>(&_dataBlock[_pos]);
+    uint8_t val = _dataBlock[_pos];
     _pos += sizeof(uint8_t);
     core::mutex::DataSync.unlock();
 

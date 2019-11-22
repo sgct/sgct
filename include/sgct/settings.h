@@ -255,7 +255,7 @@ private:
     // fontdata
 #ifdef WIN32
     std::string _fontName = "verdanab.ttf";
-#elif __APPLE__
+#elif defined(__APPLE__)
     std::string _fontName = "Tahoma Bold.ttf";
 #else
     std::string _fontName = "FreeSansBold.ttf";

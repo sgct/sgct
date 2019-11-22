@@ -240,17 +240,6 @@ namespace {
         return (re && ge && be && ae) ? std::optional(value) : std::nullopt;
     }
 
-    std::optional<glm::quat> parseValueQuat(const tinyxml2::XMLElement& e) {
-        glm::quat q;
-        // Yes, this order is correct;  the constructor takes w,x,y,z but the
-        // layout in memory is x,y,z,w
-        bool we = e.QueryFloatAttribute("w", &q[3]) == tinyxml2::XML_NO_ERROR;
-        bool xe = e.QueryFloatAttribute("x", &q[0]) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryFloatAttribute("y", &q[1]) == tinyxml2::XML_NO_ERROR;
-        bool ze = e.QueryFloatAttribute("z", &q[2]) == tinyxml2::XML_NO_ERROR;
-        return (we && xe && ye && ze) ? std::optional(q) : std::nullopt;
-    }
-
     std::optional<glm::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
         float value[16];
         bool err[16] = {

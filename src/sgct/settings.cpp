@@ -39,8 +39,8 @@ void Settings::applySettings(const config::Settings& settings) {
     }
     if (settings.bufferFloatPrecision) {
         BufferFloatPrecision p =
-            [](config::Settings::BufferFloatPrecision p) {
-            switch (p) {
+            [](config::Settings::BufferFloatPrecision pr) {
+            switch (pr) {
                 case config::Settings::BufferFloatPrecision::Float16Bit:
                     return BufferFloatPrecision::Float16Bit;
                 case config::Settings::BufferFloatPrecision::Float32Bit:

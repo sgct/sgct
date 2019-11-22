@@ -203,7 +203,7 @@ struct Error : public std::runtime_error {
         Window
     };
 
-    Error(Component component, int code, std::string message);
+    Error(Component comp, int c, std::string msg);
 
     Component component;
     int code;

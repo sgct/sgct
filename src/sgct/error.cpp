@@ -36,13 +36,13 @@ namespace {
 
 namespace sgct {
 
-Error::Error(Component component, int code, std::string message)
+Error::Error(Component comp, int c, std::string msg)
     : std::runtime_error(
-        "[" + nameForComponent(component) + "] (" + std::to_string(code) + "): " + message
+        "[" + nameForComponent(comp) + "] (" + std::to_string(c) + "): " + msg
       )
-    , component(component)
-    , code(code)
-    , message(std::move(message))
+    , component(comp)
+    , code(c)
+    , message(std::move(msg))
 {}
 
 } // namespace sgct

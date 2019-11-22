@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(sgct)
 
-include(support/copy_files.cmake)
-include(support/copy_sgct_dynamic_libraries.cmake)
-include(support/set_compile_options.cmake)
-include(support/disable_external_warnings.cmake)
+include(support/cmake/copy_files.cmake)
+include(support/cmake/copy_sgct_dynamic_libraries.cmake)
+include(support/cmake/set_compile_options.cmake)
+include(support/cmake/disable_external_warnings.cmake)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/support/cmake/modules)
 
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
@@ -34,6 +36,8 @@ option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
 option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
 option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
 option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" ON)
+option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
+option(SGCT_DEP_INCLUDE_GLBINDING "Include glbinding library" ON)
 
 add_subdirectory(src/sgct)
 add_subdirectory(ext)

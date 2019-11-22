@@ -139,13 +139,21 @@ add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
 set_compile_options(sgct)
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
 
-target_compile_definitions(sgct PUBLIC GLEW_STATIC GLEW_NO_GLU)
-
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
-target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
+
+if (SGCT_DEP_INCLUDE_GLBINDING)
+  target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
+endif ()
+
+if (SGCT_DEP_INCLUDE_GLM)
+  set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+  find_package(GLM REQUIRED)
+  message(STATUS "Including GLM found at ${GLM_INCLUDE_DIRS}")
+  mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
+  target_include_directories(sgct SYSTEM PUBLIC ${GLM_INCLUDE_DIRS})
+endif ()
 
 if (SGCT_DEP_INCLUDE_GLFW)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)

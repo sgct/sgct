@@ -11,7 +11,6 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
-#include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 

@@ -9,19 +9,13 @@
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
-#include <sgct/action.h>
 #include <sgct/config.h>
+#include <sgct/frustum.h>
 #include <sgct/keys.h>
-#include <sgct/mouse.h>
 #include <sgct/networkmanager.h>
-#include <sgct/joystick.h>
-#include <sgct/shaderprogram.h>
-#include <sgct/fisheyeprojection.h>
-#include <sgct/messagehandler.h>
 #include <sgct/screencapture.h>
-#include <sgct/settings.h>
-#include <sgct/sphericalmirrorprojection.h>
-#include <sgct/spoutoutputprojection.h>
+#include <sgct/shadermanager.h>
+#include <sgct/window.h>
 #include <array>
 #include <functional>
 #include <optional>
@@ -40,6 +34,7 @@ namespace core {
     class Node;
     class StatisticsRenderer;
     class Touch;
+    class User;
 } // namespace core
 
 config::Cluster loadCluster(std::optional<std::string> path);
@@ -85,18 +80,6 @@ public:
     };
 
     enum class RenderTarget { WindowBuffer, NonLinearBuffer };
-
-    /// The different texture indexes in window buffers
-    enum class TextureIndex {
-        LeftEye = 0,
-        RightEye,
-        Intermediate,
-        FX1,
-        FX2,
-        Depth,
-        Normals,
-        Positions
-    };
 
     struct Statistics {
         static inline const int HistoryLength = 512;
@@ -734,18 +717,18 @@ private:
     void renderFBOTexture();
     
     /// This function combines a texture and a shader into a new texture
-    void renderPostFX(TextureIndex targetIndex);
+    void renderPostFX(Window::TextureIndex targetIndex);
 
-    void renderViewports(TextureIndex ti);
+    void renderViewports(Window::TextureIndex ti);
 
     /// This function renders stats, OSD and overlays
     void render2D();
 
     /// This function attaches targets to FBO if FBO is in use
-    void prepareBuffer(TextureIndex ti);
+    void prepareBuffer(Window::TextureIndex ti);
 
     /// This function updates the renderingtargets.
-    void updateRenderingTargets(TextureIndex ti);
+    void updateRenderingTargets(Window::TextureIndex ti);
 
     /**
      * This function clears and sets the appropriate buffer from:

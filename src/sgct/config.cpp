@@ -9,11 +9,8 @@
 #include <sgct/config.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
-#include <glm/vector_relational.hpp>
 #include <algorithm>
 #include <numeric>
-#include <variant>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 

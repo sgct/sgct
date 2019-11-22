@@ -8,7 +8,6 @@
 
 #include <sgct/correction/domeprojection.h>
 
-#include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
 #include <glm/glm.hpp>

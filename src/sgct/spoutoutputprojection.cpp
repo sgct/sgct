@@ -12,6 +12,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
+#include <sgct/settings.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalfisheyeshaders.h>

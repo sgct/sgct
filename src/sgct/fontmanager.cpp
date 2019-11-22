@@ -10,13 +10,11 @@
 
 #include <sgct/fontmanager.h>
 
-#include <sgct/engine.h>
 #include <sgct/font.h>
 #include <sgct/messagehandler.h>
-#include <sgct/helpers/stringfunctions.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN

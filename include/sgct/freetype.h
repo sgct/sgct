@@ -11,7 +11,6 @@
 
 #include <glm/fwd.hpp>
 #include <string>
-#include <wchar.h>
 
 namespace sgct::text {
 

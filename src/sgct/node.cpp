@@ -8,6 +8,7 @@
 
 #include <sgct/node.h>
 
+#include <sgct/config.h>
 #include <sgct/keys.h>
 #include <sgct/messagehandler.h>
 #include <algorithm>

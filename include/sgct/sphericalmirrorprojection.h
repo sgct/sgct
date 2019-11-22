@@ -12,7 +12,6 @@
 #include <sgct/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
-#include <glm/glm.hpp>
 
 namespace sgct::core {
 

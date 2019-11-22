@@ -13,7 +13,6 @@
 #include <sgct/settings.h>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace sgct {
@@ -46,7 +45,7 @@ struct Configuration {
 Configuration parseArguments(std::vector<std::string>& arg);
 
 /// Returns the text providing information about the available commandline options
-std::string_view getHelpMessage();
+std::string getHelpMessage();
 
 } // namespace sgct
 

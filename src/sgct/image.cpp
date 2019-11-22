@@ -6,27 +6,24 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-// png.h needs all of this included before its own include.. sigh
-#include <algorithm>
-#include <cstdio>
-#include <fstream>
-
-#include <png.h>
-#include <pngpriv.h>
-
 #include <sgct/image.h>
 
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
-#include <sgct/settings.h>
 #include <chrono>
-#include <iostream>
+#include <png.h>
+#include <pngpriv.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4611)
+#endif // WIN32
 
 namespace {
     sgct::core::Image::FormatType getFormatType(std::string filename) {

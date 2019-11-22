@@ -15,10 +15,8 @@
 #include <sgct/fontmanager.h>
 #include <sgct/window.h>
 #include <sgct/helpers/portedfunctions.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <sstream>
 
 namespace {

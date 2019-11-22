@@ -116,7 +116,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
     return config;
 }
 
-std::string_view getHelpMessage() {
+std::string getHelpMessage() {
     return R"(
 Parameters:
 -config <filename.xml>

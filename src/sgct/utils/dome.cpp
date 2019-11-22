@@ -8,11 +8,10 @@
 
 #include <sgct/utils/dome.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
-#include <glm/gtc/constants.hpp>
+#include <glm/glm.hpp>
 
 namespace sgct::utils {
 

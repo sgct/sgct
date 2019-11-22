@@ -1,5 +1,8 @@
+#include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/fisheyeprojection.h>
+#include <sgct/nonlinearprojection.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>

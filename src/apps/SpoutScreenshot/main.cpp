@@ -1,3 +1,4 @@
+#include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/shadermanager.h>

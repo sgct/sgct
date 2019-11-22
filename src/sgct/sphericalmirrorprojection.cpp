@@ -11,11 +11,11 @@
 #include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
-#include <sgct/window.h>
 #include <sgct/viewport.h>
+#include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <algorithm>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {

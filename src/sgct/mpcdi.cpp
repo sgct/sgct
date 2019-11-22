@@ -10,12 +10,9 @@
 
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
-#include <sgct/viewport.h>
 #include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
 
 #define Error(code, msg) Error(Error::Component::MPCDI, code, msg)
 

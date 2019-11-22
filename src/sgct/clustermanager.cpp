@@ -9,7 +9,8 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include <sgct/messagehandler.h>
+#include <sgct/settings.h>
 #include <algorithm>
 
 namespace sgct::core {

@@ -14,15 +14,15 @@
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
+#include <sgct/nonlinearprojection.h>
 #include <sgct/readconfig.h>
-#include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
+#include <sgct/touch.h>
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
-#include <sgct/touch.h>
 #include <sgct/shaders/internalshaders.h>
 #include <iostream>
 #include <numeric>
@@ -136,9 +136,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
             return core::readConfig(*path);
         }
         catch (...) {
-            // (abock, 2019-10-11) This conversion from string_view to string is necessary
-            // to keep this code compiling with VS 2017 15.9.16 (and probably before)
-            std::cout << std::string(getHelpMessage()) << '\n';
+            std::cout << getHelpMessage() << '\n';
             throw;
         }
     }
@@ -192,9 +190,7 @@ Engine::Engine(const Configuration& config) {
     }
     if (config.showHelpText) {
         _helpMode = true;
-        // (abock, 2019-10-11) This conversion from string_view to string is necessary to
-        // keep this code compiling with VS 2017 15.9.16 (and probably before)
-        std::cout << std::string(getHelpMessage()) << '\n';
+        std::cout << getHelpMessage() << '\n';
     }
     if (config.nodeId) {
         // This nodeId might not be a valid node, but we have no way of knowing this yet
@@ -1182,11 +1178,11 @@ void Engine::render() {
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
                 _currentFrustumMode = core::Frustum::Mode::MonoEye;
-                renderViewports(TextureIndex::LeftEye);
+                renderViewports(Window::TextureIndex::LeftEye);
             }
             else {
                 _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
-                renderViewports(TextureIndex::LeftEye);
+                renderViewports(Window::TextureIndex::LeftEye);
             }
 
             // FBO index, every window and every non-linear projection has it's own FBO
@@ -1225,10 +1221,10 @@ void Engine::render() {
             _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
-                renderViewports(TextureIndex::LeftEye);
+                renderViewports(Window::TextureIndex::LeftEye);
             }
             else {
-                renderViewports(TextureIndex::RightEye);
+                renderViewports(Window::TextureIndex::RightEye);
             }
 
             // FBO index, every window and every non-linear projection has their own
@@ -1495,9 +1491,9 @@ void Engine::drawOverlays() {
     }
 }
 
-void Engine::prepareBuffer(TextureIndex ti) {
+void Engine::prepareBuffer(Window::TextureIndex ti) {
     if (getCurrentWindow().usePostFX()) {
-        ti = TextureIndex::Intermediate;
+        ti = Window::TextureIndex::Intermediate;
     }
 
     core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
@@ -1511,20 +1507,20 @@ void Engine::prepareBuffer(TextureIndex ti) {
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth)
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Normals),
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Positions),
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1555,10 +1551,16 @@ void Engine::renderFBOTexture() {
     bool maskShaderSet = false;
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(TextureIndex::LeftEye));
+        glBindTexture(
+            GL_TEXTURE_2D,
+            win.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+        );
 
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(TextureIndex::RightEye));
+        glBindTexture(
+            GL_TEXTURE_2D,
+            win.getFrameBufferTexture(Window::TextureIndex::RightEye)
+        );
 
         win.bindStereoShaderProgram();
 
@@ -1576,7 +1578,10 @@ void Engine::renderFBOTexture() {
     }
     else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(TextureIndex::LeftEye));
+        glBindTexture(
+            GL_TEXTURE_2D,
+            win.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+        );
 
         _shader.fboQuad.bind();
         glUniform1i(_shaderLoc.monoTex, 0);
@@ -1601,7 +1606,7 @@ void Engine::renderFBOTexture() {
 
             glBindTexture(
                 GL_TEXTURE_2D,
-                win.getFrameBufferTexture(TextureIndex::RightEye)
+                win.getFrameBufferTexture(Window::TextureIndex::RightEye)
             );
             for (int i = 0; i < win.getNumberOfViewports(); ++i) {
                 if (Settings::instance().getUseWarping()) {
@@ -1660,7 +1665,7 @@ void Engine::renderFBOTexture() {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(TextureIndex ti) {
+void Engine::renderViewports(Window::TextureIndex ti) {
     prepareBuffer(ti);
 
     Window::StereoMode sm = getCurrentWindow().getStereoMode();
@@ -1802,7 +1807,7 @@ void Engine::render2D() {
     }
 }
 
-void Engine::renderPostFX(TextureIndex targetIndex) {
+void Engine::renderPostFX(Window::TextureIndex targetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     int numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
@@ -1820,7 +1825,7 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
             // ping pong between the two FX buffers
             fx.setOutputTexture(
                 getCurrentWindow().getFrameBufferTexture(
-                    (i % 2 == 0) ? TextureIndex::FX1 : TextureIndex::FX2
+                    (i % 2 == 0) ? Window::TextureIndex::FX1 : Window::TextureIndex::FX2
                 )
             ); 
         }
@@ -1828,7 +1833,9 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
         // set input (dependent on output)
         if (i == 0) {
             fx.setInputTexture(
-                getCurrentWindow().getFrameBufferTexture(TextureIndex::Intermediate)
+                getCurrentWindow().getFrameBufferTexture(
+                    Window::TextureIndex::Intermediate
+                )
             );
         }
         else {
@@ -1862,7 +1869,9 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
         else {
             glBindTexture(
                 GL_TEXTURE_2D,
-                getCurrentWindow().getFrameBufferTexture(TextureIndex::Intermediate)
+                getCurrentWindow().getFrameBufferTexture(
+                    Window::TextureIndex::Intermediate
+                )
             );
         }
 
@@ -1884,7 +1893,7 @@ void Engine::renderPostFX(TextureIndex targetIndex) {
     }
 }
 
-void Engine::updateRenderingTargets(TextureIndex ti) {
+void Engine::updateRenderingTargets(Window::TextureIndex ti) {
     // copy AA-buffer to "regular" / non-AA buffer
     core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
     if (!fbo->isMultiSampled()) {
@@ -1892,7 +1901,7 @@ void Engine::updateRenderingTargets(TextureIndex ti) {
     }
 
     if (getCurrentWindow().usePostFX()) {
-        ti = TextureIndex::Intermediate;
+        ti = Window::TextureIndex::Intermediate;
     }
 
     // bind separate read and draw buffers to prepare blit operation
@@ -1903,20 +1912,20 @@ void Engine::updateRenderingTargets(TextureIndex ti) {
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth)
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Normals),
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(TextureIndex::Positions),
+            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -2155,15 +2164,19 @@ void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     glUniform1i(_shaderLoc.overlayTex, 0);
 
     glActiveTexture(GL_TEXTURE0);
-    TextureIndex m = [](core::Frustum::Mode m) {
+    Window::TextureIndex m = [](core::Frustum::Mode m) {
         switch (m) {
             // abock (2019-09-27) Yep, I'm confused about this mapping, too. But I just
             // took the enumerations values as they were and I assume that it was an
             // undetected bug
+            case core::Frustum::Mode::MonoEye:
+                return Window::TextureIndex::LeftEye;
+            case core::Frustum::Mode::StereoLeftEye:
+                return Window::TextureIndex::RightEye;
+            case core::Frustum::Mode::StereoRightEye:
+                return Window::TextureIndex::Intermediate;
             default:
-            case core::Frustum::Mode::MonoEye: return TextureIndex::LeftEye;
-            case core::Frustum::Mode::StereoLeftEye: return TextureIndex::RightEye;
-            case core::Frustum::Mode::StereoRightEye: return TextureIndex::Intermediate;
+                throw std::logic_error("Unhandled case label");
         }
     }(mode);
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
@@ -2436,27 +2449,29 @@ void Engine::setExitKey(int key) {
 
 unsigned int Engine::getCurrentDrawTexture() const {
     if (getCurrentWindow().usePostFX()) {
-        return getCurrentWindow().getFrameBufferTexture(TextureIndex::Intermediate);
+        return getCurrentWindow().getFrameBufferTexture(
+            Window::TextureIndex::Intermediate
+        );
     }
     else {
         return getCurrentWindow().getFrameBufferTexture(
             (_currentFrustumMode == core::Frustum::Mode::StereoRightEye) ?
-                TextureIndex::RightEye : TextureIndex::LeftEye
+            Window::TextureIndex::RightEye : Window::TextureIndex::LeftEye
         );
     }
 }
 
 // @TODO (abock, 2019-11-01) Remove the following three functions if possible
 unsigned int Engine::getCurrentDepthTexture() const {
-    return getCurrentWindow().getFrameBufferTexture(TextureIndex::Depth);
+    return getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Depth);
 }
 
 unsigned int Engine::getCurrentNormalTexture() const {
-    return getCurrentWindow().getFrameBufferTexture(TextureIndex::Normals);
+    return getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Normals);
 }
 
 unsigned int Engine::getCurrentPositionTexture() const {
-    return getCurrentWindow().getFrameBufferTexture(TextureIndex::Positions);
+    return getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Positions);
 }
 
 glm::ivec2 Engine::getCurrentResolution() const {

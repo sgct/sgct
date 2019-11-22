@@ -8,12 +8,10 @@
 
 #include <sgct/nonlinearprojection.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/settings.h>
 #include <algorithm>
-#include <unordered_map>
 
 namespace sgct::core {
 

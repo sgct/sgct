@@ -8,7 +8,6 @@
 
 #include <sgct/shareddata.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <zlib.h>
 #include <cstring>

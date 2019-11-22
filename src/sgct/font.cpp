@@ -10,9 +10,9 @@
 
 #include <sgct/font.h>
 
-#include <sgct/engine.h>
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
+#include <freetype/ftstroke.h>
 #include <array>
 #include <optional>
 

@@ -104,12 +104,12 @@ void postDrawFun() {
         GLuint texId;
         if (windowData[i].second) {
             texId = Engine::instance().getWindow(winIndex).getFrameBufferTexture(
-                Engine::TextureIndex::LeftEye
+                Window::TextureIndex::LeftEye
             );
         }
         else {
             texId = Engine::instance().getWindow(winIndex).getFrameBufferTexture(
-                Engine::TextureIndex::RightEye
+                Window::TextureIndex::RightEye
             );
         }
             

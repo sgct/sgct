@@ -9,14 +9,12 @@
 #include <sgct/fisheyeprojection.h>
 
 #include <sgct/engine.h>
-#include <sgct/messagehandler.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
 #include <sgct/shaders/internalfisheyeshaders_cubic.h>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 

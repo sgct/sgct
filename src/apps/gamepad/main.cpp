@@ -1,5 +1,6 @@
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/joystick.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
 

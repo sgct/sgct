@@ -12,7 +12,6 @@
 #ifdef SGCT_HAS_TEXT
 
 #include <freetype/ftglyph.h>
-#include <freetype/ftstroke.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>

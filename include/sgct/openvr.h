@@ -13,9 +13,8 @@
 
 #include <sgct/frustum.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <string>
 #include <openvr.h>
+#include <string>
 
 class Window;
 

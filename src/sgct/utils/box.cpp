@@ -8,7 +8,6 @@
 
 #include <sgct/utils/box.h>
 
-#include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
 #include <array>

@@ -15,9 +15,7 @@
 
 namespace sgct::core {
 
-/**
- * This class manages and renders non linear fisheye projections
- */
+/// This class manages and renders non linear fisheye projections
 class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };

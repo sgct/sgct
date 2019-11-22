@@ -9,7 +9,7 @@
 #ifndef __SGCT__FREE_TYPE__H__
 #define __SGCT__FREE_TYPE__H__
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <string>
 #include <wchar.h>
 

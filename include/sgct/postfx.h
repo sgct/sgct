@@ -10,7 +10,6 @@
 #define __SGCT__POST_FX__H__
 
 #include <sgct/shaderprogram.h>
-#include <glm/glm.hpp>
 #include <functional>
 
 namespace sgct {

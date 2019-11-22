@@ -11,9 +11,7 @@
 
 namespace sgct::utils {
 
-/**
- * Helper class to render a dome grid
- */
+/// Helper class to render a dome grid
 class Dome {
 public:
     /// This constructor requires a valid OpenGL context

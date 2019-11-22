@@ -15,8 +15,7 @@
 
 namespace sgct::utils {
 
-DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
-                   unsigned int resolution)
+DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolution)
     : _resolution(resolution)
     , _rings(rings)
     , _segments(segments)
@@ -35,11 +34,11 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
     unsigned int pos = 0;
 
     // create rings
-    for (unsigned int r = 1; r <= _rings; r++) {
+    for (int r = 1; r <= _rings; r++) {
         const float elevationAngle = glm::radians<float>(
             (FOV / 2.f) * (static_cast<float>(r) / static_cast<float>(_rings))
         );
-        for (unsigned int i = 0; i < _resolution; i++) {
+        for (int i = 0; i < _resolution; i++) {
             const float theta = glm::two_pi<float>() *
                 (static_cast<float>(i) / static_cast<float>(_resolution));
 
@@ -51,11 +50,11 @@ DomeGrid::DomeGrid(float radius, float FOV, unsigned int segments, unsigned int 
     }
 
     // create segments
-    for (unsigned int s = 0; s < _segments; s++) {
+    for (int s = 0; s < _segments; s++) {
         const float theta = glm::two_pi<float>() *
             (static_cast<float>(s) / static_cast<float>(_segments));
 
-        for (unsigned int i = 0; i < (_resolution / 4) + 1; i++) {
+        for (int i = 0; i < (_resolution / 4) + 1; i++) {
             const float elevationAngle = glm::radians<float>(FOV / 2.f) *
                 (static_cast<float>(i) / static_cast<float>(_resolution / 4));
 
@@ -92,10 +91,10 @@ DomeGrid::~DomeGrid() {
 void DomeGrid::draw() {
     glBindVertexArray(_vao);
 
-    for (unsigned int r = 0; r < _rings; r++) {
+    for (int r = 0; r < _rings; r++) {
         glDrawArrays(GL_LINE_LOOP, r * _resolution, _resolution);
     }
-    for (unsigned int s = 0; s < _segments; s++) {
+    for (int s = 0; s < _segments; s++) {
         glDrawArrays(
             GL_LINE_STRIP,
             _rings * _resolution + s * ((_resolution / 4) + 1),

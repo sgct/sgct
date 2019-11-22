@@ -14,7 +14,7 @@
 #include <sgct/shaderprogram.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <map>
 #include <memory>
 #include <string>

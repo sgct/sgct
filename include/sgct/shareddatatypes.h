@@ -15,9 +15,7 @@
 
 namespace sgct {
 
-/**
- * Mutex protected template for multi-thread data sharing
- */
+/// Mutex protected template for multi-thread data sharing
 template <class T>
 class SharedObject {
 public:

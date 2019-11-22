@@ -14,6 +14,7 @@
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
+#include <sgct/correction/buffer.h>
 #include <sgct/correction/domeprojection.h>
 #include <sgct/correction/mpcdimesh.h>
 #include <sgct/correction/obj.h>

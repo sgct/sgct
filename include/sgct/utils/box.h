@@ -11,22 +11,17 @@
 
 namespace sgct::utils {
 
-/**
- * This class creates and renders a textured box.
- */
+/// This class creates and renders a textured box.
 class Box {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
-    /// This constructor requires a valid openGL context
+    /// This constructor requires a valid OpenGL context
     Box(float size, TextureMappingMode mode = TextureMappingMode::Regular);
+
+    /// The destructor requires a valid OpenGL context
     ~Box();
 
-    /**
-     * layout 0 contains texture coordinates (vec2)
-     * layout 1 contains vertex normals (vec3)
-     * layout 2 contains vertex positions (vec3).
-     */
      void draw();
 
 private:

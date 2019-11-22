@@ -10,7 +10,7 @@
 #define __SGCT__CORRECTION_DOMEPROJECTION__H__
 
 #include <sgct/correction/buffer.h>
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <string>
 
 namespace sgct::core::correction {

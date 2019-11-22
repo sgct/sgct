@@ -11,6 +11,7 @@
 #include <sgct/correction/buffer.h>
 #include <sgct/error.h>
 #include <sgct/messagehandler.h>
+#include <glm/glm.hpp>
 
 namespace sgct::core::correction {
 

@@ -9,7 +9,6 @@
 #ifndef __SGCT__TEXTURE_MANAGER__H__
 #define __SGCT__TEXTURE_MANAGER__H__
 
-#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 

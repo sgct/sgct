@@ -20,9 +20,7 @@ namespace sgct::core {
 
 class User;
 
-/**
- * This class holds and manages viewportdata and calculates frustums
- */
+/// This class holds and manages viewportdata and calculates frustums
 class BaseViewport {
 public:
     BaseViewport();

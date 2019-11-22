@@ -13,6 +13,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
+#include <glm/glm.hpp>
 
 namespace sgct::core::correction {
 

@@ -11,9 +11,7 @@
 
 namespace sgct::helpers {
 
-/**
- * This class stores a vertex which are used to generate vertex buffer objects (VBOs)
- */
+/// This class stores a vertex which are used to generate vertex buffer objects (VBOs)
 struct VertexData {
     float s = 0.f;
     float t = 0.f;  // Texcoord0 -> size=8

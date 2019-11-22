@@ -11,7 +11,7 @@
 
 #include <sgct/correction/buffer.h>
 #include <string>
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 
 namespace sgct::core::correction {
 

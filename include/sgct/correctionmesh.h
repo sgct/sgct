@@ -9,15 +9,15 @@
 #ifndef __SGCT__CORRECTION_MESH__H__
 #define __SGCT__CORRECTION_MESH__H__
 
-#include <sgct/correction/buffer.h>
 #include <sgct/ogl_headers.h>
-#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 
 namespace sgct::core {
 
 class Viewport;
+
+namespace correction { struct Buffer; }
 
 /**
  * Helper class for reading and rendering a correction mesh. A correction mesh is used for

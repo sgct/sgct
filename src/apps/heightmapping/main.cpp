@@ -392,6 +392,8 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 Window::StereoMode m = static_cast<Window::StereoMode>(v);
                 stereoMode.setVal(m);
                 break;
+            default:
+                break;
         }
     }
 }

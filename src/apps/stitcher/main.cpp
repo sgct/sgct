@@ -414,6 +414,8 @@ void keyCallback(Key key, Modifier, Action action, int) {
             case Key::F10:
                 takeScreenshot.setVal(true);
                 break;
+            default:
+                break;
         }
     }
 }

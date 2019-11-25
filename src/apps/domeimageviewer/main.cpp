@@ -362,6 +362,8 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 );
             }
             break;
+        default:
+            break;
     }
 }
 

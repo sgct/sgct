@@ -424,6 +424,8 @@ void keyCallback(Key key, Modifier, Action action, int) {
             case Key::D:
                 buttonRight = (action == Action::Repeat || action == Action::Press);
                 break;
+            default:
+                break;
         }
     }
 }

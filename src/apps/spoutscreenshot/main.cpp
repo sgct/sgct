@@ -153,7 +153,7 @@ void cleanUpFun() {
     }
 }
 
-void keyboardCallback(Key key, int, Action action, Modifier) {
+void keyboardCallback(Key key, Modifier, Action action, int) {
     if (action == Action::Press) {
         switch (key) {
             case Key::Esc:

@@ -404,7 +404,7 @@ void decodeFun() {
     SharedData::instance().readBool(takeScreenshot);
 }
 
-void keyCallback(Key key, int, Action action, Modifier) {
+void keyCallback(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
             case Key::Esc:

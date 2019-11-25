@@ -295,7 +295,7 @@ void postSyncPreDraw() {
     }
 }
 
-void keyboardCallback(Key key, int, Action action, Modifier) {
+void keyboardCallback(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }

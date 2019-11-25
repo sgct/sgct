@@ -33,10 +33,12 @@
 
 // Callback wrappers for GLFW
 std::function<
-    void(sgct::Key, int, sgct::Action, sgct::Modifier)
+    void(sgct::Key, sgct::Modifier, sgct::Action, int)
 > gKeyboardCallbackFn = nullptr;
 std::function<void(unsigned int, int)> gCharCallbackFn = nullptr;
-std::function<void(sgct::MouseButton, sgct::Action, sgct::Modifier)> gMouseButtonCallbackFn = nullptr;
+std::function<
+    void(sgct::MouseButton, sgct::Modifier, sgct::Action)
+> gMouseButtonCallbackFn = nullptr;
 std::function<void(double, double)> gMousePosCallbackFn = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFn = nullptr;
 std::function<void(int, const char**)> gDropCallbackFn = nullptr;
@@ -416,7 +418,7 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
                 [](GLFWwindow*, int key, int scancode, int a, int m) {
                     if (gKeyboardCallbackFn) {
                         using namespace sgct;
-                        gKeyboardCallbackFn(Key(key), scancode, Action(a), Modifier(m));
+                        gKeyboardCallbackFn(Key(key), Modifier(m), Action(a), scancode);
                     }
                 }
             );
@@ -427,7 +429,7 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
                 [](GLFWwindow*, int b, int a, int m) {
                     if (gMouseButtonCallbackFn) {
                         using namespace sgct;
-                        gMouseButtonCallbackFn(MouseButton(b), Action(a), Modifier(m));
+                        gMouseButtonCallbackFn(MouseButton(b), Modifier(m), Action(a));
                     }
                 }
             );
@@ -2247,7 +2249,7 @@ void Engine::setScreenShotCallback(std::function<void(core::Image*, size_t,
 }
 
 void Engine::setKeyboardCallbackFunction(
-                                       std::function<void(Key, int, Action, Modifier)> fn)
+                                       std::function<void(Key, Modifier, Action, int)> fn)
 {
     gKeyboardCallbackFn = std::move(fn);
 }
@@ -2257,7 +2259,7 @@ void Engine::setCharCallbackFunction(std::function<void(unsigned int, int)> fn) 
 }
 
 void Engine::setMouseButtonCallbackFunction(
-                                    std::function<void(MouseButton, Action, Modifier)> fn)
+                                    std::function<void(MouseButton, Modifier, Action)> fn)
 {
     gMouseButtonCallbackFn = std::move(fn);
 }

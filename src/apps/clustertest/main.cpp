@@ -471,7 +471,7 @@ void decodeFun() {
     }
 }
 
-void keyCallback(Key key, int, Action action, Modifier) {
+void keyCallback(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:

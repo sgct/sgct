@@ -87,7 +87,7 @@ void externalControlStatusCallback(bool connected) {
     }
 }
 
-void keyCallback(Key key, int, Action action, Modifier) {
+void keyCallback(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }

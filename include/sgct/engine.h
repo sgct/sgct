@@ -311,7 +311,7 @@ public:
      * \param fn is the std function of a keyboard callback function
      */
     void setKeyboardCallbackFunction(
-        std::function<void(Key key, int scanCode, Action action, Modifier modifiers)> fn);
+        std::function<void(Key key, Modifier modifiers, Action action, int scanCode)> fn);
 
     /// All windows are connected to this callback.
     void setCharCallbackFunction(
@@ -326,7 +326,7 @@ public:
      * \param fn is the std function to a mouse button callback function
      */
     void setMouseButtonCallbackFunction(
-        std::function<void(MouseButton button, Action action, Modifier modifiers)> fn);
+        std::function<void(MouseButton button, Modifier modifiers, Action action)> fn);
 
     /// All windows are connected to this callback.
     void setMousePosCallbackFunction(std::function<void(double x, double y)> fn);

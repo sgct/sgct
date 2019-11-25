@@ -402,7 +402,7 @@ void decodeFun() {
     SharedData::instance().readObj(xform);
 }
 
-void keyCallback(Key key, int, Action action, Modifier) {
+void keyCallback(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:
@@ -428,7 +428,7 @@ void keyCallback(Key key, int, Action action, Modifier) {
     }
 }
 
-void mouseButtonCallback(MouseButton button, Action action, Modifier) {
+void mouseButtonCallback(MouseButton button, Modifier, Action action) {
     if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft) {
         mouseLeftButton = (action == Action::Press);
         double yPos;

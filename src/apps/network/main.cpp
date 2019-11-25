@@ -262,7 +262,7 @@ void cleanUpFun() {
     disconnect();
 }
 
-void keyCallback(Key key, int, Action action, Modifier) {
+void keyCallback(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         if (key == Key::Esc) {
             Engine::instance().terminate();

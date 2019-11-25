@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/keys.h>
@@ -196,8 +196,8 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (key == key::Esc && action == action::Press) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
 }

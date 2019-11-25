@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
@@ -176,16 +176,16 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (Engine::instance().isMaster() && (action == action::Press)) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (Engine::instance().isMaster() && (action == Action::Press)) {
         switch (key) {
-            case key::Esc:
+            case Key::Esc:
                 Engine::instance().terminate();
                 break;
-            case key::S:
+            case Key::S:
                 stats.setVal(!stats.getVal());
                 break;
-            case key::I:
+            case Key::I:
                 info.setVal(!info.getVal());
                 break;
         }

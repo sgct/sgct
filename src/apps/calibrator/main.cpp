@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
@@ -295,23 +295,23 @@ void postSyncPreDraw() {
     }
 }
 
-void keyboardCallback(int key, int, int action, int) {
-    if (key == key::Esc && action == action::Press) {
+void keyboardCallback(Key key, int, Action action, Modifier) {
+    if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
-    if (key == key::I && action == action::Press) {
+    if (key == Key::I && action == Action::Press) {
         showId.setVal(!showId.getVal());
     }
 
-    if (key == key::S && action == action::Press) {
+    if (key == Key::S && action == Action::Press) {
         showStats.setVal(!showStats.getVal());
     }
 
-    if (key == key::P && action == action::Press) {
+    if (key == Key::P && action == Action::Press) {
         takeScreenshot.setVal(true);
     }
 
-    if (key == key::B && action == action::Press) {
+    if (key == Key::B && action == Action::Press) {
         captureBackbuffer.setVal(!captureBackbuffer.getVal());
     }
 }

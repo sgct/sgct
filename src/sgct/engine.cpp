@@ -32,9 +32,11 @@
 #define Error(code, msg) Error(Error::Component::Engine, code, msg)
 
 // Callback wrappers for GLFW
-std::function<void(int, int, int, int)> gKeyboardCallbackFn = nullptr;
+std::function<
+    void(sgct::Key, int, sgct::Action, sgct::Modifier)
+> gKeyboardCallbackFn = nullptr;
 std::function<void(unsigned int, int)> gCharCallbackFn = nullptr;
-std::function<void(int, int, int)> gMouseButtonCallbackFn = nullptr;
+std::function<void(sgct::MouseButton, sgct::Action, sgct::Modifier)> gMouseButtonCallbackFn = nullptr;
 std::function<void(double, double)> gMousePosCallbackFn = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFn = nullptr;
 std::function<void(int, const char**)> gDropCallbackFn = nullptr;
@@ -411,9 +413,10 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
         if (gKeyboardCallbackFn) {
             glfwSetKeyCallback(
                 window,
-                [](GLFWwindow*, int key, int scancode, int action, int mods) {
+                [](GLFWwindow*, int key, int scancode, int a, int m) {
                     if (gKeyboardCallbackFn) {
-                        gKeyboardCallbackFn(key, scancode, action, mods);
+                        using namespace sgct;
+                        gKeyboardCallbackFn(Key(key), scancode, Action(a), Modifier(m));
                     }
                 }
             );
@@ -421,9 +424,10 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
         if (gMouseButtonCallbackFn) {
             glfwSetMouseButtonCallback(
                 window,
-                [](GLFWwindow*, int button, int action, int mods) {
+                [](GLFWwindow*, int b, int a, int m) {
                     if (gMouseButtonCallbackFn) {
-                        gMouseButtonCallbackFn(button, action, mods);
+                        using namespace sgct;
+                        gMouseButtonCallbackFn(MouseButton(b), Action(a), Modifier(m));
                     }
                 }
             );
@@ -2242,7 +2246,9 @@ void Engine::setScreenShotCallback(std::function<void(core::Image*, size_t,
     _screenShotFn = std::move(fn);
 }
 
-void Engine::setKeyboardCallbackFunction(std::function<void(int, int, int, int)> fn) {
+void Engine::setKeyboardCallbackFunction(
+                                       std::function<void(Key, int, Action, Modifier)> fn)
+{
     gKeyboardCallbackFn = std::move(fn);
 }
 
@@ -2250,7 +2256,9 @@ void Engine::setCharCallbackFunction(std::function<void(unsigned int, int)> fn) 
     gCharCallbackFn = std::move(fn);
 }
 
-void Engine::setMouseButtonCallbackFunction(std::function<void(int, int, int)> fn) {
+void Engine::setMouseButtonCallbackFunction(
+                                    std::function<void(MouseButton, Action, Modifier)> fn)
+{
     gMouseButtonCallbackFn = std::move(fn);
 }
 
@@ -2591,16 +2599,16 @@ void Engine::setMouseCursorVisibility(int winIndex, bool state) {
     glfwSetInputMode(win, GLFW_CURSOR, state ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
 }
 
-const char* Engine::getJoystickName(int joystick) {
-    return glfwGetJoystickName(joystick);
+const char* Engine::getJoystickName(Joystick joystick) {
+    return glfwGetJoystickName(static_cast<int>(joystick));
 }
 
-const float* Engine::getJoystickAxes(int joystick, int* numOfValues) {
-    return glfwGetJoystickAxes(joystick, numOfValues);
+const float* Engine::getJoystickAxes(Joystick joystick, int* numOfValues) {
+    return glfwGetJoystickAxes(static_cast<int>(joystick), numOfValues);
 }
 
-const unsigned char* Engine::getJoystickButtons(int joystick, int* numOfValues) {
-    return glfwGetJoystickButtons(joystick, numOfValues);
+const unsigned char* Engine::getJoystickButtons(Joystick joystick, int* numOfValues) {
+    return glfwGetJoystickButtons(static_cast<int>(joystick), numOfValues);
 }
 
 const core::Node& Engine::getThisNode() const {

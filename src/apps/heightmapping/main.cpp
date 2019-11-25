@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
@@ -343,51 +343,51 @@ void decodeFun() {
     SharedData::instance().readObj(stereoMode);
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (Engine::instance().isMaster() && action == action::Press) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
-            case key::Esc:
+            case Key::Esc:
                 Engine::instance().terminate();
                 break;
-            case key::S:
+            case Key::S:
                 stats.setVal(!stats.getVal());
                 break;
-            case key::I:
+            case Key::I:
                 info.setVal(!info.getVal());
                 break;
-            case key::Q:
+            case Key::Q:
                 Engine::instance().terminate();
                 break;
-            case key::T:
+            case Key::T:
                 useTracking.setVal(!useTracking.getVal());
                 break;
-            case key::E:
+            case Key::E:
                 sgct::core::ClusterManager::instance().getDefaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;
-            case key::Space:
+            case Key::Space:
                 mPause = !mPause;
                 break;
-            case key::F:
+            case Key::F:
                 for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
                     Engine::instance().getWindow(i).setUseFXAA(
                         !Engine::instance().getWindow(i).useFXAA()
                     );
                 }
                 break;
-            case key::P:
-            case key::F10:
+            case Key::P:
+            case Key::F10:
                 takeScreenshot.setVal(true);
                 break;
-            case key::Left:
+            case Key::Left:
                 if (static_cast<int>(stereoMode.getVal()) > 0) {
                     const int v = static_cast<int>(stereoMode.getVal()) - 1;
                     Window::StereoMode m = static_cast<Window::StereoMode>(v);
                     stereoMode.setVal(m);
                 }
                 break;
-            case key::Right:
+            case Key::Right:
                 const int v = static_cast<int>(stereoMode.getVal()) + 1;
                 Window::StereoMode m = static_cast<Window::StereoMode>(v);
                 stereoMode.setVal(m);

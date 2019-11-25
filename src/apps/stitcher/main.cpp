@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/fisheyeprojection.h>
@@ -404,14 +404,14 @@ void decodeFun() {
     SharedData::instance().readBool(takeScreenshot);
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (Engine::instance().isMaster() && action == action::Press) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
-            case key::Esc:
+            case Key::Esc:
                 Engine::instance().terminate();
                 break;
-            case key::P:
-            case key::F10:
+            case Key::P:
+            case Key::F10:
                 takeScreenshot.setVal(true);
                 break;
         }

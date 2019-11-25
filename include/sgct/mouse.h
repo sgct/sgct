@@ -13,19 +13,20 @@
 // entirety of GLFW in this header just for the definitions.  And they most likely will
 // not change anytime soon anyway (famous last words)
 
-namespace sgct::mouse {
-    constexpr const int Button1 = 0; // = GLFW_MOUSE_BUTTON_1;
-    constexpr const int Button2 = 1; // = GLFW_MOUSE_BUTTON_2;
-    constexpr const int Button3 = 2; // = GLFW_MOUSE_BUTTON_3;
-    constexpr const int Button4 = 3; // = GLFW_MOUSE_BUTTON_4;
-    constexpr const int Button5 = 4; // = GLFW_MOUSE_BUTTON_5;
-    constexpr const int Button6 = 5; // = GLFW_MOUSE_BUTTON_6;
-    constexpr const int Button7 = 6; // = GLFW_MOUSE_BUTTON_7;
-    constexpr const int Button8 = 7; // = GLFW_MOUSE_BUTTON_8;
-    constexpr const int ButtonLeft = Button1;
-    constexpr const int ButtonRight = Button2;
-    constexpr const int ButtonMiddle = Button3;
-    constexpr const int ButtonLast = Button8;
-} // namespace sgct::mouse
+namespace sgct {
+enum class MouseButton {
+    Button1 = 0, // = GLFW_MOUSE_BUTTON_1;
+    Button2 = 1, // = GLFW_MOUSE_BUTTON_2;
+    Button3 = 2, // = GLFW_MOUSE_BUTTON_3;
+    Button4 = 3, // = GLFW_MOUSE_BUTTON_4;
+    Button5 = 4, // = GLFW_MOUSE_BUTTON_5;
+    Button6 = 5, // = GLFW_MOUSE_BUTTON_6;
+    Button7 = 6, // = GLFW_MOUSE_BUTTON_7;
+    Button8 = 7, // = GLFW_MOUSE_BUTTON_8;
+    ButtonLeft = Button1,
+    ButtonRight = Button2,
+    ButtonMiddle = Button3
+};
+} // namespace sgct
 
 #endif // __SGCT__MOUSE__H__

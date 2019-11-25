@@ -9,6 +9,7 @@
 #ifndef __SGCT__NODE__H__
 #define __SGCT__NODE__H__
 
+#include <sgct/keys.h>
 #include <sgct/window.h>
 #include <string>
 #include <vector>
@@ -21,10 +22,7 @@ class Node {
 public:
     void applyNode(const config::Node& node);
 
-    /**
-     * Add a window to the window vector. Note that a window must be opened to become
-     * visible.
-     */
+    /// Add a window to this node. Note that a window must be opened to become
     void addWindow(Window window);
 
     /// Check if all windows are set to close and close them.
@@ -34,7 +32,7 @@ public:
     bool isUsingSwapGroups() const;
 
     /// Check if a key is pressed for all windows.
-    bool getKeyPressed(int key);
+    bool getKeyPressed(Key key);
 
     /// Get the number of windows in the window vector
     int getNumberOfWindows() const;

@@ -1,5 +1,5 @@
 set(HEADER_FILES
-  ${PROJECT_SOURCE_DIR}/include/sgct/action.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/actions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/clustermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/commandline.h
@@ -17,6 +17,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
   ${PROJECT_SOURCE_DIR}/include/sgct/messagehandler.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
   ${PROJECT_SOURCE_DIR}/include/sgct/network.h

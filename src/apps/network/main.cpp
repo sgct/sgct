@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/keys.h>
@@ -262,12 +262,12 @@ void cleanUpFun() {
     disconnect();
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (Engine::instance().isMaster() && action == action::Press) {
-        if (key == key::Esc) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (Engine::instance().isMaster() && action == Action::Press) {
+        if (key == Key::Esc) {
             Engine::instance().terminate();
         }
-        else if (key == key::Space) {
+        else if (key == Key::Space) {
             sendTestMessage();
         }
     }

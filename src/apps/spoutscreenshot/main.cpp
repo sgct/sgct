@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/keys.h>
@@ -153,37 +153,37 @@ void cleanUpFun() {
     }
 }
 
-void keyboardCallback(int key, int, int action, int) {
-    if (action == action::Press) {
+void keyboardCallback(Key key, int, Action action, Modifier) {
+    if (action == Action::Press) {
         switch (key) {
-            case key::Esc:
+            case Key::Esc:
                 Engine::instance().terminate();
                 break;
-            case key::Key1:
+            case Key::Key1:
                 sender = "Right\0";
                 MessageHandler::printInfo("Settings receiver to 'Right'");
                 break;
-            case key::Key2:
+            case Key::Key2:
                 sender = "zLeft\0";
                 MessageHandler::printInfo("Settings receiver to 'zLeft'");
                 break;
-            case key::Key3:
+            case Key::Key3:
                 sender = "Bottom\0";
                 MessageHandler::printInfo("Settings receiver to 'Bottom'");
                 break;
-            case key::Key4:
+            case Key::Key4:
                 sender = "Top\0";
                 MessageHandler::printInfo("Settings receiver to 'Top'");
                 break;
-            case key::Key5:
+            case Key::Key5:
                 sender = "Left\0";
                 MessageHandler::printInfo("Settings receiver to 'Left'");
                 break;
-            case key::Key6:
+            case Key::Key6:
                 sender = "zRight\0";
                 MessageHandler::printInfo("Settings receiver to 'zRight'");
                 break;
-            case key::Space:
+            case Key::Space:
                 shouldTakeScreenshot = true;
                 break;
         }

@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/keys.h>
@@ -402,35 +402,35 @@ void decodeFun() {
     SharedData::instance().readObj(xform);
 }
 
-void keyCallback(int key, int, int action, int) {
+void keyCallback(Key key, int, Action action, Modifier) {
     if (Engine::instance().isMaster()) {
         switch (key) {
-            case key::Esc:
+            case Key::Esc:
                 Engine::instance().terminate();
                 break;
-            case key::Up:
-            case key::W:
-                buttonForward = (action == action::Repeat || action == action::Press);
+            case Key::Up:
+            case Key::W:
+                buttonForward = (action == Action::Repeat || action == Action::Press);
                 break;
-            case key::Down:
-            case key::S:
-                buttonBackward = (action == action::Repeat || action == action::Press);
+            case Key::Down:
+            case Key::S:
+                buttonBackward = (action == Action::Repeat || action == Action::Press);
                 break;
-            case key::Left:
-            case key::A:
-                buttonLeft = (action == action::Repeat || action == action::Press);
+            case Key::Left:
+            case Key::A:
+                buttonLeft = (action == Action::Repeat || action == Action::Press);
                 break;
-            case key::Right:
-            case key::D:
-                buttonRight = (action == action::Repeat || action == action::Press);
+            case Key::Right:
+            case Key::D:
+                buttonRight = (action == Action::Repeat || action == Action::Press);
                 break;
         }
     }
 }
 
-void mouseButtonCallback(int button, int action, int) {
-    if (Engine::instance().isMaster() && button == mouse::ButtonLeft) {
-        mouseLeftButton = (action == action::Press);
+void mouseButtonCallback(MouseButton button, Action action, Modifier) {
+    if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft) {
+        mouseLeftButton = (action == Action::Press);
         double yPos;
         Engine::getMousePos(
             Engine::instance().getFocusedWindowIndex(),

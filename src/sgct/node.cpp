@@ -51,13 +51,13 @@ void Node::addWindow(Window window) {
     _windows.emplace_back(std::move(window));
 }
 
-bool Node::getKeyPressed(int key) {
-    if (key == key::Unknown) {
+bool Node::getKeyPressed(Key key) {
+    if (key == Key::Unknown) {
         return false;
     }
 
     for (const Window& window : _windows) {
-        if (glfwGetKey(window.getWindowHandle(), key)) {
+        if (glfwGetKey(window.getWindowHandle(), static_cast<int>(key))) {
             return true;
         }
     }

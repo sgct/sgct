@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
@@ -325,27 +325,27 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(int key, int, int action, int) {
-    if (!Engine::instance().isMaster() || action != action::Press) {
+void keyCallback(Key key, int, Action action, Modifier) {
+    if (!Engine::instance().isMaster() || action != Action::Press) {
         return;
     }
     switch (key) {
-        case key::Esc:
+        case Key::Esc:
             Engine::instance().terminate();
             break;
-        case key::S:
+        case Key::S:
             stats.setVal(!stats.getVal());
             break;
-        case key::I:
+        case Key::I:
             info.setVal(!info.getVal());
             break;
-        case key::Key1:
+        case Key::Key1:
             incrIndex.setVal(1);
             break;
-        case key::Key2:
+        case Key::Key2:
             incrIndex.setVal(2);
             break;
-        case key::Left:
+        case Key::Left:
             if (numSyncedTex.getVal() > 0) {
                 if (texIndex.getVal() > incrIndex.getVal() - 1) {
                     texIndex.setVal(texIndex.getVal() - incrIndex.getVal());
@@ -355,7 +355,7 @@ void keyCallback(int key, int, int action, int) {
                 }
             }
             break;
-        case key::Right:
+        case Key::Right:
             if (numSyncedTex.getVal() > 0) {
                 texIndex.setVal(
                     (texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal()

@@ -9,8 +9,13 @@
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
+#include <sgct/actions.h>
 #include <sgct/config.h>
 #include <sgct/frustum.h>
+#include <sgct/joystick.h>
+#include <sgct/keys.h>
+#include <sgct/modifiers.h>
+#include <sgct/mouse.h>
 #include <sgct/networkmanager.h>
 #include <sgct/screencapture.h>
 #include <sgct/shadermanager.h>
@@ -306,7 +311,7 @@ public:
      * \param fn is the std function of a keyboard callback function
      */
     void setKeyboardCallbackFunction(
-        std::function<void(int key, int scanCode, int action, int modifiers)> fn);
+        std::function<void(Key key, int scanCode, Action action, Modifier modifiers)> fn);
 
     /// All windows are connected to this callback.
     void setCharCallbackFunction(
@@ -321,7 +326,7 @@ public:
      * \param fn is the std function to a mouse button callback function
      */
     void setMouseButtonCallbackFunction(
-        std::function<void(int button, int action, int modifiers)> fn);
+        std::function<void(MouseButton button, Action action, Modifier modifiers)> fn);
 
     /// All windows are connected to this callback.
     void setMousePosCallbackFunction(std::function<void(double x, double y)> fn);
@@ -532,21 +537,21 @@ public:
      *
      * \param joystick is the joystick id. Available IDs are in the joystick.h
      */
-    static const char* getJoystickName(int joystick);
+    static const char* getJoystickName(Joystick joystick);
 
     /**
      * \param joystick the joystick id: Available IDs are in the joystick.h
      * \param numOfValues is the number of analog axes
      * \return the analog float values (array)
      */
-    static const float* getJoystickAxes(int joystick, int* numOfValues);
+    static const float* getJoystickAxes(Joystick joystick, int* numOfValues);
 
     /**
      * \param joystick the joystick id: Available IDs are in the joystick.h
      * \param numOfValues is the number of buttons
      * \return the button values (array)
      */
-    static const unsigned char* getJoystickButtons(int joystick, int* numOfValues);
+    static const unsigned char* getJoystickButtons(Joystick joystick, int* numOfValues);
 
     /// \return a reference to this node (running on this computer).
     const sgct::core::Node& getThisNode() const;

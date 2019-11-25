@@ -1,4 +1,4 @@
-#include <sgct/action.h>
+#include <sgct/actions.h>
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
@@ -471,58 +471,58 @@ void decodeFun() {
     }
 }
 
-void keyCallback(int key, int, int action, int) {
+void keyCallback(Key key, int, Action action, Modifier) {
     if (Engine::instance().isMaster()) {
         switch (key) {
-            case key::Esc:
-                if (action == action::Press) {
+            case Key::Esc:
+                if (action == Action::Press) {
                     Engine::instance().terminate();
                 }
                 break;
-            case key::C:
-                if (action == action::Press) {
+            case Key::C:
+                if (action == Action::Press) {
                     static bool useCompress = false;
                     useCompress = !useCompress;
                     SharedData::instance().setCompression(useCompress);
                 }
                 break;
-            case key::F:
-                if (action == action::Press) {
+            case Key::F:
+                if (action == Action::Press) {
                     frametest.setVal(!frametest.getVal());
                 }
                 break;
-            case key::I:
-                if (action == action::Press) {
+            case Key::I:
+                if (action == Action::Press) {
                     showFPS.setVal(!showFPS.getVal());
                 }
                 break;
-            case key::E:
-                if (action == action::Press) {
+            case Key::E:
+                if (action == Action::Press) {
                     extraPackages.setVal(!extraPackages.getVal());
                 }
                 break;
-            case key::B:
-                if (action == action::Press) {
+            case Key::B:
+                if (action == Action::Press) {
                     barrier.setVal(!barrier.getVal());
                 }
                 break;
-            case key::R:
-                if (action == action::Press) {
+            case Key::R:
+                if (action == Action::Press) {
                     resetCounter.setVal(!resetCounter.getVal());
                 }
                 break;
-            case key::S:
-                if (action == action::Press) {
+            case Key::S:
+                if (action == Action::Press) {
                     stats.setVal(!stats.getVal());
                 }
                 break;
-            case key::G:
-                if (action == action::Press) {
+            case Key::G:
+                if (action == Action::Press) {
                     Engine::instance().sendMessageToExternalControl("Testing!!\r\n");
                 }
                 break;
-            case key::M:
-                if (action == action::Press) {
+            case Key::M:
+                if (action == Action::Press) {
                     static bool mousePointer = true;
                     mousePointer = !mousePointer;
 
@@ -531,20 +531,20 @@ void keyCallback(int key, int, int action, int) {
                     }
                 }
                 break;
-            case key::F9:
-                if (action == action::Press) {
+            case Key::F9:
+                if (action == Action::Press) {
                     slowRendering.setVal(!slowRendering.getVal());
                 }
                 break;
-            case key::F10:
-                if (action == action::Press) {
+            case Key::F10:
+                if (action == Action::Press) {
                     takeScreenshot.setVal(true);
                 }
                 break;
-            case key::Up:
+            case Key::Up:
                 speed.setVal(speed.getVal() * 1.1f);
                 break;
-            case key::Down:
+            case Key::Down:
                 speed.setVal(speed.getVal() / 1.1f);
                 break;
         }

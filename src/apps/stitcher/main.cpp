@@ -2,6 +2,7 @@
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/fisheyeprojection.h>
+#include <sgct/keys.h>
 #include <sgct/nonlinearprojection.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -406,6 +407,9 @@ void decodeFun() {
 void keyCallback(int key, int, int action, int) {
     if (Engine::instance().isMaster() && action == action::Press) {
         switch (key) {
+            case key::Esc:
+                Engine::instance().terminate();
+                break;
             case key::P:
             case key::F10:
                 takeScreenshot.setVal(true);

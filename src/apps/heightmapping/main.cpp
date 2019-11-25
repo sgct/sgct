@@ -2,6 +2,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>
@@ -345,6 +346,9 @@ void decodeFun() {
 void keyCallback(int key, int, int action, int) {
     if (Engine::instance().isMaster() && action == action::Press) {
         switch (key) {
+            case key::Esc:
+                Engine::instance().terminate();
+                break;
             case key::S:
                 stats.setVal(!stats.getVal());
                 break;

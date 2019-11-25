@@ -1,6 +1,7 @@
 #include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/networkmanager.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -262,8 +263,13 @@ void cleanUpFun() {
 }
 
 void keyCallback(int key, int, int action, int) {
-    if (Engine::instance().isMaster() && key == key::Space && action == action::Press) {
-        sendTestMessage();
+    if (Engine::instance().isMaster() && action == action::Press) {
+        if (key == key::Esc) {
+            Engine::instance().terminate();
+        }
+        else if (key == key::Space) {
+            sendTestMessage();
+        }
     }
 }
 

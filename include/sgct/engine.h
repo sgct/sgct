@@ -11,7 +11,6 @@
 
 #include <sgct/config.h>
 #include <sgct/frustum.h>
-#include <sgct/keys.h>
 #include <sgct/networkmanager.h>
 #include <sgct/screencapture.h>
 #include <sgct/shadermanager.h>
@@ -172,13 +171,6 @@ public:
      * \param color the clear color
      */
     void setClearColor(glm::vec4 color);
-
-    // @TODO (abock, 2019-11-19) remove the exit key concept entirely from SGCT
-    /**
-     * Set the exit key that will kill SGCT or abort certain SGCT functions. Default value
-     * is: sgct::key:ESC. To diable shutdown or escaping SGCT then use: sgct::key::Unknown
-     */
-    void setExitKey(int key);
 
     /**
      * This functions updates the frustum of all viewports on demand. However if the
@@ -839,7 +831,6 @@ private:
     RunMode _runMode = RunMode::Default_Mode;
     core::NetworkManager::NetworkMode _networkMode =
         core::NetworkManager::NetworkMode::Remote;
-    int _exitKey = key::Escape;
 
     unsigned int _timeQueryBegin = 0;
     unsigned int _timeQueryEnd = 0;

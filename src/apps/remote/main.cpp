@@ -1,5 +1,7 @@
+#include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/shareddata.h>
 
 namespace {
@@ -85,6 +87,12 @@ void externalControlStatusCallback(bool connected) {
     }
 }
 
+void keyCallback(int key, int, int action, int) {
+    if (key == key::Esc && action == action::Press) {
+        Engine::instance().terminate();
+    }
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
@@ -93,6 +101,7 @@ int main(int argc, char* argv[]) {
 
     Engine::instance().setDrawFunction(drawFun);
     Engine::instance().setPreSyncFunction(preSyncFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
     Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
     Engine::instance().setExternalControlCallback(externalControlMessageCallback);
     Engine::instance().setExternalControlStatusCallback(externalControlStatusCallback);

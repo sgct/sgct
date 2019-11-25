@@ -1,5 +1,7 @@
+#include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>
@@ -211,6 +213,12 @@ void cleanUpFun() {
     }
 }
 
+void keyCallback(int key, int, int action, int) {
+    if (key == key::Esc && action == action::Press) {
+        Engine::instance().terminate();
+    }
+}
+
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
@@ -218,6 +226,7 @@ int main(int argc, char* argv[]) {
 
     Engine::instance().setInitOGLFunction(initOGLFun);
     Engine::instance().setDrawFunction(drawFun);
+    Engine::instance().setKeyboardCallbackFunction(keyCallback);
     Engine::instance().setPostDrawFunction(postDrawFun);
     Engine::instance().setPreSyncFunction(preSyncFun);
     Engine::instance().setCleanUpFunction(cleanUpFun);

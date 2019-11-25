@@ -1,6 +1,7 @@
 #include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>
@@ -155,6 +156,9 @@ void cleanUpFun() {
 void keyboardCallback(int key, int, int action, int) {
     if (action == action::Press) {
         switch (key) {
+            case key::Esc:
+                Engine::instance().terminate();
+                break;
             case key::Key1:
                 sender = "Right\0";
                 MessageHandler::printInfo("Settings receiver to 'Right'");

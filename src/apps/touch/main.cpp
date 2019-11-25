@@ -1,6 +1,7 @@
 #include <sgct/action.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/mouse.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -388,6 +389,9 @@ void decodeFun() {
 void keyCallback(int key, int, int action, int) {
     if (Engine::instance().isMaster()) {
         switch (key) {
+            case key::Esc:
+                Engine::instance().terminate();
+                break;
             case key::Up:
             case key::W:
                 buttonForward = (action == action::Repeat || action == action::Press);

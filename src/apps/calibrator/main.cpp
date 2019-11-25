@@ -2,6 +2,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/image.h>
 #include <sgct/messagehandler.h>
 #include <sgct/settings.h>
@@ -295,6 +296,9 @@ void postSyncPreDraw() {
 }
 
 void keyboardCallback(int key, int, int action, int) {
+    if (key == key::Esc && action == action::Press) {
+        Engine::instance().terminate();
+    }
     if (key == key::I && action == action::Press) {
         showId.setVal(!showId.getVal());
     }

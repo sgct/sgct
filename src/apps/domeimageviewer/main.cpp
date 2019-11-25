@@ -2,6 +2,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
+#include <sgct/keys.h>
 #include <sgct/image.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -329,6 +330,9 @@ void keyCallback(int key, int, int action, int) {
         return;
     }
     switch (key) {
+        case key::Esc:
+            Engine::instance().terminate();
+            break;
         case key::S:
             stats.setVal(!stats.getVal());
             break;

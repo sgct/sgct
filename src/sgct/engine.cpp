@@ -1285,8 +1285,7 @@ void Engine::render() {
         }
 
         // Check if exit key was pressed or window was closed
-        _isRunning = !(thisNode.getKeyPressed(_exitKey) ||
-                     thisNode.closeAllWindows() || _shouldTerminate ||
+        _isRunning = !(_shouldTerminate || thisNode.closeAllWindows() ||
                      !core::NetworkManager::instance().isRunning());
 
         // for all windows
@@ -2050,9 +2049,8 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
     MessageHandler::printInfo("Waiting for all nodes to connect");
 
-    while (core::NetworkManager::instance().isRunning() &&
-           !thisNode.getKeyPressed(_exitKey) && !thisNode.closeAllWindows() &&
-           !_shouldTerminate)
+    while (!_shouldTerminate && core::NetworkManager::instance().isRunning() &&
+           !thisNode.closeAllWindows())
     {
         // Swap front and back rendering buffers
         for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
@@ -2071,23 +2069,6 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    // wait for user to release exit key
-    while (thisNode.getKeyPressed(_exitKey)) {
-        // Swap front and back rendering buffers; key buffers also swapped
-        for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if (thisNode.getWindow(i).isDoubleBuffered()) {
-                glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
-            }
-            else {
-                glFinish();
-            }
-        }
-        glfwPollEvents();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
@@ -2441,10 +2422,6 @@ void Engine::setEyeSeparation(float eyeSeparation) {
 
 void Engine::setClearColor(glm::vec4 color) {
     _clearColor = std::move(color);
-}
-
-void Engine::setExitKey(int key) {
-    _exitKey = key;
 }
 
 unsigned int Engine::getCurrentDrawTexture() const {

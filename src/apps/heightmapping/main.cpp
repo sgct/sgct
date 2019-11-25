@@ -388,10 +388,12 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 }
                 break;
             case Key::Right:
+            {
                 const int v = static_cast<int>(stereoMode.getVal()) + 1;
                 Window::StereoMode m = static_cast<Window::StereoMode>(v);
                 stereoMode.setVal(m);
                 break;
+            }
             default:
                 break;
         }

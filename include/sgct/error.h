@@ -10,6 +10,7 @@
 #define __SGCT__ERROR__H__
 
 #include <stdexcept>
+#include <string>
 
 namespace sgct {
 

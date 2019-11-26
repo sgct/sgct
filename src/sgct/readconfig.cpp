@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
 #include <algorithm>
+#include <unordered_map>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 

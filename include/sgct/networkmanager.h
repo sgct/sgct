@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__NETWORK_MANAGER__H__
-#define __SGCT__NETWORK_MANAGER__H__
+#ifndef __SGCT__NETWORKMANAGER__H__
+#define __SGCT__NETWORKMANAGER__H__
 
 #include <sgct/network.h>
 #include <atomic>
@@ -107,4 +107,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__NETWORK_MANAGER__H__
+#endif // __SGCT__NETWORKMANAGER__H__

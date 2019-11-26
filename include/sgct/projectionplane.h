@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__PROJECTION_PLANE__H__
-#define __SGCT__PROJECTION_PLANE__H__
+#ifndef __SGCT__PROJECTIONPLANE__H__
+#define __SGCT__PROJECTIONPLANE__H__
 
 #include <glm/glm.hpp>
 
@@ -36,4 +36,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__PROJECTION_PLANE__H__
+#endif // __SGCT__PROJECTIONPLANE__H__

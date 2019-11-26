@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__TRACKING_MANAGER__H__
-#define __SGCT__TRACKING_MANAGER__H__
+#ifndef __SGCT__TRACKINGMANAGER__H__
+#define __SGCT__TRACKINGMANAGER__H__
 
 #include <sgct/tracker.h>
 #include <memory>
@@ -77,4 +77,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__TRACKING_MANAGER__H__
+#endif // __SGCT__TRACKINGMANAGER__H__

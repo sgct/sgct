@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__INTERNAL_SHADERS__H__
-#define __SGCT__INTERNAL_SHADERS__H__
+#ifndef __SGCT__INTERNALSHADERS__H__
+#define __SGCT__INTERNALSHADERS__H__
 
 namespace sgct::core::shaders {
 
@@ -416,4 +416,4 @@ constexpr const char* FXAAFrag = R"(
 
 } // namespace sgct::core::shaders
 
-#endif // __SGCT__INTERNAL_SHADERS__H__
+#endif // __SGCT__INTERNALSHADERS__H__

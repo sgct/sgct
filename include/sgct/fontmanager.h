@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__FONT_MANAGER__H__
-#define __SGCT__FONT_MANAGER__H__
+#ifndef __SGCT__FONTMANAGER__H__
+#define __SGCT__FONTMANAGER__H__
 
 #ifdef SGCT_HAS_TEXT
 
@@ -158,4 +158,4 @@ private:
 } // namespace sgct::text
 
 #endif // SGCT_HAS_TEXT
-#endif // __SGCT__FONT_MANAGER__H__
+#endif // __SGCT__FONTMANAGER__H__

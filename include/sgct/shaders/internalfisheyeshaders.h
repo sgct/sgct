@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS__H__
-#define __SGCT__INTERNAL_FISHEYE_SHADERS__H__
+#ifndef __SGCT__INTERNALFISHEYESHADERS__H__
+#define __SGCT__INTERNALFISHEYESHADERS__H__
 
 namespace sgct::core::shaders_fisheye {
 
@@ -639,4 +639,4 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
 
 } // namespace sgct::core::shaders_fisheye
 
-#endif // __SGCT__INTERNAL_FISHEYE_SHADERS__H__
+#endif // __SGCT__INTERNALFISHEYESHADERS__H__

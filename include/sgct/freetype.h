@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__FREE_TYPE__H__
-#define __SGCT__FREE_TYPE__H__
+#ifndef __SGCT__FREETYPE__H__
+#define __SGCT__FREETYPE__H__
 
 #include <glm/fwd.hpp>
 #include <string>
@@ -33,4 +33,4 @@ void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& col
 
 } // namespace sgct::text
 
-#endif // __SGCT__FREE_TYPE__H__
+#endif // __SGCT__FREETYPE__H__

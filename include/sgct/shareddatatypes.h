@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SHARED_DATA_TYPES__H__
-#define __SGCT__SHARED_DATA_TYPES__H__
+#ifndef __SGCT__SHAREDDATATYPES__H__
+#define __SGCT__SHAREDDATATYPES__H__
 
 #include <mutex>
 #include <string>
@@ -133,4 +133,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__SHARED_DATA_TYPES__H__
+#endif // __SGCT__SHAREDDATATYPES__H__

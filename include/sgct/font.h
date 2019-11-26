@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__FREETYPE_FONT__H__
-#define __SGCT__FREETYPE_FONT__H__
+#ifndef __SGCT__FONT__H__
+#define __SGCT__FONT__H__
 
 #ifdef SGCT_HAS_TEXT
 
@@ -76,4 +76,4 @@ private:
 } // namespace sgct
 
 #endif // SGCT_HAS_TEXT
-#endif // __SGCT__FREETYPE_FONT__H__
+#endif // __SGCT__FONT__H__

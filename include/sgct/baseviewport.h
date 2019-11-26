@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__BASE_VIEWPORT__H__
-#define __SGCT__BASE_VIEWPORT__H__
+#ifndef __SGCT__BASEVIEWPORT__H__
+#define __SGCT__BASEVIEWPORT__H__
 
 #include <sgct/frustum.h>
 #include <sgct/projection.h>
@@ -82,4 +82,4 @@ protected:
 
 } // namespace sgct::core
 
-#endif // __SGCT__BASE_VIEWPORT__H__
+#endif // __SGCT__BASEVIEWPORT__H__

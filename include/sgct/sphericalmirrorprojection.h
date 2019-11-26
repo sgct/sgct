@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
-#define __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
+#ifndef __SGCT__SPHERICALMIRRORPROJECTION__H__
+#define __SGCT__SPHERICALMIRRORPROJECTION__H__
 
 #include <sgct/nonlinearprojection.h>
 
@@ -68,4 +68,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
+#endif // __SGCT__SPHERICALMIRRORPROJECTION__H__

@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__TEXTURE_MANAGER__H__
-#define __SGCT__TEXTURE_MANAGER__H__
+#ifndef __SGCT__TEXTUREMANAGER__H__
+#define __SGCT__TEXTUREMANAGER__H__
 
 #include <string>
 #include <vector>
@@ -47,4 +47,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__TEXTURE_MANAGER__H__
+#endif // __SGCT__TEXTUREMANAGER__H__

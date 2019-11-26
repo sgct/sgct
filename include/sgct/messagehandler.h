@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__MESSAGE_HANDLER__H__
-#define __SGCT__MESSAGE_HANDLER__H__
+#ifndef __SGCT__MESSAGEHANDLER__H__
+#define __SGCT__MESSAGEHANDLER__H__
 
 #include <atomic>
 #include <functional>
@@ -111,4 +111,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__MESSAGE_HANDLER__H__
+#endif // __SGCT__MESSAGEHANDLER__H__

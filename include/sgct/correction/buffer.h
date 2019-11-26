@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__CORRECTION_BUFFER__H__
-#define __SGCT__CORRECTION_BUFFER__H__
+#ifndef __SGCT__BUFFER__H__
+#define __SGCT__BUFFER__H__
 
 #include <sgct/ogl_headers.h>
 #include <vector>
@@ -33,4 +33,4 @@ struct Buffer {
 
 } // namespace sgct::core::correction
 
-#endif // __SGCT__CORRECTION_BUFFER__H__
+#endif // __SGCT__BUFFER__H__

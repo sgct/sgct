@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__READ_CONFIG__H__
-#define __SGCT__READ_CONFIG__H__
+#ifndef __SGCT__READCONFIG__H__
+#define __SGCT__READCONFIG__H__
 
 #include <sgct/config.h>
 #include <string>
@@ -18,4 +18,4 @@ namespace sgct::core {
 
 } // namespace sgct::core
 
-#endif // __SGCT__READ_CONFIG__H__
+#endif // __SGCT__READCONFIG__H__

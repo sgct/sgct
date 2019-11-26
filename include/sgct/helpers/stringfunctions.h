@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__STRING_FUNCTIONS__H__
-#define __SGCT__STRING_FUNCTIONS__H__
+#ifndef __SGCT__STRINGFUNCTIONS__H__
+#define __SGCT__STRINGFUNCTIONS__H__
 
 #include <sstream>
 #include <string>
@@ -37,4 +37,4 @@ static std::vector<std::string> split(std::string str, char delimiter) {
 
 } // namespace sgct::helpers
 
-#endif // __SGCT__STRING_FUNCTIONS__H__
+#endif // __SGCT__STRINGFUNCTIONS__H__

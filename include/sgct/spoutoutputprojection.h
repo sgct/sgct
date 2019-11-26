@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SPOUTOUTPUT_PROJECTION__H__
-#define __SGCT__SPOUTOUTPUT_PROJECTION__H__
+#ifndef __SGCT__SPOUTOUTPUTPROJECTION__H__
+#define __SGCT__SPOUTOUTPUTPROJECTION__H__
 
 #include <sgct/nonlinearprojection.h>
 
@@ -83,4 +83,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__SPOUTOUTPUT_PROJECTION__H__
+#endif // __SGCT__SPOUTOUTPUTPROJECTION__H__

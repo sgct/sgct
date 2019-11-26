@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__CLUSTER_MANAGER__H__
-#define __SGCT__CLUSTER_MANAGER__H__
+#ifndef __SGCT__CLUSTERMANAGER__H__
+#define __SGCT__CLUSTERMANAGER__H__
 
 #include <sgct/node.h>
 #include <sgct/user.h>
@@ -142,4 +142,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__CLUSTER_MANAGER__H__
+#endif // __SGCT__CLUSTERMANAGER__H__

@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__POST_FX__H__
-#define __SGCT__POST_FX__H__
+#ifndef __SGCT__POSTFX__H__
+#define __SGCT__POSTFX__H__
 
 #include <sgct/shaderprogram.h>
 #include <functional>
@@ -51,4 +51,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__POST_FX__H__
+#endif // __SGCT__POSTFX__H__

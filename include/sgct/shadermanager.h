@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SHADER_MANAGER__H__
-#define __SGCT__SHADER_MANAGER__H__
+#ifndef __SGCT__SHADERMANAGER__H__
+#define __SGCT__SHADERMANAGER__H__
 
 #include <sgct/shaderprogram.h>
 #include <string>
@@ -72,4 +72,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__SHADER_MANAGER__H__
+#endif // __SGCT__SHADERMANAGER__H__

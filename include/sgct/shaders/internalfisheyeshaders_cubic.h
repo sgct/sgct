@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
-#define __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
+#ifndef __SGCT__INTERNALFISHEYESHADERSCUBIC__H__
+#define __SGCT__INTERNALFISHEYESHADERSCUBIC__H__
 
 namespace sgct::core::shaders_fisheye_cubic {
 
@@ -396,4 +396,4 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
 
 } // namespace sgct::core::shaders_fisheye_cubic
 
-#endif // __SGCT__INTERNAL_FISHEYE_SHADERS_CUBIC__H__
+#endif // __SGCT__INTERNALFISHEYESHADERSCUBIC__H__

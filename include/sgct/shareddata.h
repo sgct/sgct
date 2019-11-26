@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SHARED_DATA__H__
-#define __SGCT__SHARED_DATA__H__
+#ifndef __SGCT__SHAREDDATA__H__
+#define __SGCT__SHAREDDATA__H__
 
 #include <sgct/mutexes.h>
 #include <sgct/network.h>
@@ -198,9 +198,7 @@ void SharedData::readVector(SharedVector<T>& vector) {
         return;
     }
 
-    // abock:  Not sure why the additional allocation was necessary
     uint32_t totalSize = size * sizeof(T);
-    //unsigned char* data = new unsigned char[totalSize];
 
     core::mutex::DataSync.lock();
 
@@ -217,9 +215,8 @@ void SharedData::readVector(SharedVector<T>& vector) {
     );
 
     vector.setVal(std::move(tmpVec));
-    //delete[] data;
 }
 
 } // namespace sgct
 
-#endif // __SGCT__SHARED_DATA__H__
+#endif // __SGCT__SHAREDDATA__H__

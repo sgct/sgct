@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__OFFSCREEN_BUFFER__H__
-#define __SGCT__OFFSCREEN_BUFFER__H__
+#ifndef __SGCT__OFFSCREENBUFFER__H__
+#define __SGCT__OFFSCREENBUFFER__H__
 
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
@@ -71,4 +71,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__OFFSCREEN_BUFFER__H__
+#endif // __SGCT__OFFSCREENBUFFER__H__

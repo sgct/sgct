@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__SCREEN_CAPTURE__H__
-#define __SGCT__SCREEN_CAPTURE__H__
+#ifndef __SGCT__SCREENCAPTURE__H__
+#define __SGCT__SCREENCAPTURE__H__
 
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
@@ -114,4 +114,4 @@ private:
 
 } // namespace sgct::core
 
-#endif // __SGCT__SCREEN_CAPTURE__H__
+#endif // __SGCT__SCREENCAPTURE__H__

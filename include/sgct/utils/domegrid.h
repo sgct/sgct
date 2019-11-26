@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__DOME_GRID__H__
-#define __SGCT__DOME_GRID__H__
+#ifndef __SGCT__DOMEGRID__H__
+#define __SGCT__DOMEGRID__H__
 
 namespace sgct::utils {
 
@@ -32,4 +32,4 @@ private:
 
 } // namespace sgct::utils
 
-#endif // __SGCT__DOME_GRID__H__
+#endif // __SGCT__DOMEGRID__H__

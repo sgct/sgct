@@ -185,11 +185,12 @@ namespace sgct {
 
     9000s: Image
     9000: Image / Cannot load empty filepath
-    9001: Image / Filename not set for saving image
-    9002: Image / Cannot save file %s
-    9003: Image / Could not save file %s as PNG
-    9004: Image / Could not save file %s as JPG
-    9005: Image / Could not save file %s as TGA
+    9001: Image / Could not open file '%s' for loading image
+    9002: Image / Filename not set for saving image
+    9003: Image / Cannot save file %s
+    9004: Image / Could not save file %s as PNG
+    9005: Image / Could not save file %s as JPG
+    9006: Image / Could not save file %s as TGA
 */
 
 struct Error : public std::runtime_error {

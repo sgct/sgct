@@ -70,6 +70,9 @@ void Image::load(const std::string& filename) {
 
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load(filename.c_str(), &_size[0], &_size[1], &_nChannels, 0);
+    if (_data == nullptr) {
+        throw Error(9001, "Could not open file '" + filename + "' for loading image");
+    }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
 
@@ -101,17 +104,17 @@ void Image::load(unsigned char* data, int length) {
 
 void Image::save(const std::string& filename) {
     if (filename.empty()) {
-        throw Error(9001, "Filename not set for saving image");
+        throw Error(9002, "Filename not set for saving image");
     }
 
     FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
-        throw Error(9002, "Cannot save file " + filename);
+        throw Error(9003, "Cannot save file " + filename);
     }
     if (type == FormatType::PNG) {
         const bool success = savePNG(filename);
         if (!success) {
-            throw Error(9003, "Could not save file '" + filename + "' as PNG");
+            throw Error(9004, "Could not save file '" + filename + "' as PNG");
         }
         return;
     }
@@ -135,14 +138,14 @@ void Image::save(const std::string& filename) {
             100
         );
         if (r == 0) {
-            throw Error(9004, "Could not save file '" + filename + "' as JPG");
+            throw Error(9005, "Could not save file '" + filename + "' as JPG");
         }
         return;
     }
     if (type == FormatType::TGA) {
         int r = stbi_write_tga(filename.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
-            throw Error(9005, "Could not save file '" + filename + "' as TGA");
+            throw Error(9006, "Could not save file '" + filename + "' as TGA");
 
         }
         return;

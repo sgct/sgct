@@ -2369,8 +2369,9 @@ double Engine::getAvgDt() const {
         _statistics.frametimes.end(),
         0.0
     );
-    const double avgFrametime = accFrameTime / Statistics::HistoryLength;
-    return avgFrametime;
+    // We must take the frame counter into account as the history might not be filled yet
+    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, Statistics::HistoryLength);
+    return accFrameTime / f;
 }
 
 double Engine::getMinDt() const {
@@ -2395,7 +2396,9 @@ double Engine::getDtStandardDeviation() const {
         0.0,
         [avg](double cur, double rhs) { return cur + pow(rhs - avg, 2.0); }
     );
-    return sumSquare / Statistics::HistoryLength;
+    // We must take the frame counter into account as the history might not be filled yet
+    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, Statistics::HistoryLength);
+    return sumSquare / f;
 }
 
 glm::vec4 Engine::getClearColor() const {

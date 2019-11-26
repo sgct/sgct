@@ -21,7 +21,7 @@ namespace sgct::core {
 /// The network manager manages all network connections for SGCT.
 class NetworkManager {
 public:
-    enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
+    enum class SyncMode { SendDataToClients = 0, Acknowledge };
     enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
 
     static NetworkManager& instance();

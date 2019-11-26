@@ -939,13 +939,11 @@ void Engine::initOGL() {
 }
 
 void Engine::frameLockPreStage() {
-    using namespace core;
-
     const double ts = glfwGetTime();
     // from server to clients
     using P = std::pair<double, double>;
     std::optional<P> minMax = core::NetworkManager::instance().sync(
-        NetworkManager::SyncMode::SendDataToClients
+        core::NetworkManager::SyncMode::SendDataToClients
     );
     if (minMax) {
         addValue(_statistics.loopTimeMin, minMax->first);
@@ -954,7 +952,7 @@ void Engine::frameLockPreStage() {
     addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
 
     // run only on clients/slaves
-    if (ClusterManager::instance().getIgnoreSync() ||
+    if (core::ClusterManager::instance().getIgnoreSync() ||
         core::NetworkManager::instance().isComputerServer())
     {
         return;
@@ -1005,7 +1003,7 @@ void Engine::frameLockPreStage() {
 
     // A this point all data needed for rendering a frame is received.
     // Let's signal that back to the master/server.
-    core::NetworkManager::instance().sync(NetworkManager::SyncMode::AcknowledgeData);
+    core::NetworkManager::instance().sync(core::NetworkManager::SyncMode::Acknowledge);
     addValue(_statistics.syncTimes, glfwGetTime() - t0);
 }
 

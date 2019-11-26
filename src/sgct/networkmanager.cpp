@@ -367,7 +367,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
 
         return std::make_pair(minTime, maxTime);
     }
-    else if (sm == SyncMode::AcknowledgeData) {
+    else if (sm == SyncMode::Acknowledge) {
         for (Network* connection : _syncConnections) {
             if (!connection->isServer() && connection->isConnected()) {
                 // The servers's render function is locked until a message starting with

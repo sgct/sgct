@@ -197,6 +197,9 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
 }
 
 void drawFun() {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
     glLineWidth(1.0);
 
     constexpr double Speed = 0.14;

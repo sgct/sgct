@@ -276,9 +276,9 @@ void initOmniStereo(bool mask) {
 
                         constexpr const float radius = Diameter / 2.f;
                         glm::vec3 p = {
-                            radius * sin(phi) * sin(theta),
-                            radius * -sin(phi) * cos(theta),
-                            radius * cos(phi)
+                            radius * sin(phi2) * sin(theta2),
+                            radius * -sin(phi2) * cos(theta2),
+                            radius * cos(phi2)
                         };
 
                         const glm::mat4 rotMat = glm::rotate(
@@ -292,7 +292,7 @@ void initOmniStereo(bool mask) {
 
 
                     sgct::core::ProjectionPlane projPlane;
-                  
+
                     projPlane.setCoordinates(
                         convertCoords(glm::vec2(0.f, 0.f)),
                         convertCoords(glm::vec2(0.f, 1.f)),

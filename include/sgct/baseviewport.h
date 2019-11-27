@@ -13,7 +13,17 @@
 #include <sgct/projection.h>
 #include <sgct/projectionplane.h>
 #include <glm/glm.hpp>
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif // WIN32
+
 #include <glm/gtc/quaternion.hpp>
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
+
 #include <string>
 
 namespace sgct::core {

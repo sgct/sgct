@@ -9,7 +9,16 @@
 #include <sgct/projection.h>
 
 #include <sgct/projectionplane.h>
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif // WIN32
+
 #include <glm/gtc/matrix_transform.hpp>
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
 
 namespace sgct::core {
 

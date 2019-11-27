@@ -8,20 +8,25 @@
 
 #include <sgct/statisticsrenderer.h>
 
+#ifdef SGCT_HAS_TEXT
+#include <sgct/font.h>
+#include <sgct/fontmanager.h>
+#include <sgct/freetype.h>
+#endif // SGCT_HAS_TEXT
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {
-    constexpr const float VerticalScale = 5000.f;
+    constexpr const float VerticalScale = 10000.f;
     const glm::vec4 ColorStaticGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
     const glm::vec4 ColorStaticFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
     const glm::vec4 ColorStaticBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
 
     const glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
-    const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.f, 1.f, 0.8f);
-    const glm::vec4 ColorSyncTime = glm::vec4(0.f, 1.f, 1.f, 0.8f);
+    const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
+    const glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
     const glm::vec4 ColorLoopTimeMax = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
-    const glm::vec4 ColorLoopTimeMin = glm::vec4(0.f, 0.f, 0.8f, 0.8f);
+    const glm::vec4 ColorLoopTimeMin = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
 
     constexpr const char* StatsVertShader = R"(
 #version 330 core
@@ -214,6 +219,55 @@ void StatisticsRenderer::render() {
 
     glBindVertexArray(0);
     _shader.unbind();
+
+#ifdef SGCT_HAS_TEXT
+    const glm::vec2 pos = glm::vec2(50.f, 50.f);
+    const float s = 20.f;
+
+    text::Font* f1 = text::FontManager::instance().getFont("SGCTFont", 12.f);
+
+    text::print(
+        *f1,
+        text::TextAlignMode::TopLeft,
+        pos.x,
+        pos.y + 4 * s,
+        ColorFrameTime,
+        "Frame time: %f ms", _statistics.frametimes[0] * 1000.0
+    );
+    text::print(
+        *f1,
+        text::TextAlignMode::TopLeft,
+        pos.x,
+        pos.y + 3 * s,
+        ColorDrawTime,
+        "Draw time: %f ms", _statistics.drawTimes[0] * 1000.0
+    );
+    text::print(
+        *f1,
+        text::TextAlignMode::TopLeft,
+        pos.x,
+        pos.y + 2 * s,
+        ColorSyncTime,
+        "Sync time: %f ms", _statistics.syncTimes[0] * 1000.0
+    );
+    text::print(
+        *f1,
+        text::TextAlignMode::TopLeft,
+        pos.x,
+        pos.y + s,
+        ColorLoopTimeMax,
+        "Max Loop time: %f ms", _statistics.loopTimeMax[0] * 1000.0
+    );
+    text::print(
+        *f1,
+        text::TextAlignMode::TopLeft,
+        pos.x,
+        pos.y,
+        ColorLoopTimeMin,
+        "Min Loop time: %f ms", _statistics.loopTimeMin[0] * 1000.0
+    );
+
+#endif // SGCT_HAS_TEXT
 }
 
 } // namespace sgct::core

@@ -111,8 +111,8 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    // (abock, 2019-11-28);  We could probably get away with using the UDP stack as we are
-    // always waiting for ack messages from the clients anyway
+    // @TODO (abock, 2019-11-28);  We could probably get away with using the UDP stack as
+    // we are always waiting for ack messages from the clients anyway
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE;
 

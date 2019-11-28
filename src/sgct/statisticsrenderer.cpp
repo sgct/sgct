@@ -37,15 +37,14 @@ void main() { gl_Position = mvp * vec4(in_vertPosition, 0.0, 1.0); }
 
     constexpr const char* StatsFragShader = R"(
 #version 330 core
-
 uniform vec4 col;
 out vec4 out_color;
-
 void main() { out_color = col; }
 )";
 
     // Histogram parameters
-    constexpr const double MaxHistogramValue = 20.0 / 1000.0; // 20ms
+    constexpr const double HistogramScaleFrame = 35.0 / 1000.0; // 35ms
+    constexpr const double HistogramScaleSync = 1.0 / 1000.0; // 1ms
 } // namespace
 
 namespace sgct::core {
@@ -54,41 +53,34 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     : _statistics(statistics)
 {
     // Static background quad
-    std::vector<float> staticVerts;
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(1.f / 30.f);
-    staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-    staticVerts.push_back(1.f / 30.f);
+    struct Vertex {
+        Vertex(float x_, float y_) : x(x_), y(y_) {}
+        float x = 0.f;
+        float y = 0.f;
+    };
+    std::vector<Vertex> vs;
+    vs.emplace_back(0.f, 0.f);
+    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
+    vs.emplace_back(0.f, 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
 
     // Static 1 ms lines
     _lines.staticDraw.nLines = 0;
     for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
-        staticVerts.push_back(0.f);
-        staticVerts.push_back(f);
-        staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-        staticVerts.push_back(f);
+        vs.emplace_back(0.f, f);
+        vs.emplace_back(static_cast<float>(_statistics.HistoryLength), f);
         _lines.staticDraw.nLines++;
     }
 
     // Static 0, 30 & 60 FPS lines
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-    staticVerts.push_back(0.f);
+    vs.emplace_back(0.f, 0.f);
+    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
 
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(1.f / 30.f);
-    staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-    staticVerts.push_back(1.f / 30.f);
+    vs.emplace_back(0.f, 1.f / 30.f);
+    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 30.f);
 
-    staticVerts.push_back(0.f);
-    staticVerts.push_back(1.f / 60.f);
-    staticVerts.push_back(static_cast<float>(_statistics.HistoryLength));
-    staticVerts.push_back(1.f / 60.f);
+    vs.emplace_back(0.f, 1.f / 60.f);
+    vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 1.f / 60.f);
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
@@ -104,12 +96,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glGenBuffers(1, &_lines.staticDraw.vbo);
     glBindVertexArray(_lines.staticDraw.vao);
     glBindBuffer(GL_ARRAY_BUFFER, _lines.staticDraw.vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        staticVerts.size() * sizeof(float),
-        staticVerts.data(),
-        GL_STATIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(float), vs.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
@@ -117,12 +104,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glGenBuffers(1, &_lines.dynamicDraw.vbo);
     glBindVertexArray(_lines.dynamicDraw.vao);
     glBindBuffer(GL_ARRAY_BUFFER, _lines.dynamicDraw.vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        5 * _statistics.HistoryLength * sizeof(float),
-        nullptr,
-        GL_DYNAMIC_DRAW
-    );
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Engine::Statistics), nullptr, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     glBindVertexArray(0);
@@ -209,31 +191,36 @@ void StatisticsRenderer::update() {
 
 
     // Histogram update
-    auto updateHistogram = [](std::array<int, Histogram::Bins>& hValues,
-                              const std::array<double, 512>& sValues) -> int
+    auto updateHist = [](std::array<int, Histogram::Bins>& hValues,
+                         const std::array<double, 512>& sValues, double scale) -> int
     {
         std::fill(hValues.begin(), hValues.end(), 0);
 
         for (double d : sValues) {
             // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
-            const double dp = d / MaxHistogramValue;
+            const double dp = d / scale;
             const int dpScaled = static_cast<int>(dp * Histogram::Bins);
             const int bin = std::clamp(dpScaled, 0, Histogram::Bins - 1);
             hValues[bin] += 1;
         }
 
-        return *std::max_element(hValues.begin(), hValues.end());
+        return *std::max_element(hValues.cbegin(), hValues.cend());
     };
-    int f = updateHistogram(_histogram.values.frametimes, _statistics.frametimes);
-    int d = updateHistogram(_histogram.values.drawTimes, _statistics.drawTimes);
-    int s = updateHistogram(_histogram.values.syncTimes, _statistics.syncTimes);
-    int lmin = updateHistogram(_histogram.values.loopTimeMin, _statistics.loopTimeMin);
-    int lmax = updateHistogram(_histogram.values.loopTimeMax, _statistics.loopTimeMax);
-    _histogram.maxBinValue = std::max({ f, d, s, lmin, lmax });
+    auto& h = _histogram;
+    h.maxBinValue.frametimes =
+        updateHist(h.values.frametimes, _statistics.frametimes, HistogramScaleFrame);
+    h.maxBinValue.drawTimes =
+        updateHist(h.values.drawTimes, _statistics.drawTimes, HistogramScaleFrame);
+    h.maxBinValue.syncTimes =
+        updateHist(h.values.syncTimes, _statistics.syncTimes, HistogramScaleSync);
+    h.maxBinValue.loopTimeMin =
+        updateHist(h.values.loopTimeMin, _statistics.loopTimeMin, HistogramScaleSync);
+    h.maxBinValue.loopTimeMax =
+        updateHist(h.values.loopTimeMax, _statistics.loopTimeMax, HistogramScaleSync);
 
 
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
-                            const std::array<int, Histogram::Bins>& values)
+                            const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
         for (int i = 0; i < Histogram::Bins; ++i) {
             const int val = values[i];
@@ -241,7 +228,7 @@ void StatisticsRenderer::update() {
             const float x0 = static_cast<float>(i) / Histogram::Bins;
             const float x1 = static_cast<float>(i + 1) / Histogram::Bins;
             const float y0 = 0.f;
-            const float y1 = static_cast<float>(val) / _histogram.maxBinValue;
+            const float y1 = static_cast<float>(val) / maxBinVal;
 
             const int idx = i * 6;
             buffer[idx + 0] = { x0, y0 };
@@ -254,11 +241,11 @@ void StatisticsRenderer::update() {
         }
     };
 
-    convertValues(_histogram.buffer.frametimes, _histogram.values.frametimes);
-    convertValues(_histogram.buffer.drawTimes, _histogram.values.drawTimes);
-    convertValues(_histogram.buffer.syncTimes, _histogram.values.syncTimes);
-    convertValues(_histogram.buffer.loopTimeMin, _histogram.values.loopTimeMin);
-    convertValues(_histogram.buffer.loopTimeMax, _histogram.values.loopTimeMax);
+    convertValues(h.buffer.frametimes, h.values.frametimes, h.maxBinValue.frametimes);
+    convertValues(h.buffer.drawTimes, h.values.drawTimes, h.maxBinValue.drawTimes);
+    convertValues(h.buffer.syncTimes, h.values.syncTimes, h.maxBinValue.syncTimes);
+    convertValues(h.buffer.loopTimeMin, h.values.loopTimeMin, h.maxBinValue.loopTimeMin);
+    convertValues(h.buffer.loopTimeMax, h.values.loopTimeMax, h.maxBinValue.loopTimeMax);
     
 
     glBindBuffer(GL_ARRAY_BUFFER, _histogram.dynamicDraw.vbo);
@@ -332,11 +319,11 @@ void StatisticsRenderer::render() {
         _shader.unbind();
 
 #ifdef SGCT_HAS_TEXT
-        constexpr const glm::vec2 Pos = glm::vec2(20.f, 50.f);
+        constexpr const glm::vec2 Pos = glm::vec2(15.f, 50.f);
         constexpr const float Offset = 20.f;
         constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
 
-        text::Font& f1 = *text::FontManager::instance().getFont("SGCTFont", 22);
+        text::Font& f1 = *text::FontManager::instance().getFont("SGCTFont", 20);
         text::Font& f2 = *text::FontManager::instance().getFont("SGCTFont", 12);
 
         text::print(
@@ -438,6 +425,29 @@ void StatisticsRenderer::render() {
         renderHistogram(2, ColorSyncTime);
         renderHistogram(3, ColorLoopTimeMin);
         renderHistogram(4, ColorLoopTimeMax);
+
+#ifdef SGCT_HAS_TEXT
+        constexpr const glm::vec2 Pos = glm::vec2(15.f, 10.f);
+        constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
+
+        text::Font& f = *text::FontManager::instance().getFont("SGCTFont", 8);
+        text::print(
+            f,
+            mode,
+            Pos.x,
+            Pos.y,
+            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+            "Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
+        );
+        text::print(
+            f,
+            mode,
+            Pos.x,
+            Pos.y + 12.f,
+            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+            "Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
+        );
+#endif // SGCT_HAS_TEXT
     }
 }
 

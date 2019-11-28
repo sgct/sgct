@@ -82,7 +82,13 @@ private:
         };
         Vertices buffer;
 
-        int maxBinValue = 0;
+        struct {
+            int frametimes = 0;
+            int drawTimes = 0;
+            int syncTimes = 0;
+            int loopTimeMin = 0;
+            int loopTimeMax = 0;
+        } maxBinValue;
 
         struct {
             unsigned int vao = 0;

@@ -25,8 +25,8 @@ namespace {
     const glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
     const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
     const glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
-    const glm::vec4 ColorLoopTimeMax = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
-    const glm::vec4 ColorLoopTimeMin = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
+    const glm::vec4 ColorLoopTimeMin = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
+    const glm::vec4 ColorLoopTimeMax = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
 
     constexpr const char* StatsVertShader = R"(
 #version 330 core

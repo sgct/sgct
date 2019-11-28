@@ -135,6 +135,11 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         try {
             return core::readConfig(*path);
         }
+        catch (const std::runtime_error& e) {
+            std::cout << e.what() << '\n';
+            std::cout << getHelpMessage() << '\n';
+            throw;
+        }
         catch (...) {
             std::cout << getHelpMessage() << '\n';
             throw;
@@ -933,7 +938,9 @@ void Engine::frameLockPreStage() {
         addValue(_statistics.loopTimeMin, minMax->first);
         addValue(_statistics.loopTimeMax, minMax->second);
     }
-    addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
+    if (core::NetworkManager::instance().isComputerServer()) {
+        addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
+    }
 
     // run only on clients
     if (core::NetworkManager::instance().isComputerServer() &&
@@ -978,7 +985,9 @@ void Engine::frameLockPreStage() {
     // A this point all data needed for rendering a frame is received.
     // Let's signal that back to the master/server.
     core::NetworkManager::instance().sync(core::NetworkManager::SyncMode::Acknowledge);
-    addValue(_statistics.syncTimes, glfwGetTime() - t0);
+    if (!core::NetworkManager::instance().isComputerServer()) {
+        addValue(_statistics.syncTimes, glfwGetTime() - t0);
+    }
 }
 
 void Engine::frameLockPostStage() {

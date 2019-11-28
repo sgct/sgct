@@ -396,7 +396,7 @@ void StatisticsRenderer::render() {
         //
         auto renderHistogram = [&](int i, const glm::vec4& color) {
             const auto [pos, size] = [&](int i) -> std::tuple<glm::vec2, glm::vec2> {
-                constexpr const glm::vec2 Pos(375.f, 10.f);
+                constexpr const glm::vec2 Pos(400.f, 10.f);
                 constexpr const glm::vec2 Size(425.f, 200.f);
 
                 if (i == 0) {

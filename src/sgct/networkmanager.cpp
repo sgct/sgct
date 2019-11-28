@@ -331,18 +331,20 @@ bool NetworkManager::init() {
 }
 
 std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
+    if (_syncConnections.empty()) {
+        return std::nullopt;
+    }
     if (sm == SyncMode::SendDataToClients) {
-        if (_syncConnections.empty()) {
-            return std::nullopt;
-        }
-
         double maxTime = -std::numeric_limits<double>::max();
         double minTime = std::numeric_limits<double>::max();
 
+        bool hasFoundConnection = false;
         for (Network* connection : _syncConnections) {
             if (!connection->isServer() || !connection->isConnected()) {
                 continue;
             }
+
+            hasFoundConnection = true;
 
             const double currentTime = connection->getLoopTime();
             maxTime = std::max(currentTime, maxTime);
@@ -365,7 +367,9 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             );
         }
 
-        return std::make_pair(minTime, maxTime);
+        if (hasFoundConnection) {
+            return std::make_pair(minTime, maxTime);
+        }
     }
     else if (sm == SyncMode::Acknowledge) {
         for (Network* connection : _syncConnections) {

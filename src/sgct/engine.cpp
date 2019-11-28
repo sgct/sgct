@@ -19,7 +19,6 @@
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>
-#include <sgct/touch.h>
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
@@ -42,8 +41,6 @@ std::function<
 std::function<void(double, double)> gMousePosCallbackFn = nullptr;
 std::function<void(double, double)> gMouseScrollCallbackFn = nullptr;
 std::function<void(int, const char**)> gDropCallbackFn = nullptr;
-std::function<void(const sgct::core::Touch*)> gTouchCallbackFn = nullptr;
-sgct::core::Touch gCurrentTouchPoints;
 
 bool sRunUpdateFrameLockLoop = true;
 
@@ -470,18 +467,6 @@ void Engine::init(RunMode rm, config::Cluster cluster) {
                     if (gDropCallbackFn) {
                         gDropCallbackFn(count, paths);
                     }
-                }
-            );
-        }
-        if (gTouchCallbackFn) {
-            glfwSetTouchCallback(
-                window,
-                [](GLFWwindow*, GLFWtouch* touchPoints, int count){
-                    sgct::Engine& eng = sgct::Engine::instance();
-                    glm::ivec4 c = eng.getCurrentWindow().getCurrentViewportPixelCoords();
-
-                    gCurrentTouchPoints.processPoints(touchPoints, count, c.z, c.w);
-                    gCurrentTouchPoints.setLatestPointsHandled();
                 }
             );
         }
@@ -2253,10 +2238,6 @@ void Engine::setMouseScrollCallbackFunction(std::function<void(double, double)> 
 void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) {
     gDropCallbackFn = std::move(fn);
 }
-
- void Engine::setTouchCallbackFunction(std::function<void(const core::Touch*)> fn) {
-     gTouchCallbackFn = std::move(fn);
- }
 
 void Engine::enterCurrentViewport() {
     core::BaseViewport* vp = getCurrentWindow().getCurrentViewport();

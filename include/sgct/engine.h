@@ -37,7 +37,6 @@ namespace core {
     class Image;
     class Node;
     class StatisticsRenderer;
-    class Touch;
     class User;
 } // namespace core
 
@@ -336,8 +335,6 @@ public:
 
     /// Drop files to any window. All windows are connected to this callback.
     void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
-
-    void setTouchCallbackFunction(std::function<void(const core::Touch* touches)> fn);
 
     /**
      * This callback must be set before Engine::init is called. Parameters to the callback

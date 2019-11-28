@@ -42,7 +42,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/spoutoutputprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/touch.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h
@@ -108,7 +107,6 @@ set(SOURCE_FILES
   spoutoutputprojection.cpp
   statisticsrenderer.cpp
   texturemanager.cpp
-  touch.cpp
   tracker.cpp
   trackingdevice.cpp
   trackingmanager.cpp

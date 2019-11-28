@@ -217,7 +217,8 @@ void StatisticsRenderer::update() {
         for (double d : sValues) {
             // convert from d into [0, 1];  0 for d=0  and 1 for d=MaxHistogramValue
             const double dp = d / MaxHistogramValue;
-            const int bin = std::min(static_cast<int>(dp * Histogram::Bins), Histogram::Bins - 1);
+            const int dpScaled = static_cast<int>(dp * Histogram::Bins);
+            const int bin = std::clamp(dpScaled, 0, Histogram::Bins - 1);
             hValues[bin] += 1;
         }
 

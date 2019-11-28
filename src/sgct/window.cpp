@@ -350,7 +350,7 @@ void Window::init() {
 
     std::string title = "SGCT node: " +
         core::ClusterManager::instance().getThisNode().getAddress() + " (" +
-        (core::NetworkManager::instance().isComputerServer() ? "master" : "slave") +
+        (core::NetworkManager::instance().isComputerServer() ? "master" : "client") +
         ": " + std::to_string(_id) + ")";
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
@@ -947,7 +947,7 @@ void Window::openWindow(GLFWwindow* share, int lastWindow) {
 
     updateTransferCurve();
 
-    // if slave disable mouse pointer
+    // if client, disable mouse pointer
     if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }

@@ -647,9 +647,8 @@ public:
      * Specifies the sync parameters to be used in the rendering loop.
      *
      * \param printMessage If <code>true</code> a message is print waiting for a frame
-     *                     every second
-     * \param timeout The timeout that a master and slaves will wait for each other
-     *                in seconds
+     *        every second
+     * \param timeout The timeout that the master and clients will wait for in seconds
      */
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
@@ -681,15 +680,14 @@ private:
     void initOGL();
 
     /**
-     * Locks the rendering thread for synchronization. Locks the slaves until data is
+     * Locks the rendering thread for synchronization. Locks the clients until data is
      * successfully received.
      */
     void frameLockPreStage();
 
     /**
-     * Locks the rendering thread for synchronization. Locks master until slaves are ready
-     * to swap buffers.
-     * sync.
+     * Locks the rendering thread for synchronization. Locks master until clients are
+     * ready to swap buffers.
      */
     void frameLockPostStage();
 

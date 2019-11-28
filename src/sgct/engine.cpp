@@ -48,7 +48,6 @@ sgct::core::Touch gCurrentTouchPoints;
 bool sRunUpdateFrameLockLoop = true;
 
 namespace {
-    constexpr const bool UseSleepToWaitForNodes = false;
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
 
@@ -951,42 +950,32 @@ void Engine::frameLockPreStage() {
     }
     addValue(_statistics.syncTimes, static_cast<float>(glfwGetTime() - ts));
 
-    // run only on clients/slaves
-    if (core::ClusterManager::instance().getIgnoreSync() ||
-        core::NetworkManager::instance().isComputerServer())
+    // run only on clients
+    if (core::NetworkManager::instance().isComputerServer() &&
+        !core::ClusterManager::instance().getIgnoreSync())
     {
         return;
     }
 
     // not server
     const double t0 = glfwGetTime();
-    while (core::NetworkManager::instance().isRunning() && _isRunning) {
-        if (core::NetworkManager::instance().isSyncComplete()) {
-            break;
-        }
+    while (core::NetworkManager::instance().isRunning() && _isRunning &&
+           !core::NetworkManager::instance().isSyncComplete())
+    {
+        std::unique_lock lk(core::mutex::FrameSync);
+        core::NetworkManager::cond.wait(lk);
 
-        if (UseSleepToWaitForNodes) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        else {
-            std::unique_lock lk(core::mutex::FrameSync);
-            core::NetworkManager::cond.wait(lk);
-        }
-
-        // for debugging
-        core::Network* conn;
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
         }
 
         // more than a second
-        conn = core::NetworkManager::instance().getSyncConnectionByIndex(0);
-        if (_printSyncMessage && !conn->isUpdated()) {
+        core::Network* c = core::NetworkManager::instance().getSyncConnectionByIndex(0);
+        if (_printSyncMessage && !c->isUpdated()) {
             MessageHandler::printInfo(
-                "Slave: waiting for master... send frame %d != previous recv frame "
-                "%d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia "
-                "universal frame number: %u\n\tSGCT frame number: %u",
-                conn->getSendFrameCurrent(), conn->getRecvFramePrevious(),
+                "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
+                "Swap barrier: %s\n\tUniversal frame number: %u\n\tSGCT frame number: %u",
+                c->getSendFrameCurrent(), c->getRecvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
                 Window::isBarrierActive() ? "enabled" : "disabled",
                 Window::getSwapGroupFrameNumber(), _frameCounter
@@ -1017,21 +1006,12 @@ void Engine::frameLockPostStage() {
 
     const double t0 = glfwGetTime();
     while (core::NetworkManager::instance().isRunning() && _isRunning &&
-        core::NetworkManager::instance().getActiveConnectionsCount() > 0)
+        core::NetworkManager::instance().getActiveConnectionsCount() > 0 &&
+        !core::NetworkManager::instance().isSyncComplete())
     {
-        if (core::NetworkManager::instance().isSyncComplete()) {
-            break;
-        }
+        std::unique_lock lk(core::mutex::FrameSync);
+        core::NetworkManager::cond.wait(lk);
 
-        if (UseSleepToWaitForNodes) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        else {
-            std::unique_lock lk(core::mutex::FrameSync);
-            core::NetworkManager::cond.wait(lk);
-        }
-
-        // for debugging
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
         }
@@ -1040,9 +1020,9 @@ void Engine::frameLockPostStage() {
         for (int i = 0; i < nm.getSyncConnectionsCount(); ++i) {
             if (_printSyncMessage && !nm.getConnectionByIndex(i).isUpdated()) {
                 MessageHandler::printInfo(
-                    "Waiting for slave%d: send frame %d != recv frame %d\n\t"
-                    "Nvidia swap groups: %s\n\tNvidia swap barrier: %s\n\t"
-                    "Nvidia universal frame number: %u\n\tSGCT frame number: %u",
+                    "Waiting for IG%d: send frame %d != recv frame %d\n\tSwap groups: %s"
+                    "\n\tSwap barrier: %s\n\tUniversal frame number: %u\n\t"
+                    "SGCT frame number: %u",
                     i, nm.getConnectionByIndex(i).getSendFrameCurrent(),
                     nm.getConnectionByIndex(i).getRecvFrameCurrent(),
                     Window::isUsingSwapGroups() ? "enabled" : "disabled",
@@ -1056,7 +1036,7 @@ void Engine::frameLockPostStage() {
             // more than a minute
             throw Error(
                 3007,
-                "No sync signal from slaves after " + std::to_string(_syncTimeout) + " s"
+                "No sync signal from clients after " + std::to_string(_syncTimeout) + " s"
             );
         }
     }
@@ -1330,7 +1310,7 @@ void Engine::renderDisplayInfo() {
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Node ip: %s (%s)",
             thisNode.getAddress().c_str(),
-            core::NetworkManager::instance().isComputerServer() ? "master" : "slave"
+            core::NetworkManager::instance().isComputerServer() ? "master" : "client"
         );
 
         const double accFrameTime = std::accumulate(
@@ -1406,7 +1386,7 @@ void Engine::renderDisplayInfo() {
                 "Swap groups: %s and barrier is %s (%s) | Frame: %d",
                 Window::isUsingSwapGroups() ? "Enabled" : "Disabled",
                 Window::isBarrierActive() ? "active" : "inactive",
-                Window::isSwapGroupMaster() ? "master" : "slave", lFrameNumber
+                Window::isSwapGroupMaster() ? "master" : "client", lFrameNumber
             );
         }
         else {

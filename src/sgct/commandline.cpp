@@ -20,7 +20,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-client" || arg[i] == "-slave") {
+        else if (arg[i] == "-client") {
             config.isServer = false;
             arg.erase(arg.begin() + i);
         }
@@ -128,8 +128,6 @@ Parameters:
 -local <integer>
     Force node in configuration to localhost (index starts at 0)
 -client
-    Run the application as client\n\t(only available when running as local)
--slave
     Run the application as client\n\t(only available when running as local)
 -debug
     Set the notify level of messagehandler to debug

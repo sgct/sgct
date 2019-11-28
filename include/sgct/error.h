@@ -108,7 +108,7 @@ namespace sgct {
     3004: Engine / No windows exist in configuration
     3005: Engine / No windows created on this node
     3006: Engine / No sync signal from master after X seconds
-    3007: Engine / No sync signal from slaves after X seconds
+    3007: Engine / No sync signal from clients after X seconds
     3010: Engine / GLFW error
 
     4000s: MPCDI

@@ -573,7 +573,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         _allNodesConnected = allNodesConnectedCopy;
         core::mutex::DataSync.unlock();
 
-        // send cluster connected message to nodes/slaves
+        // send cluster connected message to clients
         if (allNodesConnectedCopy) {
             for (Network* syncConnection : _syncConnections) {
                 if (!syncConnection->isConnected()) {

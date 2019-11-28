@@ -32,12 +32,12 @@
     #define SGCT_ERRNO errno
 #endif
 
+#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/clustermanager.h>
 #include <sgct/messagehandler.h>
-#include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
+#include <sgct/networkmanager.h>
 #include <sgct/shareddata.h>
 #include <zlib.h>
 #include <algorithm>
@@ -47,49 +47,35 @@
 
 namespace {
     constexpr const int MaxNumberOfAttempts = 10;
-    constexpr const int SocketBufferSize = 4096;
+    // Ethernet's MTU is 1500, so let's get close to that
+    constexpr const int SocketBufferSize = 1408; // 1024 + 256 + 128
 
     constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
     std::string getTypeStr(sgct::core::Network::ConnectionType ct) {
+        using N = sgct::core::Network;
         switch (ct) {
-            case sgct::core::Network::ConnectionType::SyncConnection:
-                return "sync";
-            case sgct::core::Network::ConnectionType::ExternalConnection:
-                return "external ASCII control";
-            case sgct::core::Network::ConnectionType::DataTransfer:
-                return "data transfer";
-            default:
-                throw std::logic_error("Unhandled case label");
+            case N::ConnectionType::SyncConnection: return "sync";
+            case N::ConnectionType::ExternalConnection: return "external ASCII control";
+            case N::ConnectionType::DataTransfer: return "data transfer";
+            default: throw std::logic_error("Unhandled case label");
         }
-    }
-
-    int32_t parseInt32(const char* str) {
-        return *(reinterpret_cast<const int32_t*>(str));
-    }
-
-    uint32_t parseUInt32(const char* str) {
-        return *(reinterpret_cast<const uint32_t*>(str));
     }
 
     std::string getUncompressionErrorAsStr(int err) {
         switch (err) {
-            case Z_BUF_ERROR:
-                return "Dest. buffer not large enough";
-            case Z_MEM_ERROR:
-                return "Insufficient memory";
-            case Z_DATA_ERROR:
-                return "Corrupted data";
-            default:
-                return "Unknown error";
+            case Z_BUF_ERROR: return "Dest. buffer not large enough";
+            case Z_MEM_ERROR: return "Insufficient memory";
+            case Z_DATA_ERROR: return "Corrupted data";
+            default: return "Unknown error";
         }
     }
 
-    bool parseDisconnectPackage(const char* headerPtr) {
-        return (headerPtr[0] == sgct::core::Network::DisconnectId &&
-                headerPtr[1] == 24 && headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
-                headerPtr[4] == 27 && headerPtr[5] == '\r' &&
-                headerPtr[6] == '\n' && headerPtr[7] == '\0');
+    bool parseDisconnectPackage(const char* header) {
+        constexpr const char rhs[] = {
+            sgct::core::Network::DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0'
+        };
+        return std::string_view(header, 8) == std::string_view(rhs, 8);
     }
 } // namespace
 
@@ -125,11 +111,13 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
+    // (abock, 2019-11-28);  We could probably get away with using the UDP stack as we are
+    // always waiting for ack messages from the clients anyway
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the local address and port to be used by the server
-    int addrRes = getaddrinfo(
+    const int addrRes = getaddrinfo(
         _isServer ? nullptr : _address.c_str(),
         std::to_string(_port).c_str(),
         &hints,
@@ -289,8 +277,6 @@ void Network::setOptions(SGCT_SOCKET* socketPtr) {
         MessageHandler::printWarning("Failed to set reuse address. %d", SGCT_ERRNO);
     }
 
-    // The default buffer value is 8k (8192 bytes) which is good for external control
-    // but might be a bit to big for sync data.
     if (getType() == core::Network::ConnectionType::SyncConnection) {
         int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
@@ -375,7 +361,6 @@ int Network::iterateFrameCounter() {
     }
 
     _isUpdated = false;
-
 
     {
         std::unique_lock lock(_connectionMutex);
@@ -472,7 +457,6 @@ int Network::getRecvFramePrevious() const {
 }
 
 double Network::getLoopTime() const {
-    std::unique_lock lock(_connectionMutex);
     return _timeStampTotal;
 }
 
@@ -487,7 +471,7 @@ bool Network::isUpdated() const {
     }
     else {
         state = ClusterManager::instance().getFirmFrameLockSyncStatus() ?
-            // slaves receive first and then send so the prev should be equal to the send
+            // clients receive first and then send so the prev should be equal to the send
             (_previousRecvFrame == _currentSendFrame) :
             // if loose sync just check if updated
             _isUpdated.load();
@@ -543,7 +527,6 @@ void Network::setRecvFrame(int i) {
     _currentRecvFrame = i;
     _isUpdated = true;
 
-    std::unique_lock lock(_connectionMutex);
     _timeStampTotal = Engine::getTime() - _timeStampSend;
 }
 
@@ -604,11 +587,11 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
         _headerId = header[0];
         if (_headerId == DataId || _headerId == CompressedDataId) {
             // parse the sync frame number
-            syncFrameNumber = parseInt32(&header[1]);
+            syncFrameNumber = *(reinterpret_cast<const int32_t*>(&header[1]));
             // parse the data size
-            dataSize = parseUInt32(&header[5]);
+            dataSize = *(reinterpret_cast<const uint32_t*>(&header[5]));
             // parse the uncompressed size if compression is used
-            uncompressedDataSize = parseUInt32(&header[9]);
+            uncompressedDataSize = *(reinterpret_cast<const uint32_t*>(&header[9]));
 
             setRecvFrame(syncFrameNumber);
             if (syncFrameNumber < 0) {
@@ -640,11 +623,11 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
         _headerId = header[0];
         if (_headerId == DataId || _headerId == CompressedDataId) {
             // parse the package _id
-            packageId = parseInt32(&header[1]);
+            packageId = *(reinterpret_cast<const int32_t*>(&header[1]));
             // parse the data size
-            dataSize = parseUInt32(&header[5]);
+            dataSize = *(reinterpret_cast<const uint32_t*>(&header[5]));
             // parse the uncompressed size if compression is used
-            uncompressedDataSize = parseUInt32(&header[9]);
+            uncompressedDataSize = *(reinterpret_cast<const uint32_t*>(&header[9]));
 
             // resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
@@ -652,7 +635,7 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
         }
         else if (_headerId == Ack && _acknowledgeCallback != nullptr) {
             //parse the package _id
-            packageId = parseInt32(&header[1]);
+            packageId = *(reinterpret_cast<const int32_t*>(&header[1]));
             _acknowledgeCallback(packageId, _id);
         }
     }

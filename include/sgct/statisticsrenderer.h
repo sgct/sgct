@@ -29,29 +29,72 @@ private:
     ShaderProgram _shader;
     int _mvpLoc = -1;
     int _colorLoc = -1;
-    struct {
-        unsigned int vao = 0;
-        unsigned int vbo = 0;
-        int nLines = 0;
-    } _static;
-
-    struct {
-        unsigned int vao = 0;
-        unsigned int vbo = 0;
-    } _dynamic;
 
     struct Vertex {
-        float x;
-        float y;
+        float x = 0.f;
+        float y = 0.f;
     };
-    struct Vertices {
-        std::array<Vertex, Engine::Statistics::HistoryLength> frametimes;
-        std::array<Vertex, Engine::Statistics::HistoryLength> drawTimes;
-        std::array<Vertex, Engine::Statistics::HistoryLength> syncTimes;
-        std::array<Vertex, Engine::Statistics::HistoryLength> loopTimeMin;
-        std::array<Vertex, Engine::Statistics::HistoryLength> loopTimeMax;
+    struct Lines {
+        struct {
+            unsigned int vao = 0;
+            unsigned int vbo = 0;
+            int nLines = 0;
+        } staticDraw;
+
+        struct {
+            unsigned int vao = 0;
+            unsigned int vbo = 0;
+        } dynamicDraw;
+
+
+        struct Vertices {
+            // The implementation requires frametimes to be the first element so beware
+            std::array<Vertex, Engine::Statistics::HistoryLength> frametimes;
+            std::array<Vertex, Engine::Statistics::HistoryLength> drawTimes;
+            std::array<Vertex, Engine::Statistics::HistoryLength> syncTimes;
+            std::array<Vertex, Engine::Statistics::HistoryLength> loopTimeMin;
+            std::array<Vertex, Engine::Statistics::HistoryLength> loopTimeMax;
+        };
+        Vertices buffer;
     };
-    std::unique_ptr<Vertices> _vertexBuffer;
+    Lines _lines;
+
+    struct Histogram {
+        // Each bin covers 1ms
+        static const int Bins = 32;
+
+        struct Values {
+            std::array<int, Bins> frametimes;
+            std::array<int, Bins> drawTimes;
+            std::array<int, Bins> syncTimes;
+            std::array<int, Bins> loopTimeMin;
+            std::array<int, Bins> loopTimeMax;
+        };
+        Values values;
+
+        struct Vertices {
+            // The implementation requires frametimes to be the first element so beware
+            std::array<Vertex, 6 * Bins> frametimes;
+            std::array<Vertex, 6 * Bins> drawTimes;
+            std::array<Vertex, 6 * Bins> syncTimes;
+            std::array<Vertex, 6 * Bins> loopTimeMin;
+            std::array<Vertex, 6 * Bins> loopTimeMax;
+        };
+        Vertices buffer;
+
+        int maxBinValue = 0;
+
+        struct {
+            unsigned int vao = 0;
+            unsigned int vbo = 0;
+        } staticDraw;
+
+        struct {
+            unsigned int vao = 0;
+            unsigned int vbo = 0;
+        } dynamicDraw;
+    };
+    Histogram _histogram;
 };
 
 } // namespace sgct::core

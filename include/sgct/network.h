@@ -139,7 +139,7 @@ private:
     std::unique_ptr<std::thread> _mainThread;
 
     double _timeStampSend = 0.0;
-    double _timeStampTotal = 0.0;
+    std::atomic<double> _timeStampTotal = 0.0;
     int _id;
     uint32_t _bufferSize = 1024;
     uint32_t _uncompressedBufferSize = _bufferSize;

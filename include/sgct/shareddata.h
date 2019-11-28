@@ -20,7 +20,7 @@ namespace sgct {
 
 /**
  * This class shares application data between nodes in a cluster where the master encodes
- * and transmits the data and the slaves receives and decode the data. If a large number
+ * and transmits the data and the clients receives and decode the data. If a large number
  * of strings are used for the synchronization then the data can be compressed using the
  * setCompression function. The process of synchronization is serial which means that the
  * order of encoding must be the same as in decoding.

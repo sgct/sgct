@@ -39,31 +39,6 @@
     #define SOCKET_ERROR (-1)
 #endif
 
-// missing function on mingw
-#if defined(__MINGW32__) || defined(__MINGW64__)
-const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
-    sockaddr_in srcaddr;
-
-    memset(&srcaddr, 0, sizeof(sockaddr_in));
-    memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
-
-    srcaddr.sin_family = af;
-    int res = WSAAddressToString(
-        reinterpret_cast<sockaddr*>(&srcaddr),
-        sizeof(sockaddr_in),
-        0,
-        dst,
-        reinterpret_cast<LPDWORD>(&cnt)
-    );
-    if (res != 0) {
-        DWORD rv = WSAGetLastError();
-        printf("WSAAddressToString() : %d\n",rv);
-        return nullptr;
-    }
-    return dst;
-}
-#endif // defined(__MINGW32__) || defined(__MINGW64__)
-
 #define Error(code, msg) Error(Error::Component::Network, code, msg)
 
 namespace sgct::core {
@@ -632,9 +607,10 @@ void NetworkManager::addConnection(int port, const std::string& address,
             case Network::ConnectionType::DataTransfer:
                 _dataTransferConnections.push_back(connection.get());
                 break;
-            default:
+            case Network::ConnectionType::ExternalConnection:
                 _externalControlConnection = connection.get();
                 break;
+            default: throw std::logic_error("Missing case label");
         }
     }
 }
@@ -661,7 +637,7 @@ void NetworkManager::getHostInfo() {
     _localAddresses.push_back(hostName);
 
     addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
+    std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     // hints.ai_family = AF_UNSPEC; // either IPV4 or IPV6
     hints.ai_socktype = SOCK_STREAM;

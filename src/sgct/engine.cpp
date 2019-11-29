@@ -523,16 +523,13 @@ void Engine::initNetwork() {
         throw Error(3002, "Requested node id was not found in the cluster configuration");
     }
 
-    const bool networkInitSuccess = core::NetworkManager::instance().init();
-    if (!networkInitSuccess) {
-        throw Error(3003, "Error initializing network connections");
-    }
+    core::NetworkManager::instance().init();
 }
 
 void Engine::initWindows() {
     core::Node& thisNode = core::ClusterManager::instance().getThisNode();
     if (thisNode.getNumberOfWindows() == 0) {
-        throw Error(3004, "No windows exist in configuration");
+        throw Error(3003, "No windows exist in configuration");
     }
 
     {
@@ -742,7 +739,7 @@ void Engine::initWindows() {
         }
     }
     else {
-        throw Error(3005, "No windows created on this node");
+        throw Error(3004, "No windows created on this node");
     }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
@@ -976,7 +973,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             throw Error(
-                3006,
+                3005,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -1029,7 +1026,7 @@ void Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
             throw Error(
-                3007,
+                3006,
                 "No sync signal from clients after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -2519,14 +2516,6 @@ void Engine::sendMessageToExternalControl(const std::string& msg) {
 bool Engine::isExternalControlConnected() const {
     return (core::NetworkManager::instance().getExternalControlConnection() &&
         core::NetworkManager::instance().getExternalControlConnection()->isConnected());
-}
-
-void Engine::setExternalControlBufferSize(unsigned int newSize) {
-    if (core::NetworkManager::instance().getExternalControlConnection()) {
-        core::NetworkManager::instance().getExternalControlConnection()->setBufferSize(
-            newSize
-        );
-    }
 }
 
 void Engine::updateDrawBufferResolutions() {

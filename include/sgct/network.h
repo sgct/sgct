@@ -40,21 +40,17 @@ public:
     enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 
     static const size_t HeaderSize = 13;
-
-    Network();
-    ~Network();
-
+    
     /**
-     * Inits this network connection.
-     *
      * \param port is the network port (TCP)
      * \param address is the hostname, IPv4 address or ip6 address
      * \param isServer indicates if this connection is a server or client
-     * \param id is a unique id of this connection
      * \param connectionType is the type of connection
-     * \param firmSync if set to true then firm framesync will be used for the cluster
      */
-    void init(int port, std::string address, bool isServer, ConnectionType serverType);
+    Network(int port, std::string address, bool isServer, ConnectionType type);
+    ~Network();
+
+    void init();
     void closeNetwork(bool forced);
     void initShutdown();
 
@@ -64,7 +60,6 @@ public:
     void setConnectedFunction(std::function<void (void)> fn);
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
     
-    void setBufferSize(uint32_t newSize);
     void setConnectedStatus(bool state);
     void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
@@ -111,7 +106,7 @@ public:
 private:
     void setRecvFrame(int i);
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
-    int readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
+    int readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
         uint32_t& uncompressedDataSize);
     int readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
         uint32_t& uncompressedDataSize);
@@ -144,8 +139,7 @@ private:
     uint32_t _bufferSize = 1024;
     uint32_t _uncompressedBufferSize = _bufferSize;
     std::atomic<uint32_t> _requestedSize = _bufferSize;
-    int _port = -1;
-    std::string _address;
+    const int _port = -1;
 
     std::vector<char> _recvBuffer;
     std::vector<char> _uncompressBuffer;

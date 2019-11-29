@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+// @TODO (abock, 2019-11-28) Rename class to Logger
+
 namespace sgct {
 
 class MessageHandler {
@@ -43,8 +45,6 @@ public:
     static void printInfo(const char* fmt, ...);
     static void printImportant(const char* fmt, ...);
     static void printError(const char* fmt, ...);
-
-    void clearBuffer();
 
     void decode(std::vector<char> receivedData, int clientIndex);
 
@@ -78,9 +78,6 @@ public:
      */
     void setLogCallback(std::function<void(const char *)> fn);
 
-    size_t getDataSize() const;
-    char* getMessage();
-
 private:
     MessageHandler();
 
@@ -93,9 +90,7 @@ private:
     std::vector<char> _parseBuffer;
     std::vector<char> _combinedBuffer;
     
-    std::vector<char> _buffer;
     std::vector<char> _recBuffer;
-    std::vector<char> _headerSpace;
 
     std::atomic<Level> _level = Level::Warning;
     std::atomic_bool _showTime = false;

@@ -437,7 +437,7 @@ void StatisticsRenderer::render() {
             Pos.x,
             Pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            "Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
+            "Histogram Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
         );
         text::print(
             f,
@@ -445,7 +445,7 @@ void StatisticsRenderer::render() {
             Pos.x,
             Pos.y + 12.f,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            "Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
+            "Histogram Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
         );
 #endif // SGCT_HAS_TEXT
     }

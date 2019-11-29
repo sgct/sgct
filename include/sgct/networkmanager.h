@@ -31,7 +31,7 @@ public:
     static std::condition_variable cond;
 
     ~NetworkManager();
-    bool init();
+    void init();
 
     /**
      * \param if this application is server/master in cluster then set to true
@@ -75,12 +75,12 @@ public:
 private:
     NetworkManager(NetworkMode nm);
 
-    bool addConnection(int port, const std::string& address,
+    void addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void getHostInfo();
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
-    bool prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
+    void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
         int packageId);
 
     static NetworkManager* _instance;

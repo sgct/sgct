@@ -33,13 +33,9 @@ void MessageHandler::destroy() {
 
 MessageHandler::MessageHandler() {
     _recBuffer.reserve(_maxMessageSize);
-    _buffer.reserve(_maxMessageSize);
 
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
-    _headerSpace.resize(core::Network::HeaderSize, core::Network::DefaultId);
-    _headerSpace[0] = core::Network::DataId;
-    _buffer.insert(_buffer.begin(), _headerSpace.begin(), _headerSpace.end());
 
     setLogPath(nullptr);
 }
@@ -66,7 +62,6 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
         _combinedBuffer.resize(_combinedMessageSize);
         std::fill(_combinedBuffer.begin(), _combinedBuffer.end(), char(0));
         _recBuffer.resize(_maxMessageSize);
-        _buffer.resize(_maxMessageSize);
     }
         
     _parseBuffer[0] = '\0';
@@ -232,11 +227,6 @@ void MessageHandler::printError(const char* fmt, ...) {
     va_end(ap);
 }
 
-void MessageHandler::clearBuffer() {
-    std::unique_lock lock(core::mutex::DataSync);
-    _buffer.clear();
-}
-
 void MessageHandler::setNotifyLevel(Level nl) {
     _level = nl;
 }
@@ -263,14 +253,6 @@ void MessageHandler::setLogToCallback(bool state) {
 
 void MessageHandler::setLogCallback(std::function<void(const char *)> fn) {
     _messageCallback = std::move(fn);
-}
-
-size_t MessageHandler::getDataSize() const {
-    return _buffer.size();
-}
-
-char* MessageHandler::getMessage() {
-    return _buffer.data();
 }
 
 } // namespace sgct

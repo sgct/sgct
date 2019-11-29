@@ -559,9 +559,6 @@ void externalControlCallback(const char* receivedChars, int size) {
         if (data == "info") {
             showFPS.setVal(!showFPS.getVal());
         }
-        else if (data == "size") {
-            Engine::instance().setExternalControlBufferSize(4096);
-        }
     }
 }
 

@@ -101,7 +101,12 @@ void connect() {
         return;
     }
 
-    networkPtr = std::make_unique<sgct::core::Network>();
+    networkPtr = std::make_unique<sgct::core::Network>(
+        port,
+        address,
+        isServer,
+        sgct::core::Network::ConnectionType::DataTransfer
+    );
 
     // init
     try {
@@ -110,14 +115,7 @@ void connect() {
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
         networkPtr->setAcknowledgeFunction(networkAck);
-
-        // must be initialized after binding
-        networkPtr->init(
-            port,
-            address,
-            isServer,
-            sgct::core::Network::ConnectionType::DataTransfer
-        );
+        networkPtr->init();
     }
     catch (const std::runtime_error& err) {
         MessageHandler::printError("Network error: %s", err.what());

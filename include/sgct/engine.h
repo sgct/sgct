@@ -427,12 +427,6 @@ public:
     bool isExternalControlConnected() const;
 
     /**
-     * Set the buffer size for the external control communication buffer. This size must
-     * be equal or larger than the receive buffer size.
-     */
-    void setExternalControlBufferSize(unsigned int newSize);
-
-    /**
      * Don't use this. This function is called from Network and will invoke the external
      * network callback when messages are received.
      */

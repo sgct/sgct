@@ -15,7 +15,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #define SGCT_ERRNO WSAGetLastError()
-#else //Use BSD sockets
+#else
     #ifdef _XCODE
         #include <unistd.h>
     #endif
@@ -62,7 +62,7 @@ namespace {
         }
     }
 
-    std::string getUncompressionErrorAsStr(int err) {
+    std::string getUncompressErrorAsStr(int err) {
         switch (err) {
             case Z_BUF_ERROR: return "Dest. buffer not large enough";
             case Z_MEM_ERROR: return "Insufficient memory";
@@ -71,7 +71,7 @@ namespace {
         }
     }
 
-    bool parseDisconnectPackage(const char* header) {
+    bool isDisconnectPackage(const char* header) {
         constexpr const char rhs[] = {
             sgct::core::Network::DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0'
         };
@@ -81,30 +81,22 @@ namespace {
 
 namespace sgct::core {
 
-Network::Network()
+Network::Network(int port, std::string address, bool isServer, ConnectionType type)
     : _socket(INVALID_SOCKET)
     , _listenSocket(INVALID_SOCKET)
+    , _connectionType(type)
+    , _isServer(isServer)
+    , _port(port)
     , _headerId(0)
 {
     static int id = 0;
     _id = id;
     id++;
-}
 
-Network::~Network() {
-    closeNetwork(false);
-}
-
-void Network::init(int port, std::string address, bool isServer, ConnectionType type) {
-    _isServer = isServer;
-    _connectionType = type;
     if (_connectionType == ConnectionType::SyncConnection) {
         _bufferSize = static_cast<uint32_t>(SharedData::instance().getBufferSize());
         _uncompressedBufferSize = _bufferSize;
     }
-
-    _port = port;
-    _address = std::move(address);
 
     addrinfo* res = nullptr;
     addrinfo hints;
@@ -117,12 +109,8 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the local address and port to be used by the server
-    const int addrRes = getaddrinfo(
-        _isServer ? nullptr : _address.c_str(),
-        std::to_string(_port).c_str(),
-        &hints,
-        &res
-    );
+    const char* a = _isServer ? nullptr : address.c_str();
+    const int addrRes = getaddrinfo(a, std::to_string(_port).c_str(), &hints, &res);
     if (addrRes != 0) {
         throw Error(5000, "Failed to parse hints for connection");
     }
@@ -138,11 +126,8 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
         setOptions(&_listenSocket);
 
         // Setup the TCP listening socket
-        int bindResult = bind(
-            _listenSocket,
-            res->ai_addr,
-            static_cast<int>(res->ai_addrlen)
-        );
+        const int addrlen = static_cast<int>(res->ai_addrlen);
+        int bindResult = bind(_listenSocket, res->ai_addr, addrlen);
         if (bindResult == SOCKET_ERROR) {
             freeaddrinfo(res);
 #ifdef WIN32
@@ -150,7 +135,7 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
 #else
             close(_listenSocket);
 #endif
-            throw Error(5002, "Bind socket failed");
+            throw Error(5002, "Bind socket call failed");
         }
 
         if (listen(_listenSocket, SOMAXCONN) == SOCKET_ERROR) {
@@ -160,16 +145,15 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
 #else
             close(_listenSocket);
 #endif
-            throw Error(5003, "Listen failed");
+            throw Error(5003, "Listen call failed");
         }
     }
     else {
-        // Client socket
-        // Connect to server.
+        // Client socket: Connect to server
         while (!_shouldTerminate) {
             MessageHandler::printInfo(
                 "Attempting to connect to server (id: %d, ip: %s, type: %s)",
-                _id, _address.c_str(), getTypeStr(getType()).c_str()
+                _id, address.c_str(), getTypeStr(getType()).c_str()
             );
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -193,6 +177,13 @@ void Network::init(int port, std::string address, bool isServer, ConnectionType 
     }
 
     freeaddrinfo(res);
+}
+
+Network::~Network() {
+    closeNetwork(false);
+}
+
+void Network::init() {
     _mainThread = std::make_unique<std::thread>([this]() { connectionHandler(); });
 }
 
@@ -200,7 +191,6 @@ void Network::connectionHandler() {
     if (_isServer) {
         while (!_shouldTerminate) {
             if (!_isConnected) {
-                // first time the thread is NULL so the wait will not run
                 if (_commThread) {
                     _commThread->join();
                     _commThread = nullptr;
@@ -220,8 +210,14 @@ void Network::connectionHandler() {
         }
     }
     else {
-        // if client
-        _commThread = std::make_unique<std::thread>([this]() { communicationHandler(); });
+        _commThread = std::make_unique<std::thread>([this]() {
+            try {
+                communicationHandler();
+            }
+            catch (const std::runtime_error& e) {
+                MessageHandler::printError(e.what());
+            }
+        });
     }
 
     MessageHandler::printInfo("Exiting connection handler for connection %d", _id);
@@ -235,87 +231,87 @@ std::condition_variable& Network::getStartConnectionConditionVar() {
     return _startConnectionCond;
 }
 
-void Network::setOptions(SGCT_SOCKET* socketPtr) {
-    if (socketPtr == nullptr) {
+void Network::setOptions(SGCT_SOCKET* socket) {
+    if (socket == nullptr) {
         return;
     }
-    int flag = 1;
+    const int flag = 1;
 
     // insert no delay, disable nagle's algorithm
     const int delayRes = setsockopt(
-        *socketPtr,    // socket affected
+        *socket,    // socket affected
         IPPROTO_TCP,   // set option at TCP level
         TCP_NODELAY,   // name of option
-        reinterpret_cast<char*>(&flag), // the cast is historical cruft
+        reinterpret_cast<const char*>(&flag), // the cast is historical cruft
         sizeof(int)    // length of option value
     );
 
     if (delayRes != NO_ERROR) {
-        MessageHandler::printError(
-            "Failed to set network no-delay option with error: %d", SGCT_ERRNO
+        throw Error(
+            5005, "Failed to set network no-delay option: " + std::to_string(SGCT_ERRNO)
         );
     }
 
     // set timeout
-    int timeout = 0; // infinite
+    const int timeout = 0; // infinite
     setsockopt(
-        *socketPtr,
+        *socket,
         SOL_SOCKET,
         SO_SNDTIMEO,
-        reinterpret_cast<char*>(&timeout),
+        reinterpret_cast<const char*>(&timeout),
         sizeof(timeout)
     );
 
     int sockoptRes = setsockopt(
-        *socketPtr,
+        *socket,
         SOL_SOCKET,
         SO_REUSEADDR,
-        reinterpret_cast<char*>(&flag),
-        sizeof(int)
+        reinterpret_cast<const char*>(&flag),
+        sizeof(flag)
     );
     if (sockoptRes == SOCKET_ERROR) {
-        MessageHandler::printWarning("Failed to set reuse address. %d", SGCT_ERRNO);
+        throw Error(5006, "Failed to set reuse address: " + std::to_string(SGCT_ERRNO));
     }
 
     if (getType() == core::Network::ConnectionType::SyncConnection) {
-        int bufferSize = SocketBufferSize;
+        const int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
-            *socketPtr,
+            *socket,
             SOL_SOCKET,
             SO_RCVBUF,
-            reinterpret_cast<char*>(&bufferSize),
-            sizeof(int)
+            reinterpret_cast<const char*>(&bufferSize),
+            sizeof(bufferSize)
         );
         if (iResult == SOCKET_ERROR) {
-            MessageHandler::printError(
-                "Failed to set send buffer size to %d. %d", bufferSize, SGCT_ERRNO
-            );
+            const std::string bf = std::to_string(bufferSize);
+            const std::string er = std::to_string(SGCT_ERRNO);
+            throw Error(5007, "Failed to set send buffer size to " + bf + ". " + er);
         }
         iResult = setsockopt(
-            *socketPtr,
+            *socket,
             SOL_SOCKET,
             SO_SNDBUF,
-            reinterpret_cast<char*>(&bufferSize),
-            sizeof(int)
+            reinterpret_cast<const char*>(&bufferSize),
+            sizeof(bufferSize)
         );
         if (iResult == SOCKET_ERROR) {
-            MessageHandler::printError(
-                "Failed to set receive buffer size to %d. %d", bufferSize, SGCT_ERRNO
-            );
+            const std::string bf = std::to_string(bufferSize);
+            const std::string er = std::to_string(SGCT_ERRNO);
+            throw Error(5008, "Failed to set receive buffer size to " + bf + ". " + er);
         }
     }
     else {
         // set on all connections types, cluster nodes sends data several times per
         // second so there is no need so send alive packages
         int iResult = setsockopt(
-            *socketPtr,
+            *socket,
             SOL_SOCKET,
             SO_KEEPALIVE,
-            reinterpret_cast<char*>(&flag),
-            sizeof(int)
+            reinterpret_cast<const char*>(&flag),
+            sizeof(flag)
         );
         if (iResult == SOCKET_ERROR) {
-            MessageHandler::printWarning("Failed to set keep alive. %d", SGCT_ERRNO);
+            throw Error(5009, "Failed to set keep alive: " + std::to_string(SGCT_ERRNO));
         }
     }
 }
@@ -324,16 +320,6 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     if (lSocket == INVALID_SOCKET) {
         return;
     }
-
-    // Windows shutdown options
-    //   * SD_RECIEVE
-    //   * SD_SEND
-    //   * SD_BOTH
-
-    // Linux & Mac shutdown options
-    //   * SHUT_RD (Disables further receive operations)
-    //   * SHUT_WR (Disables further send operations)
-    //   * SHUT_RDWR (Disables further send and receive operations)
 
     std::unique_lock lock(_connectionMutex);
 
@@ -344,10 +330,6 @@ void Network::closeSocket(SGCT_SOCKET lSocket) {
     shutdown(lSocket, SHUT_RDWR);
     close(lSocket);
 #endif
-}
-
-void Network::setBufferSize(uint32_t newSize) {
-    _requestedSize = newSize;
 }
 
 int Network::iterateFrameCounter() {
@@ -373,71 +355,15 @@ int Network::iterateFrameCounter() {
 void Network::pushClientMessage() {
     // The servers' render function is locked until a message starting with the ack-byte
     // is received.
-    int currentFrame = iterateFrameCounter();
-    unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
+    const int currentFrame = iterateFrameCounter();
+    uint32_t localSyncHeaderSize = 0;
 
-    if (MessageHandler::instance().getDataSize() > HeaderSize) {
-        core::mutex::DataSync.lock();
-
-        // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
-        // though it has nothing to do with the messaging?
-
-        // Don't remove this pointer, somehow the send function doesn't
-        // work during the first call without setting the pointer first!!!
-        char* messageToSend = MessageHandler::instance().getMessage();
-        messageToSend[0] = Network::DataId;
-        messageToSend[1] = p[0];
-        messageToSend[2] = p[1];
-        messageToSend[3] = p[2];
-        messageToSend[4] = p[3];
-
-        // crop if needed
-        uint32_t size = _bufferSize;
-        uint32_t messageSize = std::min(
-            static_cast<uint32_t>(MessageHandler::instance().getDataSize()),
-            size
-        );
-
-        uint32_t dataSize = messageSize - HeaderSize;
-        unsigned char* messageSizePtr = reinterpret_cast<unsigned char*>(&dataSize);
-        messageToSend[5] = messageSizePtr[0];
-        messageToSend[6] = messageSizePtr[1];
-        messageToSend[7] = messageSizePtr[2];
-        messageToSend[8] = messageSizePtr[3];
-        
-        // fill rest of header with DefaultId
-        memset(messageToSend + 9, DefaultId, 4);
-
-        sendData(
-            reinterpret_cast<void*>(messageToSend),
-            static_cast<int>(messageSize)
-        );
-
-        core::mutex::DataSync.unlock();
-        MessageHandler::instance().clearBuffer();
-    }
-    else {
-        char tmpca[HeaderSize];
-        tmpca[0] = Network::DataId;
-        tmpca[1] = p[0];
-        tmpca[2] = p[1];
-        tmpca[3] = p[2];
-        tmpca[4] = p[3];
-
-        uint32_t localSyncHeaderSize = 0;
-        unsigned char* currentMessageSizePtr = reinterpret_cast<unsigned char*>(
-            &localSyncHeaderSize
-        );
-        tmpca[5] = currentMessageSizePtr[0];
-        tmpca[6] = currentMessageSizePtr[1];
-        tmpca[7] = currentMessageSizePtr[2];
-        tmpca[8] = currentMessageSizePtr[3];
-        
-        // fill rest of header with DefaultId
-        memset(tmpca + 9, DefaultId, 4);
-
-        sendData(reinterpret_cast<void*>(tmpca), HeaderSize);
-    }
+    char data[HeaderSize];
+    data[0] = Network::DataId;
+    std::memcpy(data + 1, &currentFrame, sizeof(currentFrame));
+    std::memcpy(data + 5, &localSyncHeaderSize, sizeof(localSyncHeaderSize));
+    std::memset(data + 9, DefaultId, 4);
+    sendData(data, HeaderSize);
 }
 
 int Network::getSendFrameCurrent() const {
@@ -564,21 +490,18 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
     return iResult;
 }
 
-
-void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
-                           uint32_t& currSize)
-{
-    // grow only
-    if (reqSize <= currSize) {
+void Network::updateBuffer(std::vector<char>& buf, uint32_t reqSize, uint32_t& curSize) {
+    // only grow
+    if (reqSize <= curSize) {
         return;
     }
 
     std::unique_lock lock(_connectionMutex);
-    buffer.resize(reqSize);
-    currSize = reqSize;
+    buf.resize(reqSize);
+    curSize = reqSize;
 }
 
-int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
+int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSize,
                              uint32_t& uncompressedDataSize)
 {
     int iResult = receiveData(_socket, header, static_cast<int>(HeaderSize), 0);
@@ -586,18 +509,15 @@ int Network::readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& d
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
         if (_headerId == DataId || _headerId == CompressedDataId) {
-            // parse the sync frame number
-            syncFrameNumber = *(reinterpret_cast<const int32_t*>(&header[1]));
-            // parse the data size
-            dataSize = *(reinterpret_cast<const uint32_t*>(&header[5]));
-            // parse the uncompressed size if compression is used
-            uncompressedDataSize = *(reinterpret_cast<const uint32_t*>(&header[9]));
+            std::memcpy(&syncFrame, header + 1, sizeof(syncFrame));
+            std::memcpy(&dataSize, header + 5, sizeof(dataSize));
+            std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
 
-            setRecvFrame(syncFrameNumber);
-            if (syncFrameNumber < 0) {
-                MessageHandler::printError(
-                    "Error sync in sync frame: %d for connection %d", syncFrameNumber, _id
-                );
+            setRecvFrame(syncFrame);
+            if (syncFrame < 0) {
+                const std::string s = std::to_string(syncFrame);
+                const std::string i = std::to_string(_id);
+                throw Error(5010, "Error in sync frame " + s + " for connection " + i);
             }
 
             // resize buffer if needed
@@ -623,19 +543,16 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
         _headerId = header[0];
         if (_headerId == DataId || _headerId == CompressedDataId) {
             // parse the package _id
-            packageId = *(reinterpret_cast<const int32_t*>(&header[1]));
-            // parse the data size
-            dataSize = *(reinterpret_cast<const uint32_t*>(&header[5]));
-            // parse the uncompressed size if compression is used
-            uncompressedDataSize = *(reinterpret_cast<const uint32_t*>(&header[9]));
+            std::memcpy(&packageId, header + 1, sizeof(packageId));
+            std::memcpy(&dataSize, header + 5, sizeof(dataSize));
+            std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
 
             // resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
             updateBuffer(_uncompressBuffer, uncompressedDataSize, _uncompressedBufferSize);
         }
         else if (_headerId == Ack && _acknowledgeCallback != nullptr) {
-            //parse the package _id
-            packageId = *(reinterpret_cast<const int32_t*>(&header[1]));
+            std::memcpy(&packageId, header + 1, sizeof(packageId));
             _acknowledgeCallback(packageId, _id);
         }
     }
@@ -649,7 +566,6 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 }
 
 int Network::readExternalMessage() {
-    // do a normal read
     int iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
 
     // if read fails try for x attempts
@@ -685,11 +601,11 @@ void Network::communicationHandler() {
 
         _socket = accept(_listenSocket, nullptr, nullptr);
 
-        int accErr = SGCT_ERRNO;
+        int e = SGCT_ERRNO;
 #ifdef WIN32
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && accErr == WSAEINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == WSAEINTR)
 #else
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && accErr == EINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == EINTR)
 #endif
         {
             MessageHandler::printInfo(
@@ -700,9 +616,7 @@ void Network::communicationHandler() {
         }
 
         if (_socket == INVALID_SOCKET) {
-            MessageHandler::printError(
-                "Accept connection %d failed. Error: %d", _id, accErr
-            );
+            MessageHandler::printError("Accept connection %d failed. Error: %d", _id, e);
 
             if (_updateCallback) {
                 _updateCallback(this);
@@ -722,11 +636,11 @@ void Network::communicationHandler() {
     char RecvHeader[HeaderSize];
     memset(RecvHeader, DefaultId, HeaderSize);
 
-    _connectionMutex.lock();
-    _recvBuffer.resize(_bufferSize);
-    _uncompressBuffer.resize(_uncompressedBufferSize);
-    _connectionMutex.unlock();
-    
+    {
+        std::unique_lock lk(_connectionMutex);
+        _recvBuffer.resize(_bufferSize);
+        _uncompressBuffer.resize(_uncompressedBufferSize);
+    }
     std::string extBuffer; // for external communication
 
     // Receive data until the server closes the connection
@@ -735,8 +649,7 @@ void Network::communicationHandler() {
         // resize buffer request
         if (getType() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
             MessageHandler::printInfo(
-                "Re-sizing TCP buffer size from %d to %d",
-                _bufferSize, _requestedSize.load()
+                "Re-sizing buffer from %d to %d", _bufferSize, _requestedSize.load()
             );
 
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
@@ -770,39 +683,145 @@ void Network::communicationHandler() {
             iResult = readExternalMessage();
         }
 
-        // if data was read successfully, then decode it
-        if (iResult > 0) {
-            if (getType() == ConnectionType::SyncConnection) {
-                // handle sync disconnect
-                if (parseDisconnectPackage(RecvHeader)) {
-                    setConnectedStatus(false);
+        // handle failed receive
+        if (iResult == 0) {
+            setConnectedStatus(false);
+            const std::string i = std::to_string(_id);
+            const std::string e = std::to_string(SGCT_ERRNO);
+            throw Error(5013, "TCP connection " + i + " closed: " + e);
+        }
+        else if (iResult < 0) {
+            setConnectedStatus(false);
+            const std::string i = std::to_string(_id);
+            const std::string e = std::to_string(SGCT_ERRNO);
+            // @TODO (abock, 2019-11-29): This error is thrown if we are in a connected
+            // environment and we are closing the client. This should probably be fixed.
+            // _isConnected is already false and I guess we are woken up in the middle of
+            // the loop while the sockets are already closed
+            throw Error(5014, "TCP connection " + i + " receive failed: " + e);
+        }
 
-                    // Terminate client only. The server only resets the connection,
-                    // allowing clients to connect.
-                    if (!_isServer) {
-                        _shouldTerminate = true;
-                    }
+        if (getType() == ConnectionType::SyncConnection) {
+            // handle sync disconnect
+            if (isDisconnectPackage(RecvHeader)) {
+                setConnectedStatus(false);
 
-                    MessageHandler::printInfo("Client %d terminated connection", _id);
-
-                    break;
+                // Terminate client only. The server only resets the connection,
+                // allowing clients to connect.
+                if (!_isServer) {
+                    _shouldTerminate = true;
                 }
-                // handle sync communication
-                if (_headerId == DataId && decoderCallback != nullptr) {
-                    // decode callback
-                    if (dataSize > 0) {
-                        decoderCallback(_recvBuffer.data(), dataSize, _id);
-                    }
 
-                    NetworkManager::cond.notify_all();
+                MessageHandler::printInfo("Client %d terminated connection", _id);
+                break;
+            }
+            // handle sync communication
+            if (_headerId == DataId && decoderCallback != nullptr) {
+                if (dataSize > 0) {
+                    decoderCallback(_recvBuffer.data(), dataSize, _id);
                 }
-                else if (_headerId == CompressedDataId && decoderCallback) {
-                    //decode callback
-                    if (dataSize > 0) {
-                        // parse the package _id
-                        uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
+
+                NetworkManager::cond.notify_all();
+            }
+            else if (_headerId == CompressedDataId && decoderCallback) {
+                // decode callback
+                if (dataSize > 0) {
+                    // parse the package _id
+                    uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
     
-                        int err = uncompress(
+                    int err = uncompress(
+                        reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
+                        &uncompSize,
+                        reinterpret_cast<Bytef*>(_recvBuffer.data()),
+                        static_cast<uLongf>(dataSize)
+                    );
+                            
+                    if (err == Z_OK) {
+                        const int s = static_cast<int>(uncompSize);
+                        decoderCallback(_uncompressBuffer.data(), s, _id);
+                    }
+                    else {
+                        throw Error(
+                            5011,
+                            "Failed to uncompress data for connection " +
+                            std::to_string(_id) + ": " + getUncompressErrorAsStr(err)
+                        );
+                    }
+                }
+                        
+                NetworkManager::cond.notify_all();
+            }
+            else if (_headerId == ConnectedId && _connectedCallback) {
+                _connectedCallback();
+                NetworkManager::cond.notify_all();
+            }
+        }
+        // handle external ascii communication
+        else if (getType() == ConnectionType::ExternalConnection) {
+            extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
+
+            bool breakConnection = false;
+            // look for cancel
+            if (extBuffer.find(24) != std::string::npos) {
+                breakConnection = true;
+            }
+            // look for escape
+            if (extBuffer.find(27) != std::string::npos) {
+                breakConnection = true;
+            }
+            // look for quit
+            if (extBuffer.find("quit") != std::string::npos) {
+                breakConnection = true;
+            }
+
+            if (breakConnection) {
+                setConnectedStatus(false);
+                break;
+            }
+
+            // separate messages by <CR><NL>
+            size_t found = extBuffer.find("\r\n");
+            while (found != std::string::npos) {
+                std::string extMessage = extBuffer.substr(0, found);
+                extBuffer = extBuffer.substr(found + 2); // jump over \r\n
+
+                if (decoderCallback) {
+                    const int size = static_cast<int>(extMessage.size());
+                    decoderCallback(extMessage.c_str(), size, _id);
+                }
+
+                // reply
+                std::string msg = "OK\r\n";
+                sendData(msg.c_str(), static_cast<int>(msg.size()));
+                found = extBuffer.find("\r\n");
+            }
+        }
+        // handle data transfer communication
+        else if (getType() == ConnectionType::DataTransfer) {
+            // Disconnect if requested
+            if (isDisconnectPackage(RecvHeader)) {
+                setConnectedStatus(false);
+                MessageHandler::printInfo("File connection %d terminated", _id);
+            }
+            //  Handle communication
+            else {
+                if ((_headerId == DataId || _headerId == CompressedDataId) &&
+                    _packageDecoderCallback && dataSize > 0)
+                {
+                    if (_headerId == DataId) {
+                        // uncompressed
+                        _packageDecoderCallback(
+                            _recvBuffer.data(),
+                            dataSize,
+                            packageId,
+                            _id
+                        );
+                    }
+                    else {
+                        // compressed
+                        uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
+                            
+                        const int err = uncompress(
                             reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
                             &uncompSize,
                             reinterpret_cast<Bytef*>(_recvBuffer.data()),
@@ -810,197 +829,48 @@ void Network::communicationHandler() {
                         );
                             
                         if (err == Z_OK) {
-                            // decode callback
-                            decoderCallback(
+                            _packageDecoderCallback(
                                 _uncompressBuffer.data(),
                                 static_cast<int>(uncompSize),
+                                packageId,
                                 _id
                             );
                         }
                         else {
-                            MessageHandler::printError(
-                                "Failed to uncompress data for connection %d. Error: %s",
-                                _id, getUncompressionErrorAsStr(err).c_str()
+                            throw Error(
+                                5012, "Failed to uncompress data for connection " +
+                                std::to_string(_id) + ": " + getUncompressErrorAsStr(err)
                             );
                         }
                     }
                         
-                    NetworkManager::cond.notify_all();
+                    // send acknowledge
+                    uint32_t pLength = 0;
+                    char sendBuff[HeaderSize];
+                    sendBuff[0] = Ack;
+                    std::memcpy(sendBuff + 1, &packageId, sizeof(packageId));
+                    std::memcpy(sendBuff + 5, &pLength, sizeof(pLength));
+                    sendData(sendBuff, HeaderSize);
+
+                    // Clear the buffers
+                    {
+                        std::unique_lock lk(_connectionMutex);
+
+                        _recvBuffer.clear();
+                        _uncompressBuffer.clear();
+
+                        _bufferSize = 0;
+                        _uncompressedBufferSize = 0;
+                    }
                 }
                 else if (_headerId == ConnectedId && _connectedCallback) {
                     _connectedCallback();
                     NetworkManager::cond.notify_all();
                 }
             }
-            // handle external ascii communication
-            else if (getType() == ConnectionType::ExternalConnection) {
-                extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
-
-                bool breakConnection = false;
-                // look for cancel
-                if (extBuffer.find(24) != std::string::npos) {
-                    breakConnection = true;
-                }
-                // look for escape
-                if (extBuffer.find(27) != std::string::npos) {
-                    breakConnection = true;
-                }
-                // look for logout
-                if (extBuffer.find("logout") != std::string::npos) {
-                    breakConnection = true;
-                }
-                // look for close
-                if (extBuffer.find("close") != std::string::npos) {
-                    breakConnection = true;
-                }
-                // look for exit
-                if (extBuffer.find("exit") != std::string::npos) {
-                    breakConnection = true;
-                }
-                // look for quit
-                if (extBuffer.find("quit") != std::string::npos) {
-                    breakConnection = true;
-                }
-
-                if (breakConnection) {
-                    setConnectedStatus(false);
-                    break;
-                }
-
-                // separate messages by <CR><NL>
-                size_t found = extBuffer.find("\r\n");
-                while (found != std::string::npos) {
-                    std::string extMessage = extBuffer.substr(0, found);
-                    extBuffer = extBuffer.substr(found + 2); //jump over \r\n
-
-                    if (decoderCallback) {
-                        decoderCallback(
-                            extMessage.c_str(),
-                            static_cast<int>(extMessage.size()),
-                            _id
-                        );
-                    }
-
-                    // reply
-                    std::string msg = "OK\r\n";
-                    sendData(msg.c_str(), static_cast<int>(msg.size()));
-                    found = extBuffer.find("\r\n");
-                }
-            }
-            // handle data transfer communication
-            else if (getType() == ConnectionType::DataTransfer) {
-                // Disconnect if requested
-                if (parseDisconnectPackage(RecvHeader)) {
-                    setConnectedStatus(false);
-                    MessageHandler::printInfo(
-                        "File transfer %d terminated connection", _id
-                    );
-                }
-                //  Handle communication
-                else {
-                    if ((_headerId == DataId || _headerId == CompressedDataId) &&
-                        _packageDecoderCallback && dataSize > 0)
-                    {
-                        bool recvOk = false;
-                        
-                        if (_headerId == DataId) {
-                            // uncompressed
-                            // decode callback
-                            _packageDecoderCallback(
-                                _recvBuffer.data(),
-                                dataSize,
-                                packageId,
-                                _id
-                            );
-                            recvOk = true;
-                        }
-                        else {
-                            // compressed
-                            // parse the package _id
-                            uLongf uncompressedSize = static_cast<uLongf>(
-                                uncompressedDataSize
-                            );
-                            
-                            int err = uncompress(
-                                reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
-                                &uncompressedSize,
-                                reinterpret_cast<Bytef*>(_recvBuffer.data()),
-                                static_cast<uLongf>(dataSize)
-                            );
-                            
-                            if (err == Z_OK) {
-                                // decode callback
-                                _packageDecoderCallback(
-                                    _uncompressBuffer.data(),
-                                    static_cast<int>(uncompressedSize),
-                                    packageId,
-                                    _id
-                                );
-                                recvOk = true;
-                            }
-                            else {
-                                MessageHandler::printError(
-                                    "Failed to uncompress data for connection %d. %s",
-                                    _id, getUncompressionErrorAsStr(err).c_str()
-                                );
-                            }
-                        }
-                        
-                        if (recvOk) {
-                            //send acknowledge
-                            char sendBuff[HeaderSize];
-                            uint32_t pLength = 0;
-                            char* packageIdPtr = reinterpret_cast<char*>(&packageId);
-                            char* sizeDataPtr = reinterpret_cast<char*>(&pLength);
-                            
-                            sendBuff[0] = Ack;
-                            sendBuff[1] = packageIdPtr[0];
-                            sendBuff[2] = packageIdPtr[1];
-                            sendBuff[3] = packageIdPtr[2];
-                            sendBuff[4] = packageIdPtr[3];
-                            sendBuff[5] = sizeDataPtr[0];
-                            sendBuff[6] = sizeDataPtr[1];
-                            sendBuff[7] = sizeDataPtr[2];
-                            sendBuff[8] = sizeDataPtr[3];
-
-                            sendData(sendBuff, HeaderSize);
-                        }
-
-                        // Clear the buffer
-                        _connectionMutex.lock();
-
-                        // clean up
-                        _recvBuffer.clear();
-                        _uncompressBuffer.clear();
-                        
-                        _bufferSize = 0;
-                        _uncompressedBufferSize = 0;
-                        _connectionMutex.unlock();
-                    }
-                    else if (_headerId == ConnectedId && _connectedCallback) {
-                        _connectedCallback();
-                        NetworkManager::cond.notify_all();
-                    }
-                }
-            }
-        }
-        // handle failed receive
-        else if (iResult == 0) {
-            setConnectedStatus(false);
-            MessageHandler::printError(
-                "TCP Connection %d closed (error: %d)", _id, SGCT_ERRNO
-            );
-        }
-        else {
-        // if negative
-            setConnectedStatus(false);
-            MessageHandler::printError(
-                "TCP connection %d recv failed: %d", _id, SGCT_ERRNO
-            );
         }
     } while (iResult > 0 || _isConnected);
 
-    // cleanup
     _recvBuffer.clear();
     _uncompressBuffer.clear();
 
@@ -1015,20 +885,18 @@ void Network::communicationHandler() {
 }
 
 void Network::sendData(const void* data, int length) {
-    int sentLen;
     int sendSize = length;
 
     while (sendSize > 0) {
         int offset = length - sendSize;
-        sentLen = send(
+        const int sentLen = send(
             _socket,
             reinterpret_cast<const char*>(data) + offset,
             sendSize,
             0
         );
         if (sentLen == SOCKET_ERROR) {
-            MessageHandler::printError("Send data failed");
-            break;
+            throw Error(5015, "Send data failed: " + std::to_string(SGCT_ERRNO));
         }
         sendSize -= sentLen;
     }
@@ -1066,16 +934,9 @@ void Network::closeNetwork(bool forced) {
 
 void Network::initShutdown() {
     if (_isConnected) {
-        char gameOver[9];
-        gameOver[0] = DisconnectId;
-        gameOver[1] = 24; // ASCII for cancel
-        gameOver[2] = '\r';
-        gameOver[3] = '\n';
-        gameOver[4] = 27; // ASCII for Esc
-        gameOver[5] = '\r';
-        gameOver[6] = '\n';
-        gameOver[7] = '\0';
-        gameOver[8] = DefaultId;
+        constexpr const char gameOver[9] = {
+            DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
+        };
         sendData(gameOver, HeaderSize);
     }
 

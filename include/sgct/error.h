@@ -104,11 +104,10 @@ namespace sgct {
     3000: Engine / Failed to initialize GLFW
     3001: Engine / Computer is not a part of the cluster configuration
     3002: Engine / Requested node id was not found in the cluster configuration
-    3003: Engine / Error initializing network connections
-    3004: Engine / No windows exist in configuration
-    3005: Engine / No windows created on this node
-    3006: Engine / No sync signal from master after X seconds
-    3007: Engine / No sync signal from clients after X seconds
+    3003: Engine / No windows exist in configuration
+    3004: Engine / No windows created on this node
+    3005: Engine / No sync signal from master after X seconds
+    3006: Engine / No sync signal from clients after X seconds
     3010: Engine / GLFW error
 
     4000s: MPCDI
@@ -147,8 +146,26 @@ namespace sgct {
     5002: Network / Bind socket failed
     5003: Network / Listen failed
     5004: Network / Failed to init client socket
-    5005: Network / Winsock 2.2 startup failed
-    5006: Network / Failed to get host name
+    5005: Network / Failed to set network no-delay option: %s
+    5006: Network / Failed to set reuse address: %s
+    5007: Network / Failed to set send buffer size to %d. %s
+    5008: Network / Failed to set receive buffer size to %d. %s
+    5009: Network / Failed to set keep alive: %s
+    5010: Network / Error in sync frame %i for connection %i
+    5011: Network / Failed to uncompress data for connection %i: %s // Sync Connection
+    5012: Network / Failed to uncompress data for connection %i: %s // Data Transfer
+    5013: Network / TCP connection %i closed: %s
+    5014: Network / TCP connection %i receive failed: %s
+    5015: Network / Send data failed: %s
+    5020: NetworkManager / Winsock 2.2 startup failed
+    5021: NetworkManager / No address information for this node available
+    5022: NetworkManager / No address information for master available
+    5023: NetworkManager / Port %i is already used by connection %i
+    5024: NetworkManager / Failed to compress data: %s
+    5025: NetworkManager / No port provided for connection to %s
+    5026: NetworkManager / Empty address for connection to %i
+    5027: NetworkManager / Failed to get host name
+    5028: NetworkManager / Failed to get address info: %s
 
     6000s: XML configuration parsing
     6000: PlanarProjection / Missing specification of field-of-view values

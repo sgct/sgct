@@ -229,17 +229,17 @@ void postSyncPreDraw() {
 void postDraw() {
     if (Engine::instance().isMaster()) {
         if (Engine::instance().getCurrentFrameNumber() == 10) {
-            MessageHandler::printInfo("Taking first screenshot");
+            Logger::Info("Taking first screenshot");
             takeScreenshot.setVal(true);
         }
 
         if (Engine::instance().getCurrentFrameNumber() == 15) {
-            MessageHandler::printInfo("Capturing from Back buffer");
+            Logger::Info("Capturing from Back buffer");
             captureBackbuffer.setVal(true);
         }
 
         if (Engine::instance().getCurrentFrameNumber() == 20) {
-            MessageHandler::printInfo("Taking second screenshot");
+            Logger::Info("Taking second screenshot");
             takeScreenshot.setVal(true);
         }
 
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

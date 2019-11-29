@@ -25,7 +25,7 @@ Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& p
 
     Buffer buf;
 
-    MessageHandler::printInfo("Reading simcad warp data from '%s'", path.c_str());
+    Logger::Info("Reading simcad warp data from '%s'", path.c_str());
 
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {

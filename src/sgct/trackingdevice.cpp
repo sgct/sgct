@@ -51,9 +51,7 @@ void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
     Tracker* parent = TrackingManager::instance().getTracker(_parentIndex);
 
     if (parent == nullptr) {
-        MessageHandler::printError(
-            "Error getting handle to tracker for device '%s'", _name.c_str()
-        );
+        Logger::Error("Error getting handle to tracker for device '%s'", _name.c_str());
         return;
     }
     

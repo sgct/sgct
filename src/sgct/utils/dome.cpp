@@ -23,13 +23,13 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
 
     // must be four or higher
     if (_azimuthSteps < 4) {
-        MessageHandler::printWarning("Azimuth steps must be higher than 4");
+        Logger::Warning("Azimuth steps must be higher than 4");
         _azimuthSteps = 4;
     }
 
     // must be four or higher
     if (_elevationSteps < 4)  {
-        MessageHandler::printWarning("Elevation steps must be higher than 4");
+        Logger::Warning("Elevation steps must be higher than 4");
         _elevationSteps = 4;
     }
 

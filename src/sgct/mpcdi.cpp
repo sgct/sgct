@@ -103,10 +103,10 @@ namespace {
         res.resolution = resolution;
 
         if (elem.FirstChildElement("coordinateFrame")) {
-            MessageHandler::printWarning("Unsupported feature: coordinateFrame");
+            Logger::Warning("Unsupported feature: coordinateFrame");
         }
         if (elem.FirstChildElement("color")) {
-            MessageHandler::printWarning("Unsupported feature: color");
+            Logger::Warning("Unsupported feature: color");
         }
 
         const tinyxml2::XMLElement* region = elem.FirstChildElement("region");
@@ -175,22 +175,22 @@ namespace {
             const tinyxml2::XMLElement* c = child->FirstChildElement("geometryWarpFile");
             while (c) {
                 if (c->FirstChildElement("alphaMap")) {
-                    MessageHandler::printWarning("Unsupported feature: alphaMap");
+                    Logger::Warning("Unsupported feature: alphaMap");
                 }
                 if (c->FirstChildElement("betaMap")) {
-                    MessageHandler::printWarning("Unsupported feature: betaMap");
+                    Logger::Warning("Unsupported feature: betaMap");
                 }
                 if (c->FirstChildElement("distortionMap")) {
-                    MessageHandler::printWarning("Unsupported feature: distortionMap");
+                    Logger::Warning("Unsupported feature: distortionMap");
                 }
                 if (c->FirstChildElement("decodeLUT")) {
-                    MessageHandler::printWarning("Unsupported feature: decodeLUT");
+                    Logger::Warning("Unsupported feature: decodeLUT");
                 }
                 if (c->FirstChildElement("correctLUT")) {
-                    MessageHandler::printWarning("Unsupported feature: correctLUT");
+                    Logger::Warning("Unsupported feature: correctLUT");
                 }
                 if (child->FirstChildElement("encodeLUT")) {
-                    MessageHandler::printWarning("Unsupported feature: encodeLUT");
+                    Logger::Warning("Unsupported feature: encodeLUT");
                 }
 
                 parseGeoWarpFile(*c, fileRegion, pfm, res);
@@ -243,7 +243,7 @@ namespace {
         // Check for unsupported features that we might want to warn about
         const tinyxml2::XMLElement* extSetElem = root.FirstChildElement("extensionSet");
         if (extSetElem) {
-            MessageHandler::printWarning("Unsupported feature: %s", extSetElem->Value());
+            Logger::Warning("Unsupported feature: %s", extSetElem->Value());
         }
 
         return res;
@@ -298,9 +298,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
             else if (endsWith(fileName, "pfm")) {
                 // Uncompress the PFM file
                 if (!pfmComponent.buffer.empty()) {
-                    MessageHandler::printWarning(
-                        "Duplicate file %s found in MPCDI", fileName.c_str()
-                    );
+                    Logger::Warning("Duplicate file %s found in MPCDI", fileName.c_str());
                 }
 
                 const int openCurrentFile = unzOpenCurrentFile(zip);
@@ -316,13 +314,13 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                 pfmComponent.buffer = std::move(buffer);
             }
             else {
-                MessageHandler::printWarning("Ignoring extension %s", fileName.c_str());
+                Logger::Warning("Ignoring extension %s", fileName.c_str());
             }
 
             if (i < globalInfo.number_entry - 1) {
                 const int success = unzGoToNextFile(zip);
                 if (success != UNZ_OK) {
-                    MessageHandler::printWarning("Unable to get next file in archive");
+                    Logger::Warning("Unable to get next file in archive");
                 }
             }
         }

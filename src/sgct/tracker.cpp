@@ -26,7 +26,7 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    MessageHandler::printInfo("%s: Adding device '%s'", _name.c_str(), name.c_str());
+    Logger::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
 }
 
 TrackingDevice* Tracker::getLastDevice() const {

@@ -31,7 +31,7 @@ namespace {
     constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
         "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
-}
+} // namespace
 
 namespace sgct::core {
 
@@ -319,7 +319,7 @@ void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
 
 void SpoutOutputProjection::initTextures() {
     NonLinearProjection::initTextures();
-    MessageHandler::printDebug("SpoutOutputProjection initTextures");
+    Logger::Debug("SpoutOutputProjection initTextures");
 
     switch (_mappingType) {
         case Mapping::Cubemap:
@@ -328,7 +328,7 @@ void SpoutOutputProjection::initTextures() {
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-                MessageHandler::printDebug("SpoutOutputProjection initTextures %d", i);
+                Logger::Debug("SpoutOutputProjection initTextures %d", i);
                 if (!_spout[i].enabled) {
                     continue;
                 }
@@ -365,7 +365,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 4;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            MessageHandler::printDebug("Spout Projection initTextures Equirectangular");
+            Logger::Debug("Spout Projection initTextures Equirectangular");
             _mappingHandle = GetSpout();
             if (_mappingHandle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
@@ -398,7 +398,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 2;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            MessageHandler::printDebug("SpoutOutputProjection initTextures Fisheye");
+            Logger::Debug("SpoutOutputProjection initTextures Fisheye");
             _mappingHandle = GetSpout();
             if (_mappingHandle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);

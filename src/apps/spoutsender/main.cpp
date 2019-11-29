@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().render();
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

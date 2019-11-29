@@ -27,14 +27,14 @@ void Node::applyNode(const config::Node& node) {
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
     _address = address;
-    MessageHandler::printDebug("Setting address to %s", address.c_str());
+    Logger::Debug("Setting address to %s", address.c_str());
 
     _syncPort = node.port;
-    MessageHandler::printDebug("Setting sync port to %d", _syncPort);
+    Logger::Debug("Setting sync port to %d", _syncPort);
 
     if (node.dataTransferPort) {
         _dataTransferPort = *node.dataTransferPort;
-        MessageHandler::printDebug("Setting data transfer port to %d", _dataTransferPort);
+        Logger::Debug("Setting data transfer port to %d", _dataTransferPort);
     }
     if (node.swapLock) {
         _useSwapGroups = *node.swapLock;

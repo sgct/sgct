@@ -223,7 +223,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     _nonLinearProjection = std::move(proj);
 #else
     (void)p;
-    MessageHandler::printWarning("Spout library not added to SGCT");
+    Logger::Warning("Spout library not added to SGCT");
 #endif
 }
 

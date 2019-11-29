@@ -26,7 +26,7 @@
 #pragma warning(disable : 4611)
 #endif // WIN32
 
-#define Error(code, msg) Error(Error::Component::Image, code, msg)
+#define Err(code, msg) Error(Error::Component::Image, code, msg)
 
 namespace {
     sgct::core::Image::FormatType getFormatType(std::string filename) {
@@ -65,13 +65,13 @@ Image::~Image() {
 
 void Image::load(const std::string& filename) {
     if (filename.empty()) {
-        throw Error(9000, "Cannot load empty filepath");
+        throw Err(9000, "Cannot load empty filepath");
     }
 
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load(filename.c_str(), &_size[0], &_size[1], &_nChannels, 0);
     if (_data == nullptr) {
-        throw Error(9001, "Could not open file '" + filename + "' for loading image");
+        throw Err(9001, "Could not open file '" + filename + "' for loading image");
     }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
@@ -104,17 +104,17 @@ void Image::load(unsigned char* data, int length) {
 
 void Image::save(const std::string& filename) {
     if (filename.empty()) {
-        throw Error(9002, "Filename not set for saving image");
+        throw Err(9002, "Filename not set for saving image");
     }
 
     FormatType type = getFormatType(filename);
     if (type == FormatType::Unknown) {
-        throw Error(9003, "Cannot save file " + filename);
+        throw Err(9003, "Cannot save file " + filename);
     }
     if (type == FormatType::PNG) {
         const bool success = savePNG(filename);
         if (!success) {
-            throw Error(9004, "Could not save file '" + filename + "' as PNG");
+            throw Err(9004, "Could not save file '" + filename + "' as PNG");
         }
         return;
     }
@@ -138,14 +138,14 @@ void Image::save(const std::string& filename) {
             100
         );
         if (r == 0) {
-            throw Error(9005, "Could not save file '" + filename + "' as JPG");
+            throw Err(9005, "Could not save file '" + filename + "' as JPG");
         }
         return;
     }
     if (type == FormatType::TGA) {
         int r = stbi_write_tga(filename.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
-            throw Error(9006, "Could not save file '" + filename + "' as TGA");
+            throw Err(9006, "Could not save file '" + filename + "' as TGA");
 
         }
         return;
@@ -160,7 +160,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        MessageHandler::printError("Cannot save %d-bit PNG", _bytesPerChannel * 8);
+        Logger::Error("Cannot save %d-bit PNG", _bytesPerChannel * 8);
         return false;
     }
 
@@ -168,7 +168,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        MessageHandler::printError("Can't create PNG file '%s'", filename.c_str());
+        Logger::Error("Can't create PNG file '%s'", filename.c_str());
         return false;
     }
 
@@ -262,10 +262,8 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
 
-    MessageHandler::printDebug(
-        "'%s' was saved successfully (%.2f ms)",
-        filename.c_str(), (Engine::getTime() - t0) * 1000.0
-    );
+    const double time = (Engine::getTime() - t0) * 1000.0;
+    Logger::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
 
     return true;
 }
@@ -308,7 +306,7 @@ bool Image::allocateOrResizeData() {
     unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
 
     if (dataSize == 0) {
-        MessageHandler::printError(
+        Logger::Error(
             "Invalid image size %dx%d %d channels", _size.x, _size.y, _nChannels
         );
         return false;
@@ -328,7 +326,7 @@ bool Image::allocateOrResizeData() {
         _dataSize = dataSize;
         _isExternalData = false;
 
-        MessageHandler::printDebug(
+        Logger::Debug(
             "Allocated %d bytes for image data (%.2f ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
         );

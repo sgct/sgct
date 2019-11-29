@@ -334,7 +334,7 @@ void initOGLFun() {
         }
     }
 
-    MessageHandler::printInfo("Number of active viewports: %d", numberOfActiveViewports);
+    Logger::Info("Number of active viewports: %d", numberOfActiveViewports);
 
     constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
 
@@ -577,7 +577,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#ifndef __SGCT__MESSAGEHANDLER__H__
-#define __SGCT__MESSAGEHANDLER__H__
+#ifndef __SGCT__LOGGER__H__
+#define __SGCT__LOGGER__H__
 
 #include <functional>
 #include <mutex>
@@ -18,23 +18,18 @@
 
 namespace sgct {
 
-class MessageHandler {
+class Logger {
 public:
     /// Different notify levels for messages
-    enum class Level {
-        Error = 0,
-        Info,
-        Warning,
-        Debug
-    };
+    enum class Level { Error, Info, Warning, Debug };
     
-    static MessageHandler& instance();
+    static Logger& instance();
     static void destroy();
 
-    static void printDebug(const char* fmt, ...);
-    static void printWarning(const char* fmt, ...);
-    static void printInfo(const char* fmt, ...);
-    static void printError(const char* fmt, ...);
+    static void Debug(const char* fmt, ...);
+    static void Warning(const char* fmt, ...);
+    static void Info(const char* fmt, ...);
+    static void Error(const char* fmt, ...);
 
     /// Set the notify level for displaying messages
     void setNotifyLevel(Level nl);
@@ -55,12 +50,12 @@ public:
     void setLogCallback(std::function<void(const char *)> fn);
 
 private:
-    MessageHandler();
+    Logger();
 
     void printv(const char* fmt, va_list ap);
     void logToFile(const std::vector<char>& buffer);
 
-    static MessageHandler* _instance;
+    static Logger* _instance;
 
     std::vector<char> _parseBuffer;
     std::vector<char> _combinedBuffer;
@@ -80,4 +75,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__MESSAGEHANDLER__H__
+#endif // __SGCT__LOGGER__H__

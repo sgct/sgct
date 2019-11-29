@@ -35,7 +35,7 @@ namespace {
     std::string loadFile(const std::string& filename) {
         std::ifstream vertexFile(filename);
         if (!vertexFile.good()) {
-            sgct::MessageHandler::printError("Could not open file %s", filename.c_str());
+            sgct::Logger::Error("Could not open file %s", filename.c_str());
         }
         std::string vertexString(
             (std::istreambuf_iterator<char>(vertexFile)),
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

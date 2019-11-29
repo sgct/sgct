@@ -67,9 +67,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     );
 
     if (shaderIt == _shaderPrograms.end()) {
-        MessageHandler::printWarning(
-            "Unable to remove shader program [%s]: Not found", name.c_str()
-        );
+        Logger::Warning("Unable to remove shader program [%s]: Not found", name.c_str());
         return false;
     }
 

@@ -22,7 +22,7 @@ namespace sgct::core::correction {
 Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::printInfo("Reading SkySkan mesh data from '%s'", path.c_str());
+    Logger::Info("Reading SkySkan mesh data from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
@@ -108,7 +108,7 @@ Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(atan(hh));
 
-        MessageHandler::printInfo("HFOV: %f VFOV: %f", *hFov, *vFov);
+        Logger::Info("HFOV: %f VFOV: %f", *hFov, *vFov);
     }
 
     if (fovTweaks[0] > 0.f) {

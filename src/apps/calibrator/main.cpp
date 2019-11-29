@@ -348,15 +348,15 @@ int main(int argc, char* argv[]) {
         std::string_view argg = argv[i];
         if (argg == "-tilt" && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::printInfo("Setting tilt to: %f", tilt);
+            Logger::Info("Setting tilt to: %f", tilt);
         }
         else if (argg == "-radius" && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            MessageHandler::printInfo("Setting radius to: %f", radius);
+            Logger::Info("Setting radius to: %f", radius);
         }
         else if (argg == "-tex" && argc > (i + 1)) {
             texture = argv[i + 1];
-            MessageHandler::printInfo("Using texture: %s", texture.c_str());
+            Logger::Info("Using texture: %s", texture.c_str());
         }
     }
 
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().render();
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

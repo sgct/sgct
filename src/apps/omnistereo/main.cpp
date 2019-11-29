@@ -139,7 +139,7 @@ void initOmniStereo(bool mask) {
     double t0 = Engine::instance().getTime();
 
     if (Engine::instance().getNumberOfWindows() < 2) {
-        MessageHandler::printError("Failed to allocate omni stereo in secondary window");
+        Logger::Error("Failed to allocate omni stereo in secondary window");
         return;
     }
 
@@ -152,7 +152,7 @@ void initOmniStereo(bool mask) {
     Window& win = Engine::instance().getWindow(1);
     const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
 
-    MessageHandler::printInfo(
+    Logger::Info(
         "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     );
     omniProjections.resize(res.x);
@@ -334,7 +334,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    MessageHandler::printInfo(
+    Logger::Info(
         "Time to init viewports: %f s\n%d %% will be rendered.",
         Engine::instance().getTime() - t0, percentage
     );
@@ -405,7 +405,7 @@ void drawOmniStereo() {
     }
 
     const double t1 = Engine::instance().getTime();
-    MessageHandler::printInfo("Time to draw frame: %f s", t1 - t0);
+    Logger::Info("Time to draw frame: %f s", t1 - t0);
 }
 
 void drawFun() {
@@ -531,11 +531,11 @@ int main(int argc, char* argv[]) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            MessageHandler::printInfo("Setting turn map path to %s", turnMapSrc.c_str());
+            Logger::Info("Setting turn map path to %s", turnMapSrc.c_str());
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            MessageHandler::printInfo(
+            Logger::Info(
                 "Setting separation map path to '%s'", sepMapSrc.c_str()
             );
         }
@@ -555,7 +555,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

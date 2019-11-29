@@ -69,25 +69,25 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
 
     connected = conn->isConnected();
 
-    MessageHandler::printInfo(
+    Logger::Info(
         "Network is %s", conn->isConnected() ? "connected" : "disconneced"
     );
 }
 
 void networkAck(int packageId, int) {
-    MessageHandler::printInfo("Network package %d is received", packageId);
+    Logger::Info("Network package %d is received", packageId);
 
     if (timerData.second == packageId) {
-        MessageHandler::printInfo(
+        Logger::Info(
             "Loop time: %lf ms", (sgct::Engine::getTime() - timerData.first) * 1000.0
         );
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    MessageHandler::printInfo("Network decoding package %d", packageId);
+    Logger::Info("Network decoding package %d", packageId);
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    MessageHandler::printInfo("Message: \"%s\"", test.c_str());
+    Logger::Info("Message: \"%s\"", test.c_str());
 }
 
 void connect() {
@@ -97,7 +97,7 @@ void connect() {
 
     // no need to specify the address on the host/server
     if (!isServer && address.empty()) {
-        MessageHandler::printError("Network error: No address set");
+        Logger::Error("Network error: No address set");
         return;
     }
 
@@ -110,7 +110,7 @@ void connect() {
 
     // init
     try {
-        MessageHandler::printDebug("Initiating network connection at port %d", port);
+        Logger::Debug("Initiating network connection at port %d", port);
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -118,7 +118,7 @@ void connect() {
         networkPtr->init();
     }
     catch (const std::runtime_error& err) {
-        MessageHandler::printError("Network error: %s", err.what());
+        Logger::Error("Network error: %s", err.what());
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
@@ -284,15 +284,15 @@ int main(int argc, char* argv[]) {
         std::string_view v(argv[i]);
         if (v == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            MessageHandler::printInfo("Setting port to: %d", port);
+            Logger::Info("Setting port to: %d", port);
         }
         else if (v == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            MessageHandler::printInfo("Setting address to: %s", address.c_str());
+            Logger::Info("Setting address to: %s", address.c_str());
         }
         else if (v == "--server") {
             isServer = true;
-            MessageHandler::printInfo("This computer will host the connection");
+            Logger::Info("This computer will host the connection");
         }
     }
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

@@ -177,7 +177,7 @@ void core::SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat);
-        MessageHandler::printDebug(
+        Logger::Debug(
             "%dx%d cube face texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, texture
         );
@@ -269,7 +269,7 @@ void SphericalMirrorProjection::initViewports() {
 void SphericalMirrorProjection::initShaders() {
     if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        MessageHandler::printWarning("Stereo not supported in spherical projection");
+        Logger::Warning("Stereo not supported in spherical projection");
     }
 
     // reload shader program if it exists

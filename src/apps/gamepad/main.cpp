@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
     joyStick1Name = Engine::getJoystickName(Joystick::Joystick1);
     if (joyStick1Name) {
-        MessageHandler::printInfo("Joystick 1 '%s' is present", joyStick1Name);
+        Logger::Info("Joystick 1 '%s' is present", joyStick1Name);
 
         int numberOfAxes = 0;
         Engine::getJoystickAxes(Joystick::Joystick1, &numberOfAxes);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         int numberOfButtons = 0;
         Engine::getJoystickButtons(Joystick::Joystick1, &numberOfButtons);
 
-        MessageHandler::printInfo(
+        Logger::Info(
             "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons
         );
     }

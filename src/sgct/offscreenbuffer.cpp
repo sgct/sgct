@@ -71,7 +71,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             samples = 0;
         }
 
-        MessageHandler::printDebug("Max samples supported: %d", maxSamples);
+        Logger::Debug("Max samples supported: %d", maxSamples);
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -177,14 +177,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     );
 
     if (_isMultiSampled) {
-        MessageHandler::printDebug(
+        Logger::Debug(
             "Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\t"
             "RBO depth buffer id=%d\n\tRBO color buffer id=%d", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
         );
     }
     else {
-        MessageHandler::printDebug(
+        Logger::Debug(
             "Created %dx%d buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d",
             width, height, _frameBuffer, _depthBuffer
         );

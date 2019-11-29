@@ -74,7 +74,7 @@ FontManager::FontManager() {
     FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
-        MessageHandler::printError("Could not initiate Freetype library");
+        Logger::Error("Could not initiate Freetype library");
         return;
     }
 
@@ -127,7 +127,7 @@ bool FontManager::addFont(std::string name, std::string file, Path path) {
 
     const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
     if (!inserted) {
-        MessageHandler::printWarning("Font with name '%s' already exists", name.c_str());
+        Logger::Warning("Font with name '%s' already exists", name.c_str());
     }
     return inserted;
 }
@@ -154,12 +154,12 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        MessageHandler::printError("No font file specified for font [%s]", name.c_str());
+        Logger::Error("No font file specified for font [%s]", name.c_str());
         return nullptr;
     }
 
     if (_library == nullptr) {
-        MessageHandler::printError(
+        Logger::Error(
             "Freetype library is not initialized, can't create font [%s]", name.c_str()
         );
         return nullptr;
@@ -169,19 +169,19 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
-        MessageHandler::printError(
+        Logger::Error(
             "Unsupperted file format [%s] for font [%s]", it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        MessageHandler::printError("Font '%s' not found!", it->second.c_str());
+        Logger::Error("Font '%s' not found!", it->second.c_str());
         return nullptr;
     }
 
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        MessageHandler::printError("Could not set pixel size for font[%s]", name.c_str());
+        Logger::Error("Could not set pixel size for font[%s]", name.c_str());
         return nullptr;
     }
 

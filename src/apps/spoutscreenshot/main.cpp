@@ -53,7 +53,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        MessageHandler::printInfo(
+        Logger::Info(
             "Spout: Initing %ux%u texture from '%s'", width, height, sender.c_str()
         );
         initialized = true;
@@ -65,7 +65,7 @@ bool bindSpout() {
             return receiver->BindSharedTexture();
         }
         else {
-            MessageHandler::printInfo("Spout disconnected");
+            Logger::Info("Spout disconnected");
 
             // reset if disconnected
             initialized = false;
@@ -161,27 +161,27 @@ void keyboardCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::Key1:
                 sender = "Right\0";
-                MessageHandler::printInfo("Settings receiver to 'Right'");
+                Logger::Info("Settings receiver to 'Right'");
                 break;
             case Key::Key2:
                 sender = "zLeft\0";
-                MessageHandler::printInfo("Settings receiver to 'zLeft'");
+                Logger::Info("Settings receiver to 'zLeft'");
                 break;
             case Key::Key3:
                 sender = "Bottom\0";
-                MessageHandler::printInfo("Settings receiver to 'Bottom'");
+                Logger::Info("Settings receiver to 'Bottom'");
                 break;
             case Key::Key4:
                 sender = "Top\0";
-                MessageHandler::printInfo("Settings receiver to 'Top'");
+                Logger::Info("Settings receiver to 'Top'");
                 break;
             case Key::Key5:
                 sender = "Left\0";
-                MessageHandler::printInfo("Settings receiver to 'Left'");
+                Logger::Info("Settings receiver to 'Left'");
                 break;
             case Key::Key6:
                 sender = "zRight\0";
-                MessageHandler::printInfo("Settings receiver to 'zRight'");
+                Logger::Info("Settings receiver to 'zRight'");
                 break;
             case Key::Space:
                 shouldTakeScreenshot = true;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().render();
     }
     catch (const std::runtime_error & e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

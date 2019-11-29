@@ -36,8 +36,8 @@ ClusterManager::ClusterManager() {
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     _masterAddress = cluster.masterAddress;
     if (cluster.debug) {
-        MessageHandler::instance().setNotifyLevel(
-            *cluster.debug ? MessageHandler::Level::Debug : MessageHandler::Level::Warning
+        Logger::instance().setNotifyLevel(
+            *cluster.debug ? Logger::Level::Debug : Logger::Level::Warning
         );
     }
     if (cluster.externalControlPort) {
@@ -68,7 +68,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             User usr(*user.name);
             addUser(std::move(usr));
             usrPtr = &_users.back();
-            MessageHandler::printInfo("Adding user '%s'", user.name->c_str());
+            Logger::Info("Adding user '%s'", user.name->c_str());
         }
         else {
             usrPtr = &getDefaultUser();

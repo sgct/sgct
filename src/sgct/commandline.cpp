@@ -25,7 +25,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-debug") {
-            config.logLevel = MessageHandler::Level::Debug;
+            config.logLevel = Logger::Level::Debug;
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-help") {
@@ -56,7 +56,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
             const int level = std::stoi(arg[i + 1]);
-            config.logLevel = static_cast<MessageHandler::Level>(level);
+            config.logLevel = static_cast<Logger::Level>(level);
 
             arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);

@@ -12,7 +12,7 @@
 #include <sgct/messagehandler.h>
 #include <sgct/ogl_headers.h>
 
-#define Error(code, msg) Error(Error::Component::Shader, code, msg)
+#define Err(code, msg) Error(Error::Component::Shader, code, msg)
 
 namespace {
     bool checkLinkStatus(GLint programId, const std::string& name) {
@@ -26,7 +26,7 @@ namespace {
             std::vector<GLchar> log(logLength);
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
-            sgct::MessageHandler::printError(
+            sgct::Logger::Error(
                 "Shader program[%s] linking error: %s", name.c_str(), log.data()
             );
         }
@@ -96,13 +96,13 @@ int ShaderProgram::getId() const {
 
 void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        throw Error(7010,  "No shaders have been added to the program " + _name);
+        throw Err(7010,  "No shaders have been added to the program " + _name);
     }
 
     // Create the program
     bool createSuccess = createProgram();
     if (!createSuccess) {
-        throw Error(7011, "Error creating the program " + _name);
+        throw Err(7011, "Error creating the program " + _name);
     }
 
     // Link shaders
@@ -114,7 +114,7 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     _isLinked = checkLinkStatus(_programId, _name);
     if (!_isLinked) {
-        throw Error(7012, "Error linking the program " + _name);
+        throw Err(7012, "Error linking the program " + _name);
     }
 }
 
@@ -124,7 +124,7 @@ bool ShaderProgram::createProgram() {
         // only return true if it hasn't been linked yet. If it has been already linked
         // it can't be reused
         if (_isLinked) {
-            MessageHandler::printError(
+            Logger::Error(
                 "Could not create shader program [%s]: Already linked", _name.c_str()
             );
             return false;
@@ -136,7 +136,7 @@ bool ShaderProgram::createProgram() {
 
     _programId = glCreateProgram();
     if (_programId == 0) {
-        MessageHandler::printError(
+        Logger::Error(
             "Could not create shader program [%s]: Unknown error", _name.c_str()
         );
         return false;

@@ -16,7 +16,7 @@ namespace sgct::core::correction {
 Buffer generateOBJMesh(const std::string& path) {
     Buffer buffer;
 
-    MessageHandler::printInfo("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
+    Logger::Info("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {

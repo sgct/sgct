@@ -82,7 +82,7 @@ void readImage(unsigned char* data, int len) {
         transImages.push_back(std::move(img));
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
     }
 }
 
@@ -183,7 +183,7 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        MessageHandler::printInfo(
+        Logger::Info(
             "Texture id %d loaded (%dx%dx%d)",
             tex, transImages[i]->getSize().x, transImages[i]->getSize().y,
             transImages[i]->getChannels()
@@ -374,7 +374,7 @@ void contextCreationCallback(GLFWwindow* win) {
     hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
      
     if (!hiddenWindow) {
-        MessageHandler::printInfo("Failed to create loader context");
+        Logger::Info("Failed to create loader context");
     }
     
     // restore to normal
@@ -388,7 +388,7 @@ void contextCreationCallback(GLFWwindow* win) {
 void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
                          int clientIndex)
 {
-    MessageHandler::printInfo(
+    Logger::Info(
         "Decoding %d bytes in transfer id: %d on node %d",
         receivedLength, packageId, clientIndex
     );
@@ -401,13 +401,13 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
 }
 
 void dataTransferStatus(bool connected, int clientIndex) {
-    MessageHandler::printInfo(
+    Logger::Info(
         "Transfer node %d is %s.", clientIndex, connected ? "connected" : "disconnected"
     );
 }
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
-    MessageHandler::printInfo(
+    Logger::Info(
         "Transfer id: %d is completed on node %d.", packageId, clientIndex
     );
     
@@ -418,7 +418,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             clientsUploadDone = true;
             counter = 0;
             
-            MessageHandler::printInfo(
+            Logger::Info(
                 "Time to distribute and upload textures on cluster: %f ms",
                 (sgct::Engine::getTime() - sendTimer) * 1000.0
             );
@@ -495,7 +495,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

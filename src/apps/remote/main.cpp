@@ -74,16 +74,16 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
             sizeFactor.setVal(static_cast<float>(tmpVal) / 100.f);
         }
 
-        MessageHandler::printInfo("Message: '%s', size: %d", receivedChars, size);
+        Logger::Info("Message: '%s', size: %d", receivedChars, size);
     }
 }
 
 void externalControlStatusCallback(bool connected) {
     if (connected) {
-        MessageHandler::printInfo("External control connected");
+        Logger::Info("External control connected");
     }
     else {
-        MessageHandler::printInfo("External control disconnected");
+        Logger::Info("External control disconnected");
     }
 }
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
     }
     catch (const std::runtime_error& e) {
-        MessageHandler::printError("%s", e.what());
+        Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

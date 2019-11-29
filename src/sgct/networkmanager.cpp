@@ -65,7 +65,7 @@ void NetworkManager::destroy() {
 NetworkManager::NetworkManager(NetworkMode nm) 
     : _mode(nm)
 {
-    MessageHandler::printDebug("Initiating network API");
+    Logger::Debug("Initiating network API");
 #ifdef WIN32
     WORD version = MAKEWORD(2, 2);
 
@@ -79,7 +79,7 @@ NetworkManager::NetworkManager(NetworkMode nm)
     }
 #endif
 
-    MessageHandler::printDebug("Getting host info");
+    Logger::Debug("Getting host info");
     getHostInfo();
 
     if (_mode == NetworkMode::Remote) {
@@ -93,10 +93,10 @@ NetworkManager::NetworkManager(NetworkMode nm)
     }
 
     if (_isServer) {
-        MessageHandler::printInfo("This computer is the network server");
+        Logger::Info("This computer is the network server");
     }
     else {
-        MessageHandler::printInfo("This computer is the network client");
+        Logger::Info("This computer is the network client");
     }
 }
 
@@ -126,7 +126,7 @@ NetworkManager::~NetworkManager() {
 #ifdef WIN32
     WSACleanup();
 #endif
-    MessageHandler::printInfo("Network API closed");
+    Logger::Info("Network API closed");
 }
 
 void NetworkManager::init() {
@@ -219,7 +219,7 @@ void NetworkManager::init() {
                     [](const char* data, int length, int idx) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        MessageHandler::printInfo("[client %d]: %s [end]", idx, d.data());
+                        Logger::Info("[client %d]: %s [end]", idx, d.data());
                     }
                 );
 
@@ -269,7 +269,7 @@ void NetworkManager::init() {
         );
     }
 
-    MessageHandler::printDebug(
+    Logger::Debug(
         "Cluster sync: %s", cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
 }
@@ -409,7 +409,7 @@ Network* NetworkManager::getSyncConnectionByIndex(int index) const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    MessageHandler::printDebug("Updating status for connection %d", connection->getId());
+    Logger::Debug("Updating status for connection %d", connection->getId());
 
     unsigned int nConnections = 0;
     unsigned int nConnectedSyncNodes = 0;
@@ -437,14 +437,14 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
     }
 
-    MessageHandler::printInfo(
+    Logger::Info(
         "Number of active connections %u of %u", nConnections, totalNConnections
     );
-    MessageHandler::printDebug(
+    Logger::Debug(
         "Number of connected sync nodes %u of %u",
         nConnectedSyncNodes, totalNSyncConnections
     );
-    MessageHandler::printDebug(
+    Logger::Debug(
         "Number of connected data transfer nodes %u of %u",
         nConnectedDataTransferNodes, totalNTransferConnections
     );
@@ -542,7 +542,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     }
 
     auto net = std::make_unique<Network>(port, address, _isServer, connectionType);
-    MessageHandler::printDebug(
+    Logger::Debug(
         "Initiating network connection %d at port %d", _networkConnections.size(), port
     );
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });

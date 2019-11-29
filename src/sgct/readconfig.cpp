@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-#define Error(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
+#define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
 namespace {
     glm::quat parseOrientationNode(tinyxml2::XMLElement& element) {
@@ -143,7 +143,7 @@ namespace {
             return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
-        sgct::MessageHandler::printError("Unknown stereo mode %s", type.c_str());
+        sgct::Logger::Error("Unknown stereo mode %s", type.c_str());
         return sgct::config::Window::StereoMode::NoStereo;
     }
 
@@ -173,7 +173,7 @@ namespace {
             return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
-        sgct::MessageHandler::printError("Unknown color bit depth %s", type.c_str());
+        sgct::Logger::Error("Unknown color bit depth %s", type.c_str());
         return sgct::config::Window::ColorBitDepth::Depth8;
     }
 
@@ -203,7 +203,7 @@ namespace {
             return it->second;
         }
         else {
-            sgct::MessageHandler::printError("Unknown resolution %s", quality.c_str());
+            sgct::Logger::Error("Unknown resolution %s", quality.c_str());
             return -1;
         }
     }
@@ -295,7 +295,7 @@ namespace {
             return value;
         }
         else {
-            sgct::MessageHandler::printError("Error extracting value '%s'", name);
+            sgct::Logger::Error("Error extracting value '%s'", name);
             return std::nullopt;
         }
     }
@@ -304,7 +304,7 @@ namespace {
         sgct::config::PlanarProjection proj;
         tinyxml2::XMLElement* fovElement = element.FirstChildElement("FOV");
         if (fovElement == nullptr) {
-            throw Error(6000, "Missing specification of field-of-view values");
+            throw Err(6000, "Missing specification of field-of-view values");
         }
 
         std::optional<float> down = parseValue<float>(*fovElement, "down");
@@ -322,7 +322,7 @@ namespace {
             proj.fov.up = *up;
         }
         else {
-            throw Error(6001, "Failed to parse planar projection FOV");
+            throw Err(6001, "Failed to parse planar projection FOV");
         }
         proj.fov.distance = parseValue<float>(*fovElement, "distance");
 
@@ -474,13 +474,13 @@ namespace {
         tinyxml2::XMLElement* c2 = elem->NextSiblingElement();
         tinyxml2::XMLElement* c3 = c2->NextSiblingElement();
         if (!(c1 && c2 && c3)) {
-            throw Error(6010, "Failed parsing coordinates. Missing XML children");
+            throw Err(6010, "Failed parsing coordinates. Missing XML children");
         }
         std::optional<glm::vec3> p1 = parseValueVec3(*c1);
         std::optional<glm::vec3> p2 = parseValueVec3(*c2);
         std::optional<glm::vec3> p3 = parseValueVec3(*c3);
         if (!(p1 && p2 && p3)) {
-            throw Error(6011, "Failed parsing ProjectionPlane coordinates. Type error");
+            throw Err(6011, "Failed parsing ProjectionPlane coordinates. Type error");
         }
 
         sgct::config::ProjectionPlane proj;
@@ -538,7 +538,7 @@ namespace {
                 viewport.position = *pos;
             }
             else {
-                throw Error(6020, "Failed to parse position. Type error");
+                throw Err(6020, "Failed to parse position. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
@@ -546,7 +546,7 @@ namespace {
                 viewport.size = *size;
             }
             else {
-                throw Error(6021, "Failed to parse size. Type error");
+                throw Err(6021, "Failed to parse size. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
@@ -663,7 +663,7 @@ namespace {
                 window.size = *s;
             }
             else {
-                throw Error(6030, "Could not parse window size. Type error");
+                throw Err(6030, "Could not parse window size. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Res"); e) {
@@ -685,13 +685,13 @@ namespace {
             node.address = a;
         }
         else {
-            throw Error(6040, "Missing field address in node");
+            throw Err(6040, "Missing field address in node");
         }
         if (elem.Attribute("port")) {
             node.port = *parseValue<int>(elem, "port");
         }
         else {
-            throw Error(6041, "Missing field port in node");
+            throw Err(6041, "Missing field port in node");
         }
         node.dataTransferPort = parseValue<int>(elem, "dataTransferPort");
         node.swapLock = parseValue<bool>(elem, "swapLock");
@@ -760,10 +760,10 @@ namespace {
                     sgct::config::Settings::BufferFloatPrecision::Float32Bit;
             }
             else if (f) {
-                throw Error(6050, "Wrong buffer precision value " + std::to_string(*f));
+                throw Err(6050, "Wrong buffer precision value " + std::to_string(*f));
             }
             else {
-                throw Error(6051, "Wrong buffer precision value type");
+                throw Err(6051, "Wrong buffer precision value type");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Display"); e) {
@@ -824,7 +824,7 @@ namespace {
                 if (format == "jpg" || format == "JPG") {
                     return sgct::config::Capture::Format::JPG;
                 }
-                throw Error(6060, "Unknown capturing format");
+                throw Err(6060, "Unknown capturing format");
             }(a);
         }
         return res;
@@ -883,7 +883,7 @@ namespace {
             tracker.name = a;
         }
         else {
-            throw Error(6070, "Tracker is missing 'name'");
+            throw Err(6070, "Tracker is missing 'name'");
         }
 
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Device"); e) {
@@ -913,7 +913,7 @@ namespace {
 
     sgct::config::Cluster readAndParseXMLFile(const std::string& filename) {
         if (filename.empty()) {
-            throw Error(6080, "No XML file provided");
+            throw Err(6080, "No XML file provided");
         }
 
         tinyxml2::XMLDocument xmlDoc;
@@ -923,13 +923,13 @@ namespace {
             std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
             std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
             std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-            throw Error(6081, "Error loading XML file '" + filename + "'. " + s4);
+            throw Err(6081, "Error loading XML file '" + filename + "'. " + s4);
         }
 
         sgct::config::Cluster cluster;
         tinyxml2::XMLElement* xmlRoot = xmlDoc.FirstChildElement("Cluster");
         if (xmlRoot == nullptr) {
-            throw Error(6082, "Cannot find 'Cluster' node");
+            throw Err(6082, "Cannot find 'Cluster' node");
         }
         tinyxml2::XMLElement& root = *xmlRoot;
 
@@ -937,7 +937,7 @@ namespace {
             cluster.masterAddress = a;
         }
         else {
-            throw Error(6083, "Cannot find master address or DNS name in XML");
+            throw Err(6083, "Cannot find master address or DNS name in XML");
         }
 
         cluster.debug = parseValue<bool>(root, "debug");
@@ -982,7 +982,7 @@ namespace {
     std::string replaceEnvVars(const std::string& filename) {
         size_t foundPercentage = filename.find('%');
         if (foundPercentage != std::string::npos) {
-            throw Error(6084, "SGCT doesn't support usage of '%%' in the path");
+            throw Err(6084, "SGCT doesn't support usage of '%%' in the path");
         }
 
         // First get all of the locations so that substitutions don't screw up future ones
@@ -997,7 +997,7 @@ namespace {
                     envVarLocs.emplace_back(beginLocation, foundIndex);
                 }
                 else {
-                    throw Error(6085, "Bad configuration path string");
+                    throw Err(6085, "Bad configuration path string");
                 }
             }
         }
@@ -1021,7 +1021,7 @@ namespace {
             environmentSuccess = (fetchedEnvVar == nullptr);
 #endif
             if (!environmentSuccess) {
-                throw Error(6086, "Cannot fetch environment variable " + envVar);
+                throw Err(6086, "Cannot fetch environment variable " + envVar);
             }
 
             res.append(fetchedEnvVar);
@@ -1038,19 +1038,17 @@ namespace {
 namespace sgct::core {
 
 config::Cluster readConfig(const std::string& filename) {
-    MessageHandler::printDebug("Parsing XML config '%s'", filename.c_str());
+    Logger::Debug("Parsing XML config '%s'", filename.c_str());
 
     std::string f = replaceEnvVars(filename);
     config::Cluster cluster = readAndParseXMLFile(f);
 
-    MessageHandler::printDebug("Config file '%s' read successfully", f.c_str());
-    MessageHandler::printInfo("Number of nodes in cluster: %d", cluster.nodes.size());
+    Logger::Debug("Config file '%s' read successfully", f.c_str());
+    Logger::Info("Number of nodes in cluster: %d", cluster.nodes.size());
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
-        MessageHandler::printInfo(
-            "\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port
-        );
+        Logger::Info("\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port);
     }
 
     return cluster;

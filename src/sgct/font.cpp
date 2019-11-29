@@ -269,7 +269,7 @@ void Font::createCharacter(wchar_t c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        MessageHandler::printError("Error creating character %s", c);
+        Logger::Error("Error creating character %s", c);
     }
 }
 

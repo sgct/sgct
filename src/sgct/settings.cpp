@@ -263,7 +263,7 @@ void Settings::setDefaultNumberOfAASamples(int samples) {
         _defaultNumberOfAASamples = samples;
     }
     else {
-        MessageHandler::printWarning("Number of MSAA samples must be power of two");
+        Logger::Warning("Number of MSAA samples must be power of two");
     }
 }
 

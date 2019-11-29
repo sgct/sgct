@@ -25,7 +25,7 @@ namespace {
             ptr->frameBufferImage->save(ptr->filename);
         }
         catch (const std::runtime_error& e) {
-            sgct::MessageHandler::printError("%s", e.what());
+            sgct::Logger::Error("%s", e.what());
         }
         ptr->isRunning = false;
     }
@@ -97,7 +97,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     }
 
     glGenBuffers(1, &_pbo);
-    MessageHandler::printDebug(
+    Logger::Debug(
         "Generating %dx%dx%d PBO: %u", _resolution.x, _resolution.y, _nChannels, _pbo
     );
 
@@ -162,7 +162,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     else {
-        MessageHandler::printError("Can't map data (0) from GPU in frame capture");
+        Logger::Error("Can't map data (0) from GPU in frame capture");
     }
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -185,7 +185,7 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     _windowIndex = windowIndex;
 
-    MessageHandler::printDebug("Number of screencapture threads is set to %d", _nThreads);
+    Logger::Debug("Number of screencapture threads is set to %d", _nThreads);
 }
 
 std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
@@ -300,11 +300,11 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
     if (index == -1) {
-        MessageHandler::printError("Error finding available capture thread");
+        Logger::Error("Error finding available capture thread");
         return nullptr;
     }
 
-    MessageHandler::printDebug("Starting thread for screenshot/capture [%d]", index);
+    Logger::Debug("Starting thread for screenshot/capture [%d]", index);
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<core::Image>();

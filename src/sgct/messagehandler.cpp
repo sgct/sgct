@@ -17,27 +17,27 @@
 
 namespace sgct {
 
-MessageHandler* MessageHandler::_instance = nullptr;
+Logger* Logger::_instance = nullptr;
 
-MessageHandler& MessageHandler::instance() {
+Logger& Logger::instance() {
     if (!_instance) {
-        _instance = new MessageHandler;
+        _instance = new Logger;
     }
     return *_instance;
 }
 
-void MessageHandler::destroy() {
+void Logger::destroy() {
     delete _instance;
     _instance = nullptr;
 }
 
-MessageHandler::MessageHandler() {
+Logger::Logger() {
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
     setLogPath(nullptr);
 }
 
-void MessageHandler::printv(const char* fmt, va_list ap) {
+void Logger::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
@@ -93,7 +93,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
     }
 }
 
-void MessageHandler::logToFile(const std::vector<char>& buffer) {
+void Logger::logToFile(const std::vector<char>& buffer) {
     if (_filename.empty()) {
         return;
     }
@@ -107,7 +107,7 @@ void MessageHandler::logToFile(const std::vector<char>& buffer) {
     file << std::string(buffer.begin(), buffer.end()) << '\n';
 }
 
-void MessageHandler::setLogPath(const char* path, int id) {
+void Logger::setLogPath(const char* path, int id) {
     time_t now = time(nullptr);
 
     std::stringstream ss;
@@ -131,14 +131,14 @@ void MessageHandler::setLogPath(const char* path, int id) {
     _filename = ss.str();
 }
 
-void MessageHandler::printDebug(const char* fmt, ...) {
+void Logger::Debug(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
-void MessageHandler::printWarning(const char* fmt, ...) {
+void Logger::Warning(const char* fmt, ...) {
     if (instance()._level < Level::Warning || fmt == nullptr) {
         return;
     }
@@ -149,7 +149,7 @@ void MessageHandler::printWarning(const char* fmt, ...) {
     va_end(ap);
 }
 
-void MessageHandler::printInfo(const char* fmt, ...) {
+void Logger::Info(const char* fmt, ...) {
     if (instance()._level < Level::Info || fmt == nullptr) {
         return;
     }
@@ -160,7 +160,7 @@ void MessageHandler::printInfo(const char* fmt, ...) {
     va_end(ap);
 }
 
-void MessageHandler::printError(const char* fmt, ...) {
+void Logger::Error(const char* fmt, ...) {
     if (instance()._level < Level::Error || fmt == nullptr) {
         return;
     }
@@ -171,23 +171,23 @@ void MessageHandler::printError(const char* fmt, ...) {
     va_end(ap);
 }
 
-void MessageHandler::setNotifyLevel(Level nl) {
+void Logger::setNotifyLevel(Level nl) {
     _level = nl;
 }
 
-void MessageHandler::setShowTime(bool state) {
+void Logger::setShowTime(bool state) {
     _showTime = state;
 }
 
-void MessageHandler::setLogToConsole(bool state) {
+void Logger::setLogToConsole(bool state) {
     _logToConsole = state;
 }
 
-void MessageHandler::setLogToFile(bool state) {
+void Logger::setLogToFile(bool state) {
     _logToFile = state;
 }
 
-void MessageHandler::setLogCallback(std::function<void(const char*)> fn) {
+void Logger::setLogCallback(std::function<void(const char*)> fn) {
     _messageCallback = std::move(fn);
 }
 

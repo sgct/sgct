@@ -20,7 +20,7 @@ namespace sgct::core::correction {
 Buffer generateMpcdiMesh(const core::Viewport& parent) {
     Buffer buf;
 
-    MessageHandler::printInfo("Reading MPCDI mesh (PFM format) from buffer");
+    Logger::Info("Reading MPCDI mesh (PFM format) from buffer");
     const char* srcBuff = parent.mpcdiWarpMesh().data();
     size_t srcSizeBytes = parent.mpcdiWarpMesh().size();
 

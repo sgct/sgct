@@ -91,7 +91,7 @@ namespace sgct::openvr {
 
 void initialize(float nearClip, float farClip) {
     if (isOpenVRInitalized) {
-        MessageHandler::printInfo("OpenVR has already been initialized");
+        Logger::Info("OpenVR has already been initialized");
         return;
     }
 
@@ -106,7 +106,7 @@ void initialize(float nearClip, float farClip) {
 
     if (eError != vr::VRInitError_None) {
         shutdown();
-        MessageHandler::printError(
+        Logger::Error(
             "VR_Init Failed. Unable to init VR runtime: %s",
             vr::VR_GetVRInitErrorAsEnglishDescription(eError)
         );
@@ -114,13 +114,11 @@ void initialize(float nearClip, float farClip) {
     else {
         isOpenVRInitalized = true;
 
-        unsigned int renderWidth;
-        unsigned int renderHeight;
-        HMD->GetRecommendedRenderTargetSize(&renderWidth, &renderHeight);
+        unsigned int width;
+        unsigned int height;
+        HMD->GetRecommendedRenderTargetSize(&width, &height);
 
-        MessageHandler::printInfo(
-            "OpenVR render dimensions per eye: %d x %d", renderWidth, renderHeight
-        );
+        Logger::Info("OpenVR render dimensions per eye: %d x %d", width, height);
 
         // Create FBO and Texture used for sending data top HMD
         createHMDFrameBuffer(renderWidth, renderHeight, leftEyeFBODesc);
@@ -132,7 +130,7 @@ void initialize(float nearClip, float farClip) {
             vr::Prop_TrackingSystemName_String,
             nullptr
         );
-        MessageHandler::printInfo("OpenVR Device Name: %s", HMDDevice.c_str());
+        Logger::Info("OpenVR Device Name: %s", HMDDevice.c_str());
 
         std::string HMDNumber = getTrackedDeviceString(
             HMD,
@@ -140,14 +138,14 @@ void initialize(float nearClip, float farClip) {
             vr::Prop_SerialNumber_String,
             nullptr
         );
-        MessageHandler::printInfo("OpenVR Device Number: %s", HMDNumber.c_str());
+        Logger::Info("OpenVR Device Number: %s", HMDNumber.c_str());
 
         vr::IVRRenderModels* renderModels = reinterpret_cast<vr::IVRRenderModels*>(
             vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError)
         );
         if (!renderModels) {
             shutdown();
-            MessageHandler::printError(
+            Logger::Error(
                 "VR_Init Failed. Unable to get render model interface: %s",
                 vr::VR_GetVRInitErrorAsEnglishDescription(eError)
             );

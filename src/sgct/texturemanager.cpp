@@ -50,7 +50,7 @@ namespace {
                 throw std::logic_error("Unhandled case label");
         }
 
-        sgct::MessageHandler::printDebug(
+        sgct::Logger::Debug(
             "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
             img.getSize().x, img.getSize().y, img.getChannels(), type, internalFormat
         );
@@ -149,7 +149,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
-    MessageHandler::printDebug("Texture created from '%s' [id=%d]", filename.c_str(), t);
+    Logger::Debug("Texture created from '%s' [id=%d]", filename.c_str(), t);
     return t;
 }
 

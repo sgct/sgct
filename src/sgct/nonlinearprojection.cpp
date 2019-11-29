@@ -116,14 +116,14 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 
 void NonLinearProjection::initTextures() {
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat);
-    MessageHandler::printDebug(
+    Logger::Debug(
         "%dx%d color cube map texture (id: %d) generated",
         _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
     );
     
     if (Settings::instance().useDepthTexture()) {
         generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32);
-        MessageHandler::printDebug(
+        Logger::Debug(
             "%dx%d depth cube map texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
         );
@@ -131,13 +131,13 @@ void NonLinearProjection::initTextures() {
         if (_useDepthTransformation) {
             // generate swap textures
             generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
-            MessageHandler::printDebug(
+            Logger::Debug(
                 "%dx%d depth swap map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.depthSwap
             );
 
             generateMap(_textures.colorSwap, _texInternalFormat);
-            MessageHandler::printDebug(
+            Logger::Debug(
                 "%dx%d color swap map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.colorSwap
             );
@@ -149,7 +149,7 @@ void NonLinearProjection::initTextures() {
             _textures.cubeMapNormals,
             Settings::instance().getBufferFloatPrecision()
         );
-        MessageHandler::printDebug(
+        Logger::Debug(
             "%dx%d normal cube map texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapNormals
         );
@@ -160,7 +160,7 @@ void NonLinearProjection::initTextures() {
             _textures.cubeMapPositions,
             Settings::instance().getBufferFloatPrecision()
         );
-        MessageHandler::printDebug(
+        Logger::Debug(
             "%dx%d position cube map texture (%d) generated",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapPositions
         );
@@ -176,10 +176,10 @@ void NonLinearProjection::initFBO() {
 void NonLinearProjection::initVBO() {
     std::array<float, 20> vertices;
     glGenVertexArrays(1, &_vao);
-    MessageHandler::printDebug("Generating VAO: %d", _vao);
+    Logger::Debug("Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    MessageHandler::printDebug("Generating VBO: %d", _vbo);
+    Logger::Debug("Generating VBO: %d", _vbo);
     
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
@@ -221,7 +221,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     GLint maxMapRes;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_cubemapResolution > maxMapRes) {
-        MessageHandler::printError(
+        Logger::Error(
             "Requested map size is too big (%d > %d)", _cubemapResolution, maxMapRes
         );
     }
@@ -257,7 +257,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapRes);
     if (_cubemapResolution > maxCubeMapRes) {
         _cubemapResolution = maxCubeMapRes;
-        MessageHandler::printDebug("Cubemap size set to max size: %d", maxCubeMapRes);
+        Logger::Debug("Cubemap size set to max size: %d", maxCubeMapRes);
     }
 
     // set up texture target

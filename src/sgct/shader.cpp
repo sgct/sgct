@@ -32,14 +32,14 @@ namespace {
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength == 0) {
-                sgct::MessageHandler::printError(
+                sgct::Logger::Error(
                     "%s compile error: Unknown error", getShaderTypeName(type).c_str()
                 );
             }
 
             std::vector<GLchar> log(logLength);
             glGetShaderInfoLog(id, logLength, nullptr, log.data());
-            sgct::MessageHandler::printError(
+            sgct::Logger::Error(
                 "%s compile error: %s", getShaderTypeName(type).c_str(), log.data()
             );
         }

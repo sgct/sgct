@@ -195,9 +195,7 @@ namespace {
 
         file.close();
 
-        sgct::MessageHandler::printInfo(
-            "Mesh '%s' exported successfully", exportPath.c_str()
-        );
+        sgct::Logger::Info("Mesh '%s' exported successfully", exportPath.c_str());
     }
 } // namespace
 
@@ -223,7 +221,7 @@ CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
         return CorrectionMesh::Format::Mpcdi;
     }
     if (!hintStr.empty()) {
-        MessageHandler::printWarning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+        Logger::Warning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
     }
     return CorrectionMesh::Format::None;
 }
@@ -255,7 +253,7 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
     
     // generate unwarped mesh for mask
     if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
-        MessageHandler::printDebug("CorrectionMesh: Creating mask mesh");
+        Logger::Debug("CorrectionMesh: Creating mask mesh");
 
         Buffer buf = setupMaskMesh(parent.getPosition(), parent.getSize());
         createMesh(_maskGeometry, buf);
@@ -323,7 +321,7 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
 
     createMesh(_warpGeometry, buf);
 
-    MessageHandler::printDebug(
+    Logger::Debug(
         "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
         static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
     );

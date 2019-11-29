@@ -252,37 +252,39 @@ void NetworkManager::init() {
                 );
 
                 // add data transfer connection
-                addConnection(
-                    n.getDataTransferPort(),
-                    remoteAddress,
-                    Network::ConnectionType::DataTransfer
-                );
-                _networkConnections.back()->setPackageDecodeFunction(
-                    [](void* data, int length, int packageId, int clientId) {
-                        Engine::instance().invokeDecodeCallbackForDataTransfer(
-                            data,
-                            length,
-                            packageId,
-                            clientId
-                        );
-                    }
-                );
+                if (n.getDataTransferPort() != 0 && !remoteAddress.empty()) {
+                    addConnection(
+                        n.getDataTransferPort(),
+                        remoteAddress,
+                        Network::ConnectionType::DataTransfer
+                    );
+                    _networkConnections.back()->setPackageDecodeFunction(
+                        [](void* data, int length, int packageId, int clientId) {
+                            Engine::instance().invokeDecodeCallbackForDataTransfer(
+                                data,
+                                length,
+                                packageId,
+                                clientId
+                            );
+                        }
+                    );
 
-                // acknowledge callback
-                _networkConnections.back()->setAcknowledgeFunction(
-                    [](int packageId, int clientId) {
-                        Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
-                            packageId,
-                            clientId
-                        );
-                    }
-                );
+                    // acknowledge callback
+                    _networkConnections.back()->setAcknowledgeFunction(
+                        [](int packageId, int clientId) {
+                            Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
+                                packageId,
+                                clientId
+                            );
+                        }
+                    );
+                }
             }
         }
     }
 
     // add connection for external communication
-    if (_isServer) {
+    if (_isServer && cm.getExternalControlPort() != 0) {
         addConnection(
             cm.getExternalControlPort(),
             "127.0.0.1",

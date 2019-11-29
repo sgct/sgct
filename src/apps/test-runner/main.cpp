@@ -2,7 +2,7 @@
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/image.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>

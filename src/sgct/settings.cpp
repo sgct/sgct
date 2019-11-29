@@ -9,7 +9,7 @@
 #include <sgct/settings.h>
 
 #include <sgct/config.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 
 namespace sgct {
 

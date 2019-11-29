@@ -9,7 +9,7 @@
 #include <sgct/correction/domeprojection.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <glm/glm.hpp>
 
 namespace sgct::core::correction {

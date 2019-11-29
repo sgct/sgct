@@ -9,7 +9,7 @@
 #include <sgct/texturemanager.h>
 
 #include <sgct/image.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/ogl_headers.h>
 
 namespace {

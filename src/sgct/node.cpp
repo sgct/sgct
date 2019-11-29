@@ -10,7 +10,7 @@
 
 #include <sgct/config.h>
 #include <sgct/keys.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <algorithm>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

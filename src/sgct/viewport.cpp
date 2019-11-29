@@ -11,7 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
 #include <sgct/fisheyeprojection.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/sphericalmirrorprojection.h>

@@ -10,7 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/fisheyeprojection.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
 #include <sgct/correction/domeprojection.h>

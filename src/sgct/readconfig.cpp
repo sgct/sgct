@@ -9,7 +9,7 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>

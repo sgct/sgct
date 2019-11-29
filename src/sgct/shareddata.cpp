@@ -8,7 +8,7 @@
 
 #include <sgct/shareddata.h>
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <zlib.h>
 #include <cstring>
 #include <string>

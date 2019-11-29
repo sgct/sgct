@@ -9,7 +9,7 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <algorithm>
 

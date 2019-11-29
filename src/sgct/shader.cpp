@@ -8,7 +8,7 @@
 
 #include <sgct/shader.h>
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 
 namespace {
     std::string getShaderTypeName(GLenum shaderType) {

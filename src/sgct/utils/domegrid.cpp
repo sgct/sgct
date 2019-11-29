@@ -8,7 +8,7 @@
 
 #include <sgct/utils/domegrid.h>
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>

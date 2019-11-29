@@ -11,7 +11,7 @@
 #include <sgct/fontmanager.h>
 
 #include <sgct/font.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

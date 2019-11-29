@@ -9,7 +9,7 @@
 #ifndef __SGCT__COMMANDLINE__H__
 #define __SGCT__COMMANDLINE__H__
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <optional>
 #include <string>

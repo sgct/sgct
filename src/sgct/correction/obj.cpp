@@ -9,7 +9,7 @@
 #include <sgct/correction/skyskan.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 
 namespace sgct::core::correction {
 

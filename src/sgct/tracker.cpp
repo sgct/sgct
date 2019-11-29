@@ -9,7 +9,7 @@
 #include <sgct/tracker.h>
 
 #include <sgct/engine.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/mutexes.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>

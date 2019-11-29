@@ -8,7 +8,7 @@
 
 #include <sgct/utils/dome.h>
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>

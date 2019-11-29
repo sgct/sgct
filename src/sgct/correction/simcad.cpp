@@ -9,7 +9,7 @@
 #include <sgct/correction/simcad.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <tinyxml2.h>

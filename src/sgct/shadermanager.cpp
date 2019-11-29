@@ -9,8 +9,8 @@
 #include <sgct/shadermanager.h>
 
 #include <sgct/error.h>
+#include <sgct/logger.h>
 #include <sgct/ogl_headers.h>
-#include <sgct/messagehandler.h>
 #include <algorithm>
 
 #define Error(code, msg) Error(Error::Component::Shader, code, msg)

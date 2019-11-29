@@ -9,7 +9,7 @@
 #include <sgct/correction/mpcdimesh.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/viewport.h>
 #include <cstring>
 

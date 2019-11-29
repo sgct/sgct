@@ -9,7 +9,7 @@
 #include <sgct/sphericalmirrorprojection.h>
 
 #include <sgct/engine.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>

@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>

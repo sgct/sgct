@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <chrono>
 #include <png.h>
 #include <pngpriv.h>

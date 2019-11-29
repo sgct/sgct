@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/image.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <cstring>

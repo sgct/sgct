@@ -9,7 +9,7 @@
 #include <sgct/spoutoutputprojection.h>
 
 #include <sgct/engine.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/settings.h>

@@ -9,7 +9,7 @@
 #include <sgct/mpcdi.h>
 
 #include <sgct/error.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>

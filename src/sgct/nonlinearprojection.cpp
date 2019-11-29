@@ -8,7 +8,7 @@
 
 #include <sgct/nonlinearprojection.h>
 
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/settings.h>
 #include <algorithm>

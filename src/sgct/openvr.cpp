@@ -11,7 +11,7 @@
 #include <sgct/openvr.h>
 
 #include <sgct/clustermanager.h>
-#include <sgct/messagehandler.h>
+#include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/window.h>
 #include <glm/gtc/type_ptr.hpp>

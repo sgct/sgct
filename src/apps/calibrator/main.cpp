@@ -2,9 +2,9 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
-#include <sgct/keys.h>
 #include <sgct/image.h>
-#include <sgct/messagehandler.h>
+#include <sgct/keys.h>
+#include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>

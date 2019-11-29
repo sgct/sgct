@@ -462,7 +462,7 @@ void Window::initOGL() {
             !wglQueryFrameCountNV || !wglResetFrameCountNV)
         {
             MessageHandler::printError("Error resolving swapgroup functions");
-            MessageHandler::printImportant(
+            MessageHandler::printInfo(
                 "wglBindSwapBarrierNV(: %p\twglJoinSwapGroupNV: %p\t"
                 "wglQueryMaxSwapGroupsNV: %p\twglQueryFrameCountNV: %p\t"
                 "wglResetFrameCountNV: %p",

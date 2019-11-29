@@ -32,24 +32,14 @@ void MessageHandler::destroy() {
 }
 
 MessageHandler::MessageHandler() {
-    _recBuffer.reserve(_maxMessageSize);
-
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
-
     setLogPath(nullptr);
-}
-
-void MessageHandler::decode(std::vector<char> receivedData, int clientIndex) {
-    std::unique_lock lock(core::mutex::DataSync);
-    _recBuffer = std::move(receivedData);
-    _recBuffer.push_back('\0');
-    print("[client %d]: %s [end]", clientIndex, _recBuffer.data());
 }
 
 void MessageHandler::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
-    std::unique_lock lock(core::mutex::Console);
+    std::unique_lock lock(_mutex);
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > _maxMessageSize) {
@@ -61,7 +51,6 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
 
         _combinedBuffer.resize(_combinedMessageSize);
         std::fill(_combinedBuffer.begin(), _combinedBuffer.end(), char(0));
-        _recBuffer.resize(_maxMessageSize);
     }
         
     _parseBuffer[0] = '\0';
@@ -86,7 +75,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
         if (_logToFile) {
             logToFile(_combinedBuffer);
         }
-        if (_logToCallback && _messageCallback) {
+        if (_messageCallback) {
             _messageCallback(_combinedBuffer.data());
         }
     }
@@ -98,7 +87,7 @@ void MessageHandler::printv(const char* fmt, va_list ap) {
         if (_logToFile) {
             logToFile(_parseBuffer);
         }
-        if (_logToCallback && _messageCallback) {
+        if (_messageCallback) {
             _messageCallback(_parseBuffer.data());
         }
     }
@@ -118,7 +107,7 @@ void MessageHandler::logToFile(const std::vector<char>& buffer) {
     file << std::string(buffer.begin(), buffer.end()) << '\n';
 }
 
-void MessageHandler::setLogPath(const char* path, int nodeId) {
+void MessageHandler::setLogPath(const char* path, int id) {
     time_t now = time(nullptr);
 
     std::stringstream ss;
@@ -132,8 +121,8 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
     timeInfoPtr = localtime(&now);
 
     strftime(Buffer, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
-    if (nodeId > -1) {
-        ss << Buffer << "_node" << nodeId << ".txt";
+    if (id > -1) {
+        ss << Buffer << "_node" << id << ".txt";
     }
     else {
         ss << Buffer << ".txt";
@@ -142,97 +131,48 @@ void MessageHandler::setLogPath(const char* path, int nodeId) {
     _filename = ss.str();
 }
 
-void MessageHandler::print(const char* fmt, ...) {
-    if (fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
-        return;
-    }
-
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
-    instance().printv(fmt, ap);
-    va_end(ap);
-}
-
-void MessageHandler::print(Level nl, const char* fmt, ...) {
-    if (nl > instance().getNotifyLevel() || fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
-        return;
-    }
-
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
-    instance().printv(fmt, ap);
-    va_end(ap);
-}
-
 void MessageHandler::printDebug(const char* fmt, ...) {
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
+    va_list ap;
+    va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printWarning(const char* fmt, ...) {
-    if (instance().getNotifyLevel() < Level::Warning || fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
+    if (instance()._level < Level::Warning || fmt == nullptr) {
         return;
     }
 
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
+    va_list ap;
+    va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printInfo(const char* fmt, ...) {
-    if (instance().getNotifyLevel() < Level::Info || fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
+    if (instance()._level < Level::Info || fmt == nullptr) {
         return;
     }
 
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
-    instance().printv(fmt, ap);
-    va_end(ap);
-}
-
-void MessageHandler::printImportant(const char* fmt, ...) {
-    if (instance().getNotifyLevel() < Level::Important || fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
-        return;
-    }
-
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
+    va_list ap;
+    va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::printError(const char* fmt, ...) {
-    if (instance().getNotifyLevel() < Level::Error || fmt == nullptr) {
-        // If There's No Text
-        instance()._parseBuffer[0] = 0;    // Do Nothing
+    if (instance()._level < Level::Error || fmt == nullptr) {
         return;
     }
 
-    va_list ap; // Pointer To List Of Arguments
-    va_start(ap, fmt); // Parses The String For Variables
+    va_list ap;
+    va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
 void MessageHandler::setNotifyLevel(Level nl) {
     _level = nl;
-}
-
-MessageHandler::Level MessageHandler::getNotifyLevel() const {
-    return _level.load();
 }
 
 void MessageHandler::setShowTime(bool state) {
@@ -247,11 +187,7 @@ void MessageHandler::setLogToFile(bool state) {
     _logToFile = state;
 }
 
-void MessageHandler::setLogToCallback(bool state) {
-    _logToCallback = state;
-}
-
-void MessageHandler::setLogCallback(std::function<void(const char *)> fn) {
+void MessageHandler::setLogCallback(std::function<void(const char*)> fn) {
     _messageCallback = std::move(fn);
 }
 

@@ -13,7 +13,6 @@
 
 namespace sgct::core::mutex {
 
-inline std::mutex Console;
 inline std::mutex DataSync;
 inline std::mutex FrameSync;
 inline std::mutex Tracking;

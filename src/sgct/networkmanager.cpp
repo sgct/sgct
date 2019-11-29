@@ -216,11 +216,10 @@ void NetworkManager::init() {
                 addConnection(n.getSyncPort(), remoteAddress);
 
                 _networkConnections.back()->setDecodeFunction(
-                    [](const char* data, int length, int index) {
-                        MessageHandler::instance().decode(
-                           std::vector<char>(data, data + length),
-                           index
-                        );
+                    [](const char* data, int length, int idx) {
+                        std::vector<char> d(data, data + length);
+                        d.push_back('\0');
+                        MessageHandler::printInfo("[client %d]: %s [end]", idx, d.data());
                     }
                 );
 

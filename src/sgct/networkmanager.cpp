@@ -305,8 +305,8 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             const int currentFrame = connection->iterateFrameCounter();
 
             unsigned char* dataBlock = SharedData::instance().getDataBlock();
-            std::memcpy(dataBlock + 1, &currentFrame, sizeof(int));
-            std::memcpy(dataBlock + 5, &currentSize, sizeof(int));
+            std::memcpy(dataBlock + 1, &currentFrame, sizeof(currentFrame));
+            std::memcpy(dataBlock + 5, &currentSize, sizeof(currentSize));
 
             connection->sendData(
                 SharedData::instance().getDataBlock(),
@@ -376,7 +376,7 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     buffer.resize(length);
 
     buffer[0] = _compress ? Network::CompressedDataId : Network::DataId;
-    memcpy(buffer.data() + 1, &packageId, sizeof(int));
+    memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
 
     if (_compress) {
         char* compDataPtr = buffer.data() + Network::HeaderSize;
@@ -402,7 +402,7 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         }
 
         // send original size
-        std::memcpy(buffer.data() + 9, &length, sizeof(int));
+        std::memcpy(buffer.data() + 9, &length, sizeof(length));
 
         // re-calculate the true send size
         length = static_cast<int>(compressedSize) + static_cast<int>(Network::HeaderSize);
@@ -419,7 +419,7 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
         );
     }
 
-    std::memcpy(buffer.data() + 5, &messageLength, sizeof(int));
+    std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
 }
 
 void NetworkManager::setDataTransferCompression(bool state, int level) {

@@ -96,7 +96,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glGenBuffers(1, &_lines.staticDraw.vbo);
     glBindVertexArray(_lines.staticDraw.vao);
     glBindBuffer(GL_ARRAY_BUFFER, _lines.staticDraw.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(float), vs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(Vertex), vs.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 

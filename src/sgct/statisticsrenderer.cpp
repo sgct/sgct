@@ -307,12 +307,12 @@ void StatisticsRenderer::render() {
         glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorSyncTime));
         glDrawArrays(GL_LINE_STRIP, 2 * StatsLength, StatsLength);
 
-        // looptimemax
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorLoopTimeMax));
-        glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
-
         // looptimemin
         glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorLoopTimeMin));
+        glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
+
+        // looptimemax
+        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorLoopTimeMax));
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);

@@ -35,7 +35,6 @@ public:
     static constexpr const char DataId = 17;
     static constexpr const char ConnectedId = 18;
     static constexpr const char DisconnectId = 19;
-    static constexpr const char CompressedDataId = 21;
 
     enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 

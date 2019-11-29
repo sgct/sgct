@@ -20,7 +20,6 @@
 #include <sgct/messagehandler.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
-#include <zlib.h>
 #include <algorithm>
 #include <cstring>
 #include <numeric>
@@ -64,8 +63,7 @@ void NetworkManager::destroy() {
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) 
-    : _compressionLevel(Z_BEST_SPEED)
-    , _mode(nm)
+    : _mode(nm)
 {
     MessageHandler::printDebug("Initiating network API");
 #ifdef WIN32
@@ -368,63 +366,24 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 {
     int messageLength = length;
 
-    if (_compress) {
-        length = static_cast<int>(compressBound(static_cast<uLong>(length)));
-    }
     length += static_cast<int>(Network::HeaderSize);
 
     buffer.resize(length);
 
-    buffer[0] = _compress ? Network::CompressedDataId : Network::DataId;
+    buffer[0] = Network::DataId;
     memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
 
-    if (_compress) {
-        char* compDataPtr = buffer.data() + Network::HeaderSize;
-        uLong compressedSize = static_cast<uLongf>(length - Network::HeaderSize);
-        int err = compress2(
-            reinterpret_cast<Bytef*>(compDataPtr),
-            &compressedSize,
-            reinterpret_cast<const Bytef*>(data),
-            static_cast<uLong>(length),
-            _compressionLevel
-        );
+    // set uncompressed size to DefaultId since compression is not used
+    std::memset(buffer.data() + 9, Network::DefaultId, sizeof(int));
 
-        if (err != Z_OK) {
-            const std::string e = [](int error) {
-                switch (error) {
-                    case Z_BUF_ERROR: return "Dest. buffer not large enough";
-                    case Z_MEM_ERROR: return "Insufficient memory";
-                    case Z_STREAM_ERROR: return "Incorrect compression level";
-                    default: return "Unknown error";
-                }
-            }(err);
-            throw Error(5024, "Failed to compress data: " + e);
-        }
-
-        // send original size
-        std::memcpy(buffer.data() + 9, &length, sizeof(length));
-
-        // re-calculate the true send size
-        length = static_cast<int>(compressedSize) + static_cast<int>(Network::HeaderSize);
-    }
-    else {
-        // set uncompressed size to DefaultId since compression is not used
-        std::memset(buffer.data() + 9, Network::DefaultId, sizeof(int));
-
-        // add data to buffer
-        std::memcpy(
-            buffer.data() + Network::HeaderSize,
-            data,
-            length - Network::HeaderSize
-        );
-    }
+    // add data to buffer
+    std::memcpy(
+        buffer.data() + Network::HeaderSize,
+        data,
+        length - Network::HeaderSize
+    );
 
     std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
-}
-
-void NetworkManager::setDataTransferCompression(bool state, int level) {
-    _compress = state;
-    _compressionLevel = level;
 }
 
 unsigned int NetworkManager::getActiveConnectionsCount() const {

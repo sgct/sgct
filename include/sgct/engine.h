@@ -440,15 +440,6 @@ public:
     void invokeUpdateCallbackForExternalControl(bool connected);
 
     /**
-     * Compression levels 1-9.
-     *  -1 = Default compression
-     *   0 = No compression
-     *   1 = Best speed
-     *   9 = Best compression
-     */
-    void setDataTransferCompression(bool state, int level = 1);
-
-    /**
      * This function sends data between nodes.
      *
      * \param data a pointer to the data buffer

@@ -1350,9 +1350,8 @@ void Engine::renderDisplayInfo() {
                 pos.x,
                 lineHeight * 3.f + pos.y,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
-                "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)", avgSynctime * 1000.0, 
-                SharedData::instance().getUserDataSize(),
-                SharedData::instance().getCompressionRatio()
+                "Avg. sync time: %.2f ms (%d bytes)", avgSynctime * 1000.0, 
+                SharedData::instance().getUserDataSize()
             );
         }
         else {
@@ -2494,10 +2493,6 @@ void Engine::sendMessageToExternalControl(const void* data, int length) {
             length
         );
     }
-}
-
-void Engine::setDataTransferCompression(bool state, int level) {
-    core::NetworkManager::instance().setDataTransferCompression(state, level);
 }
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {

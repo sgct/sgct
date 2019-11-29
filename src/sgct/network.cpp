@@ -39,7 +39,6 @@
 #include <sgct/mutexes.h>
 #include <sgct/networkmanager.h>
 #include <sgct/shareddata.h>
-#include <zlib.h>
 #include <algorithm>
 #include <cstring>
 
@@ -59,15 +58,6 @@ namespace {
             case N::ConnectionType::ExternalConnection: return "external ASCII control";
             case N::ConnectionType::DataTransfer: return "data transfer";
             default: throw std::logic_error("Unhandled case label");
-        }
-    }
-
-    std::string getUncompressErrorAsStr(int err) {
-        switch (err) {
-            case Z_BUF_ERROR: return "Dest. buffer not large enough";
-            case Z_MEM_ERROR: return "Insufficient memory";
-            case Z_DATA_ERROR: return "Corrupted data";
-            default: return "Unknown error";
         }
     }
 
@@ -197,9 +187,14 @@ void Network::connectionHandler() {
                 }
 
                 // start a new connection enabling the client to reconnect
-                _commThread = std::make_unique<std::thread>(
-                    [this]() { communicationHandler(); }
-                );
+                _commThread = std::make_unique<std::thread>([this]() {
+                    try {
+                        communicationHandler();
+                    }
+                    catch (const std::runtime_error & e) {
+                        MessageHandler::printError(e.what());
+                    }
+                });
             }
 
             // wait for signal until next iteration in loop
@@ -508,7 +503,7 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
 
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
-        if (_headerId == DataId || _headerId == CompressedDataId) {
+        if (_headerId == DataId) {
             std::memcpy(&syncFrame, header + 1, sizeof(syncFrame));
             std::memcpy(&dataSize, header + 5, sizeof(dataSize));
             std::memcpy(&uncompressedDataSize, header + 9, sizeof(uncompressedDataSize));
@@ -541,7 +536,7 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 
     if (iResult == static_cast<int>(HeaderSize)) {
         _headerId = header[0];
-        if (_headerId == DataId || _headerId == CompressedDataId) {
+        if (_headerId == DataId) {
             // parse the package _id
             std::memcpy(&packageId, header + 1, sizeof(packageId));
             std::memcpy(&dataSize, header + 5, sizeof(dataSize));
@@ -634,7 +629,7 @@ void Network::communicationHandler() {
 
     // init buffers
     char RecvHeader[HeaderSize];
-    memset(RecvHeader, DefaultId, HeaderSize);
+    std::memset(RecvHeader, DefaultId, HeaderSize);
 
     {
         std::unique_lock lk(_connectionMutex);
@@ -716,39 +711,11 @@ void Network::communicationHandler() {
                 break;
             }
             // handle sync communication
-            if (_headerId == DataId && decoderCallback != nullptr) {
+            if (_headerId == DataId && decoderCallback) {
                 if (dataSize > 0) {
                     decoderCallback(_recvBuffer.data(), dataSize, _id);
                 }
 
-                NetworkManager::cond.notify_all();
-            }
-            else if (_headerId == CompressedDataId && decoderCallback) {
-                // decode callback
-                if (dataSize > 0) {
-                    // parse the package _id
-                    uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
-    
-                    int err = uncompress(
-                        reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
-                        &uncompSize,
-                        reinterpret_cast<Bytef*>(_recvBuffer.data()),
-                        static_cast<uLongf>(dataSize)
-                    );
-                            
-                    if (err == Z_OK) {
-                        const int s = static_cast<int>(uncompSize);
-                        decoderCallback(_uncompressBuffer.data(), s, _id);
-                    }
-                    else {
-                        throw Error(
-                            5011,
-                            "Failed to uncompress data for connection " +
-                            std::to_string(_id) + ": " + getUncompressErrorAsStr(err)
-                        );
-                    }
-                }
-                        
                 NetworkManager::cond.notify_all();
             }
             else if (_headerId == ConnectedId && _connectedCallback) {
@@ -805,44 +772,13 @@ void Network::communicationHandler() {
             }
             //  Handle communication
             else {
-                if ((_headerId == DataId || _headerId == CompressedDataId) &&
-                    _packageDecoderCallback && dataSize > 0)
-                {
-                    if (_headerId == DataId) {
-                        // uncompressed
-                        _packageDecoderCallback(
-                            _recvBuffer.data(),
-                            dataSize,
-                            packageId,
-                            _id
-                        );
-                    }
-                    else {
-                        // compressed
-                        uLongf uncompSize = static_cast<uLongf>(uncompressedDataSize);
-                            
-                        const int err = uncompress(
-                            reinterpret_cast<Bytef*>(_uncompressBuffer.data()),
-                            &uncompSize,
-                            reinterpret_cast<Bytef*>(_recvBuffer.data()),
-                            static_cast<uLongf>(dataSize)
-                        );
-                            
-                        if (err == Z_OK) {
-                            _packageDecoderCallback(
-                                _uncompressBuffer.data(),
-                                static_cast<int>(uncompSize),
-                                packageId,
-                                _id
-                            );
-                        }
-                        else {
-                            throw Error(
-                                5012, "Failed to uncompress data for connection " +
-                                std::to_string(_id) + ": " + getUncompressErrorAsStr(err)
-                            );
-                        }
-                    }
+                if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
+                    _packageDecoderCallback(
+                        _recvBuffer.data(),
+                        dataSize,
+                        packageId,
+                        _id
+                    );
                         
                     // send acknowledge
                     uint32_t pLength = 0;

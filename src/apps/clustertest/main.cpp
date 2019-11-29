@@ -479,13 +479,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
                     Engine::instance().terminate();
                 }
                 break;
-            case Key::C:
-                if (action == Action::Press) {
-                    static bool useCompress = false;
-                    useCompress = !useCompress;
-                    SharedData::instance().setCompression(useCompress);
-                }
-                break;
             case Key::F:
                 if (action == Action::Press) {
                     frametest.setVal(!frametest.getVal());

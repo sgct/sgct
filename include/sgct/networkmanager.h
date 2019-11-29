@@ -57,15 +57,6 @@ public:
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, Network& connection);
 
-    /**
-     * Compression levels 1-9.
-     *   -1 = Default compression
-     *    0 = No compression
-     *    1 = Best speed
-     *    9 = Best compression
-     */
-    void setDataTransferCompression(bool state, int level = 1);
-
     unsigned int getActiveConnectionsCount() const;
     int getConnectionsCount() const;
     int getSyncConnectionsCount() const;
@@ -97,8 +88,6 @@ private:
     bool _isServer = true;
     bool _isRunning = true;
     bool _allNodesConnected = false;
-    std::atomic_bool _compress = false;
-    std::atomic_int _compressionLevel;
     NetworkMode _mode;
     unsigned int _nActiveConnections = 0;
     unsigned int _nActiveSyncConnections = 0;

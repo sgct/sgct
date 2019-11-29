@@ -30,22 +30,6 @@ public:
     static SharedData& instance();
     static void destroy();
 
-    /**
-     * Compression levels 1-9.
-     *   -1 = Default compression
-     *    0 = No compression
-     *    1 = Best speed
-     *    9 = Best compression
-     */
-    void setCompression(bool state, int level = 1);
-
-    /**
-     * Get the compresson ratio:
-     *   ratio = (compressed data size + Huffman tree)/(original data size)
-     * If the ratio is larger than 1.0 then there is no use for using compression.
-     */
-    float getCompressionRatio() const;
-
     template<class T>
     void writeObj(const SharedObject<T>& sobj);
     void writeFloat(const SharedFloat& sf);
@@ -135,13 +119,8 @@ private:
     static SharedData* _instance;
     std::vector<unsigned char> _dataBlock;
     std::vector<unsigned char> _dataBlockToCompress;
-    std::vector<unsigned char>* _currentStorage;
-    std::vector<unsigned char> _compressedBuffer;
     std::array<unsigned char, core::Network::HeaderSize> _headerSpace;
     unsigned int _pos = 0;
-    int _compressionLevel;
-    float _compressionRatio = 1.f;
-    bool _useCompression = false;
 };
 
 
@@ -152,7 +131,7 @@ void SharedData::writeObj(const SharedObject<T>& sobj) {
     
     std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(T));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(T));
 }
 
 template<class T>
@@ -172,14 +151,14 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
     core::mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
     core::mutex::DataSync.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
         core::mutex::DataSync.lock();
-        _currentStorage->insert(_currentStorage->end(), c, c + length);
+        _dataBlock.insert(_dataBlock.end(), c, c + length);
         core::mutex::DataSync.unlock();
     }
 }

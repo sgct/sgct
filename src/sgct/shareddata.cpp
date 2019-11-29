@@ -32,37 +32,12 @@ void SharedData::destroy() {
 SharedData::SharedData() {
     constexpr const int DefaultSize = 1024;
 
-    // use a compression buffer twice as large to fit huffman tree + data which can be
-    // larger than original data in some cases. Normally a sixe x 1.1 should be enough.
-    _compressedBuffer.resize(DefaultSize * 2);
-
     _dataBlock.reserve(DefaultSize);
     _dataBlockToCompress.reserve(DefaultSize);
 
-    _compressionLevel = Z_BEST_SPEED;
-    _currentStorage = _useCompression ? &_dataBlockToCompress : &_dataBlock;
-
     // fill rest of header with Network::DefaultId
-    memset(_headerSpace.data(), core::Network::DefaultId, core::Network::HeaderSize);
+    std::memset(_headerSpace.data(), core::Network::DefaultId, core::Network::HeaderSize);
     _headerSpace[0] = core::Network::DataId;
-}
-
-void SharedData::setCompression(bool state, int level) {
-    std::unique_lock lk(core::mutex::DataSync);
-    _useCompression = state;
-    _compressionLevel = level;
-
-    if (_useCompression) {
-        _currentStorage = &_dataBlockToCompress;
-    }
-    else {
-        _currentStorage = &_dataBlock;
-        _compressionRatio = 1.f;
-    }
-}
-
-float SharedData::getCompressionRatio() const {
-    return _compressionRatio;
 }
 
 void SharedData::setEncodeFunction(std::function<void()> fn) {
@@ -96,13 +71,7 @@ void SharedData::encode() {
     {
         std::unique_lock lk(core::mutex::DataSync);
         _dataBlock.clear();
-        if (_useCompression) {
-            _dataBlockToCompress.clear();
-            _headerSpace[0] = core::Network::CompressedDataId;
-        }
-        else {
-            _headerSpace[0] = core::Network::DataId;
-        }
+        _headerSpace[0] = core::Network::DataId;
 
         // reserve header space
         _dataBlock.insert(
@@ -114,57 +83,6 @@ void SharedData::encode() {
 
     if (_encodeFn) {
         _encodeFn();
-    }
-
-    if (_useCompression && !_dataBlockToCompress.empty()) {
-        // (abock, 2019-09-18); I was thinking of replacing this with a std::unique_lock
-        // but the mutex::DataSync lock is unlocked further down *before* sending a
-        // message to the MessageHandler which uses the mutex::DataSync internally.
-        core::mutex::DataSync.lock();
-
-        // Re-allocate as we need to use a compression buffer twice as large to fit
-        // huffman tree + data which can larger than original data in some cases.
-        if (_compressedBuffer.size() < (_dataBlockToCompress.size() / 2)) {
-            _compressedBuffer.resize(_dataBlockToCompress.size() * 2);
-        }
-
-        const uLongf dataSize = static_cast<uLongf>(_dataBlockToCompress.size());
-        uLongf compressedSize = static_cast<uLongf>(_compressedBuffer.size());
-        int err = compress2(
-            _compressedBuffer.data(),
-            &compressedSize,
-            _dataBlockToCompress.data(),
-            dataSize,
-            _compressionLevel
-        );
-
-        if (err == Z_OK) {
-            // add original size
-            uint32_t uncomprSize = static_cast<uint32_t>(_dataBlockToCompress.size());
-            unsigned char* p = reinterpret_cast<unsigned char*>(&uncomprSize);
-
-            _dataBlock[9] = p[0];
-            _dataBlock[10] = p[1];
-            _dataBlock[11] = p[2];
-            _dataBlock[12] = p[3];
-            
-            _compressionRatio = static_cast<float>(compressedSize) /
-                                static_cast<float>(uncomprSize);
-
-            // add the compressed block
-            _dataBlock.insert(
-                _dataBlock.end(),
-                _compressedBuffer.begin(),
-                _compressedBuffer.begin() + compressedSize
-            );
-        }
-        else {
-            core::mutex::DataSync.unlock();
-            MessageHandler::printError("Failed to compress data (error %d)", err);
-            return;
-        }
-
-        core::mutex::DataSync.unlock();
     }
 }
 
@@ -188,82 +106,82 @@ void SharedData::writeFloat(const SharedFloat& sf) {
     float val = sf.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(float));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(float));
 }
 
 void SharedData::writeDouble(const SharedDouble& sd) {
     double val = sd.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(double));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(double));
 }
 
 void SharedData::writeInt64(const SharedInt64& si) {
     int64_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char* >(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int64_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int64_t));
 }
 
 void SharedData::writeInt32(const SharedInt32& si) {
     int32_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int32_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int32_t));
 }
 
 void SharedData::writeInt16(const SharedInt16& si) {
     int16_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int16_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int16_t));
 }
 
 void SharedData::writeInt8(const SharedInt8& si) {
     int8_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(int8_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int8_t));
 }
 
 void SharedData::writeUInt64(const SharedUInt64& si) {
     uint64_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint64_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint64_t));
 }
 
 void SharedData::writeUInt32(const SharedUInt32& si) {
     uint32_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
 }
 
 void SharedData::writeUInt16(const SharedUInt16& si) {
     uint16_t val = si.getVal();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint16_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint16_t));
 }
 
 void SharedData::writeUInt8(const SharedUInt8& si) {
     uint8_t val = si.getVal();
     unsigned char* p = &val;
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint8_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint8_t));
 }
 
 void SharedData::writeUChar(const SharedUChar& suc) {
     unsigned char val = suc.getVal();
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->push_back(val);
+    _dataBlock.push_back(val);
 }
 
 void SharedData::writeBool(const SharedBool& sb) {
     bool val = sb.getVal();
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->push_back(val ? 1 : 0);
+    _dataBlock.push_back(val ? 1 : 0);
 }
 
 void SharedData::writeString(const SharedString& ss) {
@@ -272,8 +190,8 @@ void SharedData::writeString(const SharedString& ss) {
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
-    _currentStorage->insert(_currentStorage->end(), tmpStr.data(), tmpStr.data() + length);
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
+    _dataBlock.insert(_dataBlock.end(), tmpStr.data(), tmpStr.data() + length);
 }
 
 void SharedData::writeWString(const SharedWString& ss) {
@@ -283,8 +201,8 @@ void SharedData::writeWString(const SharedWString& ss) {
     unsigned char* ws = reinterpret_cast<unsigned char*>(&tmpStr[0]);
 
     std::unique_lock lk(core::mutex::DataSync);
-    _currentStorage->insert(_currentStorage->end(), p, p + sizeof(uint32_t));
-    _currentStorage->insert(_currentStorage->end(), ws, ws + length * sizeof(wchar_t));
+    _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
+    _dataBlock.insert(_dataBlock.end(), ws, ws + length * sizeof(wchar_t));
 }
 
 void SharedData::readFloat(SharedFloat& sf) {

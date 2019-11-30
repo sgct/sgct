@@ -35,10 +35,8 @@ ClusterManager::ClusterManager() {
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     _masterAddress = cluster.masterAddress;
-    if (cluster.debug) {
-        Logger::instance().setNotifyLevel(
-            *cluster.debug ? Logger::Level::Debug : Logger::Level::Warning
-        );
+    if (cluster.debugLog && *cluster.debugLog) {
+        Logger::instance().setNotifyLevel(Logger::Level::Debug);
     }
     if (cluster.externalControlPort) {
         setExternalControlPort(*cluster.externalControlPort);

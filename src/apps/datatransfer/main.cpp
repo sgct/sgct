@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
     Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(cluster);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

@@ -49,37 +49,15 @@ config::Cluster loadCluster(std::optional<std::string> path);
 class Engine {
 public:
     /// The different run modes used by the init function
-    enum class RunMode { 
-        /// Using a programmable OpenGL 3.3 pipeline using a core profile
-        Default_Mode = 0,
-        OpenGL_3_3_Core_Profile = 0,
-        /// Using a programmable OpenGL 4.0 pipeline using a core profile
-        OpenGL_4_0_Core_Profile,
-        /// Using a programmable OpenGL 4.1 pipeline using a core profile
-        OpenGL_4_1_Core_Profile,
-        /// Using a programmable OpenGL 4.2 pipeline using a core profile
-        OpenGL_4_2_Core_Profile,
-        /// Using a programmable OpenGL 4.3 pipeline using a core profile
-        OpenGL_4_3_Core_Profile,
-        /// Using a programmable OpenGL 4.4 pipeline using a core profile
-        OpenGL_4_4_Core_Profile,
-        /// Using a programmable OpenGL 4.5 pipeline using a core profile
-        OpenGL_4_5_Core_Profile,
-        /// Using a programmable OpenGL 4.6 pipeline using a core profile
-        OpenGL_4_6_Core_Profile,
-
-        /// Using a programmable OpenGL 4.1 pipeline using a core debug profile
-        OpenGL_4_1_Debug_Core_Profile,
-        /// Using a programmable OpenGL 4.2 pipeline using a core debug profile
-        OpenGL_4_2_Debug_Core_Profile,
-        /// Using a programmable OpenGL 4.3 pipeline using a core debug profile
-        OpenGL_4_3_Debug_Core_Profile,
-        /// Using a programmable OpenGL 4.4 pipeline using a core debug profile
-        OpenGL_4_4_Debug_Core_Profile,
-        /// Using a programmable OpenGL 4.5 pipeline using a core debug profile
-        OpenGL_4_5_Debug_Core_Profile,
-        /// Using a programmable OpenGL 4.6 pipeline using a core debug profile
-        OpenGL_4_6_Debug_Core_Profile
+    enum class Profile { 
+        OpenGL_3_3_Core,
+        OpenGL_4_0_Core,
+        OpenGL_4_1_Core,
+        OpenGL_4_2_Core,
+        OpenGL_4_3_Core,
+        OpenGL_4_4_Core,
+        OpenGL_4_5_Core,
+        OpenGL_4_6_Core
     };
 
     enum class RenderTarget { WindowBuffer, NonLinearBuffer };
@@ -87,13 +65,11 @@ public:
     struct Statistics {
         static inline const int HistoryLength = 512;
 
-        Statistics();
-
-        std::array<double, HistoryLength> frametimes;
-        std::array<double, HistoryLength> drawTimes;
-        std::array<double, HistoryLength> syncTimes;
-        std::array<double, HistoryLength> loopTimeMin;
-        std::array<double, HistoryLength> loopTimeMax;
+        std::array<double, HistoryLength> frametimes = {};
+        std::array<double, HistoryLength> drawTimes = {};
+        std::array<double, HistoryLength> syncTimes = {};
+        std::array<double, HistoryLength> loopTimeMin = {};
+        std::array<double, HistoryLength> loopTimeMax = {};
     };
 
     static Engine& instance();
@@ -114,7 +90,7 @@ public:
      * \param rm The optional run mode.
      * \param cluster The cluster setup that should be used for this SGCT run
      */
-    void init(RunMode rm, config::Cluster cluster);
+    void init(config::Cluster cluster, Profile rm = Profile::OpenGL_3_3_Core);
 
     /// Terminates SGCT
     void terminate();
@@ -184,15 +160,6 @@ public:
 
     /// \return the active draw texture
     unsigned int getCurrentDrawTexture() const;
-
-    /// \return the active depth texture if depth texture rendering is enabled
-    unsigned int getCurrentDepthTexture() const;
-
-    /// \return the active normal texture if normal texture rendering is enabled
-    unsigned int getCurrentNormalTexture() const;
-
-    /// \return the active position texture if position texture rendering is enabled
-    unsigned int getCurrentPositionTexture() const;
 
     /// \return the resolution in pixels for the active window's framebuffer
     glm::ivec2 getCurrentResolution() const;
@@ -498,23 +465,6 @@ public:
     static void getMousePos(int winIndex, double* xPos, double* yPos);
 
     /**
-     * Set the mouse position.
-     *
-     * \param winIndex specifies which window's input to set
-     * \param xPos x screen coordinate
-     * \param yPos y screen coordinate
-     */
-    static void setMousePos(int winIndex, double xPos, double yPos);
-    
-    /**
-     * Set the mouse cursor/pointer visibility.
-     *
-     * \param winIndex specifies which window's input to set
-     * \param state set to true if mouse cursor should be visible
-     */
-    static void setMouseCursorVisibility(int winIndex, bool state);
-
-    /**
      * Returns the name of the requested joystick
      *
      * \param joystick is the joystick id. Available IDs are in the joystick.h
@@ -604,18 +554,6 @@ public:
     /// Get the active viewport size in pixels.
     glm::ivec2 getCurrentViewportSize() const;
 
-    /**
-     * Get the active FBO buffer size. Each window has its own buffer plus any additional
-     * non-linear projection targets.
-     */
-    glm::ivec2 getCurrentDrawBufferSize() const;
-
-    /**
-     * Get all the available FBO buffer sizes. Each window has its own buffer plus any
-     * additional non-linear projection targets.
-     */
-    const std::vector<glm::ivec2>& getDrawBufferResolutions() const;
-
     /// \return the active render target.
     RenderTarget getCurrentRenderTarget() const;
 
@@ -656,7 +594,7 @@ private:
     void initNetwork();
 
     /// Create and initiate a window.
-    void initWindows();
+    void initWindows(Profile rm);
 
     /// Initiates OpenGL.
     void initOGL();
@@ -675,8 +613,6 @@ private:
 
     /// This function renders basic text info and statistics on screen.
     void renderDisplayInfo();
-
-    void updateDrawBufferResolutions();
 
     /**
      * This function enters the correct viewport, frustum, stereo mode and calls the draw
@@ -752,59 +688,44 @@ private:
     > _screenShotFn;
     std::function<void(GLFWwindow*)> _contextCreationFn;
     
-    float _nearClippingPlaneDist = 0.1f;
-    float _farClippingPlaneDist = 100.f;
+    float _nearClipPlane = 0.1f;
+    float _farClipPlane = 100.f;
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     core::Frustum::Mode _currentFrustumMode = core::Frustum::Mode::MonoEye;
     glm::ivec4 _currentViewportCoords = glm::ivec4(0, 0, 640, 480);
-    std::vector<glm::ivec2> _drawBufferResolutions;
     size_t _currentDrawBufferIndex = 0;
-
     int _currentWindowIndex = 0;
 
-    struct {
-        double prevTimestamp = 0.0;
-        unsigned int lastAvgFrameCounter = 0;
-        double lastAvgTimestamp = 0.0;
-    } stats;
-
     Statistics _statistics;
+    double _statsPrevTimestamp = 0.0;
     std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
 
-    struct {
-        int main = 0;
-        int sub = 0;
-    } _currentViewportIndex;
+    int _currentViewportIndex = 0;
     RenderTarget _currentRenderTarget = RenderTarget::WindowBuffer;
 
     bool _showInfo = false;
-    bool _showGraph = false;
     bool _checkOpenGLCalls = false;
+    bool _createDebugContext = false;
     bool _checkFBOs = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
     bool _renderingOffScreen = false;
-    bool _helpMode = false;
 
     bool _printSyncMessage = true;
     float _syncTimeout = 60.f;
 
-    struct {
-        ShaderProgram fboQuad;
-        ShaderProgram fxaa;
-        ShaderProgram overlay;
-    } _shader;
-
-    struct {
-        int monoTex = -1;
-        int overlayTex = -1;
+    struct FXAAShader {
+        ShaderProgram shader;
         int sizeX = -1;
         int sizeY = -1;
-        int fxaaSubPixTrim = -1;
-        int fxaaSubPixOffset = -1;
-        int fxaaTexture = -1;
-    } _shaderLoc;
+        int subPixTrim = -1;
+        int subPixOffset = -1;
+    };
+    std::optional<FXAAShader> _fxaa;
+
+    ShaderProgram _fboQuad;
+    ShaderProgram _overlay;
 
     std::unique_ptr<std::thread> _thread;
 
@@ -813,12 +734,8 @@ private:
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;
 
-    RunMode _runMode = RunMode::Default_Mode;
     core::NetworkManager::NetworkMode _networkMode =
         core::NetworkManager::NetworkMode::Remote;
-
-    unsigned int _timeQueryBegin = 0;
-    unsigned int _timeQueryEnd = 0;
 };
 
 } // namespace sgct

@@ -32,6 +32,7 @@ struct Configuration {
     std::optional<int> nCaptureThreads;
     std::optional<bool> checkOpenGL;
     std::optional<bool> checkFBOs;
+    std::optional<bool> useOpenGLDebugContext;
 };
 
 /**

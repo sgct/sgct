@@ -625,7 +625,7 @@ int main(int argc, char* argv[]) {
     Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
     try {
-        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(cluster);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

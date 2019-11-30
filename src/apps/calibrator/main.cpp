@@ -340,6 +340,7 @@ void cleanUp() {
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
+    config.fxaa = true;
     config::Cluster cluster = loadCluster(config.configFilename);
     Engine::create(config);
 
@@ -370,7 +371,7 @@ int main(int argc, char* argv[]) {
     Engine::instance().setDecodeFunction(decode);
 
     try {
-        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(cluster);
         Engine::instance().render();
     }
     catch (const std::runtime_error& e) {

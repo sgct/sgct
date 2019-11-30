@@ -14,8 +14,6 @@
 #include <string>
 #include <vector>
 
-// @TODO (abock, 2019-11-28) Rename class to Logger
-
 namespace sgct {
 
 class Logger {

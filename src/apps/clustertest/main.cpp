@@ -514,16 +514,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
                     Engine::instance().sendMessageToExternalControl("Testing!!\r\n");
                 }
                 break;
-            case Key::M:
-                if (action == Action::Press) {
-                    static bool mousePointer = true;
-                    mousePointer = !mousePointer;
-
-                    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
-                        Engine::setMouseCursorVisibility(i, mousePointer);
-                    }
-                }
-                break;
             case Key::F9:
                 if (action == Action::Press) {
                     slowRendering.setVal(!slowRendering.getVal());
@@ -574,7 +564,7 @@ int main(int argc, char* argv[]) {
     Engine::instance().setPostDrawFunction(postDrawFun);
 
     try {
-        Engine::instance().init(Engine::RunMode::Default_Mode, cluster);
+        Engine::instance().init(cluster);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

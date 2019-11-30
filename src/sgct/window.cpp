@@ -329,6 +329,11 @@ void Window::close() {
     _currentViewport = nullptr;
     _viewports.clear();
 
+    glfwSetWindowSizeCallback(_windowHandle, nullptr);
+    glfwSetFramebufferSizeCallback(_windowHandle, nullptr);
+    glfwSetWindowFocusCallback(_windowHandle, nullptr);
+    glfwSetWindowIconifyCallback(_windowHandle, nullptr);
+
 #ifdef WIN32
     if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
         wglBindSwapBarrierNV(1, 0); // un-bind

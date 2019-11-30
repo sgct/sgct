@@ -940,7 +940,7 @@ namespace {
             throw Err(6083, "Cannot find master address or DNS name in XML");
         }
 
-        cluster.debug = parseValue<bool>(root, "debug");
+        cluster.debugLog = parseValue<bool>(root, "debugLog");
         cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");
         cluster.checkFBOs = parseValue<bool>(root, "checkFBO");
         cluster.externalControlPort = parseValue<int>(root, "externalControlPort");

@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     Engine::instance().setDecodeFunction(decodeFun);
 
     try {
-        Engine::instance().init(Engine::RunMode::OpenGL_3_3_Core_Profile, cluster);
+        Engine::instance().init(cluster);
         Engine::instance().render();
     }
     catch (const std::runtime_error& e) {

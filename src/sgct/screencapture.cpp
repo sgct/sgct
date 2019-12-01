@@ -16,6 +16,10 @@
 #include <cstring>
 #include <string>
 
+// @TODO (abock, 2019-12-01) This class might want a complete overhaul; right now, there
+// is one instance of this class for each window, and it might be better to replace it
+// with a global version that keeps threads usable by all windows of the application
+
 namespace {
     void screenCaptureHandler(void* arg) {
         using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
@@ -33,19 +37,20 @@ namespace {
     GLenum sourceForCaptureSource(sgct::core::ScreenCapture::CaptureSource source) {
         using Source = sgct::core::ScreenCapture::CaptureSource;
         switch (source) {
-            default:
             case Source::BackBuffer: return GL_BACK;
             case Source::LeftBackBuffer: return GL_BACK_LEFT;
             case Source::RightBackBuffer: return GL_BACK_RIGHT;
+            default: throw std::logic_error("Unhandled case label");
         }
     }
 
     GLenum getDownloadFormat(int nChannels) {
         switch (nChannels) {
-            default: return GL_BGRA;
             case 1: return GL_RED;
             case 2: return GL_RG;
             case 3: return GL_BGR;
+            case 4: return GL_BGRA;
+            default: throw std::logic_error("Unhandled case label");
         }
     }
 } // namespace
@@ -121,11 +126,12 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
-    Image* imPtr = prepareImage(threadIndex, std::move(file));
-    if (!imPtr) {
+    if (threadIndex == -1) {
+        Logger::Error("Error finding available capture thread");
         return;
     }
-    
+
+    Image* imPtr = prepareImage(threadIndex, std::move(file));
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
         
@@ -148,17 +154,12 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     if (ptr) {
         std::memcpy(imPtr->getData(), ptr, _dataSize);
 
-        if (_captureCallback) {
-            _captureCallback(imPtr, _windowIndex, _eyeIndex, _downloadType);
-        }
-        else if (_bytesPerColor <= 2) {
-            // save the image
-            _captureInfos[threadIndex].isRunning = true;
-            _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
-                screenCaptureHandler,
-                &_captureInfos[threadIndex]
-            );
-        }
+        // save the image
+        _captureInfos[threadIndex].isRunning = true;
+        _captureInfos[threadIndex].captureThread = std::make_unique<std::thread>(
+            screenCaptureHandler,
+            &_captureInfos[threadIndex]
+        );
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     else {
@@ -254,8 +255,7 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         filename += '_' + std::to_string(frameNumber);
     }
 
-    filename += '.' + suffix;
-    return filename;
+    return filename + '.' + suffix;
 }
 
 int ScreenCapture::getAvailableCaptureThread() {
@@ -266,8 +266,7 @@ int ScreenCapture::getAvailableCaptureThread() {
                 return i;
             }
 
-            bool running = _captureInfos[i].isRunning;
-            if (!running) {
+            if (!_captureInfos[i].isRunning) {
                 _captureInfos[i].captureThread->join();
                 _captureInfos[i].captureThread = nullptr;
 
@@ -299,11 +298,6 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 }
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
-    if (index == -1) {
-        Logger::Error("Error finding available capture thread");
-        return nullptr;
-    }
-
     Logger::Debug("Starting thread for screenshot/capture [%d]", index);
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
@@ -320,12 +314,6 @@ Image* ScreenCapture::prepareImage(int index, std::string file) {
     _captureInfos[index].filename = std::move(file);
 
     return _captureInfos[index].frameBufferImage.get();
-}
-
-void ScreenCapture::setCaptureCallback(
-                      std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback)
-{
-    _captureCallback = std::move(callback);
 }
 
 } // namespace sgct::core

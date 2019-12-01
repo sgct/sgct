@@ -21,11 +21,7 @@ namespace sgct::core {
 
 class Image;
 
-/**
- * This class is used internally by SGCT and is called when using the takeScreenshot
- * function from the Engine.
- * Screenshots are saved as PNG or TGA images and and can also be used for movie recording
- */
+/// This class is used internally by SGCT and is called when taking screenshots
 class ScreenCapture {
 public:
     /// The different file formats supported
@@ -74,16 +70,6 @@ public:
         CaptureSource capSrc = CaptureSource::Texture);
     void setPathAndFileName(std::string path, std::string filename);
 
-    /**
-     * Set the screen capture callback
-     *
-     * Parameters are: image pointer to captured image, window index, eye index and
-     * OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
-     * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
-     */
-    void setCaptureCallback(
-        std::function<void(Image*, size_t, EyeIndex, GLenum type)> callback);
-
 private:
     std::string addFrameNumberToFilename(unsigned int frameNumber);
     int getAvailableCaptureThread();
@@ -102,8 +88,6 @@ private:
     glm::ivec2 _resolution = glm::ivec2(0);
     int _nChannels = 0;
     int _bytesPerColor = 1;
-
-    std::function<void(Image*, size_t, EyeIndex, GLenum type)> _captureCallback;
 
     std::string _baseName;
     std::string _path;

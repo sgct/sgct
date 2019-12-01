@@ -14,6 +14,7 @@
 #include <sgct/screencapture.h>
 #include <sgct/viewport.h>
 #include <glm/glm.hpp>
+#include <optional>
 #include <vector>
 
 struct GLFWmonitor;
@@ -45,7 +46,7 @@ public:
         TopBottomInverted
     };
 
-    enum class Context { Shared = 0, Window, Unset };
+    enum class Context { Shared = 0, Window };
 
     enum class ColorBitDepth {
         Depth8,
@@ -81,7 +82,6 @@ public:
     static void initNvidiaSwapGroups();
 
     /// Force a restore of the shared OpenGL context
-    static void restoreSharedContext();
     static void resetSwapGroupFrameNumber();
     static void setBarrier(bool state);
     static bool isBarrierActive();
@@ -118,10 +118,10 @@ public:
      * This function is used internally within sgct to open the window.
      *
      * \param share The context that is shared between windows. Might be nullptr
-     * \param lastWindow the index of the last window. This is necessary as we only want
-     *        to set the vsync setting once per node
+     * \param isLastWindow Whether this is the last window. This is required to know as we
+     *        only want to set the vsync setting once per node
      */
-    void openWindow(GLFWwindow* share, int lastWindow);
+    void openWindow(GLFWwindow* share, bool isLastWindow);
 
     /**
      * Set this window's or the shared OpenGL context as current. This function keeps
@@ -150,9 +150,6 @@ public:
     
     /// Set the focued flag for this window (should not be done by user)
     void setFocused(bool state);
-
-    /// Set the iconified flag for this window (should not be done by user)
-    void setIconified(bool state);
 
     /**
      * Set the window title.
@@ -251,15 +248,6 @@ public:
      */
     void setAlpha(bool state);
 
-    /// Set monitor gamma (works only if fullscreen)
-    void setGamma(float gamma);
-
-    /// Set monitor contrast in range [0.5, 1.5] (works only if fullscreen)
-    void setContrast(float contrast);
-
-    /// Set monitor brightness in range [0.5, 1.5] (works only if fullscreen)
-    void setBrightness(float brightness);
-
     /// Set the color bit depth of the FBO and Screencapture.
     void setColorBitDepth(ColorBitDepth cbd);
 
@@ -274,9 +262,6 @@ public:
 
     /// \return this window's focused flag
     bool isFocused() const;
-
-    /// \return this window's inconify flag 
-    bool isIconified() const;
 
     /// \return if the window is visible or not
     bool isVisible() const;
@@ -295,9 +280,6 @@ public:
 
     /// \return the name of this window
     const std::string& getName() const;
-
-    /// \return the tags of this window
-    const std::vector<std::string>& getTags() const;
 
     /// \return true if a specific tag exists
     bool hasTag(const std::string& tag) const;
@@ -337,9 +319,6 @@ public:
     /// Returns pointer to FBO container
     core::OffScreenBuffer* getFBO() const;
 
-    /// \return pointer to GLFW monitor
-    GLFWmonitor* getMonitor() const;
-
     /// \return pointer to GLFW window
     GLFWwindow* getWindowHandle() const;
 
@@ -360,15 +339,6 @@ public:
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;
-
-    /// Get monitor gamma value (works only if fullscreen)
-    float getGamma() const;
-
-    /// Get monitor contrast value (works only if fullscreen)
-    float getContrast() const;
-
-    /// Get monitor brightness value (works only if fullscreen)
-    float getBrightness() const;
 
     /// Get the color bit depth of the FBO and Screencapture.
     ColorBitDepth getColorBitDepth() const;
@@ -403,8 +373,7 @@ public:
     /// \return Get the frame buffer bytes per color component (BPCC) count.
     int getFramebufferBPCC() const;
 
-    void bindVAO() const;
-    void unbindVAO() const;
+    void renderScreenQuad() const;
 
     /// Add a post effect for this window
     void addPostFX(PostFX fx);
@@ -446,16 +415,14 @@ private:
     /// Create vertex buffer objects used to render framebuffer quad
     void createVBOs();
     void loadShaders();
-    void updateTransferCurve();
     bool useRightEyeTexture() const;
 
     std::string _name;
     std::vector<std::string> _tags;
 
     bool _isVisible = true;
-    bool _renderWhileHidden = false;
+    bool _shouldRenderWhileHidden = false;
     bool _hasFocus = false;
-    bool _isIconified = false;
     bool _useFixResolution = false;
     bool _isWindowResolutionSet = false;
     bool _hasCallDraw2DFunction = true;
@@ -470,20 +437,14 @@ private:
     bool _hasAlpha = false;
     glm::ivec2 _framebufferRes = glm::ivec2(512, 256);
     glm::ivec2 _windowInitialRes = glm::ivec2(640, 480);
-    bool _hasPendingWindowRes = false;
-    glm::ivec2 _pendingWindowRes = glm::ivec2(0, 0);
-    bool _hasPendingFramebufferRes = false;
-    glm::ivec2 _pendingFramebufferRes = glm::ivec2(0, 0);
+    std::optional<glm::ivec2> _pendingWindowRes;
+    std::optional<glm::ivec2> _pendingFramebufferRes;
     glm::ivec2 _windowRes = glm::ivec2(640, 480);
     glm::ivec2 _windowPos = glm::ivec2(0, 0);
     glm::ivec2 _windowResOld = glm::ivec2(640, 480);
     int _monitorIndex = 0;
-    GLFWmonitor* _monitor = nullptr;
     GLFWwindow* _windowHandle = nullptr;
     float _aspectRatio = 1.f;
-    float _gamma = 1.f;
-    float _contrast = 1.f;
-    float _brightness = 1.f;
     glm::vec2 _scale = glm::vec2(0.f, 0.f);
 
     bool _useFXAA = false;
@@ -515,7 +476,6 @@ private:
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 
-    //Shaders
     struct {
         ShaderProgram shader;
         int leftTexLoc = -1;

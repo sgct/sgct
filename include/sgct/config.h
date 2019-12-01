@@ -251,9 +251,6 @@ struct Window {
     std::optional<bool> alwaysRender;
     std::optional<bool> isHidden;
     std::optional<bool> doubleBuffered;
-    std::optional<float> gamma;
-    std::optional<float> contrast;
-    std::optional<float> brightness;
     std::optional<int> msaa;
     std::optional<bool> hasAlpha;
     std::optional<bool> useFxaa;

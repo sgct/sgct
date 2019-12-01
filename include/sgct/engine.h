@@ -298,16 +298,6 @@ public:
     void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
 
     /**
-     * This callback must be set before Engine::init is called. Parameters to the callback
-     * are: Image pointer for image data, window index, eye index, download type
-     *
-     * \param fn is the function pointer to a screenshot callback for custom frame
-     *        capture & export
-     */
-    void setScreenShotCallback(std::function<void(core::Image*, size_t,
-        core::ScreenCapture::EyeIndex, GLenum type)> fn);
-
-    /**
      * This function sets the external control message callback which will be called when
      * a TCP message is received. The TCP listner is enabled in the XML configuration file
      * in the Cluster tag by externalControlPort, where the portnumber is an integer
@@ -663,9 +653,6 @@ private:
     std::function<void(void*, int, int, int)> _dataTransferDecodeCallbackFn;
     std::function<void(bool, int)> _dataTransferStatusCallbackFn;
     std::function<void(int, int)> _dataTransferAcknowledgeCallbackFn;
-    std::function<
-        void(core::Image*, size_t, core::ScreenCapture::EyeIndex, GLenum)
-    > _screenShotFn;
     std::function<void(GLFWwindow*)> _contextCreationFn;
     
     float _nearClipPlane = 0.1f;

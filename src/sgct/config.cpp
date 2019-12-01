@@ -208,28 +208,16 @@ void validateWindow(const Window& w) {
         }
     }
 
-    if (w.gamma && *w.gamma <= 0.1f) {
-        throw Error(1102, "Gamma value must be at least 0.1");
-    }
-
-    if (w.contrast && *w.contrast <= 0.f) {
-        throw Error(1103, "Contrast value must be postive");
-    }
-
-    if (w.brightness && *w.brightness <= 0.f) {
-        throw Error(1104, "Brightness value must be positive");
-    }
-
     if (w.msaa && *w.msaa < 0) {
-        throw Error(1105, "Number of MSAA samples must be non-negative");
+        throw Error(1102, "Number of MSAA samples must be non-negative");
     }
 
     if (w.monitor && *w.monitor < 0) {
-        throw Error(1106, "Monitor index must be non-negative");
+        throw Error(1103, "Monitor index must be non-negative");
     }
 
     if (w.mpcdi && w.mpcdi->empty()) {
-        throw Error(1107, "MPCDI file must not be empty");
+        throw Error(1104, "MPCDI file must not be empty");
     }
 
     std::for_each(w.viewports.begin(), w.viewports.end(), validateViewport);

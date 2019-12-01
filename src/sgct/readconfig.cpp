@@ -610,9 +610,6 @@ namespace {
         window.alwaysRender = parseValue<bool>(elem, "alwaysRender");
         window.isHidden = parseValue<bool>(elem, "hidden");
         window.doubleBuffered = parseValue<bool>(elem, "dbuffered");
-        window.gamma = parseValue<float>(elem, "gamma");
-        window.contrast = parseValue<float>(elem, "contrast");
-        window.brightness = parseValue<float>(elem, "brightness");
 
         window.msaa = parseValue<int>(elem, "numberOfSamples");
         window.msaa = parseValue<int>(elem, "msaa");

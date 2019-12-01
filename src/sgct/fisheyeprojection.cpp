@@ -202,10 +202,7 @@ void FisheyeProjection::renderCubemap() {
             glUniform1f(_shaderLoc.swapNearLoc, Engine::instance().getNearClipPlane());
             glUniform1f(_shaderLoc.swapFarLoc, Engine::instance().getFarClipPlane());
 
-            Engine::instance().getCurrentWindow().bindVAO();
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance().getCurrentWindow().unbindVAO();
-
+            Engine::instance().getCurrentWindow().renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);

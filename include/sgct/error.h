@@ -52,12 +52,9 @@ namespace sgct {
     1095: Viewport / Mesh hint must not be empty
     1100: Window / Window name must not be empty
     1101: Window / Empty tags are not allowed for windows
-    1102: Window / Gamma value must be at least 0.1
-    1103: Window / Contrast value must be postive
-    1104: Window / Brightness value must be positive
-    1105: Window / Number of MSAA samples must be non-negative
-    1106: Window / Monitor index must be non-negative
-    1107: Window / MPCDI file must not be empty
+    1102: Window / Number of MSAA samples must be non-negative
+    1103: Window / Monitor index must be non-negative
+    1104: Window / MPCDI file must not be empty
     1110: Node / Node address must not be empty
     1111: Node / Node port must be non-negative
     1112: Node / Node data transfer port must be non-negative

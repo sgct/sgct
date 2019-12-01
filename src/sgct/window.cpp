@@ -87,16 +87,6 @@ namespace {
             }
         }
     }
-
-    void windowIconifyCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance().getThisNode();
-
-        for (int i = 0; i < node.getNumberOfWindows(); i++) {
-            if (node.getWindow(i).getWindowHandle() == window) {
-                node.getWindow(i).setIconified(state == GLFW_TRUE);
-            }
-        }
-    }
 } // namespace
 
 namespace sgct {
@@ -104,7 +94,6 @@ namespace sgct {
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
-GLFWwindow* Window::_currentContextOwner = nullptr;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
 Window::Window(int id) : _id(id) {}
@@ -155,15 +144,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);
-    }
-    if (window.gamma) {
-        setGamma(*window.gamma);
-    }
-    if (window.contrast) {
-        setContrast(*window.contrast);
-    }
-    if (window.brightness) {
-        setBrightness(*window.brightness);
     }
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
@@ -271,10 +251,6 @@ const std::string& Window::getName() const {
     return _name;
 }
 
-const std::vector<std::string>& Window::getTags() const {
-    return _tags;
-}
-
 bool Window::hasTag(const std::string& tag) const {
     return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
 }
@@ -285,10 +261,6 @@ int Window::getId() const {
 
 bool Window::isFocused() const {
     return _hasFocus;
-}
-
-bool Window::isIconified() const {
-    return _isIconified;
 }
 
 void Window::close() {
@@ -344,7 +316,6 @@ void Window::init() {
         glfwSetWindowSizeCallback(_windowHandle, windowResizeCallback);
         glfwSetFramebufferSizeCallback(_windowHandle, frameBufferResizeCallback);
         glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
-        glfwSetWindowIconifyCallback(_windowHandle, windowIconifyCallback);
     }
 
     std::string title = "SGCT node: " +
@@ -549,15 +520,11 @@ void Window::setVisible(bool state) {
 }
 
 void Window::setRenderWhileHidden(bool state) {
-    _renderWhileHidden = state;
+    _shouldRenderWhileHidden = state;
 }
 
 void Window::setFocused(bool state) {
     _hasFocus = state;
-}
-
-void Window::setIconified(bool state) {
-    _isIconified = state;
 }
 
 void Window::setWindowTitle(const char* title) {
@@ -565,15 +532,14 @@ void Window::setWindowTitle(const char* title) {
 }
 
 void Window::setWindowResolution(glm::ivec2 resolution) {
-    // In case this callback gets triggered from elsewhere than sgct's glfwPollEvents, we
+    // In case this callback gets triggered from elsewhere than SGCT's glfwPollEvents, we
     // want to make sure the actual resizing is deferred to the end of the frame. This can
     // happen if some other library pulls events from the operating system for example by
-    // calling nextEventMatchingMask (MacOS) or PeekMessageW (Windows). If we were to set
-    // the actual _windowRes directly, we may render half a frame with resolution and the
-    // other half with resolution b, which is undefined behaviour. mHasNewPendingWindowRes
-    // is checked in Window::updateResolution, which is called from SGCTEngine's
-    // render loop after glfwPollEvents.
-    _hasPendingWindowRes = true;
+    // calling nextEventMatchingMask (MacOS) or PeekMessage (Windows). If we were to set
+    // the actual resolution directly, we may render half a frame with resolution A and
+    // the other half with resolution b, which is undefined behaviour.
+    // _hasPendingWindowRes is checked in Window::updateResolution, which is called from
+    // Engine's render loop after glfwPollEvents.
     _pendingWindowRes = std::move(resolution);
 }
 
@@ -581,13 +547,12 @@ void Window::setFramebufferResolution(glm::ivec2 resolution) {
     // Defer actual update of framebuffer resolution until next call to updateResolutions.
     // (Same reason as described for setWindowResolution above.)
     if (!_useFixResolution) {
-        _hasPendingFramebufferRes = true;
         _pendingFramebufferRes = std::move(resolution);
     }
 }
 
 void Window::swap(bool takeScreenshot) {
-    if (!(_isVisible || _renderWhileHidden)) {
+    if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }
 
@@ -634,8 +599,8 @@ void Window::swap(bool takeScreenshot) {
 }
 
 void Window::updateResolutions() {
-    if (_hasPendingWindowRes) {
-        _windowRes = _pendingWindowRes;
+    if (_pendingWindowRes.has_value()) {
+        _windowRes = *_pendingWindowRes;
         float ratio = static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
 
         // Set field of view of each of this window's viewports to match new aspect ratio,
@@ -657,19 +622,18 @@ void Window::updateResolutions() {
         Logger::Debug(
             "Resolution changed to %dx%d in window %d", _windowRes.x, _windowRes.y, _id
         );
-
-        _hasPendingWindowRes = false;
+        _pendingWindowRes = std::nullopt;
     }
 
-    if (_hasPendingFramebufferRes) {
-        _framebufferRes = _pendingFramebufferRes;
+    if (_pendingFramebufferRes.has_value()) {
+        _framebufferRes = *_pendingFramebufferRes;
 
         Logger::Debug(
             "Framebuffer resolution changed to %dx%d for window %d",
             _framebufferRes.x, _framebufferRes.y, _id
         );
 
-        _hasPendingFramebufferRes = false;
+        _pendingFramebufferRes = std::nullopt;
     }
 }
 
@@ -737,18 +701,7 @@ bool Window::update() {
 }
 
 void Window::makeOpenGLContextCurrent(Context context) {
-    if (context == Context::Shared && _currentContextOwner != _sharedHandle) {
-        glfwMakeContextCurrent(_sharedHandle);
-        _currentContextOwner = _sharedHandle;
-    }
-    else if (context == Context::Window && _currentContextOwner != _windowHandle) {
-        glfwMakeContextCurrent(_windowHandle);
-        _currentContextOwner = _windowHandle;
-    }
-}
-
-void Window::restoreSharedContext() {
-    glfwMakeContextCurrent(_sharedHandle);
+    glfwMakeContextCurrent(context == Context::Shared ? _sharedHandle : _windowHandle);
 }
 
 bool Window::isWindowResized() const {
@@ -784,7 +737,7 @@ bool Window::isVisible() const {
 }
 
 bool Window::isRenderingWhileHidden() const {
-    return _renderWhileHidden;
+    return _shouldRenderWhileHidden;
 }
 
 bool Window::isFixResolution() const {
@@ -868,7 +821,7 @@ void Window::setBlitPreviousWindow(bool state) {
     }
 }
 
-void Window::openWindow(GLFWwindow* share, int lastWindow) {
+void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
@@ -884,6 +837,7 @@ void Window::openWindow(GLFWwindow* share, int lastWindow) {
 
     setUseQuadbuffer(_stereoMode == StereoMode::Active);
 
+    GLFWmonitor* monitor = nullptr;
     if (_isFullScreen) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
@@ -894,10 +848,10 @@ void Window::openWindow(GLFWwindow* share, int lastWindow) {
         }
         
         if (_monitorIndex > 0 && _monitorIndex < count) {
-            _monitor = monitors[_monitorIndex];
+            monitor = monitors[_monitorIndex];
         }
         else {
-            _monitor = glfwGetPrimaryMonitor();
+            monitor = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
                 Logger::Info(
                     "Window(%d): Invalid monitor index (%d). Computer has %d monitors",
@@ -907,12 +861,12 @@ void Window::openWindow(GLFWwindow* share, int lastWindow) {
         }
 
         if (!_isWindowResolutionSet) {
-            const GLFWvidmode* currentMode = glfwGetVideoMode(_monitor);
+            const GLFWvidmode* currentMode = glfwGetVideoMode(monitor);
             _windowRes = glm::ivec2(currentMode->width, currentMode->height);
         }
     }
 
-    _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", _monitor, share);
+    _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", monitor, share);
     if (_windowHandle == nullptr) {
         throw Err(8001, "Error opening window");
     }
@@ -940,17 +894,14 @@ void Window::openWindow(GLFWwindow* share, int lastWindow) {
     // refreshrate)/(number of windows), which is something that might really slow down a
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
-    glfwSwapInterval(getId() == lastWindow ? Settings::instance().getSwapInterval() : 0);
-
-    updateTransferCurve();
-
+    glfwSwapInterval(isLastWindow ? Settings::instance().getSwapInterval() : 0);
+    
     // if client, disable mouse pointer
     if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
-    _isIconified = glfwGetWindowAttrib(_windowHandle, GLFW_ICONIFIED) == GLFW_TRUE;
         
     glfwMakeContextCurrent(_sharedHandle);
 
@@ -1108,7 +1059,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glBindTexture(GL_TEXTURE_2D, id);
     
     // Determine the internal texture format, the texture format, and the pixel type
-    GLenum internalFormat = [this](Window::TextureType t) -> GLenum {
+    const GLenum internalFormat = [this](Window::TextureType t) -> GLenum {
         switch (t) {
             case TextureType::Color:
                 return _internalColorFormat;
@@ -1124,10 +1075,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 
     const glm::ivec2 res = _framebufferRes;
     glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
-
-    Logger::Debug(
-        "%dx%d texture generated for window %d", _framebufferRes.x, _framebufferRes.y, id
-    );
+    Logger::Debug("%dx%d texture generated for window %d", res.x, res.y, id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1223,20 +1171,14 @@ void Window::loadShaders() {
     ShaderProgram::unbind();
 }
 
-void Window::bindVAO() const {
+void Window::renderScreenQuad() const {
     glBindVertexArray(_vao);
-}
-
-void Window::unbindVAO() const {
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
 
 core::OffScreenBuffer* Window::getFBO() const {
     return _finalFBO.get();
-}
-
-GLFWmonitor* Window::getMonitor() const {
-    return _monitor;
 }
 
 GLFWwindow* Window::getWindowHandle() const {
@@ -1354,38 +1296,6 @@ void Window::setCurrentViewport(core::BaseViewport* vp) {
     _currentViewport = vp;
 }
 
-void Window::updateTransferCurve() {
-    if (!_monitor) {
-        return;
-    }
-
-    constexpr const int RampSize = 256;
-    std::array<unsigned short, RampSize> red;
-    std::array<unsigned short, RampSize> green;
-    std::array<unsigned short, RampSize> blue;
-
-    const float gammaExp = 1.f / _gamma;
-    for (unsigned int i = 0; i < RampSize; i++) {
-        const float c = ((static_cast<float>(i) / 255.f) - 0.5f) * _contrast + 0.5f;
-        const float b = c + (_brightness - 1.f);
-        const float g = powf(b, gammaExp);
-        const unsigned short t = static_cast<unsigned short>(
-            glm::clamp(65535.f * g, 0.f, 65535.f) + 0.5f
-        );
-
-        red[i] = t;
-        green[i] = t;
-        blue[i] = t;
-    }
-
-    GLFWgammaramp ramp;
-    ramp.size = RampSize;
-    ramp.red = red.data();
-    ramp.green = green.data();
-    ramp.blue = blue.data();
-    glfwSetGammaRamp(_monitor, &ramp);
-}
-
 bool Window::useRightEyeTexture() const {
     return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
 }
@@ -1398,39 +1308,12 @@ bool Window::hasAlpha() const {
     return _hasAlpha;
 }
 
-void Window::setGamma(float gamma) {
-    _gamma = gamma;
-    updateTransferCurve();
-}
-
-float Window::getGamma() const {
-    return _gamma;
-}
-
-void Window::setContrast(float contrast) {
-    _contrast = contrast;
-    updateTransferCurve();
-}
-
-float Window::getContrast() const {
-    return _contrast;
-}
-
-void Window::setBrightness(float brightness) {
-    _brightness = brightness;
-    updateTransferCurve();
-}
-
 void Window::setColorBitDepth(ColorBitDepth cbd) {
     _bufferColorBitDepth = cbd;
 }
 
 Window::ColorBitDepth Window::getColorBitDepth() const {
     return _bufferColorBitDepth;
-}
-
-float Window::getBrightness() const {
-    return _brightness;
 }
 
 float Window::getHorizFieldOfViewDegrees() const {

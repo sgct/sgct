@@ -242,9 +242,7 @@ void SpoutOutputProjection::renderCubemap() {
             glUniform1f(_swapNearLoc, Engine::instance().getNearClipPlane());
             glUniform1f(_swapFarLoc, Engine::instance().getFarClipPlane());
 
-            Engine::instance().getCurrentWindow().bindVAO();
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            Engine::instance().getCurrentWindow().unbindVAO();
+            Engine::instance().getCurrentWindow().renderScreenQuad();
 
             // unbind shader
             ShaderProgram::unbind();

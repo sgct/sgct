@@ -247,7 +247,6 @@ Engine::~Engine() {
     _dataTransferStatusCallbackFn = nullptr;
     _dataTransferAcknowledgeCallbackFn = nullptr;
     _contextCreationFn = nullptr;
-    _screenShotFn = nullptr;
 
     gKeyboardCallback = nullptr;
     gMouseButtonCallback = nullptr;
@@ -536,10 +535,10 @@ void Engine::initWindows(Profile profile) {
         _preWindowFn();
     }
 
-    const int lastWindowIdx = thisNode.getNumberOfWindows() - 1;
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         GLFWwindow* s = i == 0 ? nullptr : thisNode.getWindow(0).getWindowHandle();
-        thisNode.getWindow(i).openWindow(s, lastWindowIdx);
+        const bool isLastWindow = i == thisNode.getNumberOfWindows() - 1;
+        thisNode.getWindow(i).openWindow(s, isLastWindow);
     }
 
     glbinding::Binding::initialize(glfwGetProcAddress);
@@ -760,29 +759,6 @@ void Engine::initOGL() {
         // state without breaking the test?
         _currentWindowIndex = i;
         getWindow(i).initOGL();
-        
-        if (_screenShotFn) {
-            // set callback
-            auto callback = [this](core::Image* img, size_t size,
-                                   core::ScreenCapture::EyeIndex idx, GLenum type)
-            {
-                if (_screenShotFn) {
-                    _screenShotFn(img, size, idx, type);
-                }
-            };
-            
-            Window& win = getCurrentWindow();
-            // left channel (Mono and Stereo_Left)
-            core::ScreenCapture* m = win.getScreenCapturePointer(Window::Eye::MonoOrLeft);
-            if (m) {
-                m->setCaptureCallback(callback);
-            }
-            // right channel (Stereo_Right)
-            core::ScreenCapture* r = win.getScreenCapturePointer(Window::Eye::Right);
-            if (r) {
-                r->setCaptureCallback(callback);
-            }
-        }
     }
 
     // link all users to their viewports
@@ -992,14 +968,12 @@ void Engine::render() {
 
         // Render Viewports / Draw
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            if (!(thisNode.getWindow(i).isVisible() ||
-                  thisNode.getWindow(i).isRenderingWhileHidden()))
-            {
+            Window& win = thisNode.getWindow(i);
+            if (!(win.isVisible() || win.isRenderingWhileHidden())) {
                 continue;
             }
 
             _currentWindowIndex = i;
-            Window& win = thisNode.getWindow(i);
 
             if (!_renderingOffScreen) {
                 win.makeOpenGLContextCurrent(Window::Context::Window);
@@ -1167,9 +1141,7 @@ void Engine::drawOverlays() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
         _overlay.bind();
-        getCurrentWindow().bindVAO();
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        getCurrentWindow().unbindVAO();
+        getCurrentWindow().renderScreenQuad();
         ShaderProgram::unbind();
     }
 }
@@ -1531,10 +1503,7 @@ void Engine::renderPostFX(Window::TextureIndex targetIndex) {
         glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
         glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
 
-        getCurrentWindow().bindVAO();
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        getCurrentWindow().unbindVAO();
-
+        getCurrentWindow().renderScreenQuad();
         ShaderProgram::unbind();
     }
 }
@@ -1808,9 +1777,7 @@ void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     }(mode);
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
 
-    getCurrentWindow().bindVAO();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    getCurrentWindow().unbindVAO();
+    getCurrentWindow().renderScreenQuad();
     ShaderProgram::unbind();
 }
 
@@ -1880,12 +1847,6 @@ void Engine::setDataAcknowledgeCallback(std::function<void(int, int)> fn) {
 
 void Engine::setContextCreationCallback(std::function<void(GLFWwindow*)> fn) {
     _contextCreationFn = std::move(fn);
-}
-
-void Engine::setScreenShotCallback(std::function<void(core::Image*, size_t,
-                                   core::ScreenCapture::EyeIndex, GLenum type)> fn)
-{
-    _screenShotFn = std::move(fn);
 }
 
 void Engine::setKeyboardCallbackFunction(

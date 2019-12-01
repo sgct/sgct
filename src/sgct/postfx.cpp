@@ -54,10 +54,7 @@ void PostFX::render(Window& window) {
         _updateFunction();
     }
 
-    window.bindVAO();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    window.unbindVAO();
-
+    window.renderScreenQuad();
     ShaderProgram::unbind();
 }
 

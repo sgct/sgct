@@ -36,6 +36,11 @@ namespace {
     constexpr const bool RunFrameLockCheckThread = true;
     constexpr const std::chrono::milliseconds FrameLockTimeout(100);
 
+    constexpr const float FxaaSubPixTrim = 1.f / 4.f;
+    constexpr const float FxaaSubPixOffset = 1.f / 2.f;
+
+    bool sRunUpdateFrameLockLoop = true;
+
     // Callback wrappers for GLFW
     std::function<void(Key, Modifier, Action, int)> gKeyboardCallback = nullptr;
     std::function<void(unsigned int, int)> gCharCallback = nullptr;
@@ -44,7 +49,6 @@ namespace {
     std::function<void(double, double)> gMouseScrollCallback = nullptr;
     std::function<void(int, const char**)> gDropCallback = nullptr;
 
-    bool sRunUpdateFrameLockLoop = true;
 
     // For feedback: breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
@@ -182,17 +186,6 @@ Engine::Engine(const Configuration& config) {
     }
     if (config.ignoreSync) {
         core::ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
-    }
-    if (config.fxaa) {
-        Settings::instance().setDefaultFXAAState(*config.fxaa);
-    }
-    if (config.msaaSamples) {
-        if (*config.msaaSamples > 0) {
-            Settings::instance().setDefaultNumberOfAASamples(*config.msaaSamples);
-        }
-        else {
-            Logger::Error("Number of MSAA samples must be positive");
-        }
     }
     if (config.captureFormat) {
         Settings::instance().setCaptureFormat(*config.captureFormat);
@@ -728,10 +721,10 @@ void Engine::initOGL() {
         glUniform1f(shdr.sizeY, static_cast<float>(framebufferSize.y));
 
         shdr.subPixTrim = glGetUniformLocation(id, "FXAA_SUBPIX_TRIM");
-        glUniform1f(shdr.subPixTrim, Settings::instance().getFXAASubPixTrim());
+        glUniform1f(shdr.subPixTrim, FxaaSubPixTrim);
 
         shdr.subPixOffset = glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET");
-        glUniform1f(shdr.subPixOffset, Settings::instance().getFXAASubPixOffset());
+        glUniform1f(shdr.subPixOffset, FxaaSubPixOffset);
 
         glUniform1i(glGetUniformLocation(id, "tex"), 0);
         ShaderProgram::unbind();
@@ -802,35 +795,16 @@ void Engine::initOGL() {
 
     updateFrustums();
 
-    // Add fonts
 #ifdef SGCT_HAS_TEXT
-    if (Settings::instance().getOSDTextFontPath().empty()) {
-        const bool success = text::FontManager::instance().addFont(
-            "SGCTFont",
-            Settings::instance().getOSDTextFontName()
-        );
-        if (!success) {
-            text::FontManager::instance().getFont(
-                "SGCTFont",
-                Settings::instance().getOSDTextFontSize()
-            );
-        }
-    }
-    else {
-        std::string tmpPath = Settings::instance().getOSDTextFontPath() +
-                              Settings::instance().getOSDTextFontName();
-        const bool success = text::FontManager::instance().addFont(
-            "SGCTFont",
-            tmpPath,
-            text::FontManager::Path::Local
-        );
-        if (!success) {
-            text::FontManager::instance().getFont(
-                "SGCTFont",
-                Settings::instance().getOSDTextFontSize()
-            );
-        }
-    }
+    // Add font
+#ifdef WIN32
+    constexpr const char* FontName = "verdanab.ttf";
+#elif defined(__APPLE__)
+    constexpr const char* FontName = "Tahoma Bold.ttf";
+#else
+    constexpr const char* FontName = "FreeSansBold.ttf";
+#endif
+    text::FontManager::instance().addFont("SGCTFont", FontName);
 #endif // SGCT_HAS_TEXT
 
     // init swap barrier is swap groups are active
@@ -1017,18 +991,12 @@ void Engine::render() {
         }
 
         // Render Viewports / Draw
-        _currentDrawBufferIndex = 0;
-        size_t firstDrawBufferIndexInWindow = 0;
-
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
             if (!(thisNode.getWindow(i).isVisible() ||
                   thisNode.getWindow(i).isRenderingWhileHidden()))
             {
                 continue;
             }
-
-            // store the first buffer index for each window
-            firstDrawBufferIndexInWindow = _currentDrawBufferIndex;
 
             _currentWindowIndex = i;
             Window& win = thisNode.getWindow(i);
@@ -1040,8 +1008,6 @@ void Engine::render() {
             Window::StereoMode sm = win.getStereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
-            _currentRenderTarget = RenderTarget::NonLinearBuffer;
-
             for (int j = 0; j < win.getNumberOfViewports(); ++j) {
                 core::Viewport& vp = win.getViewport(j);
                 _currentViewportIndex = j;
@@ -1061,14 +1027,9 @@ void Engine::render() {
                     _currentFrustumMode = core::Frustum::Mode::StereoLeftEye;
                     nonLinearProj->renderCubemap();
                 }
-
-                // FBO index, every window and every nonlinear projection has it's own FBO
-                _currentDrawBufferIndex++;
             }
 
             // Render left/mono regular viewports to FBO
-            _currentRenderTarget = RenderTarget::WindowBuffer;
-
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
                 _currentFrustumMode = core::Frustum::Mode::MonoEye;
@@ -1079,19 +1040,12 @@ void Engine::render() {
                 renderViewports(Window::TextureIndex::LeftEye);
             }
 
-            // FBO index, every window and every non-linear projection has it's own FBO
-            _currentDrawBufferIndex++;
-
             // if we are not rendering in stereo, we are done
             if (sm == Window::StereoMode::NoStereo) {
                 continue;
             }
 
-            // jump back counter to the first buffer index for current window
-            _currentDrawBufferIndex = firstDrawBufferIndexInWindow;
-
             // Render right non-linear projection viewports to cubemap
-            _currentRenderTarget = RenderTarget::NonLinearBuffer;
             for (int j = 0; j < win.getNumberOfViewports(); ++j) {
                 _currentViewportIndex = j;
                 core::Viewport& vp = win.getViewport(j);
@@ -1104,14 +1058,9 @@ void Engine::render() {
                 p->setAlpha(getCurrentWindow().hasAlpha() ? 0.f : 1.f);
                 _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
                 p->renderCubemap();
-
-                // FBO index, every window and every nonlinear projection has it's own
-                _currentDrawBufferIndex++;
             }
 
             // Render right regular viewports to FBO
-            _currentRenderTarget = RenderTarget::WindowBuffer;
-
             _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
@@ -1120,9 +1069,6 @@ void Engine::render() {
             else {
                 renderViewports(Window::TextureIndex::RightEye);
             }
-
-            // FBO index, every window and every non-linear projection has their own
-            _currentDrawBufferIndex++;
         }
 
         // Render to screen
@@ -1191,158 +1137,6 @@ void Engine::render() {
     getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
     glDeleteQueries(1, &timeQueryBegin);
     glDeleteQueries(1, &timeQueryEnd);
-}
-
-void Engine::renderDisplayInfo() {
-#ifdef SGCT_HAS_TEXT
-    const unsigned int lFrameNumber = Window::getSwapGroupFrameNumber();
-
-    unsigned int fontSize = Settings::instance().getOSDTextFontSize();
-    fontSize = static_cast<unsigned int>(
-        static_cast<float>(fontSize) * getCurrentWindow().getScale().x
-    );
-
-    sgct::text::Font* font = text::FontManager::instance().getFont("SGCTFont", fontSize);
-
-    if (font) {
-        const float lineHeight = font->getHeight() * 1.59f;
-        const glm::vec2 pos = glm::vec2(getCurrentWindow().getResolution()) *
-                              Settings::instance().getOSDTextOffset();
-        
-        const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-        text::print(
-            *font,
-            text::TextAlignMode::TopLeft,
-            pos.x,
-            lineHeight * 6.f + pos.y,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            "Node ip: %s (%s)",
-            thisNode.getAddress().c_str(),
-            core::NetworkManager::instance().isComputerServer() ? "master" : "client"
-        );
-
-        const double accFrameTime = std::accumulate(
-            _statistics.frametimes.begin(),
-            _statistics.frametimes.end(),
-            0.0
-        );
-        const double avgFrametime = accFrameTime / Statistics::HistoryLength;
-        const double avgFPS = 1.f / avgFrametime;
-        
-        text::print(
-            *font,
-            text::TextAlignMode::TopLeft,
-            pos.x,
-            lineHeight * 5.f + pos.y,
-            glm::vec4(0.8f, 0.8f, 0.f, 1.f),
-            "Frame rate: %.2f Hz, frame: %u", avgFPS, _frameCounter
-        );
-
-        const double accDrawtime = std::accumulate(
-            _statistics.drawTimes.begin(),
-            _statistics.drawTimes.end(),
-            0.0
-        );
-        const double avgDrawtime = accDrawtime / Statistics::HistoryLength;
-        text::print(
-            *font,
-            text::TextAlignMode::TopLeft,
-            pos.x,
-            lineHeight * 4.f + pos.y,
-            glm::vec4(0.8f, 0.f, 0.8f, 1.f),
-            "Avg. draw time: %.2f ms", avgDrawtime * 1000.f
-        );
-
-        const double accSynctime = std::accumulate(
-            _statistics.syncTimes.begin(),
-            _statistics.syncTimes.end(),
-            0.0
-        );
-        const double avgSynctime = accSynctime / Statistics::HistoryLength;
-
-        if (isMaster()) {
-            text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 3.f + pos.y,
-                glm::vec4(0.f, 0.8f, 0.8f, 1.f),
-                "Avg. sync time: %.2f ms (%d bytes)", avgSynctime * 1000.0, 
-                SharedData::instance().getUserDataSize()
-            );
-        }
-        else {
-            text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 3.f + pos.y,
-                glm::vec4(0.f, 0.8f, 0.8f, 1.f),
-                "Avg. sync time: %.2f ms", avgSynctime * 1000.0
-            );
-        }
-
-        const bool usingSwapGroups = Window::isUsingSwapGroups();
-        if (usingSwapGroups) {
-            text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 2.f + pos.y,
-                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-                "Swap groups: %s and barrier is %s (%s) | Frame: %d",
-                Window::isUsingSwapGroups() ? "Enabled" : "Disabled",
-                Window::isBarrierActive() ? "active" : "inactive",
-                Window::isSwapGroupMaster() ? "master" : "client", lFrameNumber
-            );
-        }
-        else {
-            text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 2.f + pos.y,
-                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-                "%s", "Swap groups: Disabled"
-            );
-        }
-
-        text::print(
-            *font,
-            text::TextAlignMode::TopLeft,
-            pos.x,
-            lineHeight * 1.f + pos.y,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-            "Frame buffer resolution: %d x %d",
-            getCurrentWindow().getFramebufferResolution().x,
-            getCurrentWindow().getFramebufferResolution().y
-        );
-
-        // if active stereoscopic rendering
-        if (_currentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
-            sgct::text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 8.f + pos.y,
-                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-                "Stereo type: %s\nCurrent eye: Left",
-                getStereoString(getCurrentWindow().getStereoMode()).c_str()
-            );
-        }
-        else if (_currentFrustumMode == core::Frustum::Mode::StereoRightEye) {
-            sgct::text::print(
-                *font,
-                text::TextAlignMode::TopLeft,
-                pos.x,
-                lineHeight * 8.f + pos.y,
-                glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
-                "Stereo type: %s\nCurrent eye:          Right",
-                getStereoString(getCurrentWindow().getStereoMode()).c_str()
-            );
-        }
-    }
-#endif // SGCT_HAS_TEXT
 }
 
 void Engine::draw() {
@@ -1457,12 +1251,8 @@ void Engine::renderFBOTexture() {
         glUniform1i(win.getStereoShaderRightTexLoc(), 1);
 
         for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            if (Settings::instance().getUseWarping()) {
-                win.getViewport(i).renderWarpMesh();
-            }
-            else {
-                win.getViewport(i).renderQuadMesh();
-            }
+            win.getViewport(i).renderWarpMesh();
+            //win.getViewport(i).renderQuadMesh();
         }
     }
     else {
@@ -1476,12 +1266,8 @@ void Engine::renderFBOTexture() {
         maskShaderSet = true;
 
         for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            if (Settings::instance().getUseWarping()) {
-                win.getViewport(i).renderWarpMesh();
-            }
-            else {
-                win.getViewport(i).renderQuadMesh();
-            }
+            win.getViewport(i).renderWarpMesh();
+            //win.getViewport(i).renderQuadMesh();
         }
 
         // render right eye in active stereo mode
@@ -1497,12 +1283,8 @@ void Engine::renderFBOTexture() {
                 win.getFrameBufferTexture(Window::TextureIndex::RightEye)
             );
             for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-                if (Settings::instance().getUseWarping()) {
-                    win.getViewport(i).renderWarpMesh();
-                }
-                else {
-                    win.getViewport(i).renderQuadMesh();
-                }
+                win.getViewport(i).renderWarpMesh();
+                //win.getViewport(i).renderQuadMesh();
             }
         }
     }
@@ -1649,7 +1431,7 @@ void Engine::render2D() {
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
     // several times therefore just loop one iteration in that case.
-    if (!(_statisticsRenderer || _showInfo || _draw2DFn)) {
+    if (!(_statisticsRenderer || _draw2DFn)) {
         return;
     }
 
@@ -1664,14 +1446,6 @@ void Engine::render2D() {
 
         if (_statisticsRenderer) {
             _statisticsRenderer->render();
-        }
-        // The text renderer enters automatically the correct viewport
-        if (_showInfo) {
-            // choose specified eye from config
-            if (getCurrentWindow().getStereoMode() == Window::StereoMode::NoStereo) {
-                _currentFrustumMode = getCurrentWindow().getCurrentViewport()->getEye();
-            }
-            renderDisplayInfo();
         }
 
         // Check if we should call the use defined draw2D function
@@ -1754,8 +1528,8 @@ void Engine::renderPostFX(Window::TextureIndex targetIndex) {
         _fxaa->shader.bind();
         glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
         glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
-        glUniform1f(_fxaa->subPixTrim, Settings::instance().getFXAASubPixTrim());
-        glUniform1f(_fxaa->subPixOffset, Settings::instance().getFXAASubPixOffset());
+        glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
+        glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
 
         getCurrentWindow().bindVAO();
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -2327,10 +2101,6 @@ int Engine::getFocusedWindowIndex() const {
     return 0; // no window has focus
 }
 
-void Engine::setDisplayInfoVisibility(bool state) {
-    _showInfo = state;
-}
-
 void Engine::setStatsGraphVisibility(bool state) {
     if (state && _statisticsRenderer == nullptr) {
         _statisticsRenderer = std::make_unique<core::StatisticsRenderer>(_statistics);
@@ -2356,11 +2126,9 @@ void Engine::invokeUpdateCallbackForExternalControl(bool connected) {
     }
 }
 
-void Engine::invokeDecodeCallbackForDataTransfer(void* data, int length, int package,
-                                                 int client)
-{
-    if (_dataTransferDecodeCallbackFn && length > 0) {
-        _dataTransferDecodeCallbackFn(data, length, package, client);
+void Engine::invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id) {
+    if (_dataTransferDecodeCallbackFn && len > 0) {
+        _dataTransferDecodeCallbackFn(d, len, package, id);
     }
 }
 
@@ -2387,15 +2155,6 @@ void Engine::sendMessageToExternalControl(const void* data, int length) {
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
     core::NetworkManager::instance().transferData(data, length, packageId);
-}
-
-void Engine::sendMessageToExternalControl(const std::string& msg) {
-    if (core::NetworkManager::instance().getExternalControlConnection()) {
-        core::NetworkManager::instance().getExternalControlConnection()->sendData(
-            msg.c_str(),
-            static_cast<int>(msg.size())
-        );
-    }
 }
 
 bool Engine::isExternalControlConnected() const {
@@ -2457,10 +2216,6 @@ double Engine::getTime() {
 
 glm::ivec2 Engine::getCurrentViewportSize() const {
     return { _currentViewportCoords.z, _currentViewportCoords.w };
-}
-
-Engine::RenderTarget Engine::getCurrentRenderTarget() const {
-    return _currentRenderTarget;
 }
 
 glm::ivec4 Engine::getCurrentViewportPixelCoords() const {

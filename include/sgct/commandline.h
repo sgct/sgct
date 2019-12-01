@@ -26,8 +26,6 @@ struct Configuration {
     std::optional<int> nodeId;
     std::optional<bool> firmSync;
     std::optional<bool> ignoreSync;
-    std::optional<bool> fxaa;
-    std::optional<int> msaaSamples;
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
     std::optional<bool> checkOpenGL;

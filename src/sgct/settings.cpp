@@ -65,33 +65,6 @@ void Settings::applySettings(const config::Settings& settings) {
             setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
         }
     }
-    if (settings.osdText) {
-        if (settings.osdText->name) {
-            setOSDTextFontName(*settings.osdText->name);
-        }
-        if (settings.osdText->path) {
-            setOSDTextFontPath(*settings.osdText->path);
-        }
-        if (settings.osdText->size) {
-            setOSDTextFontSize(*settings.osdText->size);
-        }
-        if (settings.osdText->xOffset) {
-            const glm::vec2& curr = getOSDTextOffset();
-            setOSDTextOffset(glm::vec2(*settings.osdText->xOffset, curr.y));
-        }
-        if (settings.osdText->yOffset) {
-            const glm::vec2& curr = getOSDTextOffset();
-            setOSDTextOffset(glm::vec2(curr.x, *settings.osdText->yOffset));
-        }
-    }
-    if (settings.fxaa) {
-        if (settings.fxaa->offset) {
-            setFXAASubPixOffset(*settings.fxaa->offset);
-        }
-        if (settings.fxaa->trim) {
-            setFXAASubPixTrim(1.f / *settings.fxaa->trim);
-        }
-    }
 }
 
 void Settings::applyCapture(const config::Capture& capture) {
@@ -169,18 +142,6 @@ int Settings::getNumberOfCaptureThreads() const {
     return _nCaptureThreads;
 }
 
-glm::vec2 Settings::getOSDTextOffset() const {
-    return _osdTextOffset;
-}
-
-float Settings::getFXAASubPixTrim() const {
-    return _fxaaSubPixTrim;
-}
-
-float Settings::getFXAASubPixOffset() const {
-    return _fxaaSubPixOffset;
-}
-
 Settings::DrawBufferType Settings::getDrawBufferType() const {
     if (_usePositionTexture) {
         if (_useNormalTexture) {
@@ -233,48 +194,6 @@ Settings::CaptureFormat Settings::getCaptureFormat() const {
     return _captureFormat;
 }
 
-void Settings::setFXAASubPixTrim(float val) {
-    _fxaaSubPixTrim = val;
-}
-
-void Settings::setFXAASubPixOffset(float val) {
-    _fxaaSubPixOffset = val;
-}
-
-void Settings::setOSDTextOffset(glm::vec2 val) {
-    _osdTextOffset = std::move(val);
-}
-
-void Settings::setOSDTextFontSize(unsigned int size) {
-    _fontSize = size;
-}
-
-void Settings::setOSDTextFontName(std::string name) {
-    _fontName = std::move(name);
-}
-
-void Settings::setOSDTextFontPath(std::string path) {
-    _fontPath = std::move(path);
-}
-
-void Settings::setDefaultNumberOfAASamples(int samples) {
-    if ((samples != 0) && ((samples & (samples - 1)) == 0)) {
-        // if power of two
-        _defaultNumberOfAASamples = samples;
-    }
-    else {
-        Logger::Warning("Number of MSAA samples must be power of two");
-    }
-}
-
-void Settings::setDefaultFXAAState(bool state) {
-    _defaultFXAA = state;
-}
-
-void Settings::setUseWarping(bool state) {
-    _useWarping = state;
-}
-
 void Settings::setCaptureFromBackBuffer(bool state) {
     _captureBackBuffer = state;
 }
@@ -291,10 +210,6 @@ bool Settings::getExportWarpingMeshes() const {
     return _exportWarpingMeshes;
 }
 
-bool Settings::getUseWarping() const {
-    return _useWarping;
-}
-
 bool Settings::getCaptureFromBackBuffer() const {
     return _captureBackBuffer;
 }
@@ -303,29 +218,9 @@ void Settings::setTryKeepAspectRatio(bool state) {
     _tryKeepAspectRatio = state;
 }
 
-unsigned int Settings::getOSDTextFontSize() const {
-    return _fontSize;
-}
-
-const std::string& Settings::getOSDTextFontName() const {
-    return _fontName;
-}
-
-const std::string& Settings::getOSDTextFontPath() const {
-    return _fontPath;
-}
-
 GLenum Settings::getBufferFloatPrecision() const {
     return
         _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
-}
-
-int Settings::getDefaultNumberOfAASamples() const {
-    return _defaultNumberOfAASamples;
-}
-
-bool Settings::getDefaultFXAAState() const {
-    return _defaultFXAA;
 }
 
 } // namespace sgct

@@ -33,7 +33,6 @@ namespace {
 
     // variables to share across cluster
     sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
     sgct::SharedBool takeScreenshot(false);
     sgct::SharedBool useTracking(false);
@@ -251,7 +250,6 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setDisplayInfoVisibility(info.getVal());
     Engine::instance().setStatsGraphVisibility(stats.getVal());
     TrackingManager::instance().setEnabled(useTracking.getVal());
 
@@ -330,7 +328,6 @@ void initOGLFun() {
 
 void encodeFun() {
     SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(info);
     SharedData::instance().writeBool(stats);
     SharedData::instance().writeBool(takeScreenshot);
     SharedData::instance().writeBool(useTracking);
@@ -339,7 +336,6 @@ void encodeFun() {
 
 void decodeFun() {
     SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(info);
     SharedData::instance().readBool(stats);
     SharedData::instance().readBool(takeScreenshot);
     SharedData::instance().readBool(useTracking);
@@ -354,9 +350,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::S:
                 stats.setVal(!stats.getVal());
-                break;
-            case Key::I:
-                info.setVal(!info.getVal());
                 break;
             case Key::Q:
                 Engine::instance().terminate();

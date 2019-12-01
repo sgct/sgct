@@ -23,7 +23,6 @@ namespace {
     std::unique_ptr<sgct::core::Image> transImg;
     unsigned int textureId = 0;
 
-    sgct::SharedBool info(false);
     sgct::SharedBool stats(false);
     sgct::SharedInt32 texIndex(-1);
 
@@ -126,7 +125,6 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setDisplayInfoVisibility(info.getVal());
     Engine::instance().setStatsGraphVisibility(stats.getVal());
 }
 
@@ -148,14 +146,12 @@ void initOGLFun() {
 
 void encodeFun() {
     SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(info);
     SharedData::instance().writeBool(stats);
     SharedData::instance().writeInt32(texIndex);
 }
 
 void decodeFun() {
     SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(info);
     SharedData::instance().readBool(stats);
     SharedData::instance().readInt32(texIndex);
 }
@@ -184,9 +180,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::S:
                 stats.setVal(!stats.getVal());
-                break;
-            case Key::I:
-                info.setVal(!info.getVal());
                 break;
             default:
                 break;

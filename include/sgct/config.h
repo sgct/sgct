@@ -58,26 +58,11 @@ struct Settings {
         std::optional<bool> exportWarpingMeshes;
     };
 
-    struct OSDText {
-        std::optional<std::string> name;
-        std::optional<std::string> path;
-        std::optional<int> size;
-        std::optional<float> xOffset;
-        std::optional<float> yOffset;
-    };
-
-    struct FXAA {
-        std::optional<float> offset;
-        std::optional<float> trim;
-    };
-
     std::optional<bool> useDepthTexture;
     std::optional<bool> useNormalTexture;
     std::optional<bool> usePositionTexture;
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
     std::optional<Display> display;
-    std::optional<OSDText> osdText;
-    std::optional<FXAA> fxaa;
 };
 void validateSettings(const Settings& settings);
 

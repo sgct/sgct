@@ -23,10 +23,6 @@ namespace sgct {
     1012: Capture / Right path must not be empty
     1020: Settings / Swap interval must not be negative
     1021: Settings / Refresh rate must not be negative
-    1022: Settings / OSDText font name must not be negative
-    1023: Settings / OSDText font path must not be empty
-    1024: Settings / OSDText font size must not be negative
-    1025: Settings / FXAA trim must be postive
     1030: Device / Device name must not be empty
     1031: Device / VRPN address for sensors must not be empty
     1032: Device / VRPN address for buttons must not be empty

@@ -54,22 +54,6 @@ void validateSettings(const Settings& s) {
     if (s.display && s.display->refreshRate && *s.display->refreshRate < 0) {
         throw Error(1021, "Refresh rate must not be negative");
     }
-
-    if (s.osdText && s.osdText->name && s.osdText->name->empty()) {
-        throw Error(1022, "OSDText font name must not be negative");
-    }
-
-    if (s.osdText && s.osdText->path && s.osdText->path->empty()) {
-        throw Error(1023, "OSDText font path must not be empty");
-    }
-
-    if (s.osdText && s.osdText->size && *s.osdText->size < 0) {
-        throw Error(1024, "OSDText font size must not be negative");
-    }
-
-    if (s.fxaa && s.fxaa->trim && *s.fxaa->trim <= 0.f) {
-        throw Error(1025, "FXAA trim must be postive");
-    }
 }
 
 void validateDevice(const Device& d) {

@@ -97,43 +97,6 @@ public:
     void setExportWarpingMeshes(bool state);
 
     /**
-     * Controls removal of sub-pixel aliasing.
-     *   1/2 - low removal
-     *   1/3 - medium removal
-     *   1/4 - default removal
-     *   1/8 - high removal
-     *     0 - complete removal
-     */
-    void setFXAASubPixTrim(float val);
-
-    /**
-     * Set the pixel offset for contrast/edge detection. Values should be in the range
-     * [1/8, 1]. Default is 0.5f.
-     */
-    void setFXAASubPixOffset(float val);
-
-    /// Set the OSD text Offset between 0.0 and 1.0
-    void setOSDTextOffset(glm::vec2 val);
-    
-    /// Set the OSD text font size
-    void setOSDTextFontSize(unsigned int size);
-
-    /// Set the OSD text font name
-    void setOSDTextFontName(std::string name);
-
-    /// Set the OSD text font path
-    void setOSDTextFontPath(std::string path);
-
-    /// Set the default number of AA samples (MSAA) for all windows
-    void setDefaultNumberOfAASamples(int samples);
-
-    /// Set the default FXAA state for all windows (enabled or disabled)
-    void setDefaultFXAAState(bool state);
-
-    /// Set if screen warping should be used or not
-    void setUseWarping(bool state);
-
-    /**
      * Set if geometry should try to adapt after framebuffer dimensions. This is valid for
      * multi-viewport renderings like fisheye projections.
      */
@@ -158,26 +121,8 @@ public:
     /// Get the refreshrate hint of the window in fullscreen mode.
     int getRefreshRateHint() const;
     
-    /// Get the OSD text font size
-    unsigned int getOSDTextFontSize() const;
-
-    /// Get the OSD text font name
-    const std::string& getOSDTextFontName() const;
-
-    /// Get the OSD text font path
-    const std::string& getOSDTextFontPath() const;
-
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
     GLenum getBufferFloatPrecision() const;
-
-    /// Get the default MSAA setting
-    int getDefaultNumberOfAASamples() const;
-
-    /// Get the FXAA default state
-    bool getDefaultFXAAState() const;
-
-    /// Get if screen warping is used
-    bool getUseWarping() const;
 
     /**
      * Get if capture should use backbuffer data or texture. Backbuffer data includes
@@ -210,15 +155,6 @@ public:
     /// Get the number of capture threads (for screenshot recording)
     int getNumberOfCaptureThreads() const;
 
-    /// The relative On-Screen-Display text offset in range [0, 1]
-    glm::vec2 getOSDTextOffset() const;
-
-    /// \return the FXAA removal of sub-pixel aliasing
-    float getFXAASubPixTrim() const;
-
-    /// \return the FXAA sub-pixel offset
-    float getFXAASubPixOffset() const;
-
     /// \return the drawBufferType
     DrawBufferType getDrawBufferType() const;
 
@@ -231,38 +167,19 @@ private:
     int _swapInterval = 1;
     int _refreshRate = 0;
     int _nCaptureThreads = std::thread::hardware_concurrency();
-    int _defaultNumberOfAASamples = 1;
     
     bool _useDepthTexture = false;
     bool _useNormalTexture = false;
     bool _usePositionTexture = false;
-    bool _defaultFXAA = false;
-    bool _useWarping = true;
     bool _captureBackBuffer = false;
     bool _tryKeepAspectRatio = true;
     bool _exportWarpingMeshes = false;
-
-    glm::vec2 _osdTextOffset = glm::vec2(0.05f, 0.05f);
-    float _fxaaSubPixTrim = 1.f / 4.f;
-    float _fxaaSubPixOffset = 1.f / 2.f;
 
     struct {
         std::string mono = "SGCT";
         std::string left = "SGCT";
         std::string right = "SGCT";
     } _capturePath;
-
-    // fontdata
-#ifdef WIN32
-    std::string _fontName = "verdanab.ttf";
-#elif defined(__APPLE__)
-    std::string _fontName = "Tahoma Bold.ttf";
-#else
-    std::string _fontName = "FreeSansBold.ttf";
-
-#endif
-    std::string _fontPath;
-    unsigned int _fontSize = 10;
 
     BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float16Bit;
 };

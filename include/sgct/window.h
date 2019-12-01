@@ -486,7 +486,7 @@ private:
     float _brightness = 1.f;
     glm::vec2 _scale = glm::vec2(0.f, 0.f);
 
-    bool _useFXAA;
+    bool _useFXAA = false;
 
     ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
     GLenum _internalColorFormat;
@@ -509,7 +509,7 @@ private:
     std::unique_ptr<core::ScreenCapture> _screenCaptureRight;
 
     StereoMode _stereoMode = StereoMode::NoStereo;
-    int _nAASamples;
+    int _nAASamples = 1;
     int _id;
 
     unsigned int _vao = 0;

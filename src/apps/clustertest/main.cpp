@@ -26,7 +26,6 @@ namespace {
 
     sgct::SharedDouble currentTime(0.0);
     sgct::SharedWString sTimeOfDay;
-    sgct::SharedBool showFPS(false);
     sgct::SharedBool extraPackages(false);
     sgct::SharedBool barrier(false);
     sgct::SharedBool resetCounter(false);
@@ -297,8 +296,6 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setDisplayInfoVisibility(showFPS.getVal());
-
     // barrier is set by swap group not window both windows has the same HDC
     Window::setBarrier(barrier.getVal());
     if (resetCounter.getVal()) {
@@ -428,7 +425,6 @@ void initOGLFun() {
 
 void encodeFun() {
     unsigned char flags = 0;
-    flags = showFPS.getVal()        ? flags | 1   : flags & ~1;   // bit 1
     flags = extraPackages.getVal()  ? flags | 2   : flags & ~2;   // bit 2
     flags = barrier.getVal()        ? flags | 4   : flags & ~4;   // bit 3
     flags = resetCounter.getVal()   ? flags | 8   : flags & ~8;   // bit 4
@@ -457,7 +453,6 @@ void decodeFun() {
     SharedData::instance().readWString(sTimeOfDay);
 
     unsigned char flags = sf.getVal();
-    showFPS.setVal(flags & 1);
     extraPackages.setVal(flags & 2);
     barrier.setVal(flags & 4);
     resetCounter.setVal(flags & 8);
@@ -484,11 +479,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
                     frametest.setVal(!frametest.getVal());
                 }
                 break;
-            case Key::I:
-                if (action == Action::Press) {
-                    showFPS.setVal(!showFPS.getVal());
-                }
-                break;
             case Key::E:
                 if (action == Action::Press) {
                     extraPackages.setVal(!extraPackages.getVal());
@@ -511,7 +501,11 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::G:
                 if (action == Action::Press) {
-                    Engine::instance().sendMessageToExternalControl("Testing!!\r\n");
+                    std::string m = "Testing!!\r\n";
+                    Engine::instance().sendMessageToExternalControl(
+                        m.c_str(),
+                        static_cast<int>(m.size())
+                    );
                 }
                 break;
             case Key::F9:
@@ -536,15 +530,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
     }
 }
 
-void externalControlCallback(const char* receivedChars, int size) {
-    if (Engine::instance().isMaster()) {
-        std::string_view data(receivedChars, size);
-        if (data == "info") {
-            showFPS.setVal(!showFPS.getVal());
-        }
-    }
-}
-
 int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
@@ -553,7 +538,6 @@ int main(int argc, char* argv[]) {
 
     Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setExternalControlCallback(externalControlCallback);
     Engine::instance().setKeyboardCallbackFunction(keyCallback);
     Engine::instance().setDraw2DFunction(myDraw2DFun);
     Engine::instance().setEncodeFunction(encodeFun);

@@ -158,7 +158,7 @@ public:
      */
     void updateFrustums();
 
-    /// \return the active draw texture
+    /// \return the active draw textureo
     unsigned int getCurrentDrawTexture() const;
 
     /// \return the resolution in pixels for the active window's framebuffer
@@ -167,21 +167,15 @@ public:
     /// \return the index of the focus window. If no window has focus, 0 is returned
     int getFocusedWindowIndex() const;
 
-    /// Sets if the info text should be visible or not.
-    void setDisplayInfoVisibility(bool state);
-
     /// Sets if the statistics graph should be rendered or not
     void setStatsGraphVisibility(bool state);
 
     /**
      * Take an RGBA screenshot and save it as a PNG file. If stereo rendering is enabled
-     * then two screenshots will be saved per frame, one for the left eye and one for the
-     * right eye.
+     * then two screenshots will be saved per frame, one for each eyeo.
      *
      * To record frames for a movie simply call this function every frame you wish to
-     * record. The read to disk is multi-threaded and maximum number of threads can be set
-     * using:
-     *   -number-capture-threads command line argument.
+     * record. The read to disk is multi-threaded.
      */
     void takeScreenshot();
 
@@ -383,13 +377,6 @@ public:
      */
     void sendMessageToExternalControl(const void* data, int length);
 
-    /**
-     * This function sends a message to the external control interface.
-     *
-     * \param msg the message string that will be sent
-     */
-    void sendMessageToExternalControl(const std::string& msg);
-
     /// Check if the external control is connected.
     bool isExternalControlConnected() const;
 
@@ -419,8 +406,7 @@ public:
      * Don't use this. This function is called from Network and will invoke the data
      * transfer callback when messages are received.
      */
-    void invokeDecodeCallbackForDataTransfer(void* receivedData, int receivedLength,
-        int packageId, int clientId);
+    void invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id);
 
     /**
      * Don't use this. This function is called from Network and will invoke the data
@@ -554,9 +540,6 @@ public:
     /// Get the active viewport size in pixels.
     glm::ivec2 getCurrentViewportSize() const;
 
-    /// \return the active render target.
-    RenderTarget getCurrentRenderTarget() const;
-
     /**
      * Returns the active viewport information in pixels (only valid inside in the draw
      * callback function)
@@ -610,9 +593,6 @@ private:
      * ready to swap buffers.
      */
     void frameLockPostStage();
-
-    /// This function renders basic text info and statistics on screen.
-    void renderDisplayInfo();
 
     /**
      * This function enters the correct viewport, frustum, stereo mode and calls the draw
@@ -694,7 +674,6 @@ private:
 
     core::Frustum::Mode _currentFrustumMode = core::Frustum::Mode::MonoEye;
     glm::ivec4 _currentViewportCoords = glm::ivec4(0, 0, 640, 480);
-    size_t _currentDrawBufferIndex = 0;
     int _currentWindowIndex = 0;
 
     Statistics _statistics;
@@ -702,9 +681,7 @@ private:
     std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
 
     int _currentViewportIndex = 0;
-    RenderTarget _currentRenderTarget = RenderTarget::WindowBuffer;
 
-    bool _showInfo = false;
     bool _checkOpenGLCalls = false;
     bool _createDebugContext = false;
     bool _checkFBOs = false;
@@ -723,7 +700,6 @@ private:
         int subPixOffset = -1;
     };
     std::optional<FXAAShader> _fxaa;
-
     ShaderProgram _fboQuad;
     ShaderProgram _overlay;
 

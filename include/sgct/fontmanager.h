@@ -82,7 +82,6 @@ class Font;
  */
 class FontManager {
 public:
-    /// Enum from where to load font files
     enum class Path { System, Local };
 
     static FontManager& instance();

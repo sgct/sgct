@@ -8,6 +8,8 @@
 
 #include <sgct/commandline.h>
 
+#include <iostream>
+
 namespace sgct {
 
 Configuration parseArguments(std::vector<std::string>& arg) {
@@ -17,8 +19,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
     while (i < arg.size()) {
         if (arg[i] == "-config" && arg.size() > (i + 1)) {
             config.configFilename = arg[i + 1];
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-client") {
             config.isServer = false;
@@ -35,8 +36,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         else if (arg[i] == "-local" && arg.size() > (i + 1)) {
             config.isServer = true;
             config.nodeId = std::stoi(arg[i + 1]);
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-log") {
             // Remove unwanted chars
@@ -51,15 +51,31 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             }
             config.logPath = tmpStr;
 
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
-            const int level = std::stoi(arg[i + 1]);
-            config.logLevel = static_cast<Logger::Level>(level);
+            std::string_view lvl = arg[i + 1];
+            Logger::Level level = [](std::string_view l) {
+                if (l == "error") {
+                    return Logger::Level::Error;
+                }
+                else if (l == "warning") {
+                    return Logger::Level::Warning;
+                }
+                else if (l == "info") {
+                    return Logger::Level::Info;
+                }
+                else if (l == "debug") {
+                    return Logger::Level::Debug;
+                }
+                else {
+                    std::cerr << "Unknown logger level: " << std::string(l);
+                    return Logger::Level::Info;
+                }
+            } (lvl);
+            config.logLevel = level;
 
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-firm-sync") {
             config.firmSync = true;
@@ -71,15 +87,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         }
         else if (arg[i] == "-ignore-sync" || arg[i] == "-no-sync") {
             config.ignoreSync = true;
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-fxaa") {
-            config.fxaa = true;
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-msaa" && arg.size() > (i + 1)) {
-            config.msaaSamples = std::stoi(arg[i + 1]);
-            arg.erase(arg.begin() + i);
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-capture-tga") {
@@ -96,8 +103,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         }
         else if (arg[i] == "-number-capture-threads" && arg.size() > (i + 1)) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
-            arg.erase(arg.begin() + i);
-            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-check-opengl") {
             config.checkOpenGL = true;
@@ -137,10 +143,6 @@ Parameters:
     Disable firm frame sync
 -ignore-sync
     Disable frame sync
--msaa <integer>
-    Enable MSAA as default (argument must be a power of two)
--fxaa
-    Enable FXAA as default
 -notify <integer>
     Set the notify level used in the MessageHandler\n\t(0 = highest priority)
 -capture-png

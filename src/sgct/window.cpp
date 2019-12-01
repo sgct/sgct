@@ -107,10 +107,7 @@ bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_currentContextOwner = nullptr;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window(int id) : _id(id) {
-    _useFXAA = Settings::instance().getDefaultFXAAState();
-    _nAASamples = Settings::instance().getDefaultNumberOfAASamples();
-}
+Window::Window(int id) : _id(id) {}
 
 void Window::applyWindow(const config::Window& window) {
     if (window.name) {

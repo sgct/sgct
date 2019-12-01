@@ -774,25 +774,6 @@ namespace {
             display.exportWarpingMeshes = parseValue<bool>(*e, "exportWarpingMeshes");
             settings.display = display;
         }
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("OSDText"); e) {
-            sgct::config::Settings::OSDText osdText;
-            if (const char* a = e->Attribute("name"); a) {
-                osdText.name = a;
-            }
-            if (const char* a = e->Attribute("path"); a) {
-                osdText.path = a;
-            }
-            osdText.size = parseValue<int>(*e, "size");
-            osdText.xOffset = parseValue<float>(*e, "xOffset");
-            osdText.yOffset = parseValue<float>(*e, "yOffset");
-            settings.osdText = osdText;
-        }
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("FXAA"); e) {
-            sgct::config::Settings::FXAA fxaa;
-            fxaa.offset = parseValue<float>(*e, "offset");
-            fxaa.trim = parseValue<float>(*e, "trim");
-            settings.fxaa = fxaa;
-        }
 
         return settings;
     }

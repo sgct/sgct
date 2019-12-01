@@ -7,7 +7,6 @@
 namespace {
     sgct::SharedDouble currentTime(0.0);
 
-    sgct::SharedBool showStats(false);
     sgct::SharedBool showGraph(false);
     sgct::SharedFloat sizeFactor(0.5f);
 } // namespace
@@ -40,31 +39,25 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setDisplayInfoVisibility(showStats.getVal());
     Engine::instance().setStatsGraphVisibility(showGraph.getVal());
 }
 
 void encodeFun() {
     SharedData::instance().writeDouble(currentTime);
     SharedData::instance().writeFloat(sizeFactor);
-    SharedData::instance().writeBool(showStats);
     SharedData::instance().writeBool(showGraph);
 }
 
 void decodeFun() {
     SharedData::instance().readDouble(currentTime);
     SharedData::instance().readFloat(sizeFactor);
-    SharedData::instance().readBool(showStats);
     SharedData::instance().readBool(showGraph);
 }
 
 void externalControlMessageCallback(const char* receivedChars, int size) {
     if (Engine::instance().isMaster()) {
         std::string_view msg(receivedChars, size);
-        if (size == 7 && msg.substr(0, 5) == "stats") {
-            showStats.setVal(msg.substr(6, 1) == "1");
-        }
-        else if (size == 7 && msg.substr(0, 5) == "graph") {
+        if (size == 7 && msg.substr(0, 5) == "graph") {
             showGraph.setVal(msg.substr(6, 1) == "1");
         }
         else if (size >= 6 && msg.substr(0, 4) == "size") {

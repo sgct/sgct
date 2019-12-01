@@ -490,7 +490,6 @@ private:
     std::unique_ptr<core::OffScreenBuffer> _finalFBO;
 
     static GLFWwindow* _sharedHandle;
-    static GLFWwindow* _currentContextOwner;
     static bool _useSwapGroups;
     static bool _isBarrierActive;
     static bool _isSwapGroupMaster;

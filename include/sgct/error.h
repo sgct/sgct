@@ -180,7 +180,7 @@ namespace sgct {
     6080: XML Parsing / No XML file provided
     6081: XML Parsing / Error parsing XML file
     6082: XML Parsing / Cannot find 'Cluster' node
-    6083: XML Parsing / Cannot find master address or DNS name in XML
+    6083: XML Parsing / Cannot find master address
     6084: XML Parsing / SGCT doesn't support usage of % in the path
     6085: XML Parsing / Bad configuration path string
     6086: XML Parsing / Cannot fetch environment variable
@@ -201,9 +201,14 @@ namespace sgct {
     9001: Image / Could not open file '%s' for loading image
     9002: Image / Filename not set for saving image
     9003: Image / Cannot save file %s
-    9004: Image / Could not save file %s as PNG
-    9005: Image / Could not save file %s as JPG
-    9006: Image / Could not save file %s as TGA
+    9004: Image / Could not save file %s as JPG
+    9005: Image / Could not save file %s as TGA
+    9006: Image / Missing image data to save PNG
+    9007: Image / Can't save %d bit
+    9008: Image / Can't create PNG file '%s'
+    9009: Image / Failed to create PNG struct
+    9010: Image / Failed to create PNG info struct
+    9011: Image / One of the called PNG functions failed
 */
 
 struct Error : public std::runtime_error {

@@ -602,10 +602,6 @@ namespace {
         if (const char* a = elem.Attribute("bufferBitDepth"); a) {
             window.bufferBitDepth = getBufferColorBitDepth(a);
         }
-        // compatibility with older versions
-        if (elem.Attribute("fullScreen")) {
-            window.isFullScreen = parseValue<bool>(elem, "fullScreen");
-        }
         if (elem.Attribute("fullscreen")) {
             window.isFullScreen = parseValue<bool>(elem, "fullscreen");
         }
@@ -619,23 +615,14 @@ namespace {
         window.brightness = parseValue<float>(elem, "brightness");
 
         window.msaa = parseValue<int>(elem, "numberOfSamples");
-        if (elem.Attribute("msaa")) {
-            window.msaa = parseValue<int>(elem, "msaa");
-        }
-        if (elem.Attribute("MSAA")) {
-            window.msaa = parseValue<int>(elem, "MSAA");
-        }
+        window.msaa = parseValue<int>(elem, "msaa");
+        window.msaa = parseValue<int>(elem, "MSAA");
         window.hasAlpha = parseValue<bool>(elem, "alpha");
-
-        if (elem.Attribute("fxaa")) {
-            window.useFxaa = parseValue<bool>(elem, "fxaa");
-        }
-        if (elem.Attribute("FXAA")) {
-            window.useFxaa = parseValue<bool>(elem, "FXAA");
-        }
+        window.useFxaa = parseValue<bool>(elem, "fxaa");
+        window.useFxaa = parseValue<bool>(elem, "FXAA");
 
         window.isDecorated = parseValue<bool>(elem, "decorated");
-        window.hasBorder = parseValue<bool>(elem, "border");
+        window.isDecorated = parseValue<bool>(elem, "border");
         window.draw2D = parseValue<bool>(elem, "draw2D");
         window.draw3D = parseValue<bool>(elem, "draw3D");
         window.blitPreviousWindow = parseValue<bool>(elem, "blitPreviousWindow");
@@ -892,7 +879,7 @@ namespace {
         return tracker;
     }
 
-    sgct::config::Cluster readAndParseXMLFile(const std::string& filename) {
+    sgct::config::Cluster readXMLFile(const std::string& filename) {
         if (filename.empty()) {
             throw Err(6080, "No XML file provided");
         }
@@ -918,7 +905,7 @@ namespace {
             cluster.masterAddress = a;
         }
         else {
-            throw Err(6083, "Cannot find master address or DNS name in XML");
+            throw Err(6083, "Cannot find master address");
         }
 
         cluster.debugLog = parseValue<bool>(root, "debugLog");
@@ -959,61 +946,6 @@ namespace {
 
         return cluster;
     }
-
-    std::string replaceEnvVars(const std::string& filename) {
-        size_t foundPercentage = filename.find('%');
-        if (foundPercentage != std::string::npos) {
-            throw Err(6084, "SGCT doesn't support usage of '%%' in the path");
-        }
-
-        // First get all of the locations so that substitutions don't screw up future ones
-        size_t foundIndex = 0;
-        std::vector<std::pair<size_t, size_t>> envVarLocs;
-        while (foundIndex != std::string::npos) {
-            foundIndex = filename.find("$(", foundIndex);
-            if (foundIndex != std::string::npos) {
-                const size_t beginLocation = foundIndex;
-                foundIndex = filename.find(')', foundIndex);
-                if (foundIndex != std::string::npos) {
-                    envVarLocs.emplace_back(beginLocation, foundIndex);
-                }
-                else {
-                    throw Err(6085, "Bad configuration path string");
-                }
-            }
-        }
-
-        size_t appendPos = 0;
-        std::string res;
-        for (const std::pair<size_t, size_t>& p : envVarLocs) {
-            const size_t beginLoc = p.first;
-            const size_t endLoc = p.second;
-            res.append(filename.substr(appendPos, beginLoc - appendPos));
-            std::string envVar = filename.substr(beginLoc + 2, endLoc - (beginLoc + 2));
-
-            bool environmentSuccess = true;
-#ifdef WIN32
-            size_t len;
-            char* fetchedEnvVar;
-            errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
-            environmentSuccess = !err;
-#else // not windows
-            char* fetchedEnvVar = getenv(envVar.c_str());
-            environmentSuccess = (fetchedEnvVar == nullptr);
-#endif
-            if (!environmentSuccess) {
-                throw Err(6086, "Cannot fetch environment variable " + envVar);
-            }
-
-            res.append(fetchedEnvVar);
-            appendPos = endLoc + 1;
-        }
-
-        res.append(filename.substr(appendPos));
-        std::replace(res.begin(), res.end(), '\\', '/');
-
-        return res;
-    }
 } // namespace
 
 namespace sgct::core {
@@ -1021,10 +953,9 @@ namespace sgct::core {
 config::Cluster readConfig(const std::string& filename) {
     Logger::Debug("Parsing XML config '%s'", filename.c_str());
 
-    std::string f = replaceEnvVars(filename);
-    config::Cluster cluster = readAndParseXMLFile(f);
+    config::Cluster cluster = readXMLFile(filename);
 
-    Logger::Debug("Config file '%s' read successfully", f.c_str());
+    Logger::Debug("Config file '%s' read successfully", filename.c_str());
     Logger::Info("Number of nodes in cluster: %d", cluster.nodes.size());
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {

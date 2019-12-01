@@ -20,35 +20,15 @@ namespace {
         glGenTextures(1, &tex);
         glBindTexture(GL_TEXTURE_2D, tex);
 
-        // if three channels
-        GLenum type = GL_BGR;
-        if (img.getChannels() == 1) {
-            type = GL_RED;
-        }
-        else if (img.getChannels() == 2) {
-            type = GL_RG;
-        }
-        else if (img.getChannels() == 4) {
-            type = GL_BGRA;
-        }
-
-        GLenum internalFormat = {};
-        switch (img.getChannels()) {
-            case 1:
-                internalFormat = GL_R8;
-                break;
-            case 2:
-                internalFormat = GL_RG8;
-                break;
-            case 3:
-                internalFormat = GL_RGB8;
-                break;
-            case 4:
-                internalFormat = GL_RGBA8;
-                break;
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
+        const auto [type, internalFormat] = [](int c) -> std::pair<GLenum, GLenum> {
+            switch (c) {
+                case 1: return { GL_RED, GL_R8 };
+                case 2: return { GL_RG, GL_RG8 };
+                case 3: return { GL_BGR, GL_RGB8 };
+                case 4: return { GL_BGRA, GL_RGBA8 };
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }(img.getChannels());
 
         sgct::Logger::Debug(
             "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
@@ -74,7 +54,7 @@ namespace {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
 
         if (mipmap > 1) {
-            glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
+            glGenerateMipmap(GL_TEXTURE_2D);
 
             glTexParameteri(
                 GL_TEXTURE_2D,

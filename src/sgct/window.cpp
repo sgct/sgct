@@ -177,9 +177,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.isDecorated) {
         setWindowDecoration(*window.isDecorated);
     }
-    if (window.hasBorder) {
-        setWindowDecoration(*window.hasBorder);
-    }
     if (window.draw2D) {
         setCallDraw2DFunction(*window.draw2D);
     }

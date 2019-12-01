@@ -258,7 +258,6 @@ struct Window {
     std::optional<bool> hasAlpha;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
-    std::optional<bool> hasBorder;
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
     std::optional<bool> blitPreviousWindow;

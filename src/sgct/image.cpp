@@ -56,11 +56,7 @@ namespace {
 namespace sgct::core {
 
 Image::~Image() {
-    if (!_isExternalData && _data) {
-        delete[] _data;
-        _data = nullptr;
-        _dataSize = 0;
-    }
+    delete[] _data;
 }
 
 void Image::load(const std::string& filename) {
@@ -102,20 +98,19 @@ void Image::load(unsigned char* data, int length) {
     }
 }
 
-void Image::save(const std::string& filename) {
-    if (filename.empty()) {
+void Image::save(const std::string& file) {
+    if (file.empty()) {
         throw Err(9002, "Filename not set for saving image");
     }
 
-    FormatType type = getFormatType(filename);
+    FormatType type = getFormatType(file);
     if (type == FormatType::Unknown) {
-        throw Err(9003, "Cannot save file " + filename);
+        throw Err(9003, "Cannot save file " + file);
     }
     if (type == FormatType::PNG) {
-        const bool success = savePNG(filename);
-        if (!success) {
-            throw Err(9004, "Could not save file '" + filename + "' as PNG");
-        }
+        // We use libPNG instead of stb as libPNG is faster and we care about how fast
+        // PNGs are written to disk in production
+        savePNG(file);
         return;
     }
 
@@ -129,23 +124,16 @@ void Image::save(const std::string& filename) {
 
     stbi_flip_vertically_on_write(1);
     if (type == FormatType::JPEG) {
-        int r = stbi_write_jpg(
-            filename.c_str(),
-            _size.x,
-            _size.y,
-            _nChannels,
-            _data,
-            100
-        );
+        int r = stbi_write_jpg(file.c_str(), _size.x, _size.y, _nChannels, _data, 100);
         if (r == 0) {
-            throw Err(9005, "Could not save file '" + filename + "' as JPG");
+            throw Err(9004, "Could not save file '" + file + "' as JPG");
         }
         return;
     }
     if (type == FormatType::TGA) {
-        int r = stbi_write_tga(filename.c_str(), _size.x, _size.y, _nChannels, _data);
+        int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
-            throw Err(9006, "Could not save file '" + filename + "' as TGA");
+            throw Err(9005, "Could not save file '" + file + "' as TGA");
 
         }
         return;
@@ -154,22 +142,20 @@ void Image::save(const std::string& filename) {
     throw std::logic_error("We should never get here");
 }
 
-bool Image::savePNG(std::string filename, int compressionLevel) {
+void Image::savePNG(std::string filename, int compressionLevel) {
     if (_data == nullptr) {
-        return false;
+        throw Err(9006, "Missing image data to save PNG");
     }
 
     if (_bytesPerChannel > 2) {
-        Logger::Error("Cannot save %d-bit PNG", _bytesPerChannel * 8);
-        return false;
+        throw Err(9007, "Can't save " + std::to_string(_bytesPerChannel * 8) + " bit");
     }
 
     double t0 = Engine::getTime();
     
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        Logger::Error("Can't create PNG file '%s'", filename.c_str());
-        return false;
+        throw Err(9008, "Can't create PNG file '" + filename + "'");
     }
 
     // initialize stuff
@@ -180,7 +166,7 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
         nullptr
     );
     if (!png_ptr) {
-        return false;
+        throw Err(9009, "Failed to create PNG struct");
     }
 
     // set compression
@@ -194,16 +180,17 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr) {
-        return false;
+        throw Err(9010, "Failed to create PNG info struct");
     }
 
     if (setjmp(png_jmpbuf(png_ptr))) {
-        return false;
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        throw Err(9011, "One of the called PNG functions failed");
     }
 
     png_init_io(png_ptr, fp);
 
-    int colorType = [](int channels) {
+    const int colorType = [](int channels) {
         switch (channels) {
             case 1: return PNG_COLOR_TYPE_GRAY;
             case 2: return PNG_COLOR_TYPE_GRAY_ALPHA;
@@ -212,10 +199,6 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
             default: throw std::logic_error("Unhandled case label");
         }
     }(_nChannels);
-
-    if (colorType == -1) {
-        return false;
-    }
 
     // write header
     png_set_IHDR(
@@ -235,11 +218,6 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     }
     png_write_info(png_ptr, info_ptr);
 
-    // write bytes
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        return false;
-    }
-
     // swap big-endian to little endian
     if (_bytesPerChannel == 2) {
         png_set_swap(png_ptr);
@@ -253,19 +231,12 @@ bool Image::savePNG(std::string filename, int compressionLevel) {
     png_write_image(png_ptr, rowPtrs.data());
     rowPtrs.clear();
 
-    // end write
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        return false;
-    }
-
     png_write_end(png_ptr, nullptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
 
     const double time = (Engine::getTime() - t0) * 1000.0;
     Logger::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
-
-    return true;
 }
 
 unsigned char* Image::getData() {
@@ -314,17 +285,14 @@ bool Image::allocateOrResizeData() {
 
     if (_data && _dataSize != dataSize) {
         // re-allocate if needed
-        if (!_isExternalData && _data) {
-            delete[] _data;
-            _data = nullptr;
-            _dataSize = 0;
-        }
+        delete[] _data;
+        _data = nullptr;
+        _dataSize = 0;
     }
 
     if (!_data) {
         _data = new unsigned char[dataSize];
         _dataSize = dataSize;
-        _isExternalData = false;
 
         Logger::Debug(
             "Allocated %d bytes for image data (%.2f ms)",

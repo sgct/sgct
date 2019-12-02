@@ -17,12 +17,16 @@
 
 namespace sgct::core::correction {
 
-Buffer generateMpcdiMesh(const core::Viewport& parent) {
+Buffer generateMpcdiMesh(const BaseViewport& parent) {
     Buffer buf;
 
     Logger::Info("Reading MPCDI mesh (PFM format) from buffer");
-    const char* srcBuff = parent.mpcdiWarpMesh().data();
-    size_t srcSizeBytes = parent.mpcdiWarpMesh().size();
+    const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
+    if (vp == nullptr) {
+        throw Error(2010, "Configuration error. Trying load MPCDI to wrong viewport");
+    }
+    const char* srcBuff = vp->mpcdiWarpMesh().data();
+    size_t srcSizeBytes = vp->mpcdiWarpMesh().size();
 
     constexpr const int MaxHeaderLineLength = 100;
     char headerBuffer[MaxHeaderLineLength];
@@ -33,7 +37,7 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
         char headerChar = 0;
 
         if (srcIdx == srcSizeBytes) {
-            throw Error(2010, "Error reading from file. Could not find lines");
+            throw Error(2011, "Error reading from file. Could not find lines");
         }
 
         headerChar = srcBuff[srcIdx++];
@@ -48,12 +52,12 @@ Buffer generateMpcdiMesh(const core::Viewport& parent) {
     unsigned int nRows = 0;
     const int res = sscanf(headerBuffer, "%2c %u %u", fileFormatHeader, &nCols, &nRows);
     if (res != 3) {
-        throw Error(2011, "Invalid header information in MPCDI mesh");
+        throw Error(2012, "Invalid header information in MPCDI mesh");
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
-        throw Error(2012, "Incorrect file type. Unknown header type");
+        throw Error(2013, "Incorrect file type. Unknown header type");
     }
     const int nCorrectionValues = nCols * nRows;
     std::vector<glm::vec2> corrGrid(nCorrectionValues);

@@ -11,11 +11,11 @@
 
 #include <sgct/correction/buffer.h>
 
-namespace sgct::core { class Viewport; }
+namespace sgct::core { class BaseViewport; }
 
 namespace sgct::core::correction {
 
-Buffer generateMpcdiMesh(const sgct::core::Viewport& parent);
+Buffer generateMpcdiMesh(const BaseViewport& parent);
 
 } // namespace sgct::core::correction
 

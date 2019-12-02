@@ -15,6 +15,17 @@
 
 namespace sgct::core {
 
+NonLinearProjection::NonLinearProjection(Window* parent)
+    : _subViewports{
+        BaseViewport(parent),
+        BaseViewport(parent),
+        BaseViewport(parent),
+        BaseViewport(parent),
+        BaseViewport(parent),
+        BaseViewport(parent)
+    }
+{}
+    
 NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &_textures.cubeMapColor);
     glDeleteTextures(1, &_textures.cubeMapDepth);
@@ -35,12 +46,12 @@ NonLinearProjection::~NonLinearProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void NonLinearProjection::init(GLenum internalTextureFormat, GLenum textureFormat,
-                               GLenum textureType, int samples)
+void NonLinearProjection::init(GLenum internalFormat, GLenum format, GLenum type,
+                               int samples)
 {
-    _texInternalFormat = internalTextureFormat;
-    _texFormat = textureFormat;
-    _texType = textureType;
+    _texInternalFormat = internalFormat;
+    _texFormat = format;
+    _texType = type;
     _samples = samples;
 
     initViewports();

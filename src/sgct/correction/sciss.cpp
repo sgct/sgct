@@ -47,7 +47,7 @@ namespace {
 
 namespace sgct::core::correction {
 
-Buffer generateScissMesh(const std::string& path, core::Viewport& parent) {
+Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
 
     Logger::Info("Reading SCISS mesh data from '%s'", path.c_str());

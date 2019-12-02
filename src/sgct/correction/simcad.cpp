@@ -18,7 +18,7 @@
 
 namespace sgct::core::correction {
 
-Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& parent) {
+Buffer generateSimCADMesh(const std::string& path, const BaseViewport& parent) {
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only
     // contains zero’s when no warp is applied.

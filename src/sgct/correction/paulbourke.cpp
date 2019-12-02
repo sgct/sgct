@@ -17,7 +17,7 @@
 namespace sgct::core::correction {
 
 Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
-                              const glm::ivec2& size)
+                              const glm::ivec2& size, float aspectRatio)
 {
     Buffer buf;
 
@@ -94,8 +94,9 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
         }
     }
 
-    const float aspect = Engine::instance().getCurrentWindow().getAspectRatio() *
-                   (size.x / size.y);
+    const float aspect = aspectRatio * (size.x / size.y);
+    //const float aspect = Engine::instance().getCurrentWindow().getAspectRatio() *
+    //               (size.x / size.y);
     for (CorrectionMeshVertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)
         vertex.x /= aspect;

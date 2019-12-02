@@ -30,6 +30,8 @@ namespace {
 
 namespace sgct::core {
 
+Viewport::Viewport(Window* parent) : BaseViewport(parent) {}
+
 void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.user) {
         setUserName(*viewport.user);
@@ -129,7 +131,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
 }
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
-    std::unique_ptr<FisheyeProjection> fishProj = std::make_unique<FisheyeProjection>();
+    auto fishProj = std::make_unique<FisheyeProjection>(_parent);
     fishProj->setUser(_user);
     
     if (proj.fov) {
@@ -187,8 +189,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
 #ifdef SGCT_HAS_SPOUT  
-    std::unique_ptr<SpoutOutputProjection> proj =
-        std::make_unique<SpoutOutputProjection>();
+    auto proj = std::make_unique<SpoutOutputProjection>(_parent);
     proj->setUser(_user);
     if (p.quality) {
         proj->setCubemapResolution(*p.quality);
@@ -230,6 +231,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
     auto proj = std::make_unique<SphericalMirrorProjection>(
+        _parent,
         p.mesh.bottom,
         p.mesh.left,
         p.mesh.right,
@@ -269,11 +271,21 @@ void Viewport::loadData() {
     }
 
     if (!_mpcdiWarpMesh.empty()) {
-        _mesh.loadMesh("mesh.mpcdi", *this, parseCorrectionMeshHint("mpcdi"));
+        _mesh.loadMesh(
+            "mesh.mpcdi",
+            *this,
+            parseCorrectionMeshHint("mpcdi"),
+            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
+        );
     }
     else {
         // load default if _meshFilename is empty
-        _mesh.loadMesh(_meshFilename, *this, parseCorrectionMeshHint(_meshHint));
+        _mesh.loadMesh(
+            _meshFilename,
+            *this,
+            parseCorrectionMeshHint(_meshHint),
+            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
+        );
     }
 }
 

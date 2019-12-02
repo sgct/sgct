@@ -13,6 +13,7 @@
 #include <sgct/logger.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
+#include <sgct/window.h>
 #include <sgct/correction/domeprojection.h>
 #include <sgct/correction/mpcdimesh.h>
 #include <sgct/correction/obj.h>
@@ -242,7 +243,9 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     }
 }
 
-void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
+void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hint,
+                              bool needsMaskGeometry)
+{
     using namespace correction;
 
     // generate unwarped mask
@@ -252,7 +255,8 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
     }
     
     // generate unwarped mesh for mask
-    if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
+    if (needsMaskGeometry) {
+    //if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
         Logger::Debug("CorrectionMesh: Creating mask mesh");
 
         Buffer buf = setupMaskMesh(parent.getPosition(), parent.getSize());
@@ -291,15 +295,16 @@ void CorrectionMesh::loadMesh(std::string path, Viewport& parent, Format hint) {
     else if ((path.find(".data") != std::string::npos) &&
             (hint == Format::None || hint == Format::PaulBourke))
     {
-        buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize());
+        buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize(), parent.getWindow().getAspectRatio());
 
         // force regeneration of dome render quad
-        FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
-            parent.getNonLinearProjection()
-        );
-        if (fishPrj) {
-            fishPrj->setIgnoreAspectRatio(true);
-            fishPrj->update(glm::ivec2(1.f, 1.f));
+        Viewport* vp = dynamic_cast<Viewport*>(&parent);
+        if (vp) {
+            auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->getNonLinearProjection());
+            if (fishPrj) {
+                fishPrj->setIgnoreAspectRatio(true);
+                fishPrj->update(glm::ivec2(1.f, 1.f));
+            }
         }
     }
     else if ((path.find(".obj") != std::string::npos) &&

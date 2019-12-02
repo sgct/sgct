@@ -41,13 +41,13 @@ void Node::applyNode(const config::Node& node) {
     }
 
     for (const config::Window& window : node.windows) {
-        Window win = Window(getNumberOfWindows());
-        win.applyWindow(window);
+        std::unique_ptr<Window> win = std::make_unique<Window>(getNumberOfWindows());
+        win->applyWindow(window);
         addWindow(std::move(win));
     }
 }
 
-void Node::addWindow(Window window) {
+void Node::addWindow(std::unique_ptr<Window> window) {
     _windows.emplace_back(std::move(window));
 }
 
@@ -56,8 +56,8 @@ bool Node::getKeyPressed(Key key) {
         return false;
     }
 
-    for (const Window& window : _windows) {
-        if (glfwGetKey(window.getWindowHandle(), static_cast<int>(key))) {
+    for (const std::unique_ptr<Window>& window : _windows) {
+        if (glfwGetKey(window->getWindowHandle(), static_cast<int>(key))) {
             return true;
         }
     }
@@ -69,24 +69,24 @@ int Node::getNumberOfWindows() const {
 }
 
 Window& Node::getWindow(int index) {
-    return _windows[index];
+    return *_windows[index];
 }
 
 const Window& Node::getWindow(int index) const {
-    return _windows[index];
+    return *_windows[index];
 }
 
 bool Node::closeAllWindows() {
-    for (Window& window : _windows) {
-        if (glfwWindowShouldClose(window.getWindowHandle())) {
-            window.setVisible(false);
-            glfwSetWindowShouldClose(window.getWindowHandle(), 0);
+    for (std::unique_ptr<Window>& window : _windows) {
+        if (glfwWindowShouldClose(window->getWindowHandle())) {
+            window->setVisible(false);
+            glfwSetWindowShouldClose(window->getWindowHandle(), 0);
         }
     }
 
     size_t counter = 0;
-    for (const Window& window : _windows) {
-        if (!(window.isVisible() || window.isRenderingWhileHidden())) {
+    for (const std::unique_ptr<Window>& window : _windows) {
+        if (!(window->isVisible() || window->isRenderingWhileHidden())) {
             counter++;
         }
     }

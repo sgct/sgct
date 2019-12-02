@@ -54,11 +54,13 @@ namespace {
 
 namespace sgct::core {
 
-SphericalMirrorProjection::SphericalMirrorProjection(std::string bottomMesh,
+SphericalMirrorProjection::SphericalMirrorProjection(Window* parent, 
+                                                     std::string bottomMesh,
                                                      std::string leftMesh,
                                                      std::string rightMesh,
                                                      std::string topMesh)
-    : _meshPaths{
+    : NonLinearProjection(parent)
+    , _meshPaths {
         std::move(bottomMesh),
         std::move(leftMesh),
         std::move(rightMesh),
@@ -192,15 +194,10 @@ void core::SphericalMirrorProjection::initTextures() {
 }
 
 void SphericalMirrorProjection::initVBO() {
-    Viewport* vp = dynamic_cast<Viewport*>(
-        Engine::instance().getCurrentWindow().getCurrentViewport()
-    );
-    if (vp) {
-        _meshes.bottom.loadMesh(_meshPaths.bottom, *vp);
-        _meshes.left.loadMesh(_meshPaths.left, *vp);
-        _meshes.right.loadMesh(_meshPaths.right, *vp);
-        _meshes.top.loadMesh(_meshPaths.top, *vp);
-    }
+    _meshes.bottom.loadMesh(_meshPaths.bottom, _subViewports.bottom);
+    _meshes.left.loadMesh(_meshPaths.left, _subViewports.left);
+    _meshes.right.loadMesh(_meshPaths.right, _subViewports.right);
+    _meshes.top.loadMesh(_meshPaths.top, _subViewports.top);
 }
 
 void SphericalMirrorProjection::initViewports() {

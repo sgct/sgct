@@ -12,11 +12,11 @@
 #include <sgct/correction/buffer.h>
 #include <string>
 
-namespace sgct::core { class Viewport; }
+namespace sgct::core { class BaseViewport; }
 
 namespace sgct::core::correction {
 
-Buffer generateScissMesh(const std::string& path, sgct::core::Viewport& parent);
+Buffer generateScissMesh(const std::string& path, BaseViewport& parent);
 
 } // namespace sgct::core::correction
 

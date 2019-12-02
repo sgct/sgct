@@ -31,10 +31,11 @@ namespace sgct::core {
 /// This class holds and manages viewportdata and calculates frustums
 class Viewport : public BaseViewport {
 public:
+    Viewport(Window* parent);
+
     void applyViewport(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);
     void setMpcdiWarpMesh(std::vector<char> data);
-    // void setTracked(bool state);
     void loadData();
 
     /// Render the viewport mesh which the framebuffer texture is attached to

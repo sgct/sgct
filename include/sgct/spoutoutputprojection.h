@@ -24,7 +24,7 @@ class SpoutOutputProjection : public NonLinearProjection {
 public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 
-    SpoutOutputProjection();
+    SpoutOutputProjection(Window* parent);
     virtual ~SpoutOutputProjection();
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,

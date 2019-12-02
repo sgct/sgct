@@ -26,6 +26,8 @@
 
 #include <string>
 
+namespace sgct { class Window; }
+
 namespace sgct::core {
 
 class User;
@@ -33,7 +35,7 @@ class User;
 /// This class holds and manages viewportdata and calculates frustums
 class BaseViewport {
 public:
-    BaseViewport();
+    BaseViewport(Window* parent);
     virtual ~BaseViewport() = default;
 
     void setPos(glm::vec2 position);
@@ -48,6 +50,7 @@ public:
     float getHorizontalFieldOfViewDegrees() const;
 
     User& getUser() const;
+    const Window& getWindow() const;
     Frustum::Mode getEye() const;
 
     const Projection& getProjection(Frustum::Mode frustumMode) const;
@@ -66,6 +69,7 @@ public:
     void setHorizontalFieldOfView(float hFov);
 
 protected:
+    Window* _parent;
     struct {
         Projection mono;
         Projection stereoLeft;

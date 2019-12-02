@@ -12,11 +12,11 @@
 #include <sgct/correction/buffer.h>
 #include <string>
 
-namespace sgct::core { class Viewport; }
+namespace sgct::core { class BaseViewport; }
 
 namespace sgct::core::correction {
 
-Buffer generateSkySkanMesh(const std::string& meshPath, sgct::core::Viewport& parent);
+Buffer generateSkySkanMesh(const std::string& meshPath, BaseViewport& parent);
 
 } // namespace sgct::core::correction
 

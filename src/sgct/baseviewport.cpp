@@ -13,8 +13,9 @@
 
 namespace sgct::core {
 
-BaseViewport::BaseViewport()
-    : _user(&ClusterManager::instance().getDefaultUser())
+BaseViewport::BaseViewport(Window* parent)
+    : _parent(parent)
+    , _user(&ClusterManager::instance().getDefaultUser())
 {}
 
 void BaseViewport::setPos(glm::vec2 position) {
@@ -51,6 +52,10 @@ void BaseViewport::setUser(User* user) {
 
 User& BaseViewport::getUser() const {
     return *_user;
+}
+
+const Window& BaseViewport::getWindow() const {
+    return *_parent;
 }
 
 Frustum::Mode BaseViewport::getEye() const {

@@ -23,7 +23,7 @@ public:
     void applyNode(const config::Node& node);
 
     /// Add a window to this node. Note that a window must be opened to become
-    void addWindow(Window window);
+    void addWindow(std::unique_ptr<Window> window);
 
     /// Check if all windows are set to close and close them.
     bool closeAllWindows();
@@ -57,7 +57,7 @@ private:
     int _syncPort = 0;
     int _dataTransferPort = 0;
 
-    std::vector<Window> _windows;
+    std::vector<std::unique_ptr<Window>> _windows;
     bool _useSwapGroups = false;
 };
 

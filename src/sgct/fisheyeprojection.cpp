@@ -20,6 +20,10 @@
 
 namespace sgct::core {
 
+FisheyeProjection::FisheyeProjection(Window* parent)
+    : NonLinearProjection(parent)
+{}
+
 void FisheyeProjection::update(glm::vec2 size) {
     const float cropAspect =
         ((1.f - 2.f * _cropFactor.bottom) + (1.f - 2.f * _cropFactor.top)) /

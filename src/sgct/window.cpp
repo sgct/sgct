@@ -177,7 +177,7 @@ void Window::applyWindow(const config::Window& window) {
         setFixResolution(true);
 
         for (const core::mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
-            std::unique_ptr<core::Viewport> v = std::make_unique<core::Viewport>();
+            std::unique_ptr<core::Viewport> v = std::make_unique<core::Viewport>(this);
             v->applySettings(vp.proj);
             v->setMpcdiWarpMesh(vp.meshData);
             addViewport(std::move(v));
@@ -233,7 +233,7 @@ void Window::applyWindow(const config::Window& window) {
     }
 
     for (const config::Viewport& viewport : window.viewports) {
-        std::unique_ptr<core::Viewport> vp = std::make_unique<core::Viewport>();
+        std::unique_ptr<core::Viewport> vp = std::make_unique<core::Viewport>(this);
         vp->applyViewport(viewport);
         addViewport(std::move(vp));
     }

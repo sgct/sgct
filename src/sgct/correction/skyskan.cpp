@@ -19,7 +19,7 @@
 
 namespace sgct::core::correction {
 
-Buffer generateSkySkanMesh(const std::string& path, core::Viewport& parent) {
+Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
 
     Logger::Info("Reading SkySkan mesh data from '%s'", path.c_str());

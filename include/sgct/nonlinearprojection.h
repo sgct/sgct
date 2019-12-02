@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 
+namespace sgct { class Window; }
+
 namespace sgct::core {
 
 class OffScreenBuffer;
@@ -24,14 +26,15 @@ class NonLinearProjection {
 public:
     enum class InterpolationMode { Linear, Cubic };
 
+    NonLinearProjection(Window* parent);
+
     virtual ~NonLinearProjection();
 
     /**
      * Init the non linear projection. The arguments should match the texture settings for
      * the parent window's FBO target.
      */
-    void init(GLenum internalTextureFormat, GLenum textureFormat, GLenum textureType,
-        int samples = 1);
+    void init(GLenum internalFormat, GLenum format, GLenum type, int samples);
 
     virtual void render() = 0;
     virtual void renderCubemap() = 0;

@@ -35,7 +35,9 @@ namespace {
 
 namespace sgct::core {
 
-SpoutOutputProjection::SpoutOutputProjection() {
+SpoutOutputProjection::SpoutOutputProjection(Window* parent)
+    : NonLinearProjection(parent)
+{
     setUseDepthTransformation(true);
 }
         

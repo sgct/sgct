@@ -66,9 +66,10 @@ namespace sgct {
     2000: CorrectionMesh / "Failed to export. Geometry type is not supported"
     2001: CorrectionMesh / "Failed to export " + exportPath + ". Failed to open"
     2002: DomeProjection / "Failed to open " + path
-    2010: MPCDIMesh / Error reading from file. Could not find lines
-    2011: MPCDIMesh / Invalid header information in MPCDI mesh
-    2012: MPCDIMesh / Incorrect file type. Unknown header type
+    2010: MPCDIMesh / Configuration error. Trying load MPCDI to wrong viewport
+    2011: MPCDIMesh / Error reading from file. Could not find lines
+    2012: MPCDIMesh / Invalid header information in MPCDI mesh
+    2013: MPCDIMesh / Incorrect file type. Unknown header type
     2020: OBJ / Failed to open warping mesh file
     2021: OBJ / Vertex count doesn't match number of texture coordinates
     2030: PaulBourke / Failed to open warping mesh file

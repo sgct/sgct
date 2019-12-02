@@ -18,8 +18,8 @@ namespace sgct::core {
 /// This class manages and renders non-linear fisheye projections
 class SphericalMirrorProjection : public NonLinearProjection {
 public:
-    SphericalMirrorProjection(std::string bottomMesh, std::string leftMesh,
-        std::string rightMesh, std::string topMesh);
+    SphericalMirrorProjection(Window* parent, std::string bottomMesh,
+        std::string leftMesh, std::string rightMesh, std::string topMesh);
     virtual ~SphericalMirrorProjection() = default;
 
     void update(glm::vec2 size) override;

@@ -12,11 +12,11 @@
 #include <sgct/correction/buffer.h>
 #include <string>
 
-namespace sgct::core { class Viewport; }
+namespace sgct::core { class BaseViewport; }
 
 namespace sgct::core::correction {
 
-Buffer generateSimCADMesh(const std::string& path, const sgct::core::Viewport& parent);
+Buffer generateSimCADMesh(const std::string& path, const BaseViewport& parent);
 
 } // namespace sgct::core::correction
 

@@ -20,6 +20,8 @@ class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
+    FisheyeProjection(Window* parent);
+
     /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;
 

@@ -30,10 +30,10 @@ public:
 
     void applyCluster(const config::Cluster& cluster);
 
-    /// Add a cluster node to the manager's vector.
+    /// Add a cluster node to the manager's vector
     void addNode(Node node);
 
-    /// Add a new user.
+    /// Add a new user
     void addUser(User user);
 
     /**

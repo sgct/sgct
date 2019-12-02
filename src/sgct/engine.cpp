@@ -49,7 +49,6 @@ namespace {
     std::function<void(double, double)> gMouseScrollCallback = nullptr;
     std::function<void(int, const char**)> gDropCallback = nullptr;
 
-
     // For feedback: breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
     void updateFrameLockLoop(void*) {
@@ -605,10 +604,6 @@ void Engine::initNetwork() {
 
 void Engine::initWindows(Profile profile) {
     core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    if (thisNode.getNumberOfWindows() == 0) {
-        throw Err(3003, "No windows exist in configuration");
-    }
-
     {
         int ver[3];
         glfwGetVersion(&ver[0], &ver[1], &ver[2]);
@@ -776,9 +771,6 @@ void Engine::initWindows(Profile profile) {
             _contextCreationFn(share);
         }
     }
-    else {
-        throw Err(3004, "No windows created on this node");
-    }
 
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         thisNode.getWindow(i).init();
@@ -849,7 +841,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             throw Err(
-                3005,
+                3003,
                 "No sync signal from master after " + std::to_string(_syncTimeout) + " s"
             );
         }
@@ -902,7 +894,7 @@ void Engine::frameLockPostStage() {
         if (glfwGetTime() - t0 > _syncTimeout) {
             // more than a minute
             throw Err(
-                3006,
+                3004,
                 "No sync signal from clients after " + std::to_string(_syncTimeout) + " s"
             );
         }

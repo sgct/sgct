@@ -58,9 +58,11 @@ namespace sgct {
     1110: Node / Node address must not be empty
     1111: Node / Node port must be non-negative
     1112: Node / Node data transfer port must be non-negative
+    1113: Node / Every node must contain at least one window
     1120: Cluster / Cluster master address must not be empty
     1121: Cluster / Cluster external control port must be non-negative
     1122: Cluster / More than one unnamed users specified in the cluster
+    1123: Cluster / Configuration must contain at least one node
 
     2000s: CorrectionMeshes
     2000: CorrectionMesh / "Failed to export. Geometry type is not supported"
@@ -98,10 +100,8 @@ namespace sgct {
     3000: Engine / Failed to initialize GLFW
     3001: Engine / Computer is not a part of the cluster configuration
     3002: Engine / Requested node id was not found in the cluster configuration
-    3003: Engine / No windows exist in configuration
-    3004: Engine / No windows created on this node
-    3005: Engine / No sync signal from master after X seconds
-    3006: Engine / No sync signal from clients after X seconds
+    3003: Engine / No sync signal from master after X seconds
+    3004: Engine / No sync signal from clients after X seconds
     3010: Engine / GLFW error
 
     4000s: MPCDI

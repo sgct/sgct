@@ -236,6 +236,9 @@ void validateNode(const Node& n) {
         throw Error(1112, "Node data transfer port must be non-negative");
     }
 
+    if (n.windows.empty()) {
+        throw Error(1113, "Every node must contain at least one window");
+    }
     std::for_each(n.windows.begin(), n.windows.end(), validateWindow);
 }
 
@@ -269,6 +272,9 @@ void validateCluster(const Cluster& c) {
     
     std::for_each(c.users.begin(), c.users.end(), validateUser);
     std::for_each(c.trackers.begin(), c.trackers.end(), validateTracker);
+    if (c.nodes.empty()) {
+        throw Error(1123, "Configuration must contain at least one node");
+    }
     std::for_each(c.nodes.begin(), c.nodes.end(), validateNode);
 }
 

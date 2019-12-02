@@ -166,7 +166,31 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 }
 
 Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
+    : _drawFn(std::move(callbacks.draw))
+    , _preSyncFn(std::move(callbacks.preSync))
+    , _postSyncPreDrawFn(std::move(callbacks.postSyncPreDraw))
+    , _postDrawFn(std::move(callbacks.postDraw))
+    , _preWindowFn(std::move(callbacks.preWindow))
+    , _initOpenGLFn(std::move(callbacks.initOpenGL))
+    , _cleanUpFn(std::move(callbacks.cleanUp))
+    , _draw2DFn(std::move(callbacks.draw2D))
+    , _externalDecodeFn(std::move(callbacks.externalDecode))
+    , _externalStatusFn(std::move(callbacks.externalStatus))
+    , _dataTransferDecodeFn(std::move(callbacks.dataTransferDecode))
+    , _dataTransferStatusFn(std::move(callbacks.dataTransferStatus))
+    , _dataTransferAcknowledgeFn(std::move(callbacks.dataTransferAcknowledge))
+    , _contextCreationFn(std::move(callbacks.contextCreation))
 {
+    SharedData::instance().setEncodeFunction(std::move(callbacks.encode));
+    SharedData::instance().setDecodeFunction(std::move(callbacks.decode));
+
+    gKeyboardCallback = std::move(callbacks.keyboard);
+    gCharCallback = std::move(callbacks.character);
+    gMouseButtonCallback = std::move(callbacks.mouseButton);
+    gMousePosCallback = std::move(callbacks.mousePos);
+    gMouseScrollCallback = std::move(callbacks.mouseScroll);
+    gDropCallback = std::move(callbacks.drop);
+
     if (config.isServer) {
         _networkMode = *config.isServer ?
             core::NetworkManager::NetworkMode::LocalServer :
@@ -208,8 +232,14 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
             Logger::Error("Only positive number of capture threads allowed");
         }
     }
+    if (cluster.checkOpenGL) {
+        _checkOpenGLCalls = *cluster.checkOpenGL;
+    }
     if (config.checkOpenGL) {
         _checkOpenGLCalls = *config.checkOpenGL;
+    }
+    if (cluster.checkFBOs) {
+        _checkFBOs = *cluster.checkFBOs;
     }
     if (config.checkFBOs) {
         _checkFBOs = *config.checkFBOs;
@@ -226,36 +256,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         throw Err(3000, "Failed to initialize GLFW");
     }
 
-    _drawFn = std::move(callbacks.draw);
-    _preSyncFn = std::move(callbacks.preSync);
-    _postSyncPreDrawFn = std::move(callbacks.postSyncPreDraw);
-    _postDrawFn = std::move(callbacks.postDraw);
-    _preWindowFn = std::move(callbacks.preWindow);
-    _initOpenGLFn = std::move(callbacks.initOpenGL);
-    _cleanUpFn = std::move(callbacks.cleanUp);
-    _draw2DFn = std::move(callbacks.draw2D);
-    _externalDecodeFn = std::move(callbacks.externalDecode);
-    _externalStatusFn = std::move(callbacks.externalStatus);
-    _dataTransferDecodeFn = std::move(callbacks.dataTransferDecode);
-    _dataTransferStatusFn = std::move(callbacks.dataTransferStatus);
-    _dataTransferAcknowledgeFn = std::move(callbacks.dataTransferAcknowledge);
-    _contextCreationFn = std::move(callbacks.contextCreation);
-
-    SharedData::instance().setEncodeFunction(std::move(callbacks.encode));
-    SharedData::instance().setDecodeFunction(std::move(callbacks.decode));
-
-    gKeyboardCallback = std::move(callbacks.keyboard);
-    gCharCallback = std::move(callbacks.character);
-    gMouseButtonCallback = std::move(callbacks.mouseButton);
-    gMousePosCallback = std::move(callbacks.mousePos);
-    gMouseScrollCallback = std::move(callbacks.mouseScroll);
-    gDropCallback = std::move(callbacks.drop);
-
-    Logger::Info("%s", getVersion().c_str());
-
-    if (_shouldTerminate) {
-        return;
-    }
+    Logger::Info("SGCT version: %s", getVersion().c_str());
 
     Logger::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
@@ -263,12 +264,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     core::ClusterManager::instance().applyCluster(cluster);
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
-    }
-    if (cluster.checkOpenGL) {
-        _checkOpenGLCalls = *cluster.checkOpenGL;
-    }
-    if (cluster.checkFBOs) {
-        _checkFBOs = *cluster.checkFBOs;
     }
 }
 
@@ -351,11 +346,6 @@ void Engine::initialize(Profile profile) {
         }
     }
 
-    // start sampling tracking data
-    if (isMaster()) {
-        TrackingManager::instance().startSampling();
-    }
-
     // Get OpenGL version
     int v[3];
     GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
@@ -429,25 +419,17 @@ void Engine::initialize(Profile profile) {
     glUniform1i(glGetUniformLocation(_overlay.getId(), "Tex"), 0);
     ShaderProgram::unbind();
 
-
     if (_initOpenGLFn) {
-        Logger::Info("Calling init callback");
+        Logger::Info("Calling initialization callback");
         _initOpenGLFn();
     }
 
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        // @TODO (abock, 2019-11-30) Currently setting this is necessary or one of the
-        // spherical mirror tests in the test suite will break. How to get rid of the
-        // state without breaking the test?
-        _currentWindowIndex = i;
-        getWindow(i).initOGL();
-    }
-
     // link all users to their viewports
-    for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
-        Window& win = thisNode.getWindow(w);
-        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            win.getViewport(i).linkUserName();
+    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+        Window& win = thisNode.getWindow(i);
+        win.initOGL();
+        for (int j = 0; j < win.getNumberOfViewports(); ++j) {
+            win.getViewport(j).linkUserName();
         }
     }
 
@@ -472,6 +454,11 @@ void Engine::initialize(Profile profile) {
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         thisNode.getWindow(i).initContextSpecificOGL();
     }
+
+    // start sampling tracking data
+    if (isMaster()) {
+        TrackingManager::instance().startSampling();
+    }
 }
 
 Engine::~Engine() {
@@ -490,21 +477,13 @@ Engine::~Engine() {
         }
     }
 
-    Logger::Debug("Clearing all callbacks");
-    _drawFn = nullptr;
-    _draw2DFn = nullptr;
-    _preSyncFn = nullptr;
-    _postSyncPreDrawFn = nullptr;
-    _postDrawFn = nullptr;
-    _initOpenGLFn = nullptr;
-    _cleanUpFn = nullptr;
+    // We are only clearing the callbacks that might be called asynchronously
+    Logger::Debug("Clearing callbacks");
     _externalDecodeFn = nullptr;
     _externalStatusFn = nullptr;
     _dataTransferDecodeFn = nullptr;
     _dataTransferStatusFn = nullptr;
     _dataTransferAcknowledgeFn = nullptr;
-    _contextCreationFn = nullptr;
-
     gKeyboardCallback = nullptr;
     gMouseButtonCallback = nullptr;
     gMousePosCallback = nullptr;

@@ -295,7 +295,12 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     else if ((path.find(".data") != std::string::npos) &&
             (hint == Format::None || hint == Format::PaulBourke))
     {
-        buf = generatePaulBourkeMesh(path, parent.getPosition(), parent.getSize(), parent.getWindow().getAspectRatio());
+        buf = generatePaulBourkeMesh(
+            path,
+            parent.getPosition(),
+            parent.getSize(),
+            parent.getWindow().getAspectRatio()
+        );
 
         // force regeneration of dome render quad
         Viewport* vp = dynamic_cast<Viewport*>(&parent);
@@ -313,12 +318,16 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
         buf = generateOBJMesh(path);
     }
     else if (path.find(".mpcdi") != std::string::npos) {
-        buf = generateMpcdiMesh(parent);
+        const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
+        if (vp == nullptr) {
+            throw Error(2010, "Configuration error. Trying load MPCDI to wrong viewport");
+        }
+        buf = generateMpcdiMesh(vp->mpcdiWarpMesh());
     }
     else if ((path.find(".simcad") != std::string::npos) &&
             (hint == Format::None || hint == Format::SimCad))
     {
-        buf = generateSimCADMesh(path, parent);
+        buf = generateSimCADMesh(path, parent.getPosition(), parent.getSize());
     }
     else {
         throw std::runtime_error("Could not find format");

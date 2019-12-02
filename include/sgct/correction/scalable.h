@@ -10,8 +10,8 @@
 #define __SGCT__CORRECTION_SCALABLE__H__
 
 #include <sgct/correction/buffer.h>
-#include <string>
 #include <glm/fwd.hpp>
+#include <string>
 
 namespace sgct::core::correction {
 

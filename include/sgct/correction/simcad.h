@@ -10,13 +10,13 @@
 #define __SGCT__CORRECTION_SIMCAD__H__
 
 #include <sgct/correction/buffer.h>
+#include <glm/fwd.hpp>
 #include <string>
-
-namespace sgct::core { class BaseViewport; }
 
 namespace sgct::core::correction {
 
-Buffer generateSimCADMesh(const std::string& path, const BaseViewport& parent);
+Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
+    const glm::ivec2& size);
 
 } // namespace sgct::core::correction
 

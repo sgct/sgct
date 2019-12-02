@@ -17,16 +17,13 @@
 
 namespace sgct::core::correction {
 
-Buffer generateMpcdiMesh(const BaseViewport& parent) {
+Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     Buffer buf;
 
     Logger::Info("Reading MPCDI mesh (PFM format) from buffer");
-    const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
-    if (vp == nullptr) {
-        throw Error(2010, "Configuration error. Trying load MPCDI to wrong viewport");
-    }
-    const char* srcBuff = vp->mpcdiWarpMesh().data();
-    size_t srcSizeBytes = vp->mpcdiWarpMesh().size();
+
+    const char* srcBuff = mpcdiMesh.data();
+    size_t srcSizeBytes = mpcdiMesh.size();
 
     constexpr const int MaxHeaderLineLength = 100;
     char headerBuffer[MaxHeaderLineLength];

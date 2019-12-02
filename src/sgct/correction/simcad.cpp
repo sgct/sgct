@@ -12,13 +12,16 @@
 #include <sgct/logger.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
+#include <glm/glm.hpp>
 #include <tinyxml2.h>
 
 #define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
 
 namespace sgct::core::correction {
 
-Buffer generateSimCADMesh(const std::string& path, const BaseViewport& parent) {
+Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
+                          const glm::ivec2& size)
+{
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only
     // contains zero’s when no warp is applied.
@@ -114,12 +117,12 @@ Buffer generateSimCADMesh(const std::string& path, const BaseViewport& parent) {
             const float y = v - ycorrections[i];
 
             // convert to [-1, 1]
-            vertex.x = 2.f * (x * parent.getSize().x + parent.getPosition().x) - 1.f;
-            vertex.y = 2.f * (y * parent.getSize().y + parent.getPosition().y) - 1.f;
+            vertex.x = 2.f * (x * size.x + pos.x) - 1.f;
+            vertex.y = 2.f * (y * size.y + pos.y) - 1.f;
 
             // scale to viewport coordinates
-            vertex.s = u * parent.getSize().x + parent.getPosition().x;
-            vertex.t = v * parent.getSize().y + parent.getPosition().y;
+            vertex.s = u * size.x + pos.x;
+            vertex.t = v * size.y + pos.y;
 
             buf.vertices.push_back(vertex);
             i++;

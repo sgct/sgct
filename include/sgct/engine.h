@@ -73,9 +73,18 @@ public:
     };
 
     struct Callbacks {
-        /// This function draws the scene and could be called several times per frame
-        /// as it's called once per viewport and once per eye if stereoscopy is used.
-        std::function<void()> draw;
+        /// This function is called before the window is created (before OpenGL context is
+        /// created). At this stage the configuration file has been read and network
+        /// is initialized.
+        std::function<void()> preWindow;
+
+        /// This function is called directly after all SGCT windows are created. This
+        // enables the user to create additional OpenGL context for multithreaded OpenGL.
+        std::function<void(GLFWwindow*)> contextCreation;
+
+        /// This function is called once before the starting the render loop and after
+        /// creation of the OpenGL context.
+        std::function<void()> initOpenGL;
 
         /// This function is called before the synchronization stage
         std::function<void()> preSync;
@@ -83,24 +92,19 @@ public:
         /// This function is called once per frame after sync but before draw stage
         std::function<void()> postSyncPreDraw;
 
-        /// This function is called after the draw stage but before the OpenGL buffer swap
-        std::function<void()> postDraw;
-
-        /// This function is called before the window is created (before OpenGL context is
-        /// created). At this stage the configuration file has been read and network
-        /// is initialized.
-        std::function<void()> preWindow;
-
-        /// This function is called once before the starting the render loop and after
-        /// creation of the OpenGL context.
-        std::function<void()> initOpenGL;
-
-        /// This is called before all SGCT components will be destroyed
-        std::function<void()> cleanUp;
+        /// This function draws the scene and could be called several times per frame
+        /// as it's called once per viewport and once per eye if stereoscopy is used.
+        std::function<void()> draw;
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
         std::function<void()> draw2D;
+
+        /// This function is called after the draw stage but before the OpenGL buffer swap
+        std::function<void()> postDraw;
+
+        /// This is called before all SGCT components will be destroyed
+        std::function<void()> cleanUp;
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
@@ -123,10 +127,6 @@ public:
 
         /// This function is called when data is successfully sent
         std::function<void(int, int)> dataTransferAcknowledge;
-
-        /// This function is called directly after all SGCT windows are created. This
-        // enables the user to create additional OpenGL context for multithreaded OpenGL.
-        std::function<void(GLFWwindow*)> contextCreation;
 
         /// This function sets the keyboard callback (GLFW wrapper) for all windows
         std::function<void(Key, Modifier, Action, int)> keyboard;
@@ -545,21 +545,20 @@ private:
     // is using the callbacks during the application shutdown. The previous method was to
     // set the callbacks to nullptr, but I really want to make them constant, which
     // prevents that approach from working
-    //bool _disableCallbacks = false;
-    std::function<void()> _drawFn;
-    std::function<void()> _preSyncFn;
-    std::function<void()> _postSyncPreDrawFn;
-    std::function<void()> _postDrawFn;
-    std::function<void()> _preWindowFn;
-    std::function<void()> _initOpenGLFn;
-    std::function<void()> _cleanUpFn;
-    std::function<void()> _draw2DFn;
+    const std::function<void()> _preWindowFn;
+    const std::function<void(GLFWwindow*)> _contextCreationFn;
+    const std::function<void()> _initOpenGLFn;
+    const std::function<void()> _preSyncFn;
+    const std::function<void()> _postSyncPreDrawFn;
+    const std::function<void()> _drawFn;
+    const std::function<void()> _draw2DFn;
+    const std::function<void()> _postDrawFn;
+    const std::function<void()> _cleanUpFn;
     std::function<void(const char*, int)> _externalDecodeFn;
     std::function<void(bool)> _externalStatusFn;
     std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
     std::function<void(bool, int)> _dataTransferStatusFn;
     std::function<void(int, int)> _dataTransferAcknowledgeFn;
-    std::function<void(GLFWwindow*)> _contextCreationFn;
     
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;

@@ -882,19 +882,25 @@ namespace {
         }
 
         tinyxml2::XMLDocument xmlDoc;
-        const bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
+        tinyxml2::XMLError err = xmlDoc.LoadFile(filename.c_str());
+        const bool s = err == tinyxml2::XML_NO_ERROR;
         if (!s) {
-            std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
-            std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
-            std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
-            std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-            throw Err(6081, "Error loading XML file '" + filename + "'. " + s4);
+            if (err == tinyxml2::XML_ERROR_FILE_NOT_FOUND) {
+                throw Err(6081, "Could not find configuration file: " + filename);
+            }
+            else {
+                std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
+                std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
+                std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
+                std::string s4 = s1 + ' ' + s2 + ' ' + s3;
+                throw Err(6082, "Error loading XML file '" + filename + "'. " + s4);
+            }
         }
 
         sgct::config::Cluster cluster;
         tinyxml2::XMLElement* xmlRoot = xmlDoc.FirstChildElement("Cluster");
         if (xmlRoot == nullptr) {
-            throw Err(6082, "Cannot find 'Cluster' node");
+            throw Err(6083, "Cannot find 'Cluster' node");
         }
         tinyxml2::XMLElement& root = *xmlRoot;
 
@@ -902,7 +908,7 @@ namespace {
             cluster.masterAddress = a;
         }
         else {
-            throw Err(6083, "Cannot find master address");
+            throw Err(6084, "Cannot find master address");
         }
 
         cluster.debugLog = parseValue<bool>(root, "debugLog");

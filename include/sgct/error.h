@@ -175,12 +175,10 @@ namespace sgct {
     6060: Capture / Unknown capturing format. Needs to be png, tga, jpg
     6070: Tracker / Tracker is missing 'name'
     6080: XML Parsing / No XML file provided
-    6081: XML Parsing / Error parsing XML file
-    6082: XML Parsing / Cannot find 'Cluster' node
-    6083: XML Parsing / Cannot find master address
-    6084: XML Parsing / SGCT doesn't support usage of % in the path
-    6085: XML Parsing / Bad configuration path string
-    6086: XML Parsing / Cannot fetch environment variable
+    6081: XML Parsing / Could not find configureation file: %s
+    6082: XML Parsing / Error parsing XML file
+    6083: XML Parsing / Cannot find 'Cluster' node
+    6084: XML Parsing / Cannot find master address
 
     7000s: Shader Handling
     7000: ShaderManager / Cannot add shader program %s: Already exists

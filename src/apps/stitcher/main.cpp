@@ -230,7 +230,7 @@ void preSyncFun() {
     counter = 0;
 }
 
-void myPostSyncPreDrawFun() {
+void postSyncPreDrawFun() {
     if (takeScreenshot.getVal()) {
         Engine::instance().takeScreenshot();
         takeScreenshot.setVal(false);
@@ -447,7 +447,6 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     Configuration config = parseArguments(arguments);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -613,19 +612,20 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setDrawFunction(drawFun);
-    Engine::instance().setPreSyncFunction(preSyncFun);
-    Engine::instance().setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
-    Engine::instance().setKeyboardCallbackFunction(keyCallback);
-    Engine::instance().setPreWindowFunction(preWinInitFun);
-    Engine::instance().setEncodeFunction(encodeFun);
-    Engine::instance().setDecodeFunction(decodeFun);
+    Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initOGLFun;
+    callbacks.draw = drawFun;
+    callbacks.preSync = preSyncFun;
+    callbacks.postSyncPreDraw = postSyncPreDrawFun;
+    callbacks.keyboard = keyCallback;
+    callbacks.preWindow = preWinInitFun;
+    callbacks.encode = encodeFun;
+    callbacks.decode = decodeFun;
 
     Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

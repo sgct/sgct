@@ -210,18 +210,18 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
-    Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setDrawFunction(drawFun);
-    Engine::instance().setKeyboardCallbackFunction(keyCallback);
-    Engine::instance().setPreSyncFunction(preSyncFun);
-    Engine::instance().setCleanUpFunction(cleanUpFun);
-    Engine::instance().setEncodeFunction(encodeFun);
-    Engine::instance().setDecodeFunction(decodeFun);
+    Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initOGLFun;
+    callbacks.draw = drawFun;
+    callbacks.keyboard = keyCallback;
+    callbacks.preSync = preSyncFun;
+    callbacks.cleanUp = cleanUpFun;
+    callbacks.encode = encodeFun;
+    callbacks.decode = decodeFun;
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

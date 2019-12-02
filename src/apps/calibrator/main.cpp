@@ -341,7 +341,6 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
     // parse arguments
     for (int i = 0; i < argc; i++) {
@@ -360,24 +359,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDraw);
-    Engine::instance().setDrawFunction(draw);
-    Engine::instance().setDraw2DFunction(draw2D);
-    Engine::instance().setInitOGLFunction(initGL);
-    Engine::instance().setCleanUpFunction(cleanUp);
-    Engine::instance().setKeyboardCallbackFunction(keyboardCallback);
-    Engine::instance().setEncodeFunction(encode);
-    Engine::instance().setDecodeFunction(decode);
+    Engine::Callbacks callbacks;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.draw2D = draw2D;
+    callbacks.initOpenGL = initGL;
+    callbacks.cleanUp = cleanUp;
+    callbacks.keyboard = keyboardCallback;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
 
     try {
-        Engine::instance().init(cluster);
-        Engine::instance().render();
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
+    
+    Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

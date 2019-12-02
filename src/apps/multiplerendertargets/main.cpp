@@ -184,19 +184,19 @@ int main(int argc, char* argv[]) {
         cluster.settings = settings;
     }
 
-    Engine::create(config);
 
-    Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setDrawFunction(drawFun);
-    Engine::instance().setPreSyncFunction(preSyncFun);
-    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance().setCleanUpFunction(cleanUpFun);
-    Engine::instance().setKeyboardCallbackFunction(keyCallback);
-    Engine::instance().setEncodeFunction(encodeFun);
-    Engine::instance().setDecodeFunction(decodeFun);
+    Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initOGLFun;
+    callbacks.draw = drawFun;
+    callbacks.preSync = preSyncFun;
+    callbacks.postSyncPreDraw = postSyncPreDrawFun;
+    callbacks.cleanUp = cleanUpFun;
+    callbacks.keyboard = keyCallback;
+    callbacks.encode = encodeFun;
+    callbacks.decode = decodeFun;
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

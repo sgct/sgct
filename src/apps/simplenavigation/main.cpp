@@ -446,21 +446,21 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
-    Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setDrawFunction(drawFun);
-    Engine::instance().setPreSyncFunction(preSyncFun);
-    Engine::instance().setKeyboardCallbackFunction(keyCallback);
-    Engine::instance().setMouseButtonCallbackFunction(mouseButtonCallback);
-    Engine::instance().setCleanUpFunction(cleanUpFun);
-    Engine::instance().setEncodeFunction(encodeFun);
-    Engine::instance().setDecodeFunction(decodeFun);
+    Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initOGLFun;
+    callbacks.draw = drawFun;
+    callbacks.preSync = preSyncFun;
+    callbacks.keyboard = keyCallback;
+    callbacks.mouseButton = mouseButtonCallback;
+    callbacks.cleanUp = cleanUpFun;
+    callbacks.encode = encodeFun;
+    callbacks.decode = decodeFun;
 
     Engine::instance().setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

@@ -10,7 +10,7 @@ namespace {
 
 using namespace sgct;
 
-void myDraw2DFun() {
+void draw2DFun() {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
@@ -48,10 +48,12 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
+
+    Engine::Callbacks callbacks;
+    callbacks.draw2D = draw2DFun;
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());
@@ -73,8 +75,6 @@ int main(int argc, char* argv[]) {
             "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons
         );
     }
-
-    Engine::instance().setDraw2DFunction(myDraw2DFun);
 
     Engine::instance().render();
     Engine::destroy();

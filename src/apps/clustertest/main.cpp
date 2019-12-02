@@ -534,21 +534,22 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
     Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
-    Engine::instance().setInitOGLFunction(initOGLFun);
-    Engine::instance().setKeyboardCallbackFunction(keyCallback);
-    Engine::instance().setDraw2DFunction(myDraw2DFun);
-    Engine::instance().setEncodeFunction(encodeFun);
-    Engine::instance().setDecodeFunction(decodeFun);
-    Engine::instance().setDrawFunction(drawFun);
-    Engine::instance().setPreSyncFunction(preSyncFun);
-    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDrawFun);
-    Engine::instance().setPostDrawFunction(postDrawFun);
+    Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initOGLFun;
+
+    callbacks.keyboard = keyCallback;
+    callbacks.draw2D = myDraw2DFun;
+    callbacks.encode = encodeFun;
+    callbacks.decode = decodeFun;
+    callbacks.draw = drawFun;
+    callbacks.preSync = preSyncFun;
+    callbacks.postSyncPreDraw = postSyncPreDrawFun;
+    callbacks.postDraw = postDrawFun;
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

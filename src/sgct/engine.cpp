@@ -94,14 +94,23 @@ namespace {
 Engine* Engine::_instance = nullptr;
 
 Engine& Engine::instance() {
+    if (_instance == nullptr) {
+        throw std::logic_error("Using the instance before it was created or set");
+    }
     return *_instance;
 }
 
-void Engine::create(const Configuration& arg) {
-    if (_instance) {
-        throw std::logic_error("Engine has already been created");
-    }
-    _instance = new Engine(arg);
+void Engine::create(config::Cluster cluster, Callbacks callbacks,
+                    const Configuration& arg, Profile profile)
+{
+    // abock (2019-12-02) Unfortunately I couldn't find a better why than using this two
+    // phase initialization approach. There are a few callbacks in the second phase that
+    // are calling out to client code that (rightly) assumes that the Engine has been
+    // created and are calling Engine::instance from they registered callbacks. If this
+    // client code is executed from the constructor, the _instance variable has not yet
+    // been set and will therefore cause the logic_error in the instance() function.
+    _instance = new Engine(cluster, callbacks, arg);
+    _instance->initialize(profile);
 }
 
 void Engine::destroy() {
@@ -156,7 +165,8 @@ config::Cluster loadCluster(std::optional<std::string> path) {
     }
 }
 
-Engine::Engine(const Configuration& config) {
+Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
+{
     if (config.isServer) {
         _networkMode = *config.isServer ?
             core::NetworkManager::NetworkMode::LocalServer :
@@ -215,6 +225,253 @@ Engine::Engine(const Configuration& config) {
     if (res == GLFW_FALSE) {
         throw Err(3000, "Failed to initialize GLFW");
     }
+
+    _drawFn = std::move(callbacks.draw);
+    _preSyncFn = std::move(callbacks.preSync);
+    _postSyncPreDrawFn = std::move(callbacks.postSyncPreDraw);
+    _postDrawFn = std::move(callbacks.postDraw);
+    _preWindowFn = std::move(callbacks.preWindow);
+    _initOpenGLFn = std::move(callbacks.initOpenGL);
+    _cleanUpFn = std::move(callbacks.cleanUp);
+    _draw2DFn = std::move(callbacks.draw2D);
+    _externalDecodeFn = std::move(callbacks.externalDecode);
+    _externalStatusFn = std::move(callbacks.externalStatus);
+    _dataTransferDecodeFn = std::move(callbacks.dataTransferDecode);
+    _dataTransferStatusFn = std::move(callbacks.dataTransferStatus);
+    _dataTransferAcknowledgeFn = std::move(callbacks.dataTransferAcknowledge);
+    _contextCreationFn = std::move(callbacks.contextCreation);
+
+    SharedData::instance().setEncodeFunction(std::move(callbacks.encode));
+    SharedData::instance().setDecodeFunction(std::move(callbacks.decode));
+
+    gKeyboardCallback = std::move(callbacks.keyboard);
+    gCharCallback = std::move(callbacks.character);
+    gMouseButtonCallback = std::move(callbacks.mouseButton);
+    gMousePosCallback = std::move(callbacks.mousePos);
+    gMouseScrollCallback = std::move(callbacks.mouseScroll);
+    gDropCallback = std::move(callbacks.drop);
+
+    Logger::Info("%s", getVersion().c_str());
+
+    if (_shouldTerminate) {
+        return;
+    }
+
+    Logger::Debug("Validating cluster configuration");
+    config::validateCluster(cluster);
+
+    core::ClusterManager::instance().applyCluster(cluster);
+    for (const config::Tracker& tracker : cluster.trackers) {
+        TrackingManager::instance().applyTracker(tracker);
+    }
+    if (cluster.checkOpenGL) {
+        _checkOpenGLCalls = *cluster.checkOpenGL;
+    }
+    if (cluster.checkFBOs) {
+        _checkFBOs = *cluster.checkFBOs;
+    }
+}
+
+void Engine::initialize(Profile profile) {
+    initNetwork();
+    initWindows(profile);
+
+    // Window resolution may have been set by the config. However, it only sets a pending
+    // resolution, so it needs to apply it using the same routine as in the end of a frame
+    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
+        thisNode.getWindow(i).updateResolutions();
+    }
+    // if a single node, skip syncing
+    if (core::ClusterManager::instance().getNumberOfNodes() == 1) {
+        core::ClusterManager::instance().setUseIgnoreSync(true);
+    }
+
+    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
+        GLFWwindow* window = getWindow(i).getWindowHandle();
+        if (gKeyboardCallback) {
+            glfwSetKeyCallback(
+                window,
+                [](GLFWwindow*, int key, int scancode, int a, int m) {
+                if (gKeyboardCallback) {
+                    gKeyboardCallback(Key(key), Modifier(m), Action(a), scancode);
+                }
+            }
+            );
+        }
+        if (gMouseButtonCallback) {
+            glfwSetMouseButtonCallback(
+                window,
+                [](GLFWwindow*, int b, int a, int m) {
+                if (gMouseButtonCallback) {
+                    gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
+                }
+            }
+            );
+        }
+        if (gMousePosCallback) {
+            glfwSetCursorPosCallback(
+                window,
+                [](GLFWwindow*, double xPos, double yPos) {
+                if (gMousePosCallback) {
+                    gMousePosCallback(xPos, yPos);
+                }
+            }
+            );
+        }
+        if (gCharCallback) {
+            glfwSetCharModsCallback(
+                window,
+                [](GLFWwindow*, unsigned int ch, int mod) {
+                if (gCharCallback) {
+                    gCharCallback(ch, mod);
+                }
+            }
+            );
+        }
+        if (gMouseScrollCallback) {
+            glfwSetScrollCallback(
+                window,
+                [](GLFWwindow*, double xOffset, double yOffset) {
+                if (gMouseScrollCallback) {
+                    gMouseScrollCallback(xOffset, yOffset);
+                }
+            }
+            );
+        }
+        if (gDropCallback) {
+            glfwSetDropCallback(
+                window,
+                [](GLFWwindow*, int count, const char** paths) {
+                if (gDropCallback) {
+                    gDropCallback(count, paths);
+                }
+            }
+            );
+        }
+    }
+
+    // start sampling tracking data
+    if (isMaster()) {
+        TrackingManager::instance().startSampling();
+    }
+
+    // Get OpenGL version
+    int v[3];
+    GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
+    v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
+    v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
+    v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
+    Logger::Info("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
+
+    Logger::Info("Vendor: %s", glGetString(GL_VENDOR));
+    Logger::Info("Renderer: %s", glGetString(GL_RENDERER));
+
+    if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
+        std::string path = Settings::instance().getCapturePath() + "_node";
+        path += std::to_string(core::ClusterManager::instance().getThisNodeId());
+
+        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
+    }
+
+    // init window opengl data
+    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+
+    //
+    // Load Shaders
+    //
+    bool needsFxaa = false;
+    for (int i = 0; i < getThisNode().getNumberOfWindows(); ++i) {
+        needsFxaa |= getThisNode().getWindow(i).useFXAA();
+    }
+
+    if (needsFxaa) {
+        FXAAShader shdr;
+        shdr.shader = ShaderProgram("FXAAShader");
+        shdr.shader.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
+        shdr.shader.createAndLinkProgram();
+        shdr.shader.bind();
+
+        const int id = shdr.shader.getId();
+        shdr.sizeX = glGetUniformLocation(id, "rt_w");
+        const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
+        glUniform1f(shdr.sizeX, static_cast<float>(framebufferSize.x));
+
+        shdr.sizeY = glGetUniformLocation(id, "rt_h");
+        glUniform1f(shdr.sizeY, static_cast<float>(framebufferSize.y));
+
+        shdr.subPixTrim = glGetUniformLocation(id, "FXAA_SUBPIX_TRIM");
+        glUniform1f(shdr.subPixTrim, FxaaSubPixTrim);
+
+        shdr.subPixOffset = glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET");
+        glUniform1f(shdr.subPixOffset, FxaaSubPixOffset);
+
+        glUniform1i(glGetUniformLocation(id, "tex"), 0);
+        ShaderProgram::unbind();
+
+        _fxaa = std::move(shdr);
+    }
+
+    // Used for overlays & mono.
+    _fboQuad = ShaderProgram("FBOQuadShader");
+    _fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
+    _fboQuad.createAndLinkProgram();
+    _fboQuad.bind();
+    glUniform1i(glGetUniformLocation(_fboQuad.getId(), "tex"), 0);
+    ShaderProgram::unbind();
+
+    _overlay = ShaderProgram("OverlayShader");
+    _overlay.addShaderSource(core::shaders::OverlayVert, core::shaders::OverlayFrag);
+    _overlay.createAndLinkProgram();
+    _overlay.bind();
+    glUniform1i(glGetUniformLocation(_overlay.getId(), "Tex"), 0);
+    ShaderProgram::unbind();
+
+
+    if (_initOpenGLFn) {
+        Logger::Info("Calling init callback");
+        _initOpenGLFn();
+    }
+
+    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
+        // @TODO (abock, 2019-11-30) Currently setting this is necessary or one of the
+        // spherical mirror tests in the test suite will break. How to get rid of the
+        // state without breaking the test?
+        _currentWindowIndex = i;
+        getWindow(i).initOGL();
+    }
+
+    // link all users to their viewports
+    for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
+        Window& win = thisNode.getWindow(w);
+        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
+            win.getViewport(i).linkUserName();
+        }
+    }
+
+    updateFrustums();
+
+#ifdef SGCT_HAS_TEXT
+    // Add font
+#ifdef WIN32
+    constexpr const char* FontName = "verdanab.ttf";
+#elif defined(__APPLE__)
+    constexpr const char* FontName = "Tahoma Bold.ttf";
+#else
+    constexpr const char* FontName = "FreeSansBold.ttf";
+#endif
+    text::FontManager::instance().addFont("SGCTFont", FontName);
+#endif // SGCT_HAS_TEXT
+
+    // init swap barrier is swap groups are active
+    Window::setBarrier(true);
+    Window::resetSwapGroupFrameNumber();
+
+    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
+        thisNode.getWindow(i).initContextSpecificOGL();
+    }
 }
 
 Engine::~Engine() {
@@ -241,11 +498,11 @@ Engine::~Engine() {
     _postDrawFn = nullptr;
     _initOpenGLFn = nullptr;
     _cleanUpFn = nullptr;
-    _externalDecodeCallbackFn = nullptr;
-    _externalStatusCallbackFn = nullptr;
-    _dataTransferDecodeCallbackFn = nullptr;
-    _dataTransferStatusCallbackFn = nullptr;
-    _dataTransferAcknowledgeCallbackFn = nullptr;
+    _externalDecodeFn = nullptr;
+    _externalStatusFn = nullptr;
+    _dataTransferDecodeFn = nullptr;
+    _dataTransferStatusFn = nullptr;
+    _dataTransferAcknowledgeFn = nullptr;
     _contextCreationFn = nullptr;
 
     gKeyboardCallback = nullptr;
@@ -325,114 +582,6 @@ Engine::~Engine() {
     glfwTerminate();
  
     Logger::Debug("Finished cleaning");
-}
-
-void Engine::init(config::Cluster cluster, Profile profile) {
-    Logger::Info("%s", getVersion().c_str());
-
-    if (_shouldTerminate) {
-        return;
-    }
-
-    Logger::Debug("Validating cluster configuration");
-    config::validateCluster(cluster);
-         
-    core::ClusterManager::instance().applyCluster(cluster);
-    for (const config::Tracker& tracker : cluster.trackers) {
-        TrackingManager::instance().applyTracker(tracker);
-    }
-    if (cluster.checkOpenGL) {
-        _checkOpenGLCalls = *cluster.checkOpenGL;
-    }
-    if (cluster.checkFBOs) {
-        _checkFBOs = *cluster.checkFBOs;
-    }
-
-    initNetwork();
-    initWindows(profile);
-
-    // Window resolution may have been set by the config. However, it only sets a pending
-    // resolution, so it needs to apply it using the same routine as in the end of a frame
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).updateResolutions();
-    }
-
-    // if a single node, skip syncing
-    if (core::ClusterManager::instance().getNumberOfNodes() == 1) {
-        core::ClusterManager::instance().setUseIgnoreSync(true);
-    }
-
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        GLFWwindow* window = getWindow(i).getWindowHandle();
-        if (gKeyboardCallback) {
-            glfwSetKeyCallback(
-                window,
-                [](GLFWwindow*, int key, int scancode, int a, int m) {
-                    if (gKeyboardCallback) {
-                        gKeyboardCallback(Key(key), Modifier(m), Action(a), scancode);
-                    }
-                }
-            );
-        }
-        if (gMouseButtonCallback) {
-            glfwSetMouseButtonCallback(
-                window,
-                [](GLFWwindow*, int b, int a, int m) {
-                    if (gMouseButtonCallback) {
-                        gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
-                    }
-                }
-            );
-        }
-        if (gMousePosCallback) {
-            glfwSetCursorPosCallback(
-                window,
-                [](GLFWwindow*, double xPos, double yPos) {
-                    if (gMousePosCallback) {
-                        gMousePosCallback(xPos, yPos);
-                    }
-                }
-            );
-        }
-        if (gCharCallback) {
-            glfwSetCharModsCallback(
-                window,
-                [](GLFWwindow*, unsigned int ch, int mod) {
-                    if (gCharCallback) {
-                        gCharCallback(ch, mod);
-                    }
-                }
-            );
-        }
-        if (gMouseScrollCallback) {
-            glfwSetScrollCallback(
-                window,
-                [](GLFWwindow*, double xOffset, double yOffset) {
-                    if (gMouseScrollCallback) {
-                        gMouseScrollCallback(xOffset, yOffset);
-                    }
-                }
-            );
-        }
-        if (gDropCallback) {
-            glfwSetDropCallback(
-                window,
-                [](GLFWwindow*, int count, const char** paths) {
-                    if (gDropCallback) {
-                        gDropCallback(count, paths);
-                    }
-                }
-            );
-        }
-    }
-
-    initOGL();
-
-    // start sampling tracking data
-    if (isMaster()) {
-        TrackingManager::instance().startSampling();
-    }
 }
 
 void Engine::terminate() {
@@ -670,129 +819,6 @@ void Engine::initWindows(Profile profile) {
     if (thisNode.isUsingSwapGroups()) {
         Window::initNvidiaSwapGroups();
     }
-}
-
-void Engine::initOGL() {
-    // Get OpenGL version
-    int v[3];
-    GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
-    v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
-    v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
-    v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
-    Logger::Info("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
-
-    Logger::Info("Vendor: %s", glGetString(GL_VENDOR));
-    Logger::Info("Renderer: %s", glGetString(GL_RENDERER));
-
-    if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
-        std::string path = Settings::instance().getCapturePath() + "_node";
-        path += std::to_string(core::ClusterManager::instance().getThisNodeId());
-
-        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
-    }
-
-    // init window opengl data
-    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
-
-    //
-    // Load Shaders
-    //
-    bool needsFxaa = false;
-    for (int i = 0; i < getThisNode().getNumberOfWindows(); ++i) {
-        needsFxaa |= getThisNode().getWindow(i).useFXAA();
-    }
-    
-    if (needsFxaa) {
-        FXAAShader shdr;
-        shdr.shader = ShaderProgram("FXAAShader");
-        shdr.shader.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
-        shdr.shader.createAndLinkProgram();
-        shdr.shader.bind();
-
-        const int id = shdr.shader.getId();
-        shdr.sizeX = glGetUniformLocation(id, "rt_w");
-        const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
-        glUniform1f(shdr.sizeX, static_cast<float>(framebufferSize.x));
-
-        shdr.sizeY = glGetUniformLocation(id, "rt_h");
-        glUniform1f(shdr.sizeY, static_cast<float>(framebufferSize.y));
-
-        shdr.subPixTrim = glGetUniformLocation(id, "FXAA_SUBPIX_TRIM");
-        glUniform1f(shdr.subPixTrim, FxaaSubPixTrim);
-
-        shdr.subPixOffset = glGetUniformLocation(id, "FXAA_SUBPIX_OFFSET");
-        glUniform1f(shdr.subPixOffset, FxaaSubPixOffset);
-
-        glUniform1i(glGetUniformLocation(id, "tex"), 0);
-        ShaderProgram::unbind();
-
-        _fxaa = std::move(shdr);
-    }
-
-    // Used for overlays & mono.
-    _fboQuad = ShaderProgram("FBOQuadShader");
-    _fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
-    _fboQuad.createAndLinkProgram();
-    _fboQuad.bind();
-    glUniform1i(glGetUniformLocation(_fboQuad.getId(), "tex"), 0);
-    ShaderProgram::unbind();
-
-    _overlay = ShaderProgram("OverlayShader");
-    _overlay.addShaderSource(core::shaders::OverlayVert, core::shaders::OverlayFrag);
-    _overlay.createAndLinkProgram();
-    _overlay.bind();
-    glUniform1i(glGetUniformLocation(_overlay.getId(), "Tex"), 0);
-    ShaderProgram::unbind();
-
-    if (_initOpenGLFn) {
-        Logger::Info("Calling init callback");
-        _initOpenGLFn();
-    }
-
-    // create all textures, etc
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        // @TODO (abock, 2019-11-30) Currently setting this is necessary or one of the
-        // spherical mirror tests in the test suite will break. How to get rid of the
-        // state without breaking the test?
-        _currentWindowIndex = i;
-        getWindow(i).initOGL();
-    }
-
-    // link all users to their viewports
-    for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
-        Window& win = thisNode.getWindow(w);
-        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            win.getViewport(i).linkUserName();
-        }
-    }
-
-    updateFrustums();
-
-#ifdef SGCT_HAS_TEXT
-    // Add font
-#ifdef WIN32
-    constexpr const char* FontName = "verdanab.ttf";
-#elif defined(__APPLE__)
-    constexpr const char* FontName = "Tahoma Bold.ttf";
-#else
-    constexpr const char* FontName = "FreeSansBold.ttf";
-#endif
-    text::FontManager::instance().addFont("SGCTFont", FontName);
-#endif // SGCT_HAS_TEXT
-
-    // init swap barrier is swap groups are active
-    Window::setBarrier(true);
-    Window::resetSwapGroupFrameNumber();
-
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).initContextSpecificOGL();
-    }
-
-    // check for errors
-    Logger::Info("Ready to render");
 }
 
 void Engine::frameLockPreStage() {
@@ -1781,102 +1807,6 @@ void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     ShaderProgram::unbind();
 }
 
-void Engine::setDrawFunction(std::function<void()> fn) {
-    _drawFn = std::move(fn);
-}
-
-const std::function<void()>& Engine::getDrawFunction() const {
-    return _drawFn;
-}
-
-void Engine::setDraw2DFunction(std::function<void()> fn) {
-    _draw2DFn = std::move(fn);
-}
-
-void Engine::setPreSyncFunction(std::function<void()> fn) {
-    _preSyncFn = std::move(fn);
-}
-
-void Engine::setPostSyncPreDrawFunction(std::function<void()> fn) {
-    _postSyncPreDrawFn = std::move(fn);
-}
-
-void Engine::setPostDrawFunction(std::function<void()> fn) {
-    _postDrawFn = std::move(fn);
-}
-
-void Engine::setInitOGLFunction(std::function<void()> fn) {
-    _initOpenGLFn = std::move(fn);
-}
-
-void Engine::setPreWindowFunction(std::function<void()> fn) {
-    _preWindowFn = std::move(fn);
-}
-
-void Engine::setCleanUpFunction(std::function<void()> fn) {
-    _cleanUpFn = std::move(fn);
-}
-
-void Engine::setEncodeFunction(std::function<void()> fn) {
-    SharedData::instance().setEncodeFunction(std::move(fn));
-}
-
-void Engine::setDecodeFunction(std::function<void()> fn) {
-    SharedData::instance().setDecodeFunction(std::move(fn));
-}
-
-void Engine::setExternalControlCallback(std::function<void(const char*, int)> fn) {
-    _externalDecodeCallbackFn = std::move(fn);
-}
-
-void Engine::setExternalControlStatusCallback(std::function<void(bool)> fn) {
-    _externalStatusCallbackFn = std::move(fn);
-}
-
-void Engine::setDataTransferCallback(std::function<void(void*, int, int, int)> fn) {
-    _dataTransferDecodeCallbackFn = std::move(fn);
-}
-
-void Engine::setDataTransferStatusCallback(std::function<void(bool, int)> fn) {
-    _dataTransferStatusCallbackFn = std::move(fn);
-}
-
-void Engine::setDataAcknowledgeCallback(std::function<void(int, int)> fn) {
-    _dataTransferAcknowledgeCallbackFn = std::move(fn);
-}
-
-void Engine::setContextCreationCallback(std::function<void(GLFWwindow*)> fn) {
-    _contextCreationFn = std::move(fn);
-}
-
-void Engine::setKeyboardCallbackFunction(
-                                       std::function<void(Key, Modifier, Action, int)> fn)
-{
-    gKeyboardCallback = std::move(fn);
-}
-
-void Engine::setCharCallbackFunction(std::function<void(unsigned int, int)> fn) {
-    gCharCallback = std::move(fn);
-}
-
-void Engine::setMouseButtonCallbackFunction(
-                                    std::function<void(MouseButton, Modifier, Action)> fn)
-{
-    gMouseButtonCallback = std::move(fn);
-}
-
-void Engine::setMousePosCallbackFunction(std::function<void(double, double)> fn) {
-    gMousePosCallback = std::move(fn);
-}
-
-void Engine::setMouseScrollCallbackFunction(std::function<void(double, double)> fn) {
-    gMouseScrollCallback = std::move(fn);
-}
-
-void Engine::setDropCallbackFunction(std::function<void(int, const char**)> fn) {
-    gDropCallback = std::move(fn);
-}
-
 void Engine::enterCurrentViewport() {
     core::BaseViewport* vp = getCurrentWindow().getCurrentViewport();
     
@@ -2059,7 +1989,7 @@ int Engine::getFocusedWindowIndex() const {
             return i;
         }
     }
-    return 0; // no window has focus
+    return -1; // no window has focus
 }
 
 void Engine::setStatsGraphVisibility(bool state) {
@@ -2075,33 +2005,37 @@ void Engine::takeScreenshot() {
     _takeScreenshot = true;
 }
 
+const std::function<void()>& Engine::getDrawFunction() const {
+    return _drawFn;
+}
+
 void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int) {
-    if (_externalDecodeCallbackFn && length > 0) {
-        _externalDecodeCallbackFn(data, length);
+    if (_externalDecodeFn && length > 0) {
+        _externalDecodeFn(data, length);
     }
 }
 
 void Engine::invokeUpdateCallbackForExternalControl(bool connected) {
-    if (_externalStatusCallbackFn) {
-        _externalStatusCallbackFn(connected);
+    if (_externalStatusFn) {
+        _externalStatusFn(connected);
     }
 }
 
 void Engine::invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id) {
-    if (_dataTransferDecodeCallbackFn && len > 0) {
-        _dataTransferDecodeCallbackFn(d, len, package, id);
+    if (_dataTransferDecodeFn && len > 0) {
+        _dataTransferDecodeFn(d, len, package, id);
     }
 }
 
 void Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId) {
-    if (_dataTransferStatusCallbackFn) {
-        _dataTransferStatusCallbackFn(connected, clientId);
+    if (_dataTransferStatusFn) {
+        _dataTransferStatusFn(connected, clientId);
     }
 }
 
 void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId) {
-    if (_dataTransferAcknowledgeCallbackFn) {
-        _dataTransferAcknowledgeCallbackFn(packageId, clientId);
+    if (_dataTransferAcknowledgeFn) {
+        _dataTransferAcknowledgeFn(packageId, clientId);
     }
 }
 

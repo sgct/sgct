@@ -270,18 +270,18 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
-    Engine::create(config);
 
-    Engine::instance().setPostSyncPreDrawFunction(postSyncPreDraw);
-    Engine::instance().setDrawFunction(draw);
-    Engine::instance().setPostDrawFunction(postDraw);
-    Engine::instance().setInitOGLFunction(initGL);
-    Engine::instance().setCleanUpFunction(cleanUp);
-    Engine::instance().setEncodeFunction(encode);
-    Engine::instance().setDecodeFunction(decode);
+    Engine::Callbacks callbacks;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.postDraw = postDraw;
+    callbacks.initOpenGL = initGL;
+    callbacks.cleanUp = cleanUp;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
 
     try {
-        Engine::instance().init(cluster);
+        Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
         Logger::Error("%s", e.what());

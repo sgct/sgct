@@ -72,25 +72,91 @@ public:
         std::array<double, HistoryLength> loopTimeMax = {};
     };
 
+    struct Callbacks {
+        /// This function draws the scene and could be called several times per frame
+        /// as it's called once per viewport and once per eye if stereoscopy is used.
+        std::function<void()> draw;
+
+        /// This function is called before the synchronization stage
+        std::function<void()> preSync;
+
+        /// This function is called once per frame after sync but before draw stage
+        std::function<void()> postSyncPreDraw;
+
+        /// This function is called after the draw stage but before the OpenGL buffer swap
+        std::function<void()> postDraw;
+
+        /// This function is called before the window is created (before OpenGL context is
+        /// created). At this stage the configuration file has been read and network
+        /// is initialized.
+        std::function<void()> preWindow;
+
+        /// This function is called once before the starting the render loop and after
+        /// creation of the OpenGL context.
+        std::function<void()> initOpenGL;
+
+        /// This is called before all SGCT components will be destroyed
+        std::function<void()> cleanUp;
+
+        /// This function is be called after overlays and post effects has been drawn and
+        /// can used to render text and HUDs that will not be filtered or antialiased.
+        std::function<void()> draw2D;
+
+        /// This function is called to encode all shared data that is sent to the
+        /// connected nodes in a clustered setup.
+        std::function<void()> encode;
+
+        /// This function is called by decode all shared data sent to us from the master
+        std::function<void()> decode;
+
+        /// This function is called when a TCP message is received
+        std::function<void(const char*, int)> externalDecode;
+
+        /// This function is called when the connection status changes
+        std::function<void(bool)> externalStatus;
+
+        /// This function is called when a TCP message is received
+        std::function<void(void*, int, int, int)> dataTransferDecode;
+
+        /// This function is called when the connection status changes
+        std::function<void(bool, int)> dataTransferStatus;
+
+        /// This function is called when data is successfully sent
+        std::function<void(int, int)> dataTransferAcknowledge;
+
+        /// This function is called directly after all SGCT windows are created. This
+        // enables the user to create additional OpenGL context for multithreaded OpenGL.
+        std::function<void(GLFWwindow*)> contextCreation;
+
+        /// This function sets the keyboard callback (GLFW wrapper) for all windows
+        std::function<void(Key, Modifier, Action, int)> keyboard;
+
+        /// All windows are connected to this callback.
+        /// @TODO (abock, 2019-12-02) Check if we really want to keep/need this
+        std::function<void(unsigned int, int)> character;
+
+        /// This function sets the mouse button callback (GLFW wrapper) for all windows
+        std::function<void(MouseButton, Modifier, Action)> mouseButton;
+
+        /// All windows are connected to this callback.
+        std::function<void(double, double)> mousePos;
+
+        /// All windows are connected to this callback.
+        std::function<void(double, double)> mouseScroll;
+
+        /// Drop files to any window. All windows are connected to this callback.
+        std::function<void(int, const char**)> drop;
+    };
+
     static Engine& instance();
-    static void create(const Configuration& arg);
-    static void destroy();
 
     /**
-     * Engine initiation that:
-     * 1. Parse the configuration file
-     * 2. Set up the network communication
-     * 3. Create window(s)
-     * 4. Set up OpenGL
-     *   4.1 Create textures
-     *   4.2 Init FBOs
-     *   4.3 Init VBOs
-     *   4.4 Init PBOs
-     *
-     * \param rm The optional run mode.
      * \param cluster The cluster setup that should be used for this SGCT run
+     * \param callbacks The list of callbacks that should be installed
      */
-    void init(config::Cluster cluster, Profile rm = Profile::OpenGL_3_3_Core);
+    static void create(config::Cluster cluster, Callbacks callbacks,
+        const Configuration& arg, Profile profile = Profile::OpenGL_3_3_Core);
+    static void destroy();
 
     /// Terminates SGCT
     void terminate();
@@ -186,40 +252,6 @@ public:
     unsigned int getScreenShotNumber() const;
 
     /**
-     * This function sets the initOGL callback. The Engine will then use the callback only
-     * once before the starting the render loop.
-     */
-    void setInitOGLFunction(std::function<void(void)> fn);
-
-    /**
-     * This callback is called before the window is created (before OpenGL context is
-     * created). At this stage the config file has been read and network initialized.
-     */
-    void setPreWindowFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the pre-sync callback. The Engine will then use the callback
-     * before the sync stage.
-     */
-    void setPreSyncFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the post-sync-pre-draw callback. The Engine will then use the
-     * callback after the sync stage but before the draw stage. Compared to the draw
-     * callback the post-sync-pre-draw callback is called only once per frame.
-     */
-    void setPostSyncPreDrawFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the draw callback. It's possible to have several draw functions
-     * and change the callback on the fly preferably in a stage before the draw step, for
-     * example the post-sync-pre-draw stage or the pre-sync stage. The draw callback could
-     * be called several times per frame since it's called once for every viewport and
-     * once for every eye if stereoscopy is used.
-     */
-    void setDrawFunction(std::function<void()> fn);
-
-    /**
      * This function returns the currently assigned draw function to be used in internal
      * classes that need to repeatedly call this. In general, there is no need for
      * external applications to store the draw function, but they are free to do so. Be
@@ -228,136 +260,6 @@ public:
      * \return The currently bound draw function
      */
     const std::function<void()>& getDrawFunction() const;
-
-    /**
-     * This function sets the draw 2D callback. This callback will be called after
-     * overlays and post effects has been drawn. This makes it possible to render text and
-     * HUDs that will not be filtered and antialiased.
-     */
-    void setDraw2DFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the post-draw callback. The Engine will then use the callback
-     * after the draw stage but before the OpenGL buffer swap. Compared to the draw
-     * callback the post-draw callback is called only once per frame.
-     */
-    void setPostDrawFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the clean up callback which will be called in the Engine
-     * destructor before all sGCT components (like window, OpenGL context, network, etc.)
-     * will be destroyed.
-     */
-    void setCleanUpFunction(std::function<void()> fn);
-
-    /**
-     * This functions sets the encoding callback that is called by SGCT to encode all
-     * shared data that is sent to the connected nodes in a clustered setup.
-     */
-    void setEncodeFunction(std::function<void()> fn);
-
-    /**
-     * This functions sets the decoding callback that is called by SGCT to encode all
-     * shared data that is sent to the connected nodes in a clustered setup.
-     */
-    void setDecodeFunction(std::function<void()> fn);
-
-    /**
-     * This function sets the keyboard callback (GLFW wrapper) where the four parameters
-     * are: int key, int scancode, int action, int mods. Modifier keys can be a
-     * combination of sgct::modifier::Shift, sgct::modifier::Control, sgct::modifier::Alt,
-     * or sgct::modifier::Super. All windows are connected to this callback.
-     *
-     * \param fn is the std function of a keyboard callback function
-     */
-    void setKeyboardCallbackFunction(
-        std::function<void(Key key, Modifier modifiers, Action action, int scanCode)> fn);
-
-    /// All windows are connected to this callback.
-    void setCharCallbackFunction(
-        std::function<void(unsigned int unicode, int modifiers)> fn);
-
-    /**
-     * This function sets the mouse button callback (GLFW wrapper) where the two
-     * parameters are: int button, int action. Button id's are listed in the table below.
-     * Action can either be sgct::action::Press or sgct::action::Release. All windows are
-     * connected to this callback.
-     *
-     * \param fn is the std function to a mouse button callback function
-     */
-    void setMouseButtonCallbackFunction(
-        std::function<void(MouseButton button, Modifier modifiers, Action action)> fn);
-
-    /// All windows are connected to this callback.
-    void setMousePosCallbackFunction(std::function<void(double x, double y)> fn);
-
-    /// All windows are connected to this callback.
-    void setMouseScrollCallbackFunction(std::function<void(double x, double y)> fn);
-
-    /// Drop files to any window. All windows are connected to this callback.
-    void setDropCallbackFunction(std::function<void(int count, const char** paths)> fn);
-
-    /**
-     * This function sets the external control message callback which will be called when
-     * a TCP message is received. The TCP listner is enabled in the XML configuration file
-     * in the Cluster tag by externalControlPort, where the portnumber is an integer
-     * preferably above 20000.
-     *
-     * \param fn is the function pointer to an external control message callback.
-     *        arguments: const char * buffer, int buffer length
-     *
-     * All TCP messages must be separated by carriage return (CR) followed by a newline
-     * (NL). Look at this [tutorial
-     * (https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for
-     * more info.
-     */
-    void setExternalControlCallback(
-        std::function<void(const char* buffer, int length)> fn);
-
-    /**
-     * This function sets the external control status callback which will be called when
-     * the connection status changes (connect or disconnect).
-     *
-     * \param fn is the std function of an external control status callback
-     */
-    void setExternalControlStatusCallback(std::function<void(bool connected)> fn);
-
-    /**
-     * This function sets the OpenGL context creation callback which will be called
-     * directly after all SGCT windows are created. This enables the user to create
-     * additional OpenGL context for multithreaded OpenGL.
-     *
-     * \param fn is the std funtion of an OpenGL context (GLFW window) creation callback
-     */
-    void setContextCreationCallback(std::function<void(GLFWwindow* window)> fn);
-
-    /**
-     * This function sets the data transfer message callback which will be called when a
-     * TCP message is received. The TCP listner is enabled in the XML configuration file
-     * in the Node tag by dataTransferPort, where the portnumber is an integer preferably
-     * above 20000.
-     *
-     * \param fn is the std function of a data transfer callback
-     */
-    void setDataTransferCallback(
-        std::function<void(void* buffer, int length, int packageId, int clientId)> fn);
-    
-    /**
-     * This function sets the data transfer status callback which will be called when the
-     * connection status changes (connect or disconnect).
-     *
-     * \param fn is the std function of a data transfer status callback
-     */
-    void setDataTransferStatusCallback(
-        std::function<void(bool connected, int clientId)> fn);
-
-    /**
-     * This function sets the data transfer acknowledge callback which will be called when
-     * the data is successfully sent.
-     *
-     * \param fn is the std function of a data transfer acknowledge callback
-     */
-    void setDataAcknowledgeCallback(std::function<void(int packageId, int clientId)> fn);
 
     /**
      * This function sends a message to the external control interface.
@@ -558,19 +460,18 @@ private:
 
     static Engine* _instance;
 
-    Engine(const Configuration& config);
+    Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& arg);
 
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
+
+    void initialize(Profile profile);
 
     /// Initiates network communication.
     void initNetwork();
 
     /// Create and initiate a window.
     void initWindows(Profile rm);
-
-    /// Initiates OpenGL.
-    void initOGL();
 
     /**
      * Locks the rendering thread for synchronization. Locks the clients until data is
@@ -640,6 +541,11 @@ private:
      */
     void blitPreviousWindowViewport(core::Frustum::Mode mode);
 
+    // @TODO (abock, 2019-12-02) This is a workaround for the fact that something in SGCT
+    // is using the callbacks during the application shutdown. The previous method was to
+    // set the callbacks to nullptr, but I really want to make them constant, which
+    // prevents that approach from working
+    //bool _disableCallbacks = false;
     std::function<void()> _drawFn;
     std::function<void()> _preSyncFn;
     std::function<void()> _postSyncPreDrawFn;
@@ -648,11 +554,11 @@ private:
     std::function<void()> _initOpenGLFn;
     std::function<void()> _cleanUpFn;
     std::function<void()> _draw2DFn;
-    std::function<void(const char*, int)> _externalDecodeCallbackFn;
-    std::function<void(bool)> _externalStatusCallbackFn;
-    std::function<void(void*, int, int, int)> _dataTransferDecodeCallbackFn;
-    std::function<void(bool, int)> _dataTransferStatusCallbackFn;
-    std::function<void(int, int)> _dataTransferAcknowledgeCallbackFn;
+    std::function<void(const char*, int)> _externalDecodeFn;
+    std::function<void(bool)> _externalStatusFn;
+    std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
+    std::function<void(bool, int)> _dataTransferStatusFn;
+    std::function<void(int, int)> _dataTransferAcknowledgeFn;
     std::function<void(GLFWwindow*)> _contextCreationFn;
     
     float _nearClipPlane = 0.1f;

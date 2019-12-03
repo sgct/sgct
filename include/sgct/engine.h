@@ -42,9 +42,26 @@ namespace core {
 
 config::Cluster loadCluster(std::optional<std::string> path);
 
-
 struct RenderData {
+    RenderData(Window& window_, Frustum::Mode frustumMode_, glm::mat4 modelMatrix_,
+               glm::mat4 viewMatrix_, glm::mat4 projectionMatrix_,
+               glm::mat4 modelViewProjectionMatrix_)
+        : window(window_)
+        , frustumMode(frustumMode_)
+        , modelMatrix(std::move(modelMatrix_))
+        , viewMatrix(std::move(viewMatrix_))
+        , projectionMatrix(std::move(projectionMatrix_))
+        , modelViewProjectionMatrix(std::move(modelViewProjectionMatrix_))
+    {}
+    Window& window;
     Frustum::Mode frustumMode;
+
+    glm::mat4 modelMatrix;
+    glm::mat4 viewMatrix;
+    glm::mat4 projectionMatrix;
+    // @TODO (abock, 2019-12-03) Performance measurements needed to see whether this
+    // caching is necessary
+    glm::mat4 modelViewProjectionMatrix;
 };
 
 /**
@@ -103,7 +120,7 @@ public:
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
-        std::function<void()> draw2D;
+        std::function<void(RenderData)> draw2D;
 
         /// This function is called after the draw stage but before the OpenGL buffer swap
         std::function<void()> postDraw;
@@ -230,10 +247,7 @@ public:
     void updateFrustums();
 
     /// \return the active draw textureo
-    unsigned int getCurrentDrawTexture() const;
-
-    /// \return the resolution in pixels for the active window's framebuffer
-    glm::ivec2 getCurrentResolution() const;
+    unsigned int getDrawTexture(Window& window) const;
 
     /// \return the index of the focus window. If no window has focus, 0 is returned
     int getFocusedWindowIndex() const;
@@ -377,48 +391,11 @@ public:
     /// \return the number of windows for this node.
     int getNumberOfWindows() const;
 
-    /// \return a pointer to the current window that is being rendered
-    Window& getCurrentWindow() const;
-
     /// \return a pointer to the user (observer position) object
     static core::User& getDefaultUser();
 
     /// \return true if this node is the master
     bool isMaster() const;
-
-    /**
-     * \return the projection matrix (only valid inside in the draw callback function)
-     */
-    const glm::mat4& getCurrentProjectionMatrix() const;
-
-    /**
-     * \return the view matrix (only valid inside in the draw callback function)
-     */
-    const glm::mat4& getCurrentViewMatrix() const;
-
-    /**
-     * Returns the scene transform specified in the XML configuration, default is a
-     * identity matrix
-     */
-    const glm::mat4& getModelMatrix() const;
-
-    /**
-     * Returns the active VP = Projection * View matrix (only valid inside in the draw
-     * callback function)
-     */
-    const glm::mat4& getCurrentViewProjectionMatrix() const;
-
-    /**
-     * Returns the active MVP = Projection * View * Model matrix (only valid inside in the
-     * draw callback function)
-     */
-    glm::mat4 getCurrentModelViewProjectionMatrix() const;
-    
-    /**
-     * Returns the active MV = View * Model matrix (only valid inside in the draw callback
-     * function)
-     */
-    glm::mat4 getCurrentModelViewMatrix() const;
 
     /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
@@ -469,27 +446,27 @@ private:
     void frameLockPostStage();
 
     /// Draw viewport overlays if there are any.
-    void drawOverlays();
+    void drawOverlays(Window& window);
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
      * be a simple quad or a geometry correction and blending mesh.
      */
-    void renderFBOTexture();
+    void renderFBOTexture(Window& window);
     
     /// This function combines a texture and a shader into a new texture
-    void renderPostFX(Window::TextureIndex targetIndex);
+    void renderPostFX(Window& window, Window::TextureIndex targetIndex);
 
-    void renderViewports(Window::TextureIndex ti);
+    void renderViewports(Window& window, Window::TextureIndex ti);
 
     /// This function renders stats, OSD and overlays
-    void render2D();
+    void render2D(Window& window);
 
     /// This function attaches targets to FBO if FBO is in use
-    void prepareBuffer(Window::TextureIndex ti);
+    void prepareBuffer(Window& window, Window::TextureIndex ti);
 
     /// This function updates the renderingtargets.
-    void updateRenderingTargets(Window::TextureIndex ti);
+    void updateRenderingTargets(Window& window, Window::TextureIndex ti);
 
     /**
      * This function waits for all windows to be created on the whole cluster in order to
@@ -503,7 +480,8 @@ private:
      * This function copies/render the result from the previous window same viewport (if
      * it exists) into this window
      */
-    void blitPreviousWindowViewport(Frustum::Mode mode);
+    void blitPreviousWindowViewport(Window& prevWindow, Window& window,
+        Frustum::Mode mode);
 
     // @TODO (abock, 2019-12-02) This is a workaround for the fact that something in SGCT
     // is using the callbacks during the application shutdown. The previous method was to
@@ -515,7 +493,7 @@ private:
     const std::function<void()> _preSyncFn;
     const std::function<void()> _postSyncPreDrawFn;
     const std::function<void(RenderData)> _drawFn;
-    const std::function<void()> _draw2DFn;
+    const std::function<void(RenderData)> _draw2DFn;
     const std::function<void()> _postDrawFn;
     const std::function<void()> _cleanUpFn;
     std::function<void(const char*, int)> _externalDecodeFn;
@@ -529,7 +507,6 @@ private:
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     Frustum::Mode _currentFrustumMode = Frustum::Mode::MonoEye;
-    int _currentWindowIndex = 0;
 
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;

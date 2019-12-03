@@ -8,6 +8,7 @@
 
 #include <sgct/fisheyeprojection.h>
 
+#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
@@ -158,7 +159,16 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
         }
 
         window.setCurrentViewport(&vp);
-        drawCubeFace(vp, frustumMode);
+        RenderData renderData(
+            window,
+            frustumMode,
+            core::ClusterManager::instance().getSceneTransform(),
+            vp.getProjection(frustumMode).getViewMatrix(),
+            vp.getProjection(frustumMode).getProjectionMatrix(),
+            vp.getProjection(frustumMode).getViewProjectionMatrix() *
+                core::ClusterManager::instance().getSceneTransform()
+        );
+        drawCubeFace(vp, renderData);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -738,7 +748,7 @@ void FisheyeProjection::initShaders() {
     }
 }
 
-void FisheyeProjection::drawCubeFace(BaseViewport& face, Frustum::Mode frustumMode) {
+void FisheyeProjection::drawCubeFace(BaseViewport& face, RenderData renderData) {
     glLineWidth(1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -748,14 +758,12 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face, Frustum::Mode frustumMo
     setupViewport(face);
 
     const glm::vec4 color = Engine::instance().getClearColor();
-    const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);
 
-    RenderData renderData;
-    renderData.frustumMode = frustumMode;
     Engine::instance().getDrawFunction()(renderData);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

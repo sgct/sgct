@@ -8,6 +8,7 @@
 
 #include <sgct/sphericalmirrorprojection.h>
 
+#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
@@ -75,10 +76,8 @@ void SphericalMirrorProjection::update(glm::vec2) {}
 void SphericalMirrorProjection::render(const Window& window, Frustum::Mode frustumMode) {
     Engine::instance().enterCurrentViewport(window, frustumMode);
 
-    Window& win = Engine::instance().getCurrentWindow();
-    BaseViewport* vpPtr = win.getCurrentViewport();
-
-    float aspect = win.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
+    BaseViewport* vpPtr = window.getCurrentViewport();
+    float aspect = window.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
     glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -89,7 +88,7 @@ void SphericalMirrorProjection::render(const Window& window, Frustum::Mode frust
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+    const bool hasAlpha = window.hasAlpha();
     if (hasAlpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -149,8 +148,15 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         glClearColor(color.r, color.g, color.b, a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        RenderData renderData;
-        renderData.frustumMode = frustumMode;
+        RenderData renderData(
+            window,
+            frustumMode,
+            core::ClusterManager::instance().getSceneTransform(),
+            bv.getProjection(frustumMode).getViewMatrix(),
+            bv.getProjection(frustumMode).getProjectionMatrix(),
+            bv.getProjection(frustumMode).getViewProjectionMatrix() *
+                core::ClusterManager::instance().getSceneTransform()
+        );
         Engine::instance().getDrawFunction()(renderData);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

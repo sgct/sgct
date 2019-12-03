@@ -72,7 +72,7 @@ namespace {
 using namespace sgct;
 
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -91,7 +91,7 @@ void drawFun(RenderData) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
     
@@ -103,7 +103,7 @@ void drawFun(RenderData) {
     }
 
     ShaderManager::instance().getShaderProgram("xform").bind();
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     box->draw();
     ShaderManager::instance().getShaderProgram("xform").unbind();
 

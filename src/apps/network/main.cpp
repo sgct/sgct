@@ -173,7 +173,7 @@ void sendTestMessage() {
     counter++;
 }
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -192,8 +192,7 @@ void drawFun(RenderData) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-                          scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);

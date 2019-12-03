@@ -8,6 +8,7 @@
 
 #include <sgct/spoutoutputprojection.h>
 
+#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/logger.h>
 #include <sgct/offscreenbuffer.h>
@@ -104,7 +105,7 @@ void SpoutOutputProjection::render(const Window& window, Frustum::Mode frustumMo
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+        bool hasAlpha = window.hasAlpha();
         if (hasAlpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -195,7 +196,16 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         }
 
         window.setCurrentViewport(&vp);
-        drawCubeFace(vp, frustumMode);
+        RenderData renderData(
+            window,
+            frustumMode,
+            core::ClusterManager::instance().getSceneTransform(),
+            vp.getProjection(frustumMode).getViewMatrix(),
+            vp.getProjection(frustumMode).getProjectionMatrix(),
+            vp.getProjection(frustumMode).getViewProjectionMatrix() *
+                core::ClusterManager::instance().getSceneTransform()
+        );
+        drawCubeFace(vp, renderData);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -703,7 +713,7 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 }
 
-void SpoutOutputProjection::drawCubeFace(BaseViewport& vp, Frustum::Mode frustumMode) {
+void SpoutOutputProjection::drawCubeFace(BaseViewport& vp, RenderData renderData) {
     glLineWidth(1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDepthFunc(GL_LESS);
@@ -713,14 +723,12 @@ void SpoutOutputProjection::drawCubeFace(BaseViewport& vp, Frustum::Mode frustum
     setupViewport(vp);
 
     const glm::vec4 color = Engine::instance().getClearColor();
-    const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
     glClearColor(color.r, color.g, color.b, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);
 
-    RenderData renderData;
-    renderData.frustumMode = frustumMode;
     Engine::instance().getDrawFunction()(renderData);
 
     // restore polygon mode

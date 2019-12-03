@@ -258,8 +258,8 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render() {
-    const glm::vec2 res = glm::vec2(Engine::instance().getCurrentResolution());
+void StatisticsRenderer::render(Window& window) {
+    glm::vec2 res = window.getFramebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 
     {
@@ -327,6 +327,7 @@ void StatisticsRenderer::render() {
         text::Font& f2 = *text::FontManager::instance().getFont("SGCTFont", 12);
 
         text::print(
+            window,
             f1,
             mode,
             Pos.x,
@@ -335,6 +336,7 @@ void StatisticsRenderer::render() {
             "Frame number: %i", Engine::instance().getCurrentFrameNumber()
         );
         text::print(
+            window,
             f2,
             mode,
             Pos.x,
@@ -343,6 +345,7 @@ void StatisticsRenderer::render() {
             "Frame time: %f ms", _statistics.frametimes[0] * 1000.0
         );
         text::print(
+            window,
             f2,
             mode,
             Pos.x,
@@ -351,6 +354,7 @@ void StatisticsRenderer::render() {
             "Draw time: %f ms", _statistics.drawTimes[0] * 1000.0
         );
         text::print(
+            window,
             f2,
             mode,
             Pos.x,
@@ -359,6 +363,7 @@ void StatisticsRenderer::render() {
             "Sync time: %f ms", _statistics.syncTimes[0] * 1000.0
         );
         text::print(
+            window,
             f2,
             mode,
             Pos.x,
@@ -367,6 +372,7 @@ void StatisticsRenderer::render() {
             "Min Loop time: %f ms", _statistics.loopTimeMin[0] * 1000.0
         );
         text::print(
+            window,
             f2,
             mode,
             Pos.x,
@@ -432,6 +438,7 @@ void StatisticsRenderer::render() {
 
         text::Font& f = *text::FontManager::instance().getFont("SGCTFont", 8);
         text::print(
+            window,
             f,
             mode,
             Pos.x,
@@ -440,6 +447,7 @@ void StatisticsRenderer::render() {
             "Histogram Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
         );
         text::print(
+            window,
             f,
             mode,
             Pos.x,

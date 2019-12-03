@@ -222,7 +222,7 @@ void threadWorker() {
 }
 
 
-void drawFun(RenderData renderData) {
+void drawFun(RenderData data) {
     if (texIndex.getVal() == -1) {
         return;
     }
@@ -230,12 +230,12 @@ void drawFun(RenderData renderData) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix();
+    const glm::mat4 mvp = data.modelViewProjectionMatrix;
 
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.getSize() > (texIndex.getVal() + 1)) &&
-        renderData.frustumMode == sgct::Frustum::Mode::StereoRightEye)
+        data.frustumMode == sgct::Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal() + 1));
     }
@@ -244,7 +244,7 @@ void drawFun(RenderData renderData) {
     }
 
     ShaderManager::instance().getShaderProgram("xform").bind();
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     dome->draw();
     ShaderManager::instance().getShaderProgram("xform").unbind();
 

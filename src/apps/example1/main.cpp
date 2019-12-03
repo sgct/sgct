@@ -84,7 +84,7 @@ void initFun() {
     prg.unbind(); 
 }
 
-void drawFun(RenderData renderData) {
+void drawFun(RenderData data) {
     constexpr const float Speed = 0.8f;
 
     glm::mat4 scene = glm::rotate(
@@ -92,11 +92,11 @@ void drawFun(RenderData renderData) {
         static_cast<float>(currentTime.getVal()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
-    glm::mat4 MVP = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     ShaderManager::instance().getShaderProgram("xform").bind();
 
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glBindVertexArray(vertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);

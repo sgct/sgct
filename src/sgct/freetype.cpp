@@ -20,11 +20,10 @@
 #include <sstream>
 
 namespace {
-    glm::mat4 setupOrthoMat() {
-        sgct::Window& win = sgct::Engine::instance().getCurrentWindow();
-        glm::vec2 res = glm::vec2(win.getResolution());
-        glm::vec2 size = win.getCurrentViewport()->getSize();
-        glm::vec2 scale = win.getScale();
+    glm::mat4 setupOrthoMat(sgct::Window& window) {
+        glm::vec2 res = glm::vec2(window.getResolution());
+        glm::vec2 size = window.getCurrentViewport()->getSize();
+        glm::vec2 scale = window.getScale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 
@@ -67,6 +66,7 @@ namespace {
     }
 
     void render2d(const std::vector<std::string>& lines, sgct::text::Font& font,
+                  const glm::mat4& orthoMatrix,
                   const sgct::text::TextAlignMode& mode, float x, float y,
                   const glm::vec4& color,
                   const glm::vec4& strokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f))
@@ -74,8 +74,6 @@ namespace {
         using namespace sgct::text;
 
         const float h = font.getHeight() * 1.59f;
-
-        const glm::mat4 projectionMat(setupOrthoMat());
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -101,7 +99,7 @@ namespace {
                 const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
-                    projectionMat,
+                    orthoMatrix,
                     glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
                 );
                 glm::mat4 scale = glm::scale(
@@ -185,7 +183,7 @@ namespace {
 
 namespace sgct::text {
 
-void print(Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
+void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
     va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -193,11 +191,12 @@ void print(Font& font, TextAlignMode mode, float x, float y, const char* format,
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render2d(lines, font, mode, x, y, glm::vec4(1.f));
+        glm::mat4 ortho = setupOrthoMat(window);
+        render2d(lines, font, ortho, mode, x, y, glm::vec4(1.f));
     }
 }
 
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
     va_list args;
@@ -207,11 +206,12 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render2d(lines, font, mode, x, y, color);
+        glm::mat4 ortho = setupOrthoMat(window);
+        render2d(lines, font, ortho, mode, x, y, color);
     }
 }
 
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const glm::vec4& strokeColor, const char* format, ...)
 {
     va_list	args;
@@ -221,7 +221,8 @@ void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& co
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render2d(lines, font, mode, x, y, color, strokeColor);
+        glm::mat4 ortho = setupOrthoMat(window);
+        render2d(lines, font, ortho, mode, x, y, color, strokeColor);
     }
 }
 

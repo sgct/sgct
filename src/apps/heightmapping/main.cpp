@@ -195,7 +195,7 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
     return res;
 }
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -220,12 +220,11 @@ void drawFun(RenderData) {
     const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
     prog.bind();
 
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-                          scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    const glm::mat4 mv = Engine::instance().getCurrentModelViewMatrix() * scene;
+    const glm::mat4 mv = data.viewMatrix * data.modelMatrix * scene;
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-    const glm::mat4 mvLight = Engine::instance().getCurrentModelViewMatrix();
+    const glm::mat4 mvLight = data.viewMatrix * data.modelMatrix;
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));

@@ -89,7 +89,7 @@ bool bindSpout() {
     return false;
 }
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -107,9 +107,7 @@ void drawFun(RenderData) {
         static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
-
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-                          scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
 

@@ -379,9 +379,9 @@ void Engine::initialize(Profile profile) {
         }
     }
 
-    // Get OpenGL version
+    // Get OpenGL version from the first window as there has to be one
     int v[3];
-    GLFWwindow* winHandle = getCurrentWindow().getWindowHandle();
+    GLFWwindow* winHandle = getWindow(0).getWindowHandle();
     v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
     v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
     v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
@@ -400,7 +400,7 @@ void Engine::initialize(Profile profile) {
     }
 
     // init window opengl data
-    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
 
     //
     // Load Shaders
@@ -419,7 +419,7 @@ void Engine::initialize(Profile profile) {
 
         const int id = shdr.shader.getId();
         shdr.sizeX = glGetUniformLocation(id, "rt_w");
-        const glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
+        const glm::ivec2 framebufferSize = getWindow(0).getFramebufferResolution();
         glUniform1f(shdr.sizeX, static_cast<float>(framebufferSize.x));
 
         shdr.sizeY = glGetUniformLocation(id, "rt_h");
@@ -940,7 +940,8 @@ void Engine::frameLockPostStage() {
 void Engine::render() {
     _isRunning = true;
 
-    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+    // @TODO (abock, 2019-12-03) This can probably be replaced with a static call instead
+    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
     unsigned int timeQueryBegin = 0;
     glGenQueries(1, &timeQueryBegin);
     unsigned int timeQueryEnd = 0;
@@ -981,7 +982,7 @@ void Engine::render() {
         }
 
         _renderingOffScreen = true;
-        getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+        getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
 
         // Make sure correct context is current
         if (_postSyncPreDrawFn) {
@@ -1003,8 +1004,6 @@ void Engine::render() {
             if (!(win.isVisible() || win.isRenderingWhileHidden())) {
                 continue;
             }
-
-            _currentWindowIndex = i;
 
             if (!_renderingOffScreen) {
                 win.makeOpenGLContextCurrent(Window::Context::Window);
@@ -1037,11 +1036,11 @@ void Engine::render() {
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
                 _currentFrustumMode = Frustum::Mode::MonoEye;
-                renderViewports(Window::TextureIndex::LeftEye);
+                renderViewports(win, Window::TextureIndex::LeftEye);
             }
             else {
                 _currentFrustumMode = Frustum::Mode::StereoLeftEye;
-                renderViewports(Window::TextureIndex::LeftEye);
+                renderViewports(win, Window::TextureIndex::LeftEye);
             }
 
             // if we are not rendering in stereo, we are done
@@ -1067,23 +1066,21 @@ void Engine::render() {
             _currentFrustumMode = Frustum::Mode::StereoRightEye;
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
-                renderViewports(Window::TextureIndex::LeftEye);
+                renderViewports(win, Window::TextureIndex::LeftEye);
             }
             else {
-                renderViewports(Window::TextureIndex::RightEye);
+                renderViewports(win, Window::TextureIndex::RightEye);
             }
         }
 
         // Render to screen
         for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
             if (thisNode.getWindow(i).isVisible()) {
-                _currentWindowIndex = i;
-
                 _renderingOffScreen = false;
-                renderFBOTexture();
+                renderFBOTexture(getWindow(i));
             }
         }
-        getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+        getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
 
         if (_statisticsRenderer) {
             glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
@@ -1137,164 +1134,162 @@ void Engine::render() {
         _takeScreenshot = false;
     }
 
-    getCurrentWindow().makeOpenGLContextCurrent(Window::Context::Shared);
+    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
     glDeleteQueries(1, &timeQueryBegin);
     glDeleteQueries(1, &timeQueryEnd);
 }
 
 
-void Engine::drawOverlays() {
-    Window& win = getCurrentWindow();
-    for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-        win.setCurrentViewport(i);
-        const core::Viewport& vp = win.getViewport(i);
+void Engine::drawOverlays(Window& window) {
+    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+        window.setCurrentViewport(i);
+        const core::Viewport& vp = window.getViewport(i);
         
         // if viewport has overlay
         if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
             continue;
         }
 
-        enterCurrentViewport(win, _currentFrustumMode);
+        enterCurrentViewport(window, _currentFrustumMode);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
         _overlay.bind();
-        win.renderScreenQuad();
+        window.renderScreenQuad();
         ShaderProgram::unbind();
     }
 }
 
-void Engine::prepareBuffer(Window::TextureIndex ti) {
-    if (getCurrentWindow().usePostFX()) {
+void Engine::prepareBuffer(Window& window, Window::TextureIndex ti) {
+    if (window.usePostFX()) {
         ti = Window::TextureIndex::Intermediate;
     }
 
-    core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
+    core::OffScreenBuffer* fbo = window.getFBO();
     fbo->bind();
     if (fbo->isMultiSampled()) {
         return;
     }
 
     // update attachments
-    fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
+    fbo->attachColorTexture(window.getFrameBufferTexture(ti));
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Depth)
+            window.getFrameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Normals),
+            window.getFrameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Positions),
+            window.getFrameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
 }
 
-void Engine::renderFBOTexture() {
+void Engine::renderFBOTexture(Window& window) {
     core::OffScreenBuffer::unbind();
 
-    Window& win = getCurrentWindow();
-    win.makeOpenGLContextCurrent(Window::Context::Window);
+    window.makeOpenGLContextCurrent(Window::Context::Window);
 
     glDisable(GL_BLEND);
     // needed for shaders
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    _currentFrustumMode = (win.getStereoMode() == Window::StereoMode::Active) ?
+    _currentFrustumMode = (window.getStereoMode() == Window::StereoMode::Active) ?
         Frustum::Mode::StereoLeftEye :
         Frustum::Mode::MonoEye;
 
     const glm::ivec2 size = glm::ivec2(
-        glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
+        glm::ceil(window.getScale() * glm::vec2(window.getResolution()))
     );
 
     glViewport(0, 0, size.x, size.y);
-    setAndClearBuffer(win, BufferMode::BackBufferBlack, _currentFrustumMode);
+    setAndClearBuffer(window, BufferMode::BackBufferBlack, _currentFrustumMode);
    
-    Window::StereoMode sm = win.getStereoMode();
+    Window::StereoMode sm = window.getStereoMode();
     bool maskShaderSet = false;
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
             GL_TEXTURE_2D,
-            win.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+            window.getFrameBufferTexture(Window::TextureIndex::LeftEye)
         );
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(
             GL_TEXTURE_2D,
-            win.getFrameBufferTexture(Window::TextureIndex::RightEye)
+            window.getFrameBufferTexture(Window::TextureIndex::RightEye)
         );
 
-        win.bindStereoShaderProgram();
+        window.bindStereoShaderProgram();
 
-        glUniform1i(win.getStereoShaderLeftTexLoc(), 0);
-        glUniform1i(win.getStereoShaderRightTexLoc(), 1);
+        glUniform1i(window.getStereoShaderLeftTexLoc(), 0);
+        glUniform1i(window.getStereoShaderRightTexLoc(), 1);
 
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            win.getViewport(i).renderWarpMesh();
-            //win.getViewport(i).renderQuadMesh();
+        for (int i = 0; i < window.getNumberOfViewports(); i++) {
+            window.getViewport(i).renderWarpMesh();
+            //window.getViewport(i).renderQuadMesh();
         }
     }
     else {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
             GL_TEXTURE_2D,
-            win.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+            window.getFrameBufferTexture(Window::TextureIndex::LeftEye)
         );
 
         _fboQuad.bind();
         maskShaderSet = true;
 
-        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            win.getViewport(i).renderWarpMesh();
+        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+            window.getViewport(i).renderWarpMesh();
             //win.getViewport(i).renderQuadMesh();
         }
 
         // render right eye in active stereo mode
-        if (win.getStereoMode() == Window::StereoMode::Active) {
+        if (window.getStereoMode() == Window::StereoMode::Active) {
             glViewport(0, 0, size.x, size.y);
             
             //clear buffers
             _currentFrustumMode = Frustum::Mode::StereoRightEye;
-            setAndClearBuffer(win, BufferMode::BackBufferBlack, _currentFrustumMode);
+            setAndClearBuffer(window, BufferMode::BackBufferBlack, _currentFrustumMode);
 
             glBindTexture(
                 GL_TEXTURE_2D,
-                win.getFrameBufferTexture(Window::TextureIndex::RightEye)
+                window.getFrameBufferTexture(Window::TextureIndex::RightEye)
             );
-            for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-                win.getViewport(i).renderWarpMesh();
-                //win.getViewport(i).renderQuadMesh();
+            for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+                window.getViewport(i).renderWarpMesh();
+                //window.getViewport(i).renderQuadMesh();
             }
         }
     }
 
     // render mask (mono)
-    if (win.hasAnyMasks()) {
+    if (window.hasAnyMasks()) {
         if (!maskShaderSet) {
             _fboQuad.bind();
         }
         
-        glDrawBuffer(win.isDoubleBuffered() ? GL_BACK : GL_FRONT);
-        glReadBuffer(win.isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        glDrawBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        glReadBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_BLEND);
 
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            const core::Viewport& vp = win.getViewport(i);
+        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+            const core::Viewport& vp = window.getViewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
                 vp.renderMaskMesh();
@@ -1302,8 +1297,8 @@ void Engine::renderFBOTexture() {
         }
 
         // render black level masks
-        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-            const core::Viewport& vp = win.getViewport(i);
+        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+            const core::Viewport& vp = window.getViewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
 
@@ -1324,16 +1319,14 @@ void Engine::renderFBOTexture() {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window::TextureIndex ti) {
-    prepareBuffer(ti);
+void Engine::renderViewports(Window& window, Window::TextureIndex ti) {
+    prepareBuffer(window, ti);
 
-    Window& win = getCurrentWindow();
-
-    Window::StereoMode sm = win.getStereoMode();
+    Window::StereoMode sm = window.getStereoMode();
     // render all viewports for selected eye
-    for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); ++i) {
-        win.setCurrentViewport(i);
-        core::Viewport& vp = win.getViewport(i);
+    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+        window.setCurrentViewport(i);
+        core::Viewport& vp = window.getViewport(i);
 
         if (!vp.isEnabled()) {
             continue;
@@ -1353,8 +1346,8 @@ void Engine::renderViewports(Window::TextureIndex ti) {
                 );
             }
 
-            if (win.shouldCallDraw3DFunction()) {
-                vp.getNonLinearProjection()->render(win, _currentFrustumMode);
+            if (window.shouldCallDraw3DFunction()) {
+                vp.getNonLinearProjection()->render(window, _currentFrustumMode);
             }
         }
         else {
@@ -1364,21 +1357,39 @@ void Engine::renderViewports(Window::TextureIndex ti) {
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (win.shouldBlitPreviousWindow()) {
-                blitPreviousWindowViewport(_currentFrustumMode);
+            if (window.shouldBlitPreviousWindow()) {
+                if (window.getId() == 0) {
+                    Logger::Error("Cannot blit into first window");
+                }
+                else {
+                    const int prevId = window.getId() - 1;
+                    Window& prevWindow = getWindow(prevId);
+                    blitPreviousWindowViewport(prevWindow, window, _currentFrustumMode);
+                }
             }
 
-            if (win.shouldCallDraw3DFunction()) {
+            if (window.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
                 glEnable(GL_SCISSOR_TEST);
 
-                enterCurrentViewport(win, _currentFrustumMode);
-                setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
+                enterCurrentViewport(window, _currentFrustumMode);
+                setAndClearBuffer(
+                    window,
+                    BufferMode::RenderToTexture,
+                    _currentFrustumMode
+                );
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
-                    RenderData renderData;
-                    renderData.frustumMode = _currentFrustumMode;
+                    RenderData renderData(
+                        window,
+                        _currentFrustumMode,
+                        core::ClusterManager::instance().getSceneTransform(),
+                        vp.getProjection(_currentFrustumMode).getViewMatrix(),
+                        vp.getProjection(_currentFrustumMode).getProjectionMatrix(),
+                        vp.getProjection(_currentFrustumMode).getViewProjectionMatrix() *
+                            core::ClusterManager::instance().getSceneTransform()
+                    );
                     _drawFn(renderData);
                 }
             }
@@ -1386,8 +1397,8 @@ void Engine::renderViewports(Window::TextureIndex ti) {
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!win.shouldCallDraw3DFunction() && !win.shouldBlitPreviousWindow()) {
-        setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
+    if (!window.shouldCallDraw3DFunction() && !window.shouldBlitPreviousWindow()) {
+        setAndClearBuffer(window, BufferMode::RenderToTexture, _currentFrustumMode);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1398,35 +1409,35 @@ void Engine::renderViewports(Window::TextureIndex ti) {
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && _currentFrustumMode == Frustum::Mode::StereoLeftEye)) {
-        if (win.usePostFX()) {
+        if (window.usePostFX()) {
             // blit buffers
-            updateRenderingTargets(ti); // only used if multisampled FBOs
-            renderPostFX(ti);
-            render2D();
+            updateRenderingTargets(window, ti); // only used if multisampled FBOs
+            renderPostFX(window, ti);
+            render2D(window);
             if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = Frustum::Mode::StereoLeftEye;
-                render2D();
+                render2D(window);
             }
         }
         else {
-            render2D();
+            render2D(window);
             if (isSplitScreen) {
                 // render left eye info and graph to render 2D items after post fx
                 _currentFrustumMode = Frustum::Mode::StereoLeftEye;
-                render2D();
+                render2D(window);
             }
 
-            updateRenderingTargets(ti); // only used if multisampled FBOs
+            updateRenderingTargets(window, ti); // only used if multisampled FBOs
         }
     }
 
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D() {
+void Engine::render2D(Window& window) {
     // draw viewport overlays if any
-    drawOverlays();
+    drawOverlays(window);
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -1435,43 +1446,51 @@ void Engine::render2D() {
         return;
     }
 
-    Window& win = getCurrentWindow();
-    for (int i = 0; i < win.getNumberOfViewports(); ++i) {
-        win.setCurrentViewport(i);
-        if (!win.getCurrentViewport()->isEnabled()) {
+    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
+        window.setCurrentViewport(i);
+        if (!window.getCurrentViewport()->isEnabled()) {
             continue;
         }
-        enterCurrentViewport(win, _currentFrustumMode);
+        enterCurrentViewport(window, _currentFrustumMode);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render();
+            _statisticsRenderer->render(window);
         }
 
         // Check if we should call the use defined draw2D function
-        if (_draw2DFn && win.shouldCallDraw2DFunction()) {
-            _draw2DFn();
+        if (_draw2DFn && window.shouldCallDraw2DFunction()) {
+            const core::BaseViewport& vp = *window.getCurrentViewport();
+
+            RenderData renderData(
+                window,
+                _currentFrustumMode,
+                core::ClusterManager::instance().getSceneTransform(),
+                vp.getProjection(_currentFrustumMode).getViewMatrix(),
+                vp.getProjection(_currentFrustumMode).getProjectionMatrix(),
+                vp.getProjection(_currentFrustumMode).getViewProjectionMatrix() *
+                    core::ClusterManager::instance().getSceneTransform()
+            );
+            _draw2DFn(renderData);
         }
     }
 }
 
-void Engine::renderPostFX(Window::TextureIndex targetIndex) {
+void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    int numberOfPasses = getCurrentWindow().getNumberOfPostFXs();
+    int numberOfPasses = window.getNumberOfPostFXs();
     for (int i = 0; i < numberOfPasses; i++) {
-        PostFX& fx = getCurrentWindow().getPostFX(i);
+        PostFX& fx = window.getPostFX(i);
 
         // set output
-        if (i == (numberOfPasses - 1) && !getCurrentWindow().useFXAA()) {
+        if (i == (numberOfPasses - 1) && !window.useFXAA()) {
             // if last
-            fx.setOutputTexture(
-                getCurrentWindow().getFrameBufferTexture(targetIndex)
-            );
+            fx.setOutputTexture(window.getFrameBufferTexture(targetIndex));
         }
         else {
             // ping pong between the two FX buffers
             fx.setOutputTexture(
-                getCurrentWindow().getFrameBufferTexture(
+                window.getFrameBufferTexture(
                     (i % 2 == 0) ? Window::TextureIndex::FX1 : Window::TextureIndex::FX2
                 )
             ); 
@@ -1480,32 +1499,28 @@ void Engine::renderPostFX(Window::TextureIndex targetIndex) {
         // set input (dependent on output)
         if (i == 0) {
             fx.setInputTexture(
-                getCurrentWindow().getFrameBufferTexture(
-                    Window::TextureIndex::Intermediate
-                )
+                window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
             );
         }
         else {
-            PostFX& fxPrevious = getCurrentWindow().getPostFX(i - 1);
+            PostFX& fxPrevious = window.getPostFX(i - 1);
             fx.setInputTexture(fxPrevious.getOutputTexture());
         }
 
-        fx.render(getCurrentWindow());
+        fx.render(window);
     }
 
-    if (getCurrentWindow().useFXAA()) {
+    if (window.useFXAA()) {
         assert(_fxaa.has_value());
 
         PostFX* lastFx = (numberOfPasses > 0) ?
-            &getCurrentWindow().getPostFX(numberOfPasses - 1) :
+            &window.getPostFX(numberOfPasses - 1) :
             nullptr;
 
         // bind target FBO
-        getCurrentWindow().getFBO()->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(targetIndex)
-        );
+        window.getFBO()->attachColorTexture(window.getFrameBufferTexture(targetIndex));
 
-        glm::ivec2 framebufferSize = getCurrentWindow().getFramebufferResolution();
+        glm::ivec2 framebufferSize = window.getFramebufferResolution();
         glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -1518,9 +1533,7 @@ void Engine::renderPostFX(Window::TextureIndex targetIndex) {
         else {
             glBindTexture(
                 GL_TEXTURE_2D,
-                getCurrentWindow().getFrameBufferTexture(
-                    Window::TextureIndex::Intermediate
-                )
+                window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
             );
         }
 
@@ -1530,19 +1543,19 @@ void Engine::renderPostFX(Window::TextureIndex targetIndex) {
         glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
         glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
 
-        getCurrentWindow().renderScreenQuad();
+        window.renderScreenQuad();
         ShaderProgram::unbind();
     }
 }
 
-void Engine::updateRenderingTargets(Window::TextureIndex ti) {
+void Engine::updateRenderingTargets(Window& window, Window::TextureIndex ti) {
     // copy AA-buffer to "regular" / non-AA buffer
-    core::OffScreenBuffer* fbo = getCurrentWindow().getFBO();
+    core::OffScreenBuffer* fbo = window.getFBO();
     if (!fbo->isMultiSampled()) {
         return;
     }
 
-    if (getCurrentWindow().usePostFX()) {
+    if (window.usePostFX()) {
         ti = Window::TextureIndex::Intermediate;
     }
 
@@ -1550,24 +1563,24 @@ void Engine::updateRenderingTargets(Window::TextureIndex ti) {
     fbo->bindBlit();
 
     // update attachments
-    fbo->attachColorTexture(getCurrentWindow().getFrameBufferTexture(ti));
+    fbo->attachColorTexture(window.getFrameBufferTexture(ti));
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Depth)
+            window.getFrameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Normals),
+            window.getFrameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            getCurrentWindow().getFrameBufferTexture(Window::TextureIndex::Positions),
+            window.getFrameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1577,37 +1590,6 @@ void Engine::updateRenderingTargets(Window::TextureIndex ti) {
 
 bool Engine::isMaster() const {
     return core::NetworkManager::instance().isComputerServer();
-}
-
-const glm::mat4& Engine::getCurrentProjectionMatrix() const {
-    const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
-    return vp.getProjection(_currentFrustumMode).getProjectionMatrix();
-}
-
-const glm::mat4& Engine::getCurrentViewMatrix() const {
-    const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
-    return vp.getProjection(_currentFrustumMode).getViewMatrix();
-}
-
-const glm::mat4& Engine::getModelMatrix() const {
-    return core::ClusterManager::instance().getSceneTransform();
-}
-
-const glm::mat4& Engine::getCurrentViewProjectionMatrix() const {
-    const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
-    return vp.getProjection(_currentFrustumMode).getViewProjectionMatrix();
-}
-
-glm::mat4 Engine::getCurrentModelViewProjectionMatrix() const {
-    const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
-    return vp.getProjection(_currentFrustumMode).getViewProjectionMatrix() * 
-           core::ClusterManager::instance().getSceneTransform();
-}
-
-glm::mat4 Engine::getCurrentModelViewMatrix() const {
-    const core::BaseViewport& vp = *getCurrentWindow().getCurrentViewport();
-    return vp.getProjection(_currentFrustumMode).getViewMatrix() *
-           core::ClusterManager::instance().getSceneTransform();
 }
 
 unsigned int Engine::getCurrentFrameNumber() const {
@@ -1620,7 +1602,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     // clear the buffers initially
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
         thisNode.getWindow(i).makeOpenGLContextCurrent(Window::Context::Window);
-        glDrawBuffer(getCurrentWindow().isDoubleBuffered() ? GL_BACK : GL_FRONT);
+        glDrawBuffer(thisNode.getWindow(i).isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1731,20 +1713,13 @@ void Engine::updateFrustums() {
     }
 }
 
-void Engine::blitPreviousWindowViewport(Frustum::Mode mode) {
-    // Check that we have a previous window
-    if (_currentWindowIndex < 1) {
-        Logger::Warning("Cannot blit previous window, as this is the first");
-        return;
-    }
-
-    Window& win = getCurrentWindow();
-    Window& previousWindow = getWindow(_currentWindowIndex - 1);
-
+void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
+                                        Frustum::Mode mode)
+{
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    enterCurrentViewport(win, _currentFrustumMode);
-    setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
+    enterCurrentViewport(window, _currentFrustumMode);
+    setAndClearBuffer(window, BufferMode::RenderToTexture, _currentFrustumMode);
     glDisable(GL_SCISSOR_TEST);
 
     _overlay.bind();
@@ -1752,8 +1727,8 @@ void Engine::blitPreviousWindowViewport(Frustum::Mode mode) {
     glActiveTexture(GL_TEXTURE0);
     Window::TextureIndex m = [](Frustum::Mode v) {
         switch (v) {
-            // abock (2019-09-27) Yep, I'm confused about this mapping, too. But I just
-            // took the enumerations values as they were and I assume that it was an
+            // @TODO abock (2019-09-27) Yep, I'm confused about this mapping, too. But I
+            // just took the enumerations values as they were and I assume that it was an
             // undetected bug
             case Frustum::Mode::MonoEye: return Window::TextureIndex::LeftEye;
             case Frustum::Mode::StereoLeftEye: return Window::TextureIndex::RightEye;
@@ -1761,9 +1736,9 @@ void Engine::blitPreviousWindowViewport(Frustum::Mode mode) {
             default: throw std::logic_error("Unhandled case label");
         }
     }(mode);
-    glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
+    glBindTexture(GL_TEXTURE_2D, prevWindow.getFrameBufferTexture(m));
 
-    win.renderScreenQuad();
+    window.renderScreenQuad();
     ShaderProgram::unbind();
 }
 
@@ -1919,22 +1894,16 @@ void Engine::setClearColor(glm::vec4 color) {
     _clearColor = std::move(color);
 }
 
-unsigned int Engine::getCurrentDrawTexture() const {
-    if (getCurrentWindow().usePostFX()) {
-        return getCurrentWindow().getFrameBufferTexture(
-            Window::TextureIndex::Intermediate
-        );
+unsigned int Engine::getDrawTexture(Window& window) const {
+    if (window.usePostFX()) {
+        return window.getFrameBufferTexture(Window::TextureIndex::Intermediate);
     }
     else {
-        return getCurrentWindow().getFrameBufferTexture(
+        return window.getFrameBufferTexture(
             (_currentFrustumMode == Frustum::Mode::StereoRightEye) ?
             Window::TextureIndex::RightEye : Window::TextureIndex::LeftEye
         );
     }
-}
-
-glm::ivec2 Engine::getCurrentResolution() const {
-    return getCurrentWindow().getFramebufferResolution();
 }
 
 int Engine::getFocusedWindowIndex() const {
@@ -2044,10 +2013,6 @@ Window& Engine::getWindow(int index) const {
 
 int Engine::getNumberOfWindows() const {
     return core::ClusterManager::instance().getThisNode().getNumberOfWindows();
-}
-
-Window& Engine::getCurrentWindow() const {
-    return core::ClusterManager::instance().getThisNode().getWindow(_currentWindowIndex);
 }
 
 core::User& Engine::getDefaultUser() {

@@ -12,19 +12,21 @@
 #include <glm/fwd.hpp>
 #include <string>
 
+namespace sgct { class Window; }
+
 namespace sgct::text {
 
 class Font;
 
 enum class TextAlignMode { TopLeft, TopCenter, TopRight};
 
-void print(Font& font, TextAlignMode mode, float x, float y, const char* format, ...);
+void print(sgct::Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...);
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...);
 
 // with color
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
     const char* format, ...);
-void print(Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
     const glm::vec4& strokeColor, const char* format, ...);
 void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
     const char* format, ...);

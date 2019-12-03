@@ -212,13 +212,12 @@ void createPyramid(float width) {
 }
 
 
-void drawPyramid(int index) {
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-        xform.getVal() * pyramidTransforms[index];
+void drawPyramid(glm::mat4 mvp, int index) {
+    const glm::mat4 proj = mvp * xform.getVal() * pyramidTransforms[index];
 
     ShaderManager::instance().getShaderProgram("pyramidShader").bind();
 
-    glUniformMatrix4fv(pyramid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(pyramid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
 
     glBindVertexArray(pyramid.vao);
 
@@ -236,12 +235,11 @@ void drawPyramid(int index) {
     ShaderManager::instance().getShaderProgram("pyramidShader").unbind();
 }
 
-void drawXZGrid() {
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-                          xform.getVal();
+void drawXZGrid(glm::mat4 mvp) {
+    const glm::mat4 proj = mvp * xform.getVal();
 
     ShaderManager::instance().getShaderProgram("gridShader").bind();
-    glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
     glBindVertexArray(grid.vao);
     glLineWidth(3.f);
     glPolygonOffset(0.f, 0.f); // offset to avoid z-buffer fighting
@@ -378,16 +376,16 @@ void preSyncFun() {
     }
 }
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glDisable(GL_DEPTH_TEST);
 
-    drawXZGrid();
+    drawXZGrid(data.modelViewProjectionMatrix);
 
     for (int i = 0; i < NumberOfPyramids; i++) {
-        drawPyramid(i);
+        drawPyramid(data.modelViewProjectionMatrix, i);
     }
 
     glEnable(GL_DEPTH_TEST);

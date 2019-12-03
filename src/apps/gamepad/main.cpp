@@ -10,7 +10,7 @@ namespace {
 
 using namespace sgct;
 
-void draw2DFun() {
+void draw2DFun(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
@@ -33,6 +33,7 @@ void draw2DFun() {
         }
 
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 12),
             sgct::text::TextAlignMode::TopLeft,
             18,

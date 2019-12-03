@@ -11,6 +11,7 @@
 
 #include <sgct/nonlinearprojection.h>
 
+#include <sgct/engine.h>
 #include <glm/glm.hpp>
 
 namespace sgct::core {
@@ -92,7 +93,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    void drawCubeFace(BaseViewport& face, Frustum::Mode frustumMode);
+    void drawCubeFace(BaseViewport& face, RenderData renderData);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

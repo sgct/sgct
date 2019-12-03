@@ -12,6 +12,9 @@
 #include <sgct/shaderprogram.h>
 #include <functional>
 
+// @TODO (abock, 2019-12-03) I think this class can die in the next bigger cleanup
+// session. It is only used in the example that demonstrates how to use it
+
 namespace sgct {
 
 class Window;
@@ -21,7 +24,7 @@ class PostFX {
 public:
     /// \return true if shader and output/target texture created successfully
     PostFX(std::string name, const std::string& vertShaderSrc,
-        const std::string& fragShaderSrc, std::function<void()>);
+        const std::string& fragShaderSrc, std::function<void(Window&)> updateFunction);
     ~PostFX();
     PostFX(PostFX&& rhs) noexcept;
 
@@ -42,7 +45,7 @@ public:
     const ShaderProgram& getShaderProgram() const;
     
 private:
-    std::function<void()> _updateFunction;
+    std::function<void(Window&)> _updateFunction;
 
     ShaderProgram _shaderProgram;
     unsigned int _inputTexture = 0;

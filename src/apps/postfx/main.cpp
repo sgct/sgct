@@ -53,26 +53,28 @@ void setupPostFXs() {
             "Threshold",
             loadFile("base.vert"),
             loadFile("threshold.frag"),
-            [](){ glUniform1i(postFXTextureLocation.pass1, 0); }
+            [](Window&){ glUniform1i(postFXTextureLocation.pass1, 0); }
         );
         const ShaderProgram& sp = fx.getShaderProgram();
         sp.bind();
         postFXTextureLocation.pass1 = glGetUniformLocation(sp.getId(), "tex");
         originalTextureLocation = glGetUniformLocation(sp.getId(), "texOrig");
         sp.unbind();
-        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
+        for (int i = 0; i < Engine::instance().getNumberOfWindows(); ++i) {
+            Engine::instance().getWindow(i).addPostFX(std::move(fx));
+        }
     }
-
+    
     {
         PostFX fx(
             "HBlur",
             loadFile("blur_h.vert"),
             loadFile("blur.frag"),
-            [](){
+            [](Window& win){
                 glUniform1i(postFXTextureLocation.pass2, 0);
                 glUniform1f(
                     sizeLocation.pass2,
-                    static_cast<float>(Engine::instance().getCurrentResolution().x)
+                    static_cast<float>(win.getFramebufferResolution().x)
                 );
             }
         );
@@ -81,7 +83,9 @@ void setupPostFXs() {
         postFXTextureLocation.pass2 = glGetUniformLocation(sp.getId(), "tex");
         sizeLocation.pass2 = glGetUniformLocation(sp.getId(), "size");
         sp.unbind();
-        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
+        for (int i = 0; i < Engine::instance().getNumberOfWindows(); ++i) {
+            Engine::instance().getWindow(i).addPostFX(std::move(fx));
+        }
     }
 
     {
@@ -89,11 +93,11 @@ void setupPostFXs() {
             "VBlur",
             loadFile("blur_v.vert"),
             loadFile("blur.frag"),
-            [](){
+            [](Window& win){
                 glUniform1i(postFXTextureLocation.pass3, 0);
                 glUniform1f(
                     sizeLocation.pass3,
-                    static_cast<float>(Engine::instance().getCurrentResolution().y)
+                    static_cast<float>(win.getFramebufferResolution().y)
                 );
             }
         );
@@ -102,7 +106,9 @@ void setupPostFXs() {
         postFXTextureLocation.pass3 = glGetUniformLocation(sp.getId(), "tex");
         sizeLocation.pass3 = glGetUniformLocation(sp.getId(), "size");
         sp.unbind();
-        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
+        for (int i = 0; i < Engine::instance().getNumberOfWindows(); ++i) {
+            Engine::instance().getWindow(i).addPostFX(std::move(fx));
+        }
     }
 
     {
@@ -110,9 +116,9 @@ void setupPostFXs() {
             "Glow",
             loadFile("base.vert"),
             loadFile("glow.frag"),
-            [](){
+            [](Window& win){
                 glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, Engine::instance().getCurrentDrawTexture());
+                glBindTexture(GL_TEXTURE_2D, Engine::instance().getDrawTexture(win));
                 glUniform1i(postFXTextureLocation.pass4, 0);
                 glUniform1i(originalTextureLocation, 1);
             }
@@ -122,11 +128,13 @@ void setupPostFXs() {
         postFXTextureLocation.pass4 = glGetUniformLocation(sp.getId(), "tex");
         originalTextureLocation = glGetUniformLocation(sp.getId(), "texOrig");
         sp.unbind();
-        Engine::instance().getCurrentWindow().addPostFX(std::move(fx));
+        for (int i = 0; i < Engine::instance().getNumberOfWindows(); ++i) {
+            Engine::instance().getWindow(i).addPostFX(std::move(fx));
+        }
     }
 }
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -144,8 +152,7 @@ void drawFun(RenderData) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() *
-                          scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);

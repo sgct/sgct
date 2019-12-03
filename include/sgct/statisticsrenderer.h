@@ -13,6 +13,8 @@
 #include <sgct/shaderprogram.h>
 #include <memory>
 
+namespace sgct { class Window; }
+
 namespace sgct::core {
 
 class StatisticsRenderer {
@@ -21,7 +23,7 @@ public:
     ~StatisticsRenderer();
 
     void update();
-    void render();
+    void render(Window& window);
 
 private:
     const Engine::Statistics& _statistics;

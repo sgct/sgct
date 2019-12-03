@@ -56,9 +56,10 @@ void main() { color = vec4(1.0); }
 
 using namespace sgct;
 
-void myDraw2DFun() {
+void myDraw2DFun(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     text::print(
+        data.window,
         *text::FontManager::instance().getFont("SGCTFont", 24),
         text::TextAlignMode::TopLeft,
         100,
@@ -67,9 +68,9 @@ void myDraw2DFun() {
         "Time: %ls", sTimeOfDay.getVal().c_str()
     );
     if (extraPackages.getVal() && extraData.getSize() == ExtendedSize) {
-        Window& win = Engine::instance().getCurrentWindow();
-        float xp = win.getFramebufferResolution().x / 2.f - 150.f;
+        float xp = data.window.getFramebufferResolution().x / 2.f - 150.f;
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 16),
             text::TextAlignMode::TopLeft,
             xp,
@@ -82,7 +83,7 @@ void myDraw2DFun() {
 #endif // SGCT_HAS_TEXT
 }
 
-void drawFun(RenderData renderData) {
+void drawFun(RenderData data) {
     if (slowRendering.getVal()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -91,7 +92,7 @@ void drawFun(RenderData renderData) {
     if (frametest.getVal()) {
         if (Engine::instance().getCurrentFrameNumber() % 2 == 0) {
             // even
-            if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
+            if (data.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
                 Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
             }
@@ -102,7 +103,7 @@ void drawFun(RenderData renderData) {
         }
         else {
             // odd
-            if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
+            if (data.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind
                 Engine::instance().setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
             }
@@ -117,9 +118,8 @@ void drawFun(RenderData renderData) {
     }
 
     ShaderManager::instance().getShaderProgram("simple").bind();
-    glm::mat4 matrix = Engine::instance().getCurrentModelViewProjectionMatrix();
-    matrix = glm::rotate(
-        matrix,
+    glm::mat4 matrix = glm::rotate(
+        data.modelViewProjectionMatrix,
         glm::radians(static_cast<float>(currentTime.getVal()) * speed.getVal()),
         glm::vec3(0.f, 1.f, 0.f)
     );
@@ -131,10 +131,11 @@ void drawFun(RenderData renderData) {
     glBindVertexArray(0);
 
 #ifdef SGCT_HAS_TEXT
-    float pos = Engine::instance().getCurrentWindow().getFramebufferResolution().x / 2.f;
+    float pos = data.window.getFramebufferResolution().x / 2.f;
 
-    if (renderData.frustumMode == Frustum::Mode::StereoLeftEye) {
+    if (data.frustumMode == Frustum::Mode::StereoLeftEye) {
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopRight,
             pos,
@@ -142,8 +143,9 @@ void drawFun(RenderData renderData) {
             "Left"
         );
     }
-    else if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
+    else if (data.frustumMode == Frustum::Mode::StereoRightEye) {
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
@@ -151,8 +153,9 @@ void drawFun(RenderData renderData) {
             "Right"
         );
     }
-    else if (renderData.frustumMode == Frustum::Mode::MonoEye) {
+    else if (data.frustumMode == Frustum::Mode::MonoEye) {
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
@@ -161,8 +164,9 @@ void drawFun(RenderData renderData) {
         );
     }
 
-    if (Engine::instance().getCurrentWindow().isUsingSwapGroups()) {
+    if (data.window.isUsingSwapGroups()) {
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -173,6 +177,7 @@ void drawFun(RenderData renderData) {
         );
 
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -182,8 +187,9 @@ void drawFun(RenderData renderData) {
             "Press B to toggle barrier and R to reset counter"
         );
 
-        if (Engine::instance().getCurrentWindow().isBarrierActive()) {
+        if (data.window.isBarrierActive()) {
             text::print(
+                data.window,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -195,6 +201,7 @@ void drawFun(RenderData renderData) {
         }
         else {
             text::print(
+                data.window,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -205,8 +212,9 @@ void drawFun(RenderData renderData) {
             );
         }
 
-        if (Engine::instance().getCurrentWindow().isSwapGroupMaster()) {
+        if (data.window.isSwapGroupMaster()) {
             text::print(
+                data.window,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -218,6 +226,7 @@ void drawFun(RenderData renderData) {
         }
         else {
             text::print(
+                data.window,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -228,17 +237,18 @@ void drawFun(RenderData renderData) {
             );
         }
 
-        unsigned int f = Engine::instance().getCurrentWindow().getSwapGroupFrameNumber();
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             300,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
-            "Nvidia frame counter: %u", f
+            "Nvidia frame counter: %u", data.window.getSwapGroupFrameNumber()
         );
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -250,6 +260,7 @@ void drawFun(RenderData renderData) {
     }
     else {
         text::print(
+            data.window,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,

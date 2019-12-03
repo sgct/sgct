@@ -81,9 +81,9 @@ void main() { FragOut = color; }
 
 using namespace sgct;
 
-void draw(RenderData) {
+void draw(RenderData data) {
     ShaderManager::instance().getShaderProgram("simple").bind();
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
+    const glm::mat4 mvp = data.modelViewProjectionMatrix;
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glBindVertexArray(geometry.vao);

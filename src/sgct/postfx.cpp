@@ -13,7 +13,8 @@
 namespace sgct {
 
 PostFX::PostFX(std::string name, const std::string& vertShaderSrc,
-               const std::string& fragShaderSrc, std::function<void()> updateFunction)
+               const std::string& fragShaderSrc,
+               std::function<void(Window&)> updateFunction)
     : _updateFunction(std::move(updateFunction))
     , _shaderProgram(name)
 {
@@ -51,7 +52,7 @@ void PostFX::render(Window& window) {
     _shaderProgram.bind();
 
     if (_updateFunction) {
-        _updateFunction();
+        _updateFunction(window);
     }
 
     window.renderScreenQuad();

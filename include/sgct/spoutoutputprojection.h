@@ -11,6 +11,7 @@
 
 #include <sgct/nonlinearprojection.h>
 
+#include <sgct/engine.h>
 #include <glm/glm.hpp>
 #include <array>
 #include <memory>
@@ -50,7 +51,7 @@ private:
     void initShaders() override;
     void initFBO() override;
 
-    void drawCubeFace(BaseViewport& viewport, Frustum::Mode frustumMode);
+    void drawCubeFace(BaseViewport& viewport, RenderData renderData);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

@@ -73,7 +73,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(RenderData) {
+void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -92,8 +92,8 @@ void drawFun(RenderData) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix() * scene;
-    const glm::mat4 mv = Engine::instance().getCurrentModelViewMatrix() * scene;
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+    const glm::mat4 mv = data.viewMatrix * data.modelMatrix * scene;
     const glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(mv));
 
     glActiveTexture(GL_TEXTURE0);

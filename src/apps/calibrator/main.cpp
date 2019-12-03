@@ -102,9 +102,9 @@ void main() {
 
 using namespace sgct;
 
-void draw(RenderData) {
+void draw(RenderData data) {
     ShaderManager::instance().getShaderProgram("simple").bind();
-    const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
+    const glm::mat4 mvp = data.modelViewProjectionMatrix;
 
     // Inverting tilt to keep the backwards compatibility with the previous implementation
     const glm::mat4 mat = glm::rotate(mvp, -glm::radians(tilt), glm::vec3(1.f, 0.f, 0.f));
@@ -127,13 +127,14 @@ void draw(RenderData) {
     ShaderManager::instance().getShaderProgram("simple").unbind();
 }
 
-void draw2D() {
+void draw2D(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
-        Window& win = Engine::instance().getCurrentWindow();
-        core::BaseViewport* vp = win.getCurrentViewport();
-        const float w = static_cast<float>(win.getResolution().x) * vp->getSize().x;
-        const float h = static_cast<float>(win.getResolution().y) * vp->getSize().y;
+        core::BaseViewport* vp = data.window.getCurrentViewport();
+        const float w =
+            static_cast<float>(data.window.getResolution().x) * vp->getSize().x;
+        const float h =
+            static_cast<float>(data.window.getResolution().y) * vp->getSize().y;
 
         const float offset = w / 2.f - w / 7.f;
 
@@ -142,6 +143,7 @@ void draw2D() {
         text::Font* f1 = text::FontManager::instance().getFont("SGCTFont", fontSize1);
 
         text::print(
+            data.window,
             *f1,
             sgct::text::TextAlignMode::TopLeft,
             offset,
@@ -155,6 +157,7 @@ void draw2D() {
         const unsigned int fontSize2 = static_cast<unsigned int>(s2);
         text::Font* f2 = text::FontManager::instance().getFont("SGCTFont", fontSize2);
         text::print(
+            data.window,
             *f2,
             text::TextAlignMode::TopLeft,
             offset,

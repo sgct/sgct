@@ -403,7 +403,7 @@ void Engine::initialize(Profile profile) {
     }
 
     // init window opengl data
-    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+    Window::makeSharedContextCurrent();
 
     //
     // Load Shaders
@@ -507,7 +507,7 @@ Engine::~Engine() {
         cm.getThisNodeId() > -1 && cm.getThisNodeId() < cm.getNumberOfNodes();
 
     if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
-        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+        Window::makeSharedContextCurrent();
         if (_cleanUpFn) {
             _cleanUpFn();
         }
@@ -552,7 +552,7 @@ Engine::~Engine() {
 
     // Shared contex
     if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
-        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+        Window::makeSharedContextCurrent();
     }
 
     Logger::Debug("Destroying shader manager and internal shaders");
@@ -578,7 +578,7 @@ Engine::~Engine() {
 
     // Window specific context
     if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
-        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent(Window::Context::Window);
+        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent();
     }
     
     Logger::Debug("Destroying shared data");
@@ -941,8 +941,7 @@ void Engine::frameLockPostStage() {
 void Engine::render() {
     _isRunning = true;
 
-    // @TODO (abock, 2019-12-03) This can probably be replaced with a static call instead
-    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+    Window::makeSharedContextCurrent();
     unsigned int timeQueryBegin = 0;
     glGenQueries(1, &timeQueryBegin);
     unsigned int timeQueryEnd = 0;
@@ -983,7 +982,7 @@ void Engine::render() {
         }
 
         _renderingOffScreen = true;
-        getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+        Window::makeSharedContextCurrent();
 
         // Make sure correct context is current
         if (_postSyncPreDrawFn) {
@@ -1007,7 +1006,7 @@ void Engine::render() {
             }
 
             if (!_renderingOffScreen) {
-                win.makeOpenGLContextCurrent(Window::Context::Window);
+                win.makeOpenGLContextCurrent();
             }
 
             Window::StereoMode sm = win.getStereoMode();
@@ -1075,7 +1074,7 @@ void Engine::render() {
                 renderFBOTexture(getWindow(i));
             }
         }
-        getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+        Window::makeSharedContextCurrent();
 
         if (_statisticsRenderer) {
             glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
@@ -1129,7 +1128,7 @@ void Engine::render() {
         _takeScreenshot = false;
     }
 
-    getWindow(0).makeOpenGLContextCurrent(Window::Context::Shared);
+    Window::makeSharedContextCurrent();
     glDeleteQueries(1, &timeQueryBegin);
     glDeleteQueries(1, &timeQueryEnd);
 }
@@ -1187,7 +1186,7 @@ void Engine::prepareBuffer(Window& window, Window::TextureIndex ti) {
 void Engine::renderFBOTexture(Window& window) {
     core::OffScreenBuffer::unbind();
 
-    window.makeOpenGLContextCurrent(Window::Context::Window);
+    window.makeOpenGLContextCurrent();
 
     glDisable(GL_BLEND);
     // needed for shaders
@@ -1531,7 +1530,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 
     // clear the buffers initially
     for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).makeOpenGLContextCurrent(Window::Context::Window);
+        thisNode.getWindow(i).makeOpenGLContextCurrent();
         glDrawBuffer(thisNode.getWindow(i).isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1658,7 +1657,7 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
     glActiveTexture(GL_TEXTURE0);
     Window::TextureIndex m = [](Frustum::Mode v) {
         switch (v) {
-            // @TODO abock (2019-09-27) Yep, I'm confused about this mapping, too. But I
+            // @TODO (abock, 2019-09-27) Yep, I'm confused about this mapping, too. But I
             // just took the enumerations values as they were and I assume that it was an
             // undetected bug
             case Frustum::Mode::MonoEye: return Window::TextureIndex::LeftEye;

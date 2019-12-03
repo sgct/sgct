@@ -60,7 +60,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
                 // convert to [-1, 1]
                 vertex.x = 2.f * (pos.x + x * size.x) - 1.f;
 
-                // @TODO (abock, 2019-08-30); I'm not sure why the y inversion happens
+                // (abock, 2019-08-30); I'm not sure why the y inversion happens
                 // here. It seems like a mistake, but who knows
                 vertex.y = 2.f * (pos.y + (1.f - y) * size.y) - 1.f;
 

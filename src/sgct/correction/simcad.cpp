@@ -106,10 +106,9 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
             // vertex-mapping
             const float u = (static_cast<float>(c) / (static_cast<float>(nCols) - 1.f));
 
-            // @TODO (abock, 2019-09-01);  Not sure why we are inverting the y coordinate
-            // for this, but we do it multiple times in this file and I'm starting to get
-            // the impression that there might be a flipping issue going on somewhere
-            // deeper
+            // (abock, 2019-09-01);  Not sure why we are inverting the y coordinate for
+            // this, but we do it multiple times in this file and I'm starting to get the
+            // impression that there might be a flipping issue going on somewhere deeper
             const float v = 1.f - (static_cast<float>(r) /
                                   (static_cast<float>(nRows) - 1.f));
 

@@ -45,8 +45,6 @@ public:
         TopBottomInverted
     };
 
-    enum class Context { Shared = 0, Window };
-
     enum class ColorBitDepth {
         Depth8,
         Depth16,
@@ -86,6 +84,8 @@ public:
     static bool isSwapGroupMaster();
     static unsigned int getSwapGroupFrameNumber();
 
+    static void makeSharedContextCurrent();
+
     explicit Window(int id);
 
     void close();
@@ -120,11 +120,7 @@ public:
      */
     void openWindow(GLFWwindow* share, bool isLastWindow);
 
-    /**
-     * Set this window's or the shared OpenGL context as current. This function keeps
-     * track of which context is in use and only set the context to current if it's not.
-     */
-    void makeOpenGLContextCurrent(Context context);
+    void makeOpenGLContextCurrent();
 
     /// Name this window
     void setName(std::string name);

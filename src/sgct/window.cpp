@@ -264,7 +264,7 @@ bool Window::isFocused() const {
 }
 
 void Window::close() {
-    makeOpenGLContextCurrent(Context::Shared);
+    makeSharedContextCurrent();
 
     Logger::Info("Deleting screen capture data for window %d", _id);
     _screenCaptureLeftOrMono = nullptr;
@@ -288,7 +288,7 @@ void Window::close() {
     _stereo.shader.deleteProgram();
 
     // Current handle must be set at the end to properly destroy the window
-    makeOpenGLContextCurrent(Context::Window);
+    makeOpenGLContextCurrent();
 
     _viewports.clear();
 
@@ -444,7 +444,7 @@ void Window::initOGL() {
 }
 
 void Window::initContextSpecificOGL() {
-    makeOpenGLContextCurrent(Context::Window);
+    makeOpenGLContextCurrent();
     for (int j = 0; j < getNumberOfViewports(); j++) {
         core::Viewport& vp = getViewport(j);
         vp.loadData();
@@ -542,7 +542,7 @@ void Window::swap(bool takeScreenshot) {
         return;
     }
 
-    makeOpenGLContextCurrent(Context::Window);
+    makeOpenGLContextCurrent();
         
     if (takeScreenshot) {
         if (Settings::instance().getCaptureFromBackBuffer() && _isDoubleBuffered) {
@@ -626,8 +626,8 @@ void Window::updateResolutions() {
 void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values.
-    for (int j = 0; j < getNumberOfViewports(); ++j) {
-        getViewport(j).setHorizontalFieldOfView(hFovDeg);
+    for (int i = 0; i < getNumberOfViewports(); ++i) {
+        getViewport(i).setHorizontalFieldOfView(hFovDeg);
     }
     Logger::Debug(
         "Horizontal FOV changed to %f for window %d", hFovDeg, getNumberOfViewports(), _id
@@ -649,7 +649,7 @@ bool Window::update() {
     if (!_isVisible || !isWindowResized()) {
         return false;
     }
-    makeOpenGLContextCurrent(Context::Window);
+    makeOpenGLContextCurrent();
 
     resizeFBOs();
 
@@ -686,8 +686,12 @@ bool Window::update() {
     return true;
 }
 
-void Window::makeOpenGLContextCurrent(Context context) {
-    glfwMakeContextCurrent(context == Context::Shared ? _sharedHandle : _windowHandle);
+void Window::makeSharedContextCurrent() {
+    glfwMakeContextCurrent(_sharedHandle);
+}
+
+void Window::makeOpenGLContextCurrent() {
+    glfwMakeContextCurrent(_windowHandle);
 }
 
 bool Window::isWindowResized() const {
@@ -1174,7 +1178,7 @@ void Window::resizeFBOs() {
         return;
     }
 
-    makeOpenGLContextCurrent(Context::Shared);
+    makeSharedContextCurrent();
     destroyFBOs();
     createTextures();
 

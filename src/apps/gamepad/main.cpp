@@ -34,6 +34,7 @@ void draw2DFun(RenderData data) {
 
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 12),
             sgct::text::TextAlignMode::TopLeft,
             18,

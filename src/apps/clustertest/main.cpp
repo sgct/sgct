@@ -60,6 +60,7 @@ void myDraw2DFun(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     text::print(
         data.window,
+        data.viewport,
         *text::FontManager::instance().getFont("SGCTFont", 24),
         text::TextAlignMode::TopLeft,
         100,
@@ -71,6 +72,7 @@ void myDraw2DFun(RenderData data) {
         float xp = data.window.getFramebufferResolution().x / 2.f - 150.f;
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 16),
             text::TextAlignMode::TopLeft,
             xp,
@@ -136,6 +138,7 @@ void drawFun(RenderData data) {
     if (data.frustumMode == Frustum::Mode::StereoLeftEye) {
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopRight,
             pos,
@@ -146,6 +149,7 @@ void drawFun(RenderData data) {
     else if (data.frustumMode == Frustum::Mode::StereoRightEye) {
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
@@ -156,6 +160,7 @@ void drawFun(RenderData data) {
     else if (data.frustumMode == Frustum::Mode::MonoEye) {
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
@@ -167,6 +172,7 @@ void drawFun(RenderData data) {
     if (data.window.isUsingSwapGroups()) {
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -178,6 +184,7 @@ void drawFun(RenderData data) {
 
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -190,6 +197,7 @@ void drawFun(RenderData data) {
         if (data.window.isBarrierActive()) {
             text::print(
                 data.window,
+                data.viewport,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -202,6 +210,7 @@ void drawFun(RenderData data) {
         else {
             text::print(
                 data.window,
+                data.viewport,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -215,6 +224,7 @@ void drawFun(RenderData data) {
         if (data.window.isSwapGroupMaster()) {
             text::print(
                 data.window,
+                data.viewport,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -227,6 +237,7 @@ void drawFun(RenderData data) {
         else {
             text::print(
                 data.window,
+                data.viewport,
                 *text::FontManager::instance().getFont("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
@@ -239,6 +250,7 @@ void drawFun(RenderData data) {
 
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -249,6 +261,7 @@ void drawFun(RenderData data) {
         );
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
@@ -261,6 +274,7 @@ void drawFun(RenderData data) {
     else {
         text::print(
             data.window,
+            data.viewport,
             *text::FontManager::instance().getFont("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,

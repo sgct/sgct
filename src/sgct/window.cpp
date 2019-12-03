@@ -290,7 +290,6 @@ void Window::close() {
     // Current handle must be set at the end to properly destroy the window
     makeOpenGLContextCurrent(Context::Window);
 
-    _currentViewport = nullptr;
     _viewports.clear();
 
     glfwSetWindowSizeCallback(_windowHandle, nullptr);
@@ -386,7 +385,6 @@ void Window::initOGL() {
             continue;
         }
 
-        setCurrentViewport(vp.get());
         vp->getNonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
         vp->getNonLinearProjection()->init(
             _internalColorFormat,
@@ -1211,28 +1209,12 @@ void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
     Logger::Debug("Adding viewport (total %d)", _viewports.size());
 }
 
-core::BaseViewport* Window::getCurrentViewport() const {
-    if (_currentViewport == nullptr) {
-        Logger::Error("Window %d: No current viewport", _id);
-    }
-    return _currentViewport;
-}
-
 const core::Viewport& Window::getViewport(int index) const {
     return *_viewports[index];
 }
 
 core::Viewport& Window::getViewport(int index) {
     return *_viewports[index];
-}
-
-glm::ivec4 Window::getCurrentViewportPixelCoords() const {
-    return glm::ivec4(
-        static_cast<int>(getCurrentViewport()->getPosition().x * _framebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getPosition().y * _framebufferRes.y),
-        static_cast<int>(getCurrentViewport()->getSize().x * _framebufferRes.x),
-        static_cast<int>(getCurrentViewport()->getSize().y * _framebufferRes.y)
-    );
 }
 
 int Window::getNumberOfViewports() const {
@@ -1260,10 +1242,6 @@ core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
         case Eye::Right:      return _screenCaptureRight.get();
         default:              throw std::logic_error("Unhandled case label");
     }
-}
-
-void Window::setCurrentViewport(core::BaseViewport* vp) {
-    _currentViewport = vp;
 }
 
 bool Window::useRightEyeTexture() const {

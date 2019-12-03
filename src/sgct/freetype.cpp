@@ -20,10 +20,10 @@
 #include <sstream>
 
 namespace {
-    glm::mat4 setupOrthoMat(const sgct::Window& window) {
-        glm::vec2 res = glm::vec2(window.getResolution());
-        glm::vec2 size = window.getCurrentViewport()->getSize();
-        glm::vec2 scale = window.getScale();
+    glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::core::BaseViewport& vp) {
+        glm::vec2 res = glm::vec2(win.getResolution());
+        glm::vec2 size = vp.getSize();
+        glm::vec2 scale = win.getScale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 
@@ -183,7 +183,9 @@ namespace {
 
 namespace sgct::text {
 
-void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
+void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+           TextAlignMode mode, float x, float y, const char* format, ...)
+{
     va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -191,12 +193,13 @@ void print(const Window& window, Font& font, TextAlignMode mode, float x, float 
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        glm::mat4 ortho = setupOrthoMat(window);
+        glm::mat4 ortho = setupOrthoMat(window, viewport);
         render2d(lines, font, ortho, mode, x, y, glm::vec4(1.f));
     }
 }
 
-void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+           TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
     va_list args;
@@ -206,12 +209,13 @@ void print(const Window& window, Font& font, TextAlignMode mode, float x, float 
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        glm::mat4 ortho = setupOrthoMat(window);
+        glm::mat4 ortho = setupOrthoMat(window, viewport);
         render2d(lines, font, ortho, mode, x, y, color);
     }
 }
 
-void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+           TextAlignMode mode, float x, float y, const glm::vec4& color,
            const glm::vec4& strokeColor, const char* format, ...)
 {
     va_list	args;
@@ -221,7 +225,7 @@ void print(const Window& window, Font& font, TextAlignMode mode, float x, float 
 
     if (!buf.empty()) {
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        glm::mat4 ortho = setupOrthoMat(window);
+        glm::mat4 ortho = setupOrthoMat(window, viewport);
         render2d(lines, font, ortho, mode, x, y, color, strokeColor);
     }
 }

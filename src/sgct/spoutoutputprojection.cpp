@@ -197,7 +197,6 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             attachTextures(idx);
         }
 
-        window.setCurrentViewport(&vp);
         RenderData renderData(
             window,
             vp,

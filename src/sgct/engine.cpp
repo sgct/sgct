@@ -1316,7 +1316,6 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     // render all viewports for selected eye
     for (int i = 0; i < window.getNumberOfViewports(); ++i) {
         core::Viewport& vp = window.getViewport(i);
-        window.setCurrentViewport(&vp);
 
         if (!vp.isEnabled()) {
             continue;
@@ -1425,19 +1424,17 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) {
 
     for (int i = 0; i < window.getNumberOfViewports(); ++i) {
         const core::Viewport& vp = window.getViewport(i);
-        if (!window.getCurrentViewport()->isEnabled()) {
+        if (!vp.isEnabled()) {
             continue;
         }
         enterCurrentViewport(window, vp, frustum);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render(window);
+            _statisticsRenderer->render(window, vp);
         }
 
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && window.shouldCallDraw2DFunction()) {
-            const core::BaseViewport& vp = *window.getCurrentViewport();
-
             RenderData renderData(
                 window,
                 vp,

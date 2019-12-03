@@ -160,7 +160,6 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             attachTextures(idx);
         }
 
-        window.setCurrentViewport(&vp);
         RenderData renderData(
             window,
             vp,

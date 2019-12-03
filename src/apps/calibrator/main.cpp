@@ -130,11 +130,10 @@ void draw(RenderData data) {
 void draw2D(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     if (showId.getVal()) {
-        core::BaseViewport* vp = data.window.getCurrentViewport();
         const float w =
-            static_cast<float>(data.window.getResolution().x) * vp->getSize().x;
+            static_cast<float>(data.window.getResolution().x) * data.viewport.getSize().x;
         const float h =
-            static_cast<float>(data.window.getResolution().y) * vp->getSize().y;
+            static_cast<float>(data.window.getResolution().y) * data.viewport.getSize().y;
 
         const float offset = w / 2.f - w / 7.f;
 
@@ -144,6 +143,7 @@ void draw2D(RenderData data) {
 
         text::print(
             data.window,
+            data.viewport,
             *f1,
             sgct::text::TextAlignMode::TopLeft,
             offset,
@@ -158,6 +158,7 @@ void draw2D(RenderData data) {
         text::Font* f2 = text::FontManager::instance().getFont("SGCTFont", fontSize2);
         text::print(
             data.window,
+            data.viewport,
             *f2,
             text::TextAlignMode::TopLeft,
             offset,

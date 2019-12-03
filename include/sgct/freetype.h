@@ -13,6 +13,7 @@
 #include <string>
 
 namespace sgct { class Window; }
+namespace sgct::core { class BaseViewport; }
 
 namespace sgct::text {
 
@@ -20,12 +21,15 @@ class Font;
 
 enum class TextAlignMode { TopLeft, TopCenter, TopRight};
 
-void print(const sgct::Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...);
+void print(const sgct::Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+    TextAlignMode mode, float x, float y, const char* format, ...);
 
-// with color
-void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+    TextAlignMode mode, float x, float y, const glm::vec4& color,
     const char* format, ...);
-void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+
+void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+    TextAlignMode mode, float x, float y, const glm::vec4& color,
     const glm::vec4& strokeColor, const char* format, ...);
 
 } // namespace sgct::text

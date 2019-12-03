@@ -136,8 +136,6 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             _cubeMapFbo->attachColorTexture(t);
         }
 
-        window.setCurrentViewport(&bv);
-
         // Draw Cube Face
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDepthFunc(GL_LESS);

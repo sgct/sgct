@@ -228,12 +228,6 @@ public:
     void setStereoMode(StereoMode sm);
 
     /**
-     * Set the which viewport that is the current. This is done internally from SGCT and
-     * end users shouldn't change this
-     */
-    void setCurrentViewport(core::BaseViewport* vp);
-
-    /**
      * Set if fisheye alpha state. Should only be set using XML config of before calling
      * Engine::init.
      */
@@ -313,17 +307,11 @@ public:
     /// \return pointer to GLFW window
     GLFWwindow* getWindowHandle() const;
 
-    /// \return a pointer to the viewport that is beeing rendered to at the moment
-    core::BaseViewport* getCurrentViewport() const;
-
     /// \return a reference to a specific viewport
     core::Viewport& getViewport(int index);
 
     /// \return a const reference to a specific viewport
     const core::Viewport& getViewport(int index) const;
-
-    /// Get the current viewport data in pixels.
-    glm::ivec4 getCurrentViewportPixelCoords() const;
 
     /// \return the viewport count for this window
     int getNumberOfViewports() const;
@@ -462,7 +450,6 @@ private:
 
     bool _hasAnyMasks = false;
 
-    core::BaseViewport* _currentViewport = nullptr;
     std::vector<std::unique_ptr<core::Viewport>> _viewports;
     std::unique_ptr<core::OffScreenBuffer> _finalFBO;
 

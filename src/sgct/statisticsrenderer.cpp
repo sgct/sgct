@@ -258,7 +258,7 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render(const Window& window) {
+void StatisticsRenderer::render(const Window& window, const core::Viewport& viewport) {
     glm::vec2 res = window.getFramebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 
@@ -328,6 +328,7 @@ void StatisticsRenderer::render(const Window& window) {
 
         text::print(
             window,
+            viewport,
             f1,
             mode,
             Pos.x,
@@ -337,6 +338,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f2,
             mode,
             Pos.x,
@@ -346,6 +348,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f2,
             mode,
             Pos.x,
@@ -355,6 +358,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f2,
             mode,
             Pos.x,
@@ -364,6 +368,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f2,
             mode,
             Pos.x,
@@ -373,6 +378,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f2,
             mode,
             Pos.x,
@@ -439,6 +445,7 @@ void StatisticsRenderer::render(const Window& window) {
         text::Font& f = *text::FontManager::instance().getFont("SGCTFont", 8);
         text::print(
             window,
+            viewport,
             f,
             mode,
             Pos.x,
@@ -448,6 +455,7 @@ void StatisticsRenderer::render(const Window& window) {
         );
         text::print(
             window,
+            viewport,
             f,
             mode,
             Pos.x,

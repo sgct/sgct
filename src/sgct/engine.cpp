@@ -39,6 +39,8 @@ namespace {
     constexpr const float FxaaSubPixTrim = 1.f / 4.f;
     constexpr const float FxaaSubPixOffset = 1.f / 2.f;
 
+    enum class BufferMode { BackBufferBlack, RenderToTexture };
+
     bool sRunUpdateFrameLockLoop = true;
 
     // Callback wrappers for GLFW
@@ -88,6 +90,38 @@ namespace {
         std::rotate(std::rbegin(a), std::rbegin(a) + 1, std::rend(a));
         a[0] = v;
     }
+
+    void setAndClearBuffer(Window& window, BufferMode buffer, core::Frustum::Mode frustum) {
+        if (buffer == BufferMode::BackBufferBlack) {
+            const bool doubleBuffered = window.isDoubleBuffered();
+            // Set buffer
+            if (window.getStereoMode() != Window::StereoMode::Active) {
+                glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
+                glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
+            }
+            else if (frustum == core::Frustum::Mode::StereoLeftEye) {
+                // if active left
+                glDrawBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
+                glReadBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
+            }
+            else if (frustum == core::Frustum::Mode::StereoRightEye) {
+                // if active right
+                glDrawBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
+                glReadBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
+            }
+
+            // when rendering textures to backbuffer (using fbo)
+            glClearColor(0.f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+        else {
+            const glm::vec4 color = sgct::Engine::instance().getClearColor();
+            const float alpha = window.hasAlpha() ? 0.f : color.a;
+            glClearColor(color.r, color.g, color.b, alpha);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+    }
+
 } // namespace
 
 Engine* Engine::_instance = nullptr;
@@ -981,7 +1015,6 @@ void Engine::render() {
             // Render Left/Mono non-linear projection viewports to cubemap
             for (int j = 0; j < win.getNumberOfViewports(); ++j) {
                 core::Viewport& vp = win.getViewport(j);
-                _currentViewportIndex = j;
                 if (!vp.hasSubViewports()) {
                     continue;
                 }
@@ -1018,7 +1051,6 @@ void Engine::render() {
 
             // Render right non-linear projection viewports to cubemap
             for (int j = 0; j < win.getNumberOfViewports(); ++j) {
-                _currentViewportIndex = j;
                 core::Viewport& vp = win.getViewport(j);
 
                 if (!vp.hasSubViewports()) {
@@ -1110,18 +1142,6 @@ void Engine::render() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-void Engine::draw() {
-    // run scissor test to prevent clearing of entire buffer
-    glEnable(GL_SCISSOR_TEST);
-    
-    enterCurrentViewport();
-    setAndClearBuffer(BufferMode::RenderToTexture);
-    glDisable(GL_SCISSOR_TEST);
-
-    if (_drawFn) {
-        _drawFn();
-    }
-}
 
 void Engine::drawOverlays() {
     for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); ++i) {
@@ -1197,7 +1217,7 @@ void Engine::renderFBOTexture() {
     );
 
     glViewport(0, 0, size.x, size.y);
-    setAndClearBuffer(BufferMode::BackBufferBlack);
+    setAndClearBuffer(win, BufferMode::BackBufferBlack, _currentFrustumMode);
    
     Window::StereoMode sm = win.getStereoMode();
     bool maskShaderSet = false;
@@ -1245,7 +1265,7 @@ void Engine::renderFBOTexture() {
             
             //clear buffers
             _currentFrustumMode = core::Frustum::Mode::StereoRightEye;
-            setAndClearBuffer(BufferMode::BackBufferBlack);
+            setAndClearBuffer(win, BufferMode::BackBufferBlack, _currentFrustumMode);
 
             glBindTexture(
                 GL_TEXTURE_2D,
@@ -1306,12 +1326,13 @@ void Engine::renderFBOTexture() {
 void Engine::renderViewports(Window::TextureIndex ti) {
     prepareBuffer(ti);
 
-    Window::StereoMode sm = getCurrentWindow().getStereoMode();
+    Window& win = getCurrentWindow();
+
+    Window::StereoMode sm = win.getStereoMode();
     // render all viewports for selected eye
     for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); ++i) {
-        getCurrentWindow().setCurrentViewport(i);
-        _currentViewportIndex = i;
-        core::Viewport& vp = getCurrentWindow().getViewport(i);
+        win.setCurrentViewport(i);
+        core::Viewport& vp = win.getViewport(i);
 
         if (!vp.isEnabled()) {
             continue;
@@ -1331,7 +1352,7 @@ void Engine::renderViewports(Window::TextureIndex ti) {
                 );
             }
 
-            if (getCurrentWindow().shouldCallDraw3DFunction()) {
+            if (win.shouldCallDraw3DFunction()) {
                 vp.getNonLinearProjection()->render();
             }
         }
@@ -1342,21 +1363,28 @@ void Engine::renderViewports(Window::TextureIndex ti) {
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (getCurrentWindow().shouldBlitPreviousWindow()) {
+            if (win.shouldBlitPreviousWindow()) {
                 blitPreviousWindowViewport(_currentFrustumMode);
             }
 
-            if (getCurrentWindow().shouldCallDraw3DFunction()) {
-                draw();
+            if (win.shouldCallDraw3DFunction()) {
+                // run scissor test to prevent clearing of entire buffer
+                glEnable(GL_SCISSOR_TEST);
+
+                enterCurrentViewport();
+                setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
+                glDisable(GL_SCISSOR_TEST);
+
+                if (_drawFn) {
+                    _drawFn();
+                }
             }
         }
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!getCurrentWindow().shouldCallDraw3DFunction() &&
-        !getCurrentWindow().shouldBlitPreviousWindow())
-    {
-        setAndClearBuffer(BufferMode::RenderToTexture);
+    if (!win.shouldCallDraw3DFunction() && !win.shouldBlitPreviousWindow()) {
+        setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1367,7 +1395,7 @@ void Engine::renderViewports(Window::TextureIndex ti) {
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && _currentFrustumMode == core::Frustum::Mode::StereoLeftEye)) {
-        if (getCurrentWindow().usePostFX()) {
+        if (win.usePostFX()) {
             // blit buffers
             updateRenderingTargets(ti); // only used if multisampled FBOs
             renderPostFX(ti);
@@ -1406,8 +1434,6 @@ void Engine::render2D() {
 
     for (int i = 0; i < getCurrentWindow().getNumberOfViewports(); ++i) {
         getCurrentWindow().setCurrentViewport(i);
-        _currentViewportIndex = i;
-
         if (!getCurrentWindow().getCurrentViewport()->isEnabled()) {
             continue;
         }
@@ -1543,40 +1569,6 @@ void Engine::updateRenderingTargets(Window::TextureIndex ti) {
     }
 
     fbo->blit();
-}
-
-void Engine::setAndClearBuffer(BufferMode mode) {
-    if (mode < BufferMode::RenderToTexture) {
-        const bool doubleBuffered = getCurrentWindow().isDoubleBuffered();
-        // Set buffer
-        if (getCurrentWindow().getStereoMode() != Window::StereoMode::Active) {
-            glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
-            glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
-        }
-        else if (_currentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
-            // if active left
-            glDrawBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
-            glReadBuffer(doubleBuffered ? GL_BACK_LEFT : GL_FRONT_LEFT);
-        }
-        else if (_currentFrustumMode == core::Frustum::Mode::StereoRightEye) {
-            // if active right
-            glDrawBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
-            glReadBuffer(doubleBuffered ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
-        }
-    }
-
-    // clear
-    if (mode != BufferMode::BackBufferBlack) {
-        const glm::vec4 color = instance().getClearColor();
-        const float alpha = instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
-        glClearColor(color.r, color.g, color.b, alpha);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    else {
-        // when rendering textures to backbuffer (using fbo)
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
 }
 
 bool Engine::isMaster() const {
@@ -1741,17 +1733,18 @@ void Engine::updateFrustums() {
 
 void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     // Check that we have a previous window
-    if (getCurrentWindowIndex() < 1) {
+    if (_currentWindowIndex < 1) {
         Logger::Warning("Cannot blit previous window, as this is the first");
         return;
     }
 
-    Window& previousWindow = getWindow(getCurrentWindowIndex() - 1);
+    Window& win = getCurrentWindow();
+    Window& previousWindow = getWindow(_currentWindowIndex - 1);
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     enterCurrentViewport();
-    setAndClearBuffer(BufferMode::RenderToTexture);
+    setAndClearBuffer(win, BufferMode::RenderToTexture, _currentFrustumMode);
     glDisable(GL_SCISSOR_TEST);
 
     _overlay.bind();
@@ -1774,7 +1767,7 @@ void Engine::blitPreviousWindowViewport(core::Frustum::Mode mode) {
     }(mode);
     glBindTexture(GL_TEXTURE_2D, previousWindow.getFrameBufferTexture(m));
 
-    getCurrentWindow().renderScreenQuad();
+    win.renderScreenQuad();
     ShaderProgram::unbind();
 }
 
@@ -1784,28 +1777,26 @@ void Engine::enterCurrentViewport() {
     const glm::vec2 res = glm::vec2(getCurrentWindow().getFramebufferResolution());
     const glm::vec2 p = vp->getPosition() * res;
     const glm::vec2 s = vp->getSize() * res;
-    _currentViewportCoords = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
+    glm::vec4 vpCoordinates = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
 
     Window::StereoMode sm = getCurrentWindow().getStereoMode();
     if (_currentFrustumMode == core::Frustum::Mode::StereoLeftEye) {
         switch (sm) {
             case Window::StereoMode::SideBySide:
-                _currentViewportCoords.x /= 2;
-                _currentViewportCoords.z /= 2;
+                vpCoordinates.x /= 2;
+                vpCoordinates.z /= 2;
                 break;
             case Window::StereoMode::SideBySideInverted:
-                _currentViewportCoords.x =
-                    (_currentViewportCoords.x / 2) + (_currentViewportCoords.z / 2);
-                _currentViewportCoords.z = _currentViewportCoords.z / 2;
+                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
+                vpCoordinates.z = vpCoordinates.z / 2;
                 break;
             case Window::StereoMode::TopBottom:
-                _currentViewportCoords.y =
-                    (_currentViewportCoords.y / 2) + (_currentViewportCoords.w / 2);
-                _currentViewportCoords.w /= 2;
+                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
+                vpCoordinates.w /= 2;
                 break;
             case Window::StereoMode::TopBottomInverted:
-                _currentViewportCoords.y /= 2;
-                _currentViewportCoords.w /= 2;
+                vpCoordinates.y /= 2;
+                vpCoordinates.w /= 2;
                 break;
             default:
                 break;
@@ -1814,41 +1805,29 @@ void Engine::enterCurrentViewport() {
     else {
         switch (sm) {
             case Window::StereoMode::SideBySide:
-                _currentViewportCoords.x =
-                    (_currentViewportCoords.x / 2) + (_currentViewportCoords.z / 2);
-                _currentViewportCoords.z /= 2;
+                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
+                vpCoordinates.z /= 2;
                 break;
             case Window::StereoMode::SideBySideInverted:
-                _currentViewportCoords.x /= 2;
-                _currentViewportCoords.z /= 2;
+                vpCoordinates.x /= 2;
+                vpCoordinates.z /= 2;
                 break;
             case Window::StereoMode::TopBottom:
-                _currentViewportCoords.y /= 2;
-                _currentViewportCoords.w /= 2;
+                vpCoordinates.y /= 2;
+                vpCoordinates.w /= 2;
                 break;
             case Window::StereoMode::TopBottomInverted:
-                _currentViewportCoords.y =
-                    (_currentViewportCoords.y / 2) + (_currentViewportCoords.w / 2);
-                _currentViewportCoords.w /= 2;
+                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
+                vpCoordinates.w /= 2;
                 break;
             default:
                 break;
         }
     }
 
-    glViewport(
-        _currentViewportCoords.x,
-        _currentViewportCoords.y,
-        _currentViewportCoords.z,
-        _currentViewportCoords.w
-    );
-    
-    glScissor(
-        _currentViewportCoords.x,
-        _currentViewportCoords.y,
-        _currentViewportCoords.z,
-        _currentViewportCoords.w
-    );
+    _currentViewportSize = glm::ivec2(vpCoordinates.z, vpCoordinates.w);
+    glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
+    glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
 }
 
 const Engine::Statistics& Engine::getStatistics() const {
@@ -1869,8 +1848,13 @@ double Engine::getAvgDt() const {
         _statistics.frametimes.end(),
         0.0
     );
+    const int nValues = static_cast<int>(std::count_if(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end(),
+        [](double d) { return d != 0.0; }
+    ));
     // We must take the frame counter into account as the history might not be filled yet
-    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, Statistics::HistoryLength);
+    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, nValues);
     return accFrameTime / f;
 }
 
@@ -1896,8 +1880,13 @@ double Engine::getDtStandardDeviation() const {
         0.0,
         [avg](double cur, double rhs) { return cur + pow(rhs - avg, 2.0); }
     );
+    const int nValues = static_cast<int>(std::count_if(
+        _statistics.frametimes.begin(),
+        _statistics.frametimes.end(),
+        [](double d) { return d != 0.0; }
+    ));
     // We must take the frame counter into account as the history might not be filled yet
-    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, Statistics::HistoryLength);
+    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, nValues);
     return sumSquare / f;
 }
 
@@ -2011,11 +2000,9 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 }
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
-    if (core::NetworkManager::instance().getExternalControlConnection()) {
-        core::NetworkManager::instance().getExternalControlConnection()->sendData(
-            data,
-            length
-        );
+    core::NetworkManager& nm = core::NetworkManager::instance();
+    if (nm.getExternalControlConnection()) {
+        nm.getExternalControlConnection()->sendData(data, length);
     }
 }
 
@@ -2068,10 +2055,6 @@ Window& Engine::getCurrentWindow() const {
     return core::ClusterManager::instance().getThisNode().getWindow(_currentWindowIndex);
 }
 
-int Engine::getCurrentWindowIndex() const {
-    return _currentWindowIndex;
-}
-
 core::User& Engine::getDefaultUser() {
     return core::ClusterManager::instance().getDefaultUser();
 }
@@ -2081,17 +2064,7 @@ double Engine::getTime() {
 }
 
 glm::ivec2 Engine::getCurrentViewportSize() const {
-    return { _currentViewportCoords.z, _currentViewportCoords.w };
-}
-
-glm::ivec4 Engine::getCurrentViewportPixelCoords() const {
-    const core::Viewport& vp = getCurrentWindow().getViewport(_currentViewportIndex);
-    if (vp.hasSubViewports()) {
-        return vp.getNonLinearProjection()->getViewportCoords();
-    }
-    else {
-        return _currentViewportCoords;
-    }
+    return _currentViewportSize;
 }
 
 void Engine::setSyncParameters(bool printMessage, float timeout) {

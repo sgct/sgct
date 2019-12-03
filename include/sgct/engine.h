@@ -375,9 +375,6 @@ public:
     /// \return a pointer to the current window that is being rendered
     Window& getCurrentWindow() const;
 
-    /// \return an index to the current window that is beeing rendered
-    int getCurrentWindowIndex() const;
-
     /// \return a pointer to the user (observer position) object
     static core::User& getDefaultUser();
 
@@ -433,12 +430,6 @@ public:
     glm::ivec2 getCurrentViewportSize() const;
 
     /**
-     * Returns the active viewport information in pixels (only valid inside in the draw
-     * callback function)
-     */
-    glm::ivec4 getCurrentViewportPixelCoords() const;
-
-    /**
      * Specifies the sync parameters to be used in the rendering loop.
      *
      * \param printMessage If <code>true</code> a message is print waiting for a frame
@@ -456,8 +447,6 @@ public:
     void enterCurrentViewport();
 
 private:
-    enum class BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-
     static Engine* _instance;
 
     Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& arg);
@@ -485,12 +474,6 @@ private:
      */
     void frameLockPostStage();
 
-    /**
-     * This function enters the correct viewport, frustum, stereo mode and calls the draw
-     * callback.
-     */
-    void draw();
-
     /// Draw viewport overlays if there are any.
     void drawOverlays();
 
@@ -513,19 +496,6 @@ private:
 
     /// This function updates the renderingtargets.
     void updateRenderingTargets(Window::TextureIndex ti);
-
-    /**
-     * This function clears and sets the appropriate buffer from:
-     *   - Back buffer
-     *   - Left back buffer
-     *   - Right back buffer
-     *
-     * \param mode is the one of the following:
-     *   - Backbuffer (transparent)
-     *   - Backbuffer (black)
-     *   - RenderToTexture
-     */
-    void setAndClearBuffer(BufferMode mode);
 
     /**
      * This function waits for all windows to be created on the whole cluster in order to
@@ -565,14 +535,12 @@ private:
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     core::Frustum::Mode _currentFrustumMode = core::Frustum::Mode::MonoEye;
-    glm::ivec4 _currentViewportCoords = glm::ivec4(0, 0, 640, 480);
+    glm::ivec2 _currentViewportSize = glm::ivec2(640, 480);
     int _currentWindowIndex = 0;
 
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;
     std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
-
-    int _currentViewportIndex = 0;
 
     bool _checkOpenGLCalls = false;
     bool _createDebugContext = false;

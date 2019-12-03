@@ -412,7 +412,7 @@ void drawFun() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (Engine::instance().getCurrentWindowIndex() == 1) {
+    if (Engine::instance().getCurrentWindow().getId() == 1) {
         drawOmniStereo();
     }
     else {

@@ -246,9 +246,6 @@ public:
      */
     void updateFrustums();
 
-    /// \return the active draw textureo
-    unsigned int getDrawTexture(Window& window) const;
-
     /// \return the index of the focus window. If no window has focus, 0 is returned
     int getFocusedWindowIndex() const;
 
@@ -428,7 +425,7 @@ private:
     void initialize(Profile profile);
 
     /// Initiates network communication.
-    void initNetwork();
+    void initNetwork(core::NetworkManager::NetworkMode netMode);
 
     /// Create and initiate a window.
     void initWindows(Profile rm);
@@ -446,7 +443,7 @@ private:
     void frameLockPostStage();
 
     /// Draw viewport overlays if there are any.
-    void drawOverlays(Window& window);
+    void drawOverlays(Window& window, Frustum::Mode frustum);
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
@@ -457,10 +454,10 @@ private:
     /// This function combines a texture and a shader into a new texture
     void renderPostFX(Window& window, Window::TextureIndex targetIndex);
 
-    void renderViewports(Window& window, Window::TextureIndex ti);
+    void renderViewports(Window& window, Frustum::Mode frustum, Window::TextureIndex ti);
 
     /// This function renders stats, OSD and overlays
-    void render2D(Window& window);
+    void render2D(Window& window, Frustum::Mode frustum);
 
     /// This function attaches targets to FBO if FBO is in use
     void prepareBuffer(Window& window, Window::TextureIndex ti);
@@ -506,8 +503,6 @@ private:
     float _farClipPlane = 100.f;
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    Frustum::Mode _currentFrustumMode = Frustum::Mode::MonoEye;
-
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;
     std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
@@ -539,9 +534,6 @@ private:
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;
-
-    core::NetworkManager::NetworkMode _networkMode =
-        core::NetworkManager::NetworkMode::Remote;
 };
 
 } // namespace sgct

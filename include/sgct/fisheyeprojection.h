@@ -26,10 +26,10 @@ public:
     void update(glm::vec2 size) override;
 
     /// Render the non-linear projection to currently bounded FBO
-    void render() override;
+    void render(const Window& window, Frustum::Mode frustumMode) override;
 
     /// Render the enabled faces of the cubemap
-    void renderCubemap() override;
+    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
@@ -92,7 +92,7 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    void drawCubeFace(BaseViewport& face);
+    void drawCubeFace(BaseViewport& face, Frustum::Mode frustumMode);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

@@ -37,10 +37,10 @@ public:
     void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
-    void render() override;
+    void render(const Window& window, Frustum::Mode frustumMode) override;
 
     /// Render the enabled faces of the cubemap
-    void renderCubemap() override;
+    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
 private:
     static const int NFaces = 6;
@@ -50,7 +50,7 @@ private:
     void initShaders() override;
     void initFBO() override;
 
-    void drawCubeFace(BaseViewport& viewport);
+    void drawCubeFace(BaseViewport& viewport, Frustum::Mode frustumMode);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

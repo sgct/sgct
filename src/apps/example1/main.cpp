@@ -84,7 +84,7 @@ void initFun() {
     prg.unbind(); 
 }
 
-void drawFun() {
+void drawFun(RenderData renderData) {
     constexpr const float Speed = 0.8f;
 
     glm::mat4 scene = glm::rotate(

@@ -120,7 +120,7 @@ void drawFace(Rotation rot) {
 }
 
 
-void drawFun() {
+void drawFun(RenderData) {
     if (numberOfTextures == 0) {
         return;
     }

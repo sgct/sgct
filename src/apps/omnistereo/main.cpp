@@ -30,7 +30,7 @@ namespace {
     sgct::SharedBool takeScreenshot(true);
 
     struct OmniData {
-        std::map<sgct::core::Frustum::Mode, glm::mat4> viewProjectionMatrix;
+        std::map<sgct::Frustum::Mode, glm::mat4> viewProjectionMatrix;
         bool enabled = false;
     };
     std::vector<std::vector<OmniData>> omniProjections;
@@ -165,20 +165,20 @@ void initOmniStereo(bool mask) {
     for (int eye = 0; eye <= 2; eye++) {
         float eyeSep = Engine::instance().getDefaultUser().getEyeSeparation();
 
-        core::Frustum::Mode fm;
+        Frustum::Mode fm;
         glm::vec3 eyePos;
         switch (eye) {
             case 0:
             default:
-                fm = core::Frustum::Mode::MonoEye;
+                fm = Frustum::Mode::MonoEye;
                 eyePos = glm::vec3(0.f, 0.f, 0.f);
                 break;
             case 1:
-                fm = core::Frustum::Mode::StereoLeftEye;
+                fm = Frustum::Mode::StereoLeftEye;
                 eyePos = glm::vec3(-eyeSep / 2.f, 0.f, 0.f);
                 break;
             case 2:
-                fm = core::Frustum::Mode::StereoRightEye;
+                fm = Frustum::Mode::StereoRightEye;
                 eyePos = glm::vec3(eyeSep / 2.f, 0.f, 0.f);
                 break;
         }
@@ -366,7 +366,7 @@ void renderBoxes(glm::mat4 transform) {
     }
 }
 
-void drawOmniStereo() {
+void drawOmniStereo(RenderData renderData) {
     if (!omniInited) {
         return;
     }
@@ -380,7 +380,7 @@ void drawOmniStereo() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    sgct::core::Frustum::Mode fm = Engine::instance().getCurrentFrustumMode();
+    sgct::Frustum::Mode fm = renderData.frustumMode;
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -408,12 +408,12 @@ void drawOmniStereo() {
     Logger::Info("Time to draw frame: %f s", t1 - t0);
 }
 
-void drawFun() {
+void drawFun(RenderData renderData) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
     if (Engine::instance().getCurrentWindow().getId() == 1) {
-        drawOmniStereo();
+        drawOmniStereo(renderData);
     }
     else {
         glm::mat4 vp = Engine::instance().getCurrentViewProjectionMatrix();

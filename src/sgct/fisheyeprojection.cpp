@@ -56,9 +56,9 @@ void FisheyeProjection::update(glm::vec2 size) {
     glBindVertexArray(0);
 }
 
-void FisheyeProjection::render() {
+void FisheyeProjection::render(const Window& window, Frustum::Mode frustumMode) {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().enterCurrentViewport();
+    Engine::instance().enterCurrentViewport(window, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -90,7 +90,7 @@ void FisheyeProjection::render() {
     }
 
     glDisable(GL_CULL_FACE);
-    const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+    const bool hasAlpha = window.hasAlpha();
     if (hasAlpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -125,8 +125,8 @@ void FisheyeProjection::render() {
     glDepthFunc(GL_LESS);
 }
 
-void FisheyeProjection::renderCubemap() {
-    switch (Engine::instance().getCurrentFrustumMode()) {
+void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    switch (frustumMode) {
         case Frustum::Mode::MonoEye:
             break;
         case Frustum::Mode::StereoLeftEye:
@@ -147,7 +147,7 @@ void FisheyeProjection::renderCubemap() {
             throw std::logic_error("Unhandled case label");
     }
 
-    auto internalRender = [this](BaseViewport& vp, int idx) {
+    auto internalRender = [this, &window, frustumMode](BaseViewport& vp, int idx) {
         if (!vp.isEnabled()) {
             return;
         }
@@ -157,8 +157,8 @@ void FisheyeProjection::renderCubemap() {
             attachTextures(idx);
         }
 
-        Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
-        drawCubeFace(vp);
+        window.setCurrentViewport(&vp);
+        drawCubeFace(vp, frustumMode);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -178,7 +178,7 @@ void FisheyeProjection::renderCubemap() {
             glEnable(GL_SCISSOR_TEST);
 
             const glm::vec4 color = Engine::instance().getClearColor();
-            const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+            const bool hasAlpha = window.hasAlpha();
             glClearColor(color.r, color.g, color.b, hasAlpha ? 0.f : color.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -206,7 +206,7 @@ void FisheyeProjection::renderCubemap() {
             glUniform1f(_shaderLoc.swapNearLoc, Engine::instance().getNearClipPlane());
             glUniform1f(_shaderLoc.swapFarLoc, Engine::instance().getFarClipPlane());
 
-            Engine::instance().getCurrentWindow().renderScreenQuad();
+            window.renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -738,7 +738,7 @@ void FisheyeProjection::initShaders() {
     }
 }
 
-void FisheyeProjection::drawCubeFace(BaseViewport& face) {
+void FisheyeProjection::drawCubeFace(BaseViewport& face, Frustum::Mode frustumMode) {
     glLineWidth(1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -754,7 +754,9 @@ void FisheyeProjection::drawCubeFace(BaseViewport& face) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance().getDrawFunction()();
+    RenderData renderData;
+    renderData.frustumMode = frustumMode;
+    Engine::instance().getDrawFunction()(renderData);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }

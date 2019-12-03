@@ -195,7 +195,7 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
     return res;
 }
 
-void drawFun() {
+void drawFun(RenderData) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 

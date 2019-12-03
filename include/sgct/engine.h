@@ -42,6 +42,11 @@ namespace core {
 
 config::Cluster loadCluster(std::optional<std::string> path);
 
+
+struct RenderData {
+    Frustum::Mode frustumMode;
+};
+
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
  * rendering, network handling, input devices etc.
@@ -94,7 +99,7 @@ public:
 
         /// This function draws the scene and could be called several times per frame
         /// as it's called once per viewport and once per eye if stereoscopy is used.
-        std::function<void()> draw;
+        std::function<void(RenderData)> draw;
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
@@ -259,7 +264,7 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void()>& getDrawFunction() const;
+    const std::function<void(Engine::RenderData)>& getDrawFunction() const;
 
     /**
      * This function sends a message to the external control interface.
@@ -382,14 +387,6 @@ public:
     bool isMaster() const;
 
     /**
-     * \return the active frustum mode which can be one of the following:
-     *   - Mono
-     *   - Stereo Left
-     *   - Stereo Right
-     */
-    core::Frustum::Mode getCurrentFrustumMode() const;
-
-    /**
      * \return the projection matrix (only valid inside in the draw callback function)
      */
     const glm::mat4& getCurrentProjectionMatrix() const;
@@ -426,9 +423,6 @@ public:
     /// Returns the current frame number
     unsigned int getCurrentFrameNumber() const;
 
-    /// Get the active viewport size in pixels.
-    glm::ivec2 getCurrentViewportSize() const;
-
     /**
      * Specifies the sync parameters to be used in the rendering loop.
      *
@@ -444,7 +438,7 @@ public:
      * SGCT and in general does not have to be called by any external application using
      * this library.
      */
-    void enterCurrentViewport();
+    void enterCurrentViewport(const Window& window, Frustum::Mode frustum);
 
 private:
     static Engine* _instance;
@@ -509,7 +503,7 @@ private:
      * This function copies/render the result from the previous window same viewport (if
      * it exists) into this window
      */
-    void blitPreviousWindowViewport(core::Frustum::Mode mode);
+    void blitPreviousWindowViewport(Frustum::Mode mode);
 
     // @TODO (abock, 2019-12-02) This is a workaround for the fact that something in SGCT
     // is using the callbacks during the application shutdown. The previous method was to
@@ -520,7 +514,7 @@ private:
     const std::function<void()> _initOpenGLFn;
     const std::function<void()> _preSyncFn;
     const std::function<void()> _postSyncPreDrawFn;
-    const std::function<void()> _drawFn;
+    const std::function<void(RenderData)> _drawFn;
     const std::function<void()> _draw2DFn;
     const std::function<void()> _postDrawFn;
     const std::function<void()> _cleanUpFn;
@@ -534,8 +528,7 @@ private:
     float _farClipPlane = 100.f;
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
-    core::Frustum::Mode _currentFrustumMode = core::Frustum::Mode::MonoEye;
-    glm::ivec2 _currentViewportSize = glm::ivec2(640, 480);
+    Frustum::Mode _currentFrustumMode = Frustum::Mode::MonoEye;
     int _currentWindowIndex = 0;
 
     Statistics _statistics;

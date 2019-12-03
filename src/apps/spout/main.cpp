@@ -89,7 +89,7 @@ bool bindSpout() {
     return false;
 }
 
-void drawFun() {
+void drawFun(RenderData) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 

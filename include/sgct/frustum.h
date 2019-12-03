@@ -9,7 +9,7 @@
 #ifndef __SGCT__FRUSTUM__H__
 #define __SGCT__FRUSTUM__H__
 
-namespace sgct::core {
+namespace sgct {
 
 /// The frustum class stores the view frustum for each viewport
 struct Frustum {
@@ -24,6 +24,6 @@ struct Frustum {
     float farPlane = 100.f;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__FRUSTUM__H__

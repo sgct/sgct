@@ -25,10 +25,10 @@ public:
     void update(glm::vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
-    void render() override;
+    void render(const Window& window, Frustum::Mode frustumMode) override;
 
     /// Render the enabled faces of the cubemap
-    void renderCubemap() override;
+    void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is

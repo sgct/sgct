@@ -102,7 +102,7 @@ void main() {
 
 using namespace sgct;
 
-void draw() {
+void draw(RenderData) {
     ShaderManager::instance().getShaderProgram("simple").bind();
     const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
 

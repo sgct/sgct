@@ -60,7 +60,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun() {
+void drawFun(RenderData) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     callbacks.initOpenGL = initOGLFun;
     callbacks.draw = drawFun;
     callbacks.keyboard = keyCallback;
-    callbacks.draw = postDrawFun;
+    callbacks.postDraw = postDrawFun;
     callbacks.preSync = preSyncFun;
     callbacks.cleanUp = cleanUpFun;
     callbacks.preWindow = preWindowInitFun;

@@ -73,9 +73,9 @@ void SpoutOutputProjection::update(glm::vec2) {
     glBindVertexArray(0);
 }
 
-void SpoutOutputProjection::render() {
+void SpoutOutputProjection::render(const Window& window, Frustum::Mode frustumMode) {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().enterCurrentViewport();
+    Engine::instance().enterCurrentViewport(window, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -183,8 +183,8 @@ void SpoutOutputProjection::render() {
     }
 }
 
-void SpoutOutputProjection::renderCubemap() {
-    auto renderFace = [this](BaseViewport& vp, unsigned int idx) {
+void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    auto renderFace = [this, &window, frustumMode](BaseViewport& vp, unsigned int idx) {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;
         }
@@ -194,8 +194,8 @@ void SpoutOutputProjection::renderCubemap() {
             attachTextures(idx);
         }
 
-        Engine::instance().getCurrentWindow().setCurrentViewport(&vp);
-        drawCubeFace(vp);
+        window.setCurrentViewport(&vp);
+        drawCubeFace(vp, frustumMode);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -215,7 +215,7 @@ void SpoutOutputProjection::renderCubemap() {
             glEnable(GL_SCISSOR_TEST);
 
             const glm::vec4 color = Engine::instance().getClearColor();
-            const bool hasAlpha = Engine::instance().getCurrentWindow().hasAlpha();
+            const bool hasAlpha = window.hasAlpha();
             glClearColor(color.r, color.g, color.b, hasAlpha ? 0.f : color.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -244,7 +244,7 @@ void SpoutOutputProjection::renderCubemap() {
             glUniform1f(_swapNearLoc, Engine::instance().getNearClipPlane());
             glUniform1f(_swapFarLoc, Engine::instance().getFarClipPlane());
 
-            Engine::instance().getCurrentWindow().renderScreenQuad();
+            window.renderScreenQuad();
 
             // unbind shader
             ShaderProgram::unbind();
@@ -703,14 +703,14 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 }
 
-void SpoutOutputProjection::drawCubeFace(BaseViewport& viewport) {
+void SpoutOutputProjection::drawCubeFace(BaseViewport& vp, Frustum::Mode frustumMode) {
     glLineWidth(1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDepthFunc(GL_LESS);
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(viewport);
+    setupViewport(vp);
 
     const glm::vec4 color = Engine::instance().getClearColor();
     const float alpha = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
@@ -719,7 +719,9 @@ void SpoutOutputProjection::drawCubeFace(BaseViewport& viewport) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    Engine::instance().getDrawFunction()();
+    RenderData renderData;
+    renderData.frustumMode = frustumMode;
+    Engine::instance().getDrawFunction()(renderData);
 
     // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

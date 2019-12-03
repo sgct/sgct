@@ -82,7 +82,7 @@ void myDraw2DFun() {
 #endif // SGCT_HAS_TEXT
 }
 
-void drawFun() {
+void drawFun(RenderData renderData) {
     if (slowRendering.getVal()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -91,9 +91,7 @@ void drawFun() {
     if (frametest.getVal()) {
         if (Engine::instance().getCurrentFrameNumber() % 2 == 0) {
             // even
-            if (Engine::instance().getCurrentFrustumMode() ==
-                core::Frustum::Mode::StereoRightEye)
-            {
+            if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
                 Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
             }
@@ -104,9 +102,7 @@ void drawFun() {
         }
         else {
             // odd
-            if (Engine::instance().getCurrentFrustumMode() ==
-                core::Frustum::Mode::StereoRightEye)
-            {
+            if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind
                 Engine::instance().setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
             }
@@ -137,9 +133,7 @@ void drawFun() {
 #ifdef SGCT_HAS_TEXT
     float pos = Engine::instance().getCurrentWindow().getFramebufferResolution().x / 2.f;
 
-    if (Engine::instance().getCurrentFrustumMode() ==
-        core::Frustum::Mode::StereoLeftEye)
-    {
+    if (renderData.frustumMode == Frustum::Mode::StereoLeftEye) {
         text::print(
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopRight,
@@ -148,9 +142,7 @@ void drawFun() {
             "Left"
         );
     }
-    else if (Engine::instance().getCurrentFrustumMode() ==
-             core::Frustum::Mode::StereoRightEye)
-    {
+    else if (renderData.frustumMode == Frustum::Mode::StereoRightEye) {
         text::print(
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
@@ -159,8 +151,7 @@ void drawFun() {
             "Right"
         );
     }
-    else if (Engine::instance().getCurrentFrustumMode() == core::Frustum::Mode::MonoEye)
-    {
+    else if (renderData.frustumMode == Frustum::Mode::MonoEye) {
         text::print(
             *text::FontManager::instance().getFont("SGCTFont", 32),
             text::TextAlignMode::TopLeft,

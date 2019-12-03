@@ -72,8 +72,8 @@ SphericalMirrorProjection::SphericalMirrorProjection(Window* parent,
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 
-void SphericalMirrorProjection::render() {
-    Engine::instance().enterCurrentViewport();
+void SphericalMirrorProjection::render(const Window& window, Frustum::Mode frustumMode) {
+    Engine::instance().enterCurrentViewport(window, frustumMode);
 
     Window& win = Engine::instance().getCurrentWindow();
     BaseViewport* vpPtr = win.getCurrentViewport();
@@ -126,17 +126,17 @@ void SphericalMirrorProjection::render() {
     glDepthFunc(GL_LESS);
 }
 
-void SphericalMirrorProjection::renderCubemap() {
-    auto renderInternal = [this](BaseViewport& bv, unsigned int texture) {
+void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {
             return;
         }
         _cubeMapFbo->bind();
         if (!_cubeMapFbo->isMultiSampled()) {
-            _cubeMapFbo->attachColorTexture(texture);
+            _cubeMapFbo->attachColorTexture(t);
         }
 
-        Engine::instance().getCurrentWindow().setCurrentViewport(&bv);
+        window.setCurrentViewport(&bv);
 
         // Draw Cube Face
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -145,18 +145,20 @@ void SphericalMirrorProjection::renderCubemap() {
         setupViewport(bv);
 
         const glm::vec4 color = Engine::instance().getClearColor();
-        const float a = Engine::instance().getCurrentWindow().hasAlpha() ? 0.f : color.a;
+        const float a = window.hasAlpha() ? 0.f : color.a;
         glClearColor(color.r, color.g, color.b, a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Engine::instance().getDrawFunction()();
+        RenderData renderData;
+        renderData.frustumMode = frustumMode;
+        Engine::instance().getDrawFunction()(renderData);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         if (_cubeMapFbo->isMultiSampled()) {
             // blit MSAA fbo to texture
             _cubeMapFbo->bindBlit();
-            _cubeMapFbo->attachColorTexture(texture);
+            _cubeMapFbo->attachColorTexture(t);
             _cubeMapFbo->blit();
         }
     };

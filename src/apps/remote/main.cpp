@@ -13,7 +13,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun() {
+void drawFun(RenderData) {
     constexpr const float Speed = 50.0f;
     glRotatef(static_cast<float>(currentTime.getVal()) * Speed, 0.f, 1.f, 0.f);
 

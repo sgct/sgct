@@ -81,7 +81,7 @@ void main() { FragOut = color; }
 
 using namespace sgct;
 
-void draw() {
+void draw(RenderData) {
     ShaderManager::instance().getShaderProgram("simple").bind();
     const glm::mat4 mvp = Engine::instance().getCurrentModelViewProjectionMatrix();
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));

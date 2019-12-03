@@ -1262,10 +1262,6 @@ core::ScreenCapture* Window::getScreenCapturePointer(Eye eye) const {
     }
 }
 
-void Window::setCurrentViewport(int index) {
-    _currentViewport = _viewports[index].get();
-}
-
 void Window::setCurrentViewport(core::BaseViewport* vp) {
     _currentViewport = vp;
 }

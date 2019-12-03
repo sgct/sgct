@@ -73,11 +73,12 @@ SphericalMirrorProjection::SphericalMirrorProjection(Window* parent,
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 
-void SphericalMirrorProjection::render(const Window& window, Frustum::Mode frustumMode) {
-    Engine::instance().enterCurrentViewport(window, frustumMode);
+void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport, 
+                                       Frustum::Mode frustumMode)
+{
+    Engine::instance().enterCurrentViewport(window, viewport, frustumMode);
 
-    BaseViewport* vpPtr = window.getCurrentViewport();
-    float aspect = window.getAspectRatio() * (vpPtr->getSize().x / vpPtr->getSize().y);
+    float aspect = window.getAspectRatio() * viewport.getSize().x / viewport.getSize().y;
     glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -150,6 +151,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
 
         RenderData renderData(
             window,
+            bv,
             frustumMode,
             core::ClusterManager::instance().getSceneTransform(),
             bv.getProjection(frustumMode).getViewMatrix(),

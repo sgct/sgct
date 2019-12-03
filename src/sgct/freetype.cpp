@@ -20,7 +20,7 @@
 #include <sstream>
 
 namespace {
-    glm::mat4 setupOrthoMat(sgct::Window& window) {
+    glm::mat4 setupOrthoMat(const sgct::Window& window) {
         glm::vec2 res = glm::vec2(window.getResolution());
         glm::vec2 size = window.getCurrentViewport()->getSize();
         glm::vec2 scale = window.getScale();
@@ -183,7 +183,7 @@ namespace {
 
 namespace sgct::text {
 
-void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
+void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...) {
     va_list args;
     va_start(args, format);
     std::vector<char> buf = parseArgList(args, format);
@@ -196,7 +196,7 @@ void print(Window& window, Font& font, TextAlignMode mode, float x, float y, con
     }
 }
 
-void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
     va_list args;
@@ -211,7 +211,7 @@ void print(Window& window, Font& font, TextAlignMode mode, float x, float y, con
     }
 }
 
-void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
            const glm::vec4& strokeColor, const char* format, ...)
 {
     va_list	args;
@@ -223,46 +223,6 @@ void print(Window& window, Font& font, TextAlignMode mode, float x, float y, con
         std::vector<std::string> lines = split(std::string(buf.data()), '\n');
         glm::mat4 ortho = setupOrthoMat(window);
         render2d(lines, font, ortho, mode, x, y, color, strokeColor);
-    }
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...) {
-    va_list	args;
-    va_start(args, format);
-    std::vector<char> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render3d(lines, font, mode, mvp, glm::vec4(1.f));
-    }
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
-             const char* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    std::vector<char> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render3d(lines, font, mode, mvp, color);
-    }
-}
-
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
-             const glm::vec4& strokeColor, const char* format, ...)
-{
-    va_list	args;
-    va_start(args, format);
-    std::vector<char> buf = parseArgList(args, format);
-    va_end(args);
-
-    if (!buf.empty()) {
-        std::vector<std::string> lines = split(std::string(buf.data()), '\n');
-        render3d(lines, font, mode, mvp, color, strokeColor);
     }
 }
 

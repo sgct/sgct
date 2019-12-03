@@ -20,17 +20,12 @@ class Font;
 
 enum class TextAlignMode { TopLeft, TopCenter, TopRight};
 
-void print(sgct::Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...);
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const char* format, ...);
+void print(const sgct::Window& window, Font& font, TextAlignMode mode, float x, float y, const char* format, ...);
 
 // with color
-void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
+void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
     const char* format, ...);
-void print(Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
-    const glm::vec4& strokeColor, const char* format, ...);
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
-    const char* format, ...);
-void print3d(Font& font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& color,
+void print(const Window& window, Font& font, TextAlignMode mode, float x, float y, const glm::vec4& color,
     const glm::vec4& strokeColor, const char* format, ...);
 
 } // namespace sgct::text

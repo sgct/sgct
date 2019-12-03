@@ -1134,10 +1134,8 @@ void Engine::render() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-
-void Engine::drawOverlays(Window& window, Frustum::Mode frustum) {
+void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
     for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        window.setCurrentViewport(i);
         const core::Viewport& vp = window.getViewport(i);
         
         // if viewport has overlay
@@ -1145,7 +1143,7 @@ void Engine::drawOverlays(Window& window, Frustum::Mode frustum) {
             continue;
         }
 
-        enterCurrentViewport(window, frustum);
+        enterCurrentViewport(window, vp, frustum);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
@@ -1317,8 +1315,8 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     Window::StereoMode sm = window.getStereoMode();
     // render all viewports for selected eye
     for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        window.setCurrentViewport(i);
         core::Viewport& vp = window.getViewport(i);
+        window.setCurrentViewport(&vp);
 
         if (!vp.isEnabled()) {
             continue;
@@ -1339,7 +1337,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
             }
 
             if (window.shouldCallDraw3DFunction()) {
-                vp.getNonLinearProjection()->render(window, frustum);
+                vp.getNonLinearProjection()->render(window, vp, frustum);
             }
         }
         else {
@@ -1356,7 +1354,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
                 else {
                     const int prevId = window.getId() - 1;
                     Window& prevWindow = getWindow(prevId);
-                    blitPreviousWindowViewport(prevWindow, window, frustum);
+                    blitPreviousWindowViewport(prevWindow, window, vp, frustum);
                 }
             }
 
@@ -1364,7 +1362,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
                 // run scissor test to prevent clearing of entire buffer
                 glEnable(GL_SCISSOR_TEST);
 
-                enterCurrentViewport(window, frustum);
+                enterCurrentViewport(window, vp, frustum);
                 setAndClearBuffer(
                     window,
                     BufferMode::RenderToTexture,
@@ -1375,6 +1373,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
                 if (_drawFn) {
                     RenderData renderData(
                         window,
+                        vp,
                         frustum,
                         core::ClusterManager::instance().getSceneTransform(),
                         vp.getProjection(frustum).getViewMatrix(),
@@ -1413,7 +1412,7 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(Window& window, Frustum::Mode frustum) {
+void Engine::render2D(const Window& window, Frustum::Mode frustum) {
     // draw viewport overlays if any
     drawOverlays(window, frustum);
 
@@ -1425,11 +1424,11 @@ void Engine::render2D(Window& window, Frustum::Mode frustum) {
     }
 
     for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        window.setCurrentViewport(i);
+        const core::Viewport& vp = window.getViewport(i);
         if (!window.getCurrentViewport()->isEnabled()) {
             continue;
         }
-        enterCurrentViewport(window, frustum);
+        enterCurrentViewport(window, vp, frustum);
 
         if (_statisticsRenderer) {
             _statisticsRenderer->render(window);
@@ -1441,6 +1440,7 @@ void Engine::render2D(Window& window, Frustum::Mode frustum) {
 
             RenderData renderData(
                 window,
+                vp,
                 frustum,
                 core::ClusterManager::instance().getSceneTransform(),
                 vp.getProjection(frustum).getViewMatrix(),
@@ -1647,11 +1647,12 @@ void Engine::updateFrustums() {
 }
 
 void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
+                                        const core::Viewport& viewport,
                                         Frustum::Mode mode)
 {
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    enterCurrentViewport(window, mode);
+    enterCurrentViewport(window, viewport, mode);
     setAndClearBuffer(window, BufferMode::RenderToTexture, mode);
     glDisable(GL_SCISSOR_TEST);
 
@@ -1675,12 +1676,12 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
     ShaderProgram::unbind();
 }
 
-void Engine::enterCurrentViewport(const Window& window, Frustum::Mode frustum) {
-    core::BaseViewport* vp = window.getCurrentViewport();
-    
+void Engine::enterCurrentViewport(const Window& window, const core::BaseViewport& viewport,
+                                  Frustum::Mode frustum)
+{
     const glm::vec2 res = glm::vec2(window.getFramebufferResolution());
-    const glm::vec2 p = vp->getPosition() * res;
-    const glm::vec2 s = vp->getSize() * res;
+    const glm::vec2 p = viewport.getPosition() * res;
+    const glm::vec2 s = viewport.getSize() * res;
     glm::ivec4 vpCoordinates = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
 
     Window::StereoMode sm = window.getStereoMode();

@@ -27,7 +27,8 @@ public:
     void update(glm::vec2 size) override;
 
     /// Render the non-linear projection to currently bounded FBO
-    void render(const Window& window, Frustum::Mode frustumMode) override;
+    void render(const Window& window, const BaseViewport& viewport,
+        Frustum::Mode frustumMode) override;
 
     /// Render the enabled faces of the cubemap
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;

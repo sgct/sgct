@@ -43,17 +43,19 @@ namespace core {
 config::Cluster loadCluster(std::optional<std::string> path);
 
 struct RenderData {
-    RenderData(Window& window_, Frustum::Mode frustumMode_, glm::mat4 modelMatrix_,
-               glm::mat4 viewMatrix_, glm::mat4 projectionMatrix_,
-               glm::mat4 modelViewProjectionMatrix_)
+    RenderData(const Window& window_, const core::BaseViewport& viewport_,
+               Frustum::Mode frustumMode_, glm::mat4 modelMatrix_, glm::mat4 viewMatrix_,
+               glm::mat4 projectionMatrix_, glm::mat4 modelViewProjectionMatrix_)
         : window(window_)
+        , viewport(viewport_)
         , frustumMode(frustumMode_)
         , modelMatrix(std::move(modelMatrix_))
         , viewMatrix(std::move(viewMatrix_))
         , projectionMatrix(std::move(projectionMatrix_))
         , modelViewProjectionMatrix(std::move(modelViewProjectionMatrix_))
     {}
-    Window& window;
+    const Window& window;
+    const core::BaseViewport& viewport;
     Frustum::Mode frustumMode;
 
     glm::mat4 modelMatrix;
@@ -412,7 +414,8 @@ public:
      * SGCT and in general does not have to be called by any external application using
      * this library.
      */
-    void enterCurrentViewport(const Window& window, Frustum::Mode frustum);
+    void enterCurrentViewport(const Window& window, const core::BaseViewport& viewport,
+        Frustum::Mode frustum);
 
 private:
     static Engine* _instance;
@@ -443,7 +446,7 @@ private:
     void frameLockPostStage();
 
     /// Draw viewport overlays if there are any.
-    void drawOverlays(Window& window, Frustum::Mode frustum);
+    void drawOverlays(const Window& window, Frustum::Mode frustum);
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can
@@ -457,7 +460,7 @@ private:
     void renderViewports(Window& window, Frustum::Mode frustum, Window::TextureIndex ti);
 
     /// This function renders stats, OSD and overlays
-    void render2D(Window& window, Frustum::Mode frustum);
+    void render2D(const Window& window, Frustum::Mode frustum);
 
     /// This function attaches targets to FBO if FBO is in use
     void prepareBuffer(Window& window, Window::TextureIndex ti);
@@ -478,7 +481,7 @@ private:
      * it exists) into this window
      */
     void blitPreviousWindowViewport(Window& prevWindow, Window& window,
-        Frustum::Mode mode);
+        const core::Viewport& viewport, Frustum::Mode mode);
 
     // @TODO (abock, 2019-12-02) This is a workaround for the fact that something in SGCT
     // is using the callbacks during the application shutdown. The previous method was to

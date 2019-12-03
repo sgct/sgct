@@ -36,7 +36,8 @@ public:
      */
     void init(GLenum internalFormat, GLenum format, GLenum type, int samples);
 
-    virtual void render(const Window& window, Frustum::Mode frustumMode) = 0;
+    virtual void render(const Window& window, const BaseViewport& viewport,
+        Frustum::Mode frustumMode) = 0;
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
     virtual void update(glm::vec2 size) = 0;
 

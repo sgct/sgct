@@ -258,7 +258,7 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render(Window& window) {
+void StatisticsRenderer::render(const Window& window) {
     glm::vec2 res = window.getFramebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 

@@ -228,12 +228,6 @@ public:
     void setStereoMode(StereoMode sm);
 
     /**
-     * Set the which viewport that is the current. This is done from the Engine and end
-     * users shouldn't change this
-     */
-    void setCurrentViewport(int index);
-
-    /**
      * Set the which viewport that is the current. This is done internally from SGCT and
      * end users shouldn't change this
      */

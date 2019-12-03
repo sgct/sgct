@@ -74,9 +74,11 @@ void SpoutOutputProjection::update(glm::vec2) {
     glBindVertexArray(0);
 }
 
-void SpoutOutputProjection::render(const Window& window, Frustum::Mode frustumMode) {
+void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
+                                   Frustum::Mode frustumMode)
+{
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().enterCurrentViewport(window, frustumMode);
+    Engine::instance().enterCurrentViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
@@ -198,6 +200,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         window.setCurrentViewport(&vp);
         RenderData renderData(
             window,
+            vp,
             frustumMode,
             core::ClusterManager::instance().getSceneTransform(),
             vp.getProjection(frustumMode).getViewMatrix(),

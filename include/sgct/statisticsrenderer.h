@@ -23,7 +23,7 @@ public:
     ~StatisticsRenderer();
 
     void update();
-    void render(Window& window);
+    void render(const Window& window);
 
 private:
     const Engine::Statistics& _statistics;

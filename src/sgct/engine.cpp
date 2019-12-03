@@ -1161,10 +1161,6 @@ void Engine::drawOverlays(Window& window) {
 }
 
 void Engine::prepareBuffer(Window& window, Window::TextureIndex ti) {
-    if (window.usePostFX()) {
-        ti = Window::TextureIndex::Intermediate;
-    }
-
     core::OffScreenBuffer* fbo = window.getFBO();
     fbo->bind();
     if (fbo->isMultiSampled()) {
@@ -1409,27 +1405,14 @@ void Engine::renderViewports(Window& window, Window::TextureIndex ti) {
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && _currentFrustumMode == Frustum::Mode::StereoLeftEye)) {
-        if (window.usePostFX()) {
-            // blit buffers
-            updateRenderingTargets(window, ti); // only used if multisampled FBOs
-            renderPostFX(window, ti);
+        render2D(window);
+        if (isSplitScreen) {
+            // render left eye info and graph to render 2D items after post fx
+            _currentFrustumMode = Frustum::Mode::StereoLeftEye;
             render2D(window);
-            if (isSplitScreen) {
-                // render left eye info and graph to render 2D items after post fx
-                _currentFrustumMode = Frustum::Mode::StereoLeftEye;
-                render2D(window);
-            }
         }
-        else {
-            render2D(window);
-            if (isSplitScreen) {
-                // render left eye info and graph to render 2D items after post fx
-                _currentFrustumMode = Frustum::Mode::StereoLeftEye;
-                render2D(window);
-            }
 
-            updateRenderingTargets(window, ti); // only used if multisampled FBOs
-        }
+        updateRenderingTargets(window, ti); // only used if multisampled FBOs
     }
 
     glDisable(GL_BLEND);
@@ -1478,44 +1461,8 @@ void Engine::render2D(Window& window) {
 void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    int numberOfPasses = window.getNumberOfPostFXs();
-    for (int i = 0; i < numberOfPasses; i++) {
-        PostFX& fx = window.getPostFX(i);
-
-        // set output
-        if (i == (numberOfPasses - 1) && !window.useFXAA()) {
-            // if last
-            fx.setOutputTexture(window.getFrameBufferTexture(targetIndex));
-        }
-        else {
-            // ping pong between the two FX buffers
-            fx.setOutputTexture(
-                window.getFrameBufferTexture(
-                    (i % 2 == 0) ? Window::TextureIndex::FX1 : Window::TextureIndex::FX2
-                )
-            ); 
-        }
-
-        // set input (dependent on output)
-        if (i == 0) {
-            fx.setInputTexture(
-                window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
-            );
-        }
-        else {
-            PostFX& fxPrevious = window.getPostFX(i - 1);
-            fx.setInputTexture(fxPrevious.getOutputTexture());
-        }
-
-        fx.render(window);
-    }
-
     if (window.useFXAA()) {
         assert(_fxaa.has_value());
-
-        PostFX* lastFx = (numberOfPasses > 0) ?
-            &window.getPostFX(numberOfPasses - 1) :
-            nullptr;
 
         // bind target FBO
         window.getFBO()->attachColorTexture(window.getFrameBufferTexture(targetIndex));
@@ -1527,15 +1474,10 @@ void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
 
         glActiveTexture(GL_TEXTURE0);
 
-        if (lastFx) {
-            glBindTexture(GL_TEXTURE_2D, lastFx->getOutputTexture());
-        }
-        else {
-            glBindTexture(
-                GL_TEXTURE_2D,
-                window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
-            );
-        }
+        glBindTexture(
+            GL_TEXTURE_2D,
+            window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
+        );
 
         _fxaa->shader.bind();
         glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
@@ -1553,10 +1495,6 @@ void Engine::updateRenderingTargets(Window& window, Window::TextureIndex ti) {
     core::OffScreenBuffer* fbo = window.getFBO();
     if (!fbo->isMultiSampled()) {
         return;
-    }
-
-    if (window.usePostFX()) {
-        ti = Window::TextureIndex::Intermediate;
     }
 
     // bind separate read and draw buffers to prepare blit operation
@@ -1895,15 +1833,10 @@ void Engine::setClearColor(glm::vec4 color) {
 }
 
 unsigned int Engine::getDrawTexture(Window& window) const {
-    if (window.usePostFX()) {
-        return window.getFrameBufferTexture(Window::TextureIndex::Intermediate);
-    }
-    else {
-        return window.getFrameBufferTexture(
-            (_currentFrustumMode == Frustum::Mode::StereoRightEye) ?
-            Window::TextureIndex::RightEye : Window::TextureIndex::LeftEye
-        );
-    }
+    return window.getFrameBufferTexture(
+        (_currentFrustumMode == Frustum::Mode::StereoRightEye) ?
+        Window::TextureIndex::RightEye : Window::TextureIndex::LeftEye
+    );
 }
 
 int Engine::getFocusedWindowIndex() const {

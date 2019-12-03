@@ -27,7 +27,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/ogl_headers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/postfx.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projectionplane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
@@ -92,7 +91,6 @@ set(SOURCE_FILES
   nonlinearprojection.cpp
   offscreenbuffer.cpp
   openvr.cpp
-  postfx.cpp
   projection.cpp
   projectionplane.cpp
   readconfig.cpp

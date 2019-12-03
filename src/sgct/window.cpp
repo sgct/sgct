@@ -266,8 +266,6 @@ bool Window::isFocused() const {
 void Window::close() {
     makeOpenGLContextCurrent(Context::Shared);
 
-    _postFXPasses.clear();
-
     Logger::Info("Deleting screen capture data for window %d", _id);
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
@@ -475,16 +473,6 @@ unsigned int Window::getFrameBufferTexture(TextureIndex index) {
                 generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
             }
             return _frameBufferTextures.intermediate;
-        case TextureIndex::FX1:
-            if (_frameBufferTextures.fx1 == 0) {
-                generateTexture(_frameBufferTextures.fx1, TextureType::Color);
-            }
-            return _frameBufferTextures.fx1;
-        case TextureIndex::FX2:
-            if (_frameBufferTextures.fx2 == 0) {
-                generateTexture(_frameBufferTextures.fx2, TextureType::Color);
-            }
-            return _frameBufferTextures.fx2;
         case TextureIndex::Depth:
             if (_frameBufferTextures.depth == 0) {
                 generateTexture(_frameBufferTextures.depth, TextureType::Depth);
@@ -1034,13 +1022,7 @@ void Window::createTextures() {
     if (Settings::instance().useDepthTexture()) {
         generateTexture(_frameBufferTextures.depth, TextureType::Depth);
     }
-    if (!_postFXPasses.empty()) {
-        generateTexture(_frameBufferTextures.fx1, TextureType::Color);
-    }
-    if (_postFXPasses.size() > 1) {
-        generateTexture(_frameBufferTextures.fx2, TextureType::Color);
-    }
-    if (_useFXAA || !_postFXPasses.empty()) {
+    if (_useFXAA) {
         generateTexture(_frameBufferTextures.intermediate, TextureType::Color);
     }
     if (Settings::instance().useNormalTexture()) {
@@ -1189,10 +1171,6 @@ glm::ivec2 Window::getFinalFBODimensions() const {
     return _framebufferRes;
 }
 
-void Window::addPostFX(PostFX fx) {
-    _postFXPasses.emplace_back(std::move(fx));
-}
-
 void Window::resizeFBOs() {
     if (_useFixResolution) {
         return;
@@ -1218,10 +1196,6 @@ void Window::destroyFBOs() {
     _frameBufferTextures.rightEye = 0;
     glDeleteTextures(1, &_frameBufferTextures.depth);
     _frameBufferTextures.depth = 0;
-    glDeleteTextures(1, &_frameBufferTextures.fx1);
-    _frameBufferTextures.fx1 = 0;
-    glDeleteTextures(1, &_frameBufferTextures.fx2);
-    _frameBufferTextures.fx2 = 0;
     glDeleteTextures(1, &_frameBufferTextures.intermediate);
     _frameBufferTextures.intermediate = 0;
     glDeleteTextures(1, &_frameBufferTextures.positions);
@@ -1320,14 +1294,6 @@ float Window::getHorizFieldOfViewDegrees() const {
     return _viewports[0]->getHorizontalFieldOfViewDegrees();
 }
 
-PostFX& Window::getPostFX(int index) {
-    return _postFXPasses[index];
-}
-
-int Window::getNumberOfPostFXs() const {
-    return static_cast<int>(_postFXPasses.size());
-}
-
 glm::ivec2 Window::getResolution() const {
     return _windowRes;
 }
@@ -1358,10 +1324,6 @@ bool Window::hasAnyMasks() const {
 
 bool Window::useFXAA() const {
     return _useFXAA;
-}
-
-bool Window::usePostFX() const {
-    return !_postFXPasses.empty();
 }
 
 void Window::bindStereoShaderProgram() const {

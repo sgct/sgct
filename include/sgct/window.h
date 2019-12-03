@@ -10,7 +10,6 @@
 #define __SGCT__WINDOW__H__
 
 #include <sgct/offscreenbuffer.h>
-#include <sgct/postfx.h>
 #include <sgct/screencapture.h>
 #include <sgct/viewport.h>
 #include <glm/glm.hpp>
@@ -66,8 +65,6 @@ public:
         LeftEye = 0,
         RightEye,
         Intermediate,
-        FX1,
-        FX2,
         Depth,
         Normals,
         Positions
@@ -346,12 +343,6 @@ public:
     /// Get FOV of viewport[0]
     float getHorizFieldOfViewDegrees() const;
     
-    /// \return the pointer to a specific post effect
-    PostFX& getPostFX(int index);
-
-    /// \return the number of post effects
-    int getNumberOfPostFXs() const;
-
     /// \return Get the window resolution.
     glm::ivec2 getResolution() const;
 
@@ -375,8 +366,6 @@ public:
 
     void renderScreenQuad() const;
 
-    /// Add a post effect for this window
-    void addPostFX(PostFX fx);
     void addViewport(std::unique_ptr<core::Viewport> vpPtr);
 
     /// \return true if any masks are used
@@ -384,9 +373,6 @@ public:
 
     /// \return true if FXAA should be used
     bool useFXAA() const;
-
-    /// \return true if PostFX pass should be used
-    bool usePostFX() const;
 
     void bindStereoShaderProgram() const;
     int getStereoShaderLeftTexLoc() const;
@@ -459,8 +445,6 @@ private:
         unsigned int leftEye = 0;
         unsigned int rightEye = 0;
         unsigned int depth = 0;
-        unsigned int fx1 = 0;
-        unsigned int fx2 = 0;
         unsigned int intermediate = 0;
         unsigned int normals = 0;
         unsigned int positions = 0;
@@ -486,7 +470,6 @@ private:
 
     core::BaseViewport* _currentViewport = nullptr;
     std::vector<std::unique_ptr<core::Viewport>> _viewports;
-    std::vector<PostFX> _postFXPasses;
     std::unique_ptr<core::OffScreenBuffer> _finalFBO;
 
     static GLFWwindow* _sharedHandle;

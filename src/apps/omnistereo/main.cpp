@@ -91,9 +91,9 @@ namespace {
 )";
 
    unsigned char getSampleAt(const sgct::core::Image& img, int x, int y) {
-       const int width = img.getSize().x;
-       const size_t idx = (y * width + x) * img.getChannels() * img.getBytesPerChannel();
-       return img.getData()[idx];
+       const int width = img.size().x;
+       const size_t idx = (y * width + x) * img.channels() * img.bytesPerChannel();
+       return img.data()[idx];
    }
 
    float getInterpolatedSampleAt(const sgct::core::Image& img, float x, float y) {
@@ -138,7 +138,7 @@ void renderGrid(glm::mat4 transform) {
 void initOmniStereo(bool mask) {
     double t0 = Engine::instance().getTime();
 
-    if (Engine::instance().getNumberOfWindows() < 2) {
+    if (Engine::instance().numberOfWindows() < 2) {
         Logger::Error("Failed to allocate omni stereo in secondary window");
         return;
     }
@@ -149,8 +149,8 @@ void initOmniStereo(bool mask) {
     sgct::core::Image sepMap;
     sepMap.load(sepMapSrc);
 
-    Window& win = Engine::instance().getWindow(1);
-    const glm::ivec2 res = win.getFramebufferResolution() / tileSize;
+    Window& win = Engine::instance().window(1);
+    const glm::ivec2 res = win.framebufferResolution() / tileSize;
 
     Logger::Info(
         "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
@@ -163,7 +163,7 @@ void initOmniStereo(bool mask) {
     int VPCounter = 0;
 
     for (int eye = 0; eye <= 2; eye++) {
-        float eyeSep = Engine::instance().getDefaultUser().getEyeSeparation();
+        float eyeSep = Engine::instance().defaultUser().eyeSeparation();
 
         Frustum::Mode fm;
         glm::vec3 eyePos;
@@ -210,10 +210,10 @@ void initOmniStereo(bool mask) {
 
                 // get corresponding map positions
                 bool omniNeeded = true;
-                if (turnMap.getChannels() > 0) {
+                if (turnMap.channels() > 0) {
                     const glm::vec2 turnMapPos = {
-                        (x / xResf) * static_cast<float>(turnMap.getSize().x - 1),
-                        (y / yResf) * static_cast<float>(turnMap.getSize().y - 1)
+                        (x / xResf) * static_cast<float>(turnMap.size().x - 1),
+                        (y / yResf) * static_cast<float>(turnMap.size().y - 1)
                     };
 
                     // inverse gamma
@@ -234,10 +234,10 @@ void initOmniStereo(bool mask) {
                 }
 
                 glm::vec3 newEyePos;
-                if (sepMap.getChannels() > 0) {
+                if (sepMap.channels() > 0) {
                     const glm::vec2 sepMapPos = {
-                        (x / xResf) * static_cast<float>(sepMap.getSize().x - 1),
-                        (y / yResf) * static_cast<float>(sepMap.getSize().y - 1)
+                        (x / xResf) * static_cast<float>(sepMap.size().x - 1),
+                        (y / yResf) * static_cast<float>(sepMap.size().y - 1)
                     };
 
                     // inverse gamma 2.2
@@ -320,13 +320,13 @@ void initOmniStereo(bool mask) {
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
-                        Engine::instance().getNearClipPlane(),
-                        Engine::instance().getFarClipPlane()
+                        Engine::instance().nearClipPlane(),
+                        Engine::instance().farClipPlane()
                     );
 
                     omniProjections[x][y].enabled = true;
                     omniProjections[x][y].viewProjectionMatrix[fm] =
-                        proj.getViewProjectionMatrix();
+                        proj.viewProjectionMatrix();
                     VPCounter++;
                 }
             }
@@ -373,10 +373,10 @@ void drawOmniStereo(RenderData renderData) {
 
     double t0 = Engine::instance().getTime();
 
-    Window& win = Engine::instance().getWindow(1);
-    glm::ivec2 res = win.getFramebufferResolution() / tileSize;
+    Window& win = Engine::instance().window(1);
+    glm::ivec2 res = win.framebufferResolution() / tileSize;
 
-    ShaderManager::instance().getShaderProgram("xform").bind();
+    ShaderManager::instance().shaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -391,7 +391,7 @@ void drawOmniStereo(RenderData renderData) {
         }
     }
 
-    ShaderManager::instance().getShaderProgram("grid").bind();
+    ShaderManager::instance().shaderProgram("grid").bind();
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -410,16 +410,16 @@ void drawFun(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    if (data.window.getId() == 1) {
+    if (data.window.id() == 1) {
         drawOmniStereo(data);
     }
     else {
         const glm::mat4 vp = data.projectionMatrix * data.viewMatrix;
 
-        ShaderManager::instance().getShaderProgram("grid").bind();
+        ShaderManager::instance().shaderProgram("grid").bind();
         renderGrid(vp);
 
-        ShaderManager::instance().getShaderProgram("xform").bind();
+        ShaderManager::instance().shaderProgram("xform").bind();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -432,14 +432,14 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.getVal()) {
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
@@ -460,16 +460,16 @@ void initOGLFun() {
 
     ShaderManager& sm = ShaderManager::instance();
     sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
-    const ShaderProgram& gridProg = sm.getShaderProgram("grid");
+    const ShaderProgram& gridProg = sm.shaderProgram("grid");
     gridProg.bind();
-    gridMatrixLoc = glGetUniformLocation(gridProg.getId(), "mvp");
+    gridMatrixLoc = glGetUniformLocation(gridProg.id(), "mvp");
     gridProg.unbind();
 
     sm.addShaderProgram("xform", baseVertexShader, baseFragmentShader);
-    const ShaderProgram& xformProg = sm.getShaderProgram("xform");
+    const ShaderProgram& xformProg = sm.shaderProgram("xform");
     xformProg.bind();
-    matrixLoc = glGetUniformLocation(xformProg.getId(), "mvp");
-    GLint textureLoc = glGetUniformLocation(xformProg.getId(), "tex");
+    matrixLoc = glGetUniformLocation(xformProg.id(), "mvp");
+    GLint textureLoc = glGetUniformLocation(xformProg.id(), "tex");
     glUniform1i(textureLoc, 0);
     xformProg.unbind();
 

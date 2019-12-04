@@ -41,16 +41,16 @@ public:
     void updateTrackingDevices();
     void addTracker(std::string name);
 
-    int getNumberOfTrackers() const;
-    TrackingDevice* getHeadDevice() const;
+    int numberOfTrackers() const;
+    TrackingDevice* headDevice() const;
 
-    Tracker* getLastTracker() const;
-    Tracker* getTracker(int index) const;
-    Tracker* getTracker(const std::string& name) const;
+    Tracker* lastTracker() const;
+    Tracker* tracker(int index) const;
+    Tracker* tracker(const std::string& name) const;
 
     void setEnabled(bool state);
     void setSamplingTime(double t);
-    double getSamplingTime() const;
+    double samplingTime() const;
 
     bool isRunning() const;
 

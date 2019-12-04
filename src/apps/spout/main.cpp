@@ -99,12 +99,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
@@ -118,7 +118,7 @@ void drawFun(RenderData data) {
         spoutStatus = bindSpout();
     }
 
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
     // DirectX textures are flipped around the Y axis compared to OpenGL
@@ -146,7 +146,7 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
@@ -166,12 +166,12 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
-    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
-    flipLoc = glGetUniformLocation(prog.getId(), "flip");
+    matrixLoc = glGetUniformLocation(prog.id(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
+    flipLoc = glGetUniformLocation(prog.id(), "flip");
     glUniform1i(flipLoc, 0);
 
     prog.unbind();

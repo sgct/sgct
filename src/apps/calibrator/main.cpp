@@ -103,7 +103,7 @@ void main() {
 using namespace sgct;
 
 void draw(RenderData data) {
-    ShaderManager::instance().getShaderProgram("simple").bind();
+    ShaderManager::instance().shaderProgram("simple").bind();
     const glm::mat4 mvp = data.modelViewProjectionMatrix;
 
     // Inverting tilt to keep the backwards compatibility with the previous implementation
@@ -124,22 +124,22 @@ void draw(RenderData data) {
     }
     glBindVertexArray(0);
 
-    ShaderManager::instance().getShaderProgram("simple").unbind();
+    ShaderManager::instance().shaderProgram("simple").unbind();
 }
 
 void draw2D(RenderData data) {
 #ifdef SGCT_HAS_TEXT
-    if (showId.getVal()) {
+    if (showId.value()) {
         const float w =
-            static_cast<float>(data.window.getResolution().x) * data.viewport.getSize().x;
+            static_cast<float>(data.window.resolution().x) * data.viewport.size().x;
         const float h =
-            static_cast<float>(data.window.getResolution().y) * data.viewport.getSize().y;
+            static_cast<float>(data.window.resolution().y) * data.viewport.size().y;
 
         const float offset = w / 2.f - w / 7.f;
 
         const float s1 = h / 8.f;
         const unsigned int fontSize1 = static_cast<unsigned int>(s1);
-        text::Font* f1 = text::FontManager::instance().getFont("SGCTFont", fontSize1);
+        text::Font* f1 = text::FontManager::instance().font("SGCTFont", fontSize1);
 
         text::print(
             data.window,
@@ -150,12 +150,12 @@ void draw2D(RenderData data) {
             h / 2.f - s1,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%d",
-            sgct::core::ClusterManager::instance().getThisNodeId()
+            sgct::core::ClusterManager::instance().thisNodeId()
         );
 
         const float s2 = h / 20.f;
         const unsigned int fontSize2 = static_cast<unsigned int>(s2);
-        text::Font* f2 = text::FontManager::instance().getFont("SGCTFont", fontSize2);
+        text::Font* f2 = text::FontManager::instance().font("SGCTFont", fontSize2);
         text::print(
             data.window,
             data.viewport,
@@ -165,7 +165,7 @@ void draw2D(RenderData data) {
             h / 2.f - (s1 + s2) * 1.2f,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%s",
-            core::ClusterManager::instance().getThisNode().getAddress().c_str()
+            core::ClusterManager::instance().thisNode().address().c_str()
         );
     }
 #endif // SGCT_HAS_TEXT
@@ -279,23 +279,23 @@ void initGL() {
     }
 
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("simple");
     prog.bind();
-    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
+    matrixLocation = glGetUniformLocation(prog.id(), "matrix");
 
-    glUniform1f(glGetUniformLocation(prog.getId(), "radius"), radius);
-    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
-    glUniform1i(glGetUniformLocation(prog.getId(), "hasTex"), (textureId != 0) ? 1 : 0);
+    glUniform1f(glGetUniformLocation(prog.id(), "radius"), radius);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
+    glUniform1i(glGetUniformLocation(prog.id(), "hasTex"), (textureId != 0) ? 1 : 0);
 
     prog.unbind();
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.getVal());
-    Engine::instance().setStatsGraphVisibility(showStats.getVal());
-    if (takeScreenshot.getVal()) {
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.value());
+    Engine::instance().setStatsGraphVisibility(showStats.value());
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
@@ -304,19 +304,19 @@ void keyboardCallback(Key key, Modifier, Action action, int) {
         Engine::instance().terminate();
     }
     if (key == Key::I && action == Action::Press) {
-        showId.setVal(!showId.getVal());
+        showId.setValue(!showId.value());
     }
 
     if (key == Key::S && action == Action::Press) {
-        showStats.setVal(!showStats.getVal());
+        showStats.setValue(!showStats.value());
     }
 
     if (key == Key::P && action == Action::Press) {
-        takeScreenshot.setVal(true);
+        takeScreenshot.setValue(true);
     }
 
     if (key == Key::B && action == Action::Press) {
-        captureBackbuffer.setVal(!captureBackbuffer.getVal());
+        captureBackbuffer.setValue(!captureBackbuffer.value());
     }
 }
 

@@ -62,7 +62,7 @@ public:
      * \return The specified shader program
      * \throws std::runtime_error If the shader program with the \p name was not found
      */
-    const ShaderProgram& getShaderProgram(const std::string& name) const;
+    const ShaderProgram& shaderProgram(const std::string& name) const;
 
 private:
     static ShaderManager* _instance;

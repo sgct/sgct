@@ -20,13 +20,13 @@ public:
     void offset(const glm::vec3& p);
 
     /// \return coordinates for the lower left projection plane corner
-    const glm::vec3& getCoordinateLowerLeft() const;
+    const glm::vec3& coordinateLowerLeft() const;
 
     /// \return coordinates for the upper left projection plane corner
-    const glm::vec3& getCoordinateUpperLeft() const;
+    const glm::vec3& coordinateUpperLeft() const;
 
     /// \return coordinates for the upper right projection plane corner
-    const glm::vec3& getCoordinateUpperRight() const;
+    const glm::vec3& coordinateUpperRight() const;
 
 private:
     glm::vec3 _lowerLeft = glm::vec3(-1.f, -1.f, -2.f);

@@ -79,13 +79,13 @@ public:
     static void unbind();
 
     /// Get the name of the program
-    std::string getName() const;
+    std::string name() const;
 
     /// Check if the program is linked
     bool isLinked() const;
 
     /// Get the program ID
-    int getId() const;
+    int id() const;
 
 private:
     /// Will create and the program and return whether it was properly created or not

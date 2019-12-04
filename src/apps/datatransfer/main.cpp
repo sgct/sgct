@@ -82,12 +82,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -95,17 +95,17 @@ void drawFun(RenderData data) {
 
     glActiveTexture(GL_TEXTURE0);
     
-    if (texIndex.getVal() != -1) {
-        glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
+    if (texIndex.value() != -1) {
+        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value()));
     }
     else {
         glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
-    ShaderManager::instance().getShaderProgram("xform").bind();
+    ShaderManager::instance().shaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     box->draw();
-    ShaderManager::instance().getShaderProgram("xform").unbind();
+    ShaderManager::instance().shaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -113,11 +113,11 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
         
         // if texture is uploaded then iterate the index
-        if (serverUploadDone.getVal() && clientsUploadDone.getVal()) {
-            texIndex.setVal(texIndex.getVal() + 1);
+        if (serverUploadDone.value() && clientsUploadDone.value()) {
+            texIndex.setValue(texIndex.value() + 1);
             serverUploadDone = false;
             clientsUploadDone = false;
         }
@@ -125,7 +125,7 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.value());
 }
 
 void initOGLFun() {
@@ -137,10 +137,10 @@ void initOGLFun() {
     glFrontFace(GL_CCW); // our polygon winding is counter clockwise
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
-    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
+    matrixLoc = glGetUniformLocation(prog.id(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
     prog.unbind();
 }
 
@@ -159,8 +159,8 @@ void decodeFun() {
 void cleanUpFun() {
     box = nullptr;
     
-    for (size_t i = 0; i < texIds.getSize(); i++) {
-        GLuint tex = texIds.getValAt(i);
+    for (size_t i = 0; i < texIds.size(); i++) {
+        GLuint tex = texIds.valueAt(i);
         if (tex) {
             glDeleteTextures(1, &tex);
         }
@@ -179,7 +179,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 Engine::instance().terminate();
                 break;
             case Key::S:
-                stats.setVal(!stats.getVal());
+                stats.setValue(!stats.value());
                 break;
             default:
                 break;
@@ -203,19 +203,19 @@ void readImage(unsigned char* data, int len) {
 
 void startDataTransfer() {
     // iterate
-    int id = currentPackage.getVal();
+    int id = currentPackage.value();
     id++;
-    currentPackage.setVal(id);
+    currentPackage.setValue(id);
 
     // make sure to keep within bounds
-    if (static_cast<int>(imagePaths.getSize()) <= id) {
+    if (static_cast<int>(imagePaths.size()) <= id) {
         return;
     }
 
     sendTimer = sgct::Engine::getTime();
 
     // load from file
-    const std::string& tmpPair = imagePaths.getValAt(static_cast<size_t>(id));
+    const std::string& tmpPair = imagePaths.valueAt(static_cast<size_t>(id));
 
     std::ifstream file(tmpPair.c_str(), std::ios::binary);
     file.seekg(0, std::ios::end);
@@ -237,7 +237,7 @@ void uploadTexture() {
     
     if (!transImg) {
         // if invalid load
-        texIds.addVal(0);
+        texIds.addValue(0);
         return;
     }
 
@@ -253,9 +253,9 @@ void uploadTexture() {
     GLenum internalformat;
     GLenum type;
 
-    size_t bpc = transImg->getBytesPerChannel();
+    size_t bpc = transImg->bytesPerChannel();
 
-    switch (transImg->getChannels()) {
+    switch (transImg->channels()) {
         case 1:
             internalformat = (bpc == 1 ? GL_R8 : GL_R16);
             type = GL_RED;
@@ -282,19 +282,19 @@ void uploadTexture() {
         GL_TEXTURE_2D,
         mipMapLevels,
         internalformat,
-        static_cast<GLsizei>(transImg->getSize().x),
-        static_cast<GLsizei>(transImg->getSize().y)
+        static_cast<GLsizei>(transImg->size().x),
+        static_cast<GLsizei>(transImg->size().y)
     );
     glTexSubImage2D(
         GL_TEXTURE_2D,
         0,
         0,
         0,
-        static_cast<GLsizei>(transImg->getSize().x),
-        static_cast<GLsizei>(transImg->getSize().y),
+        static_cast<GLsizei>(transImg->size().x),
+        static_cast<GLsizei>(transImg->size().y),
         type,
         format,
-        transImg->getData()
+        transImg->data()
     );
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
@@ -310,10 +310,10 @@ void uploadTexture() {
 
     Logger::Info(
         "Texture id %d loaded (%dx%dx%d).",
-        tex, transImg->getSize().x, transImg->getSize().y, transImg->getChannels()
+        tex, transImg->size().x, transImg->size().y, transImg->channels()
     );
 
-    texIds.addVal(tex);
+    texIds.addValue(tex);
     transImg = nullptr;
 
     glFinish();
@@ -323,17 +323,17 @@ void uploadTexture() {
 void threadWorker() {
     while (isRunning) {
         // runs only on master
-        if (transfer.getVal() && !serverUploadDone.getVal() &&
-            !clientsUploadDone.getVal())
+        if (transfer.value() && !serverUploadDone.value() &&
+            !clientsUploadDone.value())
         {
             startDataTransfer();
-            transfer.setVal(false);
+            transfer.setValue(false);
 
             // load texture on master
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct::core::ClusterManager::instance().getNumberOfNodes() == 1) {
+            if (sgct::core::ClusterManager::instance().numberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -365,7 +365,7 @@ void dataTransferDecoder(void* data, int length, int packageId, int clientIndex)
         "Decoding %d bytes in transfer id: %d on node %d", length, packageId, clientIndex
     );
 
-    currentPackage.setVal(packageId);
+    currentPackage.setValue(packageId);
 
     // read the image on master
     readImage(reinterpret_cast<unsigned char*>(data), length);
@@ -384,9 +384,9 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     );
     
     static int counter = 0;
-    if (packageId == currentPackage.getVal()) {
+    if (packageId == currentPackage.value()) {
         counter++;
-        if (counter == (sgct::core::ClusterManager::instance().getNumberOfNodes() - 1)) {
+        if (counter == (sgct::core::ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
 
@@ -418,8 +418,8 @@ void dropCallback(int, const char** paths) {
     const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
     const bool foundPng = tmpStr.find(".png") != std::string::npos;
     if (foundJpg || foundJpeg || foundPng) {
-        imagePaths.addVal(paths[0]);
-        transfer.setVal(true);
+        imagePaths.addValue(paths[0]);
+        transfer.setValue(true);
     }
 }
 

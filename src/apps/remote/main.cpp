@@ -15,9 +15,9 @@ using namespace sgct;
 
 void drawFun(RenderData) {
     constexpr const float Speed = 50.0f;
-    glRotatef(static_cast<float>(currentTime.getVal()) * Speed, 0.f, 1.f, 0.f);
+    glRotatef(static_cast<float>(currentTime.value()) * Speed, 0.f, 1.f, 0.f);
 
-    const float size = sizeFactor.getVal();
+    const float size = sizeFactor.value();
 
     glBegin(GL_TRIANGLES);
     glColor3f(1.f, 0.f, 0.f);
@@ -34,12 +34,12 @@ void drawFun(RenderData) {
 void preSyncFun() {
     // set the time only on the master
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(showGraph.getVal());
+    Engine::instance().setStatsGraphVisibility(showGraph.value());
 }
 
 void encodeFun() {
@@ -58,13 +58,13 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
     if (Engine::instance().isMaster()) {
         std::string_view msg(receivedChars, size);
         if (size == 7 && msg.substr(0, 5) == "graph") {
-            showGraph.setVal(msg.substr(6, 1) == "1");
+            showGraph.setValue(msg.substr(6, 1) == "1");
         }
         else if (size >= 6 && msg.substr(0, 4) == "size") {
             // parse string to int
             int tmpVal = std::stoi(std::string(msg.substr(5)));
             // recalc percent to float
-            sizeFactor.setVal(static_cast<float>(tmpVal) / 100.f);
+            sizeFactor.setValue(static_cast<float>(tmpVal) / 100.f);
         }
 
         Logger::Info("Message: '%s', size: %d", receivedChars, size);

@@ -87,8 +87,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     _shader.addShaderSource(StatsVertShader, StatsFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();
-    _mvpLoc = glGetUniformLocation(_shader.getId(), "mvp");
-    _colorLoc = glGetUniformLocation(_shader.getId(), "col");
+    _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
+    _colorLoc = glGetUniformLocation(_shader.id(), "col");
     _shader.unbind();
 
     // OpenGL objects for lines
@@ -192,7 +192,7 @@ void StatisticsRenderer::update() {
 
     // Histogram update
     auto updateHist = [](std::array<int, Histogram::Bins>& hValues,
-                         const std::array<double, 512>& sValues, double scale) -> int
+                         const std::array<double, Histogram::Bins>& sValues, double scale)
     {
         std::fill(hValues.begin(), hValues.end(), 0);
 
@@ -259,7 +259,7 @@ void StatisticsRenderer::update() {
 }
 
 void StatisticsRenderer::render(const Window& window, const core::Viewport& viewport) {
-    glm::vec2 res = window.getFramebufferResolution();
+    glm::vec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 
     {
@@ -323,8 +323,8 @@ void StatisticsRenderer::render(const Window& window, const core::Viewport& view
         constexpr const float Offset = 20.f;
         constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
 
-        text::Font& f1 = *text::FontManager::instance().getFont("SGCTFont", 20);
-        text::Font& f2 = *text::FontManager::instance().getFont("SGCTFont", 12);
+        text::Font& f1 = *text::FontManager::instance().font("SGCTFont", 20);
+        text::Font& f2 = *text::FontManager::instance().font("SGCTFont", 12);
 
         text::print(
             window,
@@ -334,7 +334,7 @@ void StatisticsRenderer::render(const Window& window, const core::Viewport& view
             Pos.x,
             Pos.y + 7 * Offset,
             glm::vec4(1.0f, 0.8f, 0.8f, 1.f),
-            "Frame number: %i", Engine::instance().getCurrentFrameNumber()
+            "Frame number: %i", Engine::instance().currentFrameNumber()
         );
         text::print(
             window,
@@ -442,7 +442,7 @@ void StatisticsRenderer::render(const Window& window, const core::Viewport& view
         constexpr const glm::vec2 Pos = glm::vec2(15.f, 10.f);
         constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
 
-        text::Font& f = *text::FontManager::instance().getFont("SGCTFont", 8);
+        text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
         text::print(
             window,
             viewport,

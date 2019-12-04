@@ -41,7 +41,7 @@ void Node::applyNode(const config::Node& node) {
     }
 
     for (const config::Window& window : node.windows) {
-        std::unique_ptr<Window> win = std::make_unique<Window>(getNumberOfWindows());
+        std::unique_ptr<Window> win = std::make_unique<Window>(numberOfWindows());
         win->applyWindow(window);
         addWindow(std::move(win));
     }
@@ -51,36 +51,36 @@ void Node::addWindow(std::unique_ptr<Window> window) {
     _windows.emplace_back(std::move(window));
 }
 
-bool Node::getKeyPressed(Key key) {
+bool Node::isKeyPressed(Key key) {
     if (key == Key::Unknown) {
         return false;
     }
 
     for (const std::unique_ptr<Window>& window : _windows) {
-        if (glfwGetKey(window->getWindowHandle(), static_cast<int>(key))) {
+        if (glfwGetKey(window->windowHandle(), static_cast<int>(key))) {
             return true;
         }
     }
     return false;
 }
 
-int Node::getNumberOfWindows() const {
+int Node::numberOfWindows() const {
     return static_cast<int>(_windows.size());
 }
 
-Window& Node::getWindow(int index) {
+Window& Node::window(int index) {
     return *_windows[index];
 }
 
-const Window& Node::getWindow(int index) const {
+const Window& Node::window(int index) const {
     return *_windows[index];
 }
 
 bool Node::closeAllWindows() {
     for (std::unique_ptr<Window>& window : _windows) {
-        if (glfwWindowShouldClose(window->getWindowHandle())) {
+        if (glfwWindowShouldClose(window->windowHandle())) {
             window->setVisible(false);
-            glfwSetWindowShouldClose(window->getWindowHandle(), 0);
+            glfwSetWindowShouldClose(window->windowHandle(), 0);
         }
     }
 
@@ -98,15 +98,15 @@ bool Node::isUsingSwapGroups() const {
     return _useSwapGroups;
 }
 
-const std::string& Node::getAddress() const {
+const std::string& Node::address() const {
     return _address;
 }
 
-int Node::getSyncPort() const {
+int Node::syncPort() const {
     return _syncPort;
 }
 
-int Node::getDataTransferPort() const {
+int Node::dataTransferPort() const {
     return _dataTransferPort;
 }
 

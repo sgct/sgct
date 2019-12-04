@@ -132,7 +132,7 @@ bool FontManager::addFont(std::string name, std::string file, Path path) {
     return inserted;
 }
 
-Font* FontManager::getFont(const std::string& fontName, unsigned int height) {
+Font* FontManager::font(const std::string& fontName, unsigned int height) {
     if (_fontMap.count({ fontName, height }) == 0) {
         std::unique_ptr<Font> f = createFont(fontName, height);
         if (f == nullptr) {
@@ -142,10 +142,6 @@ Font* FontManager::getFont(const std::string& fontName, unsigned int height) {
     }
 
     return _fontMap[{ fontName, height }].get();
-}
-
-Font* FontManager::getDefaultFont(unsigned int height) {
-    return getFont("SGCTFont", height);
 }
 
 std::unique_ptr<Font> FontManager::createFont(const std::string& name,
@@ -195,10 +191,10 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
         _shader.createAndLinkProgram();
         _shader.bind();
 
-        _mvpLocation = glGetUniformLocation(_shader.getId(), "mvp");
-        _colorLocation = glGetUniformLocation(_shader.getId(), "col");
-        _strokeLocation = glGetUniformLocation(_shader.getId(), "strokeCol");
-        _textureLocation = glGetUniformLocation(_shader.getId(), "tex");
+        _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
+        _colorLocation = glGetUniformLocation(_shader.id(), "col");
+        _strokeLocation = glGetUniformLocation(_shader.id(), "strokeCol");
+        _textureLocation = glGetUniformLocation(_shader.id(), "tex");
         ShaderProgram::unbind();
 
         isShaderCreated = true;

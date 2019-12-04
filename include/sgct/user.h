@@ -56,15 +56,15 @@ public:
     void setEyeSeparation(float eyeSeparation);
 
     /// Get the users name
-    const std::string& getName() const;
+    const std::string& name() const;
 
-    const glm::vec3& getPosMono() const;
-    const glm::vec3& getPosLeftEye() const;
-    const glm::vec3& getPosRightEye() const;
+    const glm::vec3& posMono() const;
+    const glm::vec3& posLeftEye() const;
+    const glm::vec3& posRightEye() const;
 
-    float getEyeSeparation() const;
-    const std::string& getHeadTrackerName() const;
-    const std::string& getHeadTrackerDeviceName() const;
+    float eyeSeparation() const;
+    const std::string& headTrackerName() const;
+    const std::string& headTrackerDeviceName() const;
 
     /// \return true if user is tracked
     bool isTracked() const;

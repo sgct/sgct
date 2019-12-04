@@ -71,10 +71,10 @@ namespace {
 
 namespace sgct::core {
 
-Network::Network(int port, std::string address, bool isServer, ConnectionType type)
+Network::Network(int port, std::string address, bool isServer, ConnectionType t)
     : _socket(INVALID_SOCKET)
     , _listenSocket(INVALID_SOCKET)
-    , _connectionType(type)
+    , _connectionType(t)
     , _isServer(isServer)
     , _port(port)
     , _headerId(0)
@@ -84,7 +84,7 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType ty
     id++;
 
     if (_connectionType == ConnectionType::SyncConnection) {
-        _bufferSize = static_cast<uint32_t>(SharedData::instance().getBufferSize());
+        _bufferSize = static_cast<uint32_t>(SharedData::instance().bufferSize());
         _uncompressedBufferSize = _bufferSize;
     }
 
@@ -143,7 +143,7 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType ty
         while (!_shouldTerminate) {
             Logger::Info(
                 "Attempting to connect to server (id: %d, ip: %s, type: %s)",
-                _id, address.c_str(), getTypeStr(getType()).c_str()
+                _id, address.c_str(), getTypeStr(type()).c_str()
             );
 
             _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -218,11 +218,11 @@ void Network::connectionHandler() {
     Logger::Info("Exiting connection handler for connection %d", _id);
 }
 
-int Network::getPort() const {
+int Network::port() const {
     return _port;
 }
 
-std::condition_variable& Network::getStartConnectionConditionVar() {
+std::condition_variable& Network::startConnectionConditionVar() {
     return _startConnectionCond;
 }
 
@@ -268,7 +268,7 @@ void Network::setOptions(SGCT_SOCKET* socket) {
         throw Err(5006, "Failed to set reuse address: " + std::to_string(SGCT_ERRNO));
     }
 
-    if (getType() == core::Network::ConnectionType::SyncConnection) {
+    if (type() == core::Network::ConnectionType::SyncConnection) {
         const int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
             *socket,
@@ -361,37 +361,37 @@ void Network::pushClientMessage() {
     sendData(data, HeaderSize);
 }
 
-int Network::getSendFrameCurrent() const {
+int Network::sendFrameCurrent() const {
     return _currentSendFrame;
 }
 
-int Network::getSendFramePrevious() const {
+int Network::sendFramePrevious() const {
     return _previousSendFrame;
 }
 
-int Network::getRecvFrameCurrent() const {
+int Network::recvFrameCurrent() const {
     return _currentRecvFrame;
 }
 
-int Network::getRecvFramePrevious() const {
+int Network::recvFramePrevious() const {
     return _previousRecvFrame;
 }
 
-double Network::getLoopTime() const {
+double Network::loopTime() const {
     return _timeStampTotal;
 }
 
 bool Network::isUpdated() const {
     bool state = false;
     if (_isServer) {
-        state = ClusterManager::instance().getFirmFrameLockSyncStatus() ?
+        state = ClusterManager::instance().firmFrameLockSyncStatus() ?
             // master sends first -> so on reply they should be equal
             (_currentRecvFrame == _currentSendFrame) :
             // don't check if loose sync
             true;
     }
     else {
-        state = ClusterManager::instance().getFirmFrameLockSyncStatus() ?
+        state = ClusterManager::instance().firmFrameLockSyncStatus() ?
             // clients receive first and then send so the prev should be equal to the send
             (_previousRecvFrame == _currentSendFrame) :
             // if loose sync just check if updated
@@ -430,12 +430,12 @@ bool Network::isConnected() const {
     return _isConnected;
 }
 
-Network::ConnectionType Network::getType() const {
+Network::ConnectionType Network::type() const {
     std::unique_lock lock(_connectionMutex);
     return _connectionType;
 }
 
-int Network::getId() const {
+int Network::id() const {
     return _id;
 }
 
@@ -451,7 +451,7 @@ void Network::setRecvFrame(int i) {
     _timeStampTotal = Engine::getTime() - _timeStampSend;
 }
 
-int Network::getLastError() {
+int Network::lastError() {
     return SGCT_ERRNO;
 }
 
@@ -591,7 +591,7 @@ void Network::communicationHandler() {
     // listen for client if server
     if (_isServer) {
         Logger::Info(
-            "Waiting for client to connect to connection %d (port %d)", _id, getPort()
+            "Waiting for client to connect to connection %d (port %d)", _id, port()
         );
 
         _socket = accept(_listenSocket, nullptr, nullptr);
@@ -640,7 +640,7 @@ void Network::communicationHandler() {
     int iResult = 0;
     do {
         // resize buffer request
-        if (getType() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
+        if (type() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
             Logger::Info(
                 "Re-sizing buffer from %d to %d", _bufferSize, _requestedSize.load()
             );
@@ -656,7 +656,7 @@ void Network::communicationHandler() {
         
         _headerId = DefaultId;
 
-        if (getType() == ConnectionType::SyncConnection) {
+        if (type() == ConnectionType::SyncConnection) {
             iResult = readSyncMessage(
                 RecvHeader,
                 syncFrameNumber,
@@ -664,7 +664,7 @@ void Network::communicationHandler() {
                 uncompressedDataSize
             );
         }
-        else if (getType() == ConnectionType::DataTransfer) {
+        else if (type() == ConnectionType::DataTransfer) {
             iResult = readDataTransferMessage(
                 RecvHeader,
                 packageId,
@@ -694,7 +694,7 @@ void Network::communicationHandler() {
             throw Err(5014, "TCP connection " + i + " receive failed: " + e);
         }
 
-        if (getType() == ConnectionType::SyncConnection) {
+        if (type() == ConnectionType::SyncConnection) {
             // handle sync disconnect
             if (isDisconnectPackage(RecvHeader)) {
                 setConnectedStatus(false);
@@ -722,7 +722,7 @@ void Network::communicationHandler() {
             }
         }
         // handle external ascii communication
-        else if (getType() == ConnectionType::ExternalConnection) {
+        else if (type() == ConnectionType::ExternalConnection) {
             extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
 
             bool breakConnection = false;
@@ -762,7 +762,7 @@ void Network::communicationHandler() {
             }
         }
         // handle data transfer communication
-        else if (getType() == ConnectionType::DataTransfer) {
+        else if (type() == ConnectionType::DataTransfer) {
             // Disconnect if requested
             if (isDisconnectPackage(RecvHeader)) {
                 setConnectedStatus(false);

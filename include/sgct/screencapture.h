@@ -72,7 +72,7 @@ public:
 
 private:
     std::string addFrameNumberToFilename(unsigned int frameNumber);
-    int getAvailableCaptureThread();
+    int availableCaptureThread();
     void checkImageBuffer(CaptureSource captureSource);
     Image* prepareImage(int index, std::string file);
 

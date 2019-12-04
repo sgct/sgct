@@ -250,7 +250,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
 
     // generate unwarped mask
     {
-        Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
+        Buffer buf = setupSimpleMesh(parent.position(), parent.size());
         createMesh(_quadGeometry, buf);
     }
     
@@ -259,13 +259,13 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     //if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
         Logger::Debug("CorrectionMesh: Creating mask mesh");
 
-        Buffer buf = setupMaskMesh(parent.getPosition(), parent.getSize());
+        Buffer buf = setupMaskMesh(parent.position(), parent.size());
         createMesh(_maskGeometry, buf);
     }
 
     // fallback if no mesh is provided
     if (path.empty()) {
-        Buffer buf = setupSimpleMesh(parent.getPosition(), parent.getSize());
+        Buffer buf = setupSimpleMesh(parent.position(), parent.size());
         createMesh(_warpGeometry, buf);
         return;
     }
@@ -277,7 +277,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
         buf = generateScissMesh(path, parent);
     }
     else if (path.find(".ol") != std::string::npos) {
-        buf = generateScalableMesh(path, parent.getPosition(), parent.getSize());
+        buf = generateScalableMesh(path, parent.position(), parent.size());
     }
     else if (path.find(".skyskan") != std::string::npos) {
         buf = generateSkySkanMesh(path, parent);
@@ -290,22 +290,22 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     else if ((path.find(".csv") != std::string::npos) &&
             (hint == Format::None || hint == Format::DomeProjection))
     {
-        buf = generateDomeProjectionMesh(path, parent.getPosition(), parent.getSize());
+        buf = generateDomeProjectionMesh(path, parent.position(), parent.size());
     }
     else if ((path.find(".data") != std::string::npos) &&
             (hint == Format::None || hint == Format::PaulBourke))
     {
         buf = generatePaulBourkeMesh(
             path,
-            parent.getPosition(),
-            parent.getSize(),
-            parent.getWindow().getAspectRatio()
+            parent.position(),
+            parent.size(),
+            parent.window().aspectRatio()
         );
 
         // force regeneration of dome render quad
         Viewport* vp = dynamic_cast<Viewport*>(&parent);
         if (vp) {
-            auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->getNonLinearProjection());
+            auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->nonLinearProjection());
             if (fishPrj) {
                 fishPrj->setIgnoreAspectRatio(true);
                 fishPrj->update(glm::ivec2(1.f, 1.f));
@@ -327,7 +327,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     else if ((path.find(".simcad") != std::string::npos) &&
             (hint == Format::None || hint == Format::SimCad))
     {
-        buf = generateSimCADMesh(path, parent.getPosition(), parent.getSize());
+        buf = generateSimCADMesh(path, parent.position(), parent.size());
     }
     else {
         throw std::runtime_error("Could not find format");
@@ -340,7 +340,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
         static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
     );
 
-    if (Settings::instance().getExportWarpingMeshes()) {
+    if (Settings::instance().exportWarpingMeshes()) {
         const size_t found = path.find_last_of(".");
         std::string filename = path.substr(0, found) + "_export.obj";
         exportMesh(_warpGeometry.type, std::move(filename), buf);

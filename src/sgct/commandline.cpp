@@ -122,7 +122,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
     return config;
 }
 
-std::string getHelpMessage() {
+std::string helpMessage() {
     return R"(
 Parameters:
 -config <filename.xml>

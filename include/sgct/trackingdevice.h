@@ -49,21 +49,21 @@ public:
     /// Set the device transform matrix
     void setTransform(glm::mat4 mat);
 
-    const std::string& getName() const;
-    int getNumberOfButtons() const;
-    int getNumberOfAxes() const;
+    const std::string& name() const;
+    int numberOfButtons() const;
+    int numberOfAxes() const;
 
     /// \return a digital value from array
-    bool getButton(int index) const;
+    bool button(int index) const;
     
     /// \return a digital value from array
-    bool getButtonPrevious(int index) const;
+    bool buttonPrevious(int index) const;
 
     /// \return an analog value from array
-    double getAnalog(int index) const;
+    double analog(int index) const;
 
     /// \return an analog value from array
-    double getAnalogPrevious(int index) const;
+    double analogPrevious(int index) const;
     
     bool isEnabled() const;
     bool hasSensor() const;
@@ -71,55 +71,55 @@ public:
     bool hasAnalogs() const;
 
     /// \return the id of this device/sensor
-    int getSensorId();
+    int sensorId();
 
     /// \return the sensor's position in world coordinates
-    glm::vec3 getPosition() const;
+    glm::vec3 position() const;
 
     /// \return the sensor's position in world coordinates
-    glm::vec3 getPreviousPosition() const;
+    glm::vec3 previousPosition() const;
 
     /// \return the sensor's rotation as as euler angles in world coordinates
-    glm::vec3 getEulerAngles() const;
+    glm::vec3 eulerAngles() const;
 
     /// \return the sensor's rotation as as euler angles in world coordinates
-    glm::vec3 getEulerAnglesPrevious() const;
+    glm::vec3 eulerAnglesPrevious() const;
 
     /// \return the sensor's rotation as a quaternion in world coordinates
-    glm::quat getRotation() const;
+    glm::quat rotation() const;
 
     /// \return the sensor's rotation as a quaternion in world coordinates
-    glm::quat getRotationPrevious() const;
+    glm::quat rotationPrevious() const;
 
     /// \return the sensor's transform matrix in world coordinates
-    glm::mat4 getWorldTransform() const;
+    glm::mat4 worldTransform() const;
 
     /// \return the sensor's transform matrix in world coordinates
-    glm::mat4 getWorldTransformPrevious() const;
+    glm::mat4 worldTransformPrevious() const;
 
     /// \return the raw sensor rotation quaternion
-    glm::dquat getSensorRotation() const;
+    glm::dquat sensorRotation() const;
 
     /// \return the raw sensor rotation quaternion
-    glm::dquat getSensorRotationPrevious() const;
+    glm::dquat sensorRotationPrevious() const;
 
     /// \return the raw sensor position vector
-    glm::dvec3 getSensorPosition() const;
+    glm::dvec3 sensorPosition() const;
 
     /// \return the raw sensor position vector
-    glm::dvec3 getSensorPositionPrevious() const;
+    glm::dvec3 sensorPositionPrevious() const;
 
-    double getTrackerTimeStamp();
-    double getTrackerTimeStampPrevious();
+    double trackerTimeStamp();
+    double trackerTimeStampPrevious();
 
-    double getAnalogTimeStamp() const;
-    double getAnalogTimeStampPrevious() const;
-    double getButtonTimeStamp(int index) const;
-    double getButtonTimeStampPrevious(int index) const;
+    double analogTimeStamp() const;
+    double analogTimeStampPrevious() const;
+    double buttonTimeStamp(int index) const;
+    double buttonTimeStampPrevious(int index) const;
 
-    double getTrackerDeltaTime() const;
-    double getAnalogDeltaTime() const;
-    double getButtonDeltaTime(int index) const;
+    double trackerDeltaTime() const;
+    double analogDeltaTime() const;
+    double buttonDeltaTime(int index) const;
 
 private:
     void calculateTransform();
@@ -127,7 +127,7 @@ private:
     void setAnalogTimeStamp();
     void setButtonTimeStamp(int index);
 
-    bool _enabled = true;
+    bool _isEnabled = true;
     std::string _name;
     int _parentIndex; // the index of parent Tracker
     int _nButtons = 0;

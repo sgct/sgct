@@ -80,9 +80,9 @@ public:
     void setUser(User* user);
 
     /// \return the resolution of the cubemap
-    int getCubemapResolution() const;
+    int cubemapResolution() const;
 
-    glm::ivec4 getViewportCoords();
+    glm::ivec4 viewportCoords();
 
 protected:
     virtual void initTextures();

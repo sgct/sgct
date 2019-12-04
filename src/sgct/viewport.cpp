@@ -327,19 +327,19 @@ bool Viewport::isTracked() const {
     return _isTracked;
 }
 
-unsigned int Viewport::getOverlayTextureIndex() const {
+unsigned int Viewport::overlayTextureIndex() const {
     return _overlayTextureIndex;
 }
 
-unsigned int Viewport::getBlendMaskTextureIndex() const {
+unsigned int Viewport::blendMaskTextureIndex() const {
     return _blendMaskTextureIndex;
 }
 
-unsigned int Viewport::getBlackLevelMaskTextureIndex() const {
+unsigned int Viewport::blackLevelMaskTextureIndex() const {
     return _blackLevelMaskTextureIndex;
 }
 
-NonLinearProjection* Viewport::getNonLinearProjection() const {
+NonLinearProjection* Viewport::nonLinearProjection() const {
     return _nonLinearProjection.get();
 }
 

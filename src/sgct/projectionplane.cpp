@@ -27,15 +27,15 @@ void ProjectionPlane::setCoordinates(glm::vec3 lowerLeft, glm::vec3 upperLeft,
     _upperRight = std::move(upperRight);
 }
 
-const glm::vec3& ProjectionPlane::getCoordinateLowerLeft() const {
+const glm::vec3& ProjectionPlane::coordinateLowerLeft() const {
     return _lowerLeft;
 }
 
-const glm::vec3& ProjectionPlane::getCoordinateUpperLeft() const {
+const glm::vec3& ProjectionPlane::coordinateUpperLeft() const {
     return _upperLeft;
 }
 
-const glm::vec3& ProjectionPlane::getCoordinateUpperRight() const {
+const glm::vec3& ProjectionPlane::coordinateUpperRight() const {
     return _upperRight;
 }
 

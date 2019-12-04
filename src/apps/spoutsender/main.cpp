@@ -70,18 +70,18 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
     glBindTexture(GL_TEXTURE_2D, texture);
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -104,12 +104,12 @@ void postDrawFun() {
 
         GLuint texId;
         if (windowData[i].second) {
-            texId = Engine::instance().getWindow(winIndex).getFrameBufferTexture(
+            texId = Engine::instance().window(winIndex).frameBufferTexture(
                 Window::TextureIndex::LeftEye
             );
         }
         else {
-            texId = Engine::instance().getWindow(winIndex).getFrameBufferTexture(
+            texId = Engine::instance().window(winIndex).frameBufferTexture(
                 Window::TextureIndex::RightEye
             );
         }
@@ -119,8 +119,8 @@ void postDrawFun() {
         spoutSendersData[i].spoutSender->SendTexture(
             texId,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            Engine::instance().getWindow(winIndex).getFramebufferResolution().x,
-            Engine::instance().getWindow(winIndex).getFramebufferResolution().y
+            Engine::instance().window(winIndex).framebufferResolution().x,
+            Engine::instance().window(winIndex).framebufferResolution().y
         );
     }
 
@@ -129,7 +129,7 @@ void postDrawFun() {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
@@ -137,11 +137,11 @@ void preWindowInitFun() {
     std::string baseName = "SGCT_Window";
 
     //get number of framebuffer textures
-    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
+    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
         // do not resize buffers while minimized
-        Engine::instance().getWindow(i).setFixResolution(true);
+        Engine::instance().window(i).setFixResolution(true);
 
-        if (Engine::instance().getWindow(i).isStereo()) {
+        if (Engine::instance().window(i).isStereo()) {
             senderNames.push_back(baseName + std::to_string(i) + "_Left");
             windowData.push_back(std::pair(i, true));
 
@@ -169,8 +169,8 @@ void initOGLFun() {
         
         const bool success = spoutSendersData[i].spoutSender->CreateSender(
             spoutSendersData[i].senderName,
-            Engine::instance().getWindow(winIndex).getFramebufferResolution().x,
-            Engine::instance().getWindow(winIndex).getFramebufferResolution().y
+            Engine::instance().window(winIndex).framebufferResolution().x,
+            Engine::instance().window(winIndex).framebufferResolution().y
         );
         spoutSendersData[i].initialized = success;
     }
@@ -186,11 +186,11 @@ void initOGLFun() {
     glFrontFace(GL_CCW);
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
-    matrixLoc = glGetUniformLocation(prog.getId(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
+    matrixLoc = glGetUniformLocation(prog.id(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
 
     prog.unbind();
 }

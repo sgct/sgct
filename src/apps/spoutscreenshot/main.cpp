@@ -79,7 +79,7 @@ bool bindSpout() {
 }
 
 void drawFun(RenderData) {
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
     glActiveTexture(GL_TEXTURE0);
@@ -135,10 +135,10 @@ void initOGLFun() {
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
 
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
-    glUniform1i(glGetUniformLocation(prog.getId(), "tex"), 0);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
 
     prog.unbind();
 }

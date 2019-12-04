@@ -78,9 +78,9 @@ void initFun() {
     glBindVertexArray(0);
 
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
-    matrixLoc = glGetUniformLocation(prg.getId(), "mvp");
+    matrixLoc = glGetUniformLocation(prg.id(), "mvp");
     prg.unbind(); 
 }
 
@@ -89,23 +89,23 @@ void drawFun(RenderData data) {
 
     glm::mat4 scene = glm::rotate(
         glm::mat4(1.f),
-        static_cast<float>(currentTime.getVal()) * Speed,
+        static_cast<float>(currentTime.value()) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
-    ShaderManager::instance().getShaderProgram("xform").bind();
+    ShaderManager::instance().shaderProgram("xform").bind();
 
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glBindVertexArray(vertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
-    ShaderManager::instance().getShaderProgram("xform").unbind();
+    ShaderManager::instance().shaderProgram("xform").unbind();
 }
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 

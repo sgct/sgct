@@ -44,7 +44,7 @@ struct Configuration {
 Configuration parseArguments(std::vector<std::string>& arg);
 
 /// Returns the text providing information about the available commandline options
-std::string getHelpMessage();
+std::string helpMessage();
 
 } // namespace sgct
 

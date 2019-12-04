@@ -63,7 +63,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     const auto shaderIt = std::find_if(
         _shaderPrograms.begin(),
         _shaderPrograms.end(),
-        [name](const ShaderProgram& prg) { return prg.getName() == name; }
+        [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
 
     if (shaderIt == _shaderPrograms.end()) {
@@ -77,11 +77,11 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     return true;
 }
 
-const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
+const ShaderProgram& ShaderManager::shaderProgram(const std::string& name) const {
     const auto shaderIt = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
-        [name](const ShaderProgram& prg) { return prg.getName() == name; }
+        [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
         throw Error(7001, "Could not find shader with name " + name);
@@ -93,7 +93,7 @@ bool ShaderManager::shaderProgramExists(const std::string& name) const {
     const auto exists = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
-        [name](const ShaderProgram& prg) { return prg.getName() == name; }
+        [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
 
     return exists != _shaderPrograms.cend();

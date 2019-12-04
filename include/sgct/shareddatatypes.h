@@ -22,14 +22,14 @@ public:
     SharedObject() = default;
     explicit SharedObject(T val) : _value(std::move(val)) {}
 
-    T getVal() const {
+    T value() const {
         _mutex.lock();
         T tmpT = _value;
         _mutex.unlock();
         return tmpT;
     }
 
-    void setVal(T val) {
+    void setValue(T val) {
         _mutex.lock();
         _value = std::move(val);
         _mutex.unlock();
@@ -91,27 +91,27 @@ public:
         mVector.reserve(size);
     }
 
-    T getValAt(size_t index) const {
+    T valueAt(size_t index) const {
         std::unique_lock lock(_mutex);
         return mVector[index];
     }
 
-    std::vector<T> getVal() const {
+    std::vector<T> value() const {
         std::unique_lock lock(_mutex);
         return mVector;
     }
 
-    void setValAt(size_t index, T val) {
+    void setValueAt(size_t index, T val) {
         std::unique_lock lock(_mutex);
         mVector[index] = val;
     }
 
-    void addVal(T val) {
+    void addValue(T val) {
         std::unique_lock lock(_mutex);
         mVector.push_back(val);
     }
 
-    void setVal(std::vector<T> mCopy) {
+    void setValue(std::vector<T> mCopy) {
         std::unique_lock lock(_mutex);
         mVector = std::move(mCopy);
     }
@@ -121,7 +121,7 @@ public:
         mVector.clear();
     }
 
-    size_t getSize() const {
+    size_t size() const {
         std::unique_lock lock(_mutex);
         return mVector.size();
     }

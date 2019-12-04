@@ -29,28 +29,28 @@ void Tracker::addDevice(std::string name, int index) {
     Logger::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
 }
 
-TrackingDevice* Tracker::getLastDevice() const {
+TrackingDevice* Tracker::lastDevice() const {
     return !_trackingDevices.empty() ? _trackingDevices.back().get() : nullptr;
 }
 
-TrackingDevice* Tracker::getDevice(size_t index) const {
+TrackingDevice* Tracker::device(size_t index) const {
     return index < _trackingDevices.size() ? _trackingDevices[index].get() : nullptr;
 }
 
-TrackingDevice* Tracker::getDevice(const std::string& name) const {
+TrackingDevice* Tracker::device(const std::string& name) const {
     const auto it = std::find_if(
         _trackingDevices.cbegin(),
         _trackingDevices.cend(),
-        [name](const std::unique_ptr<TrackingDevice>& d) { return d->getName() == name; }
+        [name](const std::unique_ptr<TrackingDevice>& d) { return d->name() == name; }
     );
     return it != _trackingDevices.cend() ? it->get() : nullptr;
 }
 
-TrackingDevice* Tracker::getDeviceBySensorId(int id) const {
+TrackingDevice* Tracker::deviceBySensorId(int id) const {
     const auto it = std::find_if(
         _trackingDevices.cbegin(),
         _trackingDevices.cend(),
-        [id](const std::unique_ptr<TrackingDevice>& d) { return d->getSensorId() == id; }
+        [id](const std::unique_ptr<TrackingDevice>& d) { return d->sensorId() == id; }
     );
     return it != _trackingDevices.cend() ? it->get() : nullptr;
 }
@@ -96,16 +96,16 @@ glm::mat4 Tracker::getTransform() const {
     return _transform;
 }
 
-double Tracker::getScale() const {
+double Tracker::scale() const {
     std::unique_lock lock(core::mutex::Tracking);
     return _scale;
 }
 
-int Tracker::getNumberOfDevices() const {
+int Tracker::numberOfDevices() const {
     return static_cast<int>(_trackingDevices.size());
 }
 
-const std::string& Tracker::getName() const {
+const std::string& Tracker::name() const {
     return _name;
 }
 

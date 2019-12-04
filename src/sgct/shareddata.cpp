@@ -86,106 +86,106 @@ void SharedData::encode() {
     }
 }
 
-std::size_t SharedData::getUserDataSize() {
+std::size_t SharedData::userDataSize() {
     return _dataBlock.size() - core::Network::HeaderSize;
 }
 
-unsigned char* SharedData::getDataBlock() {
+unsigned char* SharedData::dataBlock() {
     return _dataBlock.data();
 }
 
-size_t SharedData::getDataSize() {
+size_t SharedData::dataSize() {
     return _dataBlock.size();
 }
 
-size_t SharedData::getBufferSize() {
+size_t SharedData::bufferSize() {
     return _dataBlock.capacity();
 }
 
 void SharedData::writeFloat(const SharedFloat& sf) {
-    float val = sf.getVal();
+    float val = sf.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(float));
 }
 
 void SharedData::writeDouble(const SharedDouble& sd) {
-    double val = sd.getVal();
+    double val = sd.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(double));
 }
 
 void SharedData::writeInt64(const SharedInt64& si) {
-    int64_t val = si.getVal();
+    int64_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char* >(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int64_t));
 }
 
 void SharedData::writeInt32(const SharedInt32& si) {
-    int32_t val = si.getVal();
+    int32_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int32_t));
 }
 
 void SharedData::writeInt16(const SharedInt16& si) {
-    int16_t val = si.getVal();
+    int16_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int16_t));
 }
 
 void SharedData::writeInt8(const SharedInt8& si) {
-    int8_t val = si.getVal();
+    int8_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(int8_t));
 }
 
 void SharedData::writeUInt64(const SharedUInt64& si) {
-    uint64_t val = si.getVal();
+    uint64_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint64_t));
 }
 
 void SharedData::writeUInt32(const SharedUInt32& si) {
-    uint32_t val = si.getVal();
+    uint32_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
 }
 
 void SharedData::writeUInt16(const SharedUInt16& si) {
-    uint16_t val = si.getVal();
+    uint16_t val = si.value();
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint16_t));
 }
 
 void SharedData::writeUInt8(const SharedUInt8& si) {
-    uint8_t val = si.getVal();
+    uint8_t val = si.value();
     unsigned char* p = &val;
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint8_t));
 }
 
 void SharedData::writeUChar(const SharedUChar& suc) {
-    unsigned char val = suc.getVal();
+    unsigned char val = suc.value();
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.push_back(val);
 }
 
 void SharedData::writeBool(const SharedBool& sb) {
-    bool val = sb.getVal();
+    bool val = sb.value();
     std::unique_lock lk(core::mutex::DataSync);
     _dataBlock.push_back(val ? 1 : 0);
 }
 
 void SharedData::writeString(const SharedString& ss) {
-    std::string tmpStr = ss.getVal();
+    std::string tmpStr = ss.value();
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     
@@ -195,7 +195,7 @@ void SharedData::writeString(const SharedString& ss) {
 }
 
 void SharedData::writeWString(const SharedWString& ss) {
-    std::wstring tmpStr = ss.getVal();
+    std::wstring tmpStr = ss.value();
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     unsigned char* ws = reinterpret_cast<unsigned char*>(&tmpStr[0]);
@@ -211,7 +211,7 @@ void SharedData::readFloat(SharedFloat& sf) {
     _pos += sizeof(float);
     core::mutex::DataSync.unlock();
 
-    sf.setVal(val);
+    sf.setValue(val);
 }
 
 void SharedData::readDouble(SharedDouble& sd) {
@@ -220,7 +220,7 @@ void SharedData::readDouble(SharedDouble& sd) {
     _pos += sizeof(double);
     core::mutex::DataSync.unlock();
 
-    sd.setVal(val);
+    sd.setValue(val);
 }
 
 void SharedData::readInt64(SharedInt64& si) {
@@ -229,7 +229,7 @@ void SharedData::readInt64(SharedInt64& si) {
     _pos += sizeof(int64_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readInt32(SharedInt32& si) {
@@ -238,7 +238,7 @@ void SharedData::readInt32(SharedInt32& si) {
     _pos += sizeof(int32_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readInt16(SharedInt16& si) {
@@ -247,7 +247,7 @@ void SharedData::readInt16(SharedInt16& si) {
     _pos += sizeof(int16_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readInt8(SharedInt8& si) {
@@ -256,7 +256,7 @@ void SharedData::readInt8(SharedInt8& si) {
     _pos += sizeof(int8_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readUInt64(SharedUInt64& si) {
@@ -265,7 +265,7 @@ void SharedData::readUInt64(SharedUInt64& si) {
     _pos += sizeof(uint64_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readUInt32(SharedUInt32& si) {
@@ -274,7 +274,7 @@ void SharedData::readUInt32(SharedUInt32& si) {
     _pos += sizeof(uint32_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readUInt16(SharedUInt16& si) {
@@ -283,7 +283,7 @@ void SharedData::readUInt16(SharedUInt16& si) {
     _pos += sizeof(uint16_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readUInt8(SharedUInt8& si) {
@@ -292,7 +292,7 @@ void SharedData::readUInt8(SharedUInt8& si) {
     _pos += sizeof(uint8_t);
     core::mutex::DataSync.unlock();
 
-    si.setVal(val);
+    si.setValue(val);
 }
 
 void SharedData::readUChar(SharedUChar& suc) {
@@ -301,7 +301,7 @@ void SharedData::readUChar(SharedUChar& suc) {
     _pos += sizeof(unsigned char);
     core::mutex::DataSync.unlock();
 
-    suc.setVal(c);
+    suc.setValue(c);
 }
 
 void SharedData::readBool(SharedBool& sb) {
@@ -310,7 +310,7 @@ void SharedData::readBool(SharedBool& sb) {
     _pos += 1;
     core::mutex::DataSync.unlock();
 
-    sb.setVal(b);
+    sb.setValue(b);
 }
 
 void SharedData::readString(SharedString& ss) {
@@ -320,7 +320,7 @@ void SharedData::readString(SharedString& ss) {
     _pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss.setVal("");
+        ss.setValue("");
         return;
     }
 
@@ -328,7 +328,7 @@ void SharedData::readString(SharedString& ss) {
     _pos += length;
     core::mutex::DataSync.unlock();
     
-    ss.setVal(std::move(stringData));
+    ss.setValue(std::move(stringData));
 }
 
 void SharedData::readWString(SharedWString& ss) {
@@ -338,7 +338,7 @@ void SharedData::readWString(SharedWString& ss) {
     _pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss.setVal(std::wstring());
+        ss.setValue(std::wstring());
         return;
     }
 
@@ -346,7 +346,7 @@ void SharedData::readWString(SharedWString& ss) {
     _pos += length * sizeof(wchar_t);
     core::mutex::DataSync.unlock();
 
-    ss.setVal(std::move(stringData));
+    ss.setValue(std::move(stringData));
 }
 
 } // namespace sgct

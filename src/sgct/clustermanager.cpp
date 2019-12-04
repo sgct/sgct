@@ -69,7 +69,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             Logger::Info("Adding user '%s'", user.name->c_str());
         }
         else {
-            usrPtr = &getDefaultUser();
+            usrPtr = &defaultUser();
         }
 
         if (user.eyeSeparation) {
@@ -106,34 +106,34 @@ void ClusterManager::addUser(User user) {
     _users.push_back(std::move(user));
 }
 
-const Node& ClusterManager::getNode(int index) const {
+const Node& ClusterManager::node(int index) const {
     return _nodes[index];
 }
 
-Node& ClusterManager::getThisNode() {
+Node& ClusterManager::thisNode() {
     return _nodes[_thisNodeId];
 }
 
-const Node& ClusterManager::getThisNode() const {
+const Node& ClusterManager::thisNode() const {
     return _nodes[_thisNodeId];
 }
 
-User& ClusterManager::getDefaultUser() {
+User& ClusterManager::defaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
     // possible to clear the _users list
     return _users[0];
 }
 
-User* ClusterManager::getUser(const std::string& name) {
+User* ClusterManager::user(const std::string& name) {
     auto it = std::find_if(
         _users.begin(),
         _users.end(),
-        [&name](const User& user) { return user.getName() == name; }
+        [&name](const User& user) { return user.name() == name; }
     );
     return it != _users.end() ? &*it : nullptr;
 }
 
-User* ClusterManager::getTrackedUser() {
+User* ClusterManager::trackedUser() {
     auto it = std::find_if(
         _users.begin(),
         _users.end(),
@@ -142,7 +142,7 @@ User* ClusterManager::getTrackedUser() {
     return it != _users.end() ? &*it : nullptr;
 }
 
-bool ClusterManager::getIgnoreSync() const {
+bool ClusterManager::ignoreSync() const {
     return _ignoreSync;
 }
 
@@ -150,11 +150,11 @@ void ClusterManager::setUseIgnoreSync(bool state) {
     _ignoreSync = state;
 }
 
-const std::string& ClusterManager::getMasterAddress() const {
+const std::string& ClusterManager::masterAddress() const {
     return _masterAddress;
 }
 
-int ClusterManager::getExternalControlPort() const {
+int ClusterManager::externalControlPort() const {
     return _externalControlPort;
 }
 
@@ -162,11 +162,11 @@ void ClusterManager::setExternalControlPort(int port) {
     _externalControlPort = port;
 }
 
-int ClusterManager::getNumberOfNodes() const {
+int ClusterManager::numberOfNodes() const {
     return static_cast<int>(_nodes.size());
 }
 
-const glm::mat4& ClusterManager::getSceneTransform() const {
+const glm::mat4& ClusterManager::sceneTransform() const {
     return _sceneTransform;
 }
 
@@ -174,11 +174,11 @@ void ClusterManager::setThisNodeId(int id) {
     _thisNodeId = id;
 }
 
-int ClusterManager::getThisNodeId() const {
+int ClusterManager::thisNodeId() const {
     return _thisNodeId;
 }
 
-bool ClusterManager::getFirmFrameLockSyncStatus() const {
+bool ClusterManager::firmFrameLockSyncStatus() const {
     return _firmFrameLockSync;
 }
 

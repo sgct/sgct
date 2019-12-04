@@ -44,7 +44,7 @@ public:
      * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    const Node& getNode(int index) const;
+    const Node& node(int index) const;
 
     /**
      * Get the current node. Please observe that the address of this object might change
@@ -52,7 +52,7 @@ public:
      *
      * \return a reference to the node that this application is running on
      */
-    Node& getThisNode();
+    Node& thisNode();
 
     /**
      * Get the current node. Please observe that the address of this object might change
@@ -60,7 +60,7 @@ public:
      *
      * \return a reference to the node that this application is running on
      */
-    const Node& getThisNode() const;
+    const Node& thisNode() const;
 
     /**
      * Get the default user. Please observe that the address of this object might change
@@ -68,7 +68,7 @@ public:
      *
      * \return the pointer to the default user
      */
-    User& getDefaultUser();
+    User& defaultUser();
 
     /**
      * Get the user with the specific name. Please observe that the address of this object
@@ -76,7 +76,7 @@ public:
      *
      * \return the pointer to a named user. nullptr is returned if no user is found.
      */
-    User* getUser(const std::string& name);
+    User* user(const std::string& name);
 
     /**
      * Get the tracked user. Please observe that the address of this object might change
@@ -84,13 +84,13 @@ public:
      *
      * \return the pointer to the tracked user. Returns nullptr if no user is tracked.
      */
-    User* getTrackedUser();
+    User* trackedUser();
 
     /// \return the number of nodes in the cluster
-    int getNumberOfNodes() const;
+    int numberOfNodes() const;
     
     /// \return the scene transform specified in the configuration file
-    const glm::mat4& getSceneTransform() const;
+    const glm::mat4& sceneTransform() const;
 
     /**
      * Don't set this, this is done automatically using from the Network Manager which
@@ -101,19 +101,19 @@ public:
     void setThisNodeId(int id);
 
     /// \return the id to the node which runs this application
-    int getThisNodeId() const;
+    int thisNodeId() const;
 
     /// \return the dns, name or IP of the master in the cluster
-    const std::string& getMasterAddress() const;
+    const std::string& masterAddress() const;
 
     /// \return state of the firm frame lock lock sync
-    bool getFirmFrameLockSyncStatus() const;
+    bool firmFrameLockSyncStatus() const;
 
     /// \param the state of the firm frame lock sync
     void setFirmFrameLockSyncStatus(bool state);
 
     /// \return the external control port number
-    int getExternalControlPort() const;
+    int externalControlPort() const;
 
     /// \param the external control port number
     void setExternalControlPort(int port);
@@ -122,7 +122,7 @@ public:
     void setUseIgnoreSync(bool state);
 
     /// Get if software sync between nodes is disabled
-    bool getIgnoreSync() const;
+    bool ignoreSync() const;
 
 private:
     ClusterManager();

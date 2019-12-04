@@ -28,11 +28,11 @@ public:
     /// Save the buffer to file. Type is automatically set by filename suffix.
     void save(const std::string& filename);
 
-    unsigned char* getData();
-    const unsigned char* getData() const;
-    int getChannels() const;
-    int getBytesPerChannel() const;
-    glm::ivec2 getSize() const;
+    unsigned char* data();
+    const unsigned char* data() const;
+    int channels() const;
+    int bytesPerChannel() const;
+    glm::ivec2 size() const;
 
     void setSize(glm::ivec2 size);
     void setChannels(int channels);

@@ -117,11 +117,11 @@ void NonLinearProjection::setUser(User* user) {
     _subViewports.back.setUser(user);
 }
 
-int NonLinearProjection::getCubemapResolution() const {
+int NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
-glm::ivec4 NonLinearProjection::getViewportCoords() {
+glm::ivec4 NonLinearProjection::viewportCoords() {
     return _vpCoords;
 }
 
@@ -158,7 +158,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance().useNormalTexture()) {
         generateCubeMap(
             _textures.cubeMapNormals,
-            Settings::instance().getBufferFloatPrecision()
+            Settings::instance().bufferFloatPrecision()
         );
         Logger::Debug(
             "%dx%d normal cube map texture (id: %d) generated",
@@ -169,7 +169,7 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance().usePositionTexture()) {
         generateCubeMap(
             _textures.cubeMapPositions,
-            Settings::instance().getBufferFloatPrecision()
+            Settings::instance().bufferFloatPrecision()
         );
         Logger::Debug(
             "%dx%d position cube map texture (%d) generated",
@@ -216,10 +216,10 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
     const float cmRes = static_cast<float>(_cubemapResolution);
 
     _vpCoords = glm::ivec4(
-        static_cast<int>(floor(vp.getPosition().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getPosition().y * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getSize().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.getSize().y * cmRes + 0.5f))
+        static_cast<int>(floor(vp.position().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.position().y * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.size().x * cmRes + 0.5f)),
+        static_cast<int>(floor(vp.size().y * cmRes + 0.5f))
     );
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);

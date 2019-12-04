@@ -95,7 +95,7 @@ namespace {
         if (buffer == BufferMode::BackBufferBlack) {
             const bool doubleBuffered = window.isDoubleBuffered();
             // Set buffer
-            if (window.getStereoMode() != Window::StereoMode::Active) {
+            if (window.stereoMode() != Window::StereoMode::Active) {
                 glDrawBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
                 glReadBuffer(doubleBuffered ? GL_BACK : GL_FRONT);
             }
@@ -115,7 +115,7 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT);
         }
         else {
-            const glm::vec4 color = sgct::Engine::instance().getClearColor();
+            const glm::vec4 color = sgct::Engine::instance().clearColor();
             const float alpha = window.hasAlpha() ? 0.f : color.a;
             glClearColor(color.r, color.g, color.b, alpha);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -158,11 +158,11 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         }
         catch (const std::runtime_error& e) {
             std::cout << e.what() << '\n';
-            std::cout << getHelpMessage() << '\n';
+            std::cout << helpMessage() << '\n';
             throw;
         }
         catch (...) {
-            std::cout << getHelpMessage() << '\n';
+            std::cout << helpMessage() << '\n';
             throw;
         }
     }
@@ -233,7 +233,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.logPath) {
         Logger::instance().setLogPath(
             config.logPath->c_str(),
-            core::ClusterManager::instance().getThisNodeId()
+            core::ClusterManager::instance().thisNodeId()
         );
         Logger::instance().setLogToFile(true);
     }
@@ -241,7 +241,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Logger::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
-        std::cout << getHelpMessage() << '\n';
+        std::cout << helpMessage() << '\n';
         std::exit(0);
     }
     if (config.nodeId) {
@@ -290,7 +290,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         throw Err(3000, "Failed to initialize GLFW");
     }
 
-    Logger::Info("SGCT version: %s", getVersion().c_str());
+    Logger::Info("SGCT version: %s", version().c_str());
 
     Logger::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
@@ -309,82 +309,82 @@ void Engine::initialize(Profile profile) {
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).updateResolutions();
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        thisNode.window(i).updateResolutions();
     }
     // if a single node, skip syncing
-    if (core::ClusterManager::instance().getNumberOfNodes() == 1) {
+    if (core::ClusterManager::instance().numberOfNodes() == 1) {
         core::ClusterManager::instance().setUseIgnoreSync(true);
     }
 
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        GLFWwindow* window = getWindow(i).getWindowHandle();
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        GLFWwindow* win = window(i).windowHandle();
         if (gKeyboardCallback) {
             glfwSetKeyCallback(
-                window,
+                win,
                 [](GLFWwindow*, int key, int scancode, int a, int m) {
-                if (gKeyboardCallback) {
-                    gKeyboardCallback(Key(key), Modifier(m), Action(a), scancode);
+                    if (gKeyboardCallback) {
+                        gKeyboardCallback(Key(key), Modifier(m), Action(a), scancode);
+                    }
                 }
-            }
             );
         }
         if (gMouseButtonCallback) {
             glfwSetMouseButtonCallback(
-                window,
+                win,
                 [](GLFWwindow*, int b, int a, int m) {
-                if (gMouseButtonCallback) {
-                    gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
+                    if (gMouseButtonCallback) {
+                        gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
+                    }
                 }
-            }
             );
         }
         if (gMousePosCallback) {
             glfwSetCursorPosCallback(
-                window,
+                win,
                 [](GLFWwindow*, double xPos, double yPos) {
-                if (gMousePosCallback) {
-                    gMousePosCallback(xPos, yPos);
+                    if (gMousePosCallback) {
+                        gMousePosCallback(xPos, yPos);
+                    }
                 }
-            }
             );
         }
         if (gCharCallback) {
             glfwSetCharModsCallback(
-                window,
+                win,
                 [](GLFWwindow*, unsigned int ch, int mod) {
-                if (gCharCallback) {
-                    gCharCallback(ch, mod);
+                    if (gCharCallback) {
+                        gCharCallback(ch, mod);
+                    }
                 }
-            }
             );
         }
         if (gMouseScrollCallback) {
             glfwSetScrollCallback(
-                window,
+                win,
                 [](GLFWwindow*, double xOffset, double yOffset) {
-                if (gMouseScrollCallback) {
-                    gMouseScrollCallback(xOffset, yOffset);
+                    if (gMouseScrollCallback) {
+                        gMouseScrollCallback(xOffset, yOffset);
+                    }
                 }
-            }
             );
         }
         if (gDropCallback) {
             glfwSetDropCallback(
-                window,
+                win,
                 [](GLFWwindow*, int count, const char** paths) {
-                if (gDropCallback) {
-                    gDropCallback(count, paths);
+                    if (gDropCallback) {
+                        gDropCallback(count, paths);
+                    }
                 }
-            }
             );
         }
     }
 
     // Get OpenGL version from the first window as there has to be one
     int v[3];
-    GLFWwindow* winHandle = getWindow(0).getWindowHandle();
+    GLFWwindow* winHandle = window(0).windowHandle();
     v[0] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR);
     v[1] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR);
     v[2] = glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION);
@@ -393,9 +393,9 @@ void Engine::initialize(Profile profile) {
     Logger::Info("Vendor: %s", glGetString(GL_VENDOR));
     Logger::Info("Renderer: %s", glGetString(GL_RENDERER));
 
-    if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
-        std::string path = Settings::instance().getCapturePath() + "_node";
-        path += std::to_string(core::ClusterManager::instance().getThisNodeId());
+    if (core::ClusterManager::instance().numberOfNodes() > 1) {
+        std::string path = Settings::instance().capturePath() + "_node";
+        path += std::to_string(core::ClusterManager::instance().thisNodeId());
 
         Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
         Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
@@ -409,8 +409,8 @@ void Engine::initialize(Profile profile) {
     // Load Shaders
     //
     bool needsFxaa = false;
-    for (int i = 0; i < getThisNode().getNumberOfWindows(); ++i) {
-        needsFxaa |= getThisNode().getWindow(i).useFXAA();
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        needsFxaa |= thisNode.window(i).useFXAA();
     }
 
     if (needsFxaa) {
@@ -420,9 +420,9 @@ void Engine::initialize(Profile profile) {
         shdr.shader.createAndLinkProgram();
         shdr.shader.bind();
 
-        const int id = shdr.shader.getId();
+        const int id = shdr.shader.id();
         shdr.sizeX = glGetUniformLocation(id, "rt_w");
-        const glm::ivec2 framebufferSize = getWindow(0).getFramebufferResolution();
+        const glm::ivec2 framebufferSize = window(0).framebufferResolution();
         glUniform1f(shdr.sizeX, static_cast<float>(framebufferSize.x));
 
         shdr.sizeY = glGetUniformLocation(id, "rt_h");
@@ -445,14 +445,14 @@ void Engine::initialize(Profile profile) {
     _fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
     _fboQuad.createAndLinkProgram();
     _fboQuad.bind();
-    glUniform1i(glGetUniformLocation(_fboQuad.getId(), "tex"), 0);
+    glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
     ShaderProgram::unbind();
 
     _overlay = ShaderProgram("OverlayShader");
     _overlay.addShaderSource(core::shaders::OverlayVert, core::shaders::OverlayFrag);
     _overlay.createAndLinkProgram();
     _overlay.bind();
-    glUniform1i(glGetUniformLocation(_overlay.getId(), "Tex"), 0);
+    glUniform1i(glGetUniformLocation(_overlay.id(), "Tex"), 0);
     ShaderProgram::unbind();
 
     if (_initOpenGLFn) {
@@ -461,11 +461,11 @@ void Engine::initialize(Profile profile) {
     }
 
     // link all users to their viewports
-    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-        Window& win = thisNode.getWindow(i);
+    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
+        Window& win = thisNode.window(i);
         win.initOGL();
-        for (int j = 0; j < win.getNumberOfViewports(); ++j) {
-            win.getViewport(j).linkUserName();
+        for (int j = 0; j < win.numberOfViewports(); ++j) {
+            win.viewport(j).linkUserName();
         }
     }
 
@@ -487,8 +487,8 @@ void Engine::initialize(Profile profile) {
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
 
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).initContextSpecificOGL();
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        thisNode.window(i).initContextSpecificOGL();
     }
 
     // start sampling tracking data
@@ -504,9 +504,9 @@ Engine::~Engine() {
     // if the configuration was illformed
     core::ClusterManager& cm = core::ClusterManager::instance();
     const bool hasNode =
-        cm.getThisNodeId() > -1 && cm.getThisNodeId() < cm.getNumberOfNodes();
+        cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
 
-    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
+    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
         Window::makeSharedContextCurrent();
         if (_cleanUpFn) {
             _cleanUpFn();
@@ -540,9 +540,9 @@ Engine::~Engine() {
     }
 
     // de-init window and unbind swapgroups
-    if (hasNode && core::ClusterManager::instance().getNumberOfNodes() > 0) {
-        for (int i = 0; i < cm.getThisNode().getNumberOfWindows(); ++i) {
-            cm.getThisNode().getWindow(i).close();
+    if (hasNode && core::ClusterManager::instance().numberOfNodes() > 0) {
+        for (int i = 0; i < cm.thisNode().numberOfWindows(); ++i) {
+            cm.thisNode().window(i).close();
         }
     }
 
@@ -551,7 +551,7 @@ Engine::~Engine() {
     core::NetworkManager::destroy();
 
     // Shared contex
-    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
+    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
         Window::makeSharedContextCurrent();
     }
 
@@ -577,8 +577,8 @@ Engine::~Engine() {
 #endif // SGCT_HAS_TEXT
 
     // Window specific context
-    if (hasNode && cm.getThisNode().getNumberOfWindows() > 0) {
-        cm.getThisNode().getWindow(0).makeOpenGLContextCurrent();
+    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
+        cm.thisNode().window(0).makeOpenGLContextCurrent();
     }
     
     Logger::Debug("Destroying shared data");
@@ -609,9 +609,9 @@ void Engine::initNetwork(core::NetworkManager::NetworkMode netMode) {
     if (netMode == core::NetworkManager::NetworkMode::Remote) {
         Logger::Debug("Matching ip address to find node in configuration");
 
-        for (int i = 0; i < core::ClusterManager::instance().getNumberOfNodes(); i++) {
+        for (int i = 0; i < core::ClusterManager::instance().numberOfNodes(); i++) {
             // check ip
-            const std::string& addr = cm.getNode(i).getAddress();
+            const std::string& addr = cm.node(i).address();
             if (core::NetworkManager::instance().matchesAddress(addr)) {
                 cm.setThisNodeId(i);
                 Logger::Debug("Running in cluster mode as node %d", i);
@@ -620,16 +620,16 @@ void Engine::initNetwork(core::NetworkManager::NetworkMode netMode) {
         }
     }
     else {
-        Logger::Debug("Running locally as node %d", cm.getThisNodeId());
+        Logger::Debug("Running locally as node %d", cm.thisNodeId());
     }
 
     // If the user has provided the node _id as an incorrect cmd argument then make the
     // _thisNode invalid
-    if (cm.getThisNodeId() < 0) {
+    if (cm.thisNodeId() < 0) {
         core::NetworkManager::destroy();
         throw Err(3001, "Computer is not a part of the cluster configuration");
     }
-    if (cm.getThisNodeId() >= cm.getNumberOfNodes()) {
+    if (cm.thisNodeId() >= cm.numberOfNodes()) {
         core::NetworkManager::destroy();
         throw Err(3002, "Requested node id was not found in the cluster configuration");
     }
@@ -638,7 +638,7 @@ void Engine::initNetwork(core::NetworkManager::NetworkMode netMode) {
 }
 
 void Engine::initWindows(Profile profile) {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
     {
         int ver[3];
         glfwGetVersion(&ver[0], &ver[1], &ver[2]);
@@ -693,10 +693,10 @@ void Engine::initWindows(Profile profile) {
         _preWindowFn();
     }
 
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        GLFWwindow* s = i == 0 ? nullptr : thisNode.getWindow(0).getWindowHandle();
-        const bool isLastWindow = i == thisNode.getNumberOfWindows() - 1;
-        thisNode.getWindow(i).openWindow(s, isLastWindow);
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        GLFWwindow* s = i == 0 ? nullptr : thisNode.window(0).windowHandle();
+        const bool isLastWindow = i == thisNode.numberOfWindows() - 1;
+        thisNode.window(i).openWindow(s, isLastWindow);
     }
 
     glbinding::Binding::initialize(glfwGetProcAddress);
@@ -800,15 +800,15 @@ void Engine::initWindows(Profile profile) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Window/Context creation callback
-    if (thisNode.getNumberOfWindows() > 0) {
+    if (thisNode.numberOfWindows() > 0) {
         if (_contextCreationFn) {
-            GLFWwindow* share = thisNode.getWindow(0).getWindowHandle();
+            GLFWwindow* share = thisNode.window(0).windowHandle();
             _contextCreationFn(share);
         }
     }
 
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).init();
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        thisNode.window(i).init();
     }
 
     // init draw buffer resolution
@@ -816,7 +816,7 @@ void Engine::initWindows(Profile profile) {
     waitForAllWindowsInSwapGroupToOpen();
 
     if (RunFrameLockCheckThread) {
-        if (core::ClusterManager::instance().getNumberOfNodes() > 1) {
+        if (core::ClusterManager::instance().numberOfNodes() > 1) {
             _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
         }
     }
@@ -844,7 +844,7 @@ void Engine::frameLockPreStage() {
 
     // run only on clients
     if (core::NetworkManager::instance().isComputerServer() &&
-        !core::ClusterManager::instance().getIgnoreSync())
+        !core::ClusterManager::instance().ignoreSync())
     {
         return;
     }
@@ -862,15 +862,15 @@ void Engine::frameLockPreStage() {
         }
 
         // more than a second
-        core::Network* c = core::NetworkManager::instance().getSyncConnectionByIndex(0);
+        core::Network* c = core::NetworkManager::instance().syncConnection(0);
         if (_printSyncMessage && !c->isUpdated()) {
             Logger::Info(
                 "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
                 "Swap barrier: %s\n\tUniversal frame number: %u\n\tSGCT frame number: %u",
-                c->getSendFrameCurrent(), c->getRecvFramePrevious(),
+                c->sendFrameCurrent(), c->recvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
                 Window::isBarrierActive() ? "enabled" : "disabled",
-                Window::getSwapGroupFrameNumber(), _frameCounter
+                Window::swapGroupFrameNumber(), _frameCounter
             );
         }
 
@@ -892,7 +892,7 @@ void Engine::frameLockPreStage() {
 
 void Engine::frameLockPostStage() {
     // post stage
-    if (core::ClusterManager::instance().getIgnoreSync() ||
+    if (core::ClusterManager::instance().ignoreSync() ||
         !core::NetworkManager::instance().isComputerServer())
     {
         return;
@@ -900,7 +900,7 @@ void Engine::frameLockPostStage() {
 
     const double t0 = glfwGetTime();
     while (core::NetworkManager::instance().isRunning() && _isRunning &&
-        core::NetworkManager::instance().getActiveConnectionsCount() > 0 &&
+        core::NetworkManager::instance().activeConnectionsCount() > 0 &&
         !core::NetworkManager::instance().isSyncComplete())
     {
         std::unique_lock lk(core::mutex::FrameSync);
@@ -911,17 +911,17 @@ void Engine::frameLockPostStage() {
         }
         // more than a second
         core::NetworkManager& nm = core::NetworkManager::instance();
-        for (int i = 0; i < nm.getSyncConnectionsCount(); ++i) {
-            if (_printSyncMessage && !nm.getConnectionByIndex(i).isUpdated()) {
+        for (int i = 0; i < nm.syncConnectionsCount(); ++i) {
+            if (_printSyncMessage && !nm.connection(i).isUpdated()) {
                 Logger::Info(
                     "Waiting for IG%d: send frame %d != recv frame %d\n\tSwap groups: %s"
                     "\n\tSwap barrier: %s\n\tUniversal frame number: %u\n\t"
                     "SGCT frame number: %u",
-                    i, nm.getConnectionByIndex(i).getSendFrameCurrent(),
-                    nm.getConnectionByIndex(i).getRecvFrameCurrent(),
+                    i, nm.connection(i).sendFrameCurrent(),
+                    nm.connection(i).recvFrameCurrent(),
                     Window::isUsingSwapGroups() ? "enabled" : "disabled",
                     Window::isBarrierActive() ? "enabled" : "disabled",
-                    Window::getSwapGroupFrameNumber(), _frameCounter
+                    Window::swapGroupFrameNumber(), _frameCounter
                 );
             }
         }
@@ -947,7 +947,7 @@ void Engine::render() {
     unsigned int timeQueryEnd = 0;
     glGenQueries(1, &timeQueryEnd);
 
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
     while (_isRunning) {
         _renderingOffScreen = false;
 
@@ -972,8 +972,8 @@ void Engine::render() {
         frameLockPreStage();
 
         bool buffersNeedUpdate = false;
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            const bool bufUpdate = thisNode.getWindow(i).update();
+        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+            const bool bufUpdate = thisNode.window(i).update();
             buffersNeedUpdate |= bufUpdate;
         }
 
@@ -999,8 +999,8 @@ void Engine::render() {
         }
 
         // Render Viewports / Draw
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            Window& win = thisNode.getWindow(i);
+        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+            Window& win = thisNode.window(i);
             if (!(win.isVisible() || win.isRenderingWhileHidden())) {
                 continue;
             }
@@ -1009,21 +1009,21 @@ void Engine::render() {
                 win.makeOpenGLContextCurrent();
             }
 
-            Window::StereoMode sm = win.getStereoMode();
+            Window::StereoMode sm = win.stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
-            for (int j = 0; j < win.getNumberOfViewports(); ++j) {
-                core::Viewport& vp = win.getViewport(j);
+            for (int j = 0; j < win.numberOfViewports(); ++j) {
+                core::Viewport& vp = win.viewport(j);
                 if (!vp.hasSubViewports()) {
                     continue;
                 }
 
-                core::NonLinearProjection* nonLinearProj = vp.getNonLinearProjection();
+                core::NonLinearProjection* nonLinearProj = vp.nonLinearProjection();
 
                 nonLinearProj->setAlpha(win.hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
-                    nonLinearProj->renderCubemap(win, win.getViewport(j).getEye());
+                    nonLinearProj->renderCubemap(win, win.viewport(j).eye());
                 }
                 else {
                     nonLinearProj->renderCubemap(win, Frustum::Mode::StereoLeftEye);
@@ -1045,13 +1045,13 @@ void Engine::render() {
             }
 
             // Render right non-linear projection viewports to cubemap
-            for (int j = 0; j < win.getNumberOfViewports(); ++j) {
-                core::Viewport& vp = win.getViewport(j);
+            for (int j = 0; j < win.numberOfViewports(); ++j) {
+                core::Viewport& vp = win.viewport(j);
 
                 if (!vp.hasSubViewports()) {
                     continue;
                 }
-                core::NonLinearProjection* p = vp.getNonLinearProjection();
+                core::NonLinearProjection* p = vp.nonLinearProjection();
 
                 p->setAlpha(win.hasAlpha() ? 0.f : 1.f);
                 p->renderCubemap(win, Frustum::Mode::StereoRightEye);
@@ -1068,10 +1068,10 @@ void Engine::render() {
         }
 
         // Render to screen
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            if (thisNode.getWindow(i).isVisible()) {
+        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+            if (thisNode.window(i).isVisible()) {
                 _renderingOffScreen = false;
-                renderFBOTexture(getWindow(i));
+                renderFBOTexture(window(i));
             }
         }
         Window::makeSharedContextCurrent();
@@ -1107,13 +1107,13 @@ void Engine::render() {
         frameLockPostStage();
 
         // Swap front and back rendering buffers
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            thisNode.getWindow(i).swap(_takeScreenshot);
+        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+            thisNode.window(i).swap(_takeScreenshot);
         }
 
         glfwPollEvents();
-        for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-            thisNode.getWindow(i).updateResolutions();
+        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+            thisNode.window(i).updateResolutions();
         }
 
         // Check if exit key was pressed or window was closed
@@ -1134,8 +1134,8 @@ void Engine::render() {
 }
 
 void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
-    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        const core::Viewport& vp = window.getViewport(i);
+    for (int i = 0; i < window.numberOfViewports(); ++i) {
+        const core::Viewport& vp = window.viewport(i);
         
         // if viewport has overlay
         if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
@@ -1145,7 +1145,7 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
         enterCurrentViewport(window, vp, frustum);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, vp.getOverlayTextureIndex());
+        glBindTexture(GL_TEXTURE_2D, vp.overlayTextureIndex());
         _overlay.bind();
         window.renderScreenQuad();
         ShaderProgram::unbind();
@@ -1153,31 +1153,31 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
 }
 
 void Engine::prepareBuffer(Window& window, Window::TextureIndex ti) {
-    core::OffScreenBuffer* fbo = window.getFBO();
+    core::OffScreenBuffer* fbo = window.fbo();
     fbo->bind();
     if (fbo->isMultiSampled()) {
         return;
     }
 
     // update attachments
-    fbo->attachColorTexture(window.getFrameBufferTexture(ti));
+    fbo->attachColorTexture(window.frameBufferTexture(ti));
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Depth)
+            window.frameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Normals),
+            window.frameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Positions),
+            window.frameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1192,39 +1192,39 @@ void Engine::renderFBOTexture(Window& window) {
     // needed for shaders
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Frustum::Mode frustum = (window.getStereoMode() == Window::StereoMode::Active) ?
+    Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
         Frustum::Mode::StereoLeftEye :
         Frustum::Mode::MonoEye;
 
     const glm::ivec2 size = glm::ivec2(
-        glm::ceil(window.getScale() * glm::vec2(window.getResolution()))
+        glm::ceil(window.scale() * glm::vec2(window.resolution()))
     );
 
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(window, BufferMode::BackBufferBlack, frustum);
    
-    Window::StereoMode sm = window.getStereoMode();
+    Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
             GL_TEXTURE_2D,
-            window.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+            window.frameBufferTexture(Window::TextureIndex::LeftEye)
         );
 
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(
             GL_TEXTURE_2D,
-            window.getFrameBufferTexture(Window::TextureIndex::RightEye)
+            window.frameBufferTexture(Window::TextureIndex::RightEye)
         );
 
         window.bindStereoShaderProgram();
 
-        glUniform1i(window.getStereoShaderLeftTexLoc(), 0);
-        glUniform1i(window.getStereoShaderRightTexLoc(), 1);
+        glUniform1i(window.stereoShaderLeftTexLoc(), 0);
+        glUniform1i(window.stereoShaderRightTexLoc(), 1);
 
-        for (int i = 0; i < window.getNumberOfViewports(); i++) {
-            window.getViewport(i).renderWarpMesh();
+        for (int i = 0; i < window.numberOfViewports(); i++) {
+            window.viewport(i).renderWarpMesh();
             //window.getViewport(i).renderQuadMesh();
         }
     }
@@ -1232,19 +1232,19 @@ void Engine::renderFBOTexture(Window& window) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(
             GL_TEXTURE_2D,
-            window.getFrameBufferTexture(Window::TextureIndex::LeftEye)
+            window.frameBufferTexture(Window::TextureIndex::LeftEye)
         );
 
         _fboQuad.bind();
         maskShaderSet = true;
 
-        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-            window.getViewport(i).renderWarpMesh();
+        for (int i = 0; i < window.numberOfViewports(); ++i) {
+            window.viewport(i).renderWarpMesh();
             //win.getViewport(i).renderQuadMesh();
         }
 
         // render right eye in active stereo mode
-        if (window.getStereoMode() == Window::StereoMode::Active) {
+        if (window.stereoMode() == Window::StereoMode::Active) {
             glViewport(0, 0, size.x, size.y);
             
             // clear buffers
@@ -1252,10 +1252,10 @@ void Engine::renderFBOTexture(Window& window) {
 
             glBindTexture(
                 GL_TEXTURE_2D,
-                window.getFrameBufferTexture(Window::TextureIndex::RightEye)
+                window.frameBufferTexture(Window::TextureIndex::RightEye)
             );
-            for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-                window.getViewport(i).renderWarpMesh();
+            for (int i = 0; i < window.numberOfViewports(); ++i) {
+                window.viewport(i).renderWarpMesh();
                 //window.getViewport(i).renderQuadMesh();
             }
         }
@@ -1275,19 +1275,19 @@ void Engine::renderFBOTexture(Window& window) {
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-            const core::Viewport& vp = window.getViewport(i);
+        for (int i = 0; i < window.numberOfViewports(); ++i) {
+            const core::Viewport& vp = window.viewport(i);
             if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.getBlendMaskTextureIndex());
+                glBindTexture(GL_TEXTURE_2D, vp.blendMaskTextureIndex());
                 vp.renderMaskMesh();
             }
         }
 
         // render black level masks
-        for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-            const core::Viewport& vp = window.getViewport(i);
+        for (int i = 0; i < window.numberOfViewports(); ++i) {
+            const core::Viewport& vp = window.viewport(i);
             if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.getBlackLevelMaskTextureIndex());
+                glBindTexture(GL_TEXTURE_2D, vp.blackLevelMaskTextureIndex());
 
                 // inverse multiply
                 glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
@@ -1306,15 +1306,15 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window& window, Frustum::Mode frustum,
+void Engine::renderViewports(Window& win, Frustum::Mode frustum,
                              Window::TextureIndex ti)
 {
-    prepareBuffer(window, ti);
+    prepareBuffer(win, ti);
 
-    Window::StereoMode sm = window.getStereoMode();
+    Window::StereoMode sm = win.stereoMode();
     // render all viewports for selected eye
-    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        core::Viewport& vp = window.getViewport(i);
+    for (int i = 0; i < win.numberOfViewports(); ++i) {
+        core::Viewport& vp = win.viewport(i);
 
         if (!vp.isEnabled()) {
             continue;
@@ -1322,20 +1322,20 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
 
         // if passive stereo or mono
         if (sm == Window::StereoMode::NoStereo) {
-            frustum = vp.getEye();
+            frustum = vp.eye();
         }
 
         if (vp.hasSubViewports()) {
             if (vp.isTracked()) {
-                vp.getNonLinearProjection()->updateFrustums(
+                vp.nonLinearProjection()->updateFrustums(
                     frustum,
                     _nearClipPlane,
                     _farClipPlane
                 );
             }
 
-            if (window.shouldCallDraw3DFunction()) {
-                vp.getNonLinearProjection()->render(window, vp, frustum);
+            if (win.shouldCallDraw3DFunction()) {
+                vp.nonLinearProjection()->render(win, vp, frustum);
             }
         }
         else {
@@ -1345,39 +1345,35 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (window.shouldBlitPreviousWindow()) {
-                if (window.getId() == 0) {
+            if (win.shouldBlitPreviousWindow()) {
+                if (win.id() == 0) {
                     Logger::Error("Cannot blit into first window");
                 }
                 else {
-                    const int prevId = window.getId() - 1;
-                    Window& prevWindow = getWindow(prevId);
-                    blitPreviousWindowViewport(prevWindow, window, vp, frustum);
+                    const int prevId = win.id() - 1;
+                    Window& prevWindow = window(prevId);
+                    blitPreviousWindowViewport(prevWindow, win, vp, frustum);
                 }
             }
 
-            if (window.shouldCallDraw3DFunction()) {
+            if (win.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
                 glEnable(GL_SCISSOR_TEST);
 
-                enterCurrentViewport(window, vp, frustum);
-                setAndClearBuffer(
-                    window,
-                    BufferMode::RenderToTexture,
-                    frustum
-                );
+                enterCurrentViewport(win, vp, frustum);
+                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
                     RenderData renderData(
-                        window,
+                        win,
                         vp,
                         frustum,
-                        core::ClusterManager::instance().getSceneTransform(),
-                        vp.getProjection(frustum).getViewMatrix(),
-                        vp.getProjection(frustum).getProjectionMatrix(),
-                        vp.getProjection(frustum).getViewProjectionMatrix() *
-                            core::ClusterManager::instance().getSceneTransform()
+                        core::ClusterManager::instance().sceneTransform(),
+                        vp.projection(frustum).viewMatrix(),
+                        vp.projection(frustum).projectionMatrix(),
+                        vp.projection(frustum).viewProjectionMatrix() *
+                            core::ClusterManager::instance().sceneTransform()
                     );
                     _drawFn(renderData);
                 }
@@ -1386,8 +1382,8 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!window.shouldCallDraw3DFunction() && !window.shouldBlitPreviousWindow()) {
-        setAndClearBuffer(window, BufferMode::RenderToTexture, frustum);
+    if (!win.shouldCallDraw3DFunction() && !win.shouldBlitPreviousWindow()) {
+        setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1398,21 +1394,21 @@ void Engine::renderViewports(Window& window, Frustum::Mode frustum,
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
-        render2D(window, frustum);
+        render2D(win, frustum);
         if (isSplitScreen) {
             // render left eye info and graph to render 2D items after post fx
-            render2D(window, Frustum::Mode::StereoLeftEye);
+            render2D(win, Frustum::Mode::StereoLeftEye);
         }
 
-        updateRenderingTargets(window, ti); // only used if multisampled FBOs
+        updateRenderingTargets(win, ti); // only used if multisampled FBOs
     }
 
     glDisable(GL_BLEND);
 }
 
-void Engine::render2D(const Window& window, Frustum::Mode frustum) {
+void Engine::render2D(const Window& win, Frustum::Mode frustum) {
     // draw viewport overlays if any
-    drawOverlays(window, frustum);
+    drawOverlays(win, frustum);
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -1421,28 +1417,28 @@ void Engine::render2D(const Window& window, Frustum::Mode frustum) {
         return;
     }
 
-    for (int i = 0; i < window.getNumberOfViewports(); ++i) {
-        const core::Viewport& vp = window.getViewport(i);
+    for (int i = 0; i < win.numberOfViewports(); ++i) {
+        const core::Viewport& vp = win.viewport(i);
         if (!vp.isEnabled()) {
             continue;
         }
-        enterCurrentViewport(window, vp, frustum);
+        enterCurrentViewport(win, vp, frustum);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render(window, vp);
+            _statisticsRenderer->render(win, vp);
         }
 
         // Check if we should call the use defined draw2D function
-        if (_draw2DFn && window.shouldCallDraw2DFunction()) {
+        if (_draw2DFn && win.shouldCallDraw2DFunction()) {
             RenderData renderData(
-                window,
+                win,
                 vp,
                 frustum,
-                core::ClusterManager::instance().getSceneTransform(),
-                vp.getProjection(frustum).getViewMatrix(),
-                vp.getProjection(frustum).getProjectionMatrix(),
-                vp.getProjection(frustum).getViewProjectionMatrix() *
-                    core::ClusterManager::instance().getSceneTransform()
+                core::ClusterManager::instance().sceneTransform(),
+                vp.projection(frustum).viewMatrix(),
+                vp.projection(frustum).projectionMatrix(),
+                vp.projection(frustum).viewProjectionMatrix() *
+                    core::ClusterManager::instance().sceneTransform()
             );
             _draw2DFn(renderData);
         }
@@ -1456,9 +1452,9 @@ void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
         assert(_fxaa.has_value());
 
         // bind target FBO
-        window.getFBO()->attachColorTexture(window.getFrameBufferTexture(targetIndex));
+        window.fbo()->attachColorTexture(window.frameBufferTexture(targetIndex));
 
-        glm::ivec2 framebufferSize = window.getFramebufferResolution();
+        glm::ivec2 framebufferSize = window.framebufferResolution();
         glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -1467,7 +1463,7 @@ void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
 
         glBindTexture(
             GL_TEXTURE_2D,
-            window.getFrameBufferTexture(Window::TextureIndex::Intermediate)
+            window.frameBufferTexture(Window::TextureIndex::Intermediate)
         );
 
         _fxaa->shader.bind();
@@ -1483,7 +1479,7 @@ void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
 
 void Engine::updateRenderingTargets(Window& window, Window::TextureIndex ti) {
     // copy AA-buffer to "regular" / non-AA buffer
-    core::OffScreenBuffer* fbo = window.getFBO();
+    core::OffScreenBuffer* fbo = window.fbo();
     if (!fbo->isMultiSampled()) {
         return;
     }
@@ -1492,24 +1488,24 @@ void Engine::updateRenderingTargets(Window& window, Window::TextureIndex ti) {
     fbo->bindBlit();
 
     // update attachments
-    fbo->attachColorTexture(window.getFrameBufferTexture(ti));
+    fbo->attachColorTexture(window.frameBufferTexture(ti));
 
     if (Settings::instance().useDepthTexture()) {
         fbo->attachDepthTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Depth)
+            window.frameBufferTexture(Window::TextureIndex::Depth)
         );
     }
 
     if (Settings::instance().useNormalTexture()) {
         fbo->attachColorTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Normals),
+            window.frameBufferTexture(Window::TextureIndex::Normals),
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (Settings::instance().usePositionTexture()) {
         fbo->attachColorTexture(
-            window.getFrameBufferTexture(Window::TextureIndex::Positions),
+            window.frameBufferTexture(Window::TextureIndex::Positions),
             GL_COLOR_ATTACHMENT2
         );
     }
@@ -1521,22 +1517,22 @@ bool Engine::isMaster() const {
     return core::NetworkManager::instance().isComputerServer();
 }
 
-unsigned int Engine::getCurrentFrameNumber() const {
+unsigned int Engine::currentFrameNumber() const {
     return _frameCounter;
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
 
     // clear the buffers initially
-    for (int i = 0; i < thisNode.getNumberOfWindows(); ++i) {
-        thisNode.getWindow(i).makeOpenGLContextCurrent();
-        glDrawBuffer(thisNode.getWindow(i).isDoubleBuffered() ? GL_BACK : GL_FRONT);
+    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
+        thisNode.window(i).makeOpenGLContextCurrent();
+        glDrawBuffer(thisNode.window(i).isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (thisNode.getWindow(i).isDoubleBuffered()) {
-            glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
+        if (thisNode.window(i).isDoubleBuffered()) {
+            glfwSwapBuffers(thisNode.window(i).windowHandle());
         }
         else {
             glFinish();
@@ -1545,8 +1541,8 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     glfwPollEvents();
     
     // Must wait until all nodes are running if using swap barrier
-    if (core::ClusterManager::instance().getIgnoreSync() ||
-        core::ClusterManager::instance().getNumberOfNodes() <= 1)
+    if (core::ClusterManager::instance().ignoreSync() ||
+        core::ClusterManager::instance().numberOfNodes() <= 1)
     {
         return;
     }
@@ -1569,10 +1565,10 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
            !thisNode.closeAllWindows())
     {
         // Swap front and back rendering buffers
-        for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
+        for (int i = 0; i < thisNode.numberOfWindows(); i++) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if (thisNode.getWindow(i).isDoubleBuffered()) {
-                glfwSwapBuffers(thisNode.getWindow(i).getWindowHandle());
+            if (thisNode.window(i).isDoubleBuffered()) {
+                glfwSwapBuffers(thisNode.window(i).windowHandle());
             }
             else {
                 glFinish();
@@ -1589,18 +1585,18 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 }
 
 void Engine::updateFrustums() {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
-        Window& win = thisNode.getWindow(w);
-        for (int i = 0; i < win.getNumberOfViewports(); i++) {
-            core::Viewport& vp = win.getViewport(i);
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    for (int w = 0; w < thisNode.numberOfWindows(); w++) {
+        Window& win = thisNode.window(w);
+        for (int i = 0; i < win.numberOfViewports(); i++) {
+            core::Viewport& vp = win.viewport(i);
             if (vp.isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
                 continue;
             }
 
             if (vp.hasSubViewports()) {
-                core::NonLinearProjection& proj = *vp.getNonLinearProjection();
+                core::NonLinearProjection& proj = *vp.nonLinearProjection();
                 proj.updateFrustums(
                     Frustum::Mode::MonoEye,
                     _nearClipPlane,
@@ -1666,7 +1662,7 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
             default: throw std::logic_error("Unhandled case label");
         }
     }(mode);
-    glBindTexture(GL_TEXTURE_2D, prevWindow.getFrameBufferTexture(m));
+    glBindTexture(GL_TEXTURE_2D, prevWindow.frameBufferTexture(m));
 
     window.renderScreenQuad();
     ShaderProgram::unbind();
@@ -1675,12 +1671,12 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
 void Engine::enterCurrentViewport(const Window& window, const core::BaseViewport& viewport,
                                   Frustum::Mode frustum)
 {
-    const glm::vec2 res = glm::vec2(window.getFramebufferResolution());
-    const glm::vec2 p = viewport.getPosition() * res;
-    const glm::vec2 s = viewport.getSize() * res;
+    const glm::vec2 res = glm::vec2(window.framebufferResolution());
+    const glm::vec2 p = viewport.position() * res;
+    const glm::vec2 s = viewport.size() * res;
     glm::ivec4 vpCoordinates = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
 
-    Window::StereoMode sm = window.getStereoMode();
+    Window::StereoMode sm = window.stereoMode();
     if (frustum == Frustum::Mode::StereoLeftEye) {
         switch (sm) {
             case Window::StereoMode::SideBySide:
@@ -1730,19 +1726,19 @@ void Engine::enterCurrentViewport(const Window& window, const core::BaseViewport
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
 }
 
-const Engine::Statistics& Engine::getStatistics() const {
+const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
 
-double Engine::getDt() const {
+double Engine::dt() const {
     return _statistics.frametimes[0];
 }
 
-double Engine::getAvgFPS() const {
-    return 1.0 / getAvgDt();
+double Engine::avgFPS() const {
+    return 1.0 / avgDt();
 }
 
-double Engine::getAvgDt() const {
+double Engine::avgDt() const {
     const double accFrameTime = std::accumulate(
         _statistics.frametimes.begin(),
         _statistics.frametimes.end(),
@@ -1758,22 +1754,22 @@ double Engine::getAvgDt() const {
     return accFrameTime / f;
 }
 
-double Engine::getMinDt() const {
+double Engine::minDt() const {
     return *std::min_element(
         _statistics.frametimes.begin(),
         _statistics.frametimes.end()
     );
 }
 
-double Engine::getMaxDt() const {
+double Engine::maxDt() const {
     return *std::max_element(
         _statistics.frametimes.begin(),
         _statistics.frametimes.end()
     );
 }
 
-double Engine::getDtStandardDeviation() const {
-    const double avg = getAvgDt();
+double Engine::standardDeviationDt() const {
+    const double avg = avgDt();
     const double sumSquare = std::accumulate(
         _statistics.frametimes.begin(),
         _statistics.frametimes.end(),
@@ -1790,15 +1786,15 @@ double Engine::getDtStandardDeviation() const {
     return sumSquare / f;
 }
 
-glm::vec4 Engine::getClearColor() const {
+glm::vec4 Engine::clearColor() const {
     return _clearColor;
 }
 
-float Engine::getNearClipPlane() const {
+float Engine::nearClipPlane() const {
     return _nearClipPlane;
 }
 
-float Engine::getFarClipPlane() const {
+float Engine::farClipPlane() const {
     return _farClipPlane;
 }
 
@@ -1809,12 +1805,12 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 }
 
 void Engine::setEyeSeparation(float eyeSeparation) {
-    core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int w = 0; w < thisNode.getNumberOfWindows(); w++) {
-        Window& window = thisNode.getWindow(w);
+    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    for (int w = 0; w < thisNode.numberOfWindows(); w++) {
+        Window& window = thisNode.window(w);
 
-        for (int i = 0; i < window.getNumberOfViewports(); i++) {
-            window.getViewport(i).getUser().setEyeSeparation(eyeSeparation);
+        for (int i = 0; i < window.numberOfViewports(); i++) {
+            window.viewport(i).user().setEyeSeparation(eyeSeparation);
         }
     }
     updateFrustums();
@@ -1824,10 +1820,10 @@ void Engine::setClearColor(glm::vec4 color) {
     _clearColor = std::move(color);
 }
 
-int Engine::getFocusedWindowIndex() const {
-    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-        if (thisNode.getWindow(i).isFocused()) {
+int Engine::focusedWindowIndex() const {
+    const core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
+        if (thisNode.window(i).isFocused()) {
             return i;
         }
     }
@@ -1847,7 +1843,7 @@ void Engine::takeScreenshot() {
     _takeScreenshot = true;
 }
 
-const std::function<void(RenderData)>& Engine::getDrawFunction() const {
+const std::function<void(RenderData)>& Engine::drawFunction() const {
     return _drawFn;
 }
 
@@ -1883,8 +1879,8 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
     core::NetworkManager& nm = core::NetworkManager::instance();
-    if (nm.getExternalControlConnection()) {
-        nm.getExternalControlConnection()->sendData(data, length);
+    if (nm.externalControlConnection()) {
+        nm.externalControlConnection()->sendData(data, length);
     }
 }
 
@@ -1893,20 +1889,20 @@ void Engine::transferDataBetweenNodes(const void* data, int length, int packageI
 }
 
 bool Engine::isExternalControlConnected() const {
-    return (core::NetworkManager::instance().getExternalControlConnection() &&
-        core::NetworkManager::instance().getExternalControlConnection()->isConnected());
+    return (core::NetworkManager::instance().externalControlConnection() &&
+        core::NetworkManager::instance().externalControlConnection()->isConnected());
 }
 
 int Engine::getKey(int winIndex, int key) {
-    return glfwGetKey(_instance->getWindow(winIndex).getWindowHandle(), key);
+    return glfwGetKey(_instance->window(winIndex).windowHandle(), key);
 }
 
 int Engine::getMouseButton(int winIndex, int button) {
-    return glfwGetMouseButton(_instance->getWindow(winIndex).getWindowHandle(), button);
+    return glfwGetMouseButton(_instance->window(winIndex).windowHandle(), button);
 }
 
 void Engine::getMousePos(int winIndex, double* xPos, double* yPos) {
-    glfwGetCursorPos(_instance->getWindow(winIndex).getWindowHandle(), xPos, yPos);
+    glfwGetCursorPos(_instance->window(winIndex).windowHandle(), xPos, yPos);
 }
 
 const char* Engine::getJoystickName(Joystick joystick) {
@@ -1921,20 +1917,20 @@ const unsigned char* Engine::getJoystickButtons(Joystick joystick, int* numOfVal
     return glfwGetJoystickButtons(static_cast<int>(joystick), numOfValues);
 }
 
-const core::Node& Engine::getThisNode() const {
-    return core::ClusterManager::instance().getThisNode();
+const core::Node& Engine::thisNode() const {
+    return core::ClusterManager::instance().thisNode();
 }
 
-Window& Engine::getWindow(int index) const {
-    return core::ClusterManager::instance().getThisNode().getWindow(index);
+Window& Engine::window(int index) const {
+    return core::ClusterManager::instance().thisNode().window(index);
 }
 
-int Engine::getNumberOfWindows() const {
-    return core::ClusterManager::instance().getThisNode().getNumberOfWindows();
+int Engine::numberOfWindows() const {
+    return core::ClusterManager::instance().thisNode().numberOfWindows();
 }
 
-core::User& Engine::getDefaultUser() {
-    return core::ClusterManager::instance().getDefaultUser();
+core::User& Engine::defaultUser() {
+    return core::ClusterManager::instance().defaultUser();
 }
 
 double Engine::getTime() {
@@ -1950,7 +1946,7 @@ void Engine::setScreenShotNumber(unsigned int number) {
     _shotCounter = number;
 }
 
-unsigned int Engine::getScreenShotNumber() const {
+unsigned int Engine::screenShotNumber() const {
     return _shotCounter;
 }
 

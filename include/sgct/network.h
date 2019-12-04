@@ -63,18 +63,18 @@ public:
     void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
 
-    ConnectionType getType() const;
-    int getId() const;
+    ConnectionType type() const;
+    int id() const;
     bool isServer() const;
     bool isConnected() const;
 
-    int getSendFrameCurrent() const;
-    int getSendFramePrevious() const;
-    int getRecvFrameCurrent() const;
-    int getRecvFramePrevious() const;
+    int sendFrameCurrent() const;
+    int sendFramePrevious() const;
+    int recvFrameCurrent() const;
+    int recvFramePrevious() const;
 
     /// Get the time in seconds from send to receive of sync data.
-    double getLoopTime() const;
+    double loopTime() const;
 
     /**
      * This function compares the received frame number with the sent frame number. The
@@ -88,7 +88,7 @@ public:
     void sendData(const void* data, int length);
 
     /// \return last error code 
-    static int getLastError();
+    static int lastError();
     static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
 
     /// Iterates the send frame number and returns the new frame number
@@ -98,9 +98,9 @@ public:
     void pushClientMessage();
 
     /// \return the port of this connection
-    int getPort() const;
+    int port() const;
 
-    std::condition_variable& getStartConnectionConditionVar();
+    std::condition_variable& startConnectionConditionVar();
 
 private:
     void setRecvFrame(int i);

@@ -18,7 +18,7 @@ namespace {
         GLenum b2[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
         GLenum b3[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
         GLenum b4[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        switch (sgct::Settings::instance().getDrawBufferType()) {
+        switch (sgct::Settings::instance().drawBufferType()) {
             case sgct::Settings::DrawBufferType::Diffuse:
                 glDrawBuffers(1, b1);
                 break;
@@ -107,7 +107,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance().getBufferFloatPrecision(),
+                Settings::instance().bufferFloatPrecision(),
                 width,
                 height
             );
@@ -118,7 +118,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             glRenderbufferStorageMultisample(
                 GL_RENDERBUFFER,
                 samples,
-                Settings::instance().getBufferFloatPrecision(),
+                Settings::instance().bufferFloatPrecision(),
                 width,
                 height
             );

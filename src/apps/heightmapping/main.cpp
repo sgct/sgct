@@ -207,7 +207,7 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.15f, 2.5f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, 1.f, 0.f)
     );
 
@@ -217,7 +217,7 @@ void drawFun(RenderData data) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalTextureId);
 
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
@@ -228,7 +228,7 @@ void drawFun(RenderData data) {
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
-    glUniform1f(currTimeLoc, static_cast<float>(currentTime.getVal()));
+    glUniform1f(currTimeLoc, static_cast<float>(currentTime.value()));
 
     glBindVertexArray(vertexArray);
 
@@ -244,38 +244,38 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster() && !mPause) {
-        currentTime.setVal(currentTime.getVal() + Engine::instance().getAvgDt());
+        currentTime.setValue(currentTime.value() + Engine::instance().avgDt());
     }
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.getVal());
-    TrackingManager::instance().setEnabled(useTracking.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.value());
+    TrackingManager::instance().setEnabled(useTracking.value());
 
-    if (takeScreenshot.getVal()) {
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
 void initOGLFun() {
-    stereoMode.setVal(Engine::instance().getWindow(0).getStereoMode());
+    stereoMode.setValue(Engine::instance().window(0).stereoMode());
 
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
     normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
 
     // setup shader
     ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
 
     prog.bind();
-    currTimeLoc = glGetUniformLocation(prog.getId(), "currTime");
-    mvpLoc = glGetUniformLocation(prog.getId(), "mvp");
-    mvLoc = glGetUniformLocation(prog.getId(), "mv");
-    mvLightLoc = glGetUniformLocation(prog.getId(), "mvLight");
-    nmLoc = glGetUniformLocation(prog.getId(), "normalMatrix");
-    glUniform1i(glGetUniformLocation(prog.getId(), "hTex"), 0);
-    glUniform1i(glGetUniformLocation(prog.getId(), "nTex"), 1);
+    currTimeLoc = glGetUniformLocation(prog.id(), "currTime");
+    mvpLoc = glGetUniformLocation(prog.id(), "mvp");
+    mvLoc = glGetUniformLocation(prog.id(), "mv");
+    mvLightLoc = glGetUniformLocation(prog.id(), "mvLight");
+    nmLoc = glGetUniformLocation(prog.id(), "normalMatrix");
+    glUniform1i(glGetUniformLocation(prog.id(), "hTex"), 0);
+    glUniform1i(glGetUniformLocation(prog.id(), "nTex"), 1);
 
     // light data
     const glm::vec4 position(-2.f, 5.f, 5.f, 1.f);
@@ -284,16 +284,16 @@ void initOGLFun() {
     const glm::vec4 specular(1.f, 1.f, 1.f, 1.f);
 
     glUniform4fv(
-        glGetUniformLocation(prog.getId(), "lightPos"), 1, glm::value_ptr(position)
+        glGetUniformLocation(prog.id(), "lightPos"), 1, glm::value_ptr(position)
     );
     glUniform4fv(
-        glGetUniformLocation(prog.getId(), "lightAmbient"), 1, glm::value_ptr(ambient)
+        glGetUniformLocation(prog.id(), "lightAmbient"), 1, glm::value_ptr(ambient)
     );
     glUniform4fv(
-        glGetUniformLocation(prog.getId(), "lightDiffuse"), 1, glm::value_ptr(diffuse)
+        glGetUniformLocation(prog.id(), "lightDiffuse"), 1, glm::value_ptr(diffuse)
     );
     glUniform4fv(
-        glGetUniformLocation(prog.getId(), "lightSpecular"), 1, glm::value_ptr(specular)
+        glGetUniformLocation(prog.id(), "lightSpecular"), 1, glm::value_ptr(specular)
     );
     prog.unbind();
 
@@ -348,16 +348,16 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 Engine::instance().terminate();
                 break;
             case Key::S:
-                stats.setVal(!stats.getVal());
+                stats.setValue(!stats.value());
                 break;
             case Key::Q:
                 Engine::instance().terminate();
                 break;
             case Key::T:
-                useTracking.setVal(!useTracking.getVal());
+                useTracking.setValue(!useTracking.value());
                 break;
             case Key::E:
-                sgct::core::ClusterManager::instance().getDefaultUser().setTransform(
+                sgct::core::ClusterManager::instance().defaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;
@@ -365,28 +365,28 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 mPause = !mPause;
                 break;
             case Key::F:
-                for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
-                    Engine::instance().getWindow(i).setUseFXAA(
-                        !Engine::instance().getWindow(i).useFXAA()
+                for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
+                    Engine::instance().window(i).setUseFXAA(
+                        !Engine::instance().window(i).useFXAA()
                     );
                 }
                 break;
             case Key::P:
             case Key::F10:
-                takeScreenshot.setVal(true);
+                takeScreenshot.setValue(true);
                 break;
             case Key::Left:
-                if (static_cast<int>(stereoMode.getVal()) > 0) {
-                    const int v = static_cast<int>(stereoMode.getVal()) - 1;
+                if (static_cast<int>(stereoMode.value()) > 0) {
+                    const int v = static_cast<int>(stereoMode.value()) - 1;
                     Window::StereoMode m = static_cast<Window::StereoMode>(v);
-                    stereoMode.setVal(m);
+                    stereoMode.setValue(m);
                 }
                 break;
             case Key::Right:
             {
-                const int v = static_cast<int>(stereoMode.getVal()) + 1;
+                const int v = static_cast<int>(stereoMode.value()) + 1;
                 Window::StereoMode m = static_cast<Window::StereoMode>(v);
-                stereoMode.setVal(m);
+                stereoMode.setValue(m);
                 break;
             }
             default:

@@ -239,23 +239,23 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     Logger::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
 }
 
-unsigned char* Image::getData() {
+unsigned char* Image::data() {
     return _data;
 }
 
-const unsigned char* Image::getData() const {
+const unsigned char* Image::data() const {
     return _data;
 }
 
-int Image::getChannels() const {
+int Image::channels() const {
     return _nChannels;
 }
 
-int Image::getBytesPerChannel() const {
+int Image::bytesPerChannel() const {
     return _bytesPerChannel;
 }
 
-glm::ivec2 Image::getSize() const {
+glm::ivec2 Image::size() const {
     return _size;
 }
 

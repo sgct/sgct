@@ -53,22 +53,22 @@ public:
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;
-    Network* getExternalControlConnection();
+    Network* externalControlConnection();
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, Network& connection);
 
-    unsigned int getActiveConnectionsCount() const;
-    int getConnectionsCount() const;
-    int getSyncConnectionsCount() const;
-    const Network& getConnectionByIndex(int index) const;
-    Network* getSyncConnectionByIndex(int index) const;
+    unsigned int activeConnectionsCount() const;
+    int connectionsCount() const;
+    int syncConnectionsCount() const;
+    const Network& connection(int index) const;
+    Network* syncConnection(int index) const;
 
 private:
     NetworkManager(NetworkMode nm);
 
     void addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
-    void getHostInfo();
+    void hostInfo();
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
     void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,

@@ -213,9 +213,9 @@ void createPyramid(float width) {
 
 
 void drawPyramid(glm::mat4 mvp, int index) {
-    const glm::mat4 proj = mvp * xform.getVal() * pyramidTransforms[index];
+    const glm::mat4 proj = mvp * xform.value() * pyramidTransforms[index];
 
-    ShaderManager::instance().getShaderProgram("pyramidShader").bind();
+    ShaderManager::instance().shaderProgram("pyramidShader").bind();
 
     glUniformMatrix4fv(pyramid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
 
@@ -232,13 +232,13 @@ void drawPyramid(glm::mat4 mvp, int index) {
     glDrawArrays(GL_TRIANGLES, 16, 12);
 
     glBindVertexArray(0);
-    ShaderManager::instance().getShaderProgram("pyramidShader").unbind();
+    ShaderManager::instance().shaderProgram("pyramidShader").unbind();
 }
 
 void drawXZGrid(glm::mat4 mvp) {
-    const glm::mat4 proj = mvp * xform.getVal();
+    const glm::mat4 proj = mvp * xform.value();
 
-    ShaderManager::instance().getShaderProgram("gridShader").bind();
+    ShaderManager::instance().shaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
     glBindVertexArray(grid.vao);
     glLineWidth(3.f);
@@ -246,7 +246,7 @@ void drawXZGrid(glm::mat4 mvp) {
     glDrawArrays(GL_LINES, 0, grid.nVerts);
 
     glBindVertexArray(0);
-    ShaderManager::instance().getShaderProgram("gridShader").unbind();
+    ShaderManager::instance().shaderProgram("gridShader").unbind();
 }
 
 void cleanUpFun() {
@@ -281,9 +281,9 @@ void initOGLFun() {
         gridVertexShader,
         gridFragmentShader
     );
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("gridShader");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("gridShader");
     prog.bind();
-    grid.matrixLocation = glGetUniformLocation(prog.getId(), "mvp");
+    grid.matrixLocation = glGetUniformLocation(prog.id(), "mvp");
     prog.unbind();
 
     ShaderManager::instance().addShaderProgram(
@@ -292,10 +292,10 @@ void initOGLFun() {
         pyramidFragmentShader
     );
     const ShaderProgram& pyramidProg =
-        ShaderManager::instance().getShaderProgram("pyramidShader");
+        ShaderManager::instance().shaderProgram("pyramidShader");
     pyramidProg.bind();
-    pyramid.matrixLocation = glGetUniformLocation(pyramidProg.getId(), "mvp");
-    alphaLocation = glGetUniformLocation(pyramidProg.getId(), "alpha");
+    pyramid.matrixLocation = glGetUniformLocation(pyramidProg.id(), "mvp");
+    alphaLocation = glGetUniformLocation(pyramidProg.id(), "alpha");
     pyramidProg.unbind();
 }
 
@@ -304,7 +304,7 @@ void preSyncFun() {
         if (mouseLeftButton) {
             double yPos;
             Engine::getMousePos(
-                Engine::instance().getFocusedWindowIndex(),
+                Engine::instance().focusedWindowIndex(),
                 &mouseXPos[0],
                 &yPos
             );
@@ -316,7 +316,7 @@ void preSyncFun() {
 
         static float panRot = 0.f;
         panRot += static_cast<float>(
-            mouseDx * RotationSpeed * Engine::instance().getDt()
+            mouseDx * RotationSpeed * Engine::instance().dt()
         );
 
         //rotation around the y-axis
@@ -333,19 +333,19 @@ void preSyncFun() {
 
         if (buttonForward) {
             pos +=
-                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * view);
+                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * view);
         }
         if (buttonBackward) {
             pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * view);
+                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * view);
         }
         if (buttonLeft) {
             pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * right);
+                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * right);
         }
         if (buttonRight) {
             pos += 
-                (WalkingSpeed * static_cast<float>(Engine::instance().getDt()) * right);
+                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * right);
         }
 
         /**
@@ -364,15 +364,15 @@ void preSyncFun() {
 
         glm::mat4 result;
         // 4. transform user back to original position
-        result = glm::translate(glm::mat4(1.f), Engine::getDefaultUser().getPosMono());
+        result = glm::translate(glm::mat4(1.f), Engine::defaultUser().posMono());
         // 3. apply view rotation
         result *= viewRotateX;
         // 2. apply navigation translation
         result *= glm::translate(glm::mat4(1.f), pos);
         // 1. transform user to coordinate system origin
-        result *= glm::translate(glm::mat4(1.f), -Engine::getDefaultUser().getPosMono());
+        result *= glm::translate(glm::mat4(1.f), -Engine::defaultUser().posMono());
 
-        xform.setVal(result);
+        xform.setValue(result);
     }
 }
 
@@ -433,7 +433,7 @@ void mouseButtonCallback(MouseButton button, Modifier, Action action) {
         mouseLeftButton = (action == Action::Press);
         double yPos;
         Engine::getMousePos(
-            Engine::instance().getFocusedWindowIndex(),
+            Engine::instance().focusedWindowIndex(),
             &mouseXPos[1],
             &yPos)
         ;

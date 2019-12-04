@@ -94,7 +94,7 @@ void Settings::setSwapInterval(int val) {
     _swapInterval = val;
 }
 
-int Settings::getSwapInterval() const {
+int Settings::swapInterval() const {
     return _swapInterval;
 }
 
@@ -102,7 +102,7 @@ void Settings::setRefreshRateHint(int freq) {
     _refreshRate = freq;
 }
 
-int Settings::getRefreshRateHint() const {
+int Settings::refreshRateHint() const {
     return _refreshRate;
 }
 
@@ -138,11 +138,11 @@ bool Settings::usePositionTexture() const {
     return _usePositionTexture;
 }
 
-int Settings::getNumberOfCaptureThreads() const {
+int Settings::numberCaptureThreads() const {
     return _nCaptureThreads;
 }
 
-Settings::DrawBufferType Settings::getDrawBufferType() const {
+Settings::DrawBufferType Settings::drawBufferType() const {
     if (_usePositionTexture) {
         if (_useNormalTexture) {
             return DrawBufferType::DiffuseNormalPosition;
@@ -181,7 +181,7 @@ void Settings::setCaptureFormat(CaptureFormat format) {
     _captureFormat = format;
 }
 
-const std::string& Settings::getCapturePath(CapturePath cpi) const {
+const std::string& Settings::capturePath(CapturePath cpi) const {
     switch (cpi) {
         case CapturePath::Mono: return _capturePath.mono;
         case CapturePath::LeftStereo: return _capturePath.left;
@@ -190,7 +190,7 @@ const std::string& Settings::getCapturePath(CapturePath cpi) const {
     }
 }
 
-Settings::CaptureFormat Settings::getCaptureFormat() const {
+Settings::CaptureFormat Settings::captureFormat() const {
     return _captureFormat;
 }
 
@@ -202,15 +202,15 @@ void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
 }
 
-bool Settings::getTryKeepAspectRatio() const {
+bool Settings::tryKeepAspectRatio() const {
     return _tryKeepAspectRatio;
 }
 
-bool Settings::getExportWarpingMeshes() const {
+bool Settings::exportWarpingMeshes() const {
     return _exportWarpingMeshes;
 }
 
-bool Settings::getCaptureFromBackBuffer() const {
+bool Settings::captureFromBackBuffer() const {
     return _captureBackBuffer;
 }
 
@@ -218,7 +218,7 @@ void Settings::setTryKeepAspectRatio(bool state) {
     _tryKeepAspectRatio = state;
 }
 
-GLenum Settings::getBufferFloatPrecision() const {
+GLenum Settings::bufferFloatPrecision() const {
     return
         _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
 }

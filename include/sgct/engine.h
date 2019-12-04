@@ -84,10 +84,8 @@ public:
         OpenGL_4_6_Core
     };
 
-    enum class RenderTarget { WindowBuffer, NonLinearBuffer };
-
     struct Statistics {
-        static inline const int HistoryLength = 512;
+        static inline const int HistoryLength = 128;
 
         std::array<double, HistoryLength> frametimes = {};
         std::array<double, HistoryLength> drawTimes = {};
@@ -189,34 +187,34 @@ public:
     void render();
 
     /// Returns the statistic object containing all information about the frametimes, etc
-    const Statistics& getStatistics() const;
+    const Statistics& statistics() const;
 
     /// \return the frame time (delta time) in seconds
-    double getDt() const;
+    double dt() const;
 
     /// \return the average frames per second
-    double getAvgFPS() const;
+    double avgFPS() const;
 
     /// \return the average frame time (delta time) in seconds
-    double getAvgDt() const;
+    double avgDt() const;
 
     /// \return the minimum frame time (delta time) in the averaging window (seconds)
-    double getMinDt() const;
+    double minDt() const;
     
     /// \return the maximum frame time (delta time) in the averaging window (seconds)
-    double getMaxDt() const;
+    double maxDt() const;
 
     /// \return the standard devitation of the delta time in seconds
-    double getDtStandardDeviation() const;
+    double standardDeviationDt() const;
 
     /// \return the clear color as 4 floats (RGBA)
-    glm::vec4 getClearColor() const;
+    glm::vec4 clearColor() const;
     
     /// \return the near clipping plane distance in meters
-    float getNearClipPlane() const;
+    float nearClipPlane() const;
 
     /// \return the far clipping plane distance in meters
-    float getFarClipPlane() const;
+    float farClipPlane() const;
 
     /**
      * Set the near and far clipping planes. This operation recalculates all frustums for
@@ -249,7 +247,7 @@ public:
     void updateFrustums();
 
     /// \return the index of the focus window. If no window has focus, 0 is returned
-    int getFocusedWindowIndex() const;
+    int focusedWindowIndex() const;
 
     /// Sets if the statistics graph should be rendered or not
     void setStatsGraphVisibility(bool state);
@@ -267,7 +265,7 @@ public:
     void setScreenShotNumber(unsigned int number);
 
     /// \return the current screenshot number (file index)
-    unsigned int getScreenShotNumber() const;
+    unsigned int screenShotNumber() const;
 
     /**
      * This function returns the currently assigned draw function to be used in internal
@@ -277,7 +275,7 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void(Engine::RenderData)>& getDrawFunction() const;
+    const std::function<void(Engine::RenderData)>& drawFunction() const;
 
     /**
      * This function sends a message to the external control interface.
@@ -382,22 +380,22 @@ public:
     static const unsigned char* getJoystickButtons(Joystick joystick, int* numOfValues);
 
     /// \return a reference to this node (running on this computer).
-    const sgct::core::Node& getThisNode() const;
+    const sgct::core::Node& thisNode() const;
 
     /// \return a pointer to a specified window by index on this node.
-    Window& getWindow(int index) const;
+    Window& window(int index) const;
 
     /// \return the number of windows for this node.
-    int getNumberOfWindows() const;
+    int numberOfWindows() const;
 
     /// \return a pointer to the user (observer position) object
-    static core::User& getDefaultUser();
+    static core::User& defaultUser();
 
     /// \return true if this node is the master
     bool isMaster() const;
 
     /// Returns the current frame number
-    unsigned int getCurrentFrameNumber() const;
+    unsigned int currentFrameNumber() const;
 
     /**
      * Specifies the sync parameters to be used in the rendering loop.

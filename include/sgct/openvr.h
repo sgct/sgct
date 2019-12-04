@@ -29,7 +29,7 @@ namespace sgct::openvr {
 
     void copyWindowToHMD(Window* win);
 
-    glm::mat4 getHMDCurrentViewProjectionMatrix(sgct::core::Frustum::Mode nEye);
+    glm::mat4 currentViewProjectionMatrix(sgct::core::Frustum::Mode nEye);
 
     // Updates pose matrices for all tracked OpenVR devices
     void updatePoses();
@@ -37,14 +37,14 @@ namespace sgct::openvr {
     /// Updates matrices for both eyes of tracked HMD.
     void updateHMDMatrices(float nearClip, float farClip);
 
-    std::string getTrackedDeviceString(vr::IVRSystem* pHmd,
+    std::string trackedDeviceString(vr::IVRSystem* pHmd,
         vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop,
         vr::TrackedPropertyError* peError = nullptr);
-    glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
-    glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye);
+    glm::mat4 eyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
+    glm::mat4 eyeToHeadTransform(vr::Hmd_Eye nEye);
     
-    glm::mat4 getHMDPoseMatrix();
-    glm::quat getInverseRotation(glm::mat4 poseMat);
+    glm::mat4 poseMatrix();
+    glm::quat inverseRotation(glm::mat4 poseMat);
 } // namespace sgct::openvr
 
 #endif // SGCT_HAS_OPENVR

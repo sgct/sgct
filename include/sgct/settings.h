@@ -107,7 +107,7 @@ public:
      *
      * \param cpi index to which path to get (Mono = default, Left or Right)
      */
-    const std::string& getCapturePath(CapturePath i = CapturePath::Mono) const;
+    const std::string& capturePath(CapturePath i = CapturePath::Mono) const;
 
     /**
      * Get swap interval for all windows
@@ -116,32 +116,32 @@ public:
      *    1 = wait for vertical sync
      *    2 = fix when using swapgroups in xp and running half the framerate
      */
-    int getSwapInterval() const;
+    int swapInterval() const;
 
     /// Get the refreshrate hint of the window in fullscreen mode.
-    int getRefreshRateHint() const;
+    int refreshRateHint() const;
     
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
-    GLenum getBufferFloatPrecision() const;
+    GLenum bufferFloatPrecision() const;
 
     /**
      * Get if capture should use backbuffer data or texture. Backbuffer data includes
      * masks and warping.
      */
-    bool getCaptureFromBackBuffer() const;
+    bool captureFromBackBuffer() const;
     
     /// Get if aspect ratio is taken into acount when generation some display geometries.
-    bool getTryKeepAspectRatio() const;
+    bool tryKeepAspectRatio() const;
     
     /// Get if warping meshes should be exported as obj-files.
-    bool getExportWarpingMeshes() const;
+    bool exportWarpingMeshes() const;
 
     /**
      * Get the capture/screenshot path
      *
      * \return the captureformat if set, otherwise -1 is returned
      */
-    CaptureFormat getCaptureFormat() const;
+    CaptureFormat captureFormat() const;
 
     /// Return true if depth buffer is rendered to texture
     bool useDepthTexture() const;
@@ -153,10 +153,10 @@ public:
     bool usePositionTexture() const;
 
     /// Get the number of capture threads (for screenshot recording)
-    int getNumberOfCaptureThreads() const;
+    int numberCaptureThreads() const;
 
     /// \return the drawBufferType
-    DrawBufferType getDrawBufferType() const;
+    DrawBufferType drawBufferType() const;
 
 private:
     Settings() = default;

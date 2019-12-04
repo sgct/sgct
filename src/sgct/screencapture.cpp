@@ -58,7 +58,7 @@ namespace {
 namespace sgct::core {
 
 ScreenCapture::ScreenCapture()
-    : _nThreads(Settings::instance().getNumberOfCaptureThreads())
+    : _nThreads(Settings::instance().numberCaptureThreads())
 {}
 
 ScreenCapture::~ScreenCapture() {
@@ -122,10 +122,10 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    std::string file = addFrameNumberToFilename(Engine::instance().getScreenShotNumber());
+    std::string file = addFrameNumberToFilename(Engine::instance().screenShotNumber());
     checkImageBuffer(capSrc);
 
-    int threadIndex = getAvailableCaptureThread();
+    int threadIndex = availableCaptureThread();
     if (threadIndex == -1) {
         Logger::Error("Error finding available capture thread");
         return;
@@ -142,7 +142,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     else {
         // set the target framebuffer to read
         glReadBuffer(sourceForCaptureSource(capSrc));
-        const glm::ivec2& s = imPtr->getSize();
+        const glm::ivec2& s = imPtr->size();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
         glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, nullptr);
@@ -152,7 +152,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
     );
     if (ptr) {
-        std::memcpy(imPtr->getData(), ptr, _dataSize);
+        std::memcpy(imPtr->data(), ptr, _dataSize);
 
         // save the image
         _captureInfos[threadIndex].isRunning = true;
@@ -207,26 +207,26 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         using CapturePath = Settings::CapturePath;
         switch (_eyeIndex) {
             case EyeIndex::Mono:
-                filename = Settings::instance().getCapturePath(CapturePath::Mono);
+                filename = Settings::instance().capturePath(CapturePath::Mono);
                 break;
             case EyeIndex::StereoLeft:
                 eye = "_L";
-                filename = Settings::instance().getCapturePath(CapturePath::LeftStereo);
+                filename = Settings::instance().capturePath(CapturePath::LeftStereo);
                 break;
             case EyeIndex::StereoRight:
                 eye = "_R";
-                filename = Settings::instance().getCapturePath(CapturePath::RightStereo);
+                filename = Settings::instance().capturePath(CapturePath::RightStereo);
                 break;
             default:
                 throw std::logic_error("Unhandled case label");
         }
-        Window& win = Engine::instance().getWindow(_windowIndex);
+        Window& win = Engine::instance().window(_windowIndex);
         
-        if (win.getName().empty()) {
+        if (win.name().empty()) {
             filename += "_win" + std::to_string(_windowIndex);
         }
         else {
-            filename += '_' + win.getName();
+            filename += '_' + win.name();
         }
     }
     else {
@@ -258,7 +258,7 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     return filename + '.' + suffix;
 }
 
-int ScreenCapture::getAvailableCaptureThread() {
+int ScreenCapture::availableCaptureThread() {
     while (true) {
         for (unsigned int i = 0; i < _captureInfos.size(); i++) {
             // check if thread is dead
@@ -279,20 +279,20 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
-    Window& win = Engine::instance().getWindow(_windowIndex);
+    Window& win = Engine::instance().window(_windowIndex);
 
     if (captureSource == CaptureSource::Texture) {
-        if (_resolution != win.getFramebufferResolution()) {
+        if (_resolution != win.framebufferResolution()) {
             _downloadType = _downloadTypeSetByUser;
-            const int bytesPerColor = win.getFramebufferBPCC();
-            initOrResize(win.getFramebufferResolution(), _nChannels, bytesPerColor);
+            const int bytesPerColor = win.framebufferBPCC();
+            initOrResize(win.framebufferResolution(), _nChannels, bytesPerColor);
         }
     }
     else {
         // capture directly from back buffer (no HDR support)
-        if (_resolution != win.getResolution()) {
+        if (_resolution != win.resolution()) {
             _downloadType = GL_UNSIGNED_BYTE;
-            initOrResize(win.getResolution(), _nChannels, 1);
+            initOrResize(win.resolution(), _nChannels, 1);
         }
     }
 }

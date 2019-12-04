@@ -82,7 +82,7 @@ public:
     static bool isBarrierActive();
     static bool isUsingSwapGroups();
     static bool isSwapGroupMaster();
-    static unsigned int getSwapGroupFrameNumber();
+    static unsigned int swapGroupFrameNumber();
 
     static void makeSharedContextCurrent();
 
@@ -260,13 +260,13 @@ public:
     bool isWindowResized() const;
 
     /// \return the name of this window
-    const std::string& getName() const;
+    const std::string& name() const;
 
     /// \return true if a specific tag exists
     bool hasTag(const std::string& tag) const;
 
     /// \return this window's id
-    int getId() const;
+    int id() const;
 
     /**
      * Get a frame buffer texture. If the texture doesn't exists then it will be created.
@@ -274,7 +274,7 @@ public:
      * \param index Index or Engine::TextureIndex enum
      * \return texture index of selected frame buffer texture
      */
-    unsigned int getFrameBufferTexture(TextureIndex index);
+    unsigned int frameBufferTexture(TextureIndex index);
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.
@@ -282,65 +282,65 @@ public:
      * \param eye can either be 0 (left) or 1 (right)
      * \return pointer to screen capture pointer
      */
-    core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
+    core::ScreenCapture* screenCapturePointer(Eye eye) const;
 
     /// \return the number of samples used in multisampled anti-aliasing
-    int getNumberOfAASamples() const;
+    int numberOfAASamples() const;
 
     /// \return the stereo mode
-    StereoMode getStereoMode() const;
+    StereoMode stereoMode() const;
 
     /**
      * Get the dimensions of the final FBO. Regular viewport rendering renders directly to
      * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
      * effects are rendered using these dimensions.
      */
-    glm::ivec2 getFinalFBODimensions() const;
+    glm::ivec2 finalFBODimensions() const;
 
     /// Returns pointer to FBO container
-    core::OffScreenBuffer* getFBO() const;
+    core::OffScreenBuffer* fbo() const;
 
     /// \return pointer to GLFW window
-    GLFWwindow* getWindowHandle() const;
+    GLFWwindow* windowHandle() const;
 
     /// \return a reference to a specific viewport
-    core::Viewport& getViewport(int index);
+    core::Viewport& viewport(int index);
 
     /// \return a const reference to a specific viewport
-    const core::Viewport& getViewport(int index) const;
+    const core::Viewport& viewport(int index) const;
 
     /// \return the viewport count for this window
-    int getNumberOfViewports() const;
+    int numberOfViewports() const;
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;
 
     /// Get the color bit depth of the FBO and Screencapture.
-    ColorBitDepth getColorBitDepth() const;
+    ColorBitDepth colorBitDepth() const;
 
     /// Get FOV of viewport[0]
-    float getHorizFieldOfViewDegrees() const;
+    float horizFieldOfViewDegrees() const;
     
     /// \return Get the window resolution.
-    glm::ivec2 getResolution() const;
+    glm::ivec2 resolution() const;
 
     /// \return Get the frame buffer resolution.
-    glm::ivec2 getFramebufferResolution() const;
+    glm::ivec2 framebufferResolution() const;
 
     /// \return Get the initial window resolution.
-    glm::ivec2 getInitialResolution() const;
+    glm::ivec2 initialResolution() const;
 
     /**
      * \return Get the scale value (relation between pixel and point size). Normally this
      *         value is 1.f but 2.f on some retina computers.
      */
-    glm::vec2 getScale() const;
+    glm::vec2 scale() const;
 
     /// \return the aspect ratio of the window 
-    float getAspectRatio() const;
+    float aspectRatio() const;
 
     /// \return Get the frame buffer bytes per color component (BPCC) count.
-    int getFramebufferBPCC() const;
+    int framebufferBPCC() const;
 
     void renderScreenQuad() const;
 
@@ -353,8 +353,8 @@ public:
     bool useFXAA() const;
 
     void bindStereoShaderProgram() const;
-    int getStereoShaderLeftTexLoc() const;
-    int getStereoShaderRightTexLoc() const;
+    int stereoShaderLeftTexLoc() const;
+    int stereoShaderRightTexLoc() const;
 
     bool shouldCallDraw2DFunction() const;
     bool shouldCallDraw3DFunction() const;

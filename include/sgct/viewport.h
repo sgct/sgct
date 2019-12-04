@@ -52,10 +52,10 @@ public:
     bool hasBlackLevelMaskTexture() const;
     bool hasSubViewports() const;
     bool isTracked() const;
-    unsigned int getOverlayTextureIndex() const;
-    unsigned int getBlendMaskTextureIndex() const;
-    unsigned int getBlackLevelMaskTextureIndex() const;
-    NonLinearProjection* getNonLinearProjection() const;
+    unsigned int overlayTextureIndex() const;
+    unsigned int blendMaskTextureIndex() const;
+    unsigned int blackLevelMaskTextureIndex() const;
+    NonLinearProjection* nonLinearProjection() const;
     const std::vector<char>& mpcdiWarpMesh() const;
 
 private:

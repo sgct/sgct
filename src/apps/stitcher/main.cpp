@@ -113,7 +113,7 @@ void drawFace(Rotation rot) {
             break;
     }
 
-    ShaderManager::instance().getShaderProgram("simple").bind();
+    ShaderManager::instance().shaderProgram("simple").bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -211,7 +211,7 @@ void preSyncFun() {
             );
         }
 
-        takeScreenshot.setVal(true);
+        takeScreenshot.setValue(true);
         iterator++;
     }
     else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
@@ -223,7 +223,7 @@ void preSyncFun() {
             );
         }
 
-        takeScreenshot.setVal(true);
+        takeScreenshot.setValue(true);
         iterator++;
     }
 
@@ -231,34 +231,34 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.getVal()) {
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
 void preWinInitFun() {
-    Engine::instance().getDefaultUser().setEyeSeparation(settings.eyeSeparation);
-    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
-        Window& win = Engine::instance().getWindow(i);
+    Engine::instance().defaultUser().setEyeSeparation(settings.eyeSeparation);
+    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
+        Window& win = Engine::instance().window(i);
         Engine::instance().setScreenShotNumber(startFrame);
         win.setAlpha(settings.alpha);
 
-        for (int j = 0; j < Engine::instance().getWindow(i).getNumberOfViewports(); j++) {
-            core::Viewport& vp = win.getViewport(j);
+        for (int j = 0; j < Engine::instance().window(i).numberOfViewports(); j++) {
+            core::Viewport& vp = win.viewport(j);
             if (!vp.hasSubViewports()) {
                 continue;
             }
-            vp.getNonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
-            vp.getNonLinearProjection()->setCubemapResolution(settings.cubemapRes);
-            vp.getNonLinearProjection()->setInterpolationMode(
+            vp.nonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+            vp.nonLinearProjection()->setCubemapResolution(settings.cubemapRes);
+            vp.nonLinearProjection()->setInterpolationMode(
                 settings.cubic ?
                 core::NonLinearProjection::InterpolationMode::Cubic :
                 core::NonLinearProjection::InterpolationMode::Linear
             );
 
             core::FisheyeProjection* p = dynamic_cast<core::FisheyeProjection*>(
-                vp.getNonLinearProjection()
+                vp.nonLinearProjection()
             );
             if (p) {
                 p->setDomeDiameter(settings.domeDiameter);
@@ -412,7 +412,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::P:
             case Key::F10:
-                takeScreenshot.setVal(true);
+                takeScreenshot.setValue(true);
                 break;
             default:
                 break;

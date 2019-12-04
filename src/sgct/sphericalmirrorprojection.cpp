@@ -78,7 +78,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 {
     Engine::instance().enterCurrentViewport(window, viewport, frustumMode);
 
-    float aspect = window.getAspectRatio() * viewport.getSize().x / viewport.getSize().y;
+    float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
     glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -142,7 +142,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
 
         setupViewport(bv);
 
-        const glm::vec4 color = Engine::instance().getClearColor();
+        const glm::vec4 color = Engine::instance().clearColor();
         const float a = window.hasAlpha() ? 0.f : color.a;
         glClearColor(color.r, color.g, color.b, a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -151,13 +151,13 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             window,
             bv,
             frustumMode,
-            core::ClusterManager::instance().getSceneTransform(),
-            bv.getProjection(frustumMode).getViewMatrix(),
-            bv.getProjection(frustumMode).getProjectionMatrix(),
-            bv.getProjection(frustumMode).getViewProjectionMatrix() *
-                core::ClusterManager::instance().getSceneTransform()
+            core::ClusterManager::instance().sceneTransform(),
+            bv.projection(frustumMode).viewMatrix(),
+            bv.projection(frustumMode).projectionMatrix(),
+            bv.projection(frustumMode).viewProjectionMatrix() *
+                core::ClusterManager::instance().sceneTransform()
         );
-        Engine::instance().getDrawFunction()(renderData);
+        Engine::instance().drawFunction()(renderData);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -228,7 +228,7 @@ void SphericalMirrorProjection::initViewports() {
     // Right
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
-        _subViewports.right.getProjectionPlane().setCoordinates(
+        _subViewports.right.projectionPlane().setCoordinates(
             glm::vec3(r * lowerLeftBase),
             glm::vec3(r * upperLeftBase),
             glm::vec3(r * upperRightBase)
@@ -238,7 +238,7 @@ void SphericalMirrorProjection::initViewports() {
     // left
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-        _subViewports.left.getProjectionPlane().setCoordinates(
+        _subViewports.left.projectionPlane().setCoordinates(
             glm::vec3(r * lowerLeftBase),
             glm::vec3(r * upperLeftBase),
             glm::vec3(r * upperRightBase)
@@ -251,7 +251,7 @@ void SphericalMirrorProjection::initViewports() {
     // top
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-        _subViewports.top.getProjectionPlane().setCoordinates(
+        _subViewports.top.projectionPlane().setCoordinates(
             glm::vec3(r * lowerLeftBase),
             glm::vec3(r * upperLeftBase),
             glm::vec3(r * upperRightBase)
@@ -260,7 +260,7 @@ void SphericalMirrorProjection::initViewports() {
 
     // front
     {
-        _subViewports.front.getProjectionPlane().setCoordinates(
+        _subViewports.front.projectionPlane().setCoordinates(
             glm::vec3(tiltMat * lowerLeftBase),
             glm::vec3(tiltMat * upperLeftBase),
             glm::vec3(tiltMat * upperRightBase)
@@ -287,10 +287,10 @@ void SphericalMirrorProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _texLoc = glGetUniformLocation(_shader.getId(), "tex");
+    _texLoc = glGetUniformLocation(_shader.id(), "tex");
     glUniform1i(_texLoc, 0);
 
-    _matrixLoc = glGetUniformLocation(_shader.getId(), "mvp");
+    _matrixLoc = glGetUniformLocation(_shader.id(), "mvp");
 
     ShaderProgram::unbind();
 }

@@ -247,7 +247,7 @@ void Font::setStrokeSize(int size) {
     _strokeSize = size;
 }
 
-const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
+const Font::FontFaceData& Font::fontFaceData(wchar_t c) {
     if (_fontFaceData.count(c) == 0) {
         // check if c does not exist in map
         createCharacter(c);
@@ -255,11 +255,11 @@ const Font::FontFaceData& Font::getFontFaceData(wchar_t c) {
     return _fontFaceData[c];
 }
 
-unsigned int Font::getVAO() const {
+unsigned int Font::vao() const {
     return _vao;
 }
 
-float Font::getHeight() const {
+float Font::height() const {
     return _height;
 }
 

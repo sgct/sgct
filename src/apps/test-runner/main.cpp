@@ -82,7 +82,7 @@ void main() { FragOut = color; }
 using namespace sgct;
 
 void draw(RenderData data) {
-    ShaderManager::instance().getShaderProgram("simple").bind();
+    ShaderManager::instance().shaderProgram("simple").bind();
     const glm::mat4 mvp = data.modelViewProjectionMatrix;
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
@@ -99,7 +99,7 @@ void draw(RenderData data) {
     }
     glBindVertexArray(0);
 
-    ShaderManager::instance().getShaderProgram("simple").unbind();
+    ShaderManager::instance().shaderProgram("simple").unbind();
 }
 
 void initGL() {
@@ -210,40 +210,40 @@ void initGL() {
     }
 
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("simple");
     prog.bind();
-    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
-    glUniform1f(glGetUniformLocation(prog.getId(), "radius"), radius);
+    matrixLocation = glGetUniformLocation(prog.id(), "matrix");
+    glUniform1f(glGetUniformLocation(prog.id(), "radius"), radius);
 
     prog.unbind();
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.getVal());
-    if (takeScreenshot.getVal()) {
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.value());
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
 void postDraw() {
     if (Engine::instance().isMaster()) {
-        if (Engine::instance().getCurrentFrameNumber() == 10) {
+        if (Engine::instance().currentFrameNumber() == 10) {
             Logger::Info("Taking first screenshot");
-            takeScreenshot.setVal(true);
+            takeScreenshot.setValue(true);
         }
 
-        if (Engine::instance().getCurrentFrameNumber() == 15) {
+        if (Engine::instance().currentFrameNumber() == 15) {
             Logger::Info("Capturing from Back buffer");
-            captureBackbuffer.setVal(true);
+            captureBackbuffer.setValue(true);
         }
 
-        if (Engine::instance().getCurrentFrameNumber() == 20) {
+        if (Engine::instance().currentFrameNumber() == 20) {
             Logger::Info("Taking second screenshot");
-            takeScreenshot.setVal(true);
+            takeScreenshot.setValue(true);
         }
 
-        if (Engine::instance().getCurrentFrameNumber() == 25) {
+        if (Engine::instance().currentFrameNumber() == 25) {
             Engine::instance().terminate();
         }
     }

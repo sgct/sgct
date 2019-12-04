@@ -32,25 +32,25 @@ public:
     bool isUsingSwapGroups() const;
 
     /// Check if a key is pressed for all windows.
-    bool getKeyPressed(Key key);
+    bool isKeyPressed(Key key);
 
     /// Get the number of windows in the window vector
-    int getNumberOfWindows() const;
+    int numberOfWindows() const;
 
     /// Get the window pointer at index in window vector.
-    Window& getWindow(int index);
+    Window& window(int index);
 
     /// Get the window pointer at index in window vector.
-    const Window& getWindow(int index) const;
+    const Window& window(int index) const;
 
     /// \return the address of this node
-    const std::string& getAddress() const;
+    const std::string& address() const;
 
     /// \return the sync port of this node
-    int getSyncPort() const;
+    int syncPort() const;
 
     /// \return the data transfer port of this node
-    int getDataTransferPort() const;
+    int dataTransferPort() const;
 
 private:
     std::string _address;

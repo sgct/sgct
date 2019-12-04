@@ -40,13 +40,13 @@ namespace {
         }
 
         sgct::Tracker* tracker = reinterpret_cast<sgct::Tracker*>(userdata);
-        sgct::TrackingDevice* device = tracker->getDeviceBySensorId(t.sensor);
+        sgct::TrackingDevice* device = tracker->deviceBySensorId(t.sensor);
 
         if (device == nullptr) {
             return;
         }
 
-        glm::dvec3 pos = glm::dvec3(t.pos[0], t.pos[1], t.pos[2]) * tracker->getScale();
+        glm::dvec3 pos = glm::dvec3(t.pos[0], t.pos[1], t.pos[2]) * tracker->scale();
         glm::dquat rotation(t.quat[3], t.quat[0], t.quat[1], t.quat[2]);
         device->setSensorTransform(pos, rotation);
     }
@@ -66,14 +66,14 @@ namespace {
 
         while (true) {
             const double t = sgct::Engine::getTime();
-            for (int i = 0; i < tm->getNumberOfTrackers(); ++i) {
-                sgct::Tracker* tracker = tm->getTracker(i);
+            for (int i = 0; i < tm->numberOfTrackers(); ++i) {
+                sgct::Tracker* tracker = tm->tracker(i);
 
                 if (tracker == nullptr) {
                     continue;
                 }
-                for (int j = 0; j < tracker->getNumberOfDevices(); ++j) {
-                    if (!tracker->getDevice(j)->isEnabled()) {
+                for (int j = 0; j < tracker->numberOfDevices(); ++j) {
+                    if (!tracker->device(j)->isEnabled()) {
                         continue;
                     }
 
@@ -154,10 +154,10 @@ void TrackingManager::applyDevice(const config::Device& device) {
         addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
     }
     if (device.offset) {
-        getLastTracker()->getLastDevice()->setOffset(*device.offset);
+        lastTracker()->lastDevice()->setOffset(*device.offset);
     }
     if (device.transformation) {
-        getLastTracker()->getLastDevice()->setTransform(*device.transformation);
+        lastTracker()->lastDevice()->setTransform(*device.transformation);
     }
 }
 
@@ -168,13 +168,13 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
         applyDevice(device);
     }
     if (tracker.offset) {
-        getLastTracker()->setOffset(*tracker.offset);
+        lastTracker()->setOffset(*tracker.offset);
     }
     if (tracker.scale) {
-        getLastTracker()->setScale(*tracker.scale);
+        lastTracker()->setScale(*tracker.scale);
     }
     if (tracker.transformation) {
-        getLastTracker()->setTransform(*tracker.transformation);
+        lastTracker()->setTransform(*tracker.transformation);
     }
 }
 
@@ -194,20 +194,20 @@ void TrackingManager::startSampling() {
         return;
     }
     // find user with headtracking
-    _headUser = core::ClusterManager::instance().getTrackedUser();
+    _headUser = core::ClusterManager::instance().trackedUser();
 
     // if tracked user not found
     if (_headUser == nullptr) {
-        _headUser = &core::ClusterManager::instance().getDefaultUser();
+        _headUser = &core::ClusterManager::instance().defaultUser();
     }
 
     // link the head tracker
-    const std::string& trackerName = _headUser->getHeadTrackerName();
-    Tracker* tracker = getTracker(trackerName);
+    const std::string& trackerName = _headUser->headTrackerName();
+    Tracker* tr = tracker(trackerName);
 
-    const std::string& deviceName = _headUser->getHeadTrackerDeviceName();
-    if (tracker) {
-        _head = tracker->getDevice(deviceName);
+    const std::string& deviceName = _headUser->headTrackerDeviceName();
+    if (tr) {
+        _head = tr->device(deviceName);
     }
 
     if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
@@ -226,10 +226,10 @@ void TrackingManager::startSampling() {
 void TrackingManager::updateTrackingDevices() {
 #ifdef SGCT_HAS_VRPN
     for (const std::unique_ptr<Tracker>& tracker : _trackers) {
-        for (int j = 0; j < tracker->getNumberOfDevices(); ++j) {
-            TrackingDevice* tdPtr = tracker->getDevice(j);
+        for (int j = 0; j < tracker->numberOfDevices(); ++j) {
+            TrackingDevice* tdPtr = tracker->device(j);
             if (tdPtr->isEnabled() && tdPtr == _head && _headUser) {
-                _headUser->setTransform(tdPtr->getWorldTransform());
+                _headUser->setTransform(tdPtr->worldTransform());
             }
         }
     }
@@ -240,7 +240,7 @@ void TrackingManager::updateTrackingDevices() {
 
 void TrackingManager::addTracker(std::string name) {
 #ifdef SGCT_HAS_VRPN
-    if (!getTracker(name)) {
+    if (!tracker(name)) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.emplace_back(std::vector<VRPNPointer>());
         Logger::Info("Tracker '%s' added successfully", name.c_str());
@@ -271,7 +271,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     std::pair<std::set<std::string>::iterator, bool> retVal = _addresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->lastDevice();
 
     if (device) {
         device->setSensorId(id);
@@ -302,12 +302,12 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->lastDevice();
 
     if (ptr.mButtonDevice == nullptr && device) {
         Logger::Info(
             "Connecting to buttons '%s' on device %s",
-            address.c_str(), device->getName().c_str()
+            address.c_str(), device->name().c_str()
         );
         ptr.mButtonDevice = std::make_unique<vrpn_Button_Remote>(address.c_str());
         ptr.mButtonDevice->register_change_handler(device, updateButton);
@@ -330,12 +330,12 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->getLastDevice();
+    TrackingDevice* device = _trackers.back()->lastDevice();
 
     if (ptr.mAnalogDevice == nullptr && device) {
         Logger::Info(
             "Connecting to analogs '%s' on device %s",
-            address.c_str(), device->getName().c_str()
+            address.c_str(), device->name().c_str()
         );
 
         ptr.mAnalogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
@@ -352,27 +352,27 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
 #endif // SGCT_HAS_VRPN
 }
 
-int TrackingManager::getNumberOfTrackers() const {
+int TrackingManager::numberOfTrackers() const {
     return static_cast<int>(_trackers.size());
 }
 
-TrackingDevice* TrackingManager::getHeadDevice() const {
+TrackingDevice* TrackingManager::headDevice() const {
     return _head;
 }
 
-Tracker* TrackingManager::getLastTracker() const {
+Tracker* TrackingManager::lastTracker() const {
     return !_trackers.empty() ? _trackers.back().get() : nullptr;
 }
 
-Tracker* TrackingManager::getTracker(int index) const {
+Tracker* TrackingManager::tracker(int index) const {
     return index < static_cast<int>(_trackers.size()) ? _trackers[index].get() : nullptr;
 }
 
-Tracker* TrackingManager::getTracker(const std::string& name) const {
+Tracker* TrackingManager::tracker(const std::string& name) const {
     const auto it = std::find_if(
         _trackers.cbegin(),
         _trackers.cend(),
-        [name](const std::unique_ptr<Tracker>& tr) { return tr->getName() == name; }
+        [name](const std::unique_ptr<Tracker>& tr) { return tr->name() == name; }
     );
     return it != _trackers.cend() ? it->get() : nullptr;
 }
@@ -398,7 +398,7 @@ void TrackingManager::setSamplingTime(double t) {
 #endif // SGCT_HAS_VRPN
 }
 
-double TrackingManager::getSamplingTime() const {
+double TrackingManager::samplingTime() const {
 #ifdef SGCT_HAS_VRPN
     std::unique_lock lock(core::mutex::Tracking);
     return _samplingTime;

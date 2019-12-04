@@ -64,31 +64,31 @@ void User::updateEyeTransform() {
     _posRightEye = glm::vec3(_transform * posRight);
 }
 
-const glm::vec3& User::getPosMono() const {
+const glm::vec3& User::posMono() const {
     return _posMono;
 }
 
-const glm::vec3& User::getPosLeftEye() const {
+const glm::vec3& User::posLeftEye() const {
     return _posLeftEye;
 }
 
-const glm::vec3& User::getPosRightEye() const {
+const glm::vec3& User::posRightEye() const {
     return _posRightEye;
 }
 
-float User::getEyeSeparation() const {
+float User::eyeSeparation() const {
     return _eyeSeparation;
 }
 
-const std::string& User::getHeadTrackerName() const {
+const std::string& User::headTrackerName() const {
     return _headTrackerName;
 }
 
-const std::string& User::getHeadTrackerDeviceName() const {
+const std::string& User::headTrackerDeviceName() const {
     return _headTrackerDeviceName;
 }
 
-const std::string& User::getName() const {
+const std::string& User::name() const {
     return _name;
 }
 

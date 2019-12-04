@@ -61,38 +61,38 @@ void myDraw2DFun(RenderData data) {
     text::print(
         data.window,
         data.viewport,
-        *text::FontManager::instance().getFont("SGCTFont", 24),
+        *text::FontManager::instance().font("SGCTFont", 24),
         text::TextAlignMode::TopLeft,
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),
-        "Time: %ls", sTimeOfDay.getVal().c_str()
+        "Time: %ls", sTimeOfDay.value().c_str()
     );
-    if (extraPackages.getVal() && extraData.getSize() == ExtendedSize) {
-        float xp = data.window.getFramebufferResolution().x / 2.f - 150.f;
+    if (extraPackages.value() && extraData.size() == ExtendedSize) {
+        float xp = data.window.framebufferResolution().x / 2.f - 150.f;
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 16),
+            *text::FontManager::instance().font("SGCTFont", 16),
             text::TextAlignMode::TopLeft,
             xp,
             150.f,
             glm::vec4(0.f, 1.f, 0.5f, 1.f),
             "Vector val: %f, size: %u",
-            extraData.getValAt(ExtendedSize / 2), extraData.getSize()
+            extraData.valueAt(ExtendedSize / 2), extraData.size()
         );
     }
 #endif // SGCT_HAS_TEXT
 }
 
 void drawFun(RenderData data) {
-    if (slowRendering.getVal()) {
+    if (slowRendering.value()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
     // test quadbuffer
-    if (frametest.getVal()) {
-        if (Engine::instance().getCurrentFrameNumber() % 2 == 0) {
+    if (frametest.value()) {
+        if (Engine::instance().currentFrameNumber() % 2 == 0) {
             // even
             if (data.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
@@ -119,10 +119,10 @@ void drawFun(RenderData data) {
         Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
 
-    ShaderManager::instance().getShaderProgram("simple").bind();
+    ShaderManager::instance().shaderProgram("simple").bind();
     glm::mat4 matrix = glm::rotate(
         data.modelViewProjectionMatrix,
-        glm::radians(static_cast<float>(currentTime.getVal()) * speed.getVal()),
+        glm::radians(static_cast<float>(currentTime.value()) * speed.value()),
         glm::vec3(0.f, 1.f, 0.f)
     );
     matrix = glm::scale(matrix, glm::vec3(1.f, 0.5f, 1.f));
@@ -133,13 +133,13 @@ void drawFun(RenderData data) {
     glBindVertexArray(0);
 
 #ifdef SGCT_HAS_TEXT
-    float pos = data.window.getFramebufferResolution().x / 2.f;
+    float pos = data.window.framebufferResolution().x / 2.f;
 
     if (data.frustumMode == Frustum::Mode::StereoLeftEye) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 32),
+            *text::FontManager::instance().font("SGCTFont", 32),
             text::TextAlignMode::TopRight,
             pos,
             200,
@@ -150,7 +150,7 @@ void drawFun(RenderData data) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 32),
+            *text::FontManager::instance().font("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
             150,
@@ -161,7 +161,7 @@ void drawFun(RenderData data) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 32),
+            *text::FontManager::instance().font("SGCTFont", 32),
             text::TextAlignMode::TopLeft,
             pos,
             200,
@@ -173,7 +173,7 @@ void drawFun(RenderData data) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 18),
+            *text::FontManager::instance().font("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             450,
@@ -185,7 +185,7 @@ void drawFun(RenderData data) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 18),
+            *text::FontManager::instance().font("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             500,
@@ -198,7 +198,7 @@ void drawFun(RenderData data) {
             text::print(
                 data.window,
                 data.viewport,
-                *text::FontManager::instance().getFont("SGCTFont", 18),
+                *text::FontManager::instance().font("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
                 400,
@@ -211,7 +211,7 @@ void drawFun(RenderData data) {
             text::print(
                 data.window,
                 data.viewport,
-                *text::FontManager::instance().getFont("SGCTFont", 18),
+                *text::FontManager::instance().font("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
                 400,
@@ -225,7 +225,7 @@ void drawFun(RenderData data) {
             text::print(
                 data.window,
                 data.viewport,
-                *text::FontManager::instance().getFont("SGCTFont", 18),
+                *text::FontManager::instance().font("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
                 350,
@@ -238,7 +238,7 @@ void drawFun(RenderData data) {
             text::print(
                 data.window,
                 data.viewport,
-                *text::FontManager::instance().getFont("SGCTFont", 18),
+                *text::FontManager::instance().font("SGCTFont", 18),
                 text::TextAlignMode::TopLeft,
                 pos - pos / 2.f,
                 350,
@@ -251,31 +251,31 @@ void drawFun(RenderData data) {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 18),
+            *text::FontManager::instance().font("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             300,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
-            "Nvidia frame counter: %u", data.window.getSwapGroupFrameNumber()
+            "Nvidia frame counter: %u", data.window.swapGroupFrameNumber()
         );
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 18),
+            *text::FontManager::instance().font("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             250,
             glm::vec4(1.f),
             glm::vec4(1.f, 0.f, 0.f, 0.5f),
-            "Framerate: %.3lf", 1.0 / Engine::instance().getDt()
+            "Framerate: %.3lf", 1.0 / Engine::instance().dt()
         );
     }
     else {
         text::print(
             data.window,
             data.viewport,
-            *text::FontManager::instance().getFont("SGCTFont", 18),
+            *text::FontManager::instance().font("SGCTFont", 18),
             text::TextAlignMode::TopLeft,
             pos - pos / 2.f,
             450,
@@ -289,7 +289,7 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::instance().getTime());
+        currentTime.setValue(Engine::instance().getTime());
 
         time_t now = time(nullptr);
         constexpr const int TimeBufferSize = 256;
@@ -307,27 +307,27 @@ void preSyncFun() {
 #endif
         const std::string time = TimeBuffer;
         const std::wstring wTime(time.begin(), time.end());
-        sTimeOfDay.setVal(wTime);
+        sTimeOfDay.setValue(wTime);
     }
 }
 
 void postSyncPreDrawFun() {
     // barrier is set by swap group not window both windows has the same HDC
-    Window::setBarrier(barrier.getVal());
-    if (resetCounter.getVal()) {
+    Window::setBarrier(barrier.value());
+    if (resetCounter.value()) {
         Window::resetSwapGroupFrameNumber();
     }
-    Engine::instance().setStatsGraphVisibility(stats.getVal());
+    Engine::instance().setStatsGraphVisibility(stats.value());
 
-    if (takeScreenshot.getVal()) {
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
 void postDrawFun() {
     if (Engine::instance().isMaster()) {
-        resetCounter.setVal(false);
+        resetCounter.setValue(false);
     }
 }
 
@@ -338,10 +338,10 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    const core::Node& thisNode = core::ClusterManager::instance().getThisNode();
-    for (int i = 0; i < thisNode.getNumberOfWindows(); i++) {
-        for (int j = 0; j < thisNode.getWindow(i).getNumberOfViewports(); j++) {
-            if (thisNode.getWindow(i).getViewport(j).isEnabled()) {
+    const core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
+        for (int j = 0; j < thisNode.window(i).numberOfViewports(); j++) {
+            if (thisNode.window(i).viewport(j).isEnabled()) {
                 numberOfActiveViewports++;
             }
         }
@@ -433,21 +433,21 @@ void initOGLFun() {
     glBindVertexArray(0);
 
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().getShaderProgram("simple");
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("simple");
     prog.bind();
-    matrixLocation = glGetUniformLocation(prog.getId(), "matrix");
+    matrixLocation = glGetUniformLocation(prog.id(), "matrix");
     prog.unbind();
 }
 
 void encodeFun() {
     unsigned char flags = 0;
-    flags = extraPackages.getVal()  ? flags | 2   : flags & ~2;   // bit 2
-    flags = barrier.getVal()        ? flags | 4   : flags & ~4;   // bit 3
-    flags = resetCounter.getVal()   ? flags | 8   : flags & ~8;   // bit 4
-    flags = stats.getVal()          ? flags | 16  : flags & ~16;  // bit 5
-    flags = takeScreenshot.getVal() ? flags | 32  : flags & ~32;  // bit 6
-    flags = slowRendering.getVal()  ? flags | 64  : flags & ~64;  // bit 7
-    flags = frametest.getVal()      ? flags | 128 : flags & ~128; // bit 8
+    flags = extraPackages.value()  ? flags | 2   : flags & ~2;   // bit 2
+    flags = barrier.value()        ? flags | 4   : flags & ~4;   // bit 3
+    flags = resetCounter.value()   ? flags | 8   : flags & ~8;   // bit 4
+    flags = stats.value()          ? flags | 16  : flags & ~16;  // bit 5
+    flags = takeScreenshot.value() ? flags | 32  : flags & ~32;  // bit 6
+    flags = slowRendering.value()  ? flags | 64  : flags & ~64;  // bit 7
+    flags = frametest.value()      ? flags | 128 : flags & ~128; // bit 8
 
     SharedUChar sf(flags);
 
@@ -456,7 +456,7 @@ void encodeFun() {
     SharedData::instance().writeUChar(sf);
     SharedData::instance().writeWString(sTimeOfDay);
 
-    if (extraPackages.getVal()) {
+    if (extraPackages.value()) {
         SharedData::instance().writeVector(extraData);
     }
 }
@@ -468,16 +468,16 @@ void decodeFun() {
     SharedData::instance().readUChar(sf);
     SharedData::instance().readWString(sTimeOfDay);
 
-    unsigned char flags = sf.getVal();
-    extraPackages.setVal(flags & 2);
-    barrier.setVal(flags & 4);
-    resetCounter.setVal(flags & 8);
-    stats.setVal(flags & 16);
-    takeScreenshot.setVal(flags & 32);
-    slowRendering.setVal(flags & 64);
-    frametest.setVal(flags & 128);
+    unsigned char flags = sf.value();
+    extraPackages.setValue(flags & 2);
+    barrier.setValue(flags & 4);
+    resetCounter.setValue(flags & 8);
+    stats.setValue(flags & 16);
+    takeScreenshot.setValue(flags & 32);
+    slowRendering.setValue(flags & 64);
+    frametest.setValue(flags & 128);
 
-    if (extraPackages.getVal()) {
+    if (extraPackages.value()) {
         SharedData::instance().readVector(extraData);
     }
 }
@@ -492,27 +492,27 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::F:
                 if (action == Action::Press) {
-                    frametest.setVal(!frametest.getVal());
+                    frametest.setValue(!frametest.value());
                 }
                 break;
             case Key::E:
                 if (action == Action::Press) {
-                    extraPackages.setVal(!extraPackages.getVal());
+                    extraPackages.setValue(!extraPackages.value());
                 }
                 break;
             case Key::B:
                 if (action == Action::Press) {
-                    barrier.setVal(!barrier.getVal());
+                    barrier.setValue(!barrier.value());
                 }
                 break;
             case Key::R:
                 if (action == Action::Press) {
-                    resetCounter.setVal(!resetCounter.getVal());
+                    resetCounter.setValue(!resetCounter.value());
                 }
                 break;
             case Key::S:
                 if (action == Action::Press) {
-                    stats.setVal(!stats.getVal());
+                    stats.setValue(!stats.value());
                 }
                 break;
             case Key::G:
@@ -526,19 +526,19 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::F9:
                 if (action == Action::Press) {
-                    slowRendering.setVal(!slowRendering.getVal());
+                    slowRendering.setValue(!slowRendering.value());
                 }
                 break;
             case Key::F10:
                 if (action == Action::Press) {
-                    takeScreenshot.setVal(true);
+                    takeScreenshot.setValue(true);
                 }
                 break;
             case Key::Up:
-                speed.setVal(speed.getVal() * 1.1f);
+                speed.setValue(speed.value() * 1.1f);
                 break;
             case Key::Down:
-                speed.setVal(speed.getVal() / 1.1f);
+                speed.setValue(speed.value() / 1.1f);
                 break;
             default:
                 break;
@@ -575,7 +575,7 @@ int main(int argc, char* argv[]) {
 
     if (Engine::instance().isMaster()) {
         for (int i = 0; i < ExtendedSize; i++) {
-            extraData.addVal(static_cast<float>(rand() % 500) / 500.f);
+            extraData.addValue(static_cast<float>(rand() % 500) / 500.f);
         }
     }
 

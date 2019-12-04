@@ -62,8 +62,8 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
 
 void ShaderProgram::deleteProgram() {
     for (core::Shader& shader : _shaders) {
-        if (shader.getId() > 0) {
-            glDetachShader(_programId, shader.getId());
+        if (shader.id() > 0) {
+            glDetachShader(_programId, shader.id());
         }
     }
     _shaders.clear();
@@ -82,7 +82,7 @@ void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentS
     addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
 }
 
-std::string ShaderProgram::getName() const {
+std::string ShaderProgram::name() const {
     return _name;
 }
 
@@ -90,7 +90,7 @@ bool ShaderProgram::isLinked() const {
     return _isLinked;
 }
 
-int ShaderProgram::getId() const {
+int ShaderProgram::id() const {
     return _programId;
 }
 
@@ -107,8 +107,8 @@ void ShaderProgram::createAndLinkProgram() {
 
     // Link shaders
     for (const core::Shader& shader : _shaders) {
-        if (shader.getId() > 0) {
-            glAttachShader(_programId, shader.getId());
+        if (shader.id() > 0) {
+            glAttachShader(_programId, shader.id());
         }
     }
     glLinkProgram(_programId);

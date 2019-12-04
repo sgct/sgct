@@ -181,14 +181,14 @@ void copyWindowToHMD(Window* win) {
         return;
     }
 
-    const glm::ivec2 dim = win->getFinalFBODimensions();
+    const glm::ivec2 dim = win->finalFBODimensions();
     const int windowWidth = dim.x;
     const int windowHeight = dim.y;
     const int renderWidth = dim.x / 2;
     const int renderHeight = dim.y;
 
     // HMD Left Eye
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, win->getFBO()->getBufferID());
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, win->fbo()->getBufferID());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, leftEyeFBODesc.fboID);
 
     glBlitFramebuffer(
@@ -239,7 +239,7 @@ void copyWindowToHMD(Window* win) {
     vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 }
 
-glm::mat4 getHMDCurrentViewProjectionMatrix(core::Frustum::Mode nEye) {
+glm::mat4 currentViewProjectionMatrix(core::Frustum::Mode nEye) {
     if (nEye == core::Frustum::Mode::StereoLeftEye) {
         return eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
     }
@@ -252,9 +252,9 @@ glm::mat4 getHMDCurrentViewProjectionMatrix(core::Frustum::Mode nEye) {
     }
 }
 
-std::string getTrackedDeviceString(vr::IVRSystem* pHmd, vr::TrackedDeviceIndex_t unDevice, 
-                                   vr::TrackedDeviceProperty prop,
-                                   vr::TrackedPropertyError* peError)
+std::string trackedDeviceString(vr::IVRSystem* pHmd, vr::TrackedDeviceIndex_t unDevice, 
+                                vr::TrackedDeviceProperty prop,
+                                vr::TrackedPropertyError* peError)
 {
     if (!isHMDActive()) {
         return "";
@@ -346,7 +346,7 @@ void updateHMDMatrices(float nearClip, float farClip) {
     eyeRightToHeadMat = getHMDEyeToHeadTransform(vr::Eye_Right);
 }
 
-glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip) {
+glm::mat4 eyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip) {
     if (!HMD) {
         return glm::mat4(1.f);
     }
@@ -360,7 +360,7 @@ glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farC
     );
 }
 
-glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye) {
+glm::mat4 eyeToHeadTransform(vr::Hmd_Eye nEye) {
     if (!HMD) {
         return glm::mat4(1.f);
     }
@@ -375,11 +375,11 @@ glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye) {
     return glm::inverse(matrixObj);
 }
 
-glm::mat4 getHMDPoseMatrix() {
+glm::mat4 poseMatrix() {
     return poseHMDMat;
 }
 
-glm::quat getInverseRotation(glm::mat4 matPose) {
+glm::quat inverseRotation(glm::mat4 matPose) {
     glm::quat q;
     q.w = sqrt(std::max(0.f, 1.f + matPose[0][0] + matPose[1][1] + matPose[2][2])) / 2.f;
     q.x = sqrt(std::max(0.f, 1.f + matPose[0][0] - matPose[1][1] - matPose[2][2])) / 2.f;

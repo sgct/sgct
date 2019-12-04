@@ -45,7 +45,7 @@ public:
      *
      * \return Shader id that can be used for program linking
      */
-    int getId() const;
+    int id() const;
 
 private:
     GLenum _shaderType; // The shader type

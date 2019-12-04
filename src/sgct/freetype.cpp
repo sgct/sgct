@@ -21,9 +21,9 @@
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::core::BaseViewport& vp) {
-        glm::vec2 res = glm::vec2(win.getResolution());
-        glm::vec2 size = vp.getSize();
-        glm::vec2 scale = win.getScale();
+        glm::vec2 res = glm::vec2(win.resolution());
+        glm::vec2 size = vp.size();
+        glm::vec2 scale = win.scale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 
@@ -54,12 +54,12 @@ namespace {
         float lineWidth = 0.f;
         for (size_t j = 0; j < line.length() - 1; ++j) {
             wchar_t c = line.c_str()[j];
-            const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+            const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;
         }
         // add last char width
         wchar_t c = line.c_str()[line.length() - 1];
-        const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+        const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
         lineWidth += ffd.size.x;
 
         return lineWidth;
@@ -73,7 +73,7 @@ namespace {
     {
         using namespace sgct::text;
 
-        const float h = font.getHeight() * 1.59f;
+        const float h = font.height() * 1.59f;
 
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -81,7 +81,7 @@ namespace {
 
         // FontManager::instance().getShader().bind();
 
-        glBindVertexArray(font.getVAO());
+        glBindVertexArray(font.vao());
         glActiveTexture(GL_TEXTURE0);
 
         for (size_t i = 0; i < lines.size(); i++) {
@@ -96,7 +96,7 @@ namespace {
 
             for (size_t j = 0; j < lines[i].length(); j++) {
                 const wchar_t c = lines[i].c_str()[j];
-                const sgct::text::Font::FontFaceData& ffd = font.getFontFaceData(c);
+                const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
                     orthoMatrix,
@@ -130,15 +130,15 @@ namespace {
     {
         using namespace sgct::text;
 
-        const float h = font.getHeight() * 1.59f;
+        const float h = font.height() * 1.59f;
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glBindVertexArray(font.getVAO());
+        glBindVertexArray(font.vao());
         glActiveTexture(GL_TEXTURE0);
 
-        const float textScale = 1.f / font.getHeight();
+        const float textScale = 1.f / font.height();
         const glm::mat4 textScaleMat = glm::scale(mvp, glm::vec3(textScale));
 
         for (size_t i = 0; i < lines.size(); i++) {
@@ -153,7 +153,7 @@ namespace {
 
             for (size_t j = 0; j < lines[i].length(); j++) {
                 const wchar_t c = lines[i].c_str()[j];
-                const Font::FontFaceData& ffd = font.getFontFaceData(c);
+                const Font::FontFaceData& ffd = font.fontFaceData(c);
 
                 const glm::mat4 trans = glm::translate(
                     textScaleMat,

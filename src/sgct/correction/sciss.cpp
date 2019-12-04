@@ -168,7 +168,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
 
     fclose(file);
 
-    parent.getUser().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
+    parent.user().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,
@@ -187,16 +187,16 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         scissVertex.tx = glm::clamp(scissVertex.tx, 0.f, 1.f);
         scissVertex.ty = glm::clamp(scissVertex.ty, 0.f, 1.f);
 
-        const glm::vec2& s = parent.getSize();
-        const glm::vec2& p = parent.getPosition();
+        const glm::vec2& s = parent.size();
+        const glm::vec2& p = parent.position();
 
         // convert to [-1, 1]
         CorrectionMeshVertex& vertex = buf.vertices[i];
         vertex.x = 2.f * (scissVertex.x * s.x + p.x) - 1.f;
         vertex.y = 2.f * ((1.f - scissVertex.y) * s.y + p.y) - 1.f;
 
-        vertex.s = scissVertex.tx * parent.getSize().x + parent.getPosition().x;
-        vertex.t = scissVertex.ty * parent.getSize().y + parent.getPosition().y;
+        vertex.s = scissVertex.tx * parent.size().x + parent.position().x;
+        vertex.t = scissVertex.ty * parent.size().y + parent.position().y;
 
         vertex.r = 1.f;
         vertex.g = 1.f;

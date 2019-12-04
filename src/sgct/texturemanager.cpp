@@ -28,11 +28,11 @@ namespace {
                 case 4: return { GL_BGRA, GL_RGBA8 };
                 default: throw std::logic_error("Unhandled case label");
             }
-        }(img.getChannels());
+        }(img.channels());
 
         sgct::Logger::Debug(
             "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
-            img.getSize().x, img.getSize().y, img.getChannels(), type, internalFormat
+            img.size().x, img.size().y, img.channels(), type, internalFormat
         );
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -43,12 +43,12 @@ namespace {
             GL_TEXTURE_2D,
             0,
             internalFormat,
-            static_cast<GLsizei>(img.getSize().x),
-            static_cast<GLsizei>(img.getSize().y),
+            static_cast<GLsizei>(img.size().x),
+            static_cast<GLsizei>(img.size().y),
             0,
             type,
             format,
-            img.getData()
+            img.data()
         );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmap - 1);
@@ -121,7 +121,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     core::Image img;
     img.load(filename);
     
-    if (img.getData() == nullptr) {
+    if (img.data() == nullptr) {
         // image data not valid
         return 0;
     }

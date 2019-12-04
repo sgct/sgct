@@ -45,16 +45,16 @@ public:
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
     
-    const glm::vec2& getPosition() const;
-    const glm::vec2& getSize() const;
-    float getHorizontalFieldOfViewDegrees() const;
+    const glm::vec2& position() const;
+    const glm::vec2& size() const;
+    float horizontalFieldOfViewDegrees() const;
 
-    User& getUser() const;
-    const Window& getWindow() const;
-    Frustum::Mode getEye() const;
+    User& user() const;
+    const Window& window() const;
+    Frustum::Mode eye() const;
 
-    const Projection& getProjection(Frustum::Mode frustumMode) const;
-    ProjectionPlane& getProjectionPlane();
+    const Projection& projection(Frustum::Mode frustumMode) const;
+    ProjectionPlane& projectionPlane();
 
     bool isEnabled() const;
     void linkUserName();

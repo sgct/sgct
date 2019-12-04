@@ -83,12 +83,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -99,7 +99,7 @@ void drawFun(RenderData data) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance().getShaderProgram("MRT").bind();
+    ShaderManager::instance().shaderProgram("MRT").bind();
     glUniformMatrix4fv(mvpMatrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glUniformMatrix4fv(worldMatrixTransposeLoc, 1, GL_TRUE, glm::value_ptr(mv));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(normalMatrix));
@@ -107,7 +107,7 @@ void drawFun(RenderData data) {
 
     box->draw();
 
-    ShaderManager::instance().getShaderProgram("MRT").unbind();
+    ShaderManager::instance().shaderProgram("MRT").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -115,25 +115,25 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.getVal()) {
+    if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setVal(false);
+        takeScreenshot.setValue(false);
     }
 }
 
 void initOGLFun() {
     ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
-    const ShaderProgram& prg = ShaderManager::instance().getShaderProgram("MRT");
+    const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
     prg.bind();
-    textureLoc = glGetUniformLocation(prg.getId(), "tDiffuse");
-    worldMatrixTransposeLoc = glGetUniformLocation(prg.getId(), "worldMatrixTranspose");
-    mvpMatrixLoc = glGetUniformLocation(prg.getId(), "mvpMatrix");
-    normalMatrixLoc = glGetUniformLocation(prg.getId(), "normalMatrix");
+    textureLoc = glGetUniformLocation(prg.id(), "tDiffuse");
+    worldMatrixTransposeLoc = glGetUniformLocation(prg.id(), "worldMatrixTranspose");
+    mvpMatrixLoc = glGetUniformLocation(prg.id(), "mvpMatrix");
+    normalMatrixLoc = glGetUniformLocation(prg.id(), "normalMatrix");
 
     prg.bind();
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
@@ -164,7 +164,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
             Engine::instance().terminate();
         }
         else if (key == Key::P) {
-            takeScreenshot.setVal(true);
+            takeScreenshot.setValue(true);
         }
     }
 }

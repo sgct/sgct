@@ -80,10 +80,10 @@ NetworkManager::NetworkManager(NetworkMode nm)
 #endif
 
     Logger::Debug("Getting host info");
-    getHostInfo();
+    hostInfo();
 
     if (_mode == NetworkMode::Remote) {
-        _isServer = matchesAddress(ClusterManager::instance().getMasterAddress());
+        _isServer = matchesAddress(ClusterManager::instance().masterAddress());
     }
     else if (_mode == NetworkMode::LocalServer) {
         _isServer = true;
@@ -131,16 +131,16 @@ NetworkManager::~NetworkManager() {
 
 void NetworkManager::init() {
     ClusterManager& cm = ClusterManager::instance();
-    if (cm.getThisNode().getAddress().empty()) {
+    if (cm.thisNode().address().empty()) {
         throw Error(5021, "No address information for this node available");
     }
 
     std::string remoteAddress;
     if (_mode == NetworkMode::Remote) {
-        if (cm.getMasterAddress().empty()) {
+        if (cm.masterAddress().empty()) {
             throw Error(5022, "No address information for master available");
         }
-        remoteAddress = cm.getMasterAddress();
+        remoteAddress = cm.masterAddress();
     }
     else {
         // local (not remote)
@@ -149,19 +149,19 @@ void NetworkManager::init() {
 
     // if faking an address (running local) then add it to the search list
     if (_mode != NetworkMode::Remote) {
-        _localAddresses.push_back(cm.getThisNode().getAddress());
+        _localAddresses.push_back(cm.thisNode().address());
     }
 
     // Add Cluster Functionality
-    if (ClusterManager::instance().getNumberOfNodes() > 1) {
+    if (ClusterManager::instance().numberOfNodes() > 1) {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
-            const int port = _networkConnections[i]->getPort();
-            if (port == cm.getThisNode().getSyncPort() ||
-                port == cm.getThisNode().getDataTransferPort() ||
-                port == cm.getExternalControlPort())
+            const int port = _networkConnections[i]->port();
+            if (port == cm.thisNode().syncPort() ||
+                port == cm.thisNode().dataTransferPort() ||
+                port == cm.externalControlPort())
             {
-                const std::string p = std::to_string(cm.getThisNode().getSyncPort());
+                const std::string p = std::to_string(cm.thisNode().syncPort());
                 throw Error(5023,
                     "Port " + p + " is already used by connection " + std::to_string(i)
                 );
@@ -170,7 +170,7 @@ void NetworkManager::init() {
 
         // if client
         if (!_isServer) {
-            addConnection(cm.getThisNode().getSyncPort(), remoteAddress);
+            addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
                 [](const char* data, int length, int index) {
                     SharedData::instance().decode(data, length, index);
@@ -178,9 +178,9 @@ void NetworkManager::init() {
             );
 
             // add data transfer connection
-            if (cm.getThisNode().getDataTransferPort() > 0 && !remoteAddress.empty()) {
+            if (cm.thisNode().dataTransferPort() > 0 && !remoteAddress.empty()) {
                 addConnection(
-                    cm.getThisNode().getDataTransferPort(),
+                    cm.thisNode().dataTransferPort(),
                     remoteAddress,
                     Network::ConnectionType::DataTransfer
                 );
@@ -208,12 +208,12 @@ void NetworkManager::init() {
         }
 
         // add all connections from config file
-        for (int i = 0; i < cm.getNumberOfNodes(); i++) {
-            const Node& n = cm.getNode(i);
+        for (int i = 0; i < cm.numberOfNodes(); i++) {
+            const Node& n = cm.node(i);
 
             // don't add itself if server
-            if (_isServer && !matchesAddress(n.getAddress())) {
-                addConnection(n.getSyncPort(), remoteAddress);
+            if (_isServer && !matchesAddress(n.address())) {
+                addConnection(n.syncPort(), remoteAddress);
 
                 _networkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int idx) {
@@ -224,9 +224,9 @@ void NetworkManager::init() {
                 );
 
                 // add data transfer connection
-                if (n.getDataTransferPort() != 0 && !remoteAddress.empty()) {
+                if (n.dataTransferPort() != 0 && !remoteAddress.empty()) {
                     addConnection(
-                        n.getDataTransferPort(),
+                        n.dataTransferPort(),
                         remoteAddress,
                         Network::ConnectionType::DataTransfer
                     );
@@ -256,9 +256,9 @@ void NetworkManager::init() {
     }
 
     // add connection for external communication
-    if (_isServer && cm.getExternalControlPort() != 0) {
+    if (_isServer && cm.externalControlPort() != 0) {
         addConnection(
-            cm.getExternalControlPort(),
+            cm.externalControlPort(),
             "127.0.0.1",
             Network::ConnectionType::ExternalConnection
         );
@@ -270,7 +270,7 @@ void NetworkManager::init() {
     }
 
     Logger::Debug(
-        "Cluster sync: %s", cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
+        "Cluster sync: %s", cm.firmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
 }
 
@@ -290,24 +290,24 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
 
             hasFoundConnection = true;
 
-            const double currentTime = connection->getLoopTime();
+            const double currentTime = connection->loopTime();
             maxTime = std::max(currentTime, maxTime);
             minTime = std::min(currentTime, minTime);
 
             const int currentSize =
-                static_cast<int>(SharedData::instance().getDataSize()) -
+                static_cast<int>(SharedData::instance().dataSize()) -
                 Network::HeaderSize;
 
             // iterate counter
             const int currentFrame = connection->iterateFrameCounter();
 
-            unsigned char* dataBlock = SharedData::instance().getDataBlock();
+            unsigned char* dataBlock = SharedData::instance().dataBlock();
             std::memcpy(dataBlock + 1, &currentFrame, sizeof(currentFrame));
             std::memcpy(dataBlock + 5, &currentSize, sizeof(currentSize));
 
             connection->sendData(
-                SharedData::instance().getDataBlock(),
-                static_cast<int>(SharedData::instance().getDataSize())
+                SharedData::instance().dataBlock(),
+                static_cast<int>(SharedData::instance().dataSize())
             );
         }
 
@@ -336,7 +336,7 @@ bool NetworkManager::isSyncComplete() const {
     return (static_cast<unsigned int>(counter) == _nActiveSyncConnections);
 }
 
-Network* NetworkManager::getExternalControlConnection() {
+Network* NetworkManager::externalControlConnection() {
     return _externalControlConnection;
 }
 
@@ -385,31 +385,31 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     std::memcpy(buffer.data() + 5, &messageLength, sizeof(messageLength));
 }
 
-unsigned int NetworkManager::getActiveConnectionsCount() const {
+unsigned int NetworkManager::activeConnectionsCount() const {
     std::unique_lock lock(core::mutex::DataSync);
     return _nActiveConnections;
 }
 
-int NetworkManager::getConnectionsCount() const {
+int NetworkManager::connectionsCount() const {
     std::unique_lock lock(core::mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
-int NetworkManager::getSyncConnectionsCount() const {
+int NetworkManager::syncConnectionsCount() const {
     std::unique_lock lock(core::mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
-const Network& NetworkManager::getConnectionByIndex(int index) const {
+const Network& NetworkManager::connection(int index) const {
     return *_networkConnections[index];
 }
 
-Network* NetworkManager::getSyncConnectionByIndex(int index) const {
+Network* NetworkManager::syncConnection(int index) const {
     return _syncConnections[index];
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    Logger::Debug("Updating status for connection %d", connection->getId());
+    Logger::Debug("Updating status for connection %d", connection->id());
 
     unsigned int nConnections = 0;
     unsigned int nConnectedSyncNodes = 0;
@@ -428,10 +428,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     for (const std::unique_ptr<Network>& conn : _networkConnections) {
         if (conn->isConnected()) {
             nConnections++;
-            if (conn->getType() == Network::ConnectionType::SyncConnection) {
+            if (conn->type() == Network::ConnectionType::SyncConnection) {
                 nConnectedSyncNodes++;
             }
-            else if (conn->getType() == Network::ConnectionType::DataTransfer) {
+            else if (conn->type() == Network::ConnectionType::DataTransfer) {
                 nConnectedDataTransferNodes++;
             }
         }
@@ -499,7 +499,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // Check if any external connection
-        if (connection->getType() == Network::ConnectionType::ExternalConnection) {
+        if (connection->type() == Network::ConnectionType::ExternalConnection) {
             const bool status = connection->isConnected();
             std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
@@ -507,12 +507,12 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // wake up the connection handler thread on server
-        connection->getStartConnectionConditionVar().notify_all();
+        connection->startConnectionConditionVar().notify_all();
     }
 
-    if (connection->getType() == Network::ConnectionType::DataTransfer) {
+    if (connection->type() == Network::ConnectionType::DataTransfer) {
         const bool status = connection->isConnected();
-        const int id = connection->getId();
+        const int id = connection->id();
         Engine::instance().invokeUpdateCallbackForDataTransfer(status, id);
     }
 
@@ -558,7 +558,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     _externalControlConnection = nullptr;
 
     for (std::unique_ptr<Network>& connection : _networkConnections) {
-        switch (connection->getType()) {
+        switch (connection->type()) {
             case Network::ConnectionType::SyncConnection:
                 _syncConnections.push_back(connection.get());
                 break;
@@ -573,7 +573,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     }
 }
 
-void NetworkManager::getHostInfo() {
+void NetworkManager::hostInfo() {
     // get name & local IPs. retrieves the standard host name for the local computer
     char tmpStr[128];
     const int res = gethostname(tmpStr, sizeof(tmpStr));
@@ -605,7 +605,7 @@ void NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         throw Error(5028,
-            "Failed to get address info: " + std::to_string(Network::getLastError())
+            "Failed to get address info: " + std::to_string(Network::lastError())
         );
     }
     std::vector<std::string> dnsNames;

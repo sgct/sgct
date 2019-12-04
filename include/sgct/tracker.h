@@ -24,10 +24,10 @@ public:
     void setEnabled(bool state);
     void addDevice(std::string name, int index);
 
-    TrackingDevice* getLastDevice() const;
-    TrackingDevice* getDevice(size_t index) const;
-    TrackingDevice* getDevice(const std::string& name) const;
-    TrackingDevice* getDeviceBySensorId(int id) const;
+    TrackingDevice* lastDevice() const;
+    TrackingDevice* device(size_t index) const;
+    TrackingDevice* device(const std::string& name) const;
+    TrackingDevice* deviceBySensorId(int id) const;
 
     /// Set the orientation as quaternion
     void setOrientation(glm::quat q);
@@ -43,10 +43,10 @@ public:
     void setTransform(glm::mat4 mat);
 
     glm::mat4 getTransform() const;
-    double getScale() const;
+    double scale() const;
 
-    int getNumberOfDevices() const;
-    const std::string& getName() const;
+    int numberOfDevices() const;
+    const std::string& name() const;
 
 private:
     std::vector<std::unique_ptr<TrackingDevice>> _trackingDevices;

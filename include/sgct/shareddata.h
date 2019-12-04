@@ -104,10 +104,10 @@ void decodeFun()
     /// This function is called internally by SGCT and shouldn't be used by the user.
     void decode(const char* receivedData, int receivedLength, int clientIndex);
 
-    size_t getUserDataSize();
-    unsigned char* getDataBlock();
-    size_t getDataSize();
-    size_t getBufferSize();
+    size_t userDataSize();
+    unsigned char* dataBlock();
+    size_t dataSize();
+    size_t bufferSize();
 
 private:
     SharedData();
@@ -127,7 +127,7 @@ private:
 
 template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
-    T val = sobj.getVal();
+    T val = sobj.value();
     
     std::unique_lock lk(core::mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
@@ -141,12 +141,12 @@ void SharedData::readObj(SharedObject<T>& sobj) {
     _pos += sizeof(T);
     core::mutex::DataSync.unlock();
 
-    sobj.setVal(val);
+    sobj.setValue(val);
 }
 
 template<class T>
 void SharedData::writeVector(const SharedVector<T>& vector) {
-    std::vector<T> tmpVec = vector.getVal();
+    std::vector<T> tmpVec = vector.value();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
     core::mutex::DataSync.lock();
@@ -193,7 +193,7 @@ void SharedData::readVector(SharedVector<T>& vector) {
         reinterpret_cast<T*>(c) + size
     );
 
-    vector.setVal(std::move(tmpVec));
+    vector.setValue(std::move(tmpVec));
 }
 
 } // namespace sgct

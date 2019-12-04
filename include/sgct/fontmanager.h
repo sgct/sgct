@@ -106,16 +106,8 @@ public:
      * \param height Height in  pixels for the font
      * \return Pointer to the font face, NULL if not found
      */
-    Font* getFont(const std::string& name, unsigned int height = 10);
+    Font* font(const std::string& name, unsigned int height = 10);
 
-    /**
-     * Get the SGCT default font face that is loaded into memory.
-     *
-     * \param height Height in  pixels for the font
-     * \return Pointer to the font face, nullptr if not found
-     */
-    Font* getDefaultFont(unsigned int height = 10);
-    
     /**
      * Binds the font shader and also sets the four uniform values for the
      * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the

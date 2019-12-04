@@ -64,7 +64,7 @@ void networkConnectionUpdated(sgct::core::Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
-        conn->getStartConnectionConditionVar().notify_all();
+        conn->startConnectionConditionVar().notify_all();
     }
 
     connected = conn->isConnected();
@@ -183,12 +183,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * Speed),
+        static_cast<float>(currentTime.value() * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.getVal() * (Speed / 2.0)),
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -197,10 +197,10 @@ void drawFun(RenderData data) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    ShaderManager::instance().getShaderProgram("xform").bind();
+    ShaderManager::instance().shaderProgram("xform").bind();
     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     box->draw();
-    ShaderManager::instance().getShaderProgram("xform").unbind();
+    ShaderManager::instance().shaderProgram("xform").unbind();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -208,7 +208,7 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setVal(Engine::getTime());
+        currentTime.setValue(Engine::getTime());
     }
 }
 
@@ -225,14 +225,14 @@ void initOGLFun() {
         vertexShader,
         fragmentShader
     );
-    const ShaderProgram& prg = sgct::ShaderManager::instance().getShaderProgram("xform");
+    const ShaderProgram& prg = sgct::ShaderManager::instance().shaderProgram("xform");
     prg.bind();
-    matrixLoc = glGetUniformLocation(prg.getId(), "mvp");
-    glUniform1i(glGetUniformLocation(prg.getId(), "tex"), 0 );
+    matrixLoc = glGetUniformLocation(prg.id(), "mvp");
+    glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0 );
     prg.unbind();
 
-    for (int i = 0; i < Engine::instance().getNumberOfWindows(); i++) {
-        Engine::instance().getWindow(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
+    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
+        Engine::instance().window(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
     }
 }
 

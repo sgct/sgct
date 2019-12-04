@@ -25,9 +25,9 @@ namespace sgct::core {
 void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj,
                                      float nearClip, float farClip, glm::vec3 offset)
 {
-    const glm::vec3 lowerLeft = proj.getCoordinateLowerLeft();
-    const glm::vec3 upperLeft = proj.getCoordinateUpperLeft();
-    const glm::vec3 upperRight = proj.getCoordinateUpperRight();
+    const glm::vec3 lowerLeft = proj.coordinateLowerLeft();
+    const glm::vec3 upperLeft = proj.coordinateUpperLeft();
+    const glm::vec3 upperRight = proj.coordinateUpperRight();
 
     // calculate viewplane's internal coordinate system bases
     const glm::vec3 planeX = glm::normalize(upperRight - upperLeft);
@@ -79,15 +79,15 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     _viewProjectionMatrix = _projectionMatrix * _viewMatrix;
 }
 
-const glm::mat4& Projection::getViewProjectionMatrix() const {
+const glm::mat4& Projection::viewProjectionMatrix() const {
     return _viewProjectionMatrix;
 }
 
-const glm::mat4& Projection::getViewMatrix() const {
+const glm::mat4& Projection::viewMatrix() const {
     return _viewMatrix;
 }
 
-const glm::mat4& Projection::getProjectionMatrix() const {
+const glm::mat4& Projection::projectionMatrix() const {
     return _projectionMatrix;
 }
 

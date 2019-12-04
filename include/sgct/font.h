@@ -46,13 +46,13 @@ public:
     ~Font();
 
     /// Get the font face data
-    const Font::FontFaceData& getFontFaceData(wchar_t c);
+    const Font::FontFaceData& fontFaceData(wchar_t c);
 
     /// Get the vertex array id
-    unsigned int getVAO() const;
+    unsigned int vao() const;
 
     /// Get height of the font
-    float getHeight() const;
+    float height() const;
 
     /**
      * Set the stroke (border) size.

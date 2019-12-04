@@ -30,7 +30,7 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager() {
-    _users.push_back(User("default"));
+    _users.push_back(std::make_unique<User>("default"));
 }
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
@@ -60,34 +60,35 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         _sceneTransform = sceneRotation * sceneTranslate * sceneScale;
     }
     // The users must be handled before the nodes due to the nodes depending on the users
-    for (const config::User& user : cluster.users) {
-        User* usrPtr;
-        if (user.name) {
-            User usr(*user.name);
+    for (const config::User& u : cluster.users) {
+        std::string name;
+        if (u.name) {
+            name = *u.name;
+            std::unique_ptr<User> usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            usrPtr = &_users.back();
-            Logger::Info("Adding user '%s'", user.name->c_str());
+            Logger::Info("Adding user '%s'", u.name->c_str());
         }
         else {
-            usrPtr = &defaultUser();
+            name = "default";
         }
+        User* usr = user(name);
 
-        if (user.eyeSeparation) {
-            usrPtr->setEyeSeparation(*user.eyeSeparation);
+        if (u.eyeSeparation) {
+            usr->setEyeSeparation(*u.eyeSeparation);
         }
-        if (user.position) {
-            usrPtr->setPos(*user.position);
+        if (u.position) {
+            usr->setPos(*u.position);
         }
-        if (user.transformation) {
-            usrPtr->setTransform(*user.transformation);
+        if (u.transformation) {
+            usr->setTransform(*u.transformation);
         }
-        if (user.tracking) {
-            usrPtr->setHeadTracker(user.tracking->tracker, user.tracking->device);
+        if (u.tracking) {
+            usr->setHeadTracker(u.tracking->tracker, u.tracking->device);
         }
     }
     for (const config::Node& node : cluster.nodes) {
-        Node n;
-        n.applyNode(node);
+        std::unique_ptr<Node> n = std::make_unique<Node>();
+        n->applyNode(node);
         addNode(std::move(n));
     }
     if (cluster.settings) {
@@ -98,48 +99,48 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
 }
 
-void ClusterManager::addNode(Node node) {
+void ClusterManager::addNode(std::unique_ptr<Node> node) {
     _nodes.push_back(std::move(node));
 }
 
-void ClusterManager::addUser(User user) {
+void ClusterManager::addUser(std::unique_ptr<User> user) {
     _users.push_back(std::move(user));
 }
 
 const Node& ClusterManager::node(int index) const {
-    return _nodes[index];
+    return *_nodes[index];
 }
 
 Node& ClusterManager::thisNode() {
-    return _nodes[_thisNodeId];
+    return *_nodes[_thisNodeId];
 }
 
 const Node& ClusterManager::thisNode() const {
-    return _nodes[_thisNodeId];
+    return *_nodes[_thisNodeId];
 }
 
 User& ClusterManager::defaultUser() {
     // This object is guaranteed to exist as we add it in the constructor and it is not
     // possible to clear the _users list
-    return _users[0];
+    return *_users[0];
 }
 
 User* ClusterManager::user(const std::string& name) {
-    auto it = std::find_if(
-        _users.begin(),
-        _users.end(),
-        [&name](const User& user) { return user.name() == name; }
+    const auto it = std::find_if(
+        _users.cbegin(),
+        _users.cend(),
+        [&name](const std::unique_ptr<User>& user) { return user->name() == name; }
     );
-    return it != _users.end() ? &*it : nullptr;
+    return it != _users.cend() ? it->get() : nullptr;
 }
 
 User* ClusterManager::trackedUser() {
-    auto it = std::find_if(
-        _users.begin(),
-        _users.end(),
-        [](const User& u) { return u.isTracked(); }
+    const auto it = std::find_if(
+        _users.cbegin(),
+        _users.cend(),
+        [](const std::unique_ptr<User>& u) { return u->isTracked(); }
     );
-    return it != _users.end() ? &*it : nullptr;
+    return it != _users.cend() ? it->get() : nullptr;
 }
 
 bool ClusterManager::ignoreSync() const {

@@ -61,7 +61,7 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
                                Frustum::Mode frustumMode)
 {
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().enterCurrentViewport(window, viewport, frustumMode);
+    Engine::instance().setupViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);

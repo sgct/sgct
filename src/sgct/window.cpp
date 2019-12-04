@@ -455,6 +455,9 @@ void Window::initContextSpecificOGL() {
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
+    // @TODO (abock, 2019-12-04) I think this function should be make constant and we
+    // figure out beforehand which textures we need to create. So this function just
+    // returns the already created textures instead
     switch (index) {
         case TextureIndex::LeftEye:
             if (_frameBufferTextures.leftEye == 0) {
@@ -645,9 +648,9 @@ void Window::initWindowResolution(glm::ivec2 resolution) {
     }
 }
 
-bool Window::update() {
+void Window::update() {
     if (!_isVisible || !isWindowResized()) {
-        return false;
+        return;
     }
     makeOpenGLContextCurrent();
 
@@ -682,8 +685,6 @@ bool Window::update() {
             vp->nonLinearProjection()->update(std::move(viewport));
         }
     }
-
-    return true;
 }
 
 void Window::makeSharedContextCurrent() {
@@ -1304,16 +1305,17 @@ bool Window::useFXAA() const {
     return _useFXAA;
 }
 
-void Window::bindStereoShaderProgram() const {
+void Window::bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const {
     _stereo.shader.bind();
-}
 
-int Window::stereoShaderLeftTexLoc() const {
-    return _stereo.leftTexLoc;
-}
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, leftTex);
 
-int Window::stereoShaderRightTexLoc() const {
-    return _stereo.rightTexLoc;
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, rightTex);
+
+    glUniform1i(_stereo.leftTexLoc, 0);
+    glUniform1i(_stereo.rightTexLoc, 1);
 }
 
 bool Window::shouldCallDraw2DFunction() const {

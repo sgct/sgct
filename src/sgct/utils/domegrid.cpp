@@ -70,12 +70,8 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        verts.size() * sizeof(float),
-        verts.data(),
-        GL_STATIC_DRAW
-    );
+    const size_t s = verts.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, s, verts.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);

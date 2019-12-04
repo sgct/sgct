@@ -34,7 +34,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
         char headerChar = 0;
 
         if (srcIdx == srcSizeBytes) {
-            throw Error(2011, "Error reading from file. Could not find lines");
+            throw Error(2021, "Error reading from file. Could not find lines");
         }
 
         headerChar = srcBuff[srcIdx++];
@@ -49,12 +49,12 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     unsigned int nRows = 0;
     const int res = sscanf(headerBuffer, "%2c %u %u", fileFormatHeader, &nCols, &nRows);
     if (res != 3) {
-        throw Error(2012, "Invalid header information in MPCDI mesh");
+        throw Error(2022, "Invalid header information in MPCDI mesh");
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
-        throw Error(2013, "Incorrect file type. Unknown header type");
+        throw Error(2023, "Incorrect file type. Unknown header type");
     }
     const int nCorrectionValues = nCols * nRows;
     std::vector<glm::vec2> corrGrid(nCorrectionValues);

@@ -31,10 +31,10 @@ public:
     void applyCluster(const config::Cluster& cluster);
 
     /// Add a cluster node to the manager's vector
-    void addNode(Node node);
+    void addNode(std::unique_ptr<Node> node);
 
     /// Add a new user
-    void addUser(User user);
+    void addUser(std::unique_ptr<User> user);
 
     /**
      * Get a pointer to a specific node. Please observe that the address of this object
@@ -135,8 +135,8 @@ private:
     std::string _masterAddress;
     int _externalControlPort = 0;
 
-    std::vector<Node> _nodes;
-    std::vector<User> _users;
+    std::vector<std::unique_ptr<Node>> _nodes;
+    std::vector<std::unique_ptr<User>> _users;
     glm::mat4 _sceneTransform = glm::mat4(1.f);
 };
 

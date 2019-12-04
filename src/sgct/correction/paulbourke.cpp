@@ -25,7 +25,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::PaulBourke, 2030, "Failed to open " + path);
+        throw Error(Error::Component::PaulBourke, 2040, "Failed to open " + path);
     }
 
     constexpr const int MaxLineLength = 1024;
@@ -36,7 +36,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         int r = sscanf(lineBuffer, "%d", &mappingType);
         if (r != 1) {
-            throw Error(Error::Component::PaulBourke, 2031, "Error reading mapping type");
+            throw Error(Error::Component::PaulBourke, 2041, "Error reading mapping type");
         }
     }
 
@@ -50,7 +50,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     // check if everyting useful is set
     if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        throw Error(Error::Component::PaulBourke, 2032, "Invalid data");
+        throw Error(Error::Component::PaulBourke, 2042, "Invalid data");
     }
 
     // get all data

@@ -69,7 +69,8 @@ public:
     void setHorizontalFieldOfView(float hFov);
 
 protected:
-    Window* _parent;
+    Window* _parent = nullptr;
+
     struct {
         Projection mono;
         Projection stereoLeft;

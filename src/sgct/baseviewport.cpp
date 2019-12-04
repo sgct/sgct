@@ -64,13 +64,10 @@ Frustum::Mode BaseViewport::eye() const {
 
 const Projection& BaseViewport::projection(Frustum::Mode frustumMode) const {
     switch (frustumMode) {
-        default:
-        case Frustum::Mode::MonoEye:
-            return _projections.mono;
-        case Frustum::Mode::StereoLeftEye:
-            return _projections.stereoLeft;
-        case Frustum::Mode::StereoRightEye:
-            return _projections.stereoRight;
+        case Frustum::Mode::MonoEye:        return _projections.mono;
+        case Frustum::Mode::StereoLeftEye:  return _projections.stereoLeft;
+        case Frustum::Mode::StereoRightEye: return _projections.stereoRight;
+        default:                           throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -92,7 +89,6 @@ void BaseViewport::linkUserName() {
 
 void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
     switch (mode) {
-        default:
         case Frustum::Mode::MonoEye:
             _projections.mono.calculateProjection(
                 _user->posMono(),
@@ -117,6 +113,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
                 farClip
             );
             break;
+        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -153,6 +150,7 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 _user->posRightEye() - eyePos
             );
             break;
+        default: throw std::logic_error("Unhandled case label");
     }
 }
 

@@ -109,7 +109,7 @@ public:
     void updateResolutions();
 
     /// \return true if frame buffer is resized and window is visible.
-    bool update();
+    void update();
 
     /**
      * This function is used internally within sgct to open the window.
@@ -352,9 +352,7 @@ public:
     /// \return true if FXAA should be used
     bool useFXAA() const;
 
-    void bindStereoShaderProgram() const;
-    int stereoShaderLeftTexLoc() const;
-    int stereoShaderRightTexLoc() const;
+    void bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const;
 
     bool shouldCallDraw2DFunction() const;
     bool shouldCallDraw3DFunction() const;

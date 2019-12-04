@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 namespace {
     constexpr const float RotationSpeed = 0.0017f;
@@ -301,13 +303,10 @@ void initOGLFun() {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        if (mouseLeftButton) {
+        const Window* wnd = Engine::instance().focusedWindow();
+        if (mouseLeftButton && wnd) {
             double yPos;
-            Engine::getMousePos(
-                Engine::instance().focusedWindowIndex(),
-                &mouseXPos[0],
-                &yPos
-            );
+            glfwGetCursorPos(wnd->windowHandle(), &mouseXPos[0], &yPos);
             mouseDx = mouseXPos[0] - mouseXPos[1];
         }
         else {
@@ -429,14 +428,11 @@ void keyCallback(Key key, Modifier, Action action, int) {
 }
 
 void mouseButtonCallback(MouseButton button, Modifier, Action action) {
-    if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft) {
+    const Window* wnd = Engine::instance().focusedWindow();
+    if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft && wnd) {
         mouseLeftButton = (action == Action::Press);
         double yPos;
-        Engine::getMousePos(
-            Engine::instance().focusedWindowIndex(),
-            &mouseXPos[1],
-            &yPos)
-        ;
+        glfwGetCursorPos(wnd->windowHandle(), &mouseXPos[1], &yPos);
     }
 }
 

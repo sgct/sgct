@@ -54,25 +54,16 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
-            std::string_view lvl = arg[i + 1];
-            Logger::Level level = [](std::string_view l) {
-                if (l == "error") {
-                    return Logger::Level::Error;
-                }
-                else if (l == "warning") {
-                    return Logger::Level::Warning;
-                }
-                else if (l == "info") {
-                    return Logger::Level::Info;
-                }
-                else if (l == "debug") {
-                    return Logger::Level::Debug;
-                }
+            const Logger::Level level = [](std::string_view l) {
+                if (l == "error")        { return Logger::Level::Error; }
+                else if (l == "warning") { return Logger::Level::Warning; }
+                else if (l == "info")    { return Logger::Level::Info; }
+                else if (l == "debug")   { return Logger::Level::Debug; }
                 else {
                     std::cerr << "Unknown logger level: " << std::string(l);
                     return Logger::Level::Info;
                 }
-            } (lvl);
+            } (arg[i + 1]);
             config.logLevel = level;
 
             arg.erase(arg.begin() + i, arg.begin() + i + 2);

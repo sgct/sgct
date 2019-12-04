@@ -3,6 +3,8 @@
 #include <sgct/joystick.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 namespace {
     const char* joyStick1Name = nullptr;
@@ -14,7 +16,7 @@ void draw2DFun(RenderData data) {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
-        const float* pos = Engine::getJoystickAxes(Joystick::Joystick1, &numberOfAxes);
+        const float* pos = glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
         std::string joystickInfoStr = "Axes: ";
 
         for (int i = 0; i < numberOfAxes; i++) {
@@ -22,8 +24,8 @@ void draw2DFun(RenderData data) {
         }
 
         int numberOfButtons = 0;
-        const unsigned char* buttons = Engine::getJoystickButtons(
-            Joystick::Joystick1,
+        const unsigned char* buttons = glfwGetJoystickButtons(
+            static_cast<int>(Joystick::Joystick1),
             &numberOfButtons
         );
 
@@ -63,15 +65,15 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    joyStick1Name = Engine::getJoystickName(Joystick::Joystick1);
+    joyStick1Name = glfwGetJoystickName(static_cast<int>(Joystick::Joystick1));
     if (joyStick1Name) {
         Logger::Info("Joystick 1 '%s' is present", joyStick1Name);
 
         int numberOfAxes = 0;
-        Engine::getJoystickAxes(Joystick::Joystick1, &numberOfAxes);
+        glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
 
         int numberOfButtons = 0;
-        Engine::getJoystickButtons(Joystick::Joystick1, &numberOfButtons);
+        glfwGetJoystickButtons(static_cast<int>(Joystick::Joystick1), &numberOfButtons);
 
         Logger::Info(
             "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons

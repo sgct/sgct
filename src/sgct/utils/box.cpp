@@ -178,31 +178,19 @@ Box::Box(float size, TextureMappingMode mode) {
         GL_STATIC_DRAW
     );
 
+    constexpr const int s = sizeof(helpers::VertexData);
+
     // texcoords
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(helpers::VertexData), nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
 
     // normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(
-        1,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(8)
-    );
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(8));
 
     // vert positions
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(
-        2,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        sizeof(helpers::VertexData),
-        reinterpret_cast<void*>(20)
-    );
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, s, reinterpret_cast<void*>(20));
 
     glBindVertexArray(0);
 }

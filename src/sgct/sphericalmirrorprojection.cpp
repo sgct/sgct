@@ -76,7 +76,7 @@ void SphericalMirrorProjection::update(glm::vec2) {}
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport, 
                                        Frustum::Mode frustumMode)
 {
-    Engine::instance().enterCurrentViewport(window, viewport, frustumMode);
+    Engine::instance().setupViewport(window, viewport, frustumMode);
 
     float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
     glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);

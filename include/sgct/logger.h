@@ -42,7 +42,7 @@ public:
     void setLogToFile(bool state);
     
     /// Set the log file path. The id will be appended on the filename if larger than -1
-    void setLogPath(const char* path, int id = -1);
+    void setLogPath(const std::string& path, int id = -1);
 
     /// Set the callback that gets invoked for each log
     void setLogCallback(std::function<void(const char *)> fn);

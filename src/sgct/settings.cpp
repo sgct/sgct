@@ -123,7 +123,12 @@ void Settings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
 }
 
 void Settings::setNumberOfCaptureThreads(int count) {
-    _nCaptureThreads = count;
+    if (count <= 0) {
+        Logger::Error("Only positive number of capture threads allowed");
+    }
+    else {
+        _nCaptureThreads = count;
+    }
 }
 
 bool Settings::useDepthTexture() const {

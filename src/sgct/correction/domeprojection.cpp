@@ -19,12 +19,10 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
 {
     Logger::Info("Reading DomeProjection mesh data from '%s'", path.c_str());
 
-    FILE* meshFile = nullptr;
-    bool loadSuccess = false;
-    meshFile = fopen(path.c_str(), "r");
-    loadSuccess = meshFile != nullptr;
+    FILE* meshFile = fopen(path.c_str(), "r");
+    bool loadSuccess = meshFile != nullptr;
     if (!loadSuccess) {
-        throw Error(Error::Component::DomeProjection, 2002, "Failed to open " + path);
+        throw Error(Error::Component::DomeProjection, 2010, "Failed to open " + path);
     }
 
     Buffer buf;
@@ -54,8 +52,8 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
                 nCols = std::max(nCols, col);
                 nRows = std::max(nRows, row);
 
-                glm::clamp(x, 0.f, 1.f);
-                glm::clamp(y, 0.f, 1.f);
+                std::clamp(x, 0.f, 1.f);
+                std::clamp(y, 0.f, 1.f);
 
                 // convert to [-1, 1]
                 vertex.x = 2.f * (pos.x + x * size.x) - 1.f;
@@ -77,12 +75,11 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
         fclose(meshFile);
     }
 
-    // add one to actually store the dimensions instread of largest index
     nCols++;
     nRows++;
 
-    for (unsigned int c = 0; c < (nCols - 1); ++c) {
-        for (unsigned int r = 0; r < (nRows - 1); ++r) {
+    for (unsigned int c = 0; c < nCols; ++c) {
+        for (unsigned int r = 0; r < nRows; ++r) {
             // 3      2
             //  x____x
             //  |   /|
@@ -92,10 +89,11 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
             //  x----x
             // 0      1
 
-            const unsigned int i0 = r * nCols + c;
-            const unsigned int i1 = r * nCols + (c + 1);
-            const unsigned int i2 = (r + 1) * nCols + (c + 1);
-            const unsigned int i3 = (r + 1) * nCols + c;
+            // add one to actually store the dimensions instead of the largest index
+            const unsigned int i0 = r * (nCols + 1)+ c;
+            const unsigned int i1 = r * (nCols + 1) + (c + 1);
+            const unsigned int i2 = (r + 1) * (nCols + 1) + (c + 1);
+            const unsigned int i3 = (r + 1) * (nCols + 1) + c;
 
             buf.indices.push_back(i0);
             buf.indices.push_back(i1);

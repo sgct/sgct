@@ -204,9 +204,6 @@ public:
     /// \return the maximum frame time (delta time) in the averaging window (seconds)
     double maxDt() const;
 
-    /// \return the standard devitation of the delta time in seconds
-    double standardDeviationDt() const;
-
     /// \return the clear color as 4 floats (RGBA)
     glm::vec4 clearColor() const;
     
@@ -247,7 +244,7 @@ public:
     void updateFrustums();
 
     /// \return the index of the focus window. If no window has focus, 0 is returned
-    int focusedWindowIndex() const;
+    const Window* focusedWindow() const;
 
     /// Sets if the statistics graph should be rendered or not
     void setStatsGraphVisibility(bool state);
@@ -331,54 +328,6 @@ public:
     /// Get the time from program start in seconds
     static double getTime();
 
-    /**
-     * Checks the keyboard if the specified key has been pressed.
-     *
-     * \param winIndex specifies which window to poll
-     * \param key specifies which key to check
-     * \return SGCT_PRESS or SGCT_RELEASE
-     */
-    static int getKey(int winIndex, int key);
-
-    /**
-     * Checks if specified mouse button has been pressed.
-     *
-     * \param winIndex specifies which window to poll
-     * \param button specifies which button to check
-     * \return SGCT_PRESS or SGCT_RELEASE
-     */
-    static int getMouseButton(int winIndex, int button);
-    
-    /**
-     * Get the mouse position.
-     *
-     * \param winIndex specifies which window to poll
-     * \param xPos x screen coordinate
-     * \param yPos y screen coordinate
-     */
-    static void getMousePos(int winIndex, double* xPos, double* yPos);
-
-    /**
-     * Returns the name of the requested joystick
-     *
-     * \param joystick is the joystick id. Available IDs are in the joystick.h
-     */
-    static const char* getJoystickName(Joystick joystick);
-
-    /**
-     * \param joystick the joystick id: Available IDs are in the joystick.h
-     * \param numOfValues is the number of analog axes
-     * \return the analog float values (array)
-     */
-    static const float* getJoystickAxes(Joystick joystick, int* numOfValues);
-
-    /**
-     * \param joystick the joystick id: Available IDs are in the joystick.h
-     * \param numOfValues is the number of buttons
-     * \return the button values (array)
-     */
-    static const unsigned char* getJoystickButtons(Joystick joystick, int* numOfValues);
-
     /// \return a reference to this node (running on this computer).
     const sgct::core::Node& thisNode() const;
 
@@ -412,7 +361,7 @@ public:
      * SGCT and in general does not have to be called by any external application using
      * this library.
      */
-    void enterCurrentViewport(const Window& window, const core::BaseViewport& viewport,
+    void setupViewport(const Window& window, const core::BaseViewport& viewport,
         Frustum::Mode frustum);
 
 private:
@@ -459,12 +408,6 @@ private:
 
     /// This function renders stats, OSD and overlays
     void render2D(const Window& window, Frustum::Mode frustum);
-
-    /// This function attaches targets to FBO if FBO is in use
-    void prepareBuffer(Window& window, Window::TextureIndex ti);
-
-    /// This function updates the renderingtargets.
-    void updateRenderingTargets(Window& window, Window::TextureIndex ti);
 
     /**
      * This function waits for all windows to be created on the whole cluster in order to

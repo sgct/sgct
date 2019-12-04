@@ -26,7 +26,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(2070, "Failed to open file " + path);
+        throw Error(2080, "Failed to open file " + path);
     }
 
     std::optional<float> azimuth;
@@ -97,7 +97,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        throw Error(2071, "Data reading error");
+        throw Error(2081, "Data reading error");
     }
 
     // create frustums and projection matrices

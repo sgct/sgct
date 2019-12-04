@@ -34,7 +34,7 @@ void Logger::destroy() {
 Logger::Logger() {
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
-    setLogPath(nullptr);
+    setLogPath("");
 }
 
 void Logger::printv(const char* fmt, va_list ap) {
@@ -107,12 +107,12 @@ void Logger::logToFile(const std::vector<char>& buffer) {
     file << std::string(buffer.begin(), buffer.end()) << '\n';
 }
 
-void Logger::setLogPath(const char* path, int id) {
+void Logger::setLogPath(const std::string& path, int id) {
     time_t now = time(nullptr);
 
     std::stringstream ss;
 
-    if (path) {
+    if (!path.empty()) {
         ss << path << "/";
     }
 

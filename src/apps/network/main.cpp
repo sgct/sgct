@@ -231,8 +231,8 @@ void initOGLFun() {
     glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0 );
     prg.unbind();
 
-    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
-        Engine::instance().window(i).setWindowTitle(isServer ? "SERVER" : "CLIENT");
+    for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
+        win->setWindowTitle(isServer ? "SERVER" : "CLIENT");
     }
 }
 

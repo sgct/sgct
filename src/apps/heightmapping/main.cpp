@@ -259,7 +259,7 @@ void postSyncPreDrawFun() {
 }
 
 void initOGLFun() {
-    stereoMode.setValue(Engine::instance().window(0).stereoMode());
+    stereoMode.setValue(Engine::instance().windows()[0]->stereoMode());
 
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
     normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
@@ -365,10 +365,8 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 mPause = !mPause;
                 break;
             case Key::F:
-                for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
-                    Engine::instance().window(i).setUseFXAA(
-                        !Engine::instance().window(i).useFXAA()
-                    );
+                for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
+                    win->setUseFXAA(!win->useFXAA());
                 }
                 break;
             case Key::P:

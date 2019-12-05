@@ -239,38 +239,36 @@ void postSyncPreDrawFun() {
 
 void preWinInitFun() {
     Engine::instance().defaultUser().setEyeSeparation(settings.eyeSeparation);
-    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
-        Window& win = Engine::instance().window(i);
+    for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
         Engine::instance().setScreenShotNumber(startFrame);
-        win.setAlpha(settings.alpha);
+        win->setAlpha(settings.alpha);
 
-        for (int j = 0; j < Engine::instance().window(i).numberOfViewports(); j++) {
-            core::Viewport& vp = win.viewport(j);
-            if (!vp.hasSubViewports()) {
+        for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+            if (!vp->hasSubViewports()) {
                 continue;
             }
-            vp.nonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
-            vp.nonLinearProjection()->setCubemapResolution(settings.cubemapRes);
-            vp.nonLinearProjection()->setInterpolationMode(
+            vp->nonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+            vp->nonLinearProjection()->setCubemapResolution(settings.cubemapRes);
+            vp->nonLinearProjection()->setInterpolationMode(
                 settings.cubic ?
                 core::NonLinearProjection::InterpolationMode::Cubic :
                 core::NonLinearProjection::InterpolationMode::Linear
             );
 
             core::FisheyeProjection* p = dynamic_cast<core::FisheyeProjection*>(
-                vp.nonLinearProjection()
+                vp->nonLinearProjection()
             );
             if (p) {
                 p->setDomeDiameter(settings.domeDiameter);
             }
         }
         
-        win.setNumberOfAASamples(settings.numberOfMSAASamples);
-        win.setFramebufferResolution(
+        win->setNumberOfAASamples(settings.numberOfMSAASamples);
+        win->setFramebufferResolution(
             glm::ivec2(settings.resolution, settings.resolution)
         );
-        win.setUseFXAA(settings.fxaa);
-        win.setStereoMode(
+        win->setUseFXAA(settings.fxaa);
+        win->setStereoMode(
             settings.stereo ? Window::StereoMode::Dummy : Window::StereoMode::NoStereo
         );
     }

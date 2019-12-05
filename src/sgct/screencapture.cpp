@@ -220,7 +220,7 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
             default:
                 throw std::logic_error("Unhandled case label");
         }
-        Window& win = Engine::instance().window(_windowIndex);
+        Window& win = *Engine::instance().windows()[_windowIndex];
         
         if (win.name().empty()) {
             filename += "_win" + std::to_string(_windowIndex);
@@ -279,7 +279,7 @@ int ScreenCapture::availableCaptureThread() {
 }
 
 void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
-    Window& win = Engine::instance().window(_windowIndex);
+    Window& win = *Engine::instance().windows()[_windowIndex];
 
     if (captureSource == CaptureSource::Texture) {
         if (_resolution != win.framebufferResolution()) {

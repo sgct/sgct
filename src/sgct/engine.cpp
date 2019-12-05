@@ -456,7 +456,7 @@ void Engine::initialize(Profile profile) {
     }
 
     // Get OpenGL version from the first window as there has to be one
-    GLFWwindow* winHandle = window(0).windowHandle();
+    GLFWwindow* winHandle = wins[0]->windowHandle();
     int v[] = {
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
@@ -491,7 +491,7 @@ void Engine::initialize(Profile profile) {
 
         const int id = _fxaa->shader.id();
         _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
-        const glm::ivec2 framebufferSize = window(0).framebufferResolution();
+        const glm::ivec2 framebufferSize = wins[0]->framebufferResolution();
         glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
 
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
@@ -530,9 +530,8 @@ void Engine::initialize(Profile profile) {
     // link all users to their viewports
     for (const std::unique_ptr<Window>& win : wins) {
         win->initOGL();
-        for (int j = 0; j < win->numberOfViewports(); ++j) {
-            win->viewport(j).linkUserName();
-        }
+        const std::vector<std::unique_ptr<core::Viewport>>& vps = win->viewports();
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::linkUserName));
     }
 
     updateFrustums();
@@ -990,18 +989,17 @@ void Engine::render() {
             Window::StereoMode sm = win->stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
-            for (int j = 0; j < win->numberOfViewports(); ++j) {
-                const core::Viewport& vp = win->viewport(j);
-                if (!vp.hasSubViewports()) {
+            for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+                if (!vp->hasSubViewports()) {
                     continue;
                 }
 
-                core::NonLinearProjection* nonLinearProj = vp.nonLinearProjection();
+                core::NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
 
                 nonLinearProj->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
-                    nonLinearProj->renderCubemap(*win, win->viewport(j).eye());
+                    nonLinearProj->renderCubemap(*win, vp->eye());
                 }
                 else {
                     nonLinearProj->renderCubemap(*win, Frustum::Mode::StereoLeftEye);
@@ -1031,13 +1029,11 @@ void Engine::render() {
             }
 
             // Render right non-linear projection viewports to cubemap
-            for (int j = 0; j < win->numberOfViewports(); ++j) {
-                const core::Viewport& vp = win->viewport(j);
-
-                if (!vp.hasSubViewports()) {
+            for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+                if (!vp->hasSubViewports()) {
                     continue;
                 }
-                core::NonLinearProjection* p = vp.nonLinearProjection();
+                core::NonLinearProjection* p = vp->nonLinearProjection();
 
                 p->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
@@ -1124,18 +1120,16 @@ void Engine::render() {
 }
 
 void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
-    for (int i = 0; i < window.numberOfViewports(); ++i) {
-        const core::Viewport& vp = window.viewport(i);
-        
+    for (const std::unique_ptr<core::Viewport>& vp : window.viewports()) {
         // if viewport has overlay
-        if (!vp.hasOverlayTexture() || !vp.isEnabled()) {
+        if (!vp->hasOverlayTexture() || !vp->isEnabled()) {
             continue;
         }
 
-        setupViewport(window, vp, frustum);
+        setupViewport(window, *vp, frustum);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, vp.overlayTextureIndex());
+        glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
         _overlay.bind();
         window.renderScreenQuad();
     }
@@ -1163,16 +1157,15 @@ void Engine::renderFBOTexture(Window& window) {
    
     Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
+    const std::vector<std::unique_ptr<core::Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         window.bindStereoShaderProgram(
             window.frameBufferTexture(Window::TextureIndex::LeftEye),
             window.frameBufferTexture(Window::TextureIndex::RightEye)
         );
 
-        for (int i = 0; i < window.numberOfViewports(); i++) {
-            window.viewport(i).renderWarpMesh();
-            //window.getViewport(i).renderQuadMesh();
-        }
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
+        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
     }
     else {
         glActiveTexture(GL_TEXTURE0);
@@ -1184,10 +1177,8 @@ void Engine::renderFBOTexture(Window& window) {
         _fboQuad.bind();
         maskShaderSet = true;
 
-        for (int i = 0; i < window.numberOfViewports(); ++i) {
-            window.viewport(i).renderWarpMesh();
-            //win.getViewport(i).renderQuadMesh();
-        }
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
+        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
 
         // render right eye in active stereo mode
         if (window.stereoMode() == Window::StereoMode::Active) {
@@ -1204,10 +1195,8 @@ void Engine::renderFBOTexture(Window& window) {
                 GL_TEXTURE_2D,
                 window.frameBufferTexture(Window::TextureIndex::RightEye)
             );
-            for (int i = 0; i < window.numberOfViewports(); ++i) {
-                window.viewport(i).renderWarpMesh();
-                //window.getViewport(i).renderQuadMesh();
-            }
+            std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
+            //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
         }
     }
 
@@ -1225,27 +1214,21 @@ void Engine::renderFBOTexture(Window& window) {
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (int i = 0; i < window.numberOfViewports(); ++i) {
-            const core::Viewport& vp = window.viewport(i);
-            if (vp.hasBlendMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.blendMaskTextureIndex());
-                vp.renderMaskMesh();
+        for (const std::unique_ptr<core::Viewport>& vp : window.viewports()) {
+            if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
+                vp->renderMaskMesh();
             }
-        }
-
-        // render black level masks
-        for (int i = 0; i < window.numberOfViewports(); ++i) {
-            const core::Viewport& vp = window.viewport(i);
-            if (vp.hasBlackLevelMaskTexture() && vp.isEnabled()) {
-                glBindTexture(GL_TEXTURE_2D, vp.blackLevelMaskTextureIndex());
+            if (vp->hasBlackLevelMaskTexture() && vp->isEnabled()) {
+                glBindTexture(GL_TEXTURE_2D, vp->blackLevelMaskTextureIndex());
 
                 // inverse multiply
                 glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-                vp.renderMaskMesh();
+                vp->renderMaskMesh();
 
                 // add
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                vp.renderMaskMesh();
+                vp->renderMaskMesh();
             }
         }
 
@@ -1263,10 +1246,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
 
     Window::StereoMode sm = win.stereoMode();
     // render all viewports for selected eye
-    for (int i = 0; i < win.numberOfViewports(); ++i) {
-        core::Viewport& vp = win.viewport(i);
-
-        if (!vp.isEnabled()) {
+    for (const std::unique_ptr<core::Viewport>& vp : win.viewports()) {
+        if (!vp->isEnabled()) {
             continue;
         }
 
@@ -1275,12 +1256,12 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
             // @TODO (abock, 2019-12-04) Not sure about this one; the frustum is set in
             // the calling function based on the stereo mode already and we are 
             // overwriting it here
-            frustum = vp.eye();
+            frustum = vp->eye();
         }
 
-        if (vp.hasSubViewports()) {
-            if (vp.isTracked()) {
-                vp.nonLinearProjection()->updateFrustums(
+        if (vp->hasSubViewports()) {
+            if (vp->isTracked()) {
+                vp->nonLinearProjection()->updateFrustums(
                     frustum,
                     _nearClipPlane,
                     _farClipPlane
@@ -1288,13 +1269,13 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
             }
 
             if (win.shouldCallDraw3DFunction()) {
-                vp.nonLinearProjection()->render(win, vp, frustum);
+                vp->nonLinearProjection()->render(win, *vp, frustum);
             }
         }
         else {
             // no subviewports
-            if (vp.isTracked()) {
-                vp.calculateFrustum(frustum, _nearClipPlane, _farClipPlane);
+            if (vp->isTracked()) {
+                vp->calculateFrustum(frustum, _nearClipPlane, _farClipPlane);
             }
 
             // check if we want to blit the previous window before we do anything else
@@ -1304,14 +1285,14 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
                 }
                 else {
                     const int prevId = win.id() - 1;
-                    Window& prevWindow = window(prevId);
-                    blitPreviousWindowViewport(prevWindow, win, vp, frustum);
+                    Window& prevWindow = *windows()[prevId];
+                    blitPreviousWindowViewport(prevWindow, win, *vp, frustum);
                 }
             }
 
             if (win.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
-                setupViewport(win, vp, frustum);
+                setupViewport(win, *vp, frustum);
                 glEnable(GL_SCISSOR_TEST);
                 setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
@@ -1319,12 +1300,12 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
                 if (_drawFn) {
                     RenderData renderData(
                         win,
-                        vp,
+                        *vp,
                         frustum,
                         core::ClusterManager::instance().sceneTransform(),
-                        vp.projection(frustum).viewMatrix(),
-                        vp.projection(frustum).projectionMatrix(),
-                        vp.projection(frustum).viewProjectionMatrix() *
+                        vp->projection(frustum).viewMatrix(),
+                        vp->projection(frustum).projectionMatrix(),
+                        vp->projection(frustum).viewProjectionMatrix() *
                             core::ClusterManager::instance().sceneTransform()
                     );
                     _drawFn(renderData);
@@ -1372,27 +1353,26 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         return;
     }
 
-    for (int i = 0; i < win.numberOfViewports(); ++i) {
-        const core::Viewport& vp = win.viewport(i);
-        if (!vp.isEnabled()) {
+    for (const std::unique_ptr<core::Viewport>& vp : win.viewports()) {
+        if (!vp->isEnabled()) {
             continue;
         }
-        setupViewport(win, vp, frustum);
+        setupViewport(win, *vp, frustum);
 
         if (_statisticsRenderer) {
-            _statisticsRenderer->render(win, vp);
+            _statisticsRenderer->render(win, *vp);
         }
 
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && win.shouldCallDraw2DFunction()) {
             RenderData renderData(
                 win,
-                vp,
+                *vp,
                 frustum,
                 core::ClusterManager::instance().sceneTransform(),
-                vp.projection(frustum).viewMatrix(),
-                vp.projection(frustum).projectionMatrix(),
-                vp.projection(frustum).viewProjectionMatrix() *
+                vp->projection(frustum).viewMatrix(),
+                vp->projection(frustum).projectionMatrix(),
+                vp->projection(frustum).viewProjectionMatrix() *
                     core::ClusterManager::instance().sceneTransform()
             );
             _draw2DFn(renderData);
@@ -1502,24 +1482,23 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 void Engine::updateFrustums() {
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& win : thisNode.windows()) {
-        for (int j = 0; j < win->numberOfViewports(); j++) {
-            core::Viewport& vp = win->viewport(j);
-            if (vp.isTracked()) {
+        for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+            if (vp->isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
                 continue;
             }
 
             using Mode = Frustum::Mode;
-            if (vp.hasSubViewports()) {
-                core::NonLinearProjection& p = *vp.nonLinearProjection();
+            if (vp->hasSubViewports()) {
+                core::NonLinearProjection& p = *vp->nonLinearProjection();
                 p.updateFrustums(Mode::MonoEye, _nearClipPlane, _farClipPlane);
                 p.updateFrustums(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
                 p.updateFrustums(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
             }
             else {
-                vp.calculateFrustum(Mode::MonoEye, _nearClipPlane, _farClipPlane);
-                vp.calculateFrustum(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
-                vp.calculateFrustum(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
+                vp->calculateFrustum(Mode::MonoEye, _nearClipPlane, _farClipPlane);
+                vp->calculateFrustum(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
+                vp->calculateFrustum(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
             }
         }
     }
@@ -1676,8 +1655,8 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 void Engine::setEyeSeparation(float eyeSeparation) {
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        for (int i = 0; i < window->numberOfViewports(); i++) {
-            window->viewport(i).user().setEyeSeparation(eyeSeparation);
+        for (const std::unique_ptr<core::Viewport>& vp : window->viewports()) {
+            vp->user().setEyeSeparation(eyeSeparation);
         }
     }
     updateFrustums();
@@ -1761,12 +1740,8 @@ const core::Node& Engine::thisNode() const {
     return core::ClusterManager::instance().thisNode();
 }
 
-Window& Engine::window(int index) const {
-    return *core::ClusterManager::instance().thisNode().windows()[index].get();
-}
-
-int Engine::numberOfWindows() const {
-    return static_cast<int>(core::ClusterManager::instance().thisNode().windows().size());
+const std::vector<std::unique_ptr<Window>>& Engine::windows() const {
+    return core::ClusterManager::instance().thisNode().windows();
 }
 
 core::User& Engine::defaultUser() {

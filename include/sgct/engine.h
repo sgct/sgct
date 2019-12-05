@@ -331,11 +331,8 @@ public:
     /// \return a reference to this node (running on this computer).
     const sgct::core::Node& thisNode() const;
 
-    /// \return a pointer to a specified window by index on this node.
-    Window& window(int index) const;
-
-    /// \return the number of windows for this node.
-    int numberOfWindows() const;
+    /// \return A list of all the windows for the current node
+    const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /// \return a pointer to the user (observer position) object
     static core::User& defaultUser();

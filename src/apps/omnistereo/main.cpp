@@ -138,7 +138,7 @@ void renderGrid(glm::mat4 transform) {
 void initOmniStereo(bool mask) {
     double t0 = Engine::instance().getTime();
 
-    if (Engine::instance().numberOfWindows() < 2) {
+    if (Engine::instance().windows().size() < 2) {
         Logger::Error("Failed to allocate omni stereo in secondary window");
         return;
     }
@@ -149,7 +149,7 @@ void initOmniStereo(bool mask) {
     sgct::core::Image sepMap;
     sepMap.load(sepMapSrc);
 
-    Window& win = Engine::instance().window(1);
+    Window& win = *Engine::instance().windows()[1];
     const glm::ivec2 res = win.framebufferResolution() / tileSize;
 
     Logger::Info(
@@ -373,7 +373,7 @@ void drawOmniStereo(RenderData renderData) {
 
     double t0 = Engine::instance().getTime();
 
-    Window& win = Engine::instance().window(1);
+    Window& win = *Engine::instance().windows()[1];
     glm::ivec2 res = win.framebufferResolution() / tileSize;
 
     ShaderManager::instance().shaderProgram("xform").bind();

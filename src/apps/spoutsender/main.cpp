@@ -100,27 +100,21 @@ void postDrawFun() {
         if (!spoutSendersData[i].initialized) {
             continue;
         }
-        int winIndex = windowData[i].first;
+        const int winIndex = windowData[i].first;
+        const bool isLeft = windowData[i].second;
 
-        GLuint texId;
-        if (windowData[i].second) {
-            texId = Engine::instance().window(winIndex).frameBufferTexture(
-                Window::TextureIndex::LeftEye
-            );
-        }
-        else {
-            texId = Engine::instance().window(winIndex).frameBufferTexture(
-                Window::TextureIndex::RightEye
-            );
-        }
+        const std::unique_ptr<Window>& win = Engine::instance().windows()[winIndex];
+        const GLuint texId = win->frameBufferTexture(
+            isLeft ? Window::TextureIndex::LeftEye : Window::TextureIndex::RightEye
+        );
             
         glBindTexture(GL_TEXTURE_2D, texId);
             
         spoutSendersData[i].spoutSender->SendTexture(
             texId,
             static_cast<GLuint>(GL_TEXTURE_2D),
-            Engine::instance().window(winIndex).framebufferResolution().x,
-            Engine::instance().window(winIndex).framebufferResolution().y
+            win->framebufferResolution().x,
+            win->framebufferResolution().y
         );
     }
 
@@ -136,12 +130,11 @@ void preSyncFun() {
 void preWindowInitFun() {
     std::string baseName = "SGCT_Window";
 
-    //get number of framebuffer textures
-    for (int i = 0; i < Engine::instance().numberOfWindows(); i++) {
-        // do not resize buffers while minimized
-        Engine::instance().window(i).setFixResolution(true);
+    const std::vector<std::unique_ptr<Window>>& win = Engine::instance().windows();
+    for (int i = 0; i < win.size(); i++) {
+        win[i]->setFixResolution(true);
 
-        if (Engine::instance().window(i).isStereo()) {
+        if (win[i]->isStereo()) {
             senderNames.push_back(baseName + std::to_string(i) + "_Left");
             windowData.push_back(std::pair(i, true));
 
@@ -169,8 +162,8 @@ void initOGLFun() {
         
         const bool success = spoutSendersData[i].spoutSender->CreateSender(
             spoutSendersData[i].senderName,
-            Engine::instance().window(winIndex).framebufferResolution().x,
-            Engine::instance().window(winIndex).framebufferResolution().y
+            Engine::instance().windows()[winIndex]->framebufferResolution().x,
+            Engine::instance().windows()[winIndex]->framebufferResolution().y
         );
         spoutSendersData[i].initialized = success;
     }

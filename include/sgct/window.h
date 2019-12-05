@@ -303,14 +303,7 @@ public:
     /// \return pointer to GLFW window
     GLFWwindow* windowHandle() const;
 
-    /// \return a reference to a specific viewport
-    core::Viewport& viewport(int index);
-
-    /// \return a const reference to a specific viewport
-    const core::Viewport& viewport(int index) const;
-
-    /// \return the viewport count for this window
-    int numberOfViewports() const;
+    const std::vector<std::unique_ptr<core::Viewport>>& viewports() const;
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;

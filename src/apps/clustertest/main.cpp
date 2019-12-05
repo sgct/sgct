@@ -340,8 +340,8 @@ void initOGLFun() {
     size_t numberOfActiveViewports = 0;
     const core::Node& thisNode = core::ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        for (int j = 0; j < window->numberOfViewports(); j++) {
-            if (window->viewport(j).isEnabled()) {
+        for (const std::unique_ptr<core::Viewport>& vp : window->viewports()) {
+            if (vp->isEnabled()) {
                 numberOfActiveViewports++;
             }
         }

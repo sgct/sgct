@@ -443,14 +443,16 @@ void Window::initOGL() {
 }
 
 void Window::initContextSpecificOGL() {
+    using namespace core;
     makeOpenGLContextCurrent();
-    for (int j = 0; j < numberOfViewports(); j++) {
-        core::Viewport& vp = viewport(j);
-        vp.loadData();
-        if (vp.hasBlendMaskTexture() || vp.hasBlackLevelMaskTexture()) {
-            _hasAnyMasks = true;
+    std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
+    _hasAnyMasks = std::any_of(
+        _viewports.begin(),
+        _viewports.end(),
+        [](const std::unique_ptr<Viewport>& vp) {
+            return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
         }
-    }
+    );
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
@@ -593,11 +595,10 @@ void Window::updateResolutions() {
 
         // Set field of view of each of this window's viewports to match new aspect ratio,
         // adjusting only the horizontal (x) values
-        for (int j = 0; j < numberOfViewports(); ++j) {
-            core::Viewport& vp = viewport(j);
-            vp.updateFovToMatchAspectRatio(_aspectRatio, ratio);
+        for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+            vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
             Logger::Debug(
-                "Update aspect ratio in viewport# %d (%f --> %f)", j, _aspectRatio, ratio
+                "Update aspect ratio in viewport (%f --> %f)", _aspectRatio, ratio
             );
         }
         _aspectRatio = ratio;
@@ -627,12 +628,12 @@ void Window::updateResolutions() {
 
 void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
-    // aspect ratio, adjusting only the horizontal (x) values.
-    for (int i = 0; i < numberOfViewports(); ++i) {
-        viewport(i).setHorizontalFieldOfView(hFovDeg);
+    // aspect ratio, adjusting only the horizontal (x) values
+    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+        vp->setHorizontalFieldOfView(hFovDeg);
     }
     Logger::Debug(
-        "Horizontal FOV changed to %f for window %d", hFovDeg, numberOfViewports(), _id
+        "Horizontal FOV changed to %f for window %d", hFovDeg, _viewports.size(), _id
     );
 }
 
@@ -1213,16 +1214,8 @@ void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
     Logger::Debug("Adding viewport (total %d)", _viewports.size());
 }
 
-const core::Viewport& Window::viewport(int index) const {
-    return *_viewports[index];
-}
-
-core::Viewport& Window::viewport(int index) {
-    return *_viewports[index];
-}
-
-int Window::numberOfViewports() const {
-    return static_cast<int>(_viewports.size());
+const std::vector<std::unique_ptr<core::Viewport>>& Window::viewports() const {
+    return _viewports;
 }
 
 void Window::setNumberOfAASamples(int samples) {

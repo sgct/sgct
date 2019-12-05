@@ -311,11 +311,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         std::cout << helpMessage() << '\n';
         std::exit(0);
     }
-    if (config.nodeId) {
-        // This nodeId might not be a valid node, but we have no way of knowing this yet
-        // as the configuration hasn't been loaded yet
-        core::ClusterManager::instance().setThisNodeId(*config.nodeId);
-    }
     if (config.firmSync) {
         core::ClusterManager::instance().setFirmFrameLockSyncStatus(*config.firmSync);
     }
@@ -357,13 +352,49 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     Logger::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
 
-    core::ClusterManager::instance().applyCluster(cluster);
+    core::NetworkManager::create(netMode);
+
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
     }
 
-    core::NetworkManager::create(netMode);
-    initNetwork(netMode);
+    int clusterId = -1;
+    // check in cluster configuration which it is
+    if (netMode == core::NetworkManager::NetworkMode::Remote) {
+        Logger::Debug("Matching ip address to find node in configuration");
+
+        for (int i = 0; i < cluster.nodes.size(); ++i) {
+            const std::string& addr = cluster.nodes[i].address;
+            if (core::NetworkManager::instance().matchesAddress(addr)) {
+                clusterId = i;
+                Logger::Debug("Running in cluster mode as node %d", i);
+                break;
+            }
+        }
+    }
+    else {
+        if (config.nodeId) {
+            clusterId = *config.nodeId;
+            if (clusterId >= static_cast<int>(cluster.nodes.size())) {
+                core::NetworkManager::destroy();
+                throw Err(
+                    3001, "Requested node id was not found in the cluster configuration"
+                );
+            }
+            Logger::Debug("Running locally as node %d", clusterId);
+        }
+        else {
+            throw Err(3002, "When running locally, a node ID needs to be specified");
+        }
+    }
+
+    if (clusterId < 0) {
+        core::NetworkManager::destroy();
+        throw Err(3003, "Computer is not a part of the cluster configuration");
+    }
+
+    core::ClusterManager::create(cluster, clusterId);
+    core::NetworkManager::instance().init();
 }
 
 void Engine::initialize(Profile profile) {
@@ -644,39 +675,6 @@ Engine::~Engine() {
     glfwTerminate();
  
     Logger::Debug("Finished cleaning");
-}
-
-void Engine::initNetwork(core::NetworkManager::NetworkMode netMode) {
-    core::ClusterManager& cm = core::ClusterManager::instance();
-    // check in cluster configuration which it is
-    if (netMode == core::NetworkManager::NetworkMode::Remote) {
-        Logger::Debug("Matching ip address to find node in configuration");
-
-        for (int i = 0; i < core::ClusterManager::instance().numberOfNodes(); i++) {
-            // check ip
-            const std::string& addr = cm.node(i).address();
-            if (core::NetworkManager::instance().matchesAddress(addr)) {
-                cm.setThisNodeId(i);
-                Logger::Debug("Running in cluster mode as node %d", i);
-                break;
-            }
-        }
-    }
-    else {
-        Logger::Debug("Running locally as node %d", cm.thisNodeId());
-    }
-
-    // If the user has provided the node _id as an incorrect cmd argument
-    if (cm.thisNodeId() < 0) {
-        core::NetworkManager::destroy();
-        throw Err(3001, "Computer is not a part of the cluster configuration");
-    }
-    if (cm.thisNodeId() >= cm.numberOfNodes()) {
-        core::NetworkManager::destroy();
-        throw Err(3002, "Requested node id was not found in the cluster configuration");
-    }
-
-    core::NetworkManager::instance().init();
 }
 
 void Engine::initWindows(Profile profile) {

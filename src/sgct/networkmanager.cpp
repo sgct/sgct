@@ -81,23 +81,6 @@ NetworkManager::NetworkManager(NetworkMode nm)
 
     Logger::Debug("Getting host info");
     hostInfo();
-
-    if (_mode == NetworkMode::Remote) {
-        _isServer = matchesAddress(ClusterManager::instance().masterAddress());
-    }
-    else if (_mode == NetworkMode::LocalServer) {
-        _isServer = true;
-    }
-    else {
-        _isServer = false;
-    }
-
-    if (_isServer) {
-        Logger::Info("This computer is the network server");
-    }
-    else {
-        Logger::Info("This computer is the network client");
-    }
 }
 
 NetworkManager::~NetworkManager() {
@@ -131,6 +114,24 @@ NetworkManager::~NetworkManager() {
 
 void NetworkManager::init() {
     ClusterManager& cm = ClusterManager::instance();
+    
+    if (_mode == NetworkMode::Remote) {
+        _isServer = matchesAddress(cm.masterAddress());
+    }
+    else if (_mode == NetworkMode::LocalServer) {
+        _isServer = true;
+    }
+    else {
+        _isServer = false;
+    }
+
+    if (_isServer) {
+        Logger::Info("This computer is the network server");
+    }
+    else {
+        Logger::Info("This computer is the network client");
+    }
+
     if (cm.thisNode().address().empty()) {
         throw Error(5021, "No address information for this node available");
     }

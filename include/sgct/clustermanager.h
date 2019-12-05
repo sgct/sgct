@@ -26,6 +26,7 @@ namespace sgct::core {
 class ClusterManager {
 public:
     static ClusterManager& instance();
+    static void create(const config::Cluster& cluster, int clusterID);
     static void destroy();
 
     void applyCluster(const config::Cluster& cluster);
@@ -92,14 +93,6 @@ public:
     /// \return the scene transform specified in the configuration file
     const glm::mat4& sceneTransform() const;
 
-    /**
-     * Don't set this, this is done automatically using from the Network Manager which
-     * compares IP addresses from this computer to the XML config file.
-     *
-     * \param the index to the node where this application is running on
-     */
-    void setThisNodeId(int id);
-
     /// \return the id to the node which runs this application
     int thisNodeId() const;
 
@@ -125,11 +118,11 @@ public:
     bool ignoreSync() const;
 
 private:
-    ClusterManager();
+    ClusterManager(int clusterID);
 
     static ClusterManager* _instance;
 
-    int _thisNodeId = -1;
+    const int _thisNodeId;
     bool _firmFrameLockSync = false;
     bool _ignoreSync = false;
     std::string _masterAddress;

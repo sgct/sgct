@@ -374,9 +374,6 @@ private:
 
     void initialize(Profile profile);
 
-    /// Initiates network communication.
-    void initNetwork(core::NetworkManager::NetworkMode netMode);
-
     /// Create and initiate a window.
     void initWindows(Profile rm);
 

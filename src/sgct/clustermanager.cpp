@@ -18,10 +18,15 @@ namespace sgct::core {
 ClusterManager* ClusterManager::_instance = nullptr;
 
 ClusterManager& ClusterManager::instance() {
-    if (!_instance) {
-        _instance = new ClusterManager;
+    if (_instance == nullptr) {
+        throw std::logic_error("Using the instance before it was created or set");
     }
     return *_instance;
+}
+
+void ClusterManager::create(const config::Cluster& cluster, int clusterID) {
+    _instance = new ClusterManager(clusterID);
+    _instance->applyCluster(cluster);
 }
 
 void ClusterManager::destroy() {
@@ -29,7 +34,9 @@ void ClusterManager::destroy() {
     _instance = nullptr;
 }
 
-ClusterManager::ClusterManager() {
+ClusterManager::ClusterManager(int clusterID)
+    : _thisNodeId(clusterID)
+{
     _users.push_back(std::make_unique<User>("default"));
 }
 
@@ -169,10 +176,6 @@ int ClusterManager::numberOfNodes() const {
 
 const glm::mat4& ClusterManager::sceneTransform() const {
     return _sceneTransform;
-}
-
-void ClusterManager::setThisNodeId(int id) {
-    _thisNodeId = id;
 }
 
 int ClusterManager::thisNodeId() const {

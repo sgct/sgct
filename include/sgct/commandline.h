@@ -20,7 +20,6 @@ namespace sgct {
 struct Configuration {
     std::optional<std::string> configFilename;
     std::optional<bool> isServer;
-    std::optional<std::string> logPath;
     std::optional<Logger::Level> logLevel;
     std::optional<bool> showHelpText;
     std::optional<int> nodeId;

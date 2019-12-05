@@ -46,7 +46,7 @@ public:
     ~Font();
 
     /// Get the font face data
-    const Font::FontFaceData& fontFaceData(wchar_t c);
+    const Font::FontFaceData& fontFaceData(char c);
 
     /// Get the vertex array id
     unsigned int vao() const;
@@ -62,13 +62,13 @@ public:
     void setStrokeSize(int size);
 
 private:
-    void createCharacter(wchar_t c);
+    void createCharacter(char c);
 
     FT_Library _library;
     FT_Face	_face;
     FT_Fixed _strokeSize = 1;
     float _height;
-    std::unordered_map<wchar_t, FontFaceData> _fontFaceData;
+    std::unordered_map<char, FontFaceData> _fontFaceData;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 };

@@ -122,7 +122,6 @@ namespace {
         }
     }
 
-
     void prepareBuffer(Window& window, Window::TextureIndex ti) {
         core::OffScreenBuffer* fbo = window.fbo();
         fbo->bind();
@@ -296,13 +295,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         netMode = *config.isServer ?
             core::NetworkManager::NetworkMode::LocalServer :
             core::NetworkManager::NetworkMode::LocalClient;
-    }
-    if (config.logPath) {
-        Logger::instance().setLogPath(
-            *config.logPath,
-            core::ClusterManager::instance().thisNodeId()
-        );
-        Logger::instance().setLogToFile(true);
     }
     if (config.logLevel) {
         Logger::instance().setNotifyLevel(*config.logLevel);
@@ -871,7 +863,7 @@ void Engine::frameLockPreStage() {
 
     // not server
     const double t0 = glfwGetTime();
-    while (nm.isRunning() && _isRunning && !nm.isSyncComplete()) {
+    while (nm.isRunning() && !nm.isSyncComplete()) {
         std::unique_lock lk(core::mutex::FrameSync);
         core::NetworkManager::cond.wait(lk);
 
@@ -894,7 +886,7 @@ void Engine::frameLockPreStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3003, "No sync signal from master after " + s + " s");
+            throw Err(3004, "No sync signal from master after " + s + " s");
         }
     }
 
@@ -916,7 +908,7 @@ void Engine::frameLockPostStage() {
     }
 
     const double t0 = glfwGetTime();
-    while (nm.isRunning() && _isRunning && nm.activeConnectionsCount() > 0 &&
+    while (nm.isRunning() && nm.activeConnectionsCount() > 0 &&
           !nm.isSyncComplete())
     {
         std::unique_lock lk(core::mutex::FrameSync);
@@ -943,7 +935,7 @@ void Engine::frameLockPostStage() {
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3004, "No sync signal from clients after " + s + " s");
+            throw Err(3005, "No sync signal from clients after " + s + " s");
         }
     }
 
@@ -951,7 +943,6 @@ void Engine::frameLockPostStage() {
 }
 
 void Engine::render() {
-    _isRunning = true;
 
     Window::makeSharedContextCurrent();
     unsigned int timeQueryBegin = 0;
@@ -960,10 +951,9 @@ void Engine::render() {
     glGenQueries(1, &timeQueryEnd);
 
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    while (_isRunning) {
-        _renderingOffScreen = false;
-
-        // update tracking data
+    while (!(_shouldTerminate || thisNode.closeAllWindows() ||
+           !core::NetworkManager::instance().isRunning()))
+    {
         if (isMaster()) {
             TrackingManager::instance().updateTrackingDevices();
         }
@@ -987,7 +977,6 @@ void Engine::render() {
             thisNode.window(i).update();
         }
 
-        _renderingOffScreen = true;
         Window::makeSharedContextCurrent();
 
         if (_postSyncPreDrawFn) {
@@ -1008,10 +997,6 @@ void Engine::render() {
             Window& win = thisNode.window(i);
             if (!(win.isVisible() || win.isRenderingWhileHidden())) {
                 continue;
-            }
-
-            if (!_renderingOffScreen) {
-                win.makeOpenGLContextCurrent();
             }
 
             Window::StereoMode sm = win.stereoMode();
@@ -1091,7 +1076,6 @@ void Engine::render() {
         // Render to screen
         for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
             if (thisNode.window(i).isVisible()) {
-                _renderingOffScreen = false;
                 renderFBOTexture(window(i));
             }
         }
@@ -1137,10 +1121,6 @@ void Engine::render() {
             thisNode.window(i).updateResolutions();
         }
 
-        // Check if exit key was pressed or window was closed
-        _isRunning = !(_shouldTerminate || thisNode.closeAllWindows() ||
-                     !core::NetworkManager::instance().isRunning());
-
         // for all windows
         _frameCounter++;
         if (_takeScreenshot) {
@@ -1179,7 +1159,6 @@ void Engine::renderFBOTexture(Window& window) {
     window.makeOpenGLContextCurrent();
 
     glDisable(GL_BLEND);
-    // needed for shaders
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
@@ -1378,13 +1357,16 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
+        updateRenderingTargets(win, ti);
+        if (win.useFXAA()) {
+            renderFXAA(win, ti);
+        }
+
         render2D(win, frustum);
         if (isSplitScreen) {
             // render left eye info and graph to render 2D items after post fx
             render2D(win, Frustum::Mode::StereoLeftEye);
         }
-
-        updateRenderingTargets(win, ti); // only used if multisampled FBOs
     }
 
     glDisable(GL_BLEND);
@@ -1429,35 +1411,33 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
     }
 }
 
-void Engine::renderPostFX(Window& window, Window::TextureIndex targetIndex) {
-    if (window.useFXAA()) {
-        assert(_fxaa.has_value());
+void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
+    assert(_fxaa.has_value());
 
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
-        // bind target FBO
-        window.fbo()->attachColorTexture(window.frameBufferTexture(targetIndex));
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    // bind target FBO
+    window.fbo()->attachColorTexture(window.frameBufferTexture(targetIndex));
 
-        glm::ivec2 framebufferSize = window.framebufferResolution();
-        glViewport(0, 0, framebufferSize.x, framebufferSize.y);
-        glClearColor(0.f, 0.f, 0.f, 0.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+    glm::ivec2 framebufferSize = window.framebufferResolution();
+    glViewport(0, 0, framebufferSize.x, framebufferSize.y);
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
 
-        glBindTexture(
-            GL_TEXTURE_2D,
-            window.frameBufferTexture(Window::TextureIndex::Intermediate)
-        );
+    glBindTexture(
+        GL_TEXTURE_2D,
+        window.frameBufferTexture(Window::TextureIndex::Intermediate)
+    );
 
-        _fxaa->shader.bind();
-        glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
-        glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
-        glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
-        glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
+    _fxaa->shader.bind();
+    glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
+    glUniform1f(_fxaa->sizeY, static_cast<float>(framebufferSize.y));
+    glUniform1f(_fxaa->subPixTrim, FxaaSubPixTrim);
+    glUniform1f(_fxaa->subPixOffset, FxaaSubPixOffset);
 
-        window.renderScreenQuad();
-        ShaderProgram::unbind();
-    }
+    window.renderScreenQuad();
+    ShaderProgram::unbind();
 }
 
 bool Engine::isMaster() const {

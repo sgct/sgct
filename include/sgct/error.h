@@ -101,10 +101,11 @@ namespace sgct {
 
  * 3000s: Engine
  * 3000: Engine / Failed to initialize GLFW
- * 3001: Engine / Computer is not a part of the cluster configuration
- * 3002: Engine / Requested node id was not found in the cluster configuration
- * 3003: Engine / No sync signal from master after X seconds
- * 3004: Engine / No sync signal from clients after X seconds
+ * 3001: Engine / Requested node id was not found in the cluster configuration
+ * 3002: Engine / When running locally, a node ID needs to be specified
+ * 3003: Engine / Computer is not a part of the cluster configuration
+ * 3004: Engine / No sync signal from master after X seconds
+ * 3005: Engine / No sync signal from clients after X seconds
  * 3010: Engine / GLFW error
 
  * 4000s: MPCDI

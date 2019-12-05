@@ -38,21 +38,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.nodeId = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
-        else if (arg[i] == "-log") {
-            // Remove unwanted chars
-            std::string tmpStr = arg[i + 1];
-            tmpStr.erase(remove(tmpStr.begin(), tmpStr.end(), '\"'), tmpStr.end());
-            size_t lastPos = tmpStr.length() - 1;
-
-            // Remove a trailing /
-            const char last = tmpStr.at(lastPos);
-            if (last == '\\' || last == '/') {
-                tmpStr.erase(lastPos);
-            }
-            config.logPath = tmpStr;
-
-            arg.erase(arg.begin() + i, arg.begin() + i + 2);
-        }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
             const Logger::Level level = [](std::string_view l) {
                 if (l == "error")        { return Logger::Level::Error; }

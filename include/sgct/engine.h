@@ -399,7 +399,7 @@ private:
     void renderFBOTexture(Window& window);
     
     /// This function combines a texture and a shader into a new texture
-    void renderPostFX(Window& window, Window::TextureIndex targetIndex);
+    void renderFXAA(Window& window, Window::TextureIndex targetIndex);
 
     void renderViewports(Window& window, Frustum::Mode frustum, Window::TextureIndex ti);
 
@@ -421,10 +421,6 @@ private:
     void blitPreviousWindowViewport(Window& prevWindow, Window& window,
         const core::Viewport& viewport, Frustum::Mode mode);
 
-    // @TODO (abock, 2019-12-02) This is a workaround for the fact that something in SGCT
-    // is using the callbacks during the application shutdown. The previous method was to
-    // set the callbacks to nullptr, but I really want to make them constant, which
-    // prevents that approach from working
     const std::function<void()> _preWindowFn;
     const std::function<void(GLFWwindow*)> _contextCreationFn;
     const std::function<void()> _initOpenGLFn;
@@ -453,7 +449,6 @@ private:
     bool _checkFBOs = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
-    bool _renderingOffScreen = false;
 
     bool _printSyncMessage = true;
     float _syncTimeout = 60.f;
@@ -470,8 +465,6 @@ private:
     ShaderProgram _overlay;
 
     std::unique_ptr<std::thread> _thread;
-
-    bool _isRunning = true;
 
     unsigned int _frameCounter = 0;
     unsigned int _shotCounter = 0;

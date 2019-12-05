@@ -136,7 +136,7 @@ namespace {
     }
 
     std::optional<sgct::text::Font::FontFaceData>
-    createGlyph(FT_Library library, FT_Face face, FT_Fixed strokeSize, wchar_t c)
+    createGlyph(FT_Library library, FT_Face face, FT_Fixed strokeSize, char c)
     {
         // Load the Glyph for our character.
         // Hints:
@@ -247,7 +247,7 @@ void Font::setStrokeSize(int size) {
     _strokeSize = size;
 }
 
-const Font::FontFaceData& Font::fontFaceData(wchar_t c) {
+const Font::FontFaceData& Font::fontFaceData(char c) {
     if (_fontFaceData.count(c) == 0) {
         // check if c does not exist in map
         createCharacter(c);
@@ -263,7 +263,7 @@ float Font::height() const {
     return _height;
 }
 
-void Font::createCharacter(wchar_t c) {
+void Font::createCharacter(char c) {
     std::optional<FontFaceData> ffd = createGlyph(_library, _face, _strokeSize, c);
     if (ffd) {
         _fontFaceData[c] = std::move(*ffd);

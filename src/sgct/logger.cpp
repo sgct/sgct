@@ -34,7 +34,6 @@ void Logger::destroy() {
 Logger::Logger() {
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
-    setLogPath("");
 }
 
 void Logger::printv(const char* fmt, va_list ap) {
@@ -72,9 +71,6 @@ void Logger::printv(const char* fmt, va_list ap) {
             std::cout << _combinedBuffer.data() << '\n';
         }
 
-        if (_logToFile) {
-            logToFile(_combinedBuffer);
-        }
         if (_messageCallback) {
             _messageCallback(_combinedBuffer.data());
         }
@@ -84,51 +80,10 @@ void Logger::printv(const char* fmt, va_list ap) {
             std::cout << _parseBuffer.data() << '\n';
         }
 
-        if (_logToFile) {
-            logToFile(_parseBuffer);
-        }
         if (_messageCallback) {
             _messageCallback(_parseBuffer.data());
         }
     }
-}
-
-void Logger::logToFile(const std::vector<char>& buffer) {
-    if (_filename.empty()) {
-        return;
-    }
-    
-    std::ofstream file(_filename.c_str(), std::ios_base::app);
-    if (!file.good()) {
-        std::cerr << "Failed to open '" << _filename << "'!" << std::endl;
-        return;
-    }
-
-    file << std::string(buffer.begin(), buffer.end()) << '\n';
-}
-
-void Logger::setLogPath(const std::string& path, int id) {
-    time_t now = time(nullptr);
-
-    std::stringstream ss;
-
-    if (!path.empty()) {
-        ss << path << "/";
-    }
-
-    char Buffer[64];
-    tm* timeInfoPtr;
-    timeInfoPtr = localtime(&now);
-
-    strftime(Buffer, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
-    if (id > -1) {
-        ss << Buffer << "_node" << id << ".txt";
-    }
-    else {
-        ss << Buffer << ".txt";
-    }
-
-    _filename = ss.str();
 }
 
 void Logger::Debug(const char* fmt, ...) {
@@ -181,10 +136,6 @@ void Logger::setShowTime(bool state) {
 
 void Logger::setLogToConsole(bool state) {
     _logToConsole = state;
-}
-
-void Logger::setLogToFile(bool state) {
-    _logToFile = state;
 }
 
 void Logger::setLogCallback(std::function<void(const char*)> fn) {

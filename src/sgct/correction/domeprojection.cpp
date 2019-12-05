@@ -52,8 +52,8 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
                 nCols = std::max(nCols, col);
                 nRows = std::max(nRows, row);
 
-                std::clamp(x, 0.f, 1.f);
-                std::clamp(y, 0.f, 1.f);
+                x = std::clamp(x, 0.f, 1.f);
+                y = std::clamp(y, 0.f, 1.f);
 
                 // convert to [-1, 1]
                 vertex.x = 2.f * (pos.x + x * size.x) - 1.f;

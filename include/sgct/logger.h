@@ -38,12 +38,6 @@ public:
     /// Set if log to console should be enabled. It is enabled on default
     void setLogToConsole(bool state);
 
-    /// Set if log to file should be enabled
-    void setLogToFile(bool state);
-    
-    /// Set the log file path. The id will be appended on the filename if larger than -1
-    void setLogPath(const std::string& path, int id = -1);
-
     /// Set the callback that gets invoked for each log
     void setLogCallback(std::function<void(const char *)> fn);
 
@@ -61,12 +55,10 @@ private:
     Level _level = Level::Warning;
     bool _showTime = false;
     bool _logToConsole = true;
-    bool _logToFile = false;
     
     std::mutex _mutex;
 
     std::function<void(const char*)> _messageCallback;
-    std::string _filename;
     size_t _maxMessageSize = 2048;
     size_t _combinedMessageSize = _maxMessageSize + 32;
 };

@@ -59,9 +59,9 @@ namespace {
         height = std::max(height, 1);
 
         sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
-        for (int i = 0; i < node.numberOfWindows(); i++) {
-            if (node.window(i).windowHandle() == window) {
-                node.window(i).setWindowResolution(glm::ivec2(width, height));
+        for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
+            if (win->windowHandle() == window) {
+                win->setWindowResolution(glm::ivec2(width, height));
             }
         }
     }
@@ -71,19 +71,18 @@ namespace {
         height = std::max(height, 1);
 
         sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
-        for (int i = 0; i < node.numberOfWindows(); i++) {
-            if (node.window(i).windowHandle() == window) {
-                node.window(i).setFramebufferResolution(glm::ivec2(width, height));
+        for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
+            if (win->windowHandle() == window) {
+                win->setFramebufferResolution(glm::ivec2(width, height));
             }
         }
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
         sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
-
-        for (int i = 0; i < node.numberOfWindows(); i++) {
-            if (node.window(i).windowHandle() == window) {
-                node.window(i).setFocused(state == GLFW_TRUE);
+        for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
+            if (win->windowHandle() == window) {
+                win->setFocused(state == GLFW_TRUE);
             }
         }
     }

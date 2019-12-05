@@ -395,16 +395,16 @@ void Engine::initialize(Profile profile) {
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        thisNode.window(i).updateResolutions();
-    }
+    const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
+    std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::updateResolutions));
+
     // if a single node, skip syncing
     if (core::ClusterManager::instance().numberOfNodes() == 1) {
         core::ClusterManager::instance().setUseIgnoreSync(true);
     }
 
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        GLFWwindow* win = window(i).windowHandle();
+    for (const std::unique_ptr<Window>& window : wins) {
+        GLFWwindow* win = window->windowHandle();
         if (gKeyboardCallback) {
             glfwSetKeyCallback(
                 win,
@@ -481,11 +481,7 @@ void Engine::initialize(Profile profile) {
     //
     // Load Shaders
     //
-    bool needsFxaa = false;
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        needsFxaa |= thisNode.window(i).useFXAA();
-    }
-
+    bool needsFxaa = std::any_of(wins.begin(), wins.end(), std::mem_fn(&Window::useFXAA));
     if (needsFxaa) {
         _fxaa = FXAAShader();
         _fxaa->shader = ShaderProgram("FXAAShader");
@@ -532,11 +528,10 @@ void Engine::initialize(Profile profile) {
     }
 
     // link all users to their viewports
-    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
-        Window& win = thisNode.window(i);
-        win.initOGL();
-        for (int j = 0; j < win.numberOfViewports(); ++j) {
-            win.viewport(j).linkUserName();
+    for (const std::unique_ptr<Window>& win : wins) {
+        win->initOGL();
+        for (int j = 0; j < win->numberOfViewports(); ++j) {
+            win->viewport(j).linkUserName();
         }
     }
 
@@ -557,9 +552,7 @@ void Engine::initialize(Profile profile) {
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
 
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        thisNode.window(i).initContextSpecificOGL();
-    }
+    std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::initContextSpecificOGL));
 
     // start sampling tracking data
     if (isMaster()) {
@@ -575,7 +568,7 @@ Engine::~Engine() {
     core::ClusterManager& cm = core::ClusterManager::instance();
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
 
-    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
+    if (hasNode) {
         Window::makeSharedContextCurrent();
         if (_cleanUpFn) {
             _cleanUpFn();
@@ -610,10 +603,9 @@ Engine::~Engine() {
 
     // de-init window and unbind swapgroups
     // There might not be any thisNode as its creation might have failed
-    if (hasNode && core::ClusterManager::instance().numberOfNodes() > 0) {
-        for (int i = 0; i < cm.thisNode().numberOfWindows(); ++i) {
-            cm.thisNode().window(i).close();
-        }
+    if (hasNode) {
+        const std::vector<std::unique_ptr<Window>>& windows = cm.thisNode().windows();
+        std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::close));
     }
 
     // close TCP connections
@@ -621,7 +613,7 @@ Engine::~Engine() {
     core::NetworkManager::destroy();
 
     // Shared contex
-    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
+    if (hasNode && !cm.thisNode().windows().empty()) {
         Window::makeSharedContextCurrent();
     }
 
@@ -647,8 +639,8 @@ Engine::~Engine() {
 #endif // SGCT_HAS_TEXT
 
     // Window specific context
-    if (hasNode && cm.thisNode().numberOfWindows() > 0) {
-        cm.thisNode().window(0).makeOpenGLContextCurrent();
+    if (hasNode && !cm.thisNode().windows().empty()) {
+        cm.thisNode().windows()[0]->makeOpenGLContextCurrent();
     }
     
     Logger::Debug("Destroying shared data");
@@ -703,10 +695,11 @@ void Engine::initWindows(Profile profile) {
     }
 
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        GLFWwindow* s = i == 0 ? nullptr : thisNode.window(0).windowHandle();
-        const bool isLastWindow = i == thisNode.numberOfWindows() - 1;
-        thisNode.window(i).openWindow(s, isLastWindow);
+    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
+    for (size_t i = 0; i < windows.size(); ++i) {
+        GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
+        const bool isLastWindow = i == windows.size() - 1;
+        windows[i]->openWindow(s, isLastWindow);
     }
 
     glbinding::Binding::initialize(glfwGetProcAddress);
@@ -810,16 +803,14 @@ void Engine::initWindows(Profile profile) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Window/Context creation callback
-    if (thisNode.numberOfWindows() > 0) {
+    if (!windows.empty()) {
         if (_contextCreationFn) {
-            GLFWwindow* share = thisNode.window(0).windowHandle();
+            GLFWwindow* share = thisNode.windows()[0]->windowHandle();
             _contextCreationFn(share);
         }
     }
 
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        thisNode.window(i).init();
-    }
+    std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::init));
 
     //init draw buffer resolution
     waitForAllWindowsInSwapGroupToOpen();
@@ -943,7 +934,6 @@ void Engine::frameLockPostStage() {
 }
 
 void Engine::render() {
-
     Window::makeSharedContextCurrent();
     unsigned int timeQueryBegin = 0;
     glGenQueries(1, &timeQueryBegin);
@@ -951,6 +941,7 @@ void Engine::render() {
     glGenQueries(1, &timeQueryEnd);
 
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     while (!(_shouldTerminate || thisNode.closeAllWindows() ||
            !core::NetworkManager::instance().isRunning()))
     {
@@ -973,9 +964,7 @@ void Engine::render() {
 
         frameLockPreStage();
 
-        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-            thisNode.window(i).update();
-        }
+        std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::update));
 
         Window::makeSharedContextCurrent();
 
@@ -993,30 +982,29 @@ void Engine::render() {
         }
 
         // Render Viewports / Draw
-        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-            Window& win = thisNode.window(i);
-            if (!(win.isVisible() || win.isRenderingWhileHidden())) {
+        for (const std::unique_ptr<Window>& win : windows) {
+            if (!(win->isVisible() || win->isRenderingWhileHidden())) {
                 continue;
             }
 
-            Window::StereoMode sm = win.stereoMode();
+            Window::StereoMode sm = win->stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
-            for (int j = 0; j < win.numberOfViewports(); ++j) {
-                const core::Viewport& vp = win.viewport(j);
+            for (int j = 0; j < win->numberOfViewports(); ++j) {
+                const core::Viewport& vp = win->viewport(j);
                 if (!vp.hasSubViewports()) {
                     continue;
                 }
 
                 core::NonLinearProjection* nonLinearProj = vp.nonLinearProjection();
 
-                nonLinearProj->setAlpha(win.hasAlpha() ? 0.f : 1.f);
+                nonLinearProj->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
-                    nonLinearProj->renderCubemap(win, win.viewport(j).eye());
+                    nonLinearProj->renderCubemap(*win, win->viewport(j).eye());
                 }
                 else {
-                    nonLinearProj->renderCubemap(win, Frustum::Mode::StereoLeftEye);
+                    nonLinearProj->renderCubemap(*win, Frustum::Mode::StereoLeftEye);
                 }
             }
 
@@ -1024,14 +1012,14 @@ void Engine::render() {
             // if any stereo type (except passive) then set frustum mode to left eye
             if (sm == Window::StereoMode::NoStereo) {
                 renderViewports(
-                    win,
+                    *win,
                     Frustum::Mode::MonoEye,
                     Window::TextureIndex::LeftEye
                 );
             }
             else {
                 renderViewports(
-                    win,
+                    *win,
                     Frustum::Mode::StereoLeftEye,
                     Window::TextureIndex::LeftEye
                 );
@@ -1043,30 +1031,30 @@ void Engine::render() {
             }
 
             // Render right non-linear projection viewports to cubemap
-            for (int j = 0; j < win.numberOfViewports(); ++j) {
-                const core::Viewport& vp = win.viewport(j);
+            for (int j = 0; j < win->numberOfViewports(); ++j) {
+                const core::Viewport& vp = win->viewport(j);
 
                 if (!vp.hasSubViewports()) {
                     continue;
                 }
                 core::NonLinearProjection* p = vp.nonLinearProjection();
 
-                p->setAlpha(win.hasAlpha() ? 0.f : 1.f);
-                p->renderCubemap(win, Frustum::Mode::StereoRightEye);
+                p->setAlpha(win->hasAlpha() ? 0.f : 1.f);
+                p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
             }
 
             // Render right regular viewports to FBO
             // use a single texture for side-by-side and top-bottom stereo modes
             if (sm >= Window::StereoMode::SideBySide) {
                 renderViewports(
-                    win,
+                    *win,
                     Frustum::Mode::StereoRightEye,
                     Window::TextureIndex::LeftEye
                 );
             }
             else {
                 renderViewports(
-                    win,
+                    *win,
                     Frustum::Mode::StereoRightEye,
                     Window::TextureIndex::RightEye
                 );
@@ -1074,9 +1062,9 @@ void Engine::render() {
         }
 
         // Render to screen
-        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-            if (thisNode.window(i).isVisible()) {
-                renderFBOTexture(window(i));
+        for (const std::unique_ptr<Window>& window : windows) {
+            if (window->isVisible()) {
+                renderFBOTexture(*window);
             }
         }
         Window::makeSharedContextCurrent();
@@ -1112,14 +1100,15 @@ void Engine::render() {
         frameLockPostStage();
 
         // Swap front and back rendering buffers
-        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-            thisNode.window(i).swap(_takeScreenshot);
+        for (const std::unique_ptr<Window>& window : windows) {
+            window->swap(_takeScreenshot);
         }
 
         glfwPollEvents();
-        for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-            thisNode.window(i).updateResolutions();
-        }
+        std::for_each(
+            windows.begin(), windows.end(),
+            std::mem_fn(&Window::updateResolutions)
+        );
 
         // for all windows
         _frameCounter++;
@@ -1453,14 +1442,14 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     core::Node& thisNode = cm.thisNode();
 
     // clear the buffers initially
-    for (int i = 0; i < thisNode.numberOfWindows(); ++i) {
-        thisNode.window(i).makeOpenGLContextCurrent();
-        glDrawBuffer(thisNode.window(i).isDoubleBuffered() ? GL_BACK : GL_FRONT);
+    for (const std::unique_ptr<Window>& window : thisNode.windows()) {
+        window->makeOpenGLContextCurrent();
+        glDrawBuffer(window->isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (thisNode.window(i).isDoubleBuffered()) {
-            glfwSwapBuffers(thisNode.window(i).windowHandle());
+        if (window->isDoubleBuffered()) {
+            glfwSwapBuffers(window->windowHandle());
         }
         else {
             glFinish();
@@ -1489,10 +1478,10 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 
     while (!core::NetworkManager::instance().areAllNodesConnected()) {
         // Swap front and back rendering buffers
-        for (int i = 0; i < thisNode.numberOfWindows(); i++) {
+        for (const std::unique_ptr<Window>& window : thisNode.windows()) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if (thisNode.window(i).isDoubleBuffered()) {
-                glfwSwapBuffers(thisNode.window(i).windowHandle());
+            if (window->isDoubleBuffered()) {
+                glfwSwapBuffers(window->windowHandle());
             }
             else {
                 glFinish();
@@ -1512,10 +1501,9 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 
 void Engine::updateFrustums() {
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
-        Window& win = thisNode.window(i);
-        for (int j = 0; j < win.numberOfViewports(); j++) {
-            core::Viewport& vp = win.viewport(j);
+    for (const std::unique_ptr<Window>& win : thisNode.windows()) {
+        for (int j = 0; j < win->numberOfViewports(); j++) {
+            core::Viewport& vp = win->viewport(j);
             if (vp.isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
                 continue;
@@ -1687,11 +1675,9 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 
 void Engine::setEyeSeparation(float eyeSeparation) {
     core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    for (int w = 0; w < thisNode.numberOfWindows(); w++) {
-        Window& window = thisNode.window(w);
-
-        for (int i = 0; i < window.numberOfViewports(); i++) {
-            window.viewport(i).user().setEyeSeparation(eyeSeparation);
+    for (const std::unique_ptr<Window>& window : thisNode.windows()) {
+        for (int i = 0; i < window->numberOfViewports(); i++) {
+            window->viewport(i).user().setEyeSeparation(eyeSeparation);
         }
     }
     updateFrustums();
@@ -1703,12 +1689,9 @@ void Engine::setClearColor(glm::vec4 color) {
 
 const Window* Engine::focusedWindow() const {
     const core::Node& thisNode = core::ClusterManager::instance().thisNode();
-    for (int i = 0; i < thisNode.numberOfWindows(); i++) {
-        if (thisNode.window(i).isFocused()) {
-            return &thisNode.window(i);
-        }
-    }
-    return nullptr; // no window has focus
+    const std::vector<std::unique_ptr<Window>>& ws = thisNode.windows();
+    const auto it = std::find_if(ws.begin(), ws.end(), std::mem_fn(&Window::isFocused));
+    return it != ws.end() ? it->get() : nullptr;
 }
 
 void Engine::setStatsGraphVisibility(bool state) {
@@ -1779,11 +1762,11 @@ const core::Node& Engine::thisNode() const {
 }
 
 Window& Engine::window(int index) const {
-    return core::ClusterManager::instance().thisNode().window(index);
+    return *core::ClusterManager::instance().thisNode().windows()[index].get();
 }
 
 int Engine::numberOfWindows() const {
-    return core::ClusterManager::instance().thisNode().numberOfWindows();
+    return static_cast<int>(core::ClusterManager::instance().thisNode().windows().size());
 }
 
 core::User& Engine::defaultUser() {

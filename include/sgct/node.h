@@ -34,14 +34,7 @@ public:
     /// Check if a key is pressed for all windows.
     bool isKeyPressed(Key key);
 
-    /// Get the number of windows in the window vector
-    int numberOfWindows() const;
-
-    /// Get the window pointer at index in window vector.
-    Window& window(int index);
-
-    /// Get the window pointer at index in window vector.
-    const Window& window(int index) const;
+    const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /// \return the address of this node
     const std::string& address() const;

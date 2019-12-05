@@ -41,7 +41,8 @@ void Node::applyNode(const config::Node& node) {
     }
 
     for (const config::Window& window : node.windows) {
-        std::unique_ptr<Window> win = std::make_unique<Window>(numberOfWindows());
+        const int nWindow = static_cast<int>(_windows.size());
+        std::unique_ptr<Window> win = std::make_unique<Window>(nWindow);
         win->applyWindow(window);
         addWindow(std::move(win));
     }
@@ -64,16 +65,8 @@ bool Node::isKeyPressed(Key key) {
     return false;
 }
 
-int Node::numberOfWindows() const {
-    return static_cast<int>(_windows.size());
-}
-
-Window& Node::window(int index) {
-    return *_windows[index];
-}
-
-const Window& Node::window(int index) const {
-    return *_windows[index];
+const std::vector<std::unique_ptr<Window>>& Node::windows() const {
+    return _windows;
 }
 
 bool Node::closeAllWindows() {

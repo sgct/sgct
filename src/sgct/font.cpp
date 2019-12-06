@@ -10,7 +10,7 @@
 
 #include <sgct/font.h>
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/ogl_headers.h>
 #include <freetype/ftstroke.h>
 #include <array>
@@ -269,7 +269,7 @@ void Font::createCharacter(char c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        Logger::Error("Error creating character %s", c);
+        Log::Error("Error creating character %s", c);
     }
 }
 

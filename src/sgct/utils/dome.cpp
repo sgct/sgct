@@ -21,16 +21,11 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
 {
     std::vector<helpers::VertexData> vertices;
 
-    // must be four or higher
     if (_azimuthSteps < 4) {
-        Logger::Warning("Azimuth steps must be higher than 4");
-        _azimuthSteps = 4;
+        Log::Warning("Azimuth steps must be higher than 4");
     }
-
-    // must be four or higher
     if (_elevationSteps < 4)  {
-        Logger::Warning("Elevation steps must be higher than 4");
-        _elevationSteps = 4;
+        Log::Warning("Elevation steps must be higher than 4");
     }
 
     // Create VAO
@@ -49,11 +44,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
         const float s = sin(azimuth) * 0.5f + 0.5f;
         const float t = -cos(azimuth) * 0.5f + 0.5f;
 
-        verts.push_back({
-            s, t,
-            x, y, z,
-            x * r, y * r, z * r
-        });
+        verts.push_back({ s, t,  x, y, z,  x * r, y * r, z * r });
     }
 
     int numVerts = 0;
@@ -76,11 +67,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
             s = s * 0.5f + 0.5f;
             t = t * 0.5f + 0.5f;
 
-            verts.push_back({
-                s, t,
-                x, y, z,
-                x * r, y * r, z * r
-            });
+            verts.push_back({ s, t,  x, y, z,  x * r, y * r, z * r });
 
             indices.push_back(numVerts);
             indices.push_back(_azimuthSteps + numVerts);
@@ -95,11 +82,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
     const float elevation = glm::radians(lift + de * (90.f - lift));
     const float y = sin(elevation);
-    verts.push_back({
-        0.5f, 0.5f,
-        0.f, 1.f, 0.f,
-        0.f, y * r, 0.f
-    });
+    verts.push_back({ 0.5f, 0.5f,  0.f, 1.f, 0.f,  0.f, y * r, 0.f });
 
     indices.push_back(numVerts + _azimuthSteps);
     for (int a = 1; a <= _azimuthSteps; a++) {

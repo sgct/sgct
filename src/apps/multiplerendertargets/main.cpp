@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

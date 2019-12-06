@@ -89,7 +89,7 @@ private:
     glm::mat4 _transform = glm::mat4(1.0);
     float _eyeSeparation = 0.06f;
 
-    std::string _name;
+    const std::string _name;
     std::string _headTrackerDeviceName;
     std::string _headTrackerName;
 };

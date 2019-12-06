@@ -11,7 +11,7 @@
 
 #include <sgct/nonlinearprojection.h>
 
-#include <sgct/engine.h>
+#include <sgct/callbackdata.h>
 #include <glm/glm.hpp>
 
 namespace sgct {
@@ -21,7 +21,7 @@ class FisheyeProjection : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
-    FisheyeProjection(Window* parent);
+    FisheyeProjection(const Window* parent);
 
     /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;

@@ -48,7 +48,7 @@ public:
     int id() const;
 
 private:
-    GLenum _shaderType; // The shader type
+    const GLenum _shaderType; // The shader type
     int _shaderId = 0;  // The shader _id used for reference
 };
 

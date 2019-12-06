@@ -102,12 +102,11 @@ void decodeFun()
     void encode();
 
     /// This function is called internally by SGCT and shouldn't be used by the user.
-    void decode(const char* receivedData, int receivedLength, int clientIndex);
+    void decode(const char* receivedData, int receivedLength);
 
-    size_t userDataSize();
     unsigned char* dataBlock();
-    size_t dataSize();
-    size_t bufferSize();
+    int dataSize();
+    int bufferSize();
 
 private:
     SharedData();

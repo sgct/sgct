@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 
@@ -21,7 +21,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 {
     Buffer buf;
 
-    Logger::Info("Reading Paul Bourke spherical mirror mesh from '%s'", path.c_str());
+    Log::Info("Reading Paul Bourke spherical mirror mesh from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
@@ -95,8 +95,6 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     const float aspect = aspectRatio * (size.x / size.y);
-    //const float aspect = Engine::instance().getCurrentWindow().getAspectRatio() *
-    //               (size.x / size.y);
     for (CorrectionMeshVertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)
         vertex.x /= aspect;

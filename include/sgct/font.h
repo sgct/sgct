@@ -64,10 +64,10 @@ public:
 private:
     void createCharacter(char c);
 
-    FT_Library _library;
-    FT_Face	_face;
+    const FT_Library _library;
+    const FT_Face	_face;
     FT_Fixed _strokeSize = 1;
-    float _height;
+    const float _height;
     std::unordered_map<char, FontFaceData> _fontFaceData;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

@@ -9,7 +9,7 @@
 #include <sgct/settings.h>
 
 #include <sgct/config.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 
 namespace sgct {
 
@@ -45,8 +45,7 @@ void Settings::applySettings(const config::Settings& settings) {
                     return BufferFloatPrecision::Float16Bit;
                 case config::Settings::BufferFloatPrecision::Float32Bit:
                     return BufferFloatPrecision::Float32Bit;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*settings.bufferFloatPrecision);
         setBufferFloatPrecision(p);
@@ -124,7 +123,7 @@ void Settings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
 
 void Settings::setNumberOfCaptureThreads(int count) {
     if (count <= 0) {
-        Logger::Error("Only positive number of capture threads allowed");
+        Log::Error("Only positive number of capture threads allowed");
     }
     else {
         _nCaptureThreads = count;
@@ -177,8 +176,7 @@ void Settings::setCapturePath(std::string path, CapturePath cpi) {
         case CapturePath::RightStereo:
             _capturePath.right = std::move(path);
             break;
-        default:
-            throw std::logic_error("Unhandled case label");
+        default: throw std::logic_error("Unhandled case label");
     }
 }
 

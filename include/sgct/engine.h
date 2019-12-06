@@ -263,8 +263,7 @@ public:
      * Don't use this. This function is called from Network and will invoke the external
      * network callback when messages are received.
      */
-    void invokeDecodeCallbackForExternalControl(const char* receivedData,
-        int receivedLength, int clientId);
+    void invokeDecodeCallbackForExternalControl(const char* data, int length);
 
     /**
      * Don't use this. This function is called from Network and will invoke the external

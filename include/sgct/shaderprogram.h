@@ -89,11 +89,11 @@ public:
 
 private:
     /// Will create and the program and return whether it was properly created or not
-    bool createProgram();
+    void createProgram();
     
-    std::string _name = "SGCT_NULL"; /// Name of the program, has to be unique
-    bool _isLinked = false;          /// If this program has been linked
-    int _programId = 0;              /// Unique program _id
+    std::string _name; /// Name of the program, has to be unique
+    bool _isLinked = false; /// If this program has been linked
+    int _programId = 0; /// Unique program _id
 
     std::vector<Shader> _shaders;
 };

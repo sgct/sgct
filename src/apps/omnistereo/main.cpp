@@ -139,7 +139,7 @@ void initOmniStereo(bool mask) {
     double t0 = Engine::instance().getTime();
 
     if (Engine::instance().windows().size() < 2) {
-        Logger::Error("Failed to allocate omni stereo in secondary window");
+        Log::Error("Failed to allocate omni stereo in secondary window");
         return;
     }
 
@@ -152,7 +152,7 @@ void initOmniStereo(bool mask) {
     Window& win = *Engine::instance().windows()[1];
     const glm::ivec2 res = win.framebufferResolution() / tileSize;
 
-    Logger::Info(
+    Log::Info(
         "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
     );
     omniProjections.resize(res.x);
@@ -334,7 +334,7 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    Logger::Info(
+    Log::Info(
         "Time to init viewports: %f s\n%d %% will be rendered.",
         Engine::instance().getTime() - t0, percentage
     );
@@ -403,7 +403,7 @@ void drawOmniStereo(RenderData renderData) {
     }
 
     const double t1 = Engine::instance().getTime();
-    Logger::Info("Time to draw frame: %f s", t1 - t0);
+    Log::Info("Time to draw frame: %f s", t1 - t0);
 }
 
 void drawFun(RenderData data) {
@@ -527,11 +527,11 @@ int main(int argc, char* argv[]) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            Logger::Info("Setting turn map path to %s", turnMapSrc.c_str());
+            Log::Info("Setting turn map path to %s", turnMapSrc.c_str());
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            Logger::Info(
+            Log::Info(
                 "Setting separation map path to '%s'", sepMapSrc.c_str()
             );
         }
@@ -552,7 +552,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

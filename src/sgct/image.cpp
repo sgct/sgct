@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <chrono>
 #include <png.h>
 #include <pngpriv.h>
@@ -31,8 +31,8 @@
 namespace {
     sgct::Image::FormatType getFormatType(std::string filename) {
         std::transform(
-            filename.begin(),
-            filename.end(),
+            filename.cbegin(),
+            filename.cend(),
             filename.begin(),
             [](char c) { return static_cast<char>(::tolower(c)); }
         );
@@ -236,7 +236,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     fclose(fp);
 
     const double time = (Engine::getTime() - t0) * 1000.0;
-    Logger::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
+    Log::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
 }
 
 unsigned char* Image::data() {
@@ -271,16 +271,15 @@ void Image::setBytesPerChannel(int bpc) {
     _bytesPerChannel = bpc;
 }
 
-bool Image::allocateOrResizeData() {
+void Image::allocateOrResizeData() {
     double t0 = Engine::getTime();
     
-    unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
-
+    const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {
-        Logger::Error(
-            "Invalid image size %dx%d %d channels", _size.x, _size.y, _nChannels
-        );
-        return false;
+        std::string s =
+            std::to_string(_size.x) + 'x' + std::to_string(_size.y) + ' ' +
+            std::to_string(_nChannels);
+        throw Err(9012, "Invalid image size " + s + " channels");
     }
 
     if (_data && _dataSize != dataSize) {
@@ -294,13 +293,11 @@ bool Image::allocateOrResizeData() {
         _data = new unsigned char[dataSize];
         _dataSize = dataSize;
 
-        Logger::Debug(
+        Log::Debug(
             "Allocated %d bytes for image data (%.2f ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
         );
     }
-
-    return true;
 }
 
 } // namespace sgct

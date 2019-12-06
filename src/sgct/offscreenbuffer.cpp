@@ -8,31 +8,30 @@
 
 #include <sgct/offscreenbuffer.h>
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <algorithm>
 
 namespace {
     void setDrawBuffers() {
-        GLenum b1[] = { GL_COLOR_ATTACHMENT0 };
-        GLenum b2[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-        GLenum b3[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
-        GLenum b4[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        GLenum a[] = { GL_COLOR_ATTACHMENT0 };
+        GLenum b[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+        GLenum c[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
+        GLenum d[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
         switch (sgct::Settings::instance().drawBufferType()) {
             case sgct::Settings::DrawBufferType::Diffuse:
-                glDrawBuffers(1, b1);
+                glDrawBuffers(1, a);
                 break;
             case sgct::Settings::DrawBufferType::DiffuseNormal:
-                glDrawBuffers(2, b2);
+                glDrawBuffers(2, b);
                 break;
             case sgct::Settings::DrawBufferType::DiffusePosition:
-                glDrawBuffers(2, b3);
+                glDrawBuffers(2, c);
                 break;
             case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
-                glDrawBuffers(3, b4);
+                glDrawBuffers(3, d);
                 break;
-            default:
-                throw std::logic_error("Unhandled case label");
+            default: throw std::logic_error("Unhandled case label");
         }
     }
 } // namespace
@@ -71,7 +70,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
             samples = 0;
         }
 
-        Logger::Debug("Max samples supported: %d", maxSamples);
+        Log::Debug("Max samples supported: %d", maxSamples);
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -177,14 +176,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     );
 
     if (_isMultiSampled) {
-        Logger::Debug(
+        Log::Debug(
             "Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\t"
             "RBO depth buffer id=%d\n\tRBO color buffer id=%d", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
         );
     }
     else {
-        Logger::Debug(
+        Log::Debug(
             "Created %dx%d buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d",
             width, height, _frameBuffer, _depthBuffer
         );

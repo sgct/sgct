@@ -21,7 +21,7 @@ public:
     Image() = default;
     ~Image();
 
-    bool allocateOrResizeData();
+    void allocateOrResizeData();
     void load(const std::string& filename);
     void load(unsigned char* data, int length);
 

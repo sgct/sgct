@@ -26,7 +26,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-debug") {
-            config.logLevel = Logger::Level::Debug;
+            config.logLevel = Log::Level::Debug;
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-help") {
@@ -39,14 +39,14 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
         else if (arg[i] == "-notify" && arg.size() > (i + 1)) {
-            const Logger::Level level = [](std::string_view l) {
-                if (l == "error")        { return Logger::Level::Error; }
-                else if (l == "warning") { return Logger::Level::Warning; }
-                else if (l == "info")    { return Logger::Level::Info; }
-                else if (l == "debug")   { return Logger::Level::Debug; }
+            const Log::Level level = [](std::string_view l) {
+                if (l == "error")        { return Log::Level::Error; }
+                else if (l == "warning") { return Log::Level::Warning; }
+                else if (l == "info")    { return Log::Level::Info; }
+                else if (l == "debug")   { return Log::Level::Debug; }
                 else {
                     std::cerr << "Unknown logger level: " << std::string(l);
-                    return Logger::Level::Info;
+                    return Log::Level::Info;
                 }
             } (arg[i + 1]);
             config.logLevel = level;
@@ -61,7 +61,7 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.firmSync = false;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-ignore-sync" || arg[i] == "-no-sync") {
+        else if (arg[i] == "-ignore-sync") {
             config.ignoreSync = true;
             arg.erase(arg.begin() + i);
         }
@@ -103,8 +103,6 @@ std::string helpMessage() {
 Parameters:
 -config <filename.xml>
     Set XML configuration file
--log <filepath>
-    Set log file path
 -help
     Display help message and exit
 -local <integer>

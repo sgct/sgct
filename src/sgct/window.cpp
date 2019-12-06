@@ -12,7 +12,7 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
 #include <sgct/nonlinearprojection.h>
@@ -58,7 +58,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
+        const sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setWindowResolution(glm::ivec2(width, height));
@@ -70,7 +70,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
+        const sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setFramebufferResolution(glm::ivec2(width, height));
@@ -79,7 +79,7 @@ namespace {
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
-        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
+        const sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setFocused(state == GLFW_TRUE);
@@ -106,25 +106,17 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.bufferBitDepth) {
         ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
+            using CBD = config::Window::ColorBitDepth;
             switch (cbd) {
-                case config::Window::ColorBitDepth::Depth8:
-                    return ColorBitDepth::Depth8;
-                case config::Window::ColorBitDepth::Depth16:
-                    return ColorBitDepth::Depth16;
-                case config::Window::ColorBitDepth::Depth16Float:
-                    return ColorBitDepth::Depth16Float;
-                case config::Window::ColorBitDepth::Depth32Float:
-                    return ColorBitDepth::Depth32Float;
-                case config::Window::ColorBitDepth::Depth16Int:
-                    return ColorBitDepth::Depth16Int;
-                case config::Window::ColorBitDepth::Depth32Int:
-                    return ColorBitDepth::Depth32Int;
-                case config::Window::ColorBitDepth::Depth16UInt:
-                    return ColorBitDepth::Depth16UInt;
-                case config::Window::ColorBitDepth::Depth32UInt:
-                    return ColorBitDepth::Depth32UInt;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                case CBD::Depth8: return ColorBitDepth::Depth8;
+                case CBD::Depth16: return ColorBitDepth::Depth16;
+                case CBD::Depth16Float: return ColorBitDepth::Depth16Float;
+                case CBD::Depth32Float: return ColorBitDepth::Depth32Float;
+                case CBD::Depth16Int: return ColorBitDepth::Depth16Int;
+                case CBD::Depth32Int: return ColorBitDepth::Depth32Int;
+                case CBD::Depth16UInt: return ColorBitDepth::Depth16UInt;
+                case CBD::Depth32UInt: return ColorBitDepth::Depth32UInt;
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*window.bufferBitDepth);
         setColorBitDepth(bd);
@@ -185,37 +177,24 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.stereo) {
         StereoMode sm = [](config::Window::StereoMode mode) {
+            using SM = config::Window::StereoMode;
             switch (mode) {
-                case config::Window::StereoMode::NoStereo:
-                    return StereoMode::NoStereo;
-                case config::Window::StereoMode::Active:
-                    return StereoMode::Active;
-                case config::Window::StereoMode::AnaglyphRedCyan:
-                    return StereoMode::AnaglyphRedCyan;
-                case config::Window::StereoMode::AnaglyphAmberBlue:
-                    return StereoMode::AnaglyphAmberBlue;
-                case config::Window::StereoMode::AnaglyphRedCyanWimmer:
-                    return StereoMode::AnaglyphRedCyanWimmer;
-                case config::Window::StereoMode::Checkerboard:
-                    return StereoMode::Checkerboard;
-                case config::Window::StereoMode::CheckerboardInverted:
-                    return StereoMode::CheckerboardInverted;
-                case config::Window::StereoMode::VerticalInterlaced:
-                    return StereoMode::VerticalInterlaced;
-                case config::Window::StereoMode::VerticalInterlacedInverted:
+                case SM::NoStereo: return StereoMode::NoStereo;
+                case SM::Active: return StereoMode::Active;
+                case SM::AnaglyphRedCyan: return StereoMode::AnaglyphRedCyan;
+                case SM::AnaglyphAmberBlue: return StereoMode::AnaglyphAmberBlue;
+                case SM::AnaglyphRedCyanWimmer: return StereoMode::AnaglyphRedCyanWimmer;
+                case SM::Checkerboard: return StereoMode::Checkerboard;
+                case SM::CheckerboardInverted: return StereoMode::CheckerboardInverted;
+                case SM::VerticalInterlaced: return StereoMode::VerticalInterlaced;
+                case SM::VerticalInterlacedInverted:
                     return StereoMode::VerticalInterlacedInverted;
-                case config::Window::StereoMode::Dummy:
-                    return StereoMode::Dummy;
-                case config::Window::StereoMode::SideBySide:
-                    return StereoMode::SideBySide;
-                case config::Window::StereoMode::SideBySideInverted:
-                    return StereoMode::SideBySideInverted;
-                case config::Window::StereoMode::TopBottom:
-                    return StereoMode::TopBottom;
-                case config::Window::StereoMode::TopBottomInverted:
-                    return StereoMode::TopBottomInverted;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                case SM::Dummy: return StereoMode::Dummy;
+                case SM::SideBySide: return StereoMode::SideBySide;
+                case SM::SideBySideInverted: return StereoMode::SideBySideInverted;
+                case SM::TopBottom: return StereoMode::TopBottom;
+                case SM::TopBottomInverted: return StereoMode::TopBottomInverted;
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*window.stereo);
         setStereoMode(sm);
@@ -265,22 +244,22 @@ bool Window::isFocused() const {
 void Window::close() {
     makeSharedContextCurrent();
 
-    Logger::Info("Deleting screen capture data for window %d", _id);
+    Log::Info("Deleting screen capture data for window %d", _id);
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Logger::Info("Releasing OpenGL buffers for window %d", _id);
+        Log::Info("Releasing OpenGL buffers for window %d", _id);
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Logger::Info("Deleting VBOs for window %d", _id);
+    Log::Info("Deleting VBOs for window %d", _id);
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Logger::Info("Deleting VAOs for window %d", _id);
+    Log::Info("Deleting VAOs for window %d", _id);
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -369,8 +348,7 @@ void Window::initOGL() {
             _colorDataType = GL_UNSIGNED_INT;
             _bytesPerColor = 4;
             break;
-        default:
-            throw std::logic_error("Unhandled case label");
+        default: throw std::logic_error("Unhandled case label");
     }
     
     createTextures();
@@ -426,8 +404,8 @@ void Window::initOGL() {
         if (!wglBindSwapBarrierNV || !wglJoinSwapGroupNV || !wglQueryMaxSwapGroupsNV ||
             !wglQueryFrameCountNV || !wglResetFrameCountNV)
         {
-            Logger::Error("Error resolving swapgroup functions");
-            Logger::Info(
+            Log::Error("Error resolving swapgroup functions");
+            Log::Info(
                 "wglBindSwapBarrierNV(: %p\twglJoinSwapGroupNV: %p\t"
                 "wglQueryMaxSwapGroupsNV: %p\twglQueryFrameCountNV: %p\t"
                 "wglResetFrameCountNV: %p",
@@ -446,8 +424,8 @@ void Window::initContextSpecificOGL() {
     makeOpenGLContextCurrent();
     std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
     _hasAnyMasks = std::any_of(
-        _viewports.begin(),
-        _viewports.end(),
+        _viewports.cbegin(),
+        _viewports.cend(),
         [](const std::unique_ptr<Viewport>& vp) {
             return vp->hasBlendMaskTexture() || vp->hasBlackLevelMaskTexture();
         }
@@ -489,8 +467,7 @@ unsigned int Window::frameBufferTexture(TextureIndex index) {
                 generateTexture(_frameBufferTextures.positions, TextureType::Position);
             }
             return _frameBufferTextures.positions;
-        default:
-            throw std::logic_error("Unhandled case label");
+        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -596,9 +573,7 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Logger::Debug(
-                "Update aspect ratio in viewport (%f --> %f)", _aspectRatio, ratio
-            );
+            Log::Debug("Update aspect ratio in viewport (%f -> %f)", _aspectRatio, ratio);
         }
         _aspectRatio = ratio;
 
@@ -607,7 +582,7 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        Logger::Debug(
+        Log::Debug(
             "Resolution changed to %dx%d in window %d", _windowRes.x, _windowRes.y, _id
         );
         _pendingWindowRes = std::nullopt;
@@ -616,7 +591,7 @@ void Window::updateResolutions() {
     if (_pendingFramebufferRes.has_value()) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Logger::Debug(
+        Log::Debug(
             "Framebuffer resolution changed to %dx%d for window %d",
             _framebufferRes.x, _framebufferRes.y, _id
         );
@@ -631,9 +606,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Logger::Debug(
-        "Horizontal FOV changed to %f for window %d", hFovDeg, _viewports.size(), _id
-    );
+    Log::Debug("HFOV changed to %f for window %d", hFovDeg, _viewports.size(), _id);
 }
 
 void Window::initWindowResolution(glm::ivec2 resolution) {
@@ -765,7 +738,7 @@ void Window::setFullScreenMonitorIndex(int index) {
 
 void Window::setBarrier(bool state) {
     if (_useSwapGroups && state != _isBarrierActive) {
-        Logger::Info("Enabling Nvidia swap barrier");
+        Log::Info("Enabling Nvidia swap barrier");
 
 #ifdef WIN32
         _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
@@ -779,35 +752,35 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Logger::Debug("FXAA status: %s for window %d", state ? "enabled" : "disabled", _id);
+    Log::Debug("FXAA status: %s for window %d", state ? "enabled" : "disabled", _id);
 }
 
 void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Logger::Info("Window %d: Enabling quadbuffered rendering", _id);
+        Log::Info("Window %d: Enabling quadbuffered rendering", _id);
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        Logger::Info("Window %d: Draw 2D function disabled", _id);
+        Log::Info("Window %d: Draw 2D function disabled", _id);
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        Logger::Info("Window %d: Draw 3D function disabled", _id);
+        Log::Info("Window %d: Draw 3D function disabled", _id);
     }
 }
 
 void Window::setBlitPreviousWindow(bool state) {
     _shouldBitPreviousWindow = state;
     if (_shouldBitPreviousWindow) {
-        Logger::Info("Window %d: BlitPreviousWindow enabled", _id);
+        Log::Info("Window %d: BlitPreviousWindow enabled", _id);
     }
 }
 
@@ -843,7 +816,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             monitor = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Logger::Info(
+                Log::Info(
                     "Window(%d): Invalid monitor index (%d). Computer has %d monitors",
                     _id, _monitorIndex, count
                 );
@@ -858,7 +831,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", monitor, share);
     if (_windowHandle == nullptr) {
-        throw Err(8001, "Error opening window");
+        throw Err(8001, "Error opening GLFW window");
     }
 
     _sharedHandle = share != nullptr ? share : _windowHandle;
@@ -905,14 +878,14 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 void Window::initNvidiaSwapGroups() {
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
-        Logger::Info("Joining Nvidia swap group");
+        Log::Info("Joining Nvidia swap group");
 
         hDC = wglGetCurrentDC();
 
         unsigned int maxBarrier = 0;
         unsigned int maxGroup = 0;
         wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
-        Logger::Info(
+        Log::Info(
             "WGL_NV_swap_group extension is supported. Max number of groups: %d. "
             "Max number of barriers: %d", maxGroup, maxBarrier
         );
@@ -923,7 +896,7 @@ void Window::initNvidiaSwapGroups() {
         // wglQueryMaxSwapGroupsNV. If group is zero, the hDC is unbound from its current
         // group, if any. If group is larger than maxGroups, wglJoinSwapGroupNV fails.
         _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-        Logger::Info("Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed");
+        Log::Info("Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed");
     }
     else {
         _useSwapGroups = false;
@@ -948,21 +921,17 @@ void Window::initScreenCapture() {
         }
 
         Settings::CaptureFormat format = Settings::instance().captureFormat();
-        switch (format) {
-            case Settings::CaptureFormat::PNG:
-                sc.setCaptureFormat(ScreenCapture::CaptureFormat::PNG);
-                break;
-            case Settings::CaptureFormat::TGA:
-                sc.setCaptureFormat(ScreenCapture::CaptureFormat::TGA);
-                break;
-            case Settings::CaptureFormat::JPG:
-                sc.setCaptureFormat(ScreenCapture::CaptureFormat::JPEG);
-                break;
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
+        ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
+            using CF = Settings::CaptureFormat;
+            switch (f) {
+                case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
+                case CF::TGA: return ScreenCapture::CaptureFormat::TGA;
+                case CF::JPG: return ScreenCapture::CaptureFormat::JPEG;
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }(format);
+        sc.setCaptureFormat(scf);
     };
-
 
     if (_screenCaptureLeftOrMono) {
         if (useRightEyeTexture()) {
@@ -997,10 +966,10 @@ void Window::resetSwapGroupFrameNumber() {
         _isSwapGroupMaster = glfwExtensionSupported("WGL_NV_swap_group") &&
                              wglResetFrameCountNV(hDC);
         if (_isSwapGroupMaster) {
-            Logger::Info("Resetting frame counter");
+            Log::Info("Resetting frame counter");
         }
         else {
-            Logger::Info("Resetting frame counter failed");
+            Log::Info("Resetting frame counter failed");
         }
     }
 #endif
@@ -1010,7 +979,7 @@ void Window::createTextures() {
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Logger::Error("Window %d: Requested framebuffer too big (Max: %d)",_id, max);
+        Log::Error("Window %d: Requested framebuffer too big (Max: %d)",_id, max);
         return;
     }
 
@@ -1033,7 +1002,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Logger::Debug("Targets initialized successfully for window %d", _id);
+    Log::Debug("Targets initialized successfully for window %d", _id);
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1044,21 +1013,18 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     // Determine the internal texture format, the texture format, and the pixel type
     const GLenum internalFormat = [this](Window::TextureType t) -> GLenum {
         switch (t) {
-            case TextureType::Color:
-                return _internalColorFormat;
-            case TextureType::Depth:
-                return GL_DEPTH_COMPONENT32;
+            case TextureType::Color: return _internalColorFormat;
+            case TextureType::Depth: return GL_DEPTH_COMPONENT32;
             case TextureType::Normal:
             case TextureType::Position:
                 return Settings::instance().bufferFloatPrecision();
-            default:
-                throw std::logic_error("Unhandled case label");
+            default: throw std::logic_error("Unhandled case label");
         }
     }(type);
 
     const glm::ivec2 res = _framebufferRes;
     glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
-    Logger::Debug("%dx%d texture generated for window %d", res.x, res.y, id);
+    Log::Debug("%dx%d texture generated for window %d", res.x, res.y, id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1070,7 +1036,7 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
 
-    Logger::Debug(
+    Log::Debug(
         "Window %d: FBO initiated successfully. Number of samples: %d",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
     );
@@ -1085,10 +1051,10 @@ void Window::createVBOs() {
     };
 
     glGenVertexArrays(1, &_vao);
-    Logger::Debug("Window: Generating VAO: %d", _vao);
+    Log::Debug("Window: Generating VAO: %d", _vao);
 
     glGenBuffers(1, &_vbo);
-    Logger::Debug("Window: Generating VBO: %d", _vbo);
+    Log::Debug("Window: Generating VBO: %d", _vbo);
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
@@ -1123,23 +1089,18 @@ void Window::loadShaders() {
 
     std::string stereoVertShader = shaders::AnaglyphVert;
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
+        using SM = StereoMode;
         switch (mode) {
-            case StereoMode::AnaglyphRedCyan:
-                return shaders::AnaglyphRedCyanFrag;
-            case StereoMode::AnaglyphAmberBlue:
-                return shaders::AnaglyphAmberBlueFrag;
-            case StereoMode::AnaglyphRedCyanWimmer:
-                return shaders::AnaglyphRedCyanWimmerFrag;
-            case StereoMode::Checkerboard:
-                return shaders::CheckerBoardFrag;
-            case StereoMode::CheckerboardInverted:
-                return shaders::CheckerBoardInvertedFrag;
-            case StereoMode::VerticalInterlaced:
-                return shaders::VerticalInterlacedFrag;
-            case StereoMode::VerticalInterlacedInverted:
+            case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
+            case SM::AnaglyphAmberBlue: return shaders::AnaglyphAmberBlueFrag;
+            case SM::AnaglyphRedCyanWimmer: return shaders::AnaglyphRedCyanWimmerFrag;
+            case SM::Checkerboard: return shaders::CheckerBoardFrag;
+            case SM::CheckerboardInverted: return shaders::CheckerBoardInvertedFrag;
+            case SM::VerticalInterlaced: return shaders::VerticalInterlacedFrag;
+            case SM::VerticalInterlacedInverted:
                 return shaders::VerticalInterlacedInvertedFrag;
-            default:
-                return shaders::DummyStereoFrag;
+            case SM::Dummy: return shaders::DummyStereoFrag;
+            default: throw std::logic_error("Unhandled case label");
         }
     }(_stereoMode);
 
@@ -1209,7 +1170,7 @@ Window::StereoMode Window::stereoMode() const {
 
 void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
     _viewports.push_back(std::move(vpPtr));
-    Logger::Debug("Adding viewport (total %d)", _viewports.size());
+    Log::Debug("Adding viewport (total %d)", _viewports.size());
 }
 
 const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {

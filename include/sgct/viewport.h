@@ -31,7 +31,7 @@ namespace sgct {
 /// This class holds and manages viewportdata and calculates frustums
 class Viewport : public BaseViewport {
 public:
-    Viewport(Window* parent);
+    Viewport(const Window* parent);
 
     void applyViewport(const sgct::config::Viewport& viewport);
     void applySettings(const sgct::config::MpcdiProjection& mpcdi);

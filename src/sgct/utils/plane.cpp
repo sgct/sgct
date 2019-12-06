@@ -8,7 +8,6 @@
 
 #include <sgct/utils/plane.h>
 
-#include <sgct/logger.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/vertexdata.h>
 #include <array>

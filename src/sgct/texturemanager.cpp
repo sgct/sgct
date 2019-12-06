@@ -9,7 +9,7 @@
 #include <sgct/texturemanager.h>
 
 #include <sgct/image.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/ogl_headers.h>
 
 namespace {
@@ -30,7 +30,7 @@ namespace {
             }
         }(img.channels());
 
-        sgct::Logger::Debug(
+        sgct::Log::Debug(
             "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
             img.size().x, img.size().y, img.channels(), type, internalFormat
         );
@@ -129,7 +129,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
-    Logger::Debug("Texture created from '%s' [id=%d]", filename.c_str(), t);
+    Log::Debug("Texture created from '%s' [id=%d]", filename.c_str(), t);
     return t;
 }
 

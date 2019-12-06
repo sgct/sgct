@@ -10,7 +10,7 @@
 
 #include <sgct/config.h>
 #include <sgct/keys.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <algorithm>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -27,14 +27,14 @@ void Node::applyNode(const config::Node& node) {
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
     _address = address;
-    Logger::Debug("Setting address to %s", address.c_str());
+    Log::Debug("Setting address to %s", address.c_str());
 
     _syncPort = node.port;
-    Logger::Debug("Setting sync port to %d", _syncPort);
+    Log::Debug("Setting sync port to %d", _syncPort);
 
     if (node.dataTransferPort) {
         _dataTransferPort = *node.dataTransferPort;
-        Logger::Debug("Setting data transfer port to %d", _dataTransferPort);
+        Log::Debug("Setting data transfer port to %d", _dataTransferPort);
     }
     if (node.swapLock) {
         _useSwapGroups = *node.swapLock;

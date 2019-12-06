@@ -65,7 +65,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
-        Logger::Info(
+        Log::Info(
             "Spout: Initing %ux%u texture from '%s'", width, height, senderName
         );
         initialized = true;
@@ -77,7 +77,7 @@ bool bindSpout() {
             return receiver->BindSharedTexture();
         }
         else {
-            Logger::Info("Spout disconnected");
+            Log::Info("Spout disconnected");
 
             // reset if disconnected
             initialized = false;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error & e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

@@ -10,7 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/settings.h>
@@ -36,7 +36,7 @@ namespace {
 
 namespace sgct {
 
-SpoutOutputProjection::SpoutOutputProjection(Window* parent)
+SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
     : NonLinearProjection(parent)
 {
     setUseDepthTransformation(true);
@@ -107,7 +107,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
-        bool hasAlpha = window.hasAlpha();
+        const bool hasAlpha = window.hasAlpha();
         if (hasAlpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -217,7 +217,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance().useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
+            _cubeMapFbo->bind(false, 1, buffers); // obind no multi-sampled
 
             _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
             _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
@@ -258,7 +258,6 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             window.renderScreenQuad();
 
-            // unbind shader
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -331,7 +330,7 @@ void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
 
 void SpoutOutputProjection::initTextures() {
     NonLinearProjection::initTextures();
-    Logger::Debug("SpoutOutputProjection initTextures");
+    Log::Debug("SpoutOutputProjection initTextures");
 
     switch (_mappingType) {
         case Mapping::Cubemap:
@@ -340,7 +339,7 @@ void SpoutOutputProjection::initTextures() {
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-                Logger::Debug("SpoutOutputProjection initTextures %d", i);
+                Log::Debug("SpoutOutputProjection initTextures %d", i);
                 if (!_spout[i].enabled) {
                     continue;
                 }
@@ -377,7 +376,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 4;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            Logger::Debug("Spout Projection initTextures Equirectangular");
+            Log::Debug("Spout Projection initTextures Equirectangular");
             _mappingHandle = GetSpout();
             if (_mappingHandle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
@@ -410,7 +409,7 @@ void SpoutOutputProjection::initTextures() {
             _mappingWidth = _cubemapResolution * 2;
             _mappingHeight = _cubemapResolution * 2;
 #ifdef SGCT_HAS_SPOUT
-            Logger::Debug("SpoutOutputProjection initTextures Fisheye");
+            Log::Debug("SpoutOutputProjection initTextures Fisheye");
             _mappingHandle = GetSpout();
             if (_mappingHandle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
@@ -558,15 +557,12 @@ void SpoutOutputProjection::initShaders() {
         _shader.deleteProgram();
     }
 
+    std::string fisheyeVertShader = shaders_fisheye::FisheyeVert;
     std::string fisheyeFragShader;
-    std::string fisheyeVertShader;
-
-    fisheyeVertShader = shaders_fisheye::FisheyeVert;
 
     if (Settings::instance().useDepthTexture()) {
         switch (Settings::instance().drawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
-            default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
                 break;
             case Settings::DrawBufferType::DiffuseNormal:
@@ -578,13 +574,13 @@ void SpoutOutputProjection::initShaders() {
             case Settings::DrawBufferType::DiffuseNormalPosition:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
                 break;
+            default: throw std::logic_error("Unhandled case label");
         }
     }
     else {
         // no depth
         switch (Settings::instance().drawBufferType()) {
             case Settings::DrawBufferType::Diffuse:
-            default:
                 fisheyeFragShader = shaders_fisheye::FisheyeFrag;
                 break;
             case Settings::DrawBufferType::DiffuseNormal:
@@ -596,10 +592,11 @@ void SpoutOutputProjection::initShaders() {
             case Settings::DrawBufferType::DiffuseNormalPosition:
                 fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
                 break;
+            default: throw std::logic_error("Unhandled case label");
         }
     }
 
-    //depth correction shader only
+    // depth correction shader only
     if (Settings::instance().useDepthTexture()) {
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
@@ -664,21 +661,16 @@ void SpoutOutputProjection::initShaders() {
         std::to_string(_clearColor.a) + ')';
     helpers::findAndReplace(fisheyeFragShader, "**bgColor**", color);
 
-    std::string name;
-    switch (_mappingType) {
-        case Mapping::Fisheye:
-            name = "FisheyeShader";
-            break;
-        case Mapping::Equirectangular:
-            name = "EquirectangularShader";
-            break;
-        case Mapping::Cubemap:
-            name = "None";
-            break;
-        default:
-            throw std::logic_error("Unhandled case label");
-    }
-    _shader = ShaderProgram(std::move(name));
+    const std::string name = [](Mapping mapping) {
+        switch (mapping) {
+            case Mapping::Fisheye: return "FisheyeShader";
+            case Mapping::Equirectangular: return "EquirectangularShader";
+            case Mapping::Cubemap: return "None";
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }(_mappingType);
+
+    _shader = ShaderProgram(name);
     _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();

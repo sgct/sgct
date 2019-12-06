@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in sgct.h                *
  ****************************************************************************************/
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
@@ -17,26 +17,26 @@
 
 namespace sgct {
 
-Logger* Logger::_instance = nullptr;
+Log* Log::_instance = nullptr;
 
-Logger& Logger::instance() {
+Log& Log::instance() {
     if (!_instance) {
-        _instance = new Logger;
+        _instance = new Log;
     }
     return *_instance;
 }
 
-void Logger::destroy() {
+void Log::destroy() {
     delete _instance;
     _instance = nullptr;
 }
 
-Logger::Logger() {
+Log::Log() {
     _parseBuffer.resize(_maxMessageSize);
     _combinedBuffer.resize(_combinedMessageSize);
 }
 
-void Logger::printv(const char* fmt, va_list ap) {
+void Log::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
@@ -86,14 +86,14 @@ void Logger::printv(const char* fmt, va_list ap) {
     }
 }
 
-void Logger::Debug(const char* fmt, ...) {
+void Log::Debug(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     instance().printv(fmt, ap);
     va_end(ap);
 }
 
-void Logger::Warning(const char* fmt, ...) {
+void Log::Warning(const char* fmt, ...) {
     if (instance()._level < Level::Warning || fmt == nullptr) {
         return;
     }
@@ -104,7 +104,7 @@ void Logger::Warning(const char* fmt, ...) {
     va_end(ap);
 }
 
-void Logger::Info(const char* fmt, ...) {
+void Log::Info(const char* fmt, ...) {
     if (instance()._level < Level::Info || fmt == nullptr) {
         return;
     }
@@ -115,7 +115,7 @@ void Logger::Info(const char* fmt, ...) {
     va_end(ap);
 }
 
-void Logger::Error(const char* fmt, ...) {
+void Log::Error(const char* fmt, ...) {
     if (instance()._level < Level::Error || fmt == nullptr) {
         return;
     }
@@ -126,19 +126,19 @@ void Logger::Error(const char* fmt, ...) {
     va_end(ap);
 }
 
-void Logger::setNotifyLevel(Level nl) {
+void Log::setNotifyLevel(Level nl) {
     _level = nl;
 }
 
-void Logger::setShowTime(bool state) {
+void Log::setShowTime(bool state) {
     _showTime = state;
 }
 
-void Logger::setLogToConsole(bool state) {
+void Log::setLogToConsole(bool state) {
     _logToConsole = state;
 }
 
-void Logger::setLogCallback(std::function<void(const char*)> fn) {
+void Log::setLogCallback(std::function<void(const char*)> fn) {
     _messageCallback = std::move(fn);
 }
 

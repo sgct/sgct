@@ -69,25 +69,25 @@ void networkConnectionUpdated(sgct::Network* conn) {
 
     connected = conn->isConnected();
 
-    Logger::Info(
+    Log::Info(
         "Network is %s", conn->isConnected() ? "connected" : "disconneced"
     );
 }
 
 void networkAck(int packageId, int) {
-    Logger::Info("Network package %d is received", packageId);
+    Log::Info("Network package %d is received", packageId);
 
     if (timerData.second == packageId) {
-        Logger::Info(
+        Log::Info(
             "Loop time: %lf ms", (sgct::Engine::getTime() - timerData.first) * 1000.0
         );
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    Logger::Info("Network decoding package %d", packageId);
+    Log::Info("Network decoding package %d", packageId);
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    Logger::Info("Message: \"%s\"", test.c_str());
+    Log::Info("Message: \"%s\"", test.c_str());
 }
 
 void connect() {
@@ -97,7 +97,7 @@ void connect() {
 
     // no need to specify the address on the host/server
     if (!isServer && address.empty()) {
-        Logger::Error("Network error: No address set");
+        Log::Error("Network error: No address set");
         return;
     }
 
@@ -110,7 +110,7 @@ void connect() {
 
     // init
     try {
-        Logger::Debug("Initiating network connection at port %d", port);
+        Log::Debug("Initiating network connection at port %d", port);
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -118,7 +118,7 @@ void connect() {
         networkPtr->init();
     }
     catch (const std::runtime_error& err) {
-        Logger::Error("Network error: %s", err.what());
+        Log::Error("Network error: %s", err.what());
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
@@ -282,15 +282,15 @@ int main(int argc, char* argv[]) {
         std::string_view v(argv[i]);
         if (v == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            Logger::Info("Setting port to: %d", port);
+            Log::Info("Setting port to: %d", port);
         }
         else if (v == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            Logger::Info("Setting address to: %s", address.c_str());
+            Log::Info("Setting address to: %s", address.c_str());
         }
         else if (v == "--server") {
             isServer = true;
-            Logger::Info("This computer will host the connection");
+            Log::Info("This computer will host the connection");
         }
     }
 
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

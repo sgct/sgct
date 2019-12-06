@@ -143,6 +143,7 @@ void drawFun(RenderData data) {
             text::TextAlignMode::TopRight,
             pos,
             200,
+            glm::vec4(1.f),
             "Left"
         );
     }
@@ -154,6 +155,7 @@ void drawFun(RenderData data) {
             text::TextAlignMode::TopLeft,
             pos,
             150,
+            glm::vec4(1.f),
             "Right"
         );
     }
@@ -165,6 +167,7 @@ void drawFun(RenderData data) {
             text::TextAlignMode::TopLeft,
             pos,
             200,
+            glm::vec4(1.f),
             "Mono"
         );
     }
@@ -178,7 +181,6 @@ void drawFun(RenderData data) {
             pos - pos / 2.f,
             450,
             glm::vec4(1.f),
-            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Swap group: Active"
         );
 
@@ -190,7 +192,6 @@ void drawFun(RenderData data) {
             pos - pos / 2.f,
             500,
             glm::vec4(1.f),
-            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Press B to toggle barrier and R to reset counter"
         );
 
@@ -203,7 +204,6 @@ void drawFun(RenderData data) {
                 pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
-                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap barrier: Active"
             );
         }
@@ -216,7 +216,6 @@ void drawFun(RenderData data) {
                 pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
-                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap barrier: Inactive"
             );
         }
@@ -230,7 +229,6 @@ void drawFun(RenderData data) {
                 pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
-                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap group master: True"
             );
         }
@@ -243,7 +241,6 @@ void drawFun(RenderData data) {
                 pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
-                glm::vec4(1.f, 0.f, 0.f, 0.5f),
                 "Swap group master: False"
             );
         }
@@ -256,7 +253,6 @@ void drawFun(RenderData data) {
             pos - pos / 2.f,
             300,
             glm::vec4(1.f),
-            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Nvidia frame counter: %u", data.window.swapGroupFrameNumber()
         );
         text::print(
@@ -267,7 +263,6 @@ void drawFun(RenderData data) {
             pos - pos / 2.f,
             250,
             glm::vec4(1.f),
-            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Framerate: %.3lf", 1.0 / Engine::instance().dt()
         );
     }
@@ -280,7 +275,6 @@ void drawFun(RenderData data) {
             pos - pos / 2.f,
             450,
             glm::vec4(1.f),
-            glm::vec4(1.f, 0.f, 0.f, 0.5f),
             "Swap group: Inactive"
         );
     }
@@ -347,7 +341,7 @@ void initOGLFun() {
         }
     }
 
-    Logger::Info("Number of active viewports: %d", numberOfActiveViewports);
+    Log::Info("Number of active viewports: %d", numberOfActiveViewports);
 
     constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
 
@@ -568,7 +562,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

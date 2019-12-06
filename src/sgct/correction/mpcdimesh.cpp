@@ -9,7 +9,7 @@
 #include <sgct/correction/mpcdimesh.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/viewport.h>
 #include <cstring>
 
@@ -20,7 +20,7 @@ namespace sgct::correction {
 Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     Buffer buf;
 
-    Logger::Info("Reading MPCDI mesh (PFM format) from buffer");
+    Log::Info("Reading MPCDI mesh (PFM format) from buffer");
 
     const char* srcBuff = mpcdiMesh.data();
     size_t srcSizeBytes = mpcdiMesh.size();

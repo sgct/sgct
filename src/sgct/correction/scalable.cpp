@@ -9,7 +9,7 @@
 #include <sgct/correction/scalable.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -19,10 +19,9 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
 {
     Buffer buf;
 
-    Logger::Info("Reading scalable mesh data from '%s'", path.c_str());
+    Log::Info("Reading scalable mesh data from '%s'", path.c_str());
 
-    FILE* meshFile = nullptr;
-    meshFile = fopen(path.c_str(), "r");
+    FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
         throw Error(Error::Component::Scalable, 2050, "Failed to open " + path);
     }

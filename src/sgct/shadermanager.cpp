@@ -9,7 +9,7 @@
 #include <sgct/shadermanager.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/ogl_headers.h>
 #include <algorithm>
 
@@ -37,8 +37,7 @@ ShaderManager::~ShaderManager() {
     }
 }
 
-void ShaderManager::addShaderProgram(const std::string& name,
-                                     const std::string& vertexSrc,
+void ShaderManager::addShaderProgram(std::string name, const std::string& vertexSrc,
                                      const std::string& fragmentSrc,
                                      const std::string& geometrySrc)
 {
@@ -48,7 +47,7 @@ void ShaderManager::addShaderProgram(const std::string& name,
     }
 
     // If shader don't exist, create it and add to container
-    ShaderProgram sp(name);
+    ShaderProgram sp(std::move(name));
     sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER);
     sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER);
     if (!geometrySrc.empty()) {
@@ -67,7 +66,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     );
 
     if (shaderIt == _shaderPrograms.end()) {
-        Logger::Warning("Unable to remove shader program [%s]: Not found", name.c_str());
+        Log::Warning("Unable to remove shader program [%s]: Not found", name.c_str());
         return false;
     }
 

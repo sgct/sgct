@@ -9,7 +9,7 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <algorithm>
 
@@ -34,16 +34,14 @@ void ClusterManager::destroy() {
     _instance = nullptr;
 }
 
-ClusterManager::ClusterManager(int clusterID)
-    : _thisNodeId(clusterID)
-{
+ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
     _users.push_back(std::make_unique<User>("default"));
 }
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     _masterAddress = cluster.masterAddress;
     if (cluster.debugLog && *cluster.debugLog) {
-        Logger::instance().setNotifyLevel(Logger::Level::Debug);
+        Log::instance().setNotifyLevel(Log::Level::Debug);
     }
     if (cluster.externalControlPort) {
         setExternalControlPort(*cluster.externalControlPort);
@@ -53,16 +51,13 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
     if (cluster.scene) {
         const glm::mat4 sceneTranslate = cluster.scene->offset ?
-            glm::translate(glm::mat4(1.f), *cluster.scene->offset) :
-            glm::mat4(1.f);
+            glm::translate(glm::mat4(1.f), *cluster.scene->offset) : glm::mat4(1.f);
 
         const glm::mat4 sceneRotation = cluster.scene->orientation ?
-            glm::mat4_cast(*cluster.scene->orientation) :
-            glm::mat4(1.f);
+            glm::mat4_cast(*cluster.scene->orientation) : glm::mat4(1.f);
 
         const glm::mat4 sceneScale = cluster.scene->scale ?
-            glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) :
-            glm::mat4(1.f);
+            glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) : glm::mat4(1.f);
 
         _sceneTransform = sceneRotation * sceneTranslate * sceneScale;
     }
@@ -73,7 +68,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             std::unique_ptr<User> usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Logger::Info("Adding user '%s'", u.name->c_str());
+            Log::Info("Adding user '%s'", u.name->c_str());
         }
         else {
             name = "default";

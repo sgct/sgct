@@ -297,7 +297,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
             NetworkManager::NetworkMode::LocalClient;
     }
     if (config.logLevel) {
-        Logger::instance().setNotifyLevel(*config.logLevel);
+        Log::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
         std::cout << helpMessage() << '\n';
@@ -339,9 +339,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         throw Err(3000, "Failed to initialize GLFW");
     }
 
-    Logger::Info("SGCT version: %s", version().c_str());
+    Log::Info("SGCT version: %s", version().c_str());
 
-    Logger::Debug("Validating cluster configuration");
+    Log::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
 
     NetworkManager::create(netMode);
@@ -353,27 +353,26 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     int clusterId = -1;
     // check in cluster configuration which it is
     if (netMode == NetworkManager::NetworkMode::Remote) {
-        Logger::Debug("Matching ip address to find node in configuration");
+        Log::Debug("Matching ip address to find node in configuration");
 
         for (int i = 0; i < cluster.nodes.size(); ++i) {
-            const std::string& addr = cluster.nodes[i].address;
-            if (NetworkManager::instance().matchesAddress(addr)) {
+            if (NetworkManager::instance().matchesAddress(cluster.nodes[i].address)) {
                 clusterId = i;
-                Logger::Debug("Running in cluster mode as node %d", i);
+                Log::Debug("Running in cluster mode as node %d", i);
                 break;
             }
         }
     }
     else {
         if (config.nodeId) {
-            clusterId = *config.nodeId;
-            if (clusterId >= static_cast<int>(cluster.nodes.size())) {
+            if (*config.nodeId >= static_cast<int>(cluster.nodes.size())) {
                 NetworkManager::destroy();
                 throw Err(
                     3001, "Requested node id was not found in the cluster configuration"
                 );
             }
-            Logger::Debug("Running locally as node %d", clusterId);
+            clusterId = *config.nodeId;
+            Log::Debug("Running locally as node %d", clusterId);
         }
         else {
             throw Err(3002, "When running locally, a node ID needs to be specified");
@@ -394,7 +393,7 @@ void Engine::initialize(Profile profile) {
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
-    Node& thisNode = ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::updateResolutions));
 
@@ -462,10 +461,10 @@ void Engine::initialize(Profile profile) {
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION)
     };
-    Logger::Info("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
+    Log::Info("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
 
-    Logger::Info("Vendor: %s", glGetString(GL_VENDOR));
-    Logger::Info("Renderer: %s", glGetString(GL_RENDERER));
+    Log::Info("Vendor: %s", glGetString(GL_VENDOR));
+    Log::Info("Renderer: %s", glGetString(GL_RENDERER));
 
     if (ClusterManager::instance().numberOfNodes() > 1) {
         std::string path = Settings::instance().capturePath() + "_node";
@@ -480,7 +479,6 @@ void Engine::initialize(Profile profile) {
 
     //
     // Load Shaders
-    //
     bool needsFxaa = std::any_of(wins.begin(), wins.end(), std::mem_fn(&Window::useFXAA));
     if (needsFxaa) {
         _fxaa = FXAAShader();
@@ -523,7 +521,7 @@ void Engine::initialize(Profile profile) {
     ShaderProgram::unbind();
 
     if (_initOpenGLFn) {
-        Logger::Info("Calling initialization callback");
+        Log::Info("Calling initialization callback");
         _initOpenGLFn();
     }
 
@@ -560,11 +558,11 @@ void Engine::initialize(Profile profile) {
 }
 
 Engine::~Engine() {
-    Logger::Info("Cleaning up");
+    Log::Info("Cleaning up");
 
     // First check whether we ever created a node for ourselves.  This might have failed
     // if the configuration was illformed
-    ClusterManager& cm = ClusterManager::instance();
+    const ClusterManager& cm = ClusterManager::instance();
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
 
     if (hasNode) {
@@ -575,7 +573,7 @@ Engine::~Engine() {
     }
 
     // We are only clearing the callbacks that might be called asynchronously
-    Logger::Debug("Clearing callbacks");
+    Log::Debug("Clearing callbacks");
     _externalDecodeFn = nullptr;
     _externalStatusFn = nullptr;
     _dataTransferDecodeFn = nullptr;
@@ -589,7 +587,7 @@ Engine::~Engine() {
 
     // kill thread
     if (_thread) {
-        Logger::Debug("Waiting for frameLock thread to finish");
+        Log::Debug("Waiting for frameLock thread to finish");
 
         mutex::FrameSync.lock();
         sRunUpdateFrameLockLoop = false;
@@ -597,7 +595,7 @@ Engine::~Engine() {
 
         _thread->join();
         _thread = nullptr;
-        Logger::Debug("Done");
+        Log::Debug("Done");
     }
 
     // de-init window and unbind swapgroups
@@ -608,7 +606,7 @@ Engine::~Engine() {
     }
 
     // close TCP connections
-    Logger::Debug("Destroying network manager");
+    Log::Debug("Destroying network manager");
     NetworkManager::destroy();
 
     // Shared contex
@@ -616,7 +614,7 @@ Engine::~Engine() {
         Window::makeSharedContextCurrent();
     }
 
-    Logger::Debug("Destroying shader manager and internal shaders");
+    Log::Debug("Destroying shader manager and internal shaders");
     ShaderManager::destroy();
 
     if (hasNode) {
@@ -629,11 +627,11 @@ Engine::~Engine() {
 
     _statisticsRenderer = nullptr;
 
-    Logger::Debug("Destroying texture manager");
+    Log::Debug("Destroying texture manager");
     TextureManager::destroy();
 
 #ifdef SGCT_HAS_TEXT
-    Logger::Debug("Destroying font manager");
+    Log::Debug("Destroying font manager");
     text::FontManager::destroy();
 #endif // SGCT_HAS_TEXT
 
@@ -642,32 +640,30 @@ Engine::~Engine() {
         cm.thisNode().windows()[0]->makeOpenGLContextCurrent();
     }
     
-    Logger::Debug("Destroying shared data");
+    Log::Debug("Destroying shared data");
     SharedData::destroy();
     
-    Logger::Debug("Destroying cluster manager");
+    Log::Debug("Destroying cluster manager");
     ClusterManager::destroy();
     
-    Logger::Debug("Destroying settings");
+    Log::Debug("Destroying settings");
     Settings::destroy();
 
-    Logger::Debug("Destroying message handler");
-    Logger::destroy();
+    Log::Debug("Destroying message handler");
+    Log::destroy();
 
-    Logger::Debug("Terminating glfw");
+    Log::Debug("Terminating glfw");
     glfwTerminate();
  
-    Logger::Debug("Finished cleaning");
+    Log::Debug("Finished cleaning");
 }
 
 void Engine::initWindows(Profile profile) {
-    {
-        int ver[3];
-        glfwGetVersion(&ver[0], &ver[1], &ver[2]);
-        Logger::Info("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
-    }
+    int ver[3];
+    glfwGetVersion(&ver[0], &ver[1], &ver[2]);
+    Log::Info("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
 
-    auto [major, minor] = [](Profile p) -> std::pair<int, int> {
+    const auto [major, minor] = [](Profile p) -> std::pair<int, int> {
         switch (p) {
             case Profile::OpenGL_3_3_Core: return { 3, 3 };
             case Profile::OpenGL_4_0_Core: return { 4, 0 };
@@ -693,7 +689,7 @@ void Engine::initWindows(Profile profile) {
         _preWindowFn();
     }
 
-    Node& thisNode = ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     for (size_t i = 0; i < windows.size(); ++i) {
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
@@ -704,19 +700,16 @@ void Engine::initWindows(Profile profile) {
     glbinding::Binding::initialize(glfwGetProcAddress);
 
     if (_checkOpenGLCalls || _checkFBOs) {
-        using namespace glbinding;
-
         // The callback mask needs to be set in order to prevent an infinite loop when
         // calling these functions in the error checking callback
-        Binding::setCallbackMaskExcept(
-            CallbackMask::After,
+        glbinding::Binding::setCallbackMaskExcept(
+            glbinding::CallbackMask::After,
             { "glGetError", "glCheckFramebufferStatus" }
         );
-        Binding::setAfterCallback([this](const FunctionCall& f) {
+        glbinding::Binding::setAfterCallback([this](const glbinding::FunctionCall& f) {
             const GLenum error = _checkOpenGLCalls ? glGetError() : GL_NO_ERROR;
             const GLenum fboStatus = _checkFBOs ?
-                glCheckFramebufferStatus(GL_FRAMEBUFFER) :
-                GL_FRAMEBUFFER_COMPLETE;
+                glCheckFramebufferStatus(GL_FRAMEBUFFER) : GL_FRAMEBUFFER_COMPLETE;
             if (error == GL_NO_ERROR && fboStatus == GL_FRAMEBUFFER_COMPLETE) {
                 return;
             }
@@ -726,73 +719,63 @@ void Engine::initWindows(Profile profile) {
                 case GL_NO_ERROR:
                     break;
                 case GL_INVALID_ENUM:
-                    Logger::Error("OpenGL error. %s: GL_INVALID_ENUM", n);
+                    Log::Error("OpenGL error. %s: GL_INVALID_ENUM", n);
                     break;
                 case GL_INVALID_VALUE:
-                    Logger::Error("OpenGL error. %s: GL_INVALID_VALUE", n);
+                    Log::Error("OpenGL error. %s: GL_INVALID_VALUE", n);
                     break;
                 case GL_INVALID_OPERATION:
-                    Logger::Error("OpenGL error. %s: GL_INVALID_OPERATION", n);
+                    Log::Error("OpenGL error. %s: GL_INVALID_OPERATION", n);
                     break;
                 case GL_INVALID_FRAMEBUFFER_OPERATION:
-                    Logger::Error(
-                        "OpenGL error. %s: GL_INVALID_FRAMEBUFFER_OPERATION", n
-                    );
+                    Log::Error("OpenGL error. %s: GL_INVALID_FRAMEBUFFER_OPERATION", n);
                     break;
                 case GL_STACK_OVERFLOW:
-                    Logger::Error("OpenGL error. %s: GL_STACK_OVERFLOW", n);
+                    Log::Error("OpenGL error. %s: GL_STACK_OVERFLOW", n);
                     break;
                 case GL_STACK_UNDERFLOW:
-                    Logger::Error("OpenGL error. %s: GL_STACK_UNDERFLOW", n);
+                    Log::Error("OpenGL error. %s: GL_STACK_UNDERFLOW", n);
                     break;
                 case GL_OUT_OF_MEMORY:
-                    Logger::Error("OpenGL error. %s: GL_OUT_OF_MEMORY", n);
+                    Log::Error("OpenGL error. %s: GL_OUT_OF_MEMORY", n);
                     break;
                 default:
-                    Logger::Error("OpenGL error. %s: %i", n, error);
+                    Log::Error("OpenGL error. %s: %i", n, error);
             }
 
             switch (fboStatus) {
                 case GL_FRAMEBUFFER_COMPLETE:
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                    Logger::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", n
-                    );
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", n);
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                    Logger::Error(
+                    Log::Error(
                         "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", n
                     );
                     break;
                 case GL_FRAMEBUFFER_UNSUPPORTED:
-                    Logger::Error("FBO error. %s: GL_FRAMEBUFFER_UNSUPPORTED", n);
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_UNSUPPORTED", n);
                     break;
                 case GL_FRAMEBUFFER_UNDEFINED:
-                    Logger::Error("FBO error. %s: GL_FRAMEBUFFER_UNDEFINED", n);
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_UNDEFINED", n);
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    Logger::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER", n
-                    );
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER", n);
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    Logger::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER", n
-                    );
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER", n);
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                    Logger::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE", n
-                    );
+                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE", n);
                     break;
                 case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                    Logger::Error(
+                    Log::Error(
                         "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS", n
                     );
                     break;
                 default:
-                    Logger::Error("FBO error. %s: %i", n, static_cast<int>(fboStatus));
+                    Log::Error("FBO error. %s: %i", n, static_cast<int>(fboStatus));
             }
         });
     }
@@ -846,8 +829,7 @@ void Engine::frameLockPreStage() {
     }
 
     // run only on clients
-    if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync())
-    {
+    if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync()) {
         return;
     }
 
@@ -862,12 +844,12 @@ void Engine::frameLockPreStage() {
         }
 
         // more than a second
-        Network* c = nm.syncConnection(0);
-        if (_printSyncMessage && !c->isUpdated()) {
-            Logger::Info(
+        const Network& c = *nm.syncConnection(0);
+        if (_printSyncMessage && !c.isUpdated()) {
+            Log::Info(
                 "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
                 "Swap barrier: %s\n\tUniversal frame number: %u\n\tSGCT frame number: %u",
-                c->sendFrameCurrent(), c->recvFramePrevious(),
+                c.sendFrameCurrent(), c.recvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
                 Window::isBarrierActive() ? "enabled" : "disabled",
                 Window::swapGroupFrameNumber(), _frameCounter
@@ -898,9 +880,7 @@ void Engine::frameLockPostStage() {
     }
 
     const double t0 = glfwGetTime();
-    while (nm.isRunning() && nm.activeConnectionsCount() > 0 &&
-          !nm.isSyncComplete())
-    {
+    while (nm.isRunning() && nm.activeConnectionsCount() > 0 && !nm.isSyncComplete()) {
         std::unique_lock lk(mutex::FrameSync);
         NetworkManager::cond.wait(lk);
 
@@ -910,11 +890,10 @@ void Engine::frameLockPostStage() {
         // more than a second
         for (int i = 0; i < nm.syncConnectionsCount(); ++i) {
             if (_printSyncMessage && !nm.connection(i).isUpdated()) {
-                Logger::Info(
+                Log::Info(
                     "Waiting for IG%d: send frame %d != recv frame %d\n\tSwap groups: %s"
                     "\n\tSwap barrier: %s\n\tUniversal frame number: %u\n\t"
-                    "SGCT frame number: %u",
-                    i, nm.connection(i).sendFrameCurrent(),
+                    "SGCT frame number: %u", i, nm.connection(i).sendFrameCurrent(),
                     nm.connection(i).recvFrameCurrent(),
                     Window::isUsingSwapGroups() ? "enabled" : "disabled",
                     Window::isBarrierActive() ? "enabled" : "disabled",
@@ -934,6 +913,7 @@ void Engine::frameLockPostStage() {
 
 void Engine::render() {
     Window::makeSharedContextCurrent();
+
     unsigned int timeQueryBegin = 0;
     glGenQueries(1, &timeQueryBegin);
     unsigned int timeQueryEnd = 0;
@@ -957,7 +937,7 @@ void Engine::render() {
         }
         else if (!NetworkManager::instance().isRunning()) {
             // exit if not running
-            Logger::Error("Network disconnected. Exiting");
+            Log::Error("Network disconnected. Exiting");
             break;
         }
 
@@ -995,7 +975,6 @@ void Engine::render() {
                 }
 
                 NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
-
                 nonLinearProj->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
@@ -1034,7 +1013,6 @@ void Engine::render() {
                     continue;
                 }
                 NonLinearProjection* p = vp->nonLinearProjection();
-
                 p->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
             }
@@ -1239,8 +1217,7 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
 }
 
-void Engine::renderViewports(Window& win, Frustum::Mode frustum,
-                             Window::TextureIndex ti)
+void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::TextureIndex ti)
 {
     prepareBuffer(win, ti);
 
@@ -1281,7 +1258,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
             // check if we want to blit the previous window before we do anything else
             if (win.shouldBlitPreviousWindow()) {
                 if (win.id() == 0) {
-                    Logger::Error("Cannot blit into first window");
+                    Log::Error("Cannot blit into first window");
                 }
                 else {
                     const int prevId = win.id() - 1;
@@ -1449,12 +1426,12 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     const bool hasSwapGroup = false;
 #endif
     if (hasSwapGroup) {
-        Logger::Info("Swap groups are supported by hardware");
+        Log::Info("Swap groups are supported by hardware");
     }
     else {
-        Logger::Info("Swap groups are not supported by hardware");
+        Log::Info("Swap groups are not supported by hardware");
     }
-    Logger::Info("Waiting for all nodes to connect");
+    Log::Info("Waiting for all nodes to connect");
 
     while (!NetworkManager::instance().areAllNodesConnected()) {
         // Swap front and back rendering buffers
@@ -1480,7 +1457,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 }
 
 void Engine::updateFrustums() {
-    Node& thisNode = ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& win : thisNode.windows()) {
         for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
             if (vp->isTracked()) {
@@ -1505,8 +1482,7 @@ void Engine::updateFrustums() {
 }
 
 void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
-                                        const Viewport& viewport,
-                                        Frustum::Mode mode)
+                                        const Viewport& viewport, Frustum::Mode mode)
 {
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
@@ -1653,7 +1629,7 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 }
 
 void Engine::setEyeSeparation(float eyeSeparation) {
-    Node& thisNode = ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
         for (const std::unique_ptr<Viewport>& vp : window->viewports()) {
             vp->user().setEyeSeparation(eyeSeparation);
@@ -1690,7 +1666,7 @@ const std::function<void(RenderData)>& Engine::drawFunction() const {
     return _drawFn;
 }
 
-void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length, int) {
+void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length) {
     if (_externalDecodeFn && length > 0) {
         _externalDecodeFn(data, length);
     }

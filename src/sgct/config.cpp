@@ -238,12 +238,11 @@ void validateCluster(const Cluster& c) {
         validateSettings(*c.settings);
     }
 
-    const int nDefaultUsers = std::accumulate(
-        c.users.begin(),
-        c.users.end(),
-        0,
-        [](int i, const User& user) { return user.name.has_value() ? i : i + 1; }
-    );
+    const int nDefaultUsers = static_cast<int>(std::count_if(
+        c.users.begin(), c.users.end(),
+        [](const User& user) { return !user.name.has_value(); }
+    ));
+
     if (nDefaultUsers > 1) {
         throw Error(1122, "More than one unnamed users specified");
     }

@@ -8,7 +8,7 @@
 
 #include <sgct/shader.h>
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 
 namespace {
     std::string getShaderTypeName(GLenum shaderType) {
@@ -19,7 +19,7 @@ namespace {
             case GL_COMPUTE_SHADER:         return "Compute shader";
             case GL_TESS_CONTROL_SHADER:    return "Tesselation control shader";
             case GL_TESS_EVALUATION_SHADER: return "Tesselation evaluation shader";
-            default:                        return "Unknown shader";
+            default:                       throw std::logic_error("Unhandled case label");
         };
     }
 
@@ -32,14 +32,14 @@ namespace {
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength == 0) {
-                sgct::Logger::Error(
+                sgct::Log::Error(
                     "%s compile error: Unknown error", getShaderTypeName(type).c_str()
                 );
             }
 
             std::vector<GLchar> log(logLength);
             glGetShaderInfoLog(id, logLength, nullptr, log.data());
-            sgct::Logger::Error(
+            sgct::Log::Error(
                 "%s compile error: %s", getShaderTypeName(type).c_str(), log.data()
             );
         }

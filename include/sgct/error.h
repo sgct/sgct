@@ -184,17 +184,20 @@ namespace sgct {
  * 6082: XML Parsing / Error parsing XML file
  * 6083: XML Parsing / Cannot find 'Cluster' node
  * 6084: XML Parsing / Cannot find master address
+ * 6085: XML Parsing / Unknown resolution %s for cube map
+ * 6090: SpoutOutput / Unknown spout output mapping: %s
 
  * 7000s: Shader Handling
  * 7000: ShaderManager / Cannot add shader program %s: Already exists
  * 7001: ShaderManager / Could not find shader with name %s
  * 7010: ShaderProgram / No shaders have been added to the program %s
- * 7011: ShaderProgram / Error creating the program %s
- * 7012: ShaderProgram / Error linking the program %s
+ * 7011: ShaderProgram / Error linking the program %s
+ * 7012: ShaderProgram / Failed to create shader program %s: Already linked
+ * 7013: ShaderProgram / Failed to create shader program %s: Unknown error
 
  * 8000s: Window
  * 8000: Error resolving swapgroup functions
- * 8001: Error opening window
+ * 8001: Error opening GLFW window
 
  * 9000s: Image
  * 9000: Image / Cannot load empty filepath
@@ -209,6 +212,7 @@ namespace sgct {
  * 9009: Image / Failed to create PNG struct
  * 9010: Image / Failed to create PNG info struct
  * 9011: Image / One of the called PNG functions failed
+ * 9012: Image / Invalid image size %i x %i %i channels
  */
 
 struct Error : public std::runtime_error {
@@ -234,9 +238,9 @@ struct Error : public std::runtime_error {
 
     Error(Component comp, int c, std::string msg);
 
-    Component component;
-    int code;
-    std::string message;
+    const Component component;
+    const int code;
+    const std::string message;
 };
 
 } // namespace sgct

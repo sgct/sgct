@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 #include <optional>
@@ -22,7 +22,7 @@ namespace sgct::correction {
 Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
 
-    Logger::Info("Reading SkySkan mesh data from '%s'", path.c_str());
+    Log::Info("Reading SkySkan mesh data from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
@@ -108,7 +108,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(atan(hh));
 
-        Logger::Info("HFOV: %f VFOV: %f", *hFov, *vFov);
+        Log::Info("HFOV: %f VFOV: %f", *hFov, *vFov);
     }
 
     if (fovTweaks[0] > 0.f) {

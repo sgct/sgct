@@ -9,7 +9,7 @@
 #include <sgct/mpcdi.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
@@ -103,10 +103,10 @@ namespace {
         res.resolution = resolution;
 
         if (elem.FirstChildElement("coordinateFrame")) {
-            Logger::Warning("Unsupported feature: coordinateFrame");
+            Log::Warning("Unsupported feature: coordinateFrame");
         }
         if (elem.FirstChildElement("color")) {
-            Logger::Warning("Unsupported feature: color");
+            Log::Warning("Unsupported feature: color");
         }
 
         const tinyxml2::XMLElement* region = elem.FirstChildElement("region");
@@ -168,6 +168,9 @@ namespace {
 
         const tinyxml2::XMLElement* child = e.FirstChildElement("fileset");
         while (child) {
+            // @TODO (abock, 2019-12-06) This layout will mean that subsequent 'fileset'
+            // children will overwrite the fileRegion. I'm not sure if this is desired or
+            // not, but it's how it is
             if (const char* a = child->Attribute("region"); a) {
                 fileRegion = a;
             }
@@ -175,22 +178,22 @@ namespace {
             const tinyxml2::XMLElement* c = child->FirstChildElement("geometryWarpFile");
             while (c) {
                 if (c->FirstChildElement("alphaMap")) {
-                    Logger::Warning("Unsupported feature: alphaMap");
+                    Log::Warning("Unsupported feature: alphaMap");
                 }
                 if (c->FirstChildElement("betaMap")) {
-                    Logger::Warning("Unsupported feature: betaMap");
+                    Log::Warning("Unsupported feature: betaMap");
                 }
                 if (c->FirstChildElement("distortionMap")) {
-                    Logger::Warning("Unsupported feature: distortionMap");
+                    Log::Warning("Unsupported feature: distortionMap");
                 }
                 if (c->FirstChildElement("decodeLUT")) {
-                    Logger::Warning("Unsupported feature: decodeLUT");
+                    Log::Warning("Unsupported feature: decodeLUT");
                 }
                 if (c->FirstChildElement("correctLUT")) {
-                    Logger::Warning("Unsupported feature: correctLUT");
+                    Log::Warning("Unsupported feature: correctLUT");
                 }
                 if (child->FirstChildElement("encodeLUT")) {
-                    Logger::Warning("Unsupported feature: encodeLUT");
+                    Log::Warning("Unsupported feature: encodeLUT");
                 }
 
                 parseGeoWarpFile(*c, fileRegion, pfm, res);
@@ -243,7 +246,7 @@ namespace {
         // Check for unsupported features that we might want to warn about
         const tinyxml2::XMLElement* extSetElem = root.FirstChildElement("extensionSet");
         if (extSetElem) {
-            Logger::Warning("Unsupported feature: %s", extSetElem->Value());
+            Log::Warning("Unsupported feature: %s", extSetElem->Value());
         }
 
         return res;
@@ -275,7 +278,6 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                 throw Error(4021, "Unable to get info on file " + std::to_string(i));
             }
             std::string fileName(buf);
-            const unsigned long uncompSize = info.uncompressed_size;
 
             constexpr auto endsWith = [](const std::string& str, const std::string& ext) {
                 const size_t s = str.size();
@@ -283,6 +285,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                 return s >= e && str.compare(s - e, e, ext) == 0;
             };
 
+            const unsigned long uncompSize = info.uncompressed_size;
             if (endsWith(fileName, "xml")) {
                 // Uncompress the XML file
                 const int openCurrentFile = unzOpenCurrentFile(zip);
@@ -298,7 +301,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
             else if (endsWith(fileName, "pfm")) {
                 // Uncompress the PFM file
                 if (!pfmComponent.buffer.empty()) {
-                    Logger::Warning("Duplicate file %s found in MPCDI", fileName.c_str());
+                    Log::Warning("Duplicate file %s found in MPCDI", fileName.c_str());
                 }
 
                 const int openCurrentFile = unzOpenCurrentFile(zip);
@@ -314,13 +317,13 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                 pfmComponent.buffer = std::move(buffer);
             }
             else {
-                Logger::Warning("Ignoring extension %s", fileName.c_str());
+                Log::Warning("Ignoring extension %s", fileName.c_str());
             }
 
             if (i < globalInfo.number_entry - 1) {
                 const int success = unzGoToNextFile(zip);
                 if (success != UNZ_OK) {
-                    Logger::Warning("Unable to get next file in archive");
+                    Log::Warning("Unable to get next file in archive");
                 }
             }
         }

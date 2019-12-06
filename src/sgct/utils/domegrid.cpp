@@ -22,8 +22,7 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
 {
     // must be four or higher
     if (_resolution < 4) {
-        Logger::Warning("Dome geometry resolution must be higher than 4");
-        _resolution = 4;
+        Log::Warning("Dome geometry resolution must be higher than 4");
     }
 
     // Create VAO

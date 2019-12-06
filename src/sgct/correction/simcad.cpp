@@ -9,7 +9,7 @@
 #include <sgct/correction/simcad.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/glm.hpp>
@@ -28,7 +28,7 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
 
     Buffer buf;
 
-    Logger::Info("Reading simcad warp data from '%s'", path.c_str());
+    Log::Info("Reading simcad warp data from '%s'", path.c_str());
 
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {
@@ -104,13 +104,12 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
     for (unsigned int r = 0; r < nRows; r++) {
         for (unsigned int c = 0; c < nCols; c++) {
             // vertex-mapping
-            const float u = (static_cast<float>(c) / (static_cast<float>(nCols) - 1.f));
+            const float u = (static_cast<float>(c) / (nCols - 1.f));
 
             // (abock, 2019-09-01);  Not sure why we are inverting the y coordinate for
             // this, but we do it multiple times in this file and I'm starting to get the
             // impression that there might be a flipping issue going on somewhere deeper
-            const float v = 1.f - (static_cast<float>(r) /
-                                  (static_cast<float>(nRows) - 1.f));
+            const float v = 1.f - (static_cast<float>(r) / (nRows - 1.f));
 
             const float x = u + xcorrections[i];
             const float y = v - ycorrections[i];

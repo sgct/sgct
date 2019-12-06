@@ -34,7 +34,7 @@ class User;
 /// This class holds and manages viewportdata and calculates frustums
 class BaseViewport {
 public:
-    BaseViewport(Window* parent);
+    BaseViewport(const Window* parent);
     virtual ~BaseViewport() = default;
 
     void setPos(glm::vec2 position);
@@ -68,7 +68,7 @@ public:
     void setHorizontalFieldOfView(float hFov);
 
 protected:
-    Window* _parent = nullptr;
+    const Window* _parent = nullptr;
 
     struct {
         Projection mono;

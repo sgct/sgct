@@ -8,7 +8,7 @@
 
 #include <sgct/shareddata.h>
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <zlib.h>
 #include <cstring>
 #include <string>
@@ -48,7 +48,7 @@ void SharedData::setDecodeFunction(std::function<void()> fn) {
     _decodeFn = std::move(fn);
 }
 
-void SharedData::decode(const char* receivedData, int receivedLength, int) {
+void SharedData::decode(const char* receivedData, int receivedLength) {
     {
         std::unique_lock lk(mutex::DataSync);
 
@@ -76,8 +76,8 @@ void SharedData::encode() {
         // reserve header space
         _dataBlock.insert(
             _dataBlock.begin(),
-            _headerSpace.begin(),
-            _headerSpace.begin() + Network::HeaderSize
+            _headerSpace.cbegin(),
+            _headerSpace.cbegin() + Network::HeaderSize
         );
     }
 
@@ -86,20 +86,16 @@ void SharedData::encode() {
     }
 }
 
-std::size_t SharedData::userDataSize() {
-    return _dataBlock.size() - Network::HeaderSize;
-}
-
 unsigned char* SharedData::dataBlock() {
     return _dataBlock.data();
 }
 
-size_t SharedData::dataSize() {
-    return _dataBlock.size();
+int SharedData::dataSize() {
+    return static_cast<int>(_dataBlock.size());
 }
 
-size_t SharedData::bufferSize() {
-    return _dataBlock.capacity();
+int SharedData::bufferSize() {
+    return static_cast<int>(_dataBlock.capacity());
 }
 
 void SharedData::writeFloat(const SharedFloat& sf) {

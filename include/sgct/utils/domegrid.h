@@ -23,9 +23,9 @@ public:
     void draw();
 
 private:
-    int _resolution;
-    int _rings;
-    int _segments;
+    const int _resolution;
+    const int _rings;
+    const int _segments;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
 };

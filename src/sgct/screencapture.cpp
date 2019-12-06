@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/image.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <cstring>
@@ -29,7 +29,7 @@ namespace {
             ptr->frameBufferImage->save(ptr->filename);
         }
         catch (const std::runtime_error& e) {
-            sgct::Logger::Error("%s", e.what());
+            sgct::Log::Error("%s", e.what());
         }
         ptr->isRunning = false;
     }
@@ -102,7 +102,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
     }
 
     glGenBuffers(1, &_pbo);
-    Logger::Debug(
+    Log::Debug(
         "Generating %dx%dx%d PBO: %u", _resolution.x, _resolution.y, _nChannels, _pbo
     );
 
@@ -127,7 +127,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
 
     int threadIndex = availableCaptureThread();
     if (threadIndex == -1) {
-        Logger::Error("Error finding available capture thread");
+        Log::Error("Error finding available capture thread");
         return;
     }
 
@@ -163,7 +163,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     }
     else {
-        Logger::Error("Can't map data (0) from GPU in frame capture");
+        Log::Error("Can't map data (0) from GPU in frame capture");
     }
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -186,7 +186,7 @@ void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     _windowIndex = windowIndex;
 
-    Logger::Debug("Number of screencapture threads is set to %d", _nThreads);
+    Log::Debug("Number of screencapture threads is set to %d", _nThreads);
 }
 
 std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
@@ -298,18 +298,18 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 }
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
-    Logger::Debug("Starting thread for screenshot/capture [%d]", index);
+    Log::Debug("Starting thread for screenshot/capture [%d]", index);
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<Image>();
         _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
         _captureInfos[index].frameBufferImage->setChannels(_nChannels);
         _captureInfos[index].frameBufferImage->setSize(_resolution);
-        const bool res = _captureInfos[index].frameBufferImage->allocateOrResizeData();
-        if (!res) {
+        if (_bytesPerColor * _nChannels * _resolution.x * _resolution.y == 0) {
             _captureInfos[index].frameBufferImage = nullptr;
             return nullptr;
         }
+        _captureInfos[index].frameBufferImage->allocateOrResizeData();
     }
     _captureInfos[index].filename = std::move(file);
 

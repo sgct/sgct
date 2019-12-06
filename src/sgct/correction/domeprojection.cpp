@@ -9,7 +9,7 @@
 #include <sgct/correction/domeprojection.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -17,7 +17,7 @@ namespace sgct::correction {
 Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos,
                                   const glm::ivec2& size)
 {
-    Logger::Info("Reading DomeProjection mesh data from '%s'", path.c_str());
+    Log::Info("Reading DomeProjection mesh data from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     bool loadSuccess = meshFile != nullptr;

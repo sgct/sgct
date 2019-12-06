@@ -25,7 +25,7 @@ class NonLinearProjection {
 public:
     enum class InterpolationMode { Linear, Cubic };
 
-    NonLinearProjection(Window* parent);
+    NonLinearProjection(const Window* parent);
 
     virtual ~NonLinearProjection();
 
@@ -40,7 +40,7 @@ public:
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
     virtual void update(glm::vec2 size) = 0;
 
-    void updateFrustums(const Frustum::Mode& frustumMode, float nearClip, float farClip);
+    void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
     
     /**
      * Set the resolution of the cubemap faces.

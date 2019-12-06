@@ -53,7 +53,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        Logger::Info(
+        Log::Info(
             "Spout: Initing %ux%u texture from '%s'", width, height, sender.c_str()
         );
         initialized = true;
@@ -65,7 +65,7 @@ bool bindSpout() {
             return receiver->BindSharedTexture();
         }
         else {
-            Logger::Info("Spout disconnected");
+            Log::Info("Spout disconnected");
 
             // reset if disconnected
             initialized = false;
@@ -161,27 +161,27 @@ void keyboardCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::Key1:
                 sender = "Right\0";
-                Logger::Info("Settings receiver to 'Right'");
+                Log::Info("Settings receiver to 'Right'");
                 break;
             case Key::Key2:
                 sender = "zLeft\0";
-                Logger::Info("Settings receiver to 'zLeft'");
+                Log::Info("Settings receiver to 'zLeft'");
                 break;
             case Key::Key3:
                 sender = "Bottom\0";
-                Logger::Info("Settings receiver to 'Bottom'");
+                Log::Info("Settings receiver to 'Bottom'");
                 break;
             case Key::Key4:
                 sender = "Top\0";
-                Logger::Info("Settings receiver to 'Top'");
+                Log::Info("Settings receiver to 'Top'");
                 break;
             case Key::Key5:
                 sender = "Left\0";
-                Logger::Info("Settings receiver to 'Left'");
+                Log::Info("Settings receiver to 'Left'");
                 break;
             case Key::Key6:
                 sender = "zRight\0";
-                Logger::Info("Settings receiver to 'zRight'");
+                Log::Info("Settings receiver to 'zRight'");
                 break;
             case Key::Space:
                 shouldTakeScreenshot = true;
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error & e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

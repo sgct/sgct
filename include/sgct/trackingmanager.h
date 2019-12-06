@@ -44,6 +44,7 @@ public:
     TrackingDevice* headDevice() const;
 
     Tracker* lastTracker() const;
+    // @TODO (abock, 2019-12-06) Replace with direct access to std::vector
     Tracker* tracker(int index) const;
     Tracker* tracker(const std::string& name) const;
 

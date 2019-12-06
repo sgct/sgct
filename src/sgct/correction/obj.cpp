@@ -9,14 +9,14 @@
 #include <sgct/correction/skyskan.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 
 namespace sgct::correction {
 
 Buffer generateOBJMesh(const std::string& path) {
     Buffer buffer;
 
-    Logger::Info("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
+    Log::Info("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {

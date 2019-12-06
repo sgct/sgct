@@ -11,7 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
 #include <sgct/fisheyeprojection.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/sphericalmirrorprojection.h>
@@ -30,7 +30,7 @@ namespace {
 
 namespace sgct {
 
-Viewport::Viewport(Window* parent) : BaseViewport(parent) {}
+Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
 
 void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.user) {
@@ -56,15 +56,12 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     }
     if (viewport.eye) {
         Frustum::Mode eye = [](config::Viewport::Eye e) {
+            using Mode = Frustum::Mode;
             switch (e) {
-                case config::Viewport::Eye::Mono:
-                    return Frustum::Mode::MonoEye;
-                case config::Viewport::Eye::StereoLeft:
-                    return Frustum::Mode::StereoLeftEye;
-                case config::Viewport::Eye::StereoRight:
-                    return Frustum::Mode::StereoRightEye;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                case config::Viewport::Eye::Mono: return Mode::MonoEye;
+                case config::Viewport::Eye::StereoLeft: return Mode::StereoLeftEye;
+                case config::Viewport::Eye::StereoRight: return Mode::StereoRightEye;
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*viewport.eye);
         setEye(eye);
@@ -147,8 +144,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
                     return FisheyeProjection::FisheyeMethod::FourFaceCube;
                 case config::FisheyeProjection::Method::FiveFace:
                     return FisheyeProjection::FisheyeMethod::FiveFaceCube;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*proj.method);
         fishProj->setRenderingMethod(meth);
@@ -161,8 +157,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
                         return NonLinearProjection::InterpolationMode::Linear;
                     case config::FisheyeProjection::Interpolation::Cubic:
                         return NonLinearProjection::InterpolationMode::Cubic;
-                    default:
-                        throw std::logic_error("Unhandled case label");
+                    default: throw std::logic_error("Unhandled case label");
                 }
             }(*proj.interpolation);
         fishProj->setInterpolationMode(interp);
@@ -203,8 +198,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
                     return SpoutOutputProjection::Mapping::Equirectangular;
                 case config::SpoutOutputProjection::Mapping::Cubemap:
                     return SpoutOutputProjection::Mapping::Cubemap;
-                default:
-                    throw std::logic_error("Unhandled case label");
+                default: throw std::logic_error("Unhandled case label");
             }
         }(*p.mapping);
         proj->setSpoutMapping(m);
@@ -224,7 +218,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     _nonLinearProjection = std::move(proj);
 #else
     (void)p;
-    Logger::Warning("Spout library not added to SGCT");
+    Log::Warning("Spout library not added to SGCT");
 #endif
 }
 

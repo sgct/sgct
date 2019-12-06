@@ -21,7 +21,7 @@
 
 namespace sgct {
 
-FisheyeProjection::FisheyeProjection(Window* parent)
+FisheyeProjection::FisheyeProjection(const Window* parent)
     : NonLinearProjection(parent)
 {}
 
@@ -133,21 +133,16 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
         case Frustum::Mode::MonoEye:
             break;
         case Frustum::Mode::StereoLeftEye:
-            setOffset(glm::vec3(
-                -Engine::defaultUser().eyeSeparation() / _diameter,
-                0.f,
-                0.f
-            ));
+            setOffset(
+                glm::vec3(-Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f)
+            );
             break;
         case Frustum::Mode::StereoRightEye:
-            setOffset(glm::vec3(
-                Engine::defaultUser().eyeSeparation() / _diameter,
-                0.f,
-                0.f
-            ));
+            setOffset(
+                glm::vec3(Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f)
+            );
             break;
-        default:
-            throw std::logic_error("Unhandled case label");
+        default: throw std::logic_error("Unhandled case label");
     }
 
     auto internalRender = [this, &window, frustumMode](BaseViewport& vp, int idx) {
@@ -711,8 +706,7 @@ void FisheyeProjection::initShaders() {
     }
     
     if (Settings::instance().usePositionTexture()) {
-        _shaderLoc.positionCubemapLoc =
-            glGetUniformLocation(_shader.id(), "positionmap");
+        _shaderLoc.positionCubemapLoc = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemapLoc, 3);
     }
 
@@ -743,8 +737,7 @@ void FisheyeProjection::initShaders() {
         glUniform1i(_shaderLoc.swapDepthLoc, 1);
         _shaderLoc.swapNearLoc =
             glGetUniformLocation(_depthCorrectionShader.id(), "near");
-        _shaderLoc.swapFarLoc =
-            glGetUniformLocation(_depthCorrectionShader.id(), "far");
+        _shaderLoc.swapFarLoc = glGetUniformLocation(_depthCorrectionShader.id(), "far");
 
         ShaderProgram::unbind();
     }

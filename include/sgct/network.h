@@ -118,7 +118,7 @@ private:
     SGCT_SOCKET _socket;
     SGCT_SOCKET _listenSocket;
 
-    ConnectionType _connectionType = ConnectionType::SyncConnection;
+    const ConnectionType _connectionType = ConnectionType::SyncConnection;
     std::atomic_bool _isServer;
     std::atomic_bool _isConnected = false;
     std::atomic_bool _isUpdated = false;

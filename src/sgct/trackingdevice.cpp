@@ -10,7 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
 #include <sgct/trackingmanager.h>
@@ -51,7 +51,7 @@ void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
     Tracker* parent = TrackingManager::instance().tracker(_parentIndex);
 
     if (parent == nullptr) {
-        Logger::Error("Error getting handle to tracker for device '%s'", _name.c_str());
+        Log::Error("Error getting handle to tracker for device '%s'", _name.c_str());
         return;
     }
     

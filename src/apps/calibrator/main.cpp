@@ -4,7 +4,7 @@
 #include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/keys.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -351,15 +351,15 @@ int main(int argc, char* argv[]) {
         std::string_view argg = argv[i];
         if (argg == "-tilt" && argc > (i + 1)) {
             tilt = static_cast<float>(atof(argv[i + 1]));
-            Logger::Info("Setting tilt to: %f", tilt);
+            Log::Info("Setting tilt to: %f", tilt);
         }
         else if (argg == "-radius" && argc > (i + 1)) {
             radius = static_cast<float>(atof(argv[i + 1]));
-            Logger::Info("Setting radius to: %f", radius);
+            Log::Info("Setting radius to: %f", radius);
         }
         else if (argg == "-tex" && argc > (i + 1)) {
             texture = argv[i + 1];
-            Logger::Info("Using texture: %s", texture.c_str());
+            Log::Info("Using texture: %s", texture.c_str());
         }
     }
 
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

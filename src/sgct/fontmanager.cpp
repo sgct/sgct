@@ -11,7 +11,7 @@
 #include <sgct/fontmanager.h>
 
 #include <sgct/font.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -44,12 +44,13 @@ in vec2 tr_uv;
 out vec4 out_color;
 
 uniform vec4 col;
-uniform vec4 strokeCol;
 uniform sampler2D tex;
+
+const vec4 StrokeCol = vec4(0.0, 0.0, 0.0, 0.9);
 
 void main() {
     vec2 luminanceAlpha = texture(tex, tr_uv).rg;
-    vec4 blend = mix(strokeCol, col, luminanceAlpha.r);
+    vec4 blend = mix(StrokeCol, col, luminanceAlpha.r);
     out_color = blend * vec4(1.0, 1.0, 1.0, luminanceAlpha.g);
 })";
 } // namespace
@@ -74,14 +75,14 @@ FontManager::FontManager() {
     FT_Error error = FT_Init_FreeType(&_library);
 
     if (error != 0) {
-        Logger::Error("Could not initiate Freetype library");
+        Log::Error("Could not initiate Freetype library");
         return;
     }
 
     // Set default font path
 #ifdef WIN32
     constexpr const int BufferSize = 256;
-    char FontDir[256];
+    char FontDir[BufferSize];
     const UINT success = GetWindowsDirectory(FontDir, 256);
     if (success > 0) {
         SystemFontPath = FontDir;
@@ -96,9 +97,8 @@ FontManager::FontManager() {
 }
 
 FontManager::~FontManager() {
-    // We need to delete all of the fonts before destroying the FreeType library or else
-    // the destructor of the Font classes will access the library after it has been
-    // destroyed
+    // We need to delete all of the fonts before destroying the FreeType library or the
+    // destructor of the Font classes will access the library after it has been destroyed
     _fontMap.clear();
 
     if (_library) {
@@ -108,13 +108,12 @@ FontManager::~FontManager() {
     _shader.deleteProgram();
 }
 
-void FontManager::bindShader(const glm::mat4& mvp, const glm::vec4& color, 
-                             const glm::vec4& strokeColor, int texture) const
+void FontManager::bindShader(const glm::mat4& mvp, const glm::vec4& color,
+                             int texture) const
 {
     _shader.bind();
 
     glUniform4fv(_colorLocation, 1, glm::value_ptr(color));
-    glUniform4fv(_strokeLocation, 1, glm::value_ptr(strokeColor));
     glUniform1i(_textureLocation, texture);
     glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 }
@@ -127,7 +126,7 @@ bool FontManager::addFont(std::string name, std::string file, Path path) {
 
     const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
     if (!inserted) {
-        Logger::Warning("Font with name '%s' already exists", name.c_str());
+        Log::Warning("Font with name '%s' already exists", name.c_str());
     }
     return inserted;
 }
@@ -144,18 +143,16 @@ Font* FontManager::font(const std::string& fontName, unsigned int height) {
     return _fontMap[{ fontName, height }].get();
 }
 
-std::unique_ptr<Font> FontManager::createFont(const std::string& name,
-                                              unsigned int height)
-{
+std::unique_ptr<Font> FontManager::createFont(const std::string& name, int height) {
     std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        Logger::Error("No font file specified for font [%s]", name.c_str());
+        Log::Error("No font file specified for font [%s]", name.c_str());
         return nullptr;
     }
 
     if (_library == nullptr) {
-        Logger::Error(
+        Log::Error(
             "Freetype library is not initialized, can't create font [%s]", name.c_str()
         );
         return nullptr;
@@ -165,19 +162,19 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
     FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
-        Logger::Error(
+        Log::Error(
             "Unsupperted file format [%s] for font [%s]", it->second.c_str(), name.c_str()
         );
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        Logger::Error("Font '%s' not found!", it->second.c_str());
+        Log::Error("Font '%s' not found!", it->second.c_str());
         return nullptr;
     }
 
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        Logger::Error("Could not set pixel size for font[%s]", name.c_str());
+        Log::Error("Could not set pixel size for font[%s]", name.c_str());
         return nullptr;
     }
 
@@ -193,7 +190,6 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name,
 
         _mvpLocation = glGetUniformLocation(_shader.id(), "mvp");
         _colorLocation = glGetUniformLocation(_shader.id(), "col");
-        _strokeLocation = glGetUniformLocation(_shader.id(), "strokeCol");
         _textureLocation = glGetUniformLocation(_shader.id(), "tex");
         ShaderProgram::unbind();
 

@@ -35,7 +35,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/networkmanager.h>
 #include <sgct/shareddata.h>
@@ -90,7 +90,7 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType t)
 
     addrinfo* res = nullptr;
     addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
+    std::memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     // @TODO (abock, 2019-11-28);  We could probably get away with using the UDP stack as
@@ -141,7 +141,7 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType t)
     else {
         // Client socket: Connect to server
         while (!_shouldTerminate) {
-            Logger::Info(
+            Log::Info(
                 "Attempting to connect to server (id: %d, ip: %s, type: %s)",
                 _id, address.c_str(), getTypeStr(type()).c_str()
             );
@@ -161,7 +161,7 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType t)
 
             // @TODO (abock, 2019-11-19) This will spam out messages on end, maybe it
             // would be better to print more informative messages than just error codes
-            Logger::Debug("Connect error code: %d", SGCT_ERRNO);
+            Log::Debug("Connect error code: %d", SGCT_ERRNO);
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
         }
     }
@@ -192,7 +192,7 @@ void Network::connectionHandler() {
                         communicationHandler();
                     }
                     catch (const std::runtime_error & e) {
-                        Logger::Error(e.what());
+                        Log::Error(e.what());
                     }
                 });
             }
@@ -210,12 +210,12 @@ void Network::connectionHandler() {
                 communicationHandler();
             }
             catch (const std::runtime_error& e) {
-                Logger::Error(e.what());
+                Log::Error(e.what());
             }
         });
     }
 
-    Logger::Info("Exiting connection handler for connection %d", _id);
+    Log::Info("Exiting connection handler for connection %d", _id);
 }
 
 int Network::port() const {
@@ -348,8 +348,7 @@ int Network::iterateFrameCounter() {
 }
 
 void Network::pushClientMessage() {
-    // The servers' render function is locked until a message starting with the ack-byte
-    // is received.
+    // The servers' render function is locked until an ack message is received
     const int currentFrame = iterateFrameCounter();
     uint32_t localSyncHeaderSize = 0;
 
@@ -465,12 +464,11 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
             iResult += tmpRes;
         }
 #ifdef WIN32
-        else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
+        else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
 #else
-        else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
+        else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
 #endif
-        {
-            Logger::Warning(
+            Log::Warning(
                 "Receiving data after interrupted system error (attempt %d)", attempts
             );
             attempts++;
@@ -566,16 +564,12 @@ int Network::readExternalMessage() {
     // if read fails try for x attempts
     int attempts = 1;
 #ifdef WIN32
-    while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
+    while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts) {
 #else
-    while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
+    while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts) {
 #endif
-    {
         iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
-
-        Logger::Info(
-            "Receiving data after interrupted system error (attempt %d)", attempts
-        );
+        Log::Info("Receiving data after interrupted system error (attempt %d)", attempts);
         attempts++;
     }
     
@@ -583,33 +577,28 @@ int Network::readExternalMessage() {
 }
 
 void Network::communicationHandler() {
-    // exit if terminating
     if (_shouldTerminate) {
         return;
     }
 
     // listen for client if server
     if (_isServer) {
-        Logger::Info(
-            "Waiting for client to connect to connection %d (port %d)", _id, port()
-        );
+        Log::Info("Waiting for client to connect to connection %d:%d)", _id, port());
 
         _socket = accept(_listenSocket, nullptr, nullptr);
 
         int e = SGCT_ERRNO;
 #ifdef WIN32
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == WSAEINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == WSAEINTR) {
 #else
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == EINTR)
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == EINTR) {
 #endif
-        {
-            Logger::Info("Re-accept after interrupted system on connection %d", _id);
-
+            Log::Info("Re-accept after interrupted system on connection %d", _id);
             _socket = accept(_listenSocket, nullptr, nullptr);
         }
 
         if (_socket == INVALID_SOCKET) {
-            Logger::Error("Accept connection %d failed. Error: %d", _id, e);
+            Log::Error("Accept connection %d failed. Error: %d", _id, e);
 
             if (_updateCallback) {
                 _updateCallback(this);
@@ -619,7 +608,7 @@ void Network::communicationHandler() {
     }
 
     setConnectedStatus(true);
-    Logger::Info("Connection %d established", _id);
+    Log::Info("Connection %d established", _id);
 
     if (_updateCallback) {
         _updateCallback(this);
@@ -641,13 +630,12 @@ void Network::communicationHandler() {
     do {
         // resize buffer request
         if (type() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
-            Logger::Info(
+            Log::Info(
                 "Re-sizing buffer from %d to %d", _bufferSize, _requestedSize.load()
             );
 
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
-
-            Logger::Info("Done");
+            Log::Info("Done");
         }
         int32_t packageId = -1;
         int32_t syncFrameNumber = -1;
@@ -705,7 +693,7 @@ void Network::communicationHandler() {
                     _shouldTerminate = true;
                 }
 
-                Logger::Info("Client %d terminated connection", _id);
+                Log::Info("Client %d terminated connection", _id);
                 break;
             }
             // handle sync communication
@@ -766,17 +754,12 @@ void Network::communicationHandler() {
             // Disconnect if requested
             if (isDisconnectPackage(RecvHeader)) {
                 setConnectedStatus(false);
-                Logger::Info("File connection %d terminated", _id);
+                Log::Info("File connection %d terminated", _id);
             }
             //  Handle communication
             else {
                 if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
-                    _packageDecoderCallback(
-                        _recvBuffer.data(),
-                        dataSize,
-                        packageId,
-                        _id
-                    );
+                    _packageDecoderCallback(_recvBuffer.data(), dataSize, packageId, _id);
                         
                     // send acknowledge
                     uint32_t pLength = 0;
@@ -786,8 +769,8 @@ void Network::communicationHandler() {
                     std::memcpy(sendBuff + 5, &pLength, sizeof(pLength));
                     sendData(sendBuff, HeaderSize);
 
-                    // Clear the buffers
                     {
+                        // Clear the buffers
                         std::unique_lock lk(_connectionMutex);
 
                         _recvBuffer.clear();
@@ -815,7 +798,7 @@ void Network::communicationHandler() {
         _updateCallback(this);
     }
 
-    Logger::Info("Node %d disconnected", _id);
+    Log::Info("Node %d disconnected", _id);
 }
 
 void Network::sendData(const void* data, int length) {
@@ -849,21 +832,17 @@ void Network::closeNetwork(bool forced) {
 
     // blocking sockets -> cannot wait for thread so just kill it brutally
 
-    if (_commThread) {
-        if (!forced) {
-            _commThread->join();
-        }
-        _commThread = nullptr;
+    if (_commThread && !forced) {
+        _commThread->join();
     }
+    _commThread = nullptr;
 
-    if (_mainThread) {
-        if (!forced) {
-            _mainThread->join();
-        }
-        _mainThread = nullptr;
+    if (_mainThread && !forced) {
+        _mainThread->join();
     }
+    _mainThread = nullptr;
 
-    Logger::Info("Connection %d successfully terminated", _id);
+    Log::Info("Connection %d successfully terminated", _id);
 }
 
 void Network::initShutdown() {
@@ -874,7 +853,7 @@ void Network::initShutdown() {
         sendData(gameOver, HeaderSize);
     }
 
-    Logger::Info("Closing connection %d", _id);
+    Log::Info("Closing connection %d", _id);
 
     {
         std::unique_lock lock(_connectionMutex);

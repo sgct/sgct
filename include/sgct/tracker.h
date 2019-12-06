@@ -49,8 +49,9 @@ public:
     const std::string& name() const;
 
 private:
+    const std::string _name;
+
     std::vector<std::unique_ptr<TrackingDevice>> _trackingDevices;
-    std::string _name;
 
     double _scale = 1.0;
     glm::mat4 _transform = glm::mat4(1.f);

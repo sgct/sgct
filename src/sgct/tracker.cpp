@@ -9,7 +9,7 @@
 #include <sgct/tracker.h>
 
 #include <sgct/engine.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
@@ -26,7 +26,7 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    Logger::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
+    Log::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
 }
 
 TrackingDevice* Tracker::lastDevice() const {

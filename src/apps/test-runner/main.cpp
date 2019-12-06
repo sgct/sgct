@@ -2,7 +2,7 @@
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/image.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
@@ -229,17 +229,17 @@ void postSyncPreDraw() {
 void postDraw() {
     if (Engine::instance().isMaster()) {
         if (Engine::instance().currentFrameNumber() == 10) {
-            Logger::Info("Taking first screenshot");
+            Log::Info("Taking first screenshot");
             takeScreenshot.setValue(true);
         }
 
         if (Engine::instance().currentFrameNumber() == 15) {
-            Logger::Info("Capturing from Back buffer");
+            Log::Info("Capturing from Back buffer");
             captureBackbuffer.setValue(true);
         }
 
         if (Engine::instance().currentFrameNumber() == 20) {
-            Logger::Info("Taking second screenshot");
+            Log::Info("Taking second screenshot");
             takeScreenshot.setValue(true);
         }
 
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

@@ -13,7 +13,7 @@
 
 namespace sgct {
 
-BaseViewport::BaseViewport(Window* parent)
+BaseViewport::BaseViewport(const Window* parent)
     : _parent(parent)
     , _user(&ClusterManager::instance().defaultUser())
 {}

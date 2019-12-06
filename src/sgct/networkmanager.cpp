@@ -17,7 +17,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
@@ -62,10 +62,8 @@ void NetworkManager::destroy() {
     _instance = nullptr;
 }
 
-NetworkManager::NetworkManager(NetworkMode nm) 
-    : _mode(nm)
-{
-    Logger::Debug("Initiating network API");
+NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
+    Log::Debug("Initiating network API");
 #ifdef WIN32
     WORD version = MAKEWORD(2, 2);
 
@@ -79,14 +77,75 @@ NetworkManager::NetworkManager(NetworkMode nm)
     }
 #endif
 
-    Logger::Debug("Getting host info");
-    hostInfo();
+    Log::Debug("Getting host info");
+
+    //
+    // Get host info
+    //
+    // get name & local IPs. retrieves the standard host name for the local computer
+    char tmpStr[128];
+    const int res = gethostname(tmpStr, sizeof(tmpStr));
+    if (res == SOCKET_ERROR) {
+#ifdef WIN32
+        WSACleanup();
+#endif
+        throw Error(5027, "Failed to get local host name");
+    }
+
+    std::string hostName = tmpStr;
+    // add hostname and adress in lower case
+    std::transform(
+        hostName.cbegin(),
+        hostName.cend(),
+        hostName.begin(),
+        [](char c) { return static_cast<char>(::tolower(c)); }
+    );
+    _localAddresses.push_back(hostName);
+
+    addrinfo hints;
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    // hints.ai_family = AF_UNSPEC; // either IPV4 or IPV6
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_CANONNAME;
+
+    addrinfo* info;
+    int result = getaddrinfo(tmpStr, "http", &hints, &info);
+    if (result != 0) {
+        std::string err = std::to_string(Network::lastError());
+        throw Error(5028, "Failed to get address info: " + err);
+    }
+    std::vector<std::string> dnsNames;
+    char addr_str[INET_ADDRSTRLEN];
+    for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
+        sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
+        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
+        if (p->ai_canonname) {
+            dnsNames.emplace_back(p->ai_canonname);
+        }
+        _localAddresses.emplace_back(addr_str);
+    }
+
+    freeaddrinfo(info);
+
+    for (std::string& dns : dnsNames) {
+        std::transform(
+            dns.cbegin(),
+            dns.cend(),
+            dns.begin(),
+            [](char c) { return static_cast<char>(::tolower(c)); }
+        );
+        _localAddresses.push_back(std::move(dns));
+    }
+
+    // add the loop-back
+    _localAddresses.emplace_back("127.0.0.1");
+    _localAddresses.emplace_back("localhost");
 }
 
 NetworkManager::~NetworkManager() {
     _isRunning = false;
 
-    // release condition variables
     cond.notify_all();
 
     // signal to terminate
@@ -109,27 +168,26 @@ NetworkManager::~NetworkManager() {
 #ifdef WIN32
     WSACleanup();
 #endif
-    Logger::Info("Network API closed");
+    Log::Info("Network API closed");
 }
 
 void NetworkManager::init() {
     ClusterManager& cm = ClusterManager::instance();
-    
-    if (_mode == NetworkMode::Remote) {
-        _isServer = matchesAddress(cm.masterAddress());
-    }
-    else if (_mode == NetworkMode::LocalServer) {
-        _isServer = true;
-    }
-    else {
-        _isServer = false;
-    }
+
+    _isServer = [&](NetworkMode nm) {
+        switch (nm) {
+            case NetworkMode::Remote: return matchesAddress(cm.masterAddress());
+            case NetworkMode::LocalServer: return true;
+            case NetworkMode::LocalClient: return false;
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }(_mode);
 
     if (_isServer) {
-        Logger::Info("This computer is the network server");
+        Log::Info("This computer is the network server");
     }
     else {
-        Logger::Info("This computer is the network client");
+        Log::Info("This computer is the network client");
     }
 
     if (cm.thisNode().address().empty()) {
@@ -158,9 +216,8 @@ void NetworkManager::init() {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
-            if (port == cm.thisNode().syncPort() ||
-                port == cm.thisNode().dataTransferPort() ||
-                port == cm.externalControlPort())
+            if (port == cm.thisNode().syncPort() || port == cm.externalControlPort() ||
+                port == cm.thisNode().dataTransferPort())
             {
                 const std::string p = std::to_string(cm.thisNode().syncPort());
                 throw Error(5023,
@@ -173,8 +230,10 @@ void NetworkManager::init() {
         if (!_isServer) {
             addConnection(cm.thisNode().syncPort(), remoteAddress);
             _networkConnections.back()->setDecodeFunction(
-                [](const char* data, int length, int index) {
-                    SharedData::instance().decode(data, length, index);
+                // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
+                // when switching to C++20
+                [](const char* data, int length, int) {
+                    SharedData::instance().decode(data, length);
                 }
             );
 
@@ -187,6 +246,8 @@ void NetworkManager::init() {
                 );
                 _networkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
+                    // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
+                    // when switching to C++20
                         Engine::instance().invokeDecodeCallbackForDataTransfer(
                             data,
                             length,
@@ -198,6 +259,8 @@ void NetworkManager::init() {
 
                 // acknowledge callback
                 _networkConnections.back()->setAcknowledgeFunction(
+                    // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
+                    // when switching to C++20
                     [](int packageId, int clientId) {
                         Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
@@ -220,7 +283,7 @@ void NetworkManager::init() {
                     [](const char* data, int length, int idx) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        Logger::Info("[client %d]: %s [end]", idx, d.data());
+                        Log::Info("[client %d]: %s [end]", idx, d.data());
                     }
                 );
 
@@ -233,6 +296,8 @@ void NetworkManager::init() {
                     );
                     _networkConnections.back()->setPackageDecodeFunction(
                         [](void* data, int length, int packageId, int clientId) {
+                        // @TODO (abock, 2019-12-06) This can be replaced with
+                        // std::bind_front when switching to C++20
                             Engine::instance().invokeDecodeCallbackForDataTransfer(
                                 data,
                                 length,
@@ -244,6 +309,8 @@ void NetworkManager::init() {
 
                     // acknowledge callback
                     _networkConnections.back()->setAcknowledgeFunction(
+                        // @TODO (abock, 2019-12-06) This can be replaced with
+                        // std::bind_front when switching to C++20
                         [](int packageId, int clientId) {
                             Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
@@ -264,15 +331,15 @@ void NetworkManager::init() {
             Network::ConnectionType::ExternalConnection
         );
         _networkConnections.back()->setDecodeFunction(
-            [](const char* data, int len, int id) {
-                Engine::instance().invokeDecodeCallbackForExternalControl(data, len, id);
+            // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front when
+            // switching to C++20
+            [](const char* data, int len, int) {
+                Engine::instance().invokeDecodeCallbackForExternalControl(data, len);
             }
         );
     }
 
-    Logger::Debug(
-        "Cluster sync: %s", cm.firmFrameLockSyncStatus() ? "firm/strict" : "loose"
-    );
+    Log::Debug("Cluster sync: %s", cm.firmFrameLockSyncStatus() ? "firm" : "loose");
 }
 
 std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
@@ -296,8 +363,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             minTime = std::min(currentTime, minTime);
 
             const int currentSize =
-                static_cast<int>(SharedData::instance().dataSize()) -
-                Network::HeaderSize;
+                static_cast<int>(SharedData::instance().dataSize()) - Network::HeaderSize;
 
             // iterate counter
             const int currentFrame = connection->iterateFrameCounter();
@@ -329,12 +395,12 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
 }
 
 bool NetworkManager::isSyncComplete() const {
-    const std::ptrdiff_t counter = std::count_if(
+    const unsigned int counter = static_cast<unsigned int>(std::count_if(
         _syncConnections.cbegin(),
         _syncConnections.cend(),
         [](Network* n) { return n->isUpdated(); }
-    );
-    return (static_cast<unsigned int>(counter) == _nActiveSyncConnections);
+    ));
+    return (counter == _nActiveSyncConnections);
 }
 
 Network* NetworkManager::externalControlConnection() {
@@ -371,7 +437,7 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     buffer.resize(length);
 
     buffer[0] = Network::DataId;
-    memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
+    std::memcpy(buffer.data() + 1, &packageId, sizeof(packageId));
 
     // set uncompressed size to DefaultId since compression is not used
     std::memset(buffer.data() + 9, Network::DefaultId, sizeof(int));
@@ -410,19 +476,16 @@ Network* NetworkManager::syncConnection(int index) const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    Logger::Debug("Updating status for connection %d", connection->id());
+    Log::Debug("Updating status for connection %d", connection->id());
 
-    unsigned int nConnections = 0;
-    unsigned int nConnectedSyncNodes = 0;
-    unsigned int nConnectedDataTransferNodes = 0;
+    int nConnections = 0;
+    int nConnectedSync = 0;
+    int nConnectedDataTransfer = 0;
 
     mutex::DataSync.lock();
-    unsigned int totalNConnections =
-        static_cast<unsigned int>(_networkConnections.size());
-    unsigned int totalNSyncConnections =
-        static_cast<unsigned int>(_syncConnections.size());
-    unsigned int totalNTransferConnections =
-        static_cast<unsigned int>(_dataTransferConnections.size());
+    int totalNConnections = static_cast<int>(_networkConnections.size());
+    int totalNSyncConnections = static_cast<int>(_syncConnections.size());
+    int totalNTransferConnections = static_cast<int>(_dataTransferConnections.size());
     mutex::DataSync.unlock();
 
     // count connections
@@ -430,30 +493,27 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         if (conn->isConnected()) {
             nConnections++;
             if (conn->type() == Network::ConnectionType::SyncConnection) {
-                nConnectedSyncNodes++;
+                nConnectedSync++;
             }
             else if (conn->type() == Network::ConnectionType::DataTransfer) {
-                nConnectedDataTransferNodes++;
+                nConnectedDataTransfer++;
             }
         }
     }
 
-    Logger::Info(
-        "Number of active connections %u of %u", nConnections, totalNConnections
+    Log::Info("Number of active connections %i of %i", nConnections, totalNConnections);
+    Log::Debug(
+        "Number of connected sync nodes %i of %i", nConnectedSync, totalNSyncConnections
     );
-    Logger::Debug(
-        "Number of connected sync nodes %u of %u",
-        nConnectedSyncNodes, totalNSyncConnections
-    );
-    Logger::Debug(
-        "Number of connected data transfer nodes %u of %u",
-        nConnectedDataTransferNodes, totalNTransferConnections
+    Log::Debug(
+        "Number of connected data transfer nodes %i of %i",
+        nConnectedDataTransfer, totalNTransferConnections
     );
 
     mutex::DataSync.lock();
     _nActiveConnections = nConnections;
-    _nActiveSyncConnections = nConnectedSyncNodes;
-    _nActiveDataTransferConnections = nConnectedDataTransferNodes;
+    _nActiveSyncConnections = nConnectedSync;
+    _nActiveDataTransferConnections = nConnectedDataTransfer;
 
 
     // if client disconnects then it cannot run anymore
@@ -465,34 +525,26 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_isServer) {
         mutex::DataSync.lock();
         // local copy (thread safe)
-        bool allNodesConnectedCopy = (nConnectedSyncNodes== totalNSyncConnections) &&
-                                (nConnectedDataTransferNodes== totalNTransferConnections);
-        _allNodesConnected = allNodesConnectedCopy;
+        bool allNodesConnected = (nConnectedSync == totalNSyncConnections) &&
+                                (nConnectedDataTransfer == totalNTransferConnections);
+        _allNodesConnected = allNodesConnected;
         mutex::DataSync.unlock();
 
         // send cluster connected message to clients
-        if (allNodesConnectedCopy) {
+        if (allNodesConnected) {
             for (Network* syncConnection : _syncConnections) {
                 if (!syncConnection->isConnected()) {
                     continue;
                 }
                 char data[Network::HeaderSize];
-                std::fill(
-                    std::begin(data),
-                    std::end(data),
-                    static_cast<char>(Network::DefaultId)
-                );
+                std::fill(std::begin(data), std::end(data), Network::DefaultId);
                 data[0] = Network::ConnectedId;
                 syncConnection->sendData(&data, Network::HeaderSize);
             }
             for (Network* dataConnection : _dataTransferConnections) {
                 if (dataConnection->isConnected()) {
                     char data[Network::HeaderSize];
-                    std::fill(
-                        std::begin(data),
-                        std::end(data),
-                        static_cast<char>(Network::DefaultId)
-                    );
+                    std::fill(std::begin(data), std::end(data), Network::DefaultId);
                     data[0] = Network::ConnectedId;
                     dataConnection->sendData(&data, Network::HeaderSize);
                 }
@@ -502,7 +554,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         // Check if any external connection
         if (connection->type() == Network::ConnectionType::ExternalConnection) {
             const bool status = connection->isConnected();
-            std::string msg = "Connected to SGCT!\r\n";
+            const std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
             Engine::instance().invokeUpdateCallbackForExternalControl(status);
         }
@@ -543,9 +595,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     }
 
     auto net = std::make_unique<Network>(port, address, _isServer, connectionType);
-    Logger::Debug(
-        "Initiating network connection %d at port %d", _networkConnections.size(), port
-    );
+    Log::Debug("Initiating connection %d at port %d", _networkConnections.size(), port);
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
@@ -558,7 +608,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     _dataTransferConnections.clear();
     _externalControlConnection = nullptr;
 
-    for (std::unique_ptr<Network>& connection : _networkConnections) {
+    for (const std::unique_ptr<Network>& connection : _networkConnections) {
         switch (connection->type()) {
             case Network::ConnectionType::SyncConnection:
                 _syncConnections.push_back(connection.get());
@@ -572,69 +622,6 @@ void NetworkManager::addConnection(int port, const std::string& address,
             default: throw std::logic_error("Missing case label");
         }
     }
-}
-
-void NetworkManager::hostInfo() {
-    // get name & local IPs. retrieves the standard host name for the local computer
-    char tmpStr[128];
-    const int res = gethostname(tmpStr, sizeof(tmpStr));
-    if (res == SOCKET_ERROR) {
-#ifdef WIN32
-        WSACleanup();
-#endif
-        throw Error(5027, "Failed to get local host name");
-    }
-
-    std::string hostName = tmpStr;
-    // add hostname and adress in lower case
-    std::transform(
-        hostName.cbegin(),
-        hostName.cend(),
-        hostName.begin(),
-        [](char c) { return static_cast<char>(::tolower(c)); }
-    );
-    _localAddresses.push_back(hostName);
-
-    addrinfo hints;
-    std::memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    // hints.ai_family = AF_UNSPEC; // either IPV4 or IPV6
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_CANONNAME;
-
-    addrinfo* info;
-    int result = getaddrinfo(tmpStr, "http", &hints, &info);
-    if (result != 0) {
-        throw Error(5028,
-            "Failed to get address info: " + std::to_string(Network::lastError())
-        );
-    }
-    std::vector<std::string> dnsNames;
-    char addr_str[INET_ADDRSTRLEN];
-    for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
-        sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
-        inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
-        if (p->ai_canonname) {
-            dnsNames.emplace_back(p->ai_canonname);
-        }
-        _localAddresses.emplace_back(addr_str);
-    }
-
-    freeaddrinfo(info);
-
-    for (std::string& dns : dnsNames) {
-        std::transform(
-            dns.cbegin(),
-            dns.cend(),
-            dns.begin(),
-            [](char c) { return static_cast<char>(::tolower(c)); }
-        );
-        _localAddresses.push_back(dns);
-    }
-
-    // add the loop-back
-    _localAddresses.emplace_back("127.0.0.1");
-    _localAddresses.emplace_back("localhost");
 }
 
 bool NetworkManager::matchesAddress(const std::string& address) const {

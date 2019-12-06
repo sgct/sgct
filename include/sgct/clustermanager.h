@@ -45,7 +45,7 @@ public:
      * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    const Node& node(int index) const;
+    const Node& node(int index) const; // replace with access to vector
 
     /**
      * Get the current node. Please observe that the address of this object might change

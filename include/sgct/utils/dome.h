@@ -23,8 +23,8 @@ public:
     void draw();
 
 private:
-    int _elevationSteps;
-    int _azimuthSteps;
+    const int _elevationSteps;
+    const int _azimuthSteps;
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

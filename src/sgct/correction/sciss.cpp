@@ -10,7 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 
@@ -33,7 +33,7 @@ namespace {
         float qz = 0.f;
         float qw = 1.f;
 
-        // Position of view (currently unused in Uniview)
+        // Position of view (unused in Uniview)
         float x = 0.f;
         float y = 0.f;
         float z = 0.f;
@@ -50,7 +50,7 @@ namespace sgct::correction {
 Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
 
-    Logger::Info("Reading SCISS mesh data from '%s'", path.c_str());
+    Log::Info("Reading SCISS mesh data from '%s'", path.c_str());
 
     FILE* file = fopen(path.c_str(), "rb");
     if (file == nullptr) {
@@ -74,7 +74,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         throw Error(2062, "Error parsing file version from file");
     }
 
-    Logger::Debug("SCISS file version %u", fileVersion);
+    Log::Debug("SCISS file version %u", fileVersion);
 
     // read mapping type
     unsigned int type;
@@ -84,7 +84,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         throw Error(2063, "Error parsing type from file");
     }
 
-    Logger::Debug("Mapping type: %s (%u)", type == 0 ? "planar" : "cube", type);
+    Log::Debug("Mapping type: %s (%u)", type == 0 ? "planar" : "cube", type);
 
     // read viewdata
     SCISSViewData viewData;
@@ -106,13 +106,13 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     double pitch = angles.y;
     double roll = -angles.z;
         
-    Logger::Debug(
+    Log::Debug(
         "Rotation quat = [%f %f %f %f]. yaw = %lf, pitch = %lf, roll = %lf",
         viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);
 
-    Logger::Debug("Position: %f %f %f", viewData.x, viewData.y, viewData.z);
+    Log::Debug("Position: %f %f %f", viewData.x, viewData.y, viewData.z);
 
-    Logger::Debug(
+    Log::Debug(
         "FOV: (up %f) (down %f) (left %f) (right %f)",
         viewData.fovUp, viewData.fovDown, viewData.fovLeft, viewData.fovRight
     );
@@ -128,11 +128,11 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     unsigned int nVertices = 0;
     if (fileVersion == 2) {
         nVertices = size[1];
-        Logger::Debug("Number of vertices: %u", nVertices);
+        Log::Debug("Number of vertices: %u", nVertices);
     }
     else {
         nVertices = size[0] * size[1];
-        Logger::Debug("Number of vertices: %u (%ux%u)", nVertices, size[0], size[1]);
+        Log::Debug("Number of vertices: %u (%ux%u)", nVertices, size[0], size[1]);
     }
     // read vertices
     std::vector<SCISSTexturedVertex> texturedVertexList(nVertices);
@@ -154,7 +154,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         fclose(file);
         throw Error(2067, "Error parsing indices from file");
     }
-    Logger::Debug("Number of indices: %u", nIndices);
+    Log::Debug("Number of indices: %u", nIndices);
 
     // read faces
     if (nIndices > 0) {

@@ -16,7 +16,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/image.h
   ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
   ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/logger.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/log.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
   ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
@@ -84,7 +84,7 @@ set(SOURCE_FILES
   fontmanager.cpp
   freetype.cpp
   image.cpp
-  logger.cpp
+  log.cpp
   mpcdi.cpp
   network.cpp
   networkmanager.cpp

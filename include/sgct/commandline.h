@@ -9,7 +9,7 @@
 #ifndef __SGCT__COMMANDLINE__H__
 #define __SGCT__COMMANDLINE__H__
 
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <optional>
 #include <string>
@@ -20,7 +20,7 @@ namespace sgct {
 struct Configuration {
     std::optional<std::string> configFilename;
     std::optional<bool> isServer;
-    std::optional<Logger::Level> logLevel;
+    std::optional<Log::Level> logLevel;
     std::optional<bool> showHelpText;
     std::optional<int> nodeId;
     std::optional<bool> firmSync;

@@ -9,7 +9,7 @@
 #include <sgct/shaderprogram.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/ogl_headers.h>
 
 #define Err(code, msg) Error(Error::Component::Shader, code, msg)
@@ -26,7 +26,7 @@ namespace {
             std::vector<GLchar> log(logLength);
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
-            sgct::Logger::Error(
+            sgct::Log::Error(
                 "Shader program[%s] linking error: %s", name.c_str(), log.data()
             );
         }
@@ -96,14 +96,11 @@ int ShaderProgram::id() const {
 
 void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        throw Err(7010,  "No shaders have been added to the program " + _name);
+        throw Err(7010, "No shaders have been added to the program " + _name);
     }
 
     // Create the program
-    bool createSuccess = createProgram();
-    if (!createSuccess) {
-        throw Err(7011, "Error creating the program " + _name);
-    }
+    createProgram();
 
     // Link shaders
     for (const Shader& shader : _shaders) {
@@ -114,35 +111,29 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     _isLinked = checkLinkStatus(_programId, _name);
     if (!_isLinked) {
-        throw Err(7012, "Error linking the program " + _name);
+        throw Err(7011, "Error linking the program " + _name);
     }
 }
 
-bool ShaderProgram::createProgram() {
+void ShaderProgram::createProgram() {
     if (_programId > 0) {
         // If the program is already created don't recreate it. But the function should
         // only return true if it hasn't been linked yet. If it has been already linked
         // it can't be reused
         if (_isLinked) {
-            Logger::Error(
-                "Could not create shader program [%s]: Already linked", _name.c_str()
+            throw Err(
+                7012, "Failed to create shader program " + _name + ": Already linked"
             );
-            return false;
         }
 
         // If the program is already created but not linked yet it can be reused
-        return true;
+        return;
     }
 
     _programId = glCreateProgram();
     if (_programId == 0) {
-        Logger::Error(
-            "Could not create shader program [%s]: Unknown error", _name.c_str()
-        );
-        return false;
+        throw Err(7013, "Failed to create shader program " + _name + ": Unknown error");
     }
-
-    return true;
 }
 
 void ShaderProgram::bind() const {

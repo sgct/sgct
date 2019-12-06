@@ -10,7 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/fisheyeprojection.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
@@ -63,10 +63,8 @@ correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
     return buff;
 }
 
-sgct::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
-                                                const glm::vec2& size)
-{
-    sgct::correction::Buffer buff;
+correction::Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size) {
+    correction::Buffer buff;
     buff.indices = { 0, 3, 1, 2 };
 
     buff.vertices = {
@@ -97,8 +95,7 @@ sgct::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
     return buff;
 }
 
-void exportMesh(GLenum type, const std::string& exportPath,
-                const sgct::correction::Buffer& buf)
+void exportMesh(GLenum type, const std::string& exportPath, const correction::Buffer& buf)
 {
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
         throw Error(
@@ -164,7 +161,7 @@ void exportMesh(GLenum type, const std::string& exportPath,
         }
     }
 
-    Logger::Info("Mesh '%s' exported successfully", exportPath.c_str());
+    Log::Info("Mesh '%s' exported successfully", exportPath.c_str());
 }
 
 } // namespace
@@ -177,7 +174,7 @@ CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
     if (hintStr == "skyskan")        { return CorrectionMesh::Format::SkySkan; }
     if (hintStr == "mpcdi")          { return CorrectionMesh::Format::Mpcdi;}
     if (!hintStr.empty()) {
-        Logger::Warning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
+        Log::Warning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
     }
     return CorrectionMesh::Format::None;
 }
@@ -213,7 +210,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     // generate unwarped mesh for mask
     if (needsMaskGeometry) {
     //if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
-        Logger::Debug("CorrectionMesh: Creating mask mesh");
+        Log::Debug("CorrectionMesh: Creating mask mesh");
 
         Buffer buf = setupMaskMesh(parentPos, parentSize);
         createMesh(_maskGeometry, buf);
@@ -286,7 +283,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
 
     createMesh(_warpGeometry, buf);
 
-    Logger::Debug(
+    Log::Debug(
         "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
         static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
     );

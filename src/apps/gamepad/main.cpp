@@ -60,14 +60,14 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        Log::Error("%s", e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
     joyStick1Name = glfwGetJoystickName(static_cast<int>(Joystick::Joystick1));
     if (joyStick1Name) {
-        Logger::Info("Joystick 1 '%s' is present", joyStick1Name);
+        Log::Info("Joystick 1 '%s' is present", joyStick1Name);
 
         int numberOfAxes = 0;
         glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
         int numberOfButtons = 0;
         glfwGetJoystickButtons(static_cast<int>(Joystick::Joystick1), &numberOfButtons);
 
-        Logger::Info(
+        Log::Info(
             "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons
         );
     }

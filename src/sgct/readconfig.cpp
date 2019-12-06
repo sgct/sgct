@@ -9,7 +9,7 @@
 #include <sgct/readconfig.h>
 
 #include <sgct/error.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
@@ -143,7 +143,7 @@ namespace {
             return sgct::config::Window::StereoMode::TopBottomInverted;
         }
 
-        sgct::Logger::Error("Unknown stereo mode %s", type.c_str());
+        sgct::Log::Error("Unknown stereo mode %s", type.c_str());
         return sgct::config::Window::StereoMode::NoStereo;
     }
 
@@ -173,29 +173,20 @@ namespace {
             return sgct::config::Window::ColorBitDepth::Depth32UInt;
         }
 
-        sgct::Logger::Error("Unknown color bit depth %s", type.c_str());
+        sgct::Log::Error("Unknown color bit depth %s", type.c_str());
         return sgct::config::Window::ColorBitDepth::Depth8;
     }
 
     int cubeMapResolutionForQuality(const std::string& quality) {
         static const std::unordered_map<std::string, int> Map = {
-            { "low",     256 },
-            { "256",     256 },
-            { "medium",  512 },
-            { "512",     512 },
-            { "high",   1024 },
-            { "1k",     1024 },
-            { "1024",   1024 },
-            { "1.5k",   1536 },
-            { "1536",   1536 },
-            { "2k",     2048 },
-            { "2048",   2048 },
-            { "4k",     4096 },
-            { "4096",   4096 },
-            { "8k",     8192 },
-            { "8192",   8192 },
-            { "16k",   16384 },
-            { "16384", 16384 },
+            { "low",     256 }, { "256",     256 },
+            { "medium",  512 }, { "512",     512 },
+            { "high",   1024 }, { "1k",     1024 }, { "1024",   1024 },
+            { "1.5k",   1536 }, { "1536",   1536 },
+            { "2k",     2048 }, { "2048",   2048 },
+            { "4k",     4096 }, { "4096",   4096 },
+            { "8k",     8192 }, { "8192",   8192 },
+            { "16k",   16384 }, { "16384", 16384 },
         };
 
         const auto it = Map.find(quality);
@@ -203,8 +194,7 @@ namespace {
             return it->second;
         }
         else {
-            sgct::Logger::Error("Unknown resolution %s", quality.c_str());
-            return -1;
+            throw Err(6085, "Unknown resolution " + quality + " for cube map");
         }
     }
 
@@ -231,13 +221,11 @@ namespace {
     }
 
     std::optional<glm::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
-        using namespace tinyxml2;
-
         glm::vec4 value;
-        bool re = e.QueryFloatAttribute("r", &value[0]) == XML_NO_ERROR;
-        bool ge = e.QueryFloatAttribute("g", &value[1]) == XML_NO_ERROR;
-        bool be = e.QueryFloatAttribute("b", &value[2]) == XML_NO_ERROR;
-        bool ae = e.QueryFloatAttribute("a", &value[3]) == XML_NO_ERROR;
+        bool re = e.QueryFloatAttribute("r", &value[0]) == tinyxml2::XML_NO_ERROR;
+        bool ge = e.QueryFloatAttribute("g", &value[1]) == tinyxml2::XML_NO_ERROR;
+        bool be = e.QueryFloatAttribute("b", &value[2]) == tinyxml2::XML_NO_ERROR;
+        bool ae = e.QueryFloatAttribute("a", &value[3]) == tinyxml2::XML_NO_ERROR;
         return (re && ge && be && ae) ? std::optional(value) : std::nullopt;
     }
 
@@ -295,7 +283,7 @@ namespace {
             return value;
         }
         else {
-            sgct::Logger::Error("Error extracting value '%s'", name);
+            sgct::Log::Error("Error extracting value '%s'", name);
             return std::nullopt;
         }
     }
@@ -435,7 +423,7 @@ namespace {
                 proj.mapping = SpoutOutputProjection::Mapping::Cubemap;
             }
             else {
-                proj.mapping = SpoutOutputProjection::Mapping::Cubemap;
+                throw Err(6086, "Unknown spout output mapping: " + std::string(val));
             }
         }
         if (const char* a = element.Attribute("mappingSpoutName"); a) {
@@ -954,16 +942,16 @@ namespace {
 namespace sgct {
 
 config::Cluster readConfig(const std::string& filename) {
-    Logger::Debug("Parsing XML config '%s'", filename.c_str());
+    Log::Debug("Parsing XML config '%s'", filename.c_str());
 
     config::Cluster cluster = readXMLFile(filename);
 
-    Logger::Debug("Config file '%s' read successfully", filename.c_str());
-    Logger::Info("Number of nodes in cluster: %d", cluster.nodes.size());
+    Log::Debug("Config file '%s' read successfully", filename.c_str());
+    Log::Info("Number of nodes in cluster: %d", cluster.nodes.size());
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
-        Logger::Info("\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port);
+        Log::Info("\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port);
     }
 
     return cluster;

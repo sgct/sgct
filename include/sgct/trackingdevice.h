@@ -128,8 +128,8 @@ private:
     void setButtonTimeStamp(int index);
 
     bool _isEnabled = true;
-    std::string _name;
-    int _parentIndex; // the index of parent Tracker
+    const std::string _name;
+    const int _parentIndex; // the index of parent Tracker
     int _nButtons = 0;
     int _nAxes = 0;
     int _sensorId = -1;

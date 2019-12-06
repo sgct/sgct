@@ -18,15 +18,15 @@
 
 namespace {
     // Line parameters
-    const glm::vec4 ColorStaticGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
-    const glm::vec4 ColorStaticFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
-    const glm::vec4 ColorStaticBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
+    constexpr const glm::vec4 ColorStaticGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
+    constexpr const glm::vec4 ColorStaticFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    constexpr const glm::vec4 ColorStaticBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
 
-    const glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
-    const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
-    const glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
-    const glm::vec4 ColorLoopTimeMin = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
-    const glm::vec4 ColorLoopTimeMax = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
+    constexpr const glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
+    constexpr const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
+    constexpr const glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
+    constexpr const glm::vec4 ColorLoopTimeMin = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
+    constexpr const glm::vec4 ColorLoopTimeMax = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
 
     constexpr const char* StatsVertShader = R"(
 #version 330 core
@@ -55,8 +55,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     // Static background quad
     struct Vertex {
         Vertex(float x_, float y_) : x(x_), y(y_) {}
-        float x = 0.f;
-        float y = 0.f;
+        const float x = 0.f;
+        const float y = 0.f;
     };
     std::vector<Vertex> vs;
     vs.emplace_back(0.f, 0.f);
@@ -331,9 +331,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f1,
             mode,
-            Pos.x,
-            Pos.y + 7 * Offset,
-            glm::vec4(1.0f, 0.8f, 0.8f, 1.f),
+            Pos.x, Pos.y + 7 * Offset,
+            glm::vec4(1.f, 0.8f, 0.8f, 1.f),
             "Frame number: %i", Engine::instance().currentFrameNumber()
         );
         text::print(
@@ -341,8 +340,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x,
-            Pos.y + 4 * Offset,
+            Pos.x, Pos.y + 4 * Offset,
             ColorFrameTime,
             "Frame time: %f ms", _statistics.frametimes[0] * 1000.0
         );
@@ -351,8 +349,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x,
-            Pos.y + 3 * Offset,
+            Pos.x, Pos.y + 3 * Offset,
             ColorDrawTime,
             "Draw time: %f ms", _statistics.drawTimes[0] * 1000.0
         );
@@ -361,8 +358,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x,
-            Pos.y + 2 * Offset,
+            Pos.x, Pos.y + 2 * Offset,
             ColorSyncTime,
             "Sync time: %f ms", _statistics.syncTimes[0] * 1000.0
         );
@@ -371,8 +367,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x,
-            Pos.y + Offset,
+            Pos.x, Pos.y + Offset,
             ColorLoopTimeMin,
             "Min Loop time: %f ms", _statistics.loopTimeMin[0] * 1000.0
         );
@@ -381,8 +376,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f2,
             mode,
-            Pos.x,
-            Pos.y,
+            Pos.x, Pos.y,
             ColorLoopTimeMax,
             "Max Loop time: %f ms", _statistics.loopTimeMax[0] * 1000.0
         );
@@ -448,8 +442,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f,
             mode,
-            Pos.x,
-            Pos.y,
+            Pos.x, Pos.y,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Histogram Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
         );
@@ -458,8 +451,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             viewport,
             f,
             mode,
-            Pos.x,
-            Pos.y + 12.f,
+            Pos.x, Pos.y + 12.f,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
             "Histogram Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
         );

@@ -10,7 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
-#include <sgct/logger.h>
+#include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
@@ -47,15 +47,13 @@ namespace {
 
   uniform sampler2D tex;
 
-  void main() {
-    out_color = tr_color * texture(tex, tr_uv);
-  }
+  void main() { out_color = tr_color * texture(tex, tr_uv); }
 )";
 } // namespace
 
 namespace sgct {
 
-SphericalMirrorProjection::SphericalMirrorProjection(Window* parent, 
+SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, 
                                                      std::string bottomMesh,
                                                      std::string leftMesh,
                                                      std::string rightMesh,
@@ -187,7 +185,7 @@ void SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat);
-        Logger::Debug(
+        Log::Debug(
             "%dx%d cube face texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, texture
         );
@@ -274,7 +272,7 @@ void SphericalMirrorProjection::initViewports() {
 void SphericalMirrorProjection::initShaders() {
     if (_isStereo || _preferedMonoFrustumMode != Frustum::Mode::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
-        Logger::Warning("Stereo not supported in spherical projection");
+        Log::Warning("Stereo not supported in spherical projection");
     }
 
     // reload shader program if it exists

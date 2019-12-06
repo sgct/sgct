@@ -68,7 +68,6 @@ private:
 
     void addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
-    void hostInfo();
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();
     void prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
@@ -88,7 +87,7 @@ private:
     bool _isServer = true;
     bool _isRunning = true;
     bool _allNodesConnected = false;
-    NetworkMode _mode;
+    const NetworkMode _mode;
     unsigned int _nActiveConnections = 0;
     unsigned int _nActiveSyncConnections = 0;
     unsigned int _nActiveDataTransferConnections = 0;

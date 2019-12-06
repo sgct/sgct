@@ -16,12 +16,12 @@
 
 namespace sgct {
 
-class Logger {
+class Log {
 public:
     /// Different notify levels for messages
     enum class Level { Error, Warning, Info, Debug };
     
-    static Logger& instance();
+    static Log& instance();
     static void destroy();
 
     static void Debug(const char* fmt, ...);
@@ -42,12 +42,12 @@ public:
     void setLogCallback(std::function<void(const char *)> fn);
 
 private:
-    Logger();
+    Log();
 
     void printv(const char* fmt, va_list ap);
     void logToFile(const std::vector<char>& buffer);
 
-    static Logger* _instance;
+    static Log* _instance;
 
     std::vector<char> _parseBuffer;
     std::vector<char> _combinedBuffer;

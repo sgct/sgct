@@ -113,8 +113,7 @@ public:
      * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
      * texture index at which the font information is stored
      */
-    void bindShader(const glm::mat4& mvp, const glm::vec4& color, 
-        const glm::vec4& strokeColor, int texture) const;
+    void bindShader(const glm::mat4& mvp, const glm::vec4& color, int texture) const;
 
 private:
     /// Constructor initiates the freetype library
@@ -127,7 +126,7 @@ private:
      * \param height Height of the font in pixels
      * \return Pointer to the newly created font, nullptr if something went wrong
      */
-    std::unique_ptr<Font> createFont(const std::string& fontName, unsigned int height);
+    std::unique_ptr<Font> createFont(const std::string& fontName, int height);
 
     static FontManager* _instance;
 
@@ -142,7 +141,6 @@ private:
     ShaderProgram _shader;
     int _mvpLocation = -1;
     int _colorLocation = -1;
-    int _strokeLocation = -1;
     int _textureLocation = -1;
 };
 

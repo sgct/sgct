@@ -50,7 +50,7 @@ public:
     void setCubemapResolution(int resolution);
 
     /**
-     * Set the interpolation mode
+     * Set the interpolation mode.
      *
      * \param im the selected mode
      */

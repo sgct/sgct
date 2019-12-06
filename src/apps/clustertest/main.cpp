@@ -7,6 +7,7 @@
 #include <sgct/freetype.h>
 #include <sgct/keys.h>
 #include <sgct/networkmanager.h>
+#include <sgct/node.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/window.h>

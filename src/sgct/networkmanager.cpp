@@ -19,6 +19,7 @@
 #include <sgct/error.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
+#include <sgct/node.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
 #include <cstring>

@@ -10,7 +10,9 @@
 
 #include <sgct/config.h>
 #include <sgct/log.h>
+#include <sgct/node.h>
 #include <sgct/settings.h>
+#include <sgct/user.h>
 #include <algorithm>
 
 namespace sgct {
@@ -37,6 +39,8 @@ void ClusterManager::destroy() {
 ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
     _users.push_back(std::make_unique<User>("default"));
 }
+
+ClusterManager::~ClusterManager() {}
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     _masterAddress = cluster.masterAddress;

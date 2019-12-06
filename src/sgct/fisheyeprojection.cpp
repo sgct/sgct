@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/offscreenbuffer.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>

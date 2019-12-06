@@ -17,26 +17,16 @@
 #include <sgct/keys.h>
 #include <sgct/modifiers.h>
 #include <sgct/mouse.h>
-#include <sgct/networkmanager.h>
-#include <sgct/screencapture.h>
-#include <sgct/shadermanager.h>
 #include <sgct/window.h>
 #include <array>
 #include <functional>
 #include <optional>
 
-struct GLFWwindow;
-
 namespace sgct {
 
 struct Configuration;
-class Image;
 class Node;
-class PostFX;
 class StatisticsRenderer;
-class TrackingManager;
-class Window;
-class User;
 
 config::Cluster loadCluster(std::optional<std::string> path);
 

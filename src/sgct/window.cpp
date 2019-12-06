@@ -15,8 +15,11 @@
 #include <sgct/log.h>
 #include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
+#include <sgct/node.h>
 #include <sgct/nonlinearprojection.h>
+#include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
+#include <sgct/screencapture.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/shaders/internalshaders.h>
@@ -96,6 +99,8 @@ bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
 Window::Window(int id) : _id(id) {}
+
+Window::~Window() {}
 
 void Window::applyWindow(const config::Window& window) {
     if (window.name) {

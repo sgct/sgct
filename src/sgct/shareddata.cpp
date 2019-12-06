@@ -33,7 +33,6 @@ SharedData::SharedData() {
     constexpr const int DefaultSize = 1024;
 
     _dataBlock.reserve(DefaultSize);
-    _dataBlockToCompress.reserve(DefaultSize);
 
     // fill rest of header with Network::DefaultId
     std::memset(_headerSpace.data(), Network::DefaultId, Network::HeaderSize);

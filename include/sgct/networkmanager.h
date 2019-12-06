@@ -11,12 +11,15 @@
 
 #include <sgct/network.h>
 #include <atomic>
+#include <condition_variable>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace sgct {
+
+class Network;
 
 /// The network manager manages all network connections for SGCT.
 class NetworkManager {

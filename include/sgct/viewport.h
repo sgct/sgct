@@ -12,7 +12,6 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/correctionmesh.h>
-#include <sgct/nonlinearprojection.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -27,6 +26,8 @@ namespace sgct::config {
 } // namespace sgct::config
 
 namespace sgct {
+
+class NonLinearProjection;
 
 /// This class holds and manages viewportdata and calculates frustums
 class Viewport : public BaseViewport {

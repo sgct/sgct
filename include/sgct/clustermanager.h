@@ -9,15 +9,17 @@
 #ifndef __SGCT__CLUSTERMANAGER__H__
 #define __SGCT__CLUSTERMANAGER__H__
 
-#include <sgct/node.h>
-#include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace sgct::config { struct Cluster; }
 
 namespace sgct {
+
+class Node;
+class User;
 
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
@@ -119,6 +121,7 @@ public:
 
 private:
     ClusterManager(int clusterID);
+    ~ClusterManager();
 
     static ClusterManager* _instance;
 

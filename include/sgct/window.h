@@ -9,8 +9,7 @@
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
-#include <sgct/offscreenbuffer.h>
-#include <sgct/screencapture.h>
+#include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <glm/glm.hpp>
 #include <optional>
@@ -24,6 +23,8 @@ namespace sgct::config { struct Window; }
 namespace sgct {
 
 class BaseViewport;
+class OffScreenBuffer;
+class ScreenCapture;
 
 /// Helper class for window data.
 class Window {
@@ -88,6 +89,7 @@ public:
     static void makeSharedContextCurrent();
 
     explicit Window(int id);
+    ~Window();
 
     void close();
     void init();

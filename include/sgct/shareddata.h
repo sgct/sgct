@@ -117,7 +117,6 @@ private:
 
     static SharedData* _instance;
     std::vector<unsigned char> _dataBlock;
-    std::vector<unsigned char> _dataBlockToCompress;
     std::array<unsigned char, Network::HeaderSize> _headerSpace;
     unsigned int _pos = 0;
 };

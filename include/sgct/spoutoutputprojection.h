@@ -11,7 +11,7 @@
 
 #include <sgct/nonlinearprojection.h>
 
-#include <sgct/engine.h>
+#include <sgct/callbackdata.h>
 #include <glm/glm.hpp>
 #include <array>
 #include <memory>

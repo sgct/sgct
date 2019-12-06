@@ -5,6 +5,7 @@
 #include <sgct/image.h>
 #include <sgct/keys.h>
 #include <sgct/log.h>
+#include <sgct/node.h>
 #include <sgct/settings.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>

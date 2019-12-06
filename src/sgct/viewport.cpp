@@ -12,6 +12,7 @@
 #include <sgct/config.h>
 #include <sgct/fisheyeprojection.h>
 #include <sgct/log.h>
+#include <sgct/nonlinearprojection.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/sphericalmirrorprojection.h>

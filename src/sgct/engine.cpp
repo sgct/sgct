@@ -14,8 +14,13 @@
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
+#include <sgct/networkmanager.h>
+#include <sgct/node.h>
 #include <sgct/nonlinearprojection.h>
+#include <sgct/offscreenbuffer.h>
 #include <sgct/readconfig.h>
+#include <sgct/screencapture.h>
+#include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/statisticsrenderer.h>
 #include <sgct/texturemanager.h>

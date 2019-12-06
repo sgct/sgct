@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/user.h>
+#include <stdexcept>
 
 namespace sgct {
 

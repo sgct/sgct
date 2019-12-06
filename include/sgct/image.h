@@ -9,8 +9,8 @@
 #ifndef __SGCT__IMAGE__H__
 #define __SGCT__IMAGE__H__
 
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
 
 namespace sgct {
 

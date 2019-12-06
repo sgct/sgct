@@ -24,8 +24,8 @@ public:
     void setEnabled(bool state);
     void addDevice(std::string name, int index);
 
-    TrackingDevice* lastDevice() const;
-    TrackingDevice* device(size_t index) const;
+    const std::vector<std::unique_ptr<TrackingDevice>>& devices() const;
+
     TrackingDevice* device(const std::string& name) const;
     TrackingDevice* deviceBySensorId(int id) const;
 
@@ -45,7 +45,6 @@ public:
     glm::mat4 getTransform() const;
     double scale() const;
 
-    int numberOfDevices() const;
     const std::string& name() const;
 
 private:

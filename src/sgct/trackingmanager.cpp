@@ -66,14 +66,13 @@ namespace {
 
         while (true) {
             const double t = sgct::Engine::getTime();
-            for (int i = 0; i < tm->numberOfTrackers(); ++i) {
-                sgct::Tracker* tracker = tm->tracker(i);
-
+            for (int i = 0; i < tm->trackers().size(); ++i) {
+                sgct::Tracker* tracker = tm->trackers()[i].get();
                 if (tracker == nullptr) {
                     continue;
                 }
-                for (int j = 0; j < tracker->numberOfDevices(); ++j) {
-                    if (!tracker->device(j)->isEnabled()) {
+                for (int j = 0; j < tracker->devices().size(); ++j) {
+                    if (!tracker->devices()[j]->isEnabled()) {
                         continue;
                     }
 
@@ -154,10 +153,10 @@ void TrackingManager::applyDevice(const config::Device& device) {
         addAnalogsToCurrentDevice(a.vrpnAddress, a.count);
     }
     if (device.offset) {
-        lastTracker()->lastDevice()->setOffset(*device.offset);
+        _trackers.back()->devices().back()->setOffset(*device.offset);
     }
     if (device.transformation) {
-        lastTracker()->lastDevice()->setTransform(*device.transformation);
+        _trackers.back()->devices().back()->setTransform(*device.transformation);
     }
 }
 
@@ -168,13 +167,13 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
         applyDevice(device);
     }
     if (tracker.offset) {
-        lastTracker()->setOffset(*tracker.offset);
+        _trackers.back()->setOffset(*tracker.offset);
     }
     if (tracker.scale) {
-        lastTracker()->setScale(*tracker.scale);
+        _trackers.back()->setScale(*tracker.scale);
     }
     if (tracker.transformation) {
-        lastTracker()->setTransform(*tracker.transformation);
+        _trackers.back()->setTransform(*tracker.transformation);
     }
 }
 
@@ -226,10 +225,9 @@ void TrackingManager::startSampling() {
 void TrackingManager::updateTrackingDevices() {
 #ifdef SGCT_HAS_VRPN
     for (const std::unique_ptr<Tracker>& tracker : _trackers) {
-        for (int j = 0; j < tracker->numberOfDevices(); ++j) {
-            TrackingDevice* tdPtr = tracker->device(j);
-            if (tdPtr->isEnabled() && tdPtr == _head && _headUser) {
-                _headUser->setTransform(tdPtr->worldTransform());
+        for (const std::unique_ptr<TrackingDevice>& device : tracker->devices()) {
+            if (device->isEnabled() && device.get() == _head && _headUser) {
+                _headUser->setTransform(device->worldTransform());
             }
         }
     }
@@ -271,7 +269,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     std::pair<std::set<std::string>::iterator, bool> retVal = _addresses.insert(address);
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->lastDevice();
+    TrackingDevice* device = _trackers.back()->devices().back().get();
 
     if (device) {
         device->setSensorId(id);
@@ -302,7 +300,7 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->lastDevice();
+    TrackingDevice* device = _trackers.back()->devices().back().get();
 
     if (ptr.mButtonDevice == nullptr && device) {
         Log::Info(
@@ -330,7 +328,7 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     }
 
     VRPNPointer& ptr = gTrackers.back().back();
-    TrackingDevice* device = _trackers.back()->lastDevice();
+    TrackingDevice* device = _trackers.back()->devices().back().get();
 
     if (ptr.mAnalogDevice == nullptr && device) {
         Log::Info(
@@ -352,20 +350,12 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
 #endif // SGCT_HAS_VRPN
 }
 
-int TrackingManager::numberOfTrackers() const {
-    return static_cast<int>(_trackers.size());
+const std::vector<std::unique_ptr<Tracker>>& TrackingManager::trackers() const {
+    return _trackers;
 }
 
 TrackingDevice* TrackingManager::headDevice() const {
     return _head;
-}
-
-Tracker* TrackingManager::lastTracker() const {
-    return !_trackers.empty() ? _trackers.back().get() : nullptr;
-}
-
-Tracker* TrackingManager::tracker(int index) const {
-    return index < static_cast<int>(_trackers.size()) ? _trackers[index].get() : nullptr;
 }
 
 Tracker* TrackingManager::tracker(const std::string& name) const {

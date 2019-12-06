@@ -29,12 +29,8 @@ void Tracker::addDevice(std::string name, int index) {
     Log::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
 }
 
-TrackingDevice* Tracker::lastDevice() const {
-    return !_trackingDevices.empty() ? _trackingDevices.back().get() : nullptr;
-}
-
-TrackingDevice* Tracker::device(size_t index) const {
-    return index < _trackingDevices.size() ? _trackingDevices[index].get() : nullptr;
+const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {
+    return _trackingDevices;
 }
 
 TrackingDevice* Tracker::device(const std::string& name) const {
@@ -99,10 +95,6 @@ glm::mat4 Tracker::getTransform() const {
 double Tracker::scale() const {
     std::unique_lock lock(mutex::Tracking);
     return _scale;
-}
-
-int Tracker::numberOfDevices() const {
-    return static_cast<int>(_trackingDevices.size());
 }
 
 const std::string& Tracker::name() const {

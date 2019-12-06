@@ -48,7 +48,7 @@ void TrackingDevice::setNumberOfAxes(int numOfAxes) {
 }
 
 void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
-    Tracker* parent = TrackingManager::instance().tracker(_parentIndex);
+    Tracker* parent = TrackingManager::instance().trackers()[_parentIndex].get();
 
     if (parent == nullptr) {
         Log::Error("Error getting handle to tracker for device '%s'", _name.c_str());

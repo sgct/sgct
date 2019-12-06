@@ -40,13 +40,9 @@ public:
     void updateTrackingDevices();
     void addTracker(std::string name);
 
-    int numberOfTrackers() const;
     TrackingDevice* headDevice() const;
 
-    Tracker* lastTracker() const;
-    // @TODO (abock, 2019-12-06) Replace with direct access to std::vector
-    Tracker* tracker(int index) const;
-    Tracker* tracker(const std::string& name) const;
+    const std::vector<std::unique_ptr<Tracker>>& trackers() const;
 
     void setEnabled(bool state);
     void setSamplingTime(double t);
@@ -59,6 +55,8 @@ private:
 
     TrackingManager() = default;
     ~TrackingManager();
+    
+    Tracker* tracker(const std::string& name) const;
     
     void addDeviceToCurrentTracker(std::string name);
     void addSensorToCurrentDevice(std::string address, int id);

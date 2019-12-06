@@ -16,7 +16,7 @@
 #include <array>
 #include <memory>
 
-namespace sgct::core {
+namespace sgct {
 
 class OffScreenBuffer;
 
@@ -83,6 +83,6 @@ private:
     int _mappingHeight;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__SPOUTOUTPUTPROJECTION__H__

@@ -12,8 +12,10 @@
 #include <glm/fwd.hpp>
 #include <string>
 
-namespace sgct { class Window; }
-namespace sgct::core { class BaseViewport; }
+namespace sgct {
+    class BaseViewport;
+    class Window;
+} // namespace sgct
 
 namespace sgct::text {
 
@@ -21,14 +23,14 @@ class Font;
 
 enum class TextAlignMode { TopLeft, TopCenter, TopRight};
 
-void print(const sgct::Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
     TextAlignMode mode, float x, float y, const char* format, ...);
 
-void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
     TextAlignMode mode, float x, float y, const glm::vec4& color,
     const char* format, ...);
 
-void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
     TextAlignMode mode, float x, float y, const glm::vec4& color,
     const glm::vec4& strokeColor, const char* format, ...);
 

@@ -28,7 +28,7 @@
 
 #define Error(c, msg) sgct::Error(sgct::Error::Component::CorrectionMesh, c, msg)
 
-namespace sgct::core {
+namespace sgct {
 
 namespace {
 correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
@@ -63,10 +63,10 @@ correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
     return buff;
 }
 
-sgct::core::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
+sgct::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
                                                 const glm::vec2& size)
 {
-    sgct::core::correction::Buffer buff;
+    sgct::correction::Buffer buff;
     buff.indices = { 0, 3, 1, 2 };
 
     buff.vertices = {
@@ -98,7 +98,7 @@ sgct::core::correction::Buffer setupSimpleMesh(const glm::vec2& pos,
 }
 
 void exportMesh(GLenum type, const std::string& exportPath,
-                const sgct::core::correction::Buffer& buf)
+                const sgct::correction::Buffer& buf)
 {
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
         throw Error(
@@ -116,12 +116,12 @@ void exportMesh(GLenum type, const std::string& exportPath,
     file << "# SGCT warping mesh\n# Number of vertices: " << buf.vertices.size() << "\n";
 
     // export vertices
-    for (const sgct::core::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+    for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
         file << "v " << vertex.x << ' ' << vertex.y << " 0\n";
     }
 
     // export texture coords
-    for (const sgct::core::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+    for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
         file << "vt " << vertex.s << ' ' << vertex.t << " 0\n";
     }
 
@@ -356,4 +356,4 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
     geom.type = buffer.geometryType;
 }
 
-} // namespace sgct::core
+} // namespace sgct

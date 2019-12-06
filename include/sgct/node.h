@@ -16,7 +16,7 @@
 
 namespace sgct::config { struct Node; }
 
-namespace sgct::core {
+namespace sgct {
 
 class Node {
 public:
@@ -54,6 +54,6 @@ private:
     bool _useSwapGroups = false;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__NODE__H__

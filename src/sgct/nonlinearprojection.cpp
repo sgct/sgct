@@ -13,7 +13,7 @@
 #include <sgct/settings.h>
 #include <algorithm>
 
-namespace sgct::core {
+namespace sgct {
 
 NonLinearProjection::NonLinearProjection(Window* parent)
     : _subViewports{
@@ -179,7 +179,7 @@ void NonLinearProjection::initTextures() {
 }
 
 void NonLinearProjection::initFBO() {
-    _cubeMapFbo = std::make_unique<core::OffScreenBuffer>();
+    _cubeMapFbo = std::make_unique<OffScreenBuffer>();
     _cubeMapFbo->setInternalColorFormat(_texInternalFormat);
     _cubeMapFbo->createFBO(_cubemapResolution, _cubemapResolution, _samples);
 }
@@ -296,4 +296,4 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-} // namespace sgct::core
+} // namespace sgct

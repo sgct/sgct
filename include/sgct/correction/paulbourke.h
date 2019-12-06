@@ -13,11 +13,11 @@
 #include <glm/fwd.hpp>
 #include <string>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     const glm::ivec2& size, float aspectRatio);
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction
 
 #endif // __SGCT__CORRECTION_PAULBOURKE__H__

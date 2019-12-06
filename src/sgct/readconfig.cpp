@@ -951,7 +951,7 @@ namespace {
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 config::Cluster readConfig(const std::string& filename) {
     Logger::Debug("Parsing XML config '%s'", filename.c_str());
@@ -969,4 +969,4 @@ config::Cluster readConfig(const std::string& filename) {
     return cluster;
 }
 
-} // namespace sgct::core
+} // namespace sgct

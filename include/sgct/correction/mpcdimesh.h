@@ -11,11 +11,11 @@
 
 #include <sgct/correction/buffer.h>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh);
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction
 
 #endif // __SGCT__CORRECTION_MPCDIMESH__H__
 

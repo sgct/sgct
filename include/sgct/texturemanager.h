@@ -14,7 +14,7 @@
 
 namespace sgct {
 
-namespace core { class Image; }
+class Image;
 
 /**
  * The TextureManager loads and handles textures. It is a singleton and can be accessed

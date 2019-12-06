@@ -10,6 +10,7 @@
 #define __SGCT__ENGINE__H__
 
 #include <sgct/actions.h>
+#include <sgct/callbackdata.h>
 #include <sgct/config.h>
 #include <sgct/frustum.h>
 #include <sgct/joystick.h>
@@ -29,42 +30,15 @@ struct GLFWwindow;
 namespace sgct {
 
 struct Configuration;
+class Image;
+class Node;
 class PostFX;
+class StatisticsRenderer;
 class TrackingManager;
 class Window;
-
-namespace core {
-    class Image;
-    class Node;
-    class StatisticsRenderer;
-    class User;
-} // namespace core
+class User;
 
 config::Cluster loadCluster(std::optional<std::string> path);
-
-struct RenderData {
-    RenderData(const Window& window_, const core::BaseViewport& viewport_,
-               Frustum::Mode frustumMode_, glm::mat4 modelMatrix_, glm::mat4 viewMatrix_,
-               glm::mat4 projectionMatrix_, glm::mat4 modelViewProjectionMatrix_)
-        : window(window_)
-        , viewport(viewport_)
-        , frustumMode(frustumMode_)
-        , modelMatrix(std::move(modelMatrix_))
-        , viewMatrix(std::move(viewMatrix_))
-        , projectionMatrix(std::move(projectionMatrix_))
-        , modelViewProjectionMatrix(std::move(modelViewProjectionMatrix_))
-    {}
-    const Window& window;
-    const core::BaseViewport& viewport;
-    Frustum::Mode frustumMode;
-
-    glm::mat4 modelMatrix;
-    glm::mat4 viewMatrix;
-    glm::mat4 projectionMatrix;
-    // @TODO (abock, 2019-12-03) Performance measurements needed to see whether this
-    // caching is necessary
-    glm::mat4 modelViewProjectionMatrix;
-};
 
 /**
  * The Engine class is the central part of sgct and handles most of the callbacks,
@@ -329,13 +303,13 @@ public:
     static double getTime();
 
     /// \return a reference to this node (running on this computer).
-    const sgct::core::Node& thisNode() const;
+    const Node& thisNode() const;
 
     /// \return A list of all the windows for the current node
     const std::vector<std::unique_ptr<Window>>& windows() const;
 
     /// \return a pointer to the user (observer position) object
-    static core::User& defaultUser();
+    static User& defaultUser();
 
     /// \return true if this node is the master
     bool isMaster() const;
@@ -358,7 +332,7 @@ public:
      * SGCT and in general does not have to be called by any external application using
      * this library.
      */
-    void setupViewport(const Window& window, const core::BaseViewport& viewport,
+    void setupViewport(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustum);
 
 private:
@@ -416,7 +390,7 @@ private:
      * it exists) into this window
      */
     void blitPreviousWindowViewport(Window& prevWindow, Window& window,
-        const core::Viewport& viewport, Frustum::Mode mode);
+        const Viewport& viewport, Frustum::Mode mode);
 
     const std::function<void()> _preWindowFn;
     const std::function<void(GLFWwindow*)> _contextCreationFn;
@@ -439,7 +413,7 @@ private:
 
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;
-    std::unique_ptr<core::StatisticsRenderer> _statisticsRenderer;
+    std::unique_ptr<StatisticsRenderer> _statisticsRenderer;
 
     bool _checkOpenGLCalls = false;
     bool _createDebugContext = false;

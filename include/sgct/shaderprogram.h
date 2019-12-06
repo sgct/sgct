@@ -95,7 +95,7 @@ private:
     bool _isLinked = false;          /// If this program has been linked
     int _programId = 0;              /// Unique program _id
 
-    std::vector<core::Shader> _shaders;
+    std::vector<Shader> _shaders;
 };
 
 } // namespace sgct

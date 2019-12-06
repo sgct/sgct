@@ -11,7 +11,7 @@
 // @TODO (abock, 2019-10-15) There seems to be an issue with the rendering of the 
 // z coordinate of the place is 0 even if the user position is not a zero
 
-namespace sgct::core {
+namespace sgct {
 
 void ProjectionPlane::offset(const glm::vec3& p) {
     _lowerLeft += p;
@@ -39,4 +39,4 @@ const glm::vec3& ProjectionPlane::coordinateUpperRight() const {
     return _upperRight;
 }
 
-} // namespace sgct::core
+} // namespace sgct

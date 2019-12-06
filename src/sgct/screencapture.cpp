@@ -22,7 +22,7 @@
 
 namespace {
     void screenCaptureHandler(void* arg) {
-        using SCTI = sgct::core::ScreenCapture::ScreenCaptureThreadInfo;
+        using SCTI = sgct::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
         try {
@@ -34,8 +34,8 @@ namespace {
         ptr->isRunning = false;
     }
 
-    GLenum sourceForCaptureSource(sgct::core::ScreenCapture::CaptureSource source) {
-        using Source = sgct::core::ScreenCapture::CaptureSource;
+    GLenum sourceForCaptureSource(sgct::ScreenCapture::CaptureSource source) {
+        using Source = sgct::ScreenCapture::CaptureSource;
         switch (source) {
             case Source::BackBuffer: return GL_BACK;
             case Source::LeftBackBuffer: return GL_BACK_LEFT;
@@ -55,7 +55,7 @@ namespace {
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 ScreenCapture::ScreenCapture()
     : _nThreads(Settings::instance().numberCaptureThreads())
@@ -301,7 +301,7 @@ Image* ScreenCapture::prepareImage(int index, std::string file) {
     Logger::Debug("Starting thread for screenshot/capture [%d]", index);
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
-        _captureInfos[index].frameBufferImage = std::make_unique<core::Image>();
+        _captureInfos[index].frameBufferImage = std::make_unique<Image>();
         _captureInfos[index].frameBufferImage->setBytesPerChannel(_bytesPerColor);
         _captureInfos[index].frameBufferImage->setChannels(_nChannels);
         _captureInfos[index].frameBufferImage->setSize(_resolution);
@@ -316,4 +316,4 @@ Image* ScreenCapture::prepareImage(int index, std::string file) {
     return _captureInfos[index].frameBufferImage.get();
 }
 
-} // namespace sgct::core
+} // namespace sgct

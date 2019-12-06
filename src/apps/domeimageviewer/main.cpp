@@ -17,10 +17,10 @@
 
 namespace {
     std::unique_ptr<std::thread> loadThread;
-    std::mutex mutex;
+    std::mutex imageMutex;
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
-    std::vector<std::unique_ptr<sgct::core::Image>> transImages;
+    std::vector<std::unique_ptr<sgct::Image>> transImages;
 
     sgct::SharedBool stats(false);
     sgct::SharedInt32 texIndex(-1);
@@ -73,15 +73,15 @@ namespace {
 using namespace sgct;
 
 void readImage(unsigned char* data, int len) {
-    std::unique_lock lk(mutex);
+    std::unique_lock lk(imageMutex);
 
-    std::unique_ptr<sgct::core::Image> img = std::make_unique<sgct::core::Image>();
+    std::unique_ptr<sgct::Image> img = std::make_unique<sgct::Image>();
     try {
         img->load(data, len);
         transImages.push_back(std::move(img));
     }
     catch (const std::runtime_error& e) {
-        Logger::Error("%s", e.what());
+        sgct::Logger::Error("%s", e.what());
     }
 }
 
@@ -110,14 +110,14 @@ void startDataTransfer() {
         std::vector<char> buffer(size);
         if (file.read(buffer.data(), size)) {
             const int s = static_cast<int>(buffer.size());
-            Engine::instance().transferDataBetweenNodes(buffer.data(), s, i);
+            sgct::Engine::instance().transferDataBetweenNodes(buffer.data(), s, i);
             readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
         }
     }
 }
 
 void uploadTexture() {
-    std::unique_lock lk(mutex);
+    std::unique_lock lk(imageMutex);
 
     if (transImages.empty()) {
         return;
@@ -182,7 +182,7 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        Logger::Info(
+        sgct::Logger::Info(
             "Texture id %d loaded (%dx%dx%d)",
             tex, transImages[i]->size().x, transImages[i]->size().y,
             transImages[i]->channels()
@@ -212,7 +212,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (core::ClusterManager::instance().numberOfNodes() == 1) {
+            if (ClusterManager::instance().numberOfNodes() == 1) {
                 clientsUploadDone = true;
             }
         }
@@ -406,7 +406,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == lastPackage.value()) {
         counter++;
-        if (counter == (sgct::core::ClusterManager::instance().numberOfNodes() - 1)) {
+        if (counter == (sgct::ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             

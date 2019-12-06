@@ -9,7 +9,7 @@
 #ifndef __SGCT__INTERNALFISHEYESHADERS__H__
 #define __SGCT__INTERNALFISHEYESHADERS__H__
 
-namespace sgct::core::shaders_fisheye {
+namespace sgct::shaders_fisheye {
 
 constexpr const char* SampleFun = R"(
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
@@ -637,6 +637,6 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
   }
 )";
 
-} // namespace sgct::core::shaders_fisheye
+} // namespace sgct::shaders_fisheye
 
 #endif // __SGCT__INTERNALFISHEYESHADERS__H__

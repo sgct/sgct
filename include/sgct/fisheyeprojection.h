@@ -14,7 +14,7 @@
 #include <sgct/engine.h>
 #include <glm/glm.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 /// This class manages and renders non linear fisheye projections
 class FisheyeProjection : public NonLinearProjection {
@@ -132,6 +132,6 @@ private:
     } _shaderLoc;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__FISHEYEPROJECTION__H__

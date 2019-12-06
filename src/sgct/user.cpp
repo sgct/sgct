@@ -11,7 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 User::User(std::string name) : _name(std::move(name)) {}
 
@@ -96,4 +96,4 @@ bool User::isTracked() const {
     return !(_headTrackerDeviceName.empty() || _headTrackerName.empty());
 }
 
-} // namespace sgct::core
+} // namespace sgct

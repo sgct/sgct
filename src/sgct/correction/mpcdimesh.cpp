@@ -15,7 +15,7 @@
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::MPCDIMesh, code, msg)
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     Buffer buf;
@@ -133,4 +133,4 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

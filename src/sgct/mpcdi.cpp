@@ -16,7 +16,7 @@
 
 #define Error(code, msg) Error(Error::Component::MPCDI, code, msg)
 
-namespace sgct::core::mpcdi {
+namespace sgct::mpcdi {
 
 namespace {
     struct SubFile {
@@ -349,4 +349,4 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
     return res;
 }
 
-} // namespace sgct::core::mpcdi
+} // namespace sgct::mpcdi

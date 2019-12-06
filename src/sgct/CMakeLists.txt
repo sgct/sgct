@@ -1,6 +1,7 @@
 set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/actions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/callbackdata.h
   ${PROJECT_SOURCE_DIR}/include/sgct/clustermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/commandline.h
   ${PROJECT_SOURCE_DIR}/include/sgct/config.h

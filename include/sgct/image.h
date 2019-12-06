@@ -12,7 +12,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 class Image {
 public:
@@ -55,6 +55,6 @@ private:
     unsigned char* _data = nullptr;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__IMAGE__H__

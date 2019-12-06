@@ -17,7 +17,7 @@
 
 #define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
                           const glm::ivec2& size)
@@ -151,4 +151,4 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

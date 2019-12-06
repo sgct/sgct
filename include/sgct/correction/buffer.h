@@ -12,7 +12,7 @@
 #include <sgct/ogl_headers.h>
 #include <vector>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 struct CorrectionMeshVertex {
     float x = 0.f;
@@ -31,6 +31,6 @@ struct Buffer {
     GLenum geometryType = GL_TRIANGLES;
 };
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction
 
 #endif // __SGCT__BUFFER__H__

@@ -11,7 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/user.h>
 
-namespace sgct::core {
+namespace sgct {
 
 BaseViewport::BaseViewport(Window* parent)
     : _parent(parent)
@@ -210,4 +210,4 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
     setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, abs(upperLeft.z));
 }
 
-} // namespace sgct::core
+} // namespace sgct

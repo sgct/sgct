@@ -58,7 +58,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
+        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setWindowResolution(glm::ivec2(width, height));
@@ -70,7 +70,7 @@ namespace {
         width = std::max(width, 1);
         height = std::max(height, 1);
 
-        sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
+        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setFramebufferResolution(glm::ivec2(width, height));
@@ -79,7 +79,7 @@ namespace {
     }
 
     void windowFocusCallback(GLFWwindow* window, int state) {
-        sgct::core::Node& node = sgct::core::ClusterManager::instance().thisNode();
+        sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
                 win->setFocused(state == GLFW_TRUE);
@@ -169,14 +169,14 @@ void Window::applyWindow(const config::Window& window) {
         setFullScreenMonitorIndex(*window.monitor);
     }
     if (window.mpcdi) {
-        core::mpcdi::ReturnValue r = core::mpcdi::parseMpcdiConfiguration(*window.mpcdi);
+        mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
         setWindowPosition(glm::ivec2(0));
         initWindowResolution(r.resolution);
         setFramebufferResolution(r.resolution);
         setFixResolution(true);
 
-        for (const core::mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
-            std::unique_ptr<core::Viewport> v = std::make_unique<core::Viewport>(this);
+        for (const mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
+            std::unique_ptr<Viewport> v = std::make_unique<Viewport>(this);
             v->applySettings(vp.proj);
             v->setMpcdiWarpMesh(vp.meshData);
             addViewport(std::move(v));
@@ -232,7 +232,7 @@ void Window::applyWindow(const config::Window& window) {
     }
 
     for (const config::Viewport& viewport : window.viewports) {
-        std::unique_ptr<core::Viewport> vp = std::make_unique<core::Viewport>(this);
+        std::unique_ptr<Viewport> vp = std::make_unique<Viewport>(this);
         vp->applyViewport(viewport);
         addViewport(std::move(vp));
     }
@@ -315,8 +315,8 @@ void Window::init() {
     }
 
     std::string title = "SGCT node: " +
-        core::ClusterManager::instance().thisNode().address() + " (" +
-        (core::NetworkManager::instance().isComputerServer() ? "master" : "client") +
+        ClusterManager::instance().thisNode().address() + " (" +
+        (NetworkManager::instance().isComputerServer() ? "master" : "client") +
         ": " + std::to_string(_id) + ")";
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
@@ -379,7 +379,7 @@ void Window::initOGL() {
     initScreenCapture();
     loadShaders();
 
-    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (!vp->hasSubViewports()) {
             continue;
         }
@@ -443,7 +443,6 @@ void Window::initOGL() {
 }
 
 void Window::initContextSpecificOGL() {
-    using namespace core;
     makeOpenGLContextCurrent();
     std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
     _hasAnyMasks = std::any_of(
@@ -554,14 +553,14 @@ void Window::swap(bool takeScreenshot) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
                     _stereoMode == StereoMode::Active ?
-                        core::ScreenCapture::CaptureSource::LeftBackBuffer :
-                        core::ScreenCapture::CaptureSource::BackBuffer
+                        ScreenCapture::CaptureSource::LeftBackBuffer :
+                        ScreenCapture::CaptureSource::BackBuffer
                 );
             }
             if (_screenCaptureRight && _stereoMode == StereoMode::Active) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
                     0,
-                    core::ScreenCapture::CaptureSource::RightBackBuffer
+                    ScreenCapture::CaptureSource::RightBackBuffer
                 );
             }
         }
@@ -595,7 +594,7 @@ void Window::updateResolutions() {
 
         // Set field of view of each of this window's viewports to match new aspect ratio,
         // adjusting only the horizontal (x) values
-        for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+        for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
             Logger::Debug(
                 "Update aspect ratio in viewport (%f --> %f)", _aspectRatio, ratio
@@ -629,7 +628,7 @@ void Window::updateResolutions() {
 void Window::setHorizFieldOfView(float hFovDeg) {
     // Set field of view of each of this window's viewports to match new horiz/vert
     // aspect ratio, adjusting only the horizontal (x) values
-    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
     Logger::Debug(
@@ -656,7 +655,7 @@ void Window::update() {
 
     resizeFBOs();
 
-    auto resizePBO = [this](core::ScreenCapture& sc) {
+    auto resizePBO = [this](ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
@@ -679,7 +678,7 @@ void Window::update() {
     }
 
     // resize non linear projection buffers
-    for (const std::unique_ptr<core::Viewport>& vp : _viewports) {
+    for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (vp->hasSubViewports()) {
             glm::vec2 viewport = glm::vec2(_framebufferRes) * vp->size();
             vp->nonLinearProjection()->update(std::move(viewport));
@@ -896,11 +895,11 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         
     glfwMakeContextCurrent(_sharedHandle);
 
-    _screenCaptureLeftOrMono = std::make_unique<core::ScreenCapture>();
+    _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>();
     if (useRightEyeTexture()) {
-        _screenCaptureRight = std::make_unique<core::ScreenCapture>();
+        _screenCaptureRight = std::make_unique<ScreenCapture>();
     }
-    _finalFBO = std::make_unique<core::OffScreenBuffer>();
+    _finalFBO = std::make_unique<OffScreenBuffer>();
 }
 
 void Window::initNvidiaSwapGroups() {
@@ -933,7 +932,7 @@ void Window::initNvidiaSwapGroups() {
 }
 
 void Window::initScreenCapture() {
-    auto initializeCapture = [this](core::ScreenCapture& sc) {
+    auto initializeCapture = [this](ScreenCapture& sc) {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
@@ -951,13 +950,13 @@ void Window::initScreenCapture() {
         Settings::CaptureFormat format = Settings::instance().captureFormat();
         switch (format) {
             case Settings::CaptureFormat::PNG:
-                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::PNG);
+                sc.setCaptureFormat(ScreenCapture::CaptureFormat::PNG);
                 break;
             case Settings::CaptureFormat::TGA:
-                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::TGA);
+                sc.setCaptureFormat(ScreenCapture::CaptureFormat::TGA);
                 break;
             case Settings::CaptureFormat::JPG:
-                sc.setCaptureFormat(core::ScreenCapture::CaptureFormat::JPEG);
+                sc.setCaptureFormat(ScreenCapture::CaptureFormat::JPEG);
                 break;
             default:
                 throw std::logic_error("Unhandled case label");
@@ -966,7 +965,6 @@ void Window::initScreenCapture() {
 
 
     if (_screenCaptureLeftOrMono) {
-        using namespace core;
         if (useRightEyeTexture()) {
             _screenCaptureLeftOrMono->init(_id, ScreenCapture::EyeIndex::StereoLeft);
         }
@@ -977,7 +975,7 @@ void Window::initScreenCapture() {
     }
 
     if (_screenCaptureRight) {
-        _screenCaptureRight->init(_id, core::ScreenCapture::EyeIndex::StereoRight);
+        _screenCaptureRight->init(_id, ScreenCapture::EyeIndex::StereoRight);
         initializeCapture(*_screenCaptureRight);
     }
 }
@@ -1123,25 +1121,25 @@ void Window::loadShaders() {
         _stereo.shader.deleteProgram();
     }
 
-    std::string stereoVertShader = core::shaders::AnaglyphVert;
+    std::string stereoVertShader = shaders::AnaglyphVert;
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
         switch (mode) {
             case StereoMode::AnaglyphRedCyan:
-                return core::shaders::AnaglyphRedCyanFrag;
+                return shaders::AnaglyphRedCyanFrag;
             case StereoMode::AnaglyphAmberBlue:
-                return core::shaders::AnaglyphAmberBlueFrag;
+                return shaders::AnaglyphAmberBlueFrag;
             case StereoMode::AnaglyphRedCyanWimmer:
-                return core::shaders::AnaglyphRedCyanWimmerFrag;
+                return shaders::AnaglyphRedCyanWimmerFrag;
             case StereoMode::Checkerboard:
-                return core::shaders::CheckerBoardFrag;
+                return shaders::CheckerBoardFrag;
             case StereoMode::CheckerboardInverted:
-                return core::shaders::CheckerBoardInvertedFrag;
+                return shaders::CheckerBoardInvertedFrag;
             case StereoMode::VerticalInterlaced:
-                return core::shaders::VerticalInterlacedFrag;
+                return shaders::VerticalInterlacedFrag;
             case StereoMode::VerticalInterlacedInverted:
-                return core::shaders::VerticalInterlacedInvertedFrag;
+                return shaders::VerticalInterlacedInvertedFrag;
             default:
-                return core::shaders::DummyStereoFrag;
+                return shaders::DummyStereoFrag;
         }
     }(_stereoMode);
 
@@ -1162,7 +1160,7 @@ void Window::renderScreenQuad() const {
     glBindVertexArray(0);
 }
 
-core::OffScreenBuffer* Window::fbo() const {
+OffScreenBuffer* Window::fbo() const {
     return _finalFBO.get();
 }
 
@@ -1209,12 +1207,12 @@ Window::StereoMode Window::stereoMode() const {
     return _stereoMode;
 }
 
-void Window::addViewport(std::unique_ptr<core::Viewport> vpPtr) {
+void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
     _viewports.push_back(std::move(vpPtr));
     Logger::Debug("Adding viewport (total %d)", _viewports.size());
 }
 
-const std::vector<std::unique_ptr<core::Viewport>>& Window::viewports() const {
+const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {
     return _viewports;
 }
 
@@ -1233,7 +1231,7 @@ void Window::setStereoMode(StereoMode sm) {
     }
 }
 
-core::ScreenCapture* Window::screenCapturePointer(Eye eye) const {
+ScreenCapture* Window::screenCapturePointer(Eye eye) const {
     switch (eye) {
         case Eye::MonoOrLeft: return _screenCaptureLeftOrMono.get();
         case Eye::Right:      return _screenCaptureRight.get();

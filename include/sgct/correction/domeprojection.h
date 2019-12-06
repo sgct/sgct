@@ -13,11 +13,11 @@
 #include <glm/fwd.hpp>
 #include <string>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos,
     const glm::ivec2& size);
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction
 
 #endif // __SGCT__CORRECTION_DOMEPROJECTION__H__

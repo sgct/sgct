@@ -46,7 +46,7 @@ namespace {
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 Shader::Shader(GLenum shaderType, const std::string& sourceString)
     : _shaderType(shaderType)
@@ -95,4 +95,4 @@ int Shader::id() const {
     return _shaderId;
 }
 
-} // namespace sgct::core
+} // namespace sgct

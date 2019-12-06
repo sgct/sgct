@@ -19,10 +19,11 @@
 struct GLFWmonitor;
 struct GLFWwindow;
 
+namespace sgct::config { struct Window; }
+
 namespace sgct {
 
-namespace config { struct Window; }
-namespace core { class BaseViewport; }
+class BaseViewport;
 
 /// Helper class for window data.
 class Window {
@@ -282,7 +283,7 @@ public:
      * \param eye can either be 0 (left) or 1 (right)
      * \return pointer to screen capture pointer
      */
-    core::ScreenCapture* screenCapturePointer(Eye eye) const;
+    ScreenCapture* screenCapturePointer(Eye eye) const;
 
     /// \return the number of samples used in multisampled anti-aliasing
     int numberOfAASamples() const;
@@ -298,12 +299,12 @@ public:
     glm::ivec2 finalFBODimensions() const;
 
     /// Returns pointer to FBO container
-    core::OffScreenBuffer* fbo() const;
+    OffScreenBuffer* fbo() const;
 
     /// \return pointer to GLFW window
     GLFWwindow* windowHandle() const;
 
-    const std::vector<std::unique_ptr<core::Viewport>>& viewports() const;
+    const std::vector<std::unique_ptr<Viewport>>& viewports() const;
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;
@@ -337,7 +338,7 @@ public:
 
     void renderScreenQuad() const;
 
-    void addViewport(std::unique_ptr<core::Viewport> vpPtr);
+    void addViewport(std::unique_ptr<Viewport> vpPtr);
 
     /// \return true if any masks are used
     bool hasAnyMasks() const;
@@ -419,8 +420,8 @@ private:
         unsigned int positions = 0;
     } _frameBufferTextures;
 
-    std::unique_ptr<core::ScreenCapture> _screenCaptureLeftOrMono;
-    std::unique_ptr<core::ScreenCapture> _screenCaptureRight;
+    std::unique_ptr<ScreenCapture> _screenCaptureLeftOrMono;
+    std::unique_ptr<ScreenCapture> _screenCaptureRight;
 
     StereoMode _stereoMode = StereoMode::NoStereo;
     int _nAASamples = 1;
@@ -437,8 +438,8 @@ private:
 
     bool _hasAnyMasks = false;
 
-    std::vector<std::unique_ptr<core::Viewport>> _viewports;
-    std::unique_ptr<core::OffScreenBuffer> _finalFBO;
+    std::vector<std::unique_ptr<Viewport>> _viewports;
+    std::unique_ptr<OffScreenBuffer> _finalFBO;
 
     static GLFWwindow* _sharedHandle;
     static bool _useSwapGroups;

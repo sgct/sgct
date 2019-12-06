@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace sgct::core {
+namespace sgct {
 
 class BaseViewport;
 
@@ -81,6 +81,6 @@ private:
 /// Parse hint from string to enum.
 CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr);
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__CORRECTION_MESH__H__

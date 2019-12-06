@@ -17,10 +17,10 @@
 
 namespace {
     std::unique_ptr<std::thread> loadThread;
-    std::mutex mutex;
+    std::mutex imageMutex;
     GLFWwindow* hiddenWindow;
     GLFWwindow* sharedWindow;
-    std::unique_ptr<sgct::core::Image> transImg;
+    std::unique_ptr<sgct::Image> transImg;
     unsigned int textureId = 0;
 
     sgct::SharedBool stats(false);
@@ -188,9 +188,9 @@ void keyCallback(Key key, Modifier, Action action, int) {
 }
 
 void readImage(unsigned char* data, int len) {
-    std::unique_lock lk(mutex);
+    std::unique_lock lk(imageMutex);
 
-    transImg = std::make_unique<sgct::core::Image>();
+    transImg = std::make_unique<sgct::Image>();
 
     try {
         transImg->load(reinterpret_cast<unsigned char*>(data), len);
@@ -233,7 +233,7 @@ void startDataTransfer() {
 }
 
 void uploadTexture() {
-    std::unique_lock lk(mutex);
+    std::unique_lock lk(imageMutex);
     
     if (!transImg) {
         // if invalid load
@@ -333,7 +333,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct::core::ClusterManager::instance().numberOfNodes() == 1) {
+            if (sgct::ClusterManager::instance().numberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -386,7 +386,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == currentPackage.value()) {
         counter++;
-        if (counter == (sgct::core::ClusterManager::instance().numberOfNodes() - 1)) {
+        if (counter == (sgct::ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
 

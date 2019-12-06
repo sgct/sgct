@@ -51,8 +51,8 @@ namespace {
 
     constexpr const int MaxNetworkSyncFrameNumber = 10000;
 
-    std::string getTypeStr(sgct::core::Network::ConnectionType ct) {
-        using N = sgct::core::Network;
+    std::string getTypeStr(sgct::Network::ConnectionType ct) {
+        using N = sgct::Network;
         switch (ct) {
             case N::ConnectionType::SyncConnection: return "sync";
             case N::ConnectionType::ExternalConnection: return "external ASCII control";
@@ -63,13 +63,13 @@ namespace {
 
     bool isDisconnectPackage(const char* header) {
         constexpr const char rhs[] = {
-            sgct::core::Network::DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0'
+            sgct::Network::DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0'
         };
         return std::string_view(header, 8) == std::string_view(rhs, 8);
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 Network::Network(int port, std::string address, bool isServer, ConnectionType t)
     : _socket(INVALID_SOCKET)
@@ -268,7 +268,7 @@ void Network::setOptions(SGCT_SOCKET* socket) {
         throw Err(5006, "Failed to set reuse address: " + std::to_string(SGCT_ERRNO));
     }
 
-    if (type() == core::Network::ConnectionType::SyncConnection) {
+    if (type() == Network::ConnectionType::SyncConnection) {
         const int bufferSize = SocketBufferSize;
         int iResult = setsockopt(
             *socket,
@@ -893,4 +893,4 @@ void Network::initShutdown() {
     closeSocket(_listenSocket);
 }
 
-} // namespace sgct::core
+} // namespace sgct

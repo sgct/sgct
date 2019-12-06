@@ -13,7 +13,7 @@
 
 #include <sgct/correctionmesh.h>
 
-namespace sgct::core {
+namespace sgct {
 
 /// This class manages and renders non-linear fisheye projections
 class SphericalMirrorProjection : public NonLinearProjection {
@@ -67,6 +67,6 @@ private:
     int _matrixLoc = -1;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__SPHERICALMIRRORPROJECTION__H__

@@ -357,7 +357,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 useTracking.setValue(!useTracking.value());
                 break;
             case Key::E:
-                sgct::core::ClusterManager::instance().defaultUser().setTransform(
+                sgct::ClusterManager::instance().defaultUser().setTransform(
                     glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
                 );
                 break;

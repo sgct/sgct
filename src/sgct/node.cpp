@@ -15,7 +15,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-namespace sgct::core {
+namespace sgct {
 
 void Node::applyNode(const config::Node& node) {
     // Set network address
@@ -103,4 +103,4 @@ int Node::dataTransferPort() const {
     return _dataTransferPort;
 }
 
-} // namespace sgct::core
+} // namespace sgct

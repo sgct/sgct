@@ -20,7 +20,7 @@
 #pragma warning(pop)
 #endif // WIN32
 
-namespace sgct::core {
+namespace sgct {
 
 void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj,
                                      float nearClip, float farClip, glm::vec3 offset)
@@ -91,4 +91,4 @@ const glm::mat4& Projection::projectionMatrix() const {
     return _projectionMatrix;
 }
 
-} // namespace sgct::core
+} // namespace sgct

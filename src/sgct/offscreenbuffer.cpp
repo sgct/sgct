@@ -37,7 +37,7 @@ namespace {
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 OffScreenBuffer::~OffScreenBuffer() {
     glDeleteFramebuffers(1, &_frameBuffer);
@@ -324,4 +324,4 @@ void OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int
     );
 }
 
-} // namespace sgct::core
+} // namespace sgct

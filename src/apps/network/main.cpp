@@ -27,7 +27,7 @@ namespace {
     int port;
     std::string address;
     bool isServer = false;
-    std::unique_ptr<sgct::core::Network> networkPtr;
+    std::unique_ptr<sgct::Network> networkPtr;
 
     std::pair<double, int> timerData;
 
@@ -60,7 +60,7 @@ namespace {
 
 using namespace sgct;
 
-void networkConnectionUpdated(sgct::core::Network* conn) {
+void networkConnectionUpdated(sgct::Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
@@ -101,11 +101,11 @@ void connect() {
         return;
     }
 
-    networkPtr = std::make_unique<sgct::core::Network>(
+    networkPtr = std::make_unique<sgct::Network>(
         port,
         address,
         isServer,
-        sgct::core::Network::ConnectionType::DataTransfer
+        sgct::Network::ConnectionType::DataTransfer
     );
 
     // init
@@ -160,7 +160,7 @@ void disconnect() {
 
 void sendData(const void* data, int length, int id) {
     if (networkPtr) {
-        core::NetworkManager::instance().transferData(data, length, id, *networkPtr);
+        NetworkManager::instance().transferData(data, length, id, *networkPtr);
         timerData.first = Engine::getTime();
         timerData.second = id;
     }

@@ -29,7 +29,7 @@
 #define Err(code, msg) Error(Error::Component::Image, code, msg)
 
 namespace {
-    sgct::core::Image::FormatType getFormatType(std::string filename) {
+    sgct::Image::FormatType getFormatType(std::string filename) {
         std::transform(
             filename.begin(),
             filename.end(),
@@ -38,22 +38,22 @@ namespace {
         );
 
         if (filename.find(".png") != std::string::npos) {
-            return sgct::core::Image::FormatType::PNG;
+            return sgct::Image::FormatType::PNG;
         }
         if (filename.find(".jpg") != std::string::npos) {
-            return sgct::core::Image::FormatType::JPEG;
+            return sgct::Image::FormatType::JPEG;
         }
         if (filename.find(".jpeg") != std::string::npos) {
-            return sgct::core::Image::FormatType::JPEG;
+            return sgct::Image::FormatType::JPEG;
         }
         if (filename.find(".tga") != std::string::npos) {
-            return sgct::core::Image::FormatType::TGA;
+            return sgct::Image::FormatType::TGA;
         }
-        return sgct::core::Image::FormatType::Unknown;
+        return sgct::Image::FormatType::Unknown;
     }
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 Image::~Image() {
     delete[] _data;
@@ -303,4 +303,4 @@ bool Image::allocateOrResizeData() {
     return true;
 }
 
-} // namespace sgct::core
+} // namespace sgct

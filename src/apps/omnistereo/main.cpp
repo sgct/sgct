@@ -90,13 +90,13 @@ namespace {
   void main() { color = vec4(1.0, 0.5, 0.0, 1.0); }
 )";
 
-   unsigned char getSampleAt(const sgct::core::Image& img, int x, int y) {
+   unsigned char getSampleAt(const sgct::Image& img, int x, int y) {
        const int width = img.size().x;
        const size_t idx = (y * width + x) * img.channels() * img.bytesPerChannel();
        return img.data()[idx];
    }
 
-   float getInterpolatedSampleAt(const sgct::core::Image& img, float x, float y) {
+   float getInterpolatedSampleAt(const sgct::Image& img, float x, float y) {
        int px = static_cast<int>(x); //floor x
        int py = static_cast<int>(y); //floor y
 
@@ -143,10 +143,10 @@ void initOmniStereo(bool mask) {
         return;
     }
 
-    sgct::core::Image turnMap;
+    sgct::Image turnMap;
     turnMap.load(turnMapSrc);
 
-    sgct::core::Image sepMap;
+    sgct::Image sepMap;
     sepMap.load(sepMapSrc);
 
     Window& win = *Engine::instance().windows()[1];
@@ -291,7 +291,7 @@ void initOmniStereo(bool mask) {
                     };
 
 
-                    sgct::core::ProjectionPlane projPlane;
+                    sgct::ProjectionPlane projPlane;
 
                     projPlane.setCoordinates(
                         convertCoords(glm::vec2(0.f, 0.f)),
@@ -316,7 +316,7 @@ void initOmniStereo(bool mask) {
                     const glm::vec3 tiltedEyePos = glm::mat3(tiltEyeMat) * rotatedEyePos;
 
                     // calc projection
-                    sgct::core::Projection proj;
+                    sgct::Projection proj;
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,

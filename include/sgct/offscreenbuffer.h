@@ -12,7 +12,7 @@
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 /// Helper class for creating frame buffer objects and render buffer objects.
 class OffScreenBuffer {
@@ -69,6 +69,6 @@ private:
     bool _isMultiSampled = false;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__OFFSCREENBUFFER__H__

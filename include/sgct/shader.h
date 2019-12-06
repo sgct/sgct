@@ -12,7 +12,7 @@
 #include <sgct/ogl_headers.h>
 #include <string>
 
-namespace sgct::core {
+namespace sgct {
 
 /**
  * Simple helper class for handling shaders. Shader can't be used directly, they must be
@@ -52,6 +52,6 @@ private:
     int _shaderId = 0;  // The shader _id used for reference
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__SHADER__H__

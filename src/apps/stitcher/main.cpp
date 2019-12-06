@@ -243,7 +243,7 @@ void preWinInitFun() {
         Engine::instance().setScreenShotNumber(startFrame);
         win->setAlpha(settings.alpha);
 
-        for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+        for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
             if (!vp->hasSubViewports()) {
                 continue;
             }
@@ -251,11 +251,11 @@ void preWinInitFun() {
             vp->nonLinearProjection()->setCubemapResolution(settings.cubemapRes);
             vp->nonLinearProjection()->setInterpolationMode(
                 settings.cubic ?
-                core::NonLinearProjection::InterpolationMode::Cubic :
-                core::NonLinearProjection::InterpolationMode::Linear
+                NonLinearProjection::InterpolationMode::Cubic :
+                NonLinearProjection::InterpolationMode::Linear
             );
 
-            core::FisheyeProjection* p = dynamic_cast<core::FisheyeProjection*>(
+            FisheyeProjection* p = dynamic_cast<FisheyeProjection*>(
                 vp->nonLinearProjection()
             );
             if (p) {

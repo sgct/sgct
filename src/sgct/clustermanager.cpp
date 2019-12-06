@@ -13,7 +13,7 @@
 #include <sgct/settings.h>
 #include <algorithm>
 
-namespace sgct::core {
+namespace sgct {
 
 ClusterManager* ClusterManager::_instance = nullptr;
 
@@ -190,4 +190,4 @@ void ClusterManager::setFirmFrameLockSyncStatus(bool state) {
     _firmFrameLockSync = state;
 }
 
-} // namespace sgct::core
+} // namespace sgct

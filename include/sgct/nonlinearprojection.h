@@ -15,11 +15,10 @@
 #include <memory>
 #include <string>
 
-namespace sgct { class Window; }
-
-namespace sgct::core {
+namespace sgct {
 
 class OffScreenBuffer;
+class Window;
 
 /// Base class for non linear projections
 class NonLinearProjection {
@@ -139,6 +138,6 @@ protected:
     std::unique_ptr<OffScreenBuffer> _cubeMapFbo;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__NONLINEARPROJECTION__H__

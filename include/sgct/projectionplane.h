@@ -11,7 +11,7 @@
 
 #include <glm/glm.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 /// This class holds and manages the 3D projection plane
 class ProjectionPlane {
@@ -34,6 +34,6 @@ private:
     glm::vec3 _upperRight = glm::vec3(1.f, 1.f, -2.f);
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__PROJECTIONPLANE__H__

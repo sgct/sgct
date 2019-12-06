@@ -15,7 +15,7 @@
 
 namespace sgct { class Window; }
 
-namespace sgct::core {
+namespace sgct {
 
 class StatisticsRenderer {
 public:
@@ -23,7 +23,7 @@ public:
     ~StatisticsRenderer();
 
     void update();
-    void render(const Window& window, const core::Viewport& viewport);
+    void render(const Window& window, const Viewport& viewport);
 
 private:
     const Engine::Statistics& _statistics;
@@ -105,6 +105,6 @@ private:
     Histogram _histogram;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__STATISTICS__H__

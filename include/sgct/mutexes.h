@@ -11,13 +11,13 @@
 
 #include <mutex>
 
-namespace sgct::core::mutex {
+namespace sgct::mutex {
 
 inline std::mutex DataSync;
 inline std::mutex FrameSync;
 inline std::mutex Tracking;
 inline std::mutex Transfer;
 
-} // namespace sgct::core::mutex
+} // namespace sgct::mutex
 
 #endif // __SGCT__MUTEXES__H__

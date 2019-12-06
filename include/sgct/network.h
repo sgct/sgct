@@ -24,7 +24,7 @@
     using SGCT_SOCKET = int;
 #endif
 
-namespace sgct::core {
+namespace sgct {
 
 /// Network manages peer-to-peer tcp connections.
 class Network {
@@ -153,6 +153,6 @@ private:
     std::function<void(int, int)> _acknowledgeCallback;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__NETWORK__H__

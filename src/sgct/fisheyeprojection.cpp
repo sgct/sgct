@@ -19,7 +19,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
-namespace sgct::core {
+namespace sgct {
 
 FisheyeProjection::FisheyeProjection(Window* parent)
     : NonLinearProjection(parent)
@@ -164,11 +164,11 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             window,
             vp,
             frustumMode,
-            core::ClusterManager::instance().sceneTransform(),
+            ClusterManager::instance().sceneTransform(),
             vp.projection(frustumMode).viewMatrix(),
             vp.projection(frustumMode).projectionMatrix(),
             vp.projection(frustumMode).viewProjectionMatrix() *
-                core::ClusterManager::instance().sceneTransform()
+                ClusterManager::instance().sceneTransform()
         );
         drawCubeFace(vp, renderData);
 
@@ -804,4 +804,4 @@ void FisheyeProjection::attachTextures(int face) {
     }
 }
 
-} // namespace sgct::core
+} // namespace sgct

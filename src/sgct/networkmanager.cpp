@@ -40,7 +40,7 @@
 
 #define Error(code, msg) Error(Error::Component::Network, code, msg)
 
-namespace sgct::core {
+namespace sgct {
 
 std::condition_variable NetworkManager::cond;
 
@@ -387,17 +387,17 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
 }
 
 unsigned int NetworkManager::activeConnectionsCount() const {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
     return _nActiveConnections;
 }
 
 int NetworkManager::connectionsCount() const {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_networkConnections.size());
 }
 
 int NetworkManager::syncConnectionsCount() const {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
     return static_cast<int>(_syncConnections.size());
 }
 
@@ -416,14 +416,14 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     unsigned int nConnectedSyncNodes = 0;
     unsigned int nConnectedDataTransferNodes = 0;
 
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
     unsigned int totalNConnections =
         static_cast<unsigned int>(_networkConnections.size());
     unsigned int totalNSyncConnections =
         static_cast<unsigned int>(_syncConnections.size());
     unsigned int totalNTransferConnections =
         static_cast<unsigned int>(_dataTransferConnections.size());
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     // count connections
     for (const std::unique_ptr<Network>& conn : _networkConnections) {
@@ -450,7 +450,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         nConnectedDataTransferNodes, totalNTransferConnections
     );
 
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
     _nActiveConnections = nConnections;
     _nActiveSyncConnections = nConnectedSyncNodes;
     _nActiveDataTransferConnections = nConnectedDataTransferNodes;
@@ -460,15 +460,15 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     if (_nActiveSyncConnections == 0 && !_isServer) {
         _isRunning = false;
     }
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     if (_isServer) {
-        core::mutex::DataSync.lock();
+        mutex::DataSync.lock();
         // local copy (thread safe)
         bool allNodesConnectedCopy = (nConnectedSyncNodes== totalNSyncConnections) &&
                                 (nConnectedDataTransferNodes== totalNTransferConnections);
         _allNodesConnected = allNodesConnectedCopy;
-        core::mutex::DataSync.unlock();
+        mutex::DataSync.unlock();
 
         // send cluster connected message to clients
         if (allNodesConnectedCopy) {
@@ -522,7 +522,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
 
     if (!_isServer) {
         unsigned int nConn = static_cast<unsigned int>(_dataTransferConnections.size());
@@ -647,13 +647,13 @@ bool NetworkManager::isComputerServer() const {
 }
 
 bool NetworkManager::isRunning() const {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
     return _isRunning;
 }
 
 bool NetworkManager::areAllNodesConnected() const {
-    std::unique_lock lock(core::mutex::DataSync);
+    std::unique_lock lock(mutex::DataSync);
     return _allNodesConnected;
 }
 
-} // namespace sgct::core
+} // namespace sgct

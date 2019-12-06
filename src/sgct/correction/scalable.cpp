@@ -12,7 +12,7 @@
 #include <sgct/logger.h>
 #include <glm/glm.hpp>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
                             const glm::ivec2& size)
@@ -143,4 +143,4 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

@@ -17,7 +17,7 @@
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
@@ -173,4 +173,4 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

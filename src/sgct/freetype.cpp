@@ -20,7 +20,7 @@
 #include <sstream>
 
 namespace {
-    glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::core::BaseViewport& vp) {
+    glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
         glm::vec2 res = glm::vec2(win.resolution());
         glm::vec2 size = vp.size();
         glm::vec2 scale = win.scale();
@@ -53,12 +53,12 @@ namespace {
         // figure out width
         float lineWidth = 0.f;
         for (size_t j = 0; j < line.length() - 1; ++j) {
-            wchar_t c = line.c_str()[j];
+            char c = line.c_str()[j];
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;
         }
         // add last char width
-        wchar_t c = line.c_str()[line.length() - 1];
+        char c = line.c_str()[line.length() - 1];
         const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
         lineWidth += ffd.size.x;
 
@@ -95,7 +95,7 @@ namespace {
             }
 
             for (size_t j = 0; j < lines[i].length(); j++) {
-                const wchar_t c = lines[i].c_str()[j];
+                const char c = lines[i].c_str()[j];
                 const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
 
                 glm::mat4 trans = glm::translate(
@@ -152,7 +152,7 @@ namespace {
             }
 
             for (size_t j = 0; j < lines[i].length(); j++) {
-                const wchar_t c = lines[i].c_str()[j];
+                const char c = lines[i].c_str()[j];
                 const Font::FontFaceData& ffd = font.fontFaceData(c);
 
                 const glm::mat4 trans = glm::translate(
@@ -183,7 +183,7 @@ namespace {
 
 namespace sgct::text {
 
-void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
            TextAlignMode mode, float x, float y, const char* format, ...)
 {
     va_list args;
@@ -198,7 +198,7 @@ void print(const Window& window, const sgct::core::BaseViewport& viewport, Font&
     }
 }
 
-void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
            TextAlignMode mode, float x, float y, const glm::vec4& color,
            const char* format, ...)
 {
@@ -214,7 +214,7 @@ void print(const Window& window, const sgct::core::BaseViewport& viewport, Font&
     }
 }
 
-void print(const Window& window, const sgct::core::BaseViewport& viewport, Font& font,
+void print(const Window& window, const BaseViewport& viewport, Font& font,
            TextAlignMode mode, float x, float y, const glm::vec4& color,
            const glm::vec4& strokeColor, const char* format, ...)
 {

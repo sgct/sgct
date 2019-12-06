@@ -45,7 +45,7 @@ namespace {
     };
 } // namespace
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     Buffer buf;
@@ -218,4 +218,4 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

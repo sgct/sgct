@@ -119,7 +119,7 @@ private:
     static SharedData* _instance;
     std::vector<unsigned char> _dataBlock;
     std::vector<unsigned char> _dataBlockToCompress;
-    std::array<unsigned char, core::Network::HeaderSize> _headerSpace;
+    std::array<unsigned char, Network::HeaderSize> _headerSpace;
     unsigned int _pos = 0;
 };
 
@@ -129,17 +129,17 @@ template <class T>
 void SharedData::writeObj(const SharedObject<T>& sobj) {
     T val = sobj.value();
     
-    std::unique_lock lk(core::mutex::DataSync);
+    std::unique_lock lk(mutex::DataSync);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(T));
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T>& sobj) {
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
     T val = *reinterpret_cast<T*>(&_dataBlock[_pos]);
     _pos += sizeof(T);
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     sobj.setValue(val);
 }
@@ -149,28 +149,28 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     std::vector<T> tmpVec = vector.value();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
     _dataBlock.insert(_dataBlock.end(), p, p + sizeof(uint32_t));
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
-        core::mutex::DataSync.lock();
+        mutex::DataSync.lock();
         _dataBlock.insert(_dataBlock.end(), c, c + length);
-        core::mutex::DataSync.unlock();
+        mutex::DataSync.unlock();
     }
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T>& vector) {
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
 
     uint32_t size = *reinterpret_cast<uint32_t*>(&_dataBlock[_pos]);
     _pos += sizeof(uint32_t);
 
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     if (size == 0) {
         vector.clear();
@@ -179,12 +179,12 @@ void SharedData::readVector(SharedVector<T>& vector) {
 
     uint32_t totalSize = size * sizeof(T);
 
-    core::mutex::DataSync.lock();
+    mutex::DataSync.lock();
 
     unsigned char* c = &_dataBlock[_pos];
     _pos += totalSize;
 
-    core::mutex::DataSync.unlock();
+    mutex::DataSync.unlock();
 
     std::vector<T> tmpVec;
     tmpVec.insert(

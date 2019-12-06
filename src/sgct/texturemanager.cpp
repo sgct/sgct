@@ -13,7 +13,7 @@
 #include <sgct/ogl_headers.h>
 
 namespace {
-    unsigned int uploadImage(const sgct::core::Image& img, bool interpolate, int mipmap,
+    unsigned int uploadImage(const sgct::Image& img, bool interpolate, int mipmap,
                              float anisotropicFilterSize)
     {
         unsigned int tex;
@@ -118,7 +118,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
                                          float anisotropicFilterSize, int mipmapLevels)
 {
     // load image
-    core::Image img;
+    Image img;
     img.load(filename);
     
     if (img.data() == nullptr) {

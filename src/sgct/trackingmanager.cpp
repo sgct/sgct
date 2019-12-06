@@ -125,7 +125,7 @@ TrackingManager::~TrackingManager() {
     Logger::Info("Disconnecting VRPN");
 
     {
-        std::unique_lock lock(core::mutex::Tracking);
+        std::unique_lock lock(mutex::Tracking);
         _isRunning = false;
     }
 
@@ -180,7 +180,7 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
 
 bool TrackingManager::isRunning() const {
 #ifdef SGCT_HAS_VRPN
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _isRunning;
 #else
     Logger::Warning("SGCT compiled without VRPN support");
@@ -194,11 +194,11 @@ void TrackingManager::startSampling() {
         return;
     }
     // find user with headtracking
-    _headUser = core::ClusterManager::instance().trackedUser();
+    _headUser = ClusterManager::instance().trackedUser();
 
     // if tracked user not found
     if (_headUser == nullptr) {
-        _headUser = &core::ClusterManager::instance().defaultUser();
+        _headUser = &ClusterManager::instance().defaultUser();
     }
 
     // link the head tracker
@@ -390,7 +390,7 @@ void TrackingManager::setEnabled(bool state) {
 
 void TrackingManager::setSamplingTime(double t) {
 #ifdef SGCT_HAS_VRPN
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _samplingTime = t;
 #else
     (void)t;
@@ -400,7 +400,7 @@ void TrackingManager::setSamplingTime(double t) {
 
 double TrackingManager::samplingTime() const {
 #ifdef SGCT_HAS_VRPN
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _samplingTime;
 #else
     Logger::Warning("SGCT compiled without VRPN support");

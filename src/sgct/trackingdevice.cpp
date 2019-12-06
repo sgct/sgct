@@ -25,7 +25,7 @@ TrackingDevice::TrackingDevice(int parentIndex, std::string name)
 {}
 
 void TrackingDevice::setEnabled(bool state) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _isEnabled = state;
 }
 
@@ -62,7 +62,7 @@ void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
     const glm::mat4 sensorRotMat(glm::mat4_cast(rot));
 
     {
-        std::unique_lock lock(core::mutex::Tracking);
+        std::unique_lock lock(mutex::Tracking);
 
         // swap
         _sensorRotationPrevious = std::move(_sensorRotation);
@@ -83,7 +83,7 @@ void TrackingDevice::setButtonValue(bool val, int index) {
     }
 
     {
-        std::unique_lock lock(core::mutex::Tracking);
+        std::unique_lock lock(mutex::Tracking);
         // swap
         _buttonsPrevious[index] = _buttons[index];
         _buttons[index] = val;
@@ -93,7 +93,7 @@ void TrackingDevice::setButtonValue(bool val, int index) {
 
 void TrackingDevice::setAnalogValue(const double* array, int size) {
     {
-        std::unique_lock lock(core::mutex::Tracking);
+        std::unique_lock lock(mutex::Tracking);
         for (int i = 0; i < std::min(size, _nAxes); i++) {
             _axesPrevious[i] = _axes[i];
             _axes[i] = array[i];
@@ -109,25 +109,25 @@ void TrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.f, 0.f, 1.f));
 
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _orientation = std::move(rotQuat);
     calculateTransform();
 }
 
 void TrackingDevice::setOrientation(glm::quat q) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _orientation = std::move(q);
     calculateTransform();
 }
 
 void TrackingDevice::setOffset(glm::vec3 offset) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _offset = std::move(offset);
     calculateTransform();
 }
 
 void TrackingDevice::setTransform(glm::mat4 mat) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _deviceTransform = std::move(mat);
 }
 
@@ -149,92 +149,92 @@ void TrackingDevice::calculateTransform() {
 }
 
 int TrackingDevice::sensorId() {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _sensorId;
 }
 
 bool TrackingDevice::button(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return index < _nButtons ? _buttons[index] : false;
 }
 
 bool TrackingDevice::buttonPrevious(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return index < _nButtons ? _buttonsPrevious[index] : false;
 }
 
 double TrackingDevice::analog(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return index < _nAxes ? _axes[index] : 0.0;
 }
 
 double TrackingDevice::analogPrevious(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return index < _nAxes ? _axesPrevious[index] : 0.0;
 }
 
 glm::vec3 TrackingDevice::position() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::vec3(_worldTransform[3]);
 }
 
 glm::vec3 TrackingDevice::previousPosition() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::vec3(_worldTransformPrevious[3]);
 }
 
 glm::vec3 TrackingDevice::eulerAngles() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::eulerAngles(glm::quat_cast(_worldTransform));
 }
 
 glm::vec3 TrackingDevice::eulerAnglesPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::eulerAngles(glm::quat_cast(_worldTransformPrevious));
 }
 
 glm::quat TrackingDevice::rotation() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::quat_cast(_worldTransform);
 }
 
 glm::quat TrackingDevice::rotationPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return glm::quat_cast(_worldTransformPrevious);
 }
 
 glm::mat4 TrackingDevice::worldTransform() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _worldTransform;
 }
 
 glm::mat4 TrackingDevice::worldTransformPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _worldTransformPrevious;
 }
 
 glm::dquat TrackingDevice::sensorRotation() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _sensorRotation;
 }
 
 glm::dquat TrackingDevice::sensorRotationPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _sensorRotationPrevious;
 }
 
 glm::dvec3 TrackingDevice::sensorPosition() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _sensorPos;
 }
 
 glm::dvec3 TrackingDevice::sensorPositionPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _sensorPosPrevious;
 }
 
 bool TrackingDevice::isEnabled() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _isEnabled;
 }
 
@@ -251,65 +251,65 @@ bool TrackingDevice::hasAnalogs() const {
 }
 
 void TrackingDevice::setTrackerTimeStamp() {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _trackerTimePrevious = _trackerTime;
     _trackerTime = Engine::getTime();
 }
 
 void TrackingDevice::setAnalogTimeStamp() {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _analogTimePrevious = _analogTime;
     _analogTime = Engine::getTime();
 }
 
 void TrackingDevice::setButtonTimeStamp(int index) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _buttonTimePrevious[index] = _buttonTime[index];
     _buttonTime[index] = Engine::getTime();
 }
 
 double TrackingDevice::trackerTimeStamp() {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _trackerTime;
 }
 
 double TrackingDevice::trackerTimeStampPrevious() {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _trackerTimePrevious;
 }
 
 double TrackingDevice::analogTimeStamp() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _analogTime;
 }
 
 double TrackingDevice::analogTimeStampPrevious() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _analogTimePrevious;
 }
 
 double TrackingDevice::buttonTimeStamp(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _buttonTime[index];
 }
 
 double TrackingDevice::buttonTimeStampPrevious(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _buttonTimePrevious[index];
 }
 
 double TrackingDevice::trackerDeltaTime() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _trackerTime - _trackerTimePrevious;
 }
 
 double TrackingDevice::analogDeltaTime() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _analogTime - _analogTimePrevious;
 }
 
 double TrackingDevice::buttonDeltaTime(int index) const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _buttonTime[index] - _buttonTimePrevious[index];
 }
 

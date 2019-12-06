@@ -56,7 +56,7 @@ TrackingDevice* Tracker::deviceBySensorId(int id) const {
 }
 
 void Tracker::setOrientation(glm::quat q) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
 
     // create inverse rotation matrix
     _orientation = glm::inverse(glm::mat4_cast(q));
@@ -73,31 +73,31 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void Tracker::setOffset(glm::vec3 offset) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _offset = std::move(offset);
     const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
     _transform = transMat * _orientation;
 }
 
 void Tracker::setScale(double scaleVal) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     if (scaleVal > 0.0) {
         _scale = scaleVal;
     }
 }
 
 void Tracker::setTransform(glm::mat4 mat) {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     _transform = std::move(mat);
 }
 
 glm::mat4 Tracker::getTransform() const { 
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _transform;
 }
 
 double Tracker::scale() const {
-    std::unique_lock lock(core::mutex::Tracking);
+    std::unique_lock lock(mutex::Tracking);
     return _scale;
 }
 

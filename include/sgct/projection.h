@@ -12,7 +12,7 @@
 #include <sgct/frustum.h>
 #include <glm/glm.hpp>
 
-namespace sgct::core {
+namespace sgct {
 
 class ProjectionPlane;
 
@@ -35,6 +35,6 @@ private:
     Frustum _frustum;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__PROJECTION__H__

@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-namespace sgct::core {
+namespace sgct {
 
 /// The network manager manages all network connections for SGCT.
 class NetworkManager {
@@ -94,6 +94,6 @@ private:
     unsigned int _nActiveDataTransferConnections = 0;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__NETWORKMANAGER__H__

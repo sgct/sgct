@@ -53,7 +53,7 @@ namespace {
 )";
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 SphericalMirrorProjection::SphericalMirrorProjection(Window* parent, 
                                                      std::string bottomMesh,
@@ -151,11 +151,11 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             window,
             bv,
             frustumMode,
-            core::ClusterManager::instance().sceneTransform(),
+            ClusterManager::instance().sceneTransform(),
             bv.projection(frustumMode).viewMatrix(),
             bv.projection(frustumMode).projectionMatrix(),
             bv.projection(frustumMode).viewProjectionMatrix() *
-                core::ClusterManager::instance().sceneTransform()
+                ClusterManager::instance().sceneTransform()
         );
         Engine::instance().drawFunction()(renderData);
 
@@ -181,7 +181,7 @@ void SphericalMirrorProjection::setTilt(float angle) {
     _tilt = angle;
 }
 
-void core::SphericalMirrorProjection::initTextures() {
+void SphericalMirrorProjection::initTextures() {
     auto generate = [this](const BaseViewport& bv, unsigned int& texture) {
         if (!bv.isEnabled()) {
             return;
@@ -295,4 +295,4 @@ void SphericalMirrorProjection::initShaders() {
     ShaderProgram::unbind();
 }
 
-} // namespace sgct::core
+} // namespace sgct

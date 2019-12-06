@@ -14,7 +14,7 @@
 #include <sgct/window.h>
 #include <glm/glm.hpp>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
                               const glm::ivec2& size, float aspectRatio)
@@ -117,4 +117,4 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     return buf;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

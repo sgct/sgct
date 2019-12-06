@@ -61,7 +61,7 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
 }
 
 void ShaderProgram::deleteProgram() {
-    for (core::Shader& shader : _shaders) {
+    for (Shader& shader : _shaders) {
         if (shader.id() > 0) {
             glDetachShader(_programId, shader.id());
         }
@@ -73,7 +73,7 @@ void ShaderProgram::deleteProgram() {
 }
 
 void ShaderProgram::addShaderSource(std::string src, GLenum type) {
-    core::Shader v(type, std::move(src));
+    Shader v(type, std::move(src));
     _shaders.push_back(std::move(v));
 }
 
@@ -106,7 +106,7 @@ void ShaderProgram::createAndLinkProgram() {
     }
 
     // Link shaders
-    for (const core::Shader& shader : _shaders) {
+    for (const Shader& shader : _shaders) {
         if (shader.id() > 0) {
             glAttachShader(_programId, shader.id());
         }

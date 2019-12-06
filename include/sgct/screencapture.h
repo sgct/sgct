@@ -17,7 +17,7 @@
 #include <thread>
 #include <vector>
 
-namespace sgct::core {
+namespace sgct {
 
 class Image;
 
@@ -96,6 +96,6 @@ private:
     int _windowIndex = 0;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__SCREENCAPTURE__H__

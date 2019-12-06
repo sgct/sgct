@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace sgct::core::mpcdi {
+namespace sgct::mpcdi {
 
 struct ReturnValue {
     /// The window resolution
@@ -32,6 +32,6 @@ struct ReturnValue {
 // throws std::runtime_error if the parsing fails
 ReturnValue parseMpcdiConfiguration(const std::string& filename);
 
-} //namespace sgct::core::mpcdi
+} //namespace sgct::mpcdi
 
 #endif // __SGCT__MPCDI__H__

@@ -9,7 +9,7 @@
 #ifndef __SGCT__INTERNALSHADERS__H__
 #define __SGCT__INTERNALSHADERS__H__
 
-namespace sgct::core::shaders {
+namespace sgct::shaders {
 
 constexpr const char* BaseVert = R"(
   #version 330 core
@@ -414,6 +414,6 @@ constexpr const char* FXAAFrag = R"(
   }
 )";
 
-} // namespace sgct::core::shaders
+} // namespace sgct::shaders
 
 #endif // __SGCT__INTERNALSHADERS__H__

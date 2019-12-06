@@ -17,7 +17,7 @@
 
 namespace sgct::config { struct Cluster; }
 
-namespace sgct::core {
+namespace sgct {
 
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
@@ -133,6 +133,6 @@ private:
     glm::mat4 _sceneTransform = glm::mat4(1.f);
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__CLUSTERMANAGER__H__

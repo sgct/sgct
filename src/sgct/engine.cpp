@@ -57,10 +57,10 @@ namespace {
         bool run = true;
 
         while (run) {
-            core::mutex::FrameSync.lock();
+            mutex::FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
-            core::mutex::FrameSync.unlock();
-            core::NetworkManager::cond.notify_all();
+            mutex::FrameSync.unlock();
+            NetworkManager::cond.notify_all();
             std::this_thread::sleep_for(FrameLockTimeout);
         }
     }
@@ -123,7 +123,7 @@ namespace {
     }
 
     void prepareBuffer(Window& window, Window::TextureIndex ti) {
-        core::OffScreenBuffer* fbo = window.fbo();
+        OffScreenBuffer* fbo = window.fbo();
         fbo->bind();
         if (fbo->isMultiSampled()) {
             return;
@@ -155,7 +155,7 @@ namespace {
 
     void updateRenderingTargets(Window& window, Window::TextureIndex ti) {
         // copy AA-buffer to "regular" / non-AA buffer
-        core::OffScreenBuffer* fbo = window.fbo();
+        OffScreenBuffer* fbo = window.fbo();
         if (!fbo->isMultiSampled()) {
             return;
         }
@@ -220,7 +220,7 @@ void Engine::destroy() {
 config::Cluster loadCluster(std::optional<std::string> path) {
     if (path) {
         try {
-            return core::readConfig(*path);
+            return readConfig(*path);
         }
         catch (const std::runtime_error& e) {
             std::cout << e.what() << '\n';
@@ -290,11 +290,11 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     gMouseScrollCallback = std::move(callbacks.mouseScroll);
     gDropCallback = std::move(callbacks.drop);
 
-    core::NetworkManager::NetworkMode netMode = core::NetworkManager::NetworkMode::Remote;
+    NetworkManager::NetworkMode netMode = NetworkManager::NetworkMode::Remote;
     if (config.isServer) {
         netMode = *config.isServer ?
-            core::NetworkManager::NetworkMode::LocalServer :
-            core::NetworkManager::NetworkMode::LocalClient;
+            NetworkManager::NetworkMode::LocalServer :
+            NetworkManager::NetworkMode::LocalClient;
     }
     if (config.logLevel) {
         Logger::instance().setNotifyLevel(*config.logLevel);
@@ -304,10 +304,10 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         std::exit(0);
     }
     if (config.firmSync) {
-        core::ClusterManager::instance().setFirmFrameLockSyncStatus(*config.firmSync);
+        ClusterManager::instance().setFirmFrameLockSyncStatus(*config.firmSync);
     }
     if (config.ignoreSync) {
-        core::ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
+        ClusterManager::instance().setUseIgnoreSync(*config.ignoreSync);
     }
     if (config.captureFormat) {
         Settings::instance().setCaptureFormat(*config.captureFormat);
@@ -344,7 +344,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     Logger::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
 
-    core::NetworkManager::create(netMode);
+    NetworkManager::create(netMode);
 
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
@@ -352,12 +352,12 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 
     int clusterId = -1;
     // check in cluster configuration which it is
-    if (netMode == core::NetworkManager::NetworkMode::Remote) {
+    if (netMode == NetworkManager::NetworkMode::Remote) {
         Logger::Debug("Matching ip address to find node in configuration");
 
         for (int i = 0; i < cluster.nodes.size(); ++i) {
             const std::string& addr = cluster.nodes[i].address;
-            if (core::NetworkManager::instance().matchesAddress(addr)) {
+            if (NetworkManager::instance().matchesAddress(addr)) {
                 clusterId = i;
                 Logger::Debug("Running in cluster mode as node %d", i);
                 break;
@@ -368,7 +368,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         if (config.nodeId) {
             clusterId = *config.nodeId;
             if (clusterId >= static_cast<int>(cluster.nodes.size())) {
-                core::NetworkManager::destroy();
+                NetworkManager::destroy();
                 throw Err(
                     3001, "Requested node id was not found in the cluster configuration"
                 );
@@ -381,12 +381,12 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
 
     if (clusterId < 0) {
-        core::NetworkManager::destroy();
+        NetworkManager::destroy();
         throw Err(3003, "Computer is not a part of the cluster configuration");
     }
 
-    core::ClusterManager::create(cluster, clusterId);
-    core::NetworkManager::instance().init();
+    ClusterManager::create(cluster, clusterId);
+    NetworkManager::instance().init();
 }
 
 void Engine::initialize(Profile profile) {
@@ -394,13 +394,13 @@ void Engine::initialize(Profile profile) {
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
-    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
     std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::updateResolutions));
 
     // if a single node, skip syncing
-    if (core::ClusterManager::instance().numberOfNodes() == 1) {
-        core::ClusterManager::instance().setUseIgnoreSync(true);
+    if (ClusterManager::instance().numberOfNodes() == 1) {
+        ClusterManager::instance().setUseIgnoreSync(true);
     }
 
     for (const std::unique_ptr<Window>& window : wins) {
@@ -467,9 +467,9 @@ void Engine::initialize(Profile profile) {
     Logger::Info("Vendor: %s", glGetString(GL_VENDOR));
     Logger::Info("Renderer: %s", glGetString(GL_RENDERER));
 
-    if (core::ClusterManager::instance().numberOfNodes() > 1) {
+    if (ClusterManager::instance().numberOfNodes() > 1) {
         std::string path = Settings::instance().capturePath() + "_node";
-        path += std::to_string(core::ClusterManager::instance().thisNodeId());
+        path += std::to_string(ClusterManager::instance().thisNodeId());
 
         Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
         Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
@@ -485,7 +485,7 @@ void Engine::initialize(Profile profile) {
     if (needsFxaa) {
         _fxaa = FXAAShader();
         _fxaa->shader = ShaderProgram("FXAAShader");
-        _fxaa->shader.addShaderSource(core::shaders::FXAAVert, core::shaders::FXAAFrag);
+        _fxaa->shader.addShaderSource(shaders::FXAAVert, shaders::FXAAFrag);
         _fxaa->shader.createAndLinkProgram();
         _fxaa->shader.bind();
 
@@ -509,14 +509,14 @@ void Engine::initialize(Profile profile) {
 
     // Used for overlays & mono.
     _fboQuad = ShaderProgram("FBOQuadShader");
-    _fboQuad.addShaderSource(core::shaders::BaseVert, core::shaders::BaseFrag);
+    _fboQuad.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
     _fboQuad.createAndLinkProgram();
     _fboQuad.bind();
     glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
     ShaderProgram::unbind();
 
     _overlay = ShaderProgram("OverlayShader");
-    _overlay.addShaderSource(core::shaders::OverlayVert, core::shaders::OverlayFrag);
+    _overlay.addShaderSource(shaders::OverlayVert, shaders::OverlayFrag);
     _overlay.createAndLinkProgram();
     _overlay.bind();
     glUniform1i(glGetUniformLocation(_overlay.id(), "Tex"), 0);
@@ -530,8 +530,8 @@ void Engine::initialize(Profile profile) {
     // link all users to their viewports
     for (const std::unique_ptr<Window>& win : wins) {
         win->initOGL();
-        const std::vector<std::unique_ptr<core::Viewport>>& vps = win->viewports();
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::linkUserName));
+        const std::vector<std::unique_ptr<Viewport>>& vps = win->viewports();
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::linkUserName));
     }
 
     updateFrustums();
@@ -564,7 +564,7 @@ Engine::~Engine() {
 
     // First check whether we ever created a node for ourselves.  This might have failed
     // if the configuration was illformed
-    core::ClusterManager& cm = core::ClusterManager::instance();
+    ClusterManager& cm = ClusterManager::instance();
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
 
     if (hasNode) {
@@ -591,9 +591,9 @@ Engine::~Engine() {
     if (_thread) {
         Logger::Debug("Waiting for frameLock thread to finish");
 
-        core::mutex::FrameSync.lock();
+        mutex::FrameSync.lock();
         sRunUpdateFrameLockLoop = false;
-        core::mutex::FrameSync.unlock();
+        mutex::FrameSync.unlock();
 
         _thread->join();
         _thread = nullptr;
@@ -609,7 +609,7 @@ Engine::~Engine() {
 
     // close TCP connections
     Logger::Debug("Destroying network manager");
-    core::NetworkManager::destroy();
+    NetworkManager::destroy();
 
     // Shared contex
     if (hasNode && !cm.thisNode().windows().empty()) {
@@ -646,7 +646,7 @@ Engine::~Engine() {
     SharedData::destroy();
     
     Logger::Debug("Destroying cluster manager");
-    core::ClusterManager::destroy();
+    ClusterManager::destroy();
     
     Logger::Debug("Destroying settings");
     Settings::destroy();
@@ -693,7 +693,7 @@ void Engine::initWindows(Profile profile) {
         _preWindowFn();
     }
 
-    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     for (size_t i = 0; i < windows.size(); ++i) {
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
@@ -815,7 +815,7 @@ void Engine::initWindows(Profile profile) {
     waitForAllWindowsInSwapGroupToOpen();
 
     if (RunFrameLockCheckThread) {
-        if (core::ClusterManager::instance().numberOfNodes() > 1) {
+        if (ClusterManager::instance().numberOfNodes() > 1) {
             _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
         }
     }
@@ -831,12 +831,12 @@ void Engine::terminate() {
 }
 
 void Engine::frameLockPreStage() {
-    core::NetworkManager& nm = core::NetworkManager::instance();
+    NetworkManager& nm = NetworkManager::instance();
 
     const double ts = glfwGetTime();
     // from server to clients
     using P = std::pair<double, double>;
-    std::optional<P> minMax = nm.sync(core::NetworkManager::SyncMode::SendDataToClients);
+    std::optional<P> minMax = nm.sync(NetworkManager::SyncMode::SendDataToClients);
     if (minMax) {
         addValue(_statistics.loopTimeMin, minMax->first);
         addValue(_statistics.loopTimeMax, minMax->second);
@@ -846,7 +846,7 @@ void Engine::frameLockPreStage() {
     }
 
     // run only on clients
-    if (nm.isComputerServer() && !core::ClusterManager::instance().ignoreSync())
+    if (nm.isComputerServer() && !ClusterManager::instance().ignoreSync())
     {
         return;
     }
@@ -854,15 +854,15 @@ void Engine::frameLockPreStage() {
     // not server
     const double t0 = glfwGetTime();
     while (nm.isRunning() && !nm.isSyncComplete()) {
-        std::unique_lock lk(core::mutex::FrameSync);
-        core::NetworkManager::cond.wait(lk);
+        std::unique_lock lk(mutex::FrameSync);
+        NetworkManager::cond.wait(lk);
 
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
         }
 
         // more than a second
-        core::Network* c = nm.syncConnection(0);
+        Network* c = nm.syncConnection(0);
         if (_printSyncMessage && !c->isUpdated()) {
             Logger::Info(
                 "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
@@ -882,16 +882,16 @@ void Engine::frameLockPreStage() {
 
     // A this point all data needed for rendering a frame is received.
     // Let's signal that back to the master/server.
-    nm.sync(core::NetworkManager::SyncMode::Acknowledge);
+    nm.sync(NetworkManager::SyncMode::Acknowledge);
     if (!nm.isComputerServer()) {
         addValue(_statistics.syncTimes, glfwGetTime() - t0);
     }
 }
 
 void Engine::frameLockPostStage() {
-    core::NetworkManager& nm = core::NetworkManager::instance();
+    NetworkManager& nm = NetworkManager::instance();
     // post stage
-    if (core::ClusterManager::instance().ignoreSync() ||
+    if (ClusterManager::instance().ignoreSync() ||
         !nm.isComputerServer())
     {
         return;
@@ -901,8 +901,8 @@ void Engine::frameLockPostStage() {
     while (nm.isRunning() && nm.activeConnectionsCount() > 0 &&
           !nm.isSyncComplete())
     {
-        std::unique_lock lk(core::mutex::FrameSync);
-        core::NetworkManager::cond.wait(lk);
+        std::unique_lock lk(mutex::FrameSync);
+        NetworkManager::cond.wait(lk);
 
         if (glfwGetTime() - t0 <= 1.0) {
             continue;
@@ -939,10 +939,10 @@ void Engine::render() {
     unsigned int timeQueryEnd = 0;
     glGenQueries(1, &timeQueryEnd);
 
-    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     while (!(_shouldTerminate || thisNode.closeAllWindows() ||
-           !core::NetworkManager::instance().isRunning()))
+           !NetworkManager::instance().isRunning()))
     {
         if (isMaster()) {
             TrackingManager::instance().updateTrackingDevices();
@@ -952,10 +952,10 @@ void Engine::render() {
             _preSyncFn();
         }
 
-        if (core::NetworkManager::instance().isComputerServer()) {
+        if (NetworkManager::instance().isComputerServer()) {
             SharedData::instance().encode();
         }
-        else if (!core::NetworkManager::instance().isRunning()) {
+        else if (!NetworkManager::instance().isRunning()) {
             // exit if not running
             Logger::Error("Network disconnected. Exiting");
             break;
@@ -989,12 +989,12 @@ void Engine::render() {
             Window::StereoMode sm = win->stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
-            for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+            for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
                 if (!vp->hasSubViewports()) {
                     continue;
                 }
 
-                core::NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
+                NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
 
                 nonLinearProj->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
@@ -1029,11 +1029,11 @@ void Engine::render() {
             }
 
             // Render right non-linear projection viewports to cubemap
-            for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+            for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
                 if (!vp->hasSubViewports()) {
                     continue;
                 }
-                core::NonLinearProjection* p = vp->nonLinearProjection();
+                NonLinearProjection* p = vp->nonLinearProjection();
 
                 p->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
@@ -1120,7 +1120,7 @@ void Engine::render() {
 }
 
 void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
-    for (const std::unique_ptr<core::Viewport>& vp : window.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         // if viewport has overlay
         if (!vp->hasOverlayTexture() || !vp->isEnabled()) {
             continue;
@@ -1137,7 +1137,7 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
 }
 
 void Engine::renderFBOTexture(Window& window) {
-    core::OffScreenBuffer::unbind();
+    OffScreenBuffer::unbind();
 
     window.makeOpenGLContextCurrent();
 
@@ -1157,15 +1157,15 @@ void Engine::renderFBOTexture(Window& window) {
    
     Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
-    const std::vector<std::unique_ptr<core::Viewport>>& vps = window.viewports();
+    const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
         window.bindStereoShaderProgram(
             window.frameBufferTexture(Window::TextureIndex::LeftEye),
             window.frameBufferTexture(Window::TextureIndex::RightEye)
         );
 
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
-        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
     }
     else {
         glActiveTexture(GL_TEXTURE0);
@@ -1177,8 +1177,8 @@ void Engine::renderFBOTexture(Window& window) {
         _fboQuad.bind();
         maskShaderSet = true;
 
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
-        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
+        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
 
         // render right eye in active stereo mode
         if (window.stereoMode() == Window::StereoMode::Active) {
@@ -1195,8 +1195,8 @@ void Engine::renderFBOTexture(Window& window) {
                 GL_TEXTURE_2D,
                 window.frameBufferTexture(Window::TextureIndex::RightEye)
             );
-            std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderWarpMesh));
-            //std::for_each(vps.begin(), vps.end(), std::mem_fn(&core::Viewport::renderQuadMesh));
+            std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
+            //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
         }
     }
 
@@ -1214,7 +1214,7 @@ void Engine::renderFBOTexture(Window& window) {
         // Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        for (const std::unique_ptr<core::Viewport>& vp : window.viewports()) {
+        for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
             if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
                 vp->renderMaskMesh();
@@ -1246,7 +1246,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
 
     Window::StereoMode sm = win.stereoMode();
     // render all viewports for selected eye
-    for (const std::unique_ptr<core::Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
@@ -1302,11 +1302,11 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum,
                         win,
                         *vp,
                         frustum,
-                        core::ClusterManager::instance().sceneTransform(),
+                        ClusterManager::instance().sceneTransform(),
                         vp->projection(frustum).viewMatrix(),
                         vp->projection(frustum).projectionMatrix(),
                         vp->projection(frustum).viewProjectionMatrix() *
-                            core::ClusterManager::instance().sceneTransform()
+                            ClusterManager::instance().sceneTransform()
                     );
                     _drawFn(renderData);
                 }
@@ -1353,7 +1353,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         return;
     }
 
-    for (const std::unique_ptr<core::Viewport>& vp : win.viewports()) {
+    for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
         if (!vp->isEnabled()) {
             continue;
         }
@@ -1369,11 +1369,11 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 win,
                 *vp,
                 frustum,
-                core::ClusterManager::instance().sceneTransform(),
+                ClusterManager::instance().sceneTransform(),
                 vp->projection(frustum).viewMatrix(),
                 vp->projection(frustum).projectionMatrix(),
                 vp->projection(frustum).viewProjectionMatrix() *
-                    core::ClusterManager::instance().sceneTransform()
+                    ClusterManager::instance().sceneTransform()
             );
             _draw2DFn(renderData);
         }
@@ -1410,7 +1410,7 @@ void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
 }
 
 bool Engine::isMaster() const {
-    return core::NetworkManager::instance().isComputerServer();
+    return NetworkManager::instance().isComputerServer();
 }
 
 unsigned int Engine::currentFrameNumber() const {
@@ -1418,8 +1418,8 @@ unsigned int Engine::currentFrameNumber() const {
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
-    core::ClusterManager& cm = core::ClusterManager::instance();
-    core::Node& thisNode = cm.thisNode();
+    ClusterManager& cm = ClusterManager::instance();
+    Node& thisNode = cm.thisNode();
 
     // clear the buffers initially
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
@@ -1456,7 +1456,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
     Logger::Info("Waiting for all nodes to connect");
 
-    while (!core::NetworkManager::instance().areAllNodesConnected()) {
+    while (!NetworkManager::instance().areAllNodesConnected()) {
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : thisNode.windows()) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1469,7 +1469,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         }
         glfwPollEvents();
 
-        if (_shouldTerminate || !core::NetworkManager::instance().isRunning() ||
+        if (_shouldTerminate || !NetworkManager::instance().isRunning() ||
             thisNode.closeAllWindows())
         {
             exit(0);
@@ -1480,9 +1480,9 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 }
 
 void Engine::updateFrustums() {
-    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& win : thisNode.windows()) {
-        for (const std::unique_ptr<core::Viewport>& vp : win->viewports()) {
+        for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
             if (vp->isTracked()) {
                 // if not tracked update, otherwise this is done on the fly
                 continue;
@@ -1490,7 +1490,7 @@ void Engine::updateFrustums() {
 
             using Mode = Frustum::Mode;
             if (vp->hasSubViewports()) {
-                core::NonLinearProjection& p = *vp->nonLinearProjection();
+                NonLinearProjection& p = *vp->nonLinearProjection();
                 p.updateFrustums(Mode::MonoEye, _nearClipPlane, _farClipPlane);
                 p.updateFrustums(Mode::StereoLeftEye, _nearClipPlane, _farClipPlane);
                 p.updateFrustums(Mode::StereoRightEye, _nearClipPlane, _farClipPlane);
@@ -1505,7 +1505,7 @@ void Engine::updateFrustums() {
 }
 
 void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
-                                        const core::Viewport& viewport,
+                                        const Viewport& viewport,
                                         Frustum::Mode mode)
 {
     // run scissor test to prevent clearing of entire buffer
@@ -1534,7 +1534,7 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
     ShaderProgram::unbind();
 }
 
-void Engine::setupViewport(const Window& window, const core::BaseViewport& viewport,
+void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
                            Frustum::Mode frustum)
 {
     const glm::vec2 res = glm::vec2(window.framebufferResolution());
@@ -1653,9 +1653,9 @@ void Engine::setNearAndFarClippingPlanes(float nearClip, float farClip) {
 }
 
 void Engine::setEyeSeparation(float eyeSeparation) {
-    core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        for (const std::unique_ptr<core::Viewport>& vp : window->viewports()) {
+        for (const std::unique_ptr<Viewport>& vp : window->viewports()) {
             vp->user().setEyeSeparation(eyeSeparation);
         }
     }
@@ -1667,7 +1667,7 @@ void Engine::setClearColor(glm::vec4 color) {
 }
 
 const Window* Engine::focusedWindow() const {
-    const core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& ws = thisNode.windows();
     const auto it = std::find_if(ws.begin(), ws.end(), std::mem_fn(&Window::isFocused));
     return it != ws.end() ? it->get() : nullptr;
@@ -1675,7 +1675,7 @@ const Window* Engine::focusedWindow() const {
 
 void Engine::setStatsGraphVisibility(bool state) {
     if (state && _statisticsRenderer == nullptr) {
-        _statisticsRenderer = std::make_unique<core::StatisticsRenderer>(_statistics);
+        _statisticsRenderer = std::make_unique<StatisticsRenderer>(_statistics);
     }
     if (!state && _statisticsRenderer) {
         _statisticsRenderer = nullptr;
@@ -1721,31 +1721,30 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 }
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
-    core::NetworkManager& nm = core::NetworkManager::instance();
-    if (nm.externalControlConnection()) {
-        nm.externalControlConnection()->sendData(data, length);
+    if (NetworkManager::instance().externalControlConnection()) {
+        NetworkManager::instance().externalControlConnection()->sendData(data, length);
     }
 }
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
-    core::NetworkManager::instance().transferData(data, length, packageId);
+    NetworkManager::instance().transferData(data, length, packageId);
 }
 
 bool Engine::isExternalControlConnected() const {
-    return (core::NetworkManager::instance().externalControlConnection() &&
-        core::NetworkManager::instance().externalControlConnection()->isConnected());
+    return (NetworkManager::instance().externalControlConnection() &&
+        NetworkManager::instance().externalControlConnection()->isConnected());
 }
 
-const core::Node& Engine::thisNode() const {
-    return core::ClusterManager::instance().thisNode();
+const Node& Engine::thisNode() const {
+    return ClusterManager::instance().thisNode();
 }
 
 const std::vector<std::unique_ptr<Window>>& Engine::windows() const {
-    return core::ClusterManager::instance().thisNode().windows();
+    return ClusterManager::instance().thisNode().windows();
 }
 
-core::User& Engine::defaultUser() {
-    return core::ClusterManager::instance().defaultUser();
+User& Engine::defaultUser() {
+    return ClusterManager::instance().defaultUser();
 }
 
 double Engine::getTime() {

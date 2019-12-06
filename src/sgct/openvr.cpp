@@ -239,11 +239,11 @@ void copyWindowToHMD(Window* win) {
     vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 }
 
-glm::mat4 currentViewProjectionMatrix(core::Frustum::Mode nEye) {
-    if (nEye == core::Frustum::Mode::StereoLeftEye) {
+glm::mat4 currentViewProjectionMatrix(Frustum::Mode nEye) {
+    if (nEye == Frustum::Mode::StereoLeftEye) {
         return eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
     }
-    else if (nEye == core::Frustum::Mode::StereoRightEye) {
+    else if (nEye == Frustum::Mode::StereoRightEye) {
         return eyeRightProjectionMat * eyeRightToHeadMat *  poseHMDMat;
     }
     else {

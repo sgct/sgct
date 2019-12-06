@@ -26,10 +26,9 @@
 
 #include <string>
 
-namespace sgct { class Window; }
+namespace sgct {
 
-namespace sgct::core {
-
+class Window;
 class User;
 
 /// This class holds and manages viewportdata and calculates frustums
@@ -95,6 +94,6 @@ protected:
     glm::quat _rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__BASEVIEWPORT__H__

@@ -34,7 +34,7 @@ namespace {
     };
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 SpoutOutputProjection::SpoutOutputProjection(Window* parent)
     : NonLinearProjection(parent)
@@ -201,11 +201,11 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             window,
             vp,
             frustumMode,
-            core::ClusterManager::instance().sceneTransform(),
+            ClusterManager::instance().sceneTransform(),
             vp.projection(frustumMode).viewMatrix(),
             vp.projection(frustumMode).projectionMatrix(),
             vp.projection(frustumMode).viewProjectionMatrix() *
-                core::ClusterManager::instance().sceneTransform()
+                ClusterManager::instance().sceneTransform()
         );
         drawCubeFace(vp, renderData);
 
@@ -710,7 +710,7 @@ void SpoutOutputProjection::initShaders() {
 void SpoutOutputProjection::initFBO() {
     NonLinearProjection::initFBO();
 
-    _spoutFBO = std::make_unique<core::OffScreenBuffer>();
+    _spoutFBO = std::make_unique<OffScreenBuffer>();
     _spoutFBO->setInternalColorFormat(_texInternalFormat);
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
 }
@@ -769,4 +769,4 @@ void SpoutOutputProjection::attachTextures(int face) {
     }
 }
 
-} // namespace sgct::core
+} // namespace sgct

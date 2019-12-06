@@ -9,7 +9,7 @@
 #ifndef __SGCT__INTERNALFISHEYESHADERSCUBIC__H__
 #define __SGCT__INTERNALFISHEYESHADERSCUBIC__H__
 
-namespace sgct::core::shaders_fisheye_cubic {
+namespace sgct::shaders_fisheye_cubic {
 
 constexpr const char* interpolate = R"(
   vec4 cubic(float x) {
@@ -394,6 +394,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   }
 )";
 
-} // namespace sgct::core::shaders_fisheye_cubic
+} // namespace sgct::shaders_fisheye_cubic
 
 #endif // __SGCT__INTERNALFISHEYESHADERSCUBIC__H__

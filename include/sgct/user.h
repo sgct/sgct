@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace sgct::core {
+namespace sgct {
 
 /// Helper class for setting user variables
 class User {
@@ -94,6 +94,6 @@ private:
     std::string _headTrackerName;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__USER__H__

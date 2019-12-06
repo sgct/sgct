@@ -338,9 +338,9 @@ void initOGLFun() {
     glEnable(GL_COLOR_MATERIAL);
 
     size_t numberOfActiveViewports = 0;
-    const core::Node& thisNode = core::ClusterManager::instance().thisNode();
+    const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
-        for (const std::unique_ptr<core::Viewport>& vp : window->viewports()) {
+        for (const std::unique_ptr<Viewport>& vp : window->viewports()) {
             if (vp->isEnabled()) {
                 numberOfActiveViewports++;
             }

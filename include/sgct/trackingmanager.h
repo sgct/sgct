@@ -22,9 +22,8 @@ namespace config {
     struct Tracker;
 } // namespace config
 
-namespace core { class User; }
-
 class TrackingDevice;
+class User;
 
 /// Class that manages tracking systems
 class TrackingManager {
@@ -71,7 +70,7 @@ private:
     double _samplingTime = 0.0;
     bool _isRunning = true;
 
-    core::User* _headUser = nullptr;
+    User* _headUser = nullptr;
     TrackingDevice* _head = nullptr;
 };
 

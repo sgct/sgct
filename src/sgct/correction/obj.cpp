@@ -11,7 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/logger.h>
 
-namespace sgct::core::correction {
+namespace sgct::correction {
 
 Buffer generateOBJMesh(const std::string& path) {
     Buffer buffer;
@@ -66,4 +66,4 @@ Buffer generateOBJMesh(const std::string& path) {
     return buffer;
 }
 
-} // namespace sgct::core::correction
+} // namespace sgct::correction

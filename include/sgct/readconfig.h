@@ -12,10 +12,10 @@
 #include <sgct/config.h>
 #include <string>
 
-namespace sgct::core {
+namespace sgct {
 
 [[nodiscard]] sgct::config::Cluster readConfig(const std::string& filename);
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__READCONFIG__H__

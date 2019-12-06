@@ -28,7 +28,7 @@ namespace {
     template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 Viewport::Viewport(Window* parent) : BaseViewport(parent) {}
 
@@ -158,9 +158,9 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
             [](config::FisheyeProjection::Interpolation i) {
                 switch (i) {
                     case config::FisheyeProjection::Interpolation::Linear:
-                        return core::NonLinearProjection::InterpolationMode::Linear;
+                        return NonLinearProjection::InterpolationMode::Linear;
                     case config::FisheyeProjection::Interpolation::Cubic:
-                        return core::NonLinearProjection::InterpolationMode::Cubic;
+                        return NonLinearProjection::InterpolationMode::Cubic;
                     default:
                         throw std::logic_error("Unhandled case label");
                 }
@@ -347,4 +347,4 @@ const std::vector<char>& Viewport::mpcdiWarpMesh() const {
     return _mpcdiWarpMesh;
 }
 
-} // namespace sgct::core
+} // namespace sgct

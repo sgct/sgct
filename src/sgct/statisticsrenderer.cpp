@@ -47,7 +47,7 @@ void main() { out_color = col; }
     constexpr const double HistogramScaleSync = 1.0 / 1000.0; // 1ms
 } // namespace
 
-namespace sgct::core {
+namespace sgct {
 
 StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     : _statistics(statistics)
@@ -258,7 +258,7 @@ void StatisticsRenderer::update() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void StatisticsRenderer::render(const Window& window, const core::Viewport& viewport) {
+void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
     glm::vec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 
@@ -467,4 +467,4 @@ void StatisticsRenderer::render(const Window& window, const core::Viewport& view
     }
 }
 
-} // namespace sgct::core
+} // namespace sgct

@@ -26,7 +26,7 @@ namespace sgct::config {
     struct Viewport;
 } // namespace sgct::config
 
-namespace sgct::core {
+namespace sgct {
 
 /// This class holds and manages viewportdata and calculates frustums
 class Viewport : public BaseViewport {
@@ -79,6 +79,6 @@ private:
     std::vector<char> _mpcdiWarpMesh;
 };
 
-} // namespace sgct::core
+} // namespace sgct
 
 #endif // __SGCT__VIEWPORT__H__

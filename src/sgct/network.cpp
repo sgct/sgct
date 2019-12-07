@@ -16,16 +16,14 @@
     #include <ws2tcpip.h>
     #define SGCT_ERRNO WSAGetLastError()
 #else
-    #ifdef _XCODE
-        #include <unistd.h>
-    #endif
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <netinet/tcp.h>
     #include <arpa/inet.h>
-    #include <netdb.h>
     #include <errno.h>
+    #include <netdb.h>
+    #include <unistd.h>
     #define SOCKET_ERROR (-1)
     #define INVALID_SOCKET static_cast<SGCT_SOCKET>(~0)
     #define NO_ERROR 0L

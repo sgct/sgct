@@ -64,7 +64,7 @@ private:
     int _swapNearLoc = -1;
     int _swapFarLoc = -1;
 
-    std::unique_ptr<OffScreenBuffer> _spoutFBO = nullptr;
+    std::unique_ptr<OffScreenBuffer> _spoutFBO;
 
     struct SpoutInfo {
         bool enabled = true;

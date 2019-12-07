@@ -21,6 +21,7 @@
 #include <array>
 #include <functional>
 #include <optional>
+#include <thread>
 
 namespace sgct {
 
@@ -236,7 +237,7 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void(Engine::RenderData)>& drawFunction() const;
+    const std::function<void(RenderData)>& drawFunction() const;
 
     /**
      * This function sends a message to the external control interface.

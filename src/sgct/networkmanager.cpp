@@ -28,14 +28,12 @@
 #ifdef WIN32
     #include <ws2tcpip.h>
 #else // Use BSD sockets
-    #ifdef _XCODE
-        #include <unistd.h>
-    #endif
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <netdb.h>
+    #include <unistd.h>
     #define SOCKET_ERROR (-1)
 #endif
 

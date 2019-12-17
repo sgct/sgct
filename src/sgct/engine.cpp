@@ -550,6 +550,13 @@ void Engine::initialize(Profile profile) {
     text::FontManager::instance().addFont("SGCTFont", FontName);
 #endif // SGCT_HAS_TEXT
 
+    //init draw buffer resolution
+    waitForAllWindowsInSwapGroupToOpen();
+    // init swap group if enabled
+    if (thisNode.isUsingSwapGroups()) {
+        Window::initNvidiaSwapGroups();
+    }
+
     // init swap barrier is swap groups are active
     Window::setBarrier(true);
     Window::resetSwapGroupFrameNumber();
@@ -799,18 +806,10 @@ void Engine::initWindows(Profile profile) {
 
     std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::init));
 
-    //init draw buffer resolution
-    waitForAllWindowsInSwapGroupToOpen();
-
     if (RunFrameLockCheckThread) {
         if (ClusterManager::instance().numberOfNodes() > 1) {
             _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);
         }
-    }
-
-    // init swap group if enabled
-    if (thisNode.isUsingSwapGroups()) {
-        Window::initNvidiaSwapGroups();
     }
 }
 

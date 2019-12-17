@@ -44,6 +44,7 @@ namespace {
     // file, so we have to resolve these manually
 
 #ifdef WIN32
+namespace bind {
     bool AreFunctionsResolved = false;
     using BindSwapBarrier = GLboolean(*)(GLuint group, GLuint barrier);
     BindSwapBarrier wglBindSwapBarrierNV = nullptr;
@@ -55,6 +56,7 @@ namespace {
     QueryFrameCount wglQueryFrameCountNV = nullptr;
     using ResetFrameCount = GLboolean(*)(HDC hDC);
     ResetFrameCount wglResetFrameCountNV = nullptr;
+} // namespace bind
 #endif // WIN32
 
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
@@ -282,8 +284,8 @@ void Window::close() {
 
 #ifdef WIN32
     if (_useSwapGroups && glfwExtensionSupported("WGL_NV_swap_group")) {
-        wglBindSwapBarrierNV(1, 0); // un-bind
-        wglJoinSwapGroupNV(hDC, 0); // un-join
+        bind::wglBindSwapBarrierNV(1, 0); // un-bind
+        bind::wglJoinSwapGroupNV(hDC, 0); // un-join
     }
 #endif
 }
@@ -380,47 +382,50 @@ void Window::initOGL() {
     }
 
 #ifdef WIN32
-    if (!AreFunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
+    if (!bind::AreFunctionsResolved && glfwExtensionSupported("WGL_NV_swap_group")) {
         // abock(2019-10-02); I had to hand-resolve these functions as glbindings does not
         // come with build-in support for the wgl.xml functions
         // See https://github.com/cginternals/glbinding/issues/132 for when it is resolved
 
-        wglBindSwapBarrierNV = reinterpret_cast<BindSwapBarrier>(
+        bind::wglBindSwapBarrierNV = reinterpret_cast<bind::BindSwapBarrier>(
             glfwGetProcAddress("wglBindSwapBarrierNV")
         );
-        assert(wglBindSwapBarrierNV);
-        wglJoinSwapGroupNV = reinterpret_cast<JoinSwapGroup>(
+
+        assert(bind::wglBindSwapBarrierNV);
+        bind::wglJoinSwapGroupNV = reinterpret_cast<bind::JoinSwapGroup>(
             glfwGetProcAddress("wglJoinSwapGroupNV")
         );
-        assert(wglJoinSwapGroupNV);
-        wglQueryMaxSwapGroupsNV = reinterpret_cast<QueryMaxSwapGroups>(
+        assert(bind::wglJoinSwapGroupNV);
+        bind::wglQueryMaxSwapGroupsNV = reinterpret_cast<bind::QueryMaxSwapGroups>(
             glfwGetProcAddress("wglQueryMaxSwapGroupsNV")
         );
-        assert(wglQueryMaxSwapGroupsNV);
-        wglQueryFrameCountNV = reinterpret_cast<QueryFrameCount>(
+        assert(bind::wglQueryMaxSwapGroupsNV);
+        bind::wglQueryFrameCountNV = reinterpret_cast<bind::QueryFrameCount>(
             glfwGetProcAddress("wglQueryFrameCountNV")
         );
-        assert(wglQueryFrameCountNV);
-        wglResetFrameCountNV = reinterpret_cast<ResetFrameCount>(
+        assert(bind::wglQueryFrameCountNV);
+        bind::wglResetFrameCountNV = reinterpret_cast<bind::ResetFrameCount>(
             glfwGetProcAddress("wglResetFrameCountNV")
         );
-        assert(wglResetFrameCountNV);
+        assert(bind::wglResetFrameCountNV);
 
-        if (!wglBindSwapBarrierNV || !wglJoinSwapGroupNV || !wglQueryMaxSwapGroupsNV ||
-            !wglQueryFrameCountNV || !wglResetFrameCountNV)
+        if (!bind::wglBindSwapBarrierNV || !bind::wglJoinSwapGroupNV ||
+            !bind::wglQueryMaxSwapGroupsNV || !bind::wglQueryFrameCountNV ||
+            !bind::wglResetFrameCountNV)
         {
             Log::Error("Error resolving swapgroup functions");
             Log::Info(
                 "wglBindSwapBarrierNV(: %p\twglJoinSwapGroupNV: %p\t"
                 "wglQueryMaxSwapGroupsNV: %p\twglQueryFrameCountNV: %p\t"
-                "wglResetFrameCountNV: %p",
-                wglBindSwapBarrierNV, wglJoinSwapGroupNV, wglQueryMaxSwapGroupsNV,
-                wglQueryFrameCountNV,wglResetFrameCountNV
+                "wglResetFrameCountNV: %p\twglGetCurrentDC: %p",
+                bind::wglBindSwapBarrierNV, bind::wglJoinSwapGroupNV,
+                bind::wglQueryMaxSwapGroupsNV, bind::wglQueryFrameCountNV, 
+                bind::wglResetFrameCountNV
             );
             throw Err(8000, "Error resolving swapgroup functions");
         };
 
-        AreFunctionsResolved = true;
+        bind::AreFunctionsResolved = true;
     }
 #endif // WIN32
 }
@@ -746,7 +751,7 @@ void Window::setBarrier(bool state) {
         Log::Info("Enabling Nvidia swap barrier");
 
 #ifdef WIN32
-        _isBarrierActive = wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
+        _isBarrierActive = bind::wglBindSwapBarrierNV(1, state ? 1 : 0) == GL_TRUE;
 #endif // WIN32
     }
 }
@@ -889,19 +894,23 @@ void Window::initNvidiaSwapGroups() {
 
         unsigned int maxBarrier = 0;
         unsigned int maxGroup = 0;
-        wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
+        const GLboolean res = bind::wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
+        if (res == GL_FALSE) {
+            throw Err(3006, "Error requesting maximum number of swap groups");
+        }
         Log::Info(
             "WGL_NV_swap_group extension is supported. Max number of groups: %d. "
             "Max number of barriers: %d", maxGroup, maxBarrier
         );
 
-        // wglJoinSwapGroupNV adds hDC to the swap group specified by group. If hDC is a
-        // member of a different group, it is implicitly removed from that group first. A
-        // swap group is specified as an integer between 0 and maxGroups returned by
-        // wglQueryMaxSwapGroupsNV. If group is zero, the hDC is unbound from its current
-        // group, if any. If group is larger than maxGroups, wglJoinSwapGroupNV fails.
-        _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-        Log::Info("Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed");
+        if (maxGroup > 0) {
+            _useSwapGroups = bind::wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
+            Log::Info("Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed");
+        }
+        else {
+            Log::Error("No swap group found. This instance will not use swap groups");
+            _useSwapGroups = false;
+        }
     }
     else {
         _useSwapGroups = false;
@@ -959,7 +968,7 @@ unsigned int Window::swapGroupFrameNumber() {
 
 #ifdef WIN32
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
-        wglQueryFrameCountNV(hDC, &frameNumber);
+        bind::wglQueryFrameCountNV(hDC, &frameNumber);
     }
 #endif
     return frameNumber;
@@ -969,7 +978,7 @@ void Window::resetSwapGroupFrameNumber() {
 #ifdef WIN32
     if (_isBarrierActive) {
         _isSwapGroupMaster = glfwExtensionSupported("WGL_NV_swap_group") &&
-                             wglResetFrameCountNV(hDC);
+                             bind::wglResetFrameCountNV(hDC);
         if (_isSwapGroupMaster) {
             Log::Info("Resetting frame counter");
         }

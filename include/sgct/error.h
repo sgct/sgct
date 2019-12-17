@@ -106,6 +106,7 @@ namespace sgct {
  * 3003: Engine / Computer is not a part of the cluster configuration
  * 3004: Engine / No sync signal from master after X seconds
  * 3005: Engine / No sync signal from clients after X seconds
+ * 3006: Engine / Error requesting maximum number of swap groups
  * 3010: Engine / GLFW error
 
  * 4000s: MPCDI

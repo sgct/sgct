@@ -34,7 +34,7 @@ public:
     static std::condition_variable cond;
 
     ~NetworkManager();
-    void init();
+    void initialize();
 
     /**
      * \param if this application is server/master in cluster then set to true

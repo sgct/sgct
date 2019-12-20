@@ -34,6 +34,10 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif // WIN32
+
 #define Err(code, msg) Error(Error::Component::Engine, code, msg)
 
 namespace sgct {
@@ -98,6 +102,8 @@ namespace {
     }
 
     void setAndClearBuffer(Window& window, BufferMode buffer, Frustum::Mode frustum) {
+        ZoneScoped
+
         if (buffer == BufferMode::BackBufferBlack) {
             const bool doubleBuffered = window.isDoubleBuffered();
             // Set buffer
@@ -348,13 +354,22 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
-
-    glfwSetErrorCallback([](int error, const char* desc) {
-        throw Err(3010, "GLFW error (" + std::to_string(error) + "): " + desc);
-    });
-    const int res = glfwInit();
-    if (res == GLFW_FALSE) {
-        throw Err(3000, "Failed to initialize GLFW");
+    if (cluster.setThreadAffinity) {
+#ifdef WIN32
+        SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
+#else
+        Log:Error("Using thread affinity on an operating system that is not supported");
+#endif // WIN32
+    }
+    {
+        ZoneScopedN("GLFW initialization")
+        glfwSetErrorCallback([](int error, const char* desc) {
+            throw Err(3010, "GLFW error (" + std::to_string(error) + "): " + desc);
+        });
+        const int res = glfwInit();
+        if (res == GLFW_FALSE) {
+            throw Err(3000, "Failed to initialize GLFW");
+        }
     }
 
     Log::Info("SGCT version: %s", version().c_str());
@@ -403,7 +418,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
 
     ClusterManager::create(cluster, clusterId);
-    NetworkManager::instance().init();
+    NetworkManager::instance().initialize();
 }
 
 void Engine::initialize(Profile profile) {
@@ -552,9 +567,7 @@ void Engine::initialize(Profile profile) {
         _initOpenGLFn();
     }
 
-    // link all users to their viewports
     for (const std::unique_ptr<Window>& win : wins) {
-        ZoneScopedN("Link users")
         win->initOGL();
         const std::vector<std::unique_ptr<Viewport>>& vps = win->viewports();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::linkUserName));
@@ -736,7 +749,7 @@ void Engine::initWindows(Profile profile) {
         const bool isLastWindow = i == windows.size() - 1;
         windows[i]->openWindow(s, isLastWindow);
         glbinding::Binding::initialize(glfwGetProcAddress);
-        TracyGpuContext(windows[i]->name().c_str());
+        TracyGpuContext
     }
 
     if (_checkOpenGLCalls || _checkFBOs) {
@@ -1367,6 +1380,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
     if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
+        ZoneScopedN("PostFX/Blit")
+
         updateRenderingTargets(win, ti);
         if (win.useFXAA()) {
             renderFXAA(win, ti);
@@ -1472,15 +1487,18 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 
     // clear the buffers initially
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {
+        ZoneScopedN("Clear Windows")
         window->makeOpenGLContextCurrent();
         glDrawBuffer(window->isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (window->isDoubleBuffered()) {
+            ZoneScopedN("glfwSwapBuffers")
             glfwSwapBuffers(window->windowHandle());
         }
         else {
+            ZoneScopedN("glFinish")
             glFinish();
         }
     }

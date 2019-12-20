@@ -9,6 +9,7 @@
 #include <sgct/config.h>
 
 #include <sgct/error.h>
+#include <sgct/profiling.h>
 #include <algorithm>
 #include <numeric>
 
@@ -222,6 +223,8 @@ void validateNode(const Node& n) {
 }
 
 void validateCluster(const Cluster& c) {
+    ZoneScoped
+
     if (c.masterAddress.empty()) {
         throw Error(1120, "Cluster master address must not be empty");
     }

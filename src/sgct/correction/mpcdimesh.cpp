@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <cstring>
 
@@ -18,6 +19,8 @@
 namespace sgct::correction {
 
 Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
+    ZoneScoped
+
     Buffer buf;
 
     Log::Info("Reading MPCDI mesh (PFM format) from buffer");

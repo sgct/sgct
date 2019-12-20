@@ -198,19 +198,22 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
 void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hint,
                               bool needsMaskGeometry)
 {
+    ZoneScoped
+
     using namespace correction;
     const glm::vec2& parentPos = parent.position();
     const glm::vec2& parentSize = parent.size();
 
     // generate unwarped mask
     {
+        ZoneScopedN("Create simple mask")
         Buffer buf = setupSimpleMesh(parentPos, parentSize);
         createMesh(_quadGeometry, buf);
     }
     
     // generate unwarped mesh for mask
     if (needsMaskGeometry) {
-    //if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
+        ZoneScopedN("Create unwarped mask")
         Log::Debug("CorrectionMesh: Creating mask mesh");
 
         Buffer buf = setupMaskMesh(parentPos, parentSize);
@@ -325,6 +328,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
                                 const correction::Buffer& buffer)
 {
     ZoneScoped
+    TracyGpuZone("createMesh")
 
     glGenVertexArrays(1, &geom.vao);
     glBindVertexArray(geom.vao);

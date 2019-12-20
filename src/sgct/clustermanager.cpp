@@ -40,12 +40,16 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
+    ZoneScoped
+
     _users.push_back(std::make_unique<User>("default"));
 }
 
 ClusterManager::~ClusterManager() {}
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
+    ZoneScoped
+        
     _masterAddress = cluster.masterAddress;
     if (cluster.debugLog && *cluster.debugLog) {
         Log::instance().setNotifyLevel(Log::Level::Debug);
@@ -70,6 +74,8 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     }
     // The users must be handled before the nodes due to the nodes depending on the users
     for (const config::User& u : cluster.users) {
+        ZoneScopedN("Create User")
+
         std::string name;
         if (u.name) {
             name = *u.name;
@@ -96,6 +102,8 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
     for (const config::Node& node : cluster.nodes) {
+        ZoneScopedN("Create Node")
+
         std::unique_ptr<Node> n = std::make_unique<Node>();
         n->applyNode(node);
         addNode(std::move(n));

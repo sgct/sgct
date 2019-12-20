@@ -10,10 +10,13 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 
 namespace sgct::correction {
 
 Buffer generateOBJMesh(const std::string& path) {
+    ZoneScoped
+
     Buffer buffer;
 
     Log::Info("Reading Wavefront OBJ mesh data from '%s'", path.c_str());

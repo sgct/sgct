@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 #include <optional>
@@ -20,6 +21,8 @@
 namespace sgct::correction {
 
 Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
+    ZoneScoped
+    
     Buffer buf;
 
     Log::Info("Reading SkySkan mesh data from '%s'", path.c_str());

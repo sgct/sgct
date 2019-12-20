@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
 
@@ -48,6 +49,8 @@ namespace {
 namespace sgct::correction {
 
 Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
+    ZoneScoped
+
     Buffer buf;
 
     Log::Info("Reading SCISS mesh data from '%s'", path.c_str());

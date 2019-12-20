@@ -71,13 +71,15 @@ NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
 #ifdef WIN32
     WORD version = MAKEWORD(2, 2);
 
-    WSADATA wsaData;
-    int error = WSAStartup(version, &wsaData);
-
-    if (error != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-        // incorrect WinSock version
-        WSACleanup();
-        throw Error(5020, "Winsock 2.2 startup failed");
+    {
+        ZoneScopedN("WSAStartup")
+        WSADATA wsaData;
+        const int err = WSAStartup(version, &wsaData);
+        if (err != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+            // incorrect WinSock version
+            WSACleanup();
+            throw Error(5020, "Winsock 2.2 startup failed");
+        }
     }
 #endif
 
@@ -88,12 +90,15 @@ NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
     //
     // get name & local IPs. retrieves the standard host name for the local computer
     char tmpStr[128];
-    const int res = gethostname(tmpStr, sizeof(tmpStr));
-    if (res == SOCKET_ERROR) {
+    {
+        ZoneScopedN("gethostname")
+        const int res = gethostname(tmpStr, sizeof(tmpStr));
+        if (res == SOCKET_ERROR) {
 #ifdef WIN32
-        WSACleanup();
+            WSACleanup();
 #endif
-        throw Error(5027, "Failed to get local host name");
+            throw Error(5027, "Failed to get local host name");
+        }
     }
 
     std::string hostName = tmpStr;
@@ -114,14 +119,18 @@ NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
     hints.ai_flags = AI_CANONNAME;
 
     addrinfo* info;
-    int result = getaddrinfo(tmpStr, "http", &hints, &info);
-    if (result != 0) {
-        std::string err = std::to_string(Network::lastError());
-        throw Error(5028, "Failed to get address info: " + err);
+    {
+        ZoneScopedN("getaddrinfo")
+        int result = getaddrinfo(tmpStr, "http", &hints, &info);
+        if (result != 0) {
+            std::string err = std::to_string(Network::lastError());
+            throw Error(5028, "Failed to get address info: " + err);
+        }
     }
     std::vector<std::string> dnsNames;
     char addr_str[INET_ADDRSTRLEN];
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
+        ZoneScopedN("inet_ntop")
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
         inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
         if (p->ai_canonname) {
@@ -160,8 +169,13 @@ NetworkManager::~NetworkManager() {
     }
 
     // wait for all nodes callbacks to run
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
+    {
+        // @TODO (abock, 2019-12-20) We can probably remove this waiting altogether. The
+        // node callbacks are run synchronously with this function, and either way, what
+        // if the callbacks take longer and we crash anyway?
+        ZoneScopedN("Sleeping")
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    }
     // wait for threads to die
     for (std::unique_ptr<Network>& connection : _networkConnections) {
         connection->closeNetwork(false);
@@ -177,7 +191,7 @@ NetworkManager::~NetworkManager() {
     Log::Info("Network API closed");
 }
 
-void NetworkManager::init() {
+void NetworkManager::initialize() {
     ZoneScoped
         
     ClusterManager& cm = ClusterManager::instance();
@@ -221,6 +235,7 @@ void NetworkManager::init() {
 
     // Add Cluster Functionality
     if (ClusterManager::instance().numberOfNodes() > 1) {
+        ZoneScopedN("Create cluster connections")
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
@@ -333,6 +348,8 @@ void NetworkManager::init() {
 
     // add connection for external communication
     if (_isServer && cm.externalControlPort() != 0) {
+        ZoneScopedN("Create external control")
+
         addConnection(
             cm.externalControlPort(),
             "127.0.0.1",
@@ -594,6 +611,8 @@ void NetworkManager::setAllNodesConnected() {
 void NetworkManager::addConnection(int port, const std::string& address,
                                    Network::ConnectionType connectionType)
 {
+    ZoneScoped
+
     if (port == 0) {
         throw Error(5025, "No port provided for connection to " + address);
     }
@@ -633,6 +652,8 @@ void NetworkManager::addConnection(int port, const std::string& address,
 }
 
 bool NetworkManager::matchesAddress(const std::string& address) const {
+    ZoneScoped
+
     const auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);
     return it != _localAddresses.cend();
 }

@@ -281,6 +281,7 @@ void validateNode(const Node& node);
 struct Cluster {
     std::string masterAddress;
     std::optional<bool> debugLog;
+    std::optional<int> setThreadAffinity;
     std::optional<bool> checkOpenGL;
     std::optional<bool> checkFBOs;
     std::optional<int> externalControlPort;

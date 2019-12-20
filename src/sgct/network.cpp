@@ -36,6 +36,7 @@
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/networkmanager.h>
+#include <sgct/profiling.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
 #include <cstring>
@@ -800,6 +801,8 @@ void Network::communicationHandler() {
 }
 
 void Network::sendData(const void* data, int length) {
+    ZoneScoped
+
     int sendSize = length;
 
     while (sendSize > 0) {
@@ -818,6 +821,8 @@ void Network::sendData(const void* data, int length) {
 }
 
 void Network::closeNetwork(bool forced) {
+    ZoneScoped
+
     decoderCallback = nullptr;
     _updateCallback = nullptr;
     _connectedCallback = nullptr;
@@ -844,6 +849,8 @@ void Network::closeNetwork(bool forced) {
 }
 
 void Network::initShutdown() {
+    ZoneScoped
+
     if (_isConnected) {
         constexpr const char gameOver[9] = {
             DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
@@ -854,6 +861,7 @@ void Network::initShutdown() {
     Log::Info("Closing connection %d", _id);
 
     {
+        ZoneScopedN("Decoder callback lock")
         std::unique_lock lock(_connectionMutex);
         decoderCallback = nullptr;
     }

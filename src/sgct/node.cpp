@@ -11,6 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/keys.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <algorithm>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -18,6 +19,8 @@
 namespace sgct {
 
 void Node::applyNode(const config::Node& node) {
+    ZoneScoped
+
     // Set network address
     std::string address = node.address;
     std::transform(

@@ -83,6 +83,8 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
+    ZoneScoped
+
     User* user = ClusterManager::instance().user(_userName);
     if (user) {
         _user = user;

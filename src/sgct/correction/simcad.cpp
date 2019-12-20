@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/helpers/stringfunctions.h>
 #include <glm/glm.hpp>
@@ -22,6 +23,8 @@ namespace sgct::correction {
 Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
                           const glm::ivec2& size)
 {
+    ZoneScoped
+
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only
     // contains zero’s when no warp is applied.

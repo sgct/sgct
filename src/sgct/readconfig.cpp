@@ -899,6 +899,7 @@ namespace {
             throw Err(6084, "Cannot find master address");
         }
 
+        cluster.setThreadAffinity = parseValue<int>(root, "setThreadAffinity");
         cluster.debugLog = parseValue<bool>(root, "debugLog");
         cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");
         cluster.checkFBOs = parseValue<bool>(root, "checkFBO");

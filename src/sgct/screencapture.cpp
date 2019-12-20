@@ -60,7 +60,9 @@ namespace sgct {
 
 ScreenCapture::ScreenCapture()
     : _nThreads(Settings::instance().numberCaptureThreads())
-{}
+{
+    ZoneScoped
+}
 
 ScreenCapture::~ScreenCapture() {
     for (ScreenCaptureThreadInfo& info : _captureInfos) {

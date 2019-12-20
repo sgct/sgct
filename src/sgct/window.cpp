@@ -320,8 +320,11 @@ void Window::init() {
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
-    // swap the buffers and update the window
-    glfwSwapBuffers(_windowHandle);
+    {
+        // swap the buffers and update the window
+        ZoneScopedN("glfwSwapBuffers")
+        glfwSwapBuffers(_windowHandle);
+    }
 }
 
 void Window::initOGL() {
@@ -460,6 +463,8 @@ void Window::initContextSpecificOGL() {
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
+    ZoneScoped
+
     // @TODO (abock, 2019-12-04) I think this function should be make constant and we
     // figure out beforehand which textures we need to create. So this function just
     // returns the already created textures instead
@@ -521,6 +526,7 @@ void Window::setFocused(bool state) {
 }
 
 void Window::setWindowTitle(const char* title) {
+    ZoneScoped
     glfwSetWindowTitle(_windowHandle, title);
 }
 
@@ -545,7 +551,6 @@ void Window::setFramebufferResolution(glm::ivec2 resolution) {
 }
 
 void Window::swap(bool takeScreenshot) {
-    ZoneScoped
 
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
@@ -554,6 +559,7 @@ void Window::swap(bool takeScreenshot) {
     makeOpenGLContextCurrent();
         
     if (takeScreenshot) {
+        ZoneScopedN("Take Screenshot")
         if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
@@ -834,23 +840,27 @@ void Window::setBlitPreviousWindow(bool state) {
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     ZoneScoped
 
-    glfwWindowHint(GLFW_DEPTH_BITS, 32);
-    glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
+    {
+        ZoneScopedN("Set GLFW settings")
+        glfwWindowHint(GLFW_DEPTH_BITS, 32);
+        glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
-    const int antiAliasingSamples = numberOfAASamples();
-    glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
+        const int antiAliasingSamples = numberOfAASamples();
+        glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
 
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-    glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
-    if (!_isVisible) {
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+        glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
+        glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
+        if (!_isVisible) {
+            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        }
     }
 
     setUseQuadbuffer(_stereoMode == StereoMode::Active);
 
-    GLFWmonitor* monitor = nullptr;
+    GLFWmonitor* mon = nullptr;
     if (_isFullScreen) {
+        ZoneScopedN("Fullscreen Settings")
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
@@ -860,10 +870,10 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
         
         if (_monitorIndex > 0 && _monitorIndex < count) {
-            monitor = monitors[_monitorIndex];
+            mon = monitors[_monitorIndex];
         }
         else {
-            monitor = glfwGetPrimaryMonitor();
+            mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
                 Log::Info(
                     "Window(%d): Invalid monitor index (%d). Computer has %d monitors",
@@ -873,22 +883,31 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         }
 
         if (!_isWindowResolutionSet) {
-            const GLFWvidmode* currentMode = glfwGetVideoMode(monitor);
+            const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
             _windowRes = glm::ivec2(currentMode->width, currentMode->height);
         }
     }
-
-    _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", monitor, share);
-    if (_windowHandle == nullptr) {
-        throw Err(8001, "Error opening GLFW window");
+    
+    {
+        ZoneScopedN("glfwCreateWindow")
+        _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", mon, share);
+        if (_windowHandle == nullptr) {
+            throw Err(8001, "Error opening GLFW window");
+        }
     }
 
-    _sharedHandle = share != nullptr ? share : _windowHandle;
-    glfwMakeContextCurrent(_windowHandle);
+    {
+        ZoneScopedN("glfwMakeContextCurrent")
+        _sharedHandle = share != nullptr ? share : _windowHandle;
+        glfwMakeContextCurrent(_windowHandle);
+    }
 
     // Mac for example scales the window size != frame buffer size
     glm::ivec2 bufferSize;
-    glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);
+    {
+        ZoneScopedN("glfwGetFramebufferSize")
+        glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);
+    }
 
     _windowInitialRes = _windowRes;
     _scale = glm::vec2(bufferSize) / glm::vec2(_windowRes);
@@ -915,7 +934,10 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
         
-    glfwMakeContextCurrent(_sharedHandle);
+    {
+        ZoneScopedN("glfwMakeContextCurrent")
+        glfwMakeContextCurrent(_sharedHandle);
+    }
 
     _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>();
     if (useRightEyeTexture()) {
@@ -925,6 +947,8 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 }
 
 void Window::initNvidiaSwapGroups() {
+    ZoneScoped
+
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
         Log::Info("Joining Nvidia swap group");

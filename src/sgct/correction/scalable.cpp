@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -17,6 +18,8 @@ namespace sgct::correction {
 Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
                             const glm::ivec2& size)
 {
+    ZoneScoped
+
     Buffer buf;
 
     Log::Info("Reading scalable mesh data from '%s'", path.c_str());

@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <cstring>
@@ -122,6 +123,8 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
+    ZoneScoped
+        
     std::string file = addFrameNumberToFilename(Engine::instance().screenShotNumber());
     checkImageBuffer(capSrc);
 

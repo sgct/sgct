@@ -28,6 +28,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/ogl_headers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projectionplane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
@@ -91,6 +92,7 @@ set(SOURCE_FILES
   nonlinearprojection.cpp
   offscreenbuffer.cpp
   openvr.cpp
+  profiling.cpp
   projection.cpp
   projectionplane.cpp
   readconfig.cpp
@@ -172,7 +174,8 @@ endif ()
 
 if (SGCT_DEP_INCLUDE_TRACY)
   target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/ext/tracy)
-  if (SGCT_DEP_ENABLE_TRACY)
+  target_compile_definitions(sgct PRIVATE SGCT_HAS_TRACY)
+  if (SGCT_DEP_INCLUDE_TRACY_ENABLED)
     target_compile_definitions(sgct PRIVATE TRACY_ENABLE)
   endif ()
 endif ()

@@ -19,6 +19,7 @@
 #include <sgct/nonlinearprojection.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
+#include <sgct/profiling.h>
 #include <sgct/screencapture.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
@@ -95,6 +96,8 @@ namespace bind {
 
 namespace sgct {
 
+GLFWwindow* _activeContext = nullptr;
+
 bool Window::_useSwapGroups = false;
 bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
@@ -105,6 +108,8 @@ Window::Window(int id) : _id(id) {}
 Window::~Window() {}
 
 void Window::applyWindow(const config::Window& window) {
+    ZoneScoped
+
     if (window.name) {
         setName(*window.name);
     }
@@ -168,6 +173,8 @@ void Window::applyWindow(const config::Window& window) {
         setFullScreenMonitorIndex(*window.monitor);
     }
     if (window.mpcdi) {
+        ZoneScopedN("MPCDI")
+
         mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
         setWindowPosition(glm::ivec2(0));
         initWindowResolution(r.resolution);
@@ -213,6 +220,8 @@ void Window::applyWindow(const config::Window& window) {
     initWindowResolution(window.size);
 
     if (window.resolution) {
+        ZoneScopedN("Resolution")
+        
         setFramebufferResolution(*window.resolution);
         setFixResolution(true);
     }
@@ -249,6 +258,8 @@ bool Window::isFocused() const {
 }
 
 void Window::close() {
+    ZoneScoped
+
     makeSharedContextCurrent();
 
     Log::Info("Deleting screen capture data for window %d", _id);
@@ -291,6 +302,8 @@ void Window::close() {
 }
 
 void Window::init() {
+    ZoneScoped
+
     if (!_isFullScreen) {
         if (_setWindowPos) {
             glfwSetWindowPos(_windowHandle, _windowPos.x, _windowPos.y);
@@ -312,6 +325,8 @@ void Window::init() {
 }
 
 void Window::initOGL() {
+    ZoneScoped
+
     _colorFormat = GL_BGRA;
     
     switch (_bufferColorBitDepth) {
@@ -431,6 +446,8 @@ void Window::initOGL() {
 }
 
 void Window::initContextSpecificOGL() {
+    ZoneScoped
+
     makeOpenGLContextCurrent();
     std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
     _hasAnyMasks = std::any_of(
@@ -528,6 +545,8 @@ void Window::setFramebufferResolution(glm::ivec2 resolution) {
 }
 
 void Window::swap(bool takeScreenshot) {
+    ZoneScoped
+
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }
@@ -575,6 +594,8 @@ void Window::swap(bool takeScreenshot) {
 }
 
 void Window::updateResolutions() {
+    ZoneScoped
+
     if (_pendingWindowRes.has_value()) {
         _windowRes = *_pendingWindowRes;
         float ratio = static_cast<float>(_windowRes.x) / static_cast<float>(_windowRes.y);
@@ -620,6 +641,8 @@ void Window::setHorizFieldOfView(float hFovDeg) {
 }
 
 void Window::initWindowResolution(glm::ivec2 resolution) {
+    ZoneScoped
+
     _windowRes = resolution;
     _windowResOld = _windowRes;
     _aspectRatio = static_cast<float>(resolution.x) / static_cast<float>(resolution.y);
@@ -631,6 +654,8 @@ void Window::initWindowResolution(glm::ivec2 resolution) {
 }
 
 void Window::update() {
+    ZoneScoped
+
     if (!_isVisible || !isWindowResized()) {
         return;
     }
@@ -670,10 +695,22 @@ void Window::update() {
 }
 
 void Window::makeSharedContextCurrent() {
+    ZoneScoped
+
+    if (_activeContext == _sharedHandle) {
+        return;
+    }
+    _activeContext = _sharedHandle;
     glfwMakeContextCurrent(_sharedHandle);
 }
 
 void Window::makeOpenGLContextCurrent() {
+    ZoneScoped
+
+    if (_activeContext == _windowHandle) {
+        return;
+    }
+    _activeContext = _windowHandle;
     glfwMakeContextCurrent(_windowHandle);
 }
 
@@ -795,6 +832,8 @@ void Window::setBlitPreviousWindow(bool state) {
 }
 
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
+    ZoneScoped
+
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
 
@@ -990,6 +1029,9 @@ void Window::resetSwapGroupFrameNumber() {
 }
 
 void Window::createTextures() {
+    ZoneScoped
+    TracyGpuZone("Create Textures")
+
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
@@ -1020,6 +1062,9 @@ void Window::createTextures() {
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
+    ZoneScoped
+    TracyGpuZone("Generate Textures")
+
     glDeleteTextures(1, &id);
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
@@ -1047,6 +1092,9 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 }
 
 void Window::createFBOs() {
+    ZoneScoped
+    TracyGpuZone("Create FBOs")
+
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
 
@@ -1057,6 +1105,9 @@ void Window::createFBOs() {
 }
 
 void Window::createVBOs() {
+    ZoneScoped
+    TracyGpuZone("Create VBOs")
+
     constexpr const std::array<const float, 20> QuadVerts = {
         0.f, 0.f, -1.f, -1.f, -1.f,
         1.f, 0.f,  1.f, -1.f, -1.f,
@@ -1092,6 +1143,9 @@ void Window::createVBOs() {
 }
 
 void Window::loadShaders() {
+    ZoneScoped
+    TracyGpuZone("Load Shaders")
+
     if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
         return;
     }
@@ -1130,6 +1184,8 @@ void Window::loadShaders() {
 }
 
 void Window::renderScreenQuad() const {
+    TracyGpuZone("Render Screen Quad")
+
     glBindVertexArray(_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);

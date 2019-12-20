@@ -13,6 +13,7 @@
 #include <sgct/fisheyeprojection.h>
 #include <sgct/log.h>
 #include <sgct/nonlinearprojection.h>
+#include <sgct/profiling.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/sphericalmirrorprojection.h>
@@ -34,6 +35,8 @@ namespace sgct {
 Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
 
 void Viewport::applyViewport(const config::Viewport& viewport) {
+    ZoneScoped
+
     if (viewport.user) {
         setUserName(*viewport.user);
     }
@@ -93,6 +96,8 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 }
 
 void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
+    ZoneScoped
+        
     if (mpcdi.position) {
         setPos(*mpcdi.position);
     }
@@ -115,6 +120,8 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
 }
 
 void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
+    ZoneScoped
+        
     setViewPlaneCoordsUsingFOVs(
         proj.fov.up,
         proj.fov.down,
@@ -129,6 +136,8 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
 }
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
+    ZoneScoped
+        
     auto fishProj = std::make_unique<FisheyeProjection>(_parent);
     fishProj->setUser(_user);
     
@@ -185,6 +194,8 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
 #ifdef SGCT_HAS_SPOUT  
+    ZoneScoped
+        
     auto proj = std::make_unique<SpoutOutputProjection>(_parent);
     proj->setUser(_user);
     if (p.quality) {
@@ -225,6 +236,8 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
+    ZoneScoped
+        
     auto proj = std::make_unique<SphericalMirrorProjection>(
         _parent,
         p.mesh.bottom,
@@ -252,6 +265,8 @@ void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
 }
 
 void Viewport::loadData() {
+    ZoneScoped
+        
     TextureManager& mgr = TextureManager::instance();
     if (!_overlayFilename.empty()) {
         _overlayTextureIndex = mgr.loadTexture(_overlayFilename, true, 1);
@@ -285,18 +300,24 @@ void Viewport::loadData() {
 }
 
 void Viewport::renderQuadMesh() const {
+    ZoneScoped
+        
     if (_isEnabled) {
         _mesh.renderQuadMesh();
     }
 }
 
 void Viewport::renderWarpMesh() const {
+    ZoneScoped
+
     if (_isEnabled) {
         _mesh.renderWarpMesh();
     }
 }
 
 void Viewport::renderMaskMesh() const {
+    ZoneScoped
+
     if (_isEnabled) {
         _mesh.renderMaskMesh();
     }

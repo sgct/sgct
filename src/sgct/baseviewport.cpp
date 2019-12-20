@@ -9,6 +9,7 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <stdexcept>
 
@@ -89,6 +90,8 @@ void BaseViewport::linkUserName() {
 }
 
 void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
+    ZoneScoped
+        
     switch (mode) {
         case Frustum::Mode::MonoEye:
             _projections.mono.calculateProjection(

@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
@@ -61,6 +62,8 @@ void FisheyeProjection::update(glm::vec2 size) {
 void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
                                Frustum::Mode frustumMode)
 {
+    ZoneScoped
+        
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -130,6 +133,8 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
 }
 
 void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    ZoneScoped
+
     switch (frustumMode) {
         case Frustum::Mode::MonoEye:
             break;

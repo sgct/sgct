@@ -20,6 +20,7 @@
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/node.h>
+#include <sgct/profiling.h>
 #include <sgct/shareddata.h>
 #include <algorithm>
 #include <cstring>
@@ -50,6 +51,8 @@ NetworkManager& NetworkManager::instance() {
 }
 
 void NetworkManager::create(NetworkMode nm) {
+    ZoneScoped
+
     if (_instance) {
         throw std::logic_error("NetworkManager has already been created");
     }
@@ -62,6 +65,8 @@ void NetworkManager::destroy() {
 }
 
 NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
+    ZoneScoped
+
     Log::Debug("Initiating network API");
 #ifdef WIN32
     WORD version = MAKEWORD(2, 2);
@@ -143,6 +148,8 @@ NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
 }
 
 NetworkManager::~NetworkManager() {
+    ZoneScoped
+        
     _isRunning = false;
 
     cond.notify_all();
@@ -171,6 +178,8 @@ NetworkManager::~NetworkManager() {
 }
 
 void NetworkManager::init() {
+    ZoneScoped
+        
     ClusterManager& cm = ClusterManager::instance();
 
     _isServer = [&](NetworkMode nm) {

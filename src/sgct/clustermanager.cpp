@@ -11,6 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <algorithm>
@@ -27,6 +28,8 @@ ClusterManager& ClusterManager::instance() {
 }
 
 void ClusterManager::create(const config::Cluster& cluster, int clusterID) {
+    ZoneScoped
+        
     _instance = new ClusterManager(clusterID);
     _instance->applyCluster(cluster);
 }

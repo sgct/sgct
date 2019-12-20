@@ -9,6 +9,7 @@
 #include <sgct/shareddata.h>
 
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <zlib.h>
 #include <cstring>
 #include <string>
@@ -48,6 +49,8 @@ void SharedData::setDecodeFunction(std::function<void()> fn) {
 }
 
 void SharedData::decode(const char* receivedData, int receivedLength) {
+    ZoneScoped
+
     {
         std::unique_lock lk(mutex::DataSync);
 
@@ -67,6 +70,8 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
 }
 
 void SharedData::encode() {
+    ZoneScoped
+
     {
         std::unique_lock lk(mutex::DataSync);
         _dataBlock.clear();

@@ -18,6 +18,7 @@
 #include <sgct/node.h>
 #include <sgct/nonlinearprojection.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/profiling.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/shadermanager.h>
@@ -128,6 +129,8 @@ namespace {
     }
 
     void prepareBuffer(Window& window, Window::TextureIndex ti) {
+        ZoneScoped
+            
         OffScreenBuffer* fbo = window.fbo();
         fbo->bind();
         if (fbo->isMultiSampled()) {
@@ -159,6 +162,8 @@ namespace {
     }
 
     void updateRenderingTargets(Window& window, Window::TextureIndex ti) {
+        ZoneScoped
+
         // copy AA-buffer to "regular" / non-AA buffer
         OffScreenBuffer* fbo = window.fbo();
         if (!fbo->isMultiSampled()) {
@@ -207,6 +212,8 @@ Engine& Engine::instance() {
 void Engine::create(config::Cluster cluster, Callbacks callbacks,
                     const Configuration& arg, Profile profile)
 {
+    ZoneScoped
+
     // abock (2019-12-02) Unfortunately I couldn't find a better why than using this two
     // phase initialization approach. There are a few callbacks in the second phase that
     // are calling out to client code that (rightly) assumes that the Engine has been
@@ -218,11 +225,15 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
 }
 
 void Engine::destroy() {
+    ZoneScoped
+
     delete _instance;
     _instance = nullptr;
 }
 
 config::Cluster loadCluster(std::optional<std::string> path) {
+    ZoneScoped
+
     if (path) {
         try {
             return readConfig(*path);
@@ -285,6 +296,8 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     , _dataTransferStatusFn(std::move(callbacks.dataTransferStatus))
     , _dataTransferAcknowledgeFn(std::move(callbacks.dataTransferAcknowledge))
 {
+    ZoneScoped
+
     SharedData::instance().setEncodeFunction(std::move(callbacks.encode));
     SharedData::instance().setDecodeFunction(std::move(callbacks.decode));
 
@@ -394,6 +407,8 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 }
 
 void Engine::initialize(Profile profile) {
+    ZoneScoped
+
     initWindows(profile);
 
     // Window resolution may have been set by the config. However, it only sets a pending
@@ -486,6 +501,8 @@ void Engine::initialize(Profile profile) {
     // Load Shaders
     bool needsFxaa = std::any_of(wins.begin(), wins.end(), std::mem_fn(&Window::useFXAA));
     if (needsFxaa) {
+        ZoneScopedN("FXAA Shader")
+
         _fxaa = FXAAShader();
         _fxaa->shader = ShaderProgram("FXAAShader");
         _fxaa->shader.addShaderSource(shaders::FXAAVert, shaders::FXAAFrag);
@@ -510,28 +527,34 @@ void Engine::initialize(Profile profile) {
         ShaderProgram::unbind();
     }
 
-    // Used for overlays & mono.
-    _fboQuad = ShaderProgram("FBOQuadShader");
-    _fboQuad.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
-    _fboQuad.createAndLinkProgram();
-    _fboQuad.bind();
-    glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
-    ShaderProgram::unbind();
+    {
+        ZoneScopedN("FBO Quad Shader")
 
-    _overlay = ShaderProgram("OverlayShader");
-    _overlay.addShaderSource(shaders::OverlayVert, shaders::OverlayFrag);
-    _overlay.createAndLinkProgram();
-    _overlay.bind();
-    glUniform1i(glGetUniformLocation(_overlay.id(), "Tex"), 0);
-    ShaderProgram::unbind();
+        // Used for overlays & mono.
+        _fboQuad = ShaderProgram("FBOQuadShader");
+        _fboQuad.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
+        _fboQuad.createAndLinkProgram();
+        _fboQuad.bind();
+        glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
+        ShaderProgram::unbind();
+
+        _overlay = ShaderProgram("OverlayShader");
+        _overlay.addShaderSource(shaders::OverlayVert, shaders::OverlayFrag);
+        _overlay.createAndLinkProgram();
+        _overlay.bind();
+        glUniform1i(glGetUniformLocation(_overlay.id(), "Tex"), 0);
+        ShaderProgram::unbind();
+    }
 
     if (_initOpenGLFn) {
         Log::Info("Calling initialization callback");
+        ZoneScopedN("Callback: OpenGL Initialization")
         _initOpenGLFn();
     }
 
     // link all users to their viewports
     for (const std::unique_ptr<Window>& win : wins) {
+        ZoneScopedN("Link users")
         win->initOGL();
         const std::vector<std::unique_ptr<Viewport>>& vps = win->viewports();
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::linkUserName));
@@ -671,6 +694,8 @@ Engine::~Engine() {
 }
 
 void Engine::initWindows(Profile profile) {
+    ZoneScoped
+
     int ver[3];
     glfwGetVersion(&ver[0], &ver[1], &ver[2]);
     Log::Info("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
@@ -698,18 +723,21 @@ void Engine::initWindows(Profile profile) {
     }
 
     if (_preWindowFn) {
+        ZoneScopedN("Callback: Pre-window creation")
         _preWindowFn();
     }
 
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
     for (size_t i = 0; i < windows.size(); ++i) {
+        ZoneScopedN("Creating Window")
+
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
         const bool isLastWindow = i == windows.size() - 1;
         windows[i]->openWindow(s, isLastWindow);
+        glbinding::Binding::initialize(glfwGetProcAddress);
+        TracyGpuContext(windows[i]->name().c_str());
     }
-
-    glbinding::Binding::initialize(glfwGetProcAddress);
 
     if (_checkOpenGLCalls || _checkFBOs) {
         // The callback mask needs to be set in order to prevent an infinite loop when
@@ -799,6 +827,8 @@ void Engine::initWindows(Profile profile) {
     // Window/Context creation callback
     if (!windows.empty()) {
         if (_contextCreationFn) {
+            ZoneScopedN("Context Creation Callback");
+
             GLFWwindow* share = thisNode.windows()[0]->windowHandle();
             _contextCreationFn(share);
         }
@@ -818,6 +848,8 @@ void Engine::terminate() {
 }
 
 void Engine::frameLockPreStage() {
+    ZoneScoped
+
     NetworkManager& nm = NetworkManager::instance();
 
     const double ts = glfwGetTime();
@@ -875,6 +907,8 @@ void Engine::frameLockPreStage() {
 }
 
 void Engine::frameLockPostStage() {
+    ZoneScoped
+
     NetworkManager& nm = NetworkManager::instance();
     // post stage
     if (ClusterManager::instance().ignoreSync() ||
@@ -933,6 +967,7 @@ void Engine::render() {
         }
 
         if (_preSyncFn) {
+            ZoneScopedN("Callback: PreSync");
             _preSyncFn();
         }
 
@@ -946,26 +981,30 @@ void Engine::render() {
         }
 
         frameLockPreStage();
-
         std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::update));
-
         Window::makeSharedContextCurrent();
 
         if (_postSyncPreDrawFn) {
+            ZoneScopedN("Callback: PostSyncPreDraw");
             _postSyncPreDrawFn();
         }
 
-        const double startFrameTime = glfwGetTime();
-        const double ft = static_cast<float>(startFrameTime - _statsPrevTimestamp);
-        addValue(_statistics.frametimes, ft);
-        _statsPrevTimestamp = startFrameTime;
+        {
+            ZoneScopedN("Statistics update")
+            const double startFrameTime = glfwGetTime();
+            const double ft = static_cast<float>(startFrameTime - _statsPrevTimestamp);
+            addValue(_statistics.frametimes, ft);
+            _statsPrevTimestamp = startFrameTime;
 
-        if (_statisticsRenderer) {
-            glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+            if (_statisticsRenderer) {
+                glQueryCounter(timeQueryBegin, GL_TIMESTAMP);
+            }
         }
 
         // Render Viewports / Draw
         for (const std::unique_ptr<Window>& win : windows) {
+            ZoneScopedN("Render window")
+
             if (!(win->isVisible() || win->isRenderingWhileHidden())) {
                 continue;
             }
@@ -974,6 +1013,8 @@ void Engine::render() {
 
             // Render Left/Mono non-linear projection viewports to cubemap
             for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
+                ZoneScopedN("Render viewport")
+
                 if (!vp->hasSubViewports()) {
                     continue;
                 }
@@ -1013,6 +1054,7 @@ void Engine::render() {
 
             // Render right non-linear projection viewports to cubemap
             for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
+                ZoneScopedN("Render Cubemap");
                 if (!vp->hasSubViewports()) {
                     continue;
                 }
@@ -1052,6 +1094,7 @@ void Engine::render() {
         }
 
         if (_postDrawFn) {
+            ZoneScopedN("Callback: PostDraw");
             _postDrawFn();
         }
 
@@ -1076,13 +1119,19 @@ void Engine::render() {
         
         // master will wait for nodes render before swapping
         frameLockPostStage();
-
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : windows) {
             window->swap(_takeScreenshot);
         }
 
-        glfwPollEvents();
+        {
+            ZoneScopedN("GLFW Poll Events")
+            glfwPollEvents();
+        }
+
+        TracyGpuCollect;
+        FrameMark;
+
         std::for_each(
             windows.begin(), windows.end(),
             std::mem_fn(&Window::updateResolutions)
@@ -1102,6 +1151,8 @@ void Engine::render() {
 }
 
 void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
+    ZoneScoped
+
     for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
         // if viewport has overlay
         if (!vp->hasOverlayTexture() || !vp->isEnabled()) {
@@ -1119,6 +1170,8 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
 }
 
 void Engine::renderFBOTexture(Window& window) {
+    ZoneScoped
+
     OffScreenBuffer::unbind();
 
     window.makeOpenGLContextCurrent();
@@ -1197,6 +1250,8 @@ void Engine::renderFBOTexture(Window& window) {
         // render blend masks
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
         for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
+            ZoneScopedN("Render Viewport")
+
             if (vp->hasBlendMaskTexture() && vp->isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vp->blendMaskTextureIndex());
                 vp->renderMaskMesh();
@@ -1223,6 +1278,8 @@ void Engine::renderFBOTexture(Window& window) {
 
 void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::TextureIndex ti)
 {
+    ZoneScoped
+
     prepareBuffer(win, ti);
 
     Window::StereoMode sm = win.stereoMode();
@@ -1279,6 +1336,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
+                    ZoneScopedN("Callback: Draw");
                     RenderData renderData(
                         win,
                         *vp,
@@ -1289,6 +1347,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform()
                     );
+                    TracyGpuZone("Callback: Draw");
                     _drawFn(renderData);
                 }
             }
@@ -1324,6 +1383,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 }
 
 void Engine::render2D(const Window& win, Frustum::Mode frustum) {
+    ZoneScoped
+
     // draw viewport overlays if any
     drawOverlays(win, frustum);
 
@@ -1346,6 +1407,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
 
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && win.shouldCallDraw2DFunction()) {
+            ZoneScopedN("Callback: Draw 2D")
             RenderData renderData(
                 win,
                 *vp,
@@ -1356,12 +1418,16 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform()
             );
+            
+            TracyGpuZone("Callback: Draw 2D");
             _draw2DFn(renderData);
         }
     }
 }
 
 void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
+    ZoneScoped
+
     assert(_fxaa.has_value());
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -1399,6 +1465,8 @@ unsigned int Engine::currentFrameNumber() const {
 }
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
+    ZoneScoped
+        
     ClusterManager& cm = ClusterManager::instance();
     Node& thisNode = cm.thisNode();
 
@@ -1416,7 +1484,11 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
             glFinish();
         }
     }
-    glfwPollEvents();
+
+    {
+        ZoneScopedN("GLFW Poll Events")
+        glfwPollEvents();
+    }
     
     // Must wait until all nodes are running if using swap barrier
     if (cm.ignoreSync() || cm.numberOfNodes() <= 1) {
@@ -1448,7 +1520,10 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
                 glFinish();
             }
         }
-        glfwPollEvents();
+        {
+            ZoneScopedN("GLFW Poll Events")
+            glfwPollEvents();
+        }
 
         if (_shouldTerminate || !NetworkManager::instance().isRunning() ||
             thisNode.closeAllWindows())
@@ -1461,6 +1536,8 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
 }
 
 void Engine::updateFrustums() {
+    ZoneScoped
+
     const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& win : thisNode.windows()) {
         for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
@@ -1488,6 +1565,8 @@ void Engine::updateFrustums() {
 void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
                                         const Viewport& viewport, Frustum::Mode mode)
 {
+    ZoneScoped
+        
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     setupViewport(window, viewport, mode);
@@ -1517,6 +1596,8 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
 void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
                            Frustum::Mode frustum)
 {
+    ZoneScoped
+        
     const glm::vec2 res = glm::vec2(window.framebufferResolution());
     const glm::vec2 p = viewport.position() * res;
     const glm::vec2 s = viewport.size() * res;
@@ -1647,6 +1728,8 @@ void Engine::setClearColor(glm::vec4 color) {
 }
 
 const Window* Engine::focusedWindow() const {
+    ZoneScoped
+
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& ws = thisNode.windows();
     const auto it = std::find_if(ws.begin(), ws.end(), std::mem_fn(&Window::isFocused));
@@ -1672,41 +1755,50 @@ const std::function<void(RenderData)>& Engine::drawFunction() const {
 
 void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length) {
     if (_externalDecodeFn && length > 0) {
+        ZoneScopedN("Callback: External Decode")
         _externalDecodeFn(data, length);
     }
 }
 
 void Engine::invokeUpdateCallbackForExternalControl(bool connected) {
     if (_externalStatusFn) {
+        ZoneScopedN("Callback: External Status")
         _externalStatusFn(connected);
     }
 }
 
 void Engine::invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id) {
     if (_dataTransferDecodeFn && len > 0) {
+        ZoneScopedN("Callback: External Data Transfer Decode")
         _dataTransferDecodeFn(d, len, package, id);
     }
 }
 
 void Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId) {
     if (_dataTransferStatusFn) {
+        ZoneScopedN("Callback: External Data Transfer Status")
         _dataTransferStatusFn(connected, clientId);
     }
 }
 
 void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId) {
     if (_dataTransferAcknowledgeFn) {
+        ZoneScopedN("Callback: External Data Transfer Acknowledge")
         _dataTransferAcknowledgeFn(packageId, clientId);
     }
 }
 
 void Engine::sendMessageToExternalControl(const void* data, int length) {
+    ZoneScoped
+
     if (NetworkManager::instance().externalControlConnection()) {
         NetworkManager::instance().externalControlConnection()->sendData(data, length);
     }
 }
 
 void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
+    ZoneScoped
+        
     NetworkManager::instance().transferData(data, length, packageId);
 }
 

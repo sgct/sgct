@@ -12,6 +12,7 @@
 #include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
@@ -74,6 +75,8 @@ void SphericalMirrorProjection::update(glm::vec2) {}
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport, 
                                        Frustum::Mode frustumMode)
 {
+    ZoneScoped
+        
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
     float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
@@ -125,6 +128,8 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 }
 
 void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    ZoneScoped
+        
     auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {
             return;

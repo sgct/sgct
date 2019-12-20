@@ -10,6 +10,7 @@
 
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <algorithm>
 
@@ -64,6 +65,8 @@ void NonLinearProjection::init(GLenum internalFormat, GLenum format, GLenum type
 void NonLinearProjection::updateFrustums(Frustum::Mode mode, float nearClip,
                                          float farClip)
 {
+    ZoneScoped
+
     if (_subViewports.right.isEnabled()) {
         _subViewports.right.calculateNonLinearFrustum(mode, nearClip, farClip);
     }

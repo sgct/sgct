@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/fisheyeprojection.h>
 #include <sgct/log.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
@@ -296,18 +297,25 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
 }
 
 void CorrectionMesh::renderQuadMesh() const {
+    TracyGpuZone("Render Quad mesh")
+
+
     glBindVertexArray(_quadGeometry.vao);
     glDrawElements(_quadGeometry.type, _quadGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
 void CorrectionMesh::renderWarpMesh() const {
+    TracyGpuZone("Render Warp mesh")
+
     glBindVertexArray(_warpGeometry.vao);
     glDrawElements(_warpGeometry.type, _warpGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
 void CorrectionMesh::renderMaskMesh() const {
+    TracyGpuZone("Render Mask mesh")
+
     glBindVertexArray(_maskGeometry.vao);
     glDrawElements(_maskGeometry.type, _maskGeometry.nIndices, GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
@@ -316,6 +324,8 @@ void CorrectionMesh::renderMaskMesh() const {
 void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
                                 const correction::Buffer& buffer)
 {
+    ZoneScoped
+
     glGenVertexArrays(1, &geom.vao);
     glBindVertexArray(geom.vao);
 

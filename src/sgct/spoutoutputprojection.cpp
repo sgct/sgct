@@ -13,6 +13,7 @@
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
+#include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <sgct/helpers/stringfunctions.h>
@@ -81,6 +82,8 @@ void SpoutOutputProjection::update(glm::vec2) {
 void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
                                    Frustum::Mode frustumMode)
 {
+    ZoneScoped
+        
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -191,6 +194,8 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 }
 
 void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+    ZoneScoped
+        
     auto renderFace = [this, &window, frustumMode](BaseViewport& vp, unsigned int idx) {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;

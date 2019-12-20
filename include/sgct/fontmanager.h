@@ -12,11 +12,22 @@
 #ifdef SGCT_HAS_TEXT
 
 #include <sgct/shaderprogram.h>
-#include <freetype/ftglyph.h>
+
 #include <glm/fwd.hpp>
 #include <map>
 #include <memory>
 #include <string>
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#endif // __clang__
+
+#include <freetype/ftglyph.h>
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang__
 
 namespace sgct::text {
 

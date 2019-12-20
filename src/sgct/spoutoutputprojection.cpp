@@ -27,12 +27,14 @@
 #include <SpoutLibrary.h>
 #endif
 
+#ifdef SGCT_HAS_SPOUT
 namespace {
     constexpr const int NFaces = 6;
     constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
         "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
 } // namespace
+#endif // SGCT_HAS_SPOUT
 
 namespace sgct {
 
@@ -41,8 +43,10 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
 {
     setUseDepthTransformation(true);
 }
-        
+
 SpoutOutputProjection::~SpoutOutputProjection() {
+    // Prevent an unused variable warning
+    (void)_mappingHandle;
 #ifdef SGCT_HAS_SPOUT
     for (int i = 0; i < NFaces; i++) {
         if (_spout[i].handle) {

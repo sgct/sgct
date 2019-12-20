@@ -233,7 +233,7 @@ Font::Font(FT_Library lib, FT_Face face, unsigned int height)
 Font::~Font() {
     glDeleteVertexArrays(1, &_vao);
     glDeleteBuffers(1, &_vbo);
-    for (const std::pair<const wchar_t, FontFaceData>& n : _fontFaceData) {
+    for (const std::pair<const char, FontFaceData>& n : _fontFaceData) {
         glDeleteTextures(1, &(n.second.texId));
         FT_Done_Glyph(n.second.glyph);
     }

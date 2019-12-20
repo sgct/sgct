@@ -66,12 +66,12 @@ namespace {
 
         while (true) {
             const double t = sgct::Engine::getTime();
-            for (int i = 0; i < tm->trackers().size(); ++i) {
+            for (size_t i = 0; i < tm->trackers().size(); ++i) {
                 sgct::Tracker* tracker = tm->trackers()[i].get();
                 if (tracker == nullptr) {
                     continue;
                 }
-                for (int j = 0; j < tracker->devices().size(); ++j) {
+                for (size_t j = 0; j < tracker->devices().size(); ++j) {
                     if (!tracker->devices()[j]->isEnabled()) {
                         continue;
                     }

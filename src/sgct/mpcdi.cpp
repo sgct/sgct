@@ -343,7 +343,8 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
 
     if (result != tinyxml2::XML_NO_ERROR) {
         std::string str = "Parsing failed after: ";
-        str += xmlDoc.GetErrorStr1() + ' ';
+        str += xmlDoc.GetErrorStr1();
+        str += ' ';
         str += xmlDoc.GetErrorStr2();
         throw Error(4027, "Error parsing file. " + str);
     }

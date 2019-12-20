@@ -11,10 +11,20 @@
 
 #ifdef SGCT_HAS_TEXT
 
-#include <freetype/ftglyph.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#endif // __clang__
+
+#include <freetype/ftglyph.h>
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang__
 
 namespace sgct::text {
 

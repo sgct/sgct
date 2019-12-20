@@ -270,20 +270,20 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 }
 
 Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
-    : _drawFn(std::move(callbacks.draw))
+    : _preWindowFn(std::move(callbacks.preWindow))
+    , _contextCreationFn(std::move(callbacks.contextCreation))
+    , _initOpenGLFn(std::move(callbacks.initOpenGL))
     , _preSyncFn(std::move(callbacks.preSync))
     , _postSyncPreDrawFn(std::move(callbacks.postSyncPreDraw))
-    , _postDrawFn(std::move(callbacks.postDraw))
-    , _preWindowFn(std::move(callbacks.preWindow))
-    , _initOpenGLFn(std::move(callbacks.initOpenGL))
-    , _cleanUpFn(std::move(callbacks.cleanUp))
+    , _drawFn(std::move(callbacks.draw))
     , _draw2DFn(std::move(callbacks.draw2D))
+    , _postDrawFn(std::move(callbacks.postDraw))
+    , _cleanUpFn(std::move(callbacks.cleanUp))
     , _externalDecodeFn(std::move(callbacks.externalDecode))
     , _externalStatusFn(std::move(callbacks.externalStatus))
     , _dataTransferDecodeFn(std::move(callbacks.dataTransferDecode))
     , _dataTransferStatusFn(std::move(callbacks.dataTransferStatus))
     , _dataTransferAcknowledgeFn(std::move(callbacks.dataTransferAcknowledge))
-    , _contextCreationFn(std::move(callbacks.contextCreation))
 {
     SharedData::instance().setEncodeFunction(std::move(callbacks.encode));
     SharedData::instance().setDecodeFunction(std::move(callbacks.decode));
@@ -360,9 +360,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (netMode == NetworkManager::NetworkMode::Remote) {
         Log::Debug("Matching ip address to find node in configuration");
 
-        for (int i = 0; i < cluster.nodes.size(); ++i) {
+        for (size_t i = 0; i < cluster.nodes.size(); ++i) {
             if (NetworkManager::instance().matchesAddress(cluster.nodes[i].address)) {
-                clusterId = i;
+                clusterId = static_cast<int>(i);
                 Log::Debug("Running in cluster mode as node %d", i);
                 break;
             }

@@ -126,6 +126,10 @@ set(SOURCE_FILES
   utils/sphere.cpp
 )
 
+if (SGCT_DEP_INCLUDE_TRACY AND SGCT_DEP_ENABLE_TRACY)
+  set(SOURCE_FILES "${SOURCE_FILES};${PROJECT_SOURCE_DIR}/ext/tracy/TracyClient.cpp")
+endif ()
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${PROJECT_SOURCE_DIR}/include/sgct/version.h @ONLY
@@ -164,6 +168,13 @@ endif ()
 if (SGCT_DEP_INCLUDE_TINYXML)
   target_compile_definitions(sgct PRIVATE SGCT_HAS_TINYXML)
   target_link_libraries(sgct PRIVATE tinyxml2static)
+endif ()
+
+if (SGCT_DEP_INCLUDE_TRACY)
+  target_include_directories(sgct PRIVATE ${PROJECT_SOURCE_DIR}/ext/tracy)
+  if (SGCT_DEP_ENABLE_TRACY)
+    target_compile_definitions(sgct PRIVATE TRACY_ENABLE)
+  endif ()
 endif ()
 
 if (SGCT_DEP_INCLUDE_VRPN)

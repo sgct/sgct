@@ -354,7 +354,10 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
-    if (cluster.setThreadAffinity) {
+    // Only not set thread affinity if the configuration explicitly says so
+    const bool setAffinity = !cluster.setThreadAffinity ||
+        cluster.setThreadAffinity && *cluster.setThreadAffinity;
+    if (setAffinity) {
 #ifdef WIN32
         SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
 #else
@@ -1360,7 +1363,6 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                         vp->projection(frustum).viewProjectionMatrix() *
                             ClusterManager::instance().sceneTransform()
                     );
-                    TracyGpuZone("Callback: Draw");
                     _drawFn(renderData);
                 }
             }
@@ -1434,7 +1436,6 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                     ClusterManager::instance().sceneTransform()
             );
             
-            TracyGpuZone("Callback: Draw 2D");
             _draw2DFn(renderData);
         }
     }

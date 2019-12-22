@@ -354,10 +354,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
-    // Only not set thread affinity if the configuration explicitly says so
-    const bool setAffinity = !cluster.setThreadAffinity ||
-        cluster.setThreadAffinity && *cluster.setThreadAffinity;
-    if (setAffinity) {
+    if (cluster.setThreadAffinity) {
 #ifdef WIN32
         SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
 #else
@@ -566,7 +563,7 @@ void Engine::initialize(Profile profile) {
 
     if (_initOpenGLFn) {
         Log::Info("Calling initialization callback");
-        ZoneScopedN("Callback: OpenGL Initialization")
+        ZoneScopedN("[SGCT] OpenGL Initialization")
         _initOpenGLFn();
     }
 
@@ -739,7 +736,7 @@ void Engine::initWindows(Profile profile) {
     }
 
     if (_preWindowFn) {
-        ZoneScopedN("Callback: Pre-window creation")
+        ZoneScopedN("[SGCT] Pre-window creation")
         _preWindowFn();
     }
 
@@ -983,7 +980,7 @@ void Engine::render() {
         }
 
         if (_preSyncFn) {
-            ZoneScopedN("Callback: PreSync");
+            ZoneScopedN("[SGCT] PreSync");
             _preSyncFn();
         }
 
@@ -1001,7 +998,7 @@ void Engine::render() {
         Window::makeSharedContextCurrent();
 
         if (_postSyncPreDrawFn) {
-            ZoneScopedN("Callback: PostSyncPreDraw");
+            ZoneScopedN("[SGCT] PostSyncPreDraw");
             _postSyncPreDrawFn();
         }
 
@@ -1110,7 +1107,7 @@ void Engine::render() {
         }
 
         if (_postDrawFn) {
-            ZoneScopedN("Callback: PostDraw");
+            ZoneScopedN("[SGCT] PostDraw");
             _postDrawFn();
         }
 
@@ -1352,7 +1349,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                 glDisable(GL_SCISSOR_TEST);
 
                 if (_drawFn) {
-                    ZoneScopedN("Callback: Draw");
+                    ZoneScopedN("[SGCT] Draw");
                     RenderData renderData(
                         win,
                         *vp,
@@ -1424,7 +1421,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
 
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && win.shouldCallDraw2DFunction()) {
-            ZoneScopedN("Callback: Draw 2D")
+            ZoneScopedN("[SGCT] Draw 2D")
             RenderData renderData(
                 win,
                 *vp,
@@ -1774,35 +1771,35 @@ const std::function<void(RenderData)>& Engine::drawFunction() const {
 
 void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length) {
     if (_externalDecodeFn && length > 0) {
-        ZoneScopedN("Callback: External Decode")
+        ZoneScopedN("[SGCT] External Decode")
         _externalDecodeFn(data, length);
     }
 }
 
 void Engine::invokeUpdateCallbackForExternalControl(bool connected) {
     if (_externalStatusFn) {
-        ZoneScopedN("Callback: External Status")
+        ZoneScopedN("[SGCT] External Status")
         _externalStatusFn(connected);
     }
 }
 
 void Engine::invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id) {
     if (_dataTransferDecodeFn && len > 0) {
-        ZoneScopedN("Callback: External Data Transfer Decode")
+        ZoneScopedN("[SGCT] External Data Transfer Decode")
         _dataTransferDecodeFn(d, len, package, id);
     }
 }
 
 void Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId) {
     if (_dataTransferStatusFn) {
-        ZoneScopedN("Callback: External Data Transfer Status")
+        ZoneScopedN("[SGCT] External Data Transfer Status")
         _dataTransferStatusFn(connected, clientId);
     }
 }
 
 void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId) {
     if (_dataTransferAcknowledgeFn) {
-        ZoneScopedN("Callback: External Data Transfer Acknowledge")
+        ZoneScopedN("[SGCT] External Data Transfer Acknowledge")
         _dataTransferAcknowledgeFn(packageId, clientId);
     }
 }

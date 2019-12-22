@@ -592,9 +592,11 @@ void Window::swap(bool takeScreenshot) {
     _windowResOld = _windowRes;
 
     if (_isDoubleBuffered) {
+        ZoneScopedN("glfwSwapBuffers")
         glfwSwapBuffers(_windowHandle);
     }
     else {
+        ZoneScopedN("glFinish")
         glFinish();
     }
 }

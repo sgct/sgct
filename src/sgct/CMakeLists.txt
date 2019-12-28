@@ -92,7 +92,6 @@ set(SOURCE_FILES
   nonlinearprojection.cpp
   offscreenbuffer.cpp
   openvr.cpp
-  profiling.cpp
   projection.cpp
   projectionplane.cpp
   readconfig.cpp
@@ -168,9 +167,9 @@ if (SGCT_DEP_INCLUDE_TINYXML)
   target_link_libraries(sgct PRIVATE tinyxml2static)
 endif ()
 
-if (SGCT_DEP_INCLUDE_TRACY)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_TRACY)
-  target_link_libraries(sgct PUBLIC tracy)
+target_link_libraries(sgct PUBLIC tracy)
+if (SGCT_DEP_ENABLE_TRACY)
+  target_compile_definitions(sgct PUBLIC SGCT_HAS_TRACY TRACY_ENABLE)
 endif ()
 
 if (SGCT_DEP_INCLUDE_VRPN)

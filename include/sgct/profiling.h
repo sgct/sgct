@@ -9,15 +9,10 @@
 #ifndef __SGCT__PROFILING__H__
 #define __SGCT__PROFILING__H__
 
-#ifdef SGCT_HAS_TRACY
-
 #include <sgct/ogl_headers.h>
 
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
-
-#endif // SGCT_HAS_TRACY
-
 
 #ifdef TRACY_ENABLE
 

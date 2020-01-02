@@ -358,7 +358,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 #ifdef WIN32
         SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
 #else
-        Log:Error("Using thread affinity on an operating system that is not supported");
+        Log::Error("Using thread affinity on an operating system that is not supported");
 #endif // WIN32
     }
     {

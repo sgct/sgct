@@ -11,7 +11,7 @@
 
 namespace sgct::utils {
 
-/// This class creates and renders a textured box.
+/// This class creates and renders a textured box
 class Box {
 public:
     enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };

@@ -49,18 +49,14 @@ private:
     float _diameter = 2.4f;
 
     // mesh data
-    struct {
-        CorrectionMesh bottom;
-        CorrectionMesh left;
-        CorrectionMesh right;
-        CorrectionMesh top;
-    } _meshes;
-    struct {
-        std::string bottom;
-        std::string left;
-        std::string right;
-        std::string top;
-    } _meshPaths;
+    CorrectionMesh _meshBottom;
+    CorrectionMesh _meshLeft;
+    CorrectionMesh _meshRight;
+    CorrectionMesh _meshTop;
+    std::string _meshPathBottom;
+    std::string _meshPathLeft;
+    std::string _meshPathRight;
+    std::string _meshPathTop;
 
     // shader locations
     int _texLoc = -1;

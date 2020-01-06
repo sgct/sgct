@@ -34,8 +34,8 @@ namespace sgct {
 namespace {
 correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
     correction::Buffer buff;
+    buff.geometryType = GL_TRIANGLE_STRIP;
     buff.indices = { 0, 3, 1, 2 };
-
     buff.vertices = {
         {
             2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
@@ -58,16 +58,13 @@ correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
             1.f, 1.f, 1.f, 1.f
         }
     };
-
-    buff.geometryType = GL_TRIANGLE_STRIP;
-
     return buff;
 }
 
 correction::Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size) {
     correction::Buffer buff;
+    buff.geometryType = GL_TRIANGLE_STRIP;
     buff.indices = { 0, 3, 1, 2 };
-
     buff.vertices = {
         {
             2.f * pos.x - 1.f, 2.f * pos.y - 1.f,
@@ -90,23 +87,17 @@ correction::Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size) 
             1.f, 1.f, 1.f, 1.f
         }
     };
-
-    buff.geometryType = GL_TRIANGLE_STRIP;
-
     return buff;
 }
 
-void exportMesh(GLenum type, const std::string& exportPath, const correction::Buffer& buf)
-{
+void exportMesh(GLenum type, const std::string& path, const correction::Buffer& buf) {
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
-        throw Error(
-            2000, "Failed to export " + exportPath + ". Geometry type is not supported"
-        );
+        throw Error(2000, "Failed to export " + path + ". Geometry type not supported");
     }
 
-    std::ofstream file(exportPath, std::ios::out);
+    std::ofstream file(path, std::ios::out);
     if (!file.is_open()) {
-        throw Error(2001, "Failed to export " + exportPath + ". Failed to open");
+        throw Error(2001, "Failed to export " + path + ". Failed to open");
     }
 
     file << std::fixed;
@@ -124,9 +115,7 @@ void exportMesh(GLenum type, const std::string& exportPath, const correction::Bu
     }
 
     // export generated normals
-    for (size_t i = 0; i < buf.vertices.size(); ++i) {
-        file << "vn 0 0 1\n";
-    }
+    file.write("vn 0 0 1\n", buf.vertices.size());
 
     file << "# Number of faces: " << buf.indices.size() / 3 << '\n';
 
@@ -135,15 +124,13 @@ void exportMesh(GLenum type, const std::string& exportPath, const correction::Bu
         for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
             file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
                  << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i + 1] + 1 << '/' << buf.indices[i + 1] + 1 << '/'
-                 << buf.indices[i + 1] + 1 << ' ';
-            file << buf.indices[i + 2] + 1 << '/' << buf.indices[i + 2] + 1 << '/'
-                 << buf.indices[i + 2] + 1 << '\n';
+            file << buf.indices[i + 1u] + 1 << '/' << buf.indices[i + 1u] + 1 << '/'
+                 << buf.indices[i + 1u] + 1 << ' ';
+            file << buf.indices[i + 2u] + 1 << '/' << buf.indices[i + 2u] + 1 << '/'
+                 << buf.indices[i + 2u] + 1 << '\n';
         }
     }
     else {
-        // triangle strip
-
         // first base triangle
         file << "f " << buf.indices[0] + 1 << '/' << buf.indices[0] + 1 << '/'
              << buf.indices[0] + 1 << ' ';
@@ -162,7 +149,7 @@ void exportMesh(GLenum type, const std::string& exportPath, const correction::Bu
         }
     }
 
-    Log::Info("Mesh '%s' exported successfully", exportPath.c_str());
+    Log::Info("Mesh '%s' exported successfully", path.c_str());
 }
 
 } // namespace
@@ -229,29 +216,28 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     
     Buffer buf;
 
+    //auto hasExtension = [&path](std::string_view v) {
+    //    return path.find(v) != std::string::npos;
+    //}; 
+    std::string ext = path.substr(path.rfind('.') + 1);
+
     // find a suitable format
-    if (path.find(".sgc") != std::string::npos) {
+    if (ext == "sgc") {
         buf = generateScissMesh(path, parent);
     }
-    else if (path.find(".ol") != std::string::npos) {
+    else if (ext == "ol") {
         buf = generateScalableMesh(path, parentPos, parentSize);
     }
-    else if (path.find(".skyskan") != std::string::npos) {
+    else if (ext == "skyskan") {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if ((path.find(".txt") != std::string::npos) &&
-            (hint == Format::None || hint == Format::SkySkan))
-    {
+    else if ((ext == "txt") && (hint == Format::None || hint == Format::SkySkan)) {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if ((path.find(".csv") != std::string::npos) &&
-            (hint == Format::None || hint == Format::DomeProjection))
-    {
+    else if ((ext == "csv") && (hint == Format::None || hint == Format::DomeProjection)) {
         buf = generateDomeProjectionMesh(path, parentPos, parentSize);
     }
-    else if ((path.find(".data") != std::string::npos) &&
-            (hint == Format::None || hint == Format::PaulBourke))
-    {
+    else if ((ext == "data") && (hint == Format::None || hint == Format::PaulBourke)) {
         const float aspectRatio = parent.window().aspectRatio();
         buf = generatePaulBourkeMesh(path, parentPos, parentSize, aspectRatio);
 
@@ -264,21 +250,17 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
             }
         }
     }
-    else if ((path.find(".obj") != std::string::npos) &&
-            (hint == Format::None || hint == Format::Obj))
-    {
+    else if ((ext == "obj") && (hint == Format::None || hint == Format::Obj)) {
         buf = generateOBJMesh(path);
     }
-    else if (path.find(".mpcdi") != std::string::npos) {
+    else if (ext == ".mpcdi") {
         const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
         if (vp == nullptr) {
             throw Error(2020, "Configuration error. Trying load MPCDI to wrong viewport");
         }
         buf = generateMpcdiMesh(vp->mpcdiWarpMesh());
     }
-    else if ((path.find(".simcad") != std::string::npos) &&
-            (hint == Format::None || hint == Format::SimCad))
-    {
+    else if ((ext == ".simcad") && (hint == Format::None || hint == Format::SimCad)) {
         buf = generateSimCADMesh(path, parentPos, parentSize);
     }
     else {
@@ -293,7 +275,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     );
 
     if (Settings::instance().exportWarpingMeshes()) {
-        const size_t found = path.find_last_of(".");
+        const size_t found = path.find_last_of('.');
         std::string filename = path.substr(0, found) + "_export.obj";
         exportMesh(_warpGeometry.type, std::move(filename), buf);
     }
@@ -301,7 +283,6 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
 
 void CorrectionMesh::renderQuadMesh() const {
     TracyGpuZone("Render Quad mesh")
-
 
     glBindVertexArray(_quadGeometry.vao);
     glDrawElements(_quadGeometry.type, _quadGeometry.nIndices, GL_UNSIGNED_INT, nullptr);

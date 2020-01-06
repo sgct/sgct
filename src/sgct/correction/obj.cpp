@@ -30,7 +30,7 @@ Buffer generateOBJMesh(const std::string& path) {
     while (!feof(meshFile)) {
         constexpr const int MaxLineLength = 1024;
         char buf[MaxLineLength];
-        if (fgets(buf, MaxLineLength, meshFile) != nullptr) {
+        if (fgets(buf, MaxLineLength, meshFile)) {
             CorrectionMeshVertex tmpVert;
             if (sscanf(buf, "v %f %f %*f", &tmpVert.x, &tmpVert.y) == 2) {
                 tmpVert.r = 1.f;

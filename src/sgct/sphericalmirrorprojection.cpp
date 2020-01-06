@@ -60,12 +60,10 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
                                                      std::string rightMesh,
                                                      std::string topMesh)
     : NonLinearProjection(parent)
-    , _meshPaths {
-        std::move(bottomMesh),
-        std::move(leftMesh),
-        std::move(rightMesh),
-        std::move(topMesh)
-    }
+    , _meshPathBottom(std::move(bottomMesh))
+    , _meshPathLeft(std::move(leftMesh))
+    , _meshPathRight(std::move(rightMesh))
+    , _meshPathTop(std::move(topMesh))
 {
     setUseDepthTransformation(false);
 }
@@ -105,16 +103,16 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glUniformMatrix4fv(_matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glBindTexture(GL_TEXTURE_2D, _textures.cubeFaceFront);
-    _meshes.bottom.renderWarpMesh();
+    _meshBottom.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, _textures.cubeFaceLeft);
-    _meshes.left.renderWarpMesh();
+    _meshLeft.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, _textures.cubeFaceRight);
-    _meshes.right.renderWarpMesh();
+    _meshRight.renderWarpMesh();
 
     glBindTexture(GL_TEXTURE_2D, _textures.cubeFaceTop);
-    _meshes.top.renderWarpMesh();
+    _meshTop.renderWarpMesh();
 
     ShaderProgram::unbind();
 
@@ -205,10 +203,10 @@ void SphericalMirrorProjection::initTextures() {
 }
 
 void SphericalMirrorProjection::initVBO() {
-    _meshes.bottom.loadMesh(_meshPaths.bottom, _subViewports.bottom);
-    _meshes.left.loadMesh(_meshPaths.left, _subViewports.left);
-    _meshes.right.loadMesh(_meshPaths.right, _subViewports.right);
-    _meshes.top.loadMesh(_meshPaths.top, _subViewports.top);
+    _meshBottom.loadMesh(_meshPathBottom, _subViewports.bottom);
+    _meshLeft.loadMesh(_meshPathLeft, _subViewports.left);
+    _meshRight.loadMesh(_meshPathRight, _subViewports.right);
+    _meshTop.loadMesh(_meshPathTop, _subViewports.top);
 }
 
 void SphericalMirrorProjection::initViewports() {
@@ -281,9 +279,7 @@ void SphericalMirrorProjection::initShaders() {
     }
 
     // reload shader program if it exists
-    if (_shader.isLinked()) {
-        _shader.deleteProgram();
-    }
+    _shader.deleteProgram();
 
     _shader = ShaderProgram("SphericalMirrorShader");
     _shader.addShaderSource(SphericalProjectionVert, SphericalProjectionFrag);

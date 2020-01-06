@@ -29,8 +29,8 @@ FisheyeProjection::FisheyeProjection(const Window* parent)
 
 void FisheyeProjection::update(glm::vec2 size) {
     const float cropAspect =
-        ((1.f - 2.f * _cropFactor.bottom) + (1.f - 2.f * _cropFactor.top)) /
-        ((1.f - 2.f * _cropFactor.left) + (1.f - 2.f * _cropFactor.right));
+        ((1.f - 2.f * _cropBottom) + (1.f - 2.f * _cropTop)) /
+        ((1.f - 2.f * _cropLeft) + (1.f - 2.f * _cropRight));
 
     const float frameBufferAspect = _ignoreAspectRatio ? 1.f : (size.x / size.y);
 
@@ -50,10 +50,10 @@ void FisheyeProjection::update(glm::vec2 size) {
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     const std::array<const float, 20> v = {
-              _cropFactor.left,        _cropFactor.bottom, -x, -y, -1.f,
-              _cropFactor.left,  1.f - _cropFactor.top,    -x,  y, -1.f,
-        1.f - _cropFactor.right,       _cropFactor.bottom,  x, -y, -1.f,
-        1.f - _cropFactor.right, 1.f - _cropFactor.top,     x,  y, -1.f
+              _cropLeft,        _cropBottom, -x, -y, -1.f,
+              _cropLeft,  1.f - _cropTop,    -x,  y, -1.f,
+        1.f - _cropRight,       _cropBottom,  x, -y, -1.f,
+        1.f - _cropRight, 1.f - _cropTop,     x,  y, -1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
@@ -81,19 +81,19 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     if (Settings::instance().useDepthTexture()) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapDepth);
-        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
+        glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
     if (Settings::instance().useNormalTexture()) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapNormals);
-        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
+        glUniform1i(_shaderLoc.normalCubemap, 2);
     }
 
     if (Settings::instance().usePositionTexture()) {
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapPositions);
-        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
+        glUniform1i(_shaderLoc.positionCubemap, 3);
     }
 
     glDisable(GL_CULL_FACE);
@@ -108,11 +108,11 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
-    glUniform1i(_shaderLoc.cubemapLoc, 0);
-    glUniform1f(_shaderLoc.halfFovLoc, glm::radians<float>(_fov / 2.f));
+    glUniform1i(_shaderLoc.cubemap, 0);
+    glUniform1f(_shaderLoc.halfFov, glm::radians<float>(_fov / 2.f));
 
     if (_isOffAxis) {
-        glUniform3fv(_shaderLoc.offsetLoc, 1, glm::value_ptr(_totalOffset));
+        glUniform3fv(_shaderLoc.offset, 1, glm::value_ptr(_totalOffset));
     }
 
     glBindVertexArray(_vao);
@@ -151,7 +151,8 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
         default: throw std::logic_error("Unhandled case label");
     }
 
-    auto internalRender = [this, &window, frustumMode](BaseViewport& vp, int idx) {
+    auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
+    {
         if (!vp.isEnabled()) {
             return;
         }
@@ -162,13 +163,13 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
         }
 
         RenderData renderData(
-            window,
+            win,
             vp,
-            frustumMode,
+            mode,
             ClusterManager::instance().sceneTransform(),
-            vp.projection(frustumMode).viewMatrix(),
-            vp.projection(frustumMode).projectionMatrix(),
-            vp.projection(frustumMode).viewProjectionMatrix() *
+            vp.projection(mode).viewMatrix(),
+            vp.projection(mode).projectionMatrix(),
+            vp.projection(mode).viewProjectionMatrix() *
                 ClusterManager::instance().sceneTransform()
         );
         drawCubeFace(vp, renderData);
@@ -191,7 +192,7 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             glEnable(GL_SCISSOR_TEST);
 
             const glm::vec4 color = Engine::instance().clearColor();
-            const bool hasAlpha = window.hasAlpha();
+            const bool hasAlpha = win.hasAlpha();
             glClearColor(color.r, color.g, color.b, hasAlpha ? 0.f : color.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -214,12 +215,12 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
 
             _depthCorrectionShader.bind();
-            glUniform1i(_shaderLoc.swapColorLoc, 0);
-            glUniform1i(_shaderLoc.swapDepthLoc, 1);
-            glUniform1f(_shaderLoc.swapNearLoc, Engine::instance().nearClipPlane());
-            glUniform1f(_shaderLoc.swapFarLoc, Engine::instance().farClipPlane());
+            glUniform1i(_shaderLoc.swapColor, 0);
+            glUniform1i(_shaderLoc.swapDepth, 1);
+            glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
+            glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
-            window.renderScreenQuad();
+            win.renderScreenQuad();
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -233,12 +234,12 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
         }
     };
 
-    internalRender(_subViewports.right, 0);
-    internalRender(_subViewports.left, 1);
-    internalRender(_subViewports.bottom, 2);
-    internalRender(_subViewports.top, 3);
-    internalRender(_subViewports.front, 4);
-    internalRender(_subViewports.back, 5);
+    render(window, _subViewports.right, 0, frustumMode);
+    render(window, _subViewports.left, 1, frustumMode);
+    render(window, _subViewports.bottom, 2, frustumMode);
+    render(window, _subViewports.top, 3, frustumMode);
+    render(window, _subViewports.front, 4, frustumMode);
+    render(window, _subViewports.back, 5, frustumMode);
 }
 
 void FisheyeProjection::setDomeDiameter(float diameter) {
@@ -258,10 +259,10 @@ void FisheyeProjection::setRenderingMethod(FisheyeMethod method) {
 }
 
 void FisheyeProjection::setCropFactors(float left, float right, float bottom, float top) {
-    _cropFactor.left = glm::clamp(left, 0.f, 1.f);
-    _cropFactor.right = glm::clamp(right, 0.f, 1.f);
-    _cropFactor.bottom = glm::clamp(bottom, 0.f, 1.f);
-    _cropFactor.top = glm::clamp(top, 0.f, 1.f);
+    _cropLeft = glm::clamp(left, 0.f, 1.f);
+    _cropRight = glm::clamp(right, 0.f, 1.f);
+    _cropBottom = glm::clamp(bottom, 0.f, 1.f);
+    _cropTop = glm::clamp(top, 0.f, 1.f);
 }
 
 void FisheyeProjection::setOffset(glm::vec3 offset) {
@@ -526,125 +527,107 @@ void FisheyeProjection::initShaders() {
     }
 
     // reload shader program if it exists
-    if (_shader.isLinked()) {
-        _shader.deleteProgram();
-    }
-
-    std::string fragmentShader;
+    _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    // (abock, 2019-10-15) I tried making this a bit prettier, but I failed
-    if (_isOffAxis) {
-        if (Settings::instance().useDepthTexture()) {
-            switch (Settings::instance().drawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisDepth :
-                        shaders_fisheye::FisheyeFragOffAxisDepth;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal :
-                        shaders_fisheye::FisheyeFragOffAxisDepthNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition :
-                        shaders_fisheye::FisheyeFragOffAxisDepthPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition :
-                        shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
-                    break;
-                default:
-                    throw std::logic_error("Unhandled case label");
+    const bool useDepth = Settings::instance().useDepthTexture();
+    std::string fragmentShader = [](bool isOffAxis, bool useDepth,
+                                    Settings::DrawBufferType t, bool isCubic)
+    {
+        // It would be nice to do a multidimensional switch statement -.-
+
+        constexpr auto tuple = [](bool isOffAxis, bool useDepth,
+                                  Settings::DrawBufferType t, bool isCubic) -> uint16_t
+        {
+            // Injective mapping from <bool, bool, bool, DrawBufferType> to uint16_t
+            uint16_t res = 0;
+            res += static_cast<uint8_t>(t);
+            if (isCubic) {
+                res += 1 << 10;
             }
-        }
-        else {
-            // no depth
-            switch (Settings::instance().drawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxis :
-                        shaders_fisheye::FisheyeFragOffAxis;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisNormal :
-                        shaders_fisheye::FisheyeFragOffAxisNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisPosition :
-                        shaders_fisheye::FisheyeFragOffAxisPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition :
-                        shaders_fisheye::FisheyeFragOffAxisNormalPosition;
-                    break;
-                default:
-                    throw std::logic_error("Unhandled case label");
+            if (isOffAxis) {
+                res += 1 << 11;
             }
-        }
-    }
-    else {
-        // not off axis
-        if (Settings::instance().useDepthTexture()) {
-            switch (Settings::instance().drawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragDepth :
-                        shaders_fisheye::FisheyeFragDepth;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragDepthNormal :
-                        shaders_fisheye::FisheyeFragDepthNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragDepthPosition :
-                        shaders_fisheye::FisheyeFragDepthPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragDepthNormalPosition :
-                        shaders_fisheye::FisheyeFragDepthNormalPosition;
-                    break;
-                default:
-                    throw std::logic_error("Unhandled case label");
+            if (useDepth) {
+                res += 1 << 12;
             }
+            return res;
+        };
+
+        using DrawBufferType = Settings::DrawBufferType;
+        switch (tuple(isOffAxis, useDepth, t, isCubic)) {
+            case tuple(true, true, DrawBufferType::Diffuse, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisDepth;
+            case tuple(true, true, DrawBufferType::Diffuse, false):
+                return shaders_fisheye::FisheyeFragOffAxisDepth;
+            case tuple(true, true, DrawBufferType::DiffuseNormal, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal;
+            case tuple(true, true, DrawBufferType::DiffuseNormal, false):
+                return shaders_fisheye::FisheyeFragOffAxisDepthNormal;
+            case tuple(true, true, DrawBufferType::DiffusePosition, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition;
+            case tuple(true, true, DrawBufferType::DiffusePosition, false):
+                return shaders_fisheye::FisheyeFragOffAxisDepthPosition;
+            case tuple(true, true, DrawBufferType::DiffuseNormalPosition, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition;
+            case tuple(true, true, DrawBufferType::DiffuseNormalPosition, false):
+                return shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
+
+            case tuple(true, false, DrawBufferType::Diffuse, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxis;
+            case tuple(true, false, DrawBufferType::Diffuse, false):
+                return shaders_fisheye::FisheyeFragOffAxis;
+            case tuple(true, false, DrawBufferType::DiffuseNormal, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisNormal;
+            case tuple(true, false, DrawBufferType::DiffuseNormal, false):
+                return shaders_fisheye::FisheyeFragOffAxisNormal;
+            case tuple(true, false, DrawBufferType::DiffusePosition, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisPosition;
+            case tuple(true, false, DrawBufferType::DiffusePosition, false):
+                return shaders_fisheye::FisheyeFragOffAxisPosition;
+            case tuple(true, false, DrawBufferType::DiffuseNormalPosition, true):
+                return shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition;
+            case tuple(true, false, DrawBufferType::DiffuseNormalPosition, false):
+                return shaders_fisheye::FisheyeFragOffAxisNormalPosition;
+
+            case tuple(false, true, DrawBufferType::Diffuse, true):
+                return shaders_fisheye_cubic::FisheyeFragDepth;
+            case tuple(false, true, DrawBufferType::Diffuse, false):
+                return shaders_fisheye::FisheyeFragDepth;
+            case tuple(false, true, DrawBufferType::DiffuseNormal, true):
+                return shaders_fisheye_cubic::FisheyeFragDepthNormal;
+            case tuple(false, true, DrawBufferType::DiffuseNormal, false):
+                return shaders_fisheye::FisheyeFragDepthNormal;
+            case tuple(false, true, DrawBufferType::DiffusePosition, true):
+                return shaders_fisheye_cubic::FisheyeFragDepthPosition;
+            case tuple(false, true, DrawBufferType::DiffusePosition, false):
+                return shaders_fisheye::FisheyeFragDepthPosition;
+            case tuple(false, true, DrawBufferType::DiffuseNormalPosition, true):
+                return shaders_fisheye_cubic::FisheyeFragDepthNormalPosition;
+            case tuple(false, true, DrawBufferType::DiffuseNormalPosition, false):
+                return shaders_fisheye::FisheyeFragDepthNormalPosition;
+
+            case tuple(false, false, DrawBufferType::Diffuse, true):
+                return shaders_fisheye_cubic::FisheyeFrag;
+            case tuple(false, false, DrawBufferType::Diffuse, false):
+                return shaders_fisheye::FisheyeFrag;
+            case tuple(false, false, DrawBufferType::DiffuseNormal, true):
+                return shaders_fisheye_cubic::FisheyeFragNormal;
+            case tuple(false, false, DrawBufferType::DiffuseNormal, false):
+                return shaders_fisheye::FisheyeFragNormal;
+            case tuple(false, false, DrawBufferType::DiffusePosition, true):
+                return shaders_fisheye_cubic::FisheyeFragPosition;
+            case tuple(false, false, DrawBufferType::DiffusePosition, false):
+                return shaders_fisheye::FisheyeFragPosition;
+            case tuple(false, false, DrawBufferType::DiffuseNormalPosition, true):
+                return shaders_fisheye_cubic::FisheyeFragNormalPosition;
+            case tuple(false, false, DrawBufferType::DiffuseNormalPosition, false):
+                return shaders_fisheye::FisheyeFragNormalPosition;
+
+            default:
+                throw std::logic_error("Unhandled case label");
         }
-        else {
-            // no depth
-            switch (Settings::instance().drawBufferType()) {
-                case Settings::DrawBufferType::Diffuse:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFrag :
-                        shaders_fisheye::FisheyeFrag;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormal:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragNormal :
-                        shaders_fisheye::FisheyeFragNormal;
-                    break;
-                case Settings::DrawBufferType::DiffusePosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragPosition :
-                        shaders_fisheye::FisheyeFragPosition;
-                    break;
-                case Settings::DrawBufferType::DiffuseNormalPosition:
-                    fragmentShader = isCubic ?
-                        shaders_fisheye_cubic::FisheyeFragNormalPosition :
-                        shaders_fisheye::FisheyeFragNormalPosition;
-                    break;
-                default:
-                    throw std::logic_error("Unhandled case label");
-            }
-        }
-    }
+    }(_isOffAxis, useDepth, Settings::instance().drawBufferType(), isCubic);
 
     // add functions to shader
     helpers::findAndReplace(
@@ -698,30 +681,30 @@ void FisheyeProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    _shaderLoc.cubemapLoc = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_shaderLoc.cubemapLoc, 0);
+    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
+    glUniform1i(_shaderLoc.cubemap, 0);
 
     if (Settings::instance().useDepthTexture()) {
-        _shaderLoc.depthCubemapLoc = glGetUniformLocation(_shader.id(), "depthmap");
-        glUniform1i(_shaderLoc.depthCubemapLoc, 1);
+        _shaderLoc.depthCubemap = glGetUniformLocation(_shader.id(), "depthmap");
+        glUniform1i(_shaderLoc.depthCubemap, 1);
     }
 
     if (Settings::instance().useNormalTexture()) {
-        _shaderLoc.normalCubemapLoc = glGetUniformLocation(_shader.id(), "normalmap");
-        glUniform1i(_shaderLoc.normalCubemapLoc, 2);
+        _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
+        glUniform1i(_shaderLoc.normalCubemap, 2);
     }
     
     if (Settings::instance().usePositionTexture()) {
-        _shaderLoc.positionCubemapLoc = glGetUniformLocation(_shader.id(), "positionmap");
-        glUniform1i(_shaderLoc.positionCubemapLoc, 3);
+        _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
+        glUniform1i(_shaderLoc.positionCubemap, 3);
     }
 
-    _shaderLoc.halfFovLoc = glGetUniformLocation(_shader.id(), "halfFov");
-    glUniform1f(_shaderLoc.halfFovLoc, glm::half_pi<float>());
+    _shaderLoc.halfFov = glGetUniformLocation(_shader.id(), "halfFov");
+    glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
 
     if (_isOffAxis) {
-        _shaderLoc.offsetLoc = glGetUniformLocation(_shader.id(), "offset");
-        glUniform3f(_shaderLoc.offsetLoc, _totalOffset.x, _totalOffset.y, _totalOffset.z);
+        _shaderLoc.offset = glGetUniformLocation(_shader.id(), "offset");
+        glUniform3f(_shaderLoc.offset, _totalOffset.x, _totalOffset.y, _totalOffset.z);
     }
 
     ShaderProgram::unbind();
@@ -735,22 +718,19 @@ void FisheyeProjection::initShaders() {
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
         
-        _shaderLoc.swapColorLoc =
-            glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
-        glUniform1i(_shaderLoc.swapColorLoc, 0);
-        _shaderLoc.swapDepthLoc =
-            glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
-        glUniform1i(_shaderLoc.swapDepthLoc, 1);
-        _shaderLoc.swapNearLoc =
-            glGetUniformLocation(_depthCorrectionShader.id(), "near");
-        _shaderLoc.swapFarLoc = glGetUniformLocation(_depthCorrectionShader.id(), "far");
+        _shaderLoc.swapColor = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
+        glUniform1i(_shaderLoc.swapColor, 0);
+        _shaderLoc.swapDepth = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
+        glUniform1i(_shaderLoc.swapDepth, 1);
+        _shaderLoc.swapNear = glGetUniformLocation(_depthCorrectionShader.id(), "near");
+        _shaderLoc.swapFar = glGetUniformLocation(_depthCorrectionShader.id(), "far");
 
         ShaderProgram::unbind();
     }
 }
 
 void FisheyeProjection::drawCubeFace(BaseViewport& face, RenderData renderData) {
-    glLineWidth(1.0);
+    glLineWidth(1.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glDepthFunc(GL_LESS);

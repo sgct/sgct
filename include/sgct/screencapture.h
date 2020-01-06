@@ -61,13 +61,12 @@ public:
     void setCaptureFormat(CaptureFormat cf);
 
     /**
-     * This function saves the images to disc.
+     * This function saves the images to disc.o
      *
      * \param textureId textureId is the texture that will be streamed from the GPU if
      *        frame buffer objects are used in the rendering.
      */
-    void saveScreenCapture(unsigned int textureId,
-        CaptureSource capSrc = CaptureSource::Texture);
+    void saveScreenCapture(unsigned int textureId, CaptureSource capSrc = CaptureSource::Texture);
     void setPathAndFileName(std::string path, std::string filename);
 
 private:

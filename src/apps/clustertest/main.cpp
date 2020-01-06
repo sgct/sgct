@@ -63,7 +63,7 @@ void myDraw2DFun(RenderData data) {
         data.window,
         data.viewport,
         *text::FontManager::instance().font("SGCTFont", 24),
-        text::TextAlignMode::TopLeft,
+        text::Alignment::TopLeft,
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),
@@ -75,7 +75,7 @@ void myDraw2DFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 16),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             xp,
             150.f,
             glm::vec4(0.f, 1.f, 0.5f, 1.f),
@@ -141,7 +141,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 32),
-            text::TextAlignMode::TopRight,
+            text::Alignment::TopRight,
             pos,
             200,
             glm::vec4(1.f),
@@ -153,7 +153,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 32),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos,
             150,
             glm::vec4(1.f),
@@ -165,7 +165,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 32),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos,
             200,
             glm::vec4(1.f),
@@ -178,7 +178,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 18),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos - pos / 2.f,
             450,
             glm::vec4(1.f),
@@ -189,7 +189,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 18),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos - pos / 2.f,
             500,
             glm::vec4(1.f),
@@ -201,7 +201,7 @@ void drawFun(RenderData data) {
                 data.window,
                 data.viewport,
                 *text::FontManager::instance().font("SGCTFont", 18),
-                text::TextAlignMode::TopLeft,
+                text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
@@ -213,7 +213,7 @@ void drawFun(RenderData data) {
                 data.window,
                 data.viewport,
                 *text::FontManager::instance().font("SGCTFont", 18),
-                text::TextAlignMode::TopLeft,
+                text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 400,
                 glm::vec4(1.f),
@@ -226,7 +226,7 @@ void drawFun(RenderData data) {
                 data.window,
                 data.viewport,
                 *text::FontManager::instance().font("SGCTFont", 18),
-                text::TextAlignMode::TopLeft,
+                text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
@@ -238,7 +238,7 @@ void drawFun(RenderData data) {
                 data.window,
                 data.viewport,
                 *text::FontManager::instance().font("SGCTFont", 18),
-                text::TextAlignMode::TopLeft,
+                text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 350,
                 glm::vec4(1.f),
@@ -250,7 +250,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 18),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos - pos / 2.f,
             300,
             glm::vec4(1.f),
@@ -260,11 +260,11 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 18),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos - pos / 2.f,
             250,
             glm::vec4(1.f),
-            "Framerate: %.3lf", 1.0 / Engine::instance().dt()
+            "Framerate: %.3lf", 1.0 / Engine::instance().statistics().dt()
         );
     }
     else {
@@ -272,7 +272,7 @@ void drawFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 18),
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             pos - pos / 2.f,
             450,
             glm::vec4(1.f),
@@ -513,10 +513,12 @@ void keyCallback(Key key, Modifier, Action action, int) {
             case Key::G:
                 if (action == Action::Press) {
                     std::string m = "Testing!!\r\n";
-                    Engine::instance().sendMessageToExternalControl(
-                        m.c_str(),
-                        static_cast<int>(m.size())
-                    );
+                    if (NetworkManager::instance().externalControlConnection()) {
+                        NetworkManager::instance().externalControlConnection()->sendData(
+                            m.c_str(),
+                            static_cast<int>(m.size())
+                        );
+                    }
                 }
                 break;
             case Key::F9:

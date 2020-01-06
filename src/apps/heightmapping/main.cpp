@@ -244,7 +244,11 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster() && !mPause) {
-        currentTime.setValue(currentTime.value() + Engine::instance().avgDt());
+        currentTime.setValue(
+            currentTime.value() + Engine::instance().statistics().avgDt(
+                Engine::instance().currentFrameNumber()
+            )
+        );
     }
 }
 

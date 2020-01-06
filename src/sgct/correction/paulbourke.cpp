@@ -36,7 +36,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     // get the fist line containing the mapping type _id
     int mappingType = -1;
-    if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
+    if (fgets(lineBuffer, MaxLineLength, meshFile)) {
         int r = sscanf(lineBuffer, "%d", &mappingType);
         if (r != 1) {
             throw Error(Error::Component::PaulBourke, 2041, "Error reading mapping type");
@@ -45,7 +45,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
 
     // get the mesh dimensions
     glm::ivec2 meshSize = glm::ivec2(-1, -1);
-    if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
+    if (fgets(lineBuffer, MaxLineLength, meshFile)) {
         if (sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
             buf.vertices.reserve(meshSize.x * meshSize.y);
         }
@@ -59,7 +59,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     // get all data
     float x, y, s, t, intensity;
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile)) {
             if (sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5) {
                 CorrectionMeshVertex vertex;
                 vertex.x = x;
@@ -114,7 +114,6 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     buf.geometryType = GL_TRIANGLES;
-
     return buf;
 }
 

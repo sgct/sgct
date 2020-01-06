@@ -61,9 +61,8 @@ namespace {
 
 namespace sgct::text {
 
-void print(const Window& window, const BaseViewport& viewport, Font& font,
-           TextAlignMode mode, float x, float y, const glm::vec4& color,
-           const char* format, ...)
+void print(const Window& window, const BaseViewport& viewport, Font& font, Alignment mode, 
+           float x, float y, const glm::vec4& color, const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -86,37 +85,31 @@ void print(const Window& window, const BaseViewport& viewport, Font& font,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // FontManager::instance().getShader().bind();
-
     glBindVertexArray(font.vao());
     glActiveTexture(GL_TEXTURE0);
 
     for (size_t i = 0; i < lines.size(); i++) {
         glm::vec3 offset(x, y - h * i, 0.f);
 
-        if (mode == TextAlignMode::TopCenter) {
+        if (mode == Alignment::TopCenter) {
             offset.x -= getLineWidth(font, lines[i]) / 2.f;
         }
-        else if (mode == TextAlignMode::TopRight) {
+        else if (mode == Alignment::TopRight) {
             offset.x -= getLineWidth(font, lines[i]);
         }
 
-        for (size_t j = 0; j < lines[i].length(); j++) {
-            const char c = lines[i].c_str()[j];
+        for (const char c : lines[i]) {
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
+
+            glBindTexture(GL_TEXTURE_2D, ffd.texId);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
             glm::mat4 trans = glm::translate(
                 orthoMatrix,
                 glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );
-            glm::mat4 scale = glm::scale(
-                trans,
-                glm::vec3(ffd.size.x, ffd.size.y, 1.f)
-            );
-
-            glBindTexture(GL_TEXTURE_2D, ffd.texId);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glm::mat4 scale = glm::scale(trans, glm::vec3(ffd.size.x, ffd.size.y, 1.f));
 
             FontManager::instance().bindShader(scale, color, 0);
 

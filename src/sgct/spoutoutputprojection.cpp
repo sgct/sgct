@@ -46,8 +46,6 @@ SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
 }
 
 SpoutOutputProjection::~SpoutOutputProjection() {
-    // Prevent an unused variable warning
-    (void)_mappingHandle;
 #ifdef SGCT_HAS_SPOUT
     for (int i = 0; i < NFaces; i++) {
         if (_spout[i].handle) {
@@ -60,6 +58,9 @@ SpoutOutputProjection::~SpoutOutputProjection() {
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->ReleaseSender();
         reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->Release();
     }
+#else
+    // Prevent an unused variable warning
+    (void)_mappingHandle;
 #endif
 
     glDeleteTextures(1, &_mappingTexture);
@@ -92,10 +93,10 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 
     if (_mappingType != Mapping::Cubemap) {
         GLenum saveBuffer = {};
-        GLint saveTexture = 0;
-        GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_DRAW_BUFFER0, &saveBuffer);
+        GLint saveTexture = 0;
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
+        GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &saveFrameBuffer);
 
 
@@ -169,8 +170,8 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     }
     else {
         GLint saveTexture = 0;
-        GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
+        GLint saveFrameBuffer = 0;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &saveFrameBuffer);
 
 #ifdef SGCT_HAS_SPOUT
@@ -196,7 +197,9 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
         
-    auto renderFace = [this, &window, frustumMode](BaseViewport& vp, unsigned int idx) {
+    auto renderFace = [this](const Window& window, BaseViewport& vp, unsigned int idx, 
+                             Frustum::Mode frustumMode)
+    {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
             return;
         }
@@ -306,12 +309,12 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         }
     };
 
-    renderFace(_subViewports.right, 0);
-    renderFace(_subViewports.left, 1);
-    renderFace(_subViewports.bottom, 2);
-    renderFace(_subViewports.top, 3);
-    renderFace(_subViewports.front, 4);
-    renderFace(_subViewports.back, 5);
+    renderFace(window, _subViewports.right, 0, frustumMode);
+    renderFace(window, _subViewports.left, 1, frustumMode);
+    renderFace(window, _subViewports.bottom, 2, frustumMode);
+    renderFace(window, _subViewports.top, 3, frustumMode);
+    renderFace(window, _subViewports.front, 4, frustumMode);
+    renderFace(window, _subViewports.back, 5, frustumMode);
 }
 
 void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom,
@@ -562,9 +565,7 @@ void SpoutOutputProjection::initViewports() {
 
 void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
-    if (_shader.isLinked()) {
-        _shader.deleteProgram();
-    }
+    _shader.deleteProgram();
 
     std::string fisheyeVertShader = shaders_fisheye::FisheyeVert;
     std::string fisheyeFragShader;

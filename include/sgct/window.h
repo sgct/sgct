@@ -100,13 +100,6 @@ public:
     /// Init context specific data such as viewport corrections/warping meshes
     void initContextSpecificOGL();
 
-    /**
-     * Don't use this function if you want to set the window resolution. Use
-     * setWindowResolution(const int x, const int y) instead. This function is called
-     * within SGCT when the window is created.
-     */
-    void initWindowResolution(glm::ivec2 resolution);
-
     /// Swap previous data and current data. This is done at the end of the render loop.
     void swap(bool takeScreenshot);
     void updateResolutions();
@@ -356,6 +349,8 @@ public:
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };
+
+    void initWindowResolution(glm::ivec2 resolution);
 
     void initScreenCapture();
     /// This function creates textures that will act as FBO targets.

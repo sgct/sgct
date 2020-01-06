@@ -75,9 +75,7 @@ void Image::load(const std::string& filename) {
     // Convert BGR to RGB
     if (_nChannels >= 3) {
         for (size_t i = 0; i < _dataSize; i += _nChannels) {
-            unsigned char tmp = _data[i];
-            _data[i] = _data[i + 2];
-            _data[i + 2] = tmp;
+            std::swap(_data[i], _data[i + 2]);
         }
     }
 }
@@ -91,9 +89,7 @@ void Image::load(unsigned char* data, int length) {
     // Convert BGR to RGB
     if (_nChannels >= 3) {
         for (size_t i = 0; i < _dataSize; i += _nChannels) {
-            unsigned char tmp = _data[i];
-            _data[i] = _data[i + 2];
-            _data[i + 2] = tmp;
+            std::swap(_data[i], _data[i + 2]);
         }
     }
 }
@@ -116,9 +112,7 @@ void Image::save(const std::string& file) {
 
     if (_nChannels >= 3) {
         for (size_t i = 0; i < _dataSize; i += _nChannels) {
-            unsigned char tmp = _data[i];
-            _data[i] = _data[i + 2];
-            _data[i + 2] = tmp;
+            std::swap(_data[i], _data[i + 2]);
         }
     }
 
@@ -226,7 +220,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     std::vector<png_bytep> rowPtrs(_size.y);
 
     for (int y = 0; y < _size.y; y++) {
-        rowPtrs[(_size.y - 1) - y] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
+        rowPtrs[(_size.y - 1u) - y] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
     }
     png_write_image(png_ptr, rowPtrs.data());
     rowPtrs.clear();

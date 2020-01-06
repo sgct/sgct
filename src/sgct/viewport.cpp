@@ -87,7 +87,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
         },
         [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
         [this](const config::ProjectionPlane& p) {
-            _projectionPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
+            _projPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
             _viewPlane.lowerLeft = p.lowerLeft;
             _viewPlane.upperLeft = p.upperLeft;
             _viewPlane.upperRight = p.upperRight;
@@ -114,7 +114,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
             mpcdi.distance.value_or(10.f)
         );
         if (mpcdi.offset) {
-            _projectionPlane.offset(*mpcdi.offset);
+            _projPlane.offset(*mpcdi.offset);
         }
     }
 }
@@ -131,7 +131,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
         proj.fov.distance.value_or(10.f)
     );
     if (proj.offset) {
-        _projectionPlane.offset(*proj.offset);
+        _projPlane.offset(*proj.offset);
     }
 }
 

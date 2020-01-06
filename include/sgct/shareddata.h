@@ -84,7 +84,7 @@ void encodeFun()
 }
 \endcode
     */
-    void setEncodeFunction(std::function<void()>);
+    void setEncodeFunction(std::function<void()> function);
 
     /**
      * Set the decoder callback.
@@ -96,7 +96,7 @@ void decodeFun()
 }
 \endcode
     */
-    void setDecodeFunction(std::function<void()>);
+    void setDecodeFunction(std::function<void()> function);
 
     /// This fuction is called internally by SGCT and shouldn't be used by the user.
     void encode();

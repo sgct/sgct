@@ -50,13 +50,26 @@ NetworkManager& NetworkManager::instance() {
     return *_instance;
 }
 
-void NetworkManager::create(NetworkMode nm) {
+void NetworkManager::create(NetworkMode nm,
+                            std::function<void(const char*, int)> externalDecode,
+                            std::function<void(bool)> externalStatus,
+                            std::function<void(void*, int, int, int)> dataTransferDecode,
+                            std::function<void(bool, int)> dataTransferStatus,
+                            std::function<void(int, int)> dataTransferAcknowledge)
+{
     ZoneScoped
 
     if (_instance) {
         throw std::logic_error("NetworkManager has already been created");
     }
-    _instance = new NetworkManager(nm);
+    _instance = new NetworkManager(
+        nm,
+        std::move(externalDecode),
+        std::move(externalStatus),
+        std::move(dataTransferDecode),
+        std::move(dataTransferStatus),
+        std::move(dataTransferAcknowledge)
+    );
 }
 
 void NetworkManager::destroy() {
@@ -64,7 +77,19 @@ void NetworkManager::destroy() {
     _instance = nullptr;
 }
 
-NetworkManager::NetworkManager(NetworkMode nm) : _mode(nm) {
+NetworkManager::NetworkManager(NetworkMode nm,
+                               std::function<void(const char*, int)> externalDecode,
+                               std::function<void(bool)> externalStatus,
+                             std::function<void(void*, int, int, int)> dataTransferDecode,
+                                        std::function<void(bool, int)> dataTransferStatus,
+                                    std::function<void(int, int)> dataTransferAcknowledge)
+    : _mode(nm)
+    , _externalDecodeFn(std::move(externalDecode))
+    , _externalStatusFn(std::move(externalStatus))
+    , _dataTransferDecodeFn(std::move(dataTransferDecode))
+    , _dataTransferStatusFn(std::move(dataTransferStatus))
+    , _dataTransferAcknowledgeFn(std::move(dataTransferAcknowledge))
+{
     ZoneScoped
 
     Log::Debug("Initiating network API");
@@ -255,7 +280,7 @@ void NetworkManager::initialize() {
             _networkConnections.back()->setDecodeFunction(
                 // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
                 // when switching to C++20
-                [](const char* data, int length, int) {
+                [](const char* data, int length) {
                     SharedData::instance().decode(data, length);
                 }
             );
@@ -267,30 +292,18 @@ void NetworkManager::initialize() {
                     remoteAddress,
                     Network::ConnectionType::DataTransfer
                 );
-                _networkConnections.back()->setPackageDecodeFunction(
-                    [](void* data, int length, int packageId, int clientId) {
-                    // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
-                    // when switching to C++20
-                        Engine::instance().invokeDecodeCallbackForDataTransfer(
-                            data,
-                            length,
-                            packageId,
-                            clientId
-                        );
-                    }
-                );
+                if (_dataTransferDecodeFn) {
+                    _networkConnections.back()->setPackageDecodeFunction(
+                        _dataTransferDecodeFn
+                    );
+                }
 
                 // acknowledge callback
-                _networkConnections.back()->setAcknowledgeFunction(
-                    // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front
-                    // when switching to C++20
-                    [](int packageId, int clientId) {
-                        Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
-                            packageId,
-                            clientId
-                        );
-                    }
-                );
+                if (_dataTransferAcknowledgeFn) {
+                    _networkConnections.back()->setAcknowledgeFunction(
+                        _dataTransferAcknowledgeFn
+                    );
+                }
             }
         }
 
@@ -303,10 +316,10 @@ void NetworkManager::initialize() {
                 addConnection(n.syncPort(), remoteAddress);
 
                 _networkConnections.back()->setDecodeFunction(
-                    [](const char* data, int length, int idx) {
+                    [](const char* data, int length) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        Log::Info("[client %d]: %s [end]", idx, d.data());
+                        Log::Info("[client]: %s [end]", d.data());
                     }
                 );
 
@@ -317,30 +330,18 @@ void NetworkManager::initialize() {
                         remoteAddress,
                         Network::ConnectionType::DataTransfer
                     );
-                    _networkConnections.back()->setPackageDecodeFunction(
-                        [](void* data, int length, int packageId, int clientId) {
-                        // @TODO (abock, 2019-12-06) This can be replaced with
-                        // std::bind_front when switching to C++20
-                            Engine::instance().invokeDecodeCallbackForDataTransfer(
-                                data,
-                                length,
-                                packageId,
-                                clientId
-                            );
-                        }
-                    );
+                    if (_dataTransferDecodeFn) {
+                        _networkConnections.back()->setPackageDecodeFunction(
+                            _dataTransferDecodeFn
+                        );
+                    }
 
                     // acknowledge callback
-                    _networkConnections.back()->setAcknowledgeFunction(
-                        // @TODO (abock, 2019-12-06) This can be replaced with
-                        // std::bind_front when switching to C++20
-                        [](int packageId, int clientId) {
-                            Engine::instance().invokeAcknowledgeCallbackForDataTransfer(
-                                packageId,
-                                clientId
-                            );
-                        }
-                    );
+                    if (_dataTransferAcknowledgeFn) {
+                        _networkConnections.back()->setAcknowledgeFunction(
+                            _dataTransferAcknowledgeFn
+                        );
+                    }
                 }
             }
         }
@@ -355,16 +356,20 @@ void NetworkManager::initialize() {
             "127.0.0.1",
             Network::ConnectionType::ExternalConnection
         );
-        _networkConnections.back()->setDecodeFunction(
-            // @TODO (abock, 2019-12-06) This can be replaced with std::bind_front when
-            // switching to C++20
-            [](const char* data, int len, int) {
-                Engine::instance().invokeDecodeCallbackForExternalControl(data, len);
-            }
-        );
+        if (_externalDecodeFn) {
+            _networkConnections.back()->setDecodeFunction(_externalDecodeFn);
+        }
     }
 
     Log::Debug("Cluster sync: %s", cm.firmFrameLockSyncStatus() ? "firm" : "loose");
+}
+
+void NetworkManager::clearCallbacks() {
+    _externalDecodeFn = nullptr;
+    _externalStatusFn = nullptr;
+    _dataTransferDecodeFn = nullptr;
+    _dataTransferStatusFn = nullptr;
+    _dataTransferAcknowledgeFn = nullptr;
 }
 
 std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
@@ -458,7 +463,6 @@ void NetworkManager::prepareTransferData(const void* data, std::vector<char>& bu
     int messageLength = length;
 
     length += static_cast<int>(Network::HeaderSize);
-
     buffer.resize(length);
 
     buffer[0] = Network::DataId;
@@ -496,8 +500,8 @@ const Network& NetworkManager::connection(int index) const {
     return *_networkConnections[index];
 }
 
-Network* NetworkManager::syncConnection(int index) const {
-    return _syncConnections[index];
+const Network& NetworkManager::syncConnection(int index) const {
+    return *_syncConnections[index];
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
@@ -540,7 +544,6 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     _nActiveSyncConnections = nConnectedSync;
     _nActiveDataTransferConnections = nConnectedDataTransfer;
 
-
     // if client disconnects then it cannot run anymore
     if (_nActiveSyncConnections == 0 && !_isServer) {
         _isRunning = false;
@@ -581,7 +584,10 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
             const bool status = connection->isConnected();
             const std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
-            Engine::instance().invokeUpdateCallbackForExternalControl(status);
+            if (_externalStatusFn) {
+                ZoneScopedN("[SGCT] External Status")
+                _externalStatusFn(status);
+            }
         }
 
         // wake up the connection handler thread on server
@@ -589,9 +595,9 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
     }
 
     if (connection->type() == Network::ConnectionType::DataTransfer) {
-        const bool status = connection->isConnected();
-        const int id = connection->id();
-        Engine::instance().invokeUpdateCallbackForDataTransfer(status, id);
+        if (_dataTransferStatusFn) {
+            _dataTransferStatusFn(connection->isConnected(), connection->id());
+        }
     }
 
     // signal done to caller

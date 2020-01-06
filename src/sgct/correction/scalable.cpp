@@ -45,7 +45,7 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
         constexpr const int MaxLineLength = 1024;
         char lineBuffer[MaxLineLength];
 
-        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile)) {
             float x, y, s, t;
             unsigned int a, b, c;
             unsigned int intensity;
@@ -66,9 +66,9 @@ Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
             }
             else if (sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
                 if (!buf.indices.empty()) {
-                    buf.indices[numOfFacesRead * 3] = a;
-                    buf.indices[numOfFacesRead * 3 + 1] = b;
-                    buf.indices[numOfFacesRead * 3 + 2] = c;
+                    buf.indices[numOfFacesRead * 3u] = a;
+                    buf.indices[numOfFacesRead * 3u + 1u] = b;
+                    buf.indices[numOfFacesRead * 3u + 2u] = c;
                 }
 
                 numOfFacesRead++;

@@ -14,9 +14,7 @@
 namespace sgct::mutex {
 
 inline std::mutex DataSync;
-inline std::mutex FrameSync;
 inline std::mutex Tracking;
-inline std::mutex Transfer;
 
 } // namespace sgct::mutex
 

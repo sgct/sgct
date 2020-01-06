@@ -70,13 +70,11 @@ public:
 protected:
     const Window* _parent = nullptr;
 
-    struct {
-        Projection mono;
-        Projection stereoLeft;
-        Projection stereoRight;
-    } _projections;
+    Projection _monoProj;
+    Projection _stereoLeftProj;
+    Projection _stereoRightProj;
     
-    ProjectionPlane _projectionPlane;
+    ProjectionPlane _projPlane;
     Frustum::Mode _eye = Frustum::Mode::MonoEye;
 
     User* _user;

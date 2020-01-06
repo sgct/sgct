@@ -20,10 +20,10 @@ namespace sgct::text {
 
 class Font;
 
-enum class TextAlignMode { TopLeft, TopCenter, TopRight};
+enum class Alignment { TopLeft, TopCenter, TopRight};
 
 void print(const Window& window, const BaseViewport& viewport, Font& font,
-    TextAlignMode mode, float x, float y, const glm::vec4& color,
+    Alignment mode, float x, float y, const glm::vec4& color,
     const char* format, ...);
 
 } // namespace sgct::text

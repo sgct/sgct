@@ -53,7 +53,7 @@ public:
     void closeNetwork(bool forced);
     void initShutdown();
 
-    void setDecodeFunction(std::function<void(const char*, int, int)> fn);
+    void setDecodeFunction(std::function<void(const char*, int)> fn);
     void setPackageDecodeFunction(std::function<void(void*, int, int, int)> fn);
     void setUpdateFunction(std::function<void(Network*)> fn);
     void setConnectedFunction(std::function<void (void)> fn);
@@ -142,11 +142,11 @@ private:
 
     std::vector<char> _recvBuffer;
     std::vector<char> _uncompressBuffer;
-    char _headerId;
+    char _headerId = 0;
 
     std::condition_variable _startConnectionCond;
 
-    std::function<void(const char*, int, int)> decoderCallback;
+    std::function<void(const char*, int)> decoderCallback;
     std::function<void(void*, int, int, int)> _packageDecoderCallback;
     std::function<void(Network*)> _updateCallback;
     std::function<void(void)> _connectedCallback;

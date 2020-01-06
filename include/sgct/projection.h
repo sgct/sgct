@@ -19,9 +19,8 @@ class ProjectionPlane;
 /// This class holds and manages 3D projections
 class Projection {
 public:
-    void calculateProjection(glm::vec3 base, const ProjectionPlane& projectionPlane,
-        float nearClippingPlane, float farClippingPlane,
-        glm::vec3 viewOffset = glm::vec3(0.f));
+    void calculateProjection(glm::vec3 base, const ProjectionPlane& proj, float nearClip, 
+        float farClip, glm::vec3 viewOffset = glm::vec3(0.f));
 
     const glm::mat4& viewProjectionMatrix() const;
     const glm::mat4& viewMatrix() const;

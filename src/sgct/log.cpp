@@ -32,24 +32,17 @@ void Log::destroy() {
 }
 
 Log::Log() {
-    _parseBuffer.resize(_maxMessageSize);
-    _combinedBuffer.resize(_combinedMessageSize);
+    _parseBuffer.resize(128);
 }
 
 void Log::printv(const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
-    size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
-    if (size > _maxMessageSize) {
+    size_t size = static_cast<size_t>(1u + vscprintf(fmt, ap));
+    if (size > _parseBuffer.size()) {
         _parseBuffer.resize(size);
         std::fill(_parseBuffer.begin(), _parseBuffer.end(), char(0));
-        
-        _maxMessageSize = size;
-        _combinedMessageSize = _maxMessageSize + 32;
-
-        _combinedBuffer.resize(_combinedMessageSize);
-        std::fill(_combinedBuffer.begin(), _combinedBuffer.end(), char(0));
     }
         
     _parseBuffer[0] = '\0';
@@ -65,14 +58,17 @@ void Log::printv(const char* fmt, va_list ap) {
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
-        sprintf(_combinedBuffer.data(), "%s| %s", TimeBuffer, _parseBuffer.data());
+
+        std::vector<char> combinedBuffer(size + 32);
+        std::fill(combinedBuffer.begin(), combinedBuffer.end(), char(0));
+        sprintf(combinedBuffer.data(), "%s | %s", TimeBuffer, _parseBuffer.data());
 
         if (_logToConsole) {
-            std::cout << _combinedBuffer.data() << '\n';
+            std::cout << combinedBuffer.data() << '\n';
         }
 
         if (_messageCallback) {
-            _messageCallback(_combinedBuffer.data());
+            _messageCallback(combinedBuffer.data());
         }
     }
     else {

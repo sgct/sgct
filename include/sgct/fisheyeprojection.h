@@ -101,12 +101,10 @@ private:
     float _fov = 180.f;
     float _tilt = 0.f;
     float _diameter = 14.8f;
-    struct {
-        float left = 0.f;
-        float right = 0.f;
-        float bottom = 0.f;
-        float top = 0.f;
-    } _cropFactor;
+    float _cropLeft = 0.f;
+    float _cropRight = 0.f;
+    float _cropBottom = 0.f;
+    float _cropTop = 0.f;
 
     bool _isOffAxis = false;
     bool _ignoreAspectRatio = false;
@@ -119,16 +117,16 @@ private:
 
     // shader locations
     struct {
-        int cubemapLoc = -1;
-        int depthCubemapLoc = -1;
-        int normalCubemapLoc = -1;
-        int positionCubemapLoc = -1;
-        int halfFovLoc = -1;
-        int offsetLoc = -1;
-        int swapColorLoc = -1;
-        int swapDepthLoc = -1;
-        int swapNearLoc = -1;
-        int swapFarLoc = -1;
+        int cubemap = -1;
+        int depthCubemap = -1;
+        int normalCubemap = -1;
+        int positionCubemap = -1;
+        int halfFov = -1;
+        int offset = -1;
+        int swapColor = -1;
+        int swapDepth = -1;
+        int swapNear = -1;
+        int swapFar = -1;
     } _shaderLoc;
 };
 

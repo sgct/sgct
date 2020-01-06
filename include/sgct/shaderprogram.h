@@ -82,9 +82,6 @@ public:
     /// Get the name of the program
     std::string name() const;
 
-    /// Check if the program is linked
-    bool isLinked() const;
-
     /// Get the program ID
     int id() const;
 
@@ -128,12 +125,10 @@ private:
         int _shaderId = 0;  // The shader _id used for reference
     };
 
-
     /// Will create and the program and return whether it was properly created or not
     void createProgram();
     
     std::string _name; /// Name of the program, has to be unique
-    bool _isLinked = false; /// If this program has been linked
     int _programId = 0; /// Unique program _id
 
     std::vector<Shader> _shaders;

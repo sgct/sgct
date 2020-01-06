@@ -31,12 +31,13 @@
 #include <sgct/shaders/internalshaders.h>
 #include <iostream>
 #include <numeric>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 
 #ifdef WIN32
 #include <Windows.h>
 #endif // WIN32
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 #define Err(code, msg) Error(Error::Component::Engine, code, msg)
 
@@ -52,6 +53,7 @@ namespace {
     enum class BufferMode { BackBufferBlack, RenderToTexture };
 
     bool sRunUpdateFrameLockLoop = true;
+    std::mutex FrameSync;
 
     // Callback wrappers for GLFW
     std::function<void(Key, Modifier, Action, int)> gKeyboardCallback = nullptr;
@@ -67,9 +69,9 @@ namespace {
         bool run = true;
 
         while (run) {
-            mutex::FrameSync.lock();
+            FrameSync.lock();
             run = sRunUpdateFrameLockLoop;
-            mutex::FrameSync.unlock();
+            FrameSync.unlock();
             NetworkManager::cond.notify_all();
             std::this_thread::sleep_for(FrameLockTimeout);
         }
@@ -91,8 +93,7 @@ namespace {
             case Window::StereoMode::SideBySideInverted: return "side_by_side_inverted";
             case Window::StereoMode::TopBottom: return "top_bottom";
             case Window::StereoMode::TopBottomInverted: return "top_bottom_inverted";
-            default:
-                return "none";
+            default: return "none";
         }
     }
 
@@ -134,44 +135,42 @@ namespace {
         }
     }
 
-    void prepareBuffer(Window& window, Window::TextureIndex ti) {
+    void prepareBuffer(Window& win, Window::TextureIndex ti) {
         ZoneScoped
             
-        OffScreenBuffer* fbo = window.fbo();
+        OffScreenBuffer* fbo = win.fbo();
         fbo->bind();
         if (fbo->isMultiSampled()) {
             return;
         }
 
         // update attachments
-        fbo->attachColorTexture(window.frameBufferTexture(ti));
+        fbo->attachColorTexture(win.frameBufferTexture(ti));
 
         if (Settings::instance().useDepthTexture()) {
-            fbo->attachDepthTexture(
-                window.frameBufferTexture(Window::TextureIndex::Depth)
-            );
+            fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
         }
 
         if (Settings::instance().useNormalTexture()) {
             fbo->attachColorTexture(
-                window.frameBufferTexture(Window::TextureIndex::Normals),
+                win.frameBufferTexture(Window::TextureIndex::Normals),
                 GL_COLOR_ATTACHMENT1
             );
         }
 
         if (Settings::instance().usePositionTexture()) {
             fbo->attachColorTexture(
-                window.frameBufferTexture(Window::TextureIndex::Positions),
+                win.frameBufferTexture(Window::TextureIndex::Positions),
                 GL_COLOR_ATTACHMENT2
             );
         }
     }
 
-    void updateRenderingTargets(Window& window, Window::TextureIndex ti) {
+    void updateRenderingTargets(Window& win, Window::TextureIndex ti) {
         ZoneScoped
 
         // copy AA-buffer to "regular" / non-AA buffer
-        OffScreenBuffer* fbo = window.fbo();
+        OffScreenBuffer* fbo = win.fbo();
         if (!fbo->isMultiSampled()) {
             return;
         }
@@ -180,24 +179,22 @@ namespace {
         fbo->bindBlit();
 
         // update attachments
-        fbo->attachColorTexture(window.frameBufferTexture(ti));
+        fbo->attachColorTexture(win.frameBufferTexture(ti));
 
         if (Settings::instance().useDepthTexture()) {
-            fbo->attachDepthTexture(
-                window.frameBufferTexture(Window::TextureIndex::Depth)
-            );
+            fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
         }
 
         if (Settings::instance().useNormalTexture()) {
             fbo->attachColorTexture(
-                window.frameBufferTexture(Window::TextureIndex::Normals),
+                win.frameBufferTexture(Window::TextureIndex::Normals),
                 GL_COLOR_ATTACHMENT1
             );
         }
 
         if (Settings::instance().usePositionTexture()) {
             fbo->attachColorTexture(
-                window.frameBufferTexture(Window::TextureIndex::Positions),
+                win.frameBufferTexture(Window::TextureIndex::Positions),
                 GL_COLOR_ATTACHMENT2
             );
         }
@@ -205,6 +202,30 @@ namespace {
         fbo->blit();
     }
 } // namespace
+
+double Engine::Statistics::dt() const {
+    return frametimes.front();
+}
+
+double Engine::Statistics::avgDt(unsigned int frameCounter) const {
+    const double accFT = std::accumulate(frametimes.begin(), frametimes.end(), 0.0);
+    const int nValues = static_cast<int>(std::count_if(
+        frametimes.begin(),
+        frametimes.end(),
+        [](double d) { return d != 0.0; }
+    ));
+    // We must take the frame counter into account as the history might not be filled yet
+    unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
+    return accFT / f;
+}
+
+double Engine::Statistics::minDt() const {
+    return *std::min_element(frametimes.begin(), frametimes.end());
+}
+
+double Engine::Statistics::Statistics::maxDt() const {
+    return *std::max_element(frametimes.begin(), frametimes.end());
+}
 
 Engine* Engine::_instance = nullptr;
 
@@ -296,11 +317,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     , _draw2DFn(std::move(callbacks.draw2D))
     , _postDrawFn(std::move(callbacks.postDraw))
     , _cleanUpFn(std::move(callbacks.cleanUp))
-    , _externalDecodeFn(std::move(callbacks.externalDecode))
-    , _externalStatusFn(std::move(callbacks.externalStatus))
-    , _dataTransferDecodeFn(std::move(callbacks.dataTransferDecode))
-    , _dataTransferStatusFn(std::move(callbacks.dataTransferStatus))
-    , _dataTransferAcknowledgeFn(std::move(callbacks.dataTransferAcknowledge))
 {
     ZoneScoped
 
@@ -377,7 +393,14 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     Log::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
 
-    NetworkManager::create(netMode);
+    NetworkManager::create(
+        netMode,
+        std::move(callbacks.externalDecode),
+        std::move(callbacks.externalStatus),
+        std::move(callbacks.dataTransferDecode),
+        std::move(callbacks.dataTransferStatus),
+        std::move(callbacks.dataTransferAcknowledge)
+    );
 
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
@@ -612,7 +635,6 @@ Engine::~Engine() {
     // if the configuration was illformed
     const ClusterManager& cm = ClusterManager::instance();
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
-
     if (hasNode) {
         Window::makeSharedContextCurrent();
         if (_cleanUpFn) {
@@ -622,11 +644,7 @@ Engine::~Engine() {
 
     // We are only clearing the callbacks that might be called asynchronously
     Log::Debug("Clearing callbacks");
-    _externalDecodeFn = nullptr;
-    _externalStatusFn = nullptr;
-    _dataTransferDecodeFn = nullptr;
-    _dataTransferStatusFn = nullptr;
-    _dataTransferAcknowledgeFn = nullptr;
+    NetworkManager::instance().clearCallbacks();
     gKeyboardCallback = nullptr;
     gMouseButtonCallback = nullptr;
     gMousePosCallback = nullptr;
@@ -637,9 +655,9 @@ Engine::~Engine() {
     if (_thread) {
         Log::Debug("Waiting for frameLock thread to finish");
 
-        mutex::FrameSync.lock();
+        FrameSync.lock();
         sRunUpdateFrameLockLoop = false;
-        mutex::FrameSync.unlock();
+        FrameSync.unlock();
 
         _thread->join();
         _thread = nullptr;
@@ -829,6 +847,7 @@ void Engine::initWindows(Profile profile) {
                     break;
                 default:
                     Log::Error("FBO error. %s: %i", n, static_cast<int>(fboStatus));
+                    break;
             }
         });
     }
@@ -842,7 +861,7 @@ void Engine::initWindows(Profile profile) {
         if (_contextCreationFn) {
             ZoneScopedN("Context Creation Callback");
 
-            GLFWwindow* share = thisNode.windows()[0]->windowHandle();
+            GLFWwindow* share = thisNode.windows().front()->windowHandle();
             _contextCreationFn(share);
         }
     }
@@ -885,7 +904,7 @@ void Engine::frameLockPreStage() {
     // not server
     const double t0 = glfwGetTime();
     while (nm.isRunning() && !nm.isSyncComplete()) {
-        std::unique_lock lk(mutex::FrameSync);
+        std::unique_lock lk(FrameSync);
         NetworkManager::cond.wait(lk);
 
         if (glfwGetTime() - t0 <= 1.0) {
@@ -893,7 +912,7 @@ void Engine::frameLockPreStage() {
         }
 
         // more than a second
-        const Network& c = *nm.syncConnection(0);
+        const Network& c = nm.syncConnection(0);
         if (_printSyncMessage && !c.isUpdated()) {
             Log::Info(
                 "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
@@ -924,15 +943,13 @@ void Engine::frameLockPostStage() {
 
     NetworkManager& nm = NetworkManager::instance();
     // post stage
-    if (ClusterManager::instance().ignoreSync() ||
-        !nm.isComputerServer())
-    {
+    if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
         return;
     }
 
     const double t0 = glfwGetTime();
     while (nm.isRunning() && nm.activeConnectionsCount() > 0 && !nm.isSyncComplete()) {
-        std::unique_lock lk(mutex::FrameSync);
+        std::unique_lock lk(FrameSync);
         NetworkManager::cond.wait(lk);
 
         if (glfwGetTime() - t0 <= 1.0) {
@@ -1193,8 +1210,7 @@ void Engine::renderFBOTexture(Window& window) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
-        Frustum::Mode::StereoLeftEye :
-        Frustum::Mode::MonoEye;
+        Frustum::Mode::StereoLeftEye : Frustum::Mode::MonoEye;
 
     const glm::ivec2 size = glm::ivec2(
         glm::ceil(window.scale() * glm::vec2(window.resolution()))
@@ -1530,9 +1546,11 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         for (const std::unique_ptr<Window>& window : thisNode.windows()) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             if (window->isDoubleBuffered()) {
+                ZoneScopedN("glfwSwapBuffers")
                 glfwSwapBuffers(window->windowHandle());
             }
             else {
+                ZoneScopedN("glFinish")
                 glFinish();
             }
         }
@@ -1673,44 +1691,6 @@ const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
 
-double Engine::dt() const {
-    return _statistics.frametimes[0];
-}
-
-double Engine::avgFPS() const {
-    return 1.0 / avgDt();
-}
-
-double Engine::avgDt() const {
-    const double accFrameTime = std::accumulate(
-        _statistics.frametimes.begin(),
-        _statistics.frametimes.end(),
-        0.0
-    );
-    const int nValues = static_cast<int>(std::count_if(
-        _statistics.frametimes.begin(),
-        _statistics.frametimes.end(),
-        [](double d) { return d != 0.0; }
-    ));
-    // We must take the frame counter into account as the history might not be filled yet
-    unsigned f = std::clamp<unsigned int>(_frameCounter, 1, nValues);
-    return accFrameTime / f;
-}
-
-double Engine::minDt() const {
-    return *std::min_element(
-        _statistics.frametimes.begin(),
-        _statistics.frametimes.end()
-    );
-}
-
-double Engine::maxDt() const {
-    return *std::max_element(
-        _statistics.frametimes.begin(),
-        _statistics.frametimes.end()
-    );
-}
-
 glm::vec4 Engine::clearColor() const {
     return _clearColor;
 }
@@ -1767,60 +1747,6 @@ void Engine::takeScreenshot() {
 
 const std::function<void(RenderData)>& Engine::drawFunction() const {
     return _drawFn;
-}
-
-void Engine::invokeDecodeCallbackForExternalControl(const char* data, int length) {
-    if (_externalDecodeFn && length > 0) {
-        ZoneScopedN("[SGCT] External Decode")
-        _externalDecodeFn(data, length);
-    }
-}
-
-void Engine::invokeUpdateCallbackForExternalControl(bool connected) {
-    if (_externalStatusFn) {
-        ZoneScopedN("[SGCT] External Status")
-        _externalStatusFn(connected);
-    }
-}
-
-void Engine::invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id) {
-    if (_dataTransferDecodeFn && len > 0) {
-        ZoneScopedN("[SGCT] External Data Transfer Decode")
-        _dataTransferDecodeFn(d, len, package, id);
-    }
-}
-
-void Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId) {
-    if (_dataTransferStatusFn) {
-        ZoneScopedN("[SGCT] External Data Transfer Status")
-        _dataTransferStatusFn(connected, clientId);
-    }
-}
-
-void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId) {
-    if (_dataTransferAcknowledgeFn) {
-        ZoneScopedN("[SGCT] External Data Transfer Acknowledge")
-        _dataTransferAcknowledgeFn(packageId, clientId);
-    }
-}
-
-void Engine::sendMessageToExternalControl(const void* data, int length) {
-    ZoneScoped
-
-    if (NetworkManager::instance().externalControlConnection()) {
-        NetworkManager::instance().externalControlConnection()->sendData(data, length);
-    }
-}
-
-void Engine::transferDataBetweenNodes(const void* data, int length, int packageId) {
-    ZoneScoped
-        
-    NetworkManager::instance().transferData(data, length, packageId);
-}
-
-bool Engine::isExternalControlConnected() const {
-    return (NetworkManager::instance().externalControlConnection() &&
-        NetworkManager::instance().externalControlConnection()->isConnected());
 }
 
 const Node& Engine::thisNode() const {

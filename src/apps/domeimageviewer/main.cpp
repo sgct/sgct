@@ -4,6 +4,7 @@
 #include <sgct/engine.h>
 #include <sgct/keys.h>
 #include <sgct/image.h>
+#include <sgct/networkmanager.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/utils/dome.h>
@@ -110,7 +111,7 @@ void startDataTransfer() {
         std::vector<char> buffer(size);
         if (file.read(buffer.data(), size)) {
             const int s = static_cast<int>(buffer.size());
-            sgct::Engine::instance().transferDataBetweenNodes(buffer.data(), s, i);
+            NetworkManager::instance().transferData(buffer.data(), s, i);
             readImage(reinterpret_cast<unsigned char*>(buffer.data()), s);
         }
     }

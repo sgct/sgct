@@ -40,12 +40,12 @@ SharedData::SharedData() {
     _headerSpace[0] = Network::DataId;
 }
 
-void SharedData::setEncodeFunction(std::function<void()> fn) {
-    _encodeFn = std::move(fn);
+void SharedData::setEncodeFunction(std::function<void()> function) {
+    _encodeFn = std::move(function);
 }
 
-void SharedData::setDecodeFunction(std::function<void()> fn) {
-    _decodeFn = std::move(fn);
+void SharedData::setDecodeFunction(std::function<void()> function) {
+    _decodeFn = std::move(function);
 }
 
 void SharedData::decode(const char* receivedData, int receivedLength) {

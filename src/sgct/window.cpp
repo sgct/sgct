@@ -332,49 +332,21 @@ void Window::initOGL() {
 
     _colorFormat = GL_BGRA;
     
-    switch (_bufferColorBitDepth) {
-        case ColorBitDepth::Depth8:
-            _internalColorFormat = GL_RGBA8;
-            _colorDataType = GL_UNSIGNED_BYTE;
-            _bytesPerColor = 1;
-            break;
-        case ColorBitDepth::Depth16:
-            _internalColorFormat = GL_RGBA16;
-            _colorDataType = GL_UNSIGNED_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth16Float:
-            _internalColorFormat = GL_RGBA16F;
-            _colorDataType = GL_HALF_FLOAT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32Float:
-            _internalColorFormat = GL_RGBA32F;
-            _colorDataType = GL_FLOAT;
-            _bytesPerColor = 4;
-            break;
-        case ColorBitDepth::Depth16Int:
-            _internalColorFormat = GL_RGBA16I;
-            _colorDataType = GL_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32Int:
-            _internalColorFormat = GL_RGBA32I;
-            _colorDataType = GL_INT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth16UInt:
-            _internalColorFormat = GL_RGBA16UI;
-            _colorDataType = GL_UNSIGNED_SHORT;
-            _bytesPerColor = 2;
-            break;
-        case ColorBitDepth::Depth32UInt:
-            _internalColorFormat = GL_RGBA32UI;
-            _colorDataType = GL_UNSIGNED_INT;
-            _bytesPerColor = 4;
-            break;
-        default: throw std::logic_error("Unhandled case label");
-    }
+    std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) =
+        [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
+    {
+        switch (bd) {
+            case ColorBitDepth::Depth8: return { GL_RGBA8, GL_UNSIGNED_BYTE, 1 };
+            case ColorBitDepth::Depth16: return { GL_RGBA16, GL_UNSIGNED_SHORT, 2 };
+            case ColorBitDepth::Depth16Float: return { GL_RGBA16F, GL_HALF_FLOAT, 2};
+            case ColorBitDepth::Depth32Float: return { GL_RGBA32F, GL_FLOAT, 4 };
+            case ColorBitDepth::Depth16Int: return { GL_RGBA16I, GL_SHORT, 2 };
+            case ColorBitDepth::Depth32Int: return { GL_RGBA32I, GL_INT, 2 };
+            case ColorBitDepth::Depth16UInt: return { GL_RGBA16UI, GL_UNSIGNED_SHORT, 2 };
+            case ColorBitDepth::Depth32UInt: return { GL_RGBA32UI, GL_UNSIGNED_INT, 4 };
+            default: throw std::logic_error("Unhandled case label");
+        }
+    }(_bufferColorBitDepth);
     
     createTextures();
     createVBOs(); // must be created before FBO
@@ -465,7 +437,7 @@ void Window::initContextSpecificOGL() {
 unsigned int Window::frameBufferTexture(TextureIndex index) {
     ZoneScoped
 
-    // @TODO (abock, 2019-12-04) I think this function should be make constant and we
+    // @TODO (abock, 2019-12-04) I think this function should be made constant and we
     // figure out beforehand which textures we need to create. So this function just
     // returns the already created textures instead
     switch (index) {
@@ -504,16 +476,14 @@ unsigned int Window::frameBufferTexture(TextureIndex index) {
 }
 
 void Window::setVisible(bool state) {
-    if (state != _isVisible) {
-        if (_windowHandle) {
-            if (state) {
-                glfwShowWindow(_windowHandle);
-            }
-            else {
-                glfwHideWindow(_windowHandle);
-            }
+    _isVisible = state;
+    if (state != _isVisible && _windowHandle) {
+        if (state) {
+            glfwShowWindow(_windowHandle);
         }
-        _isVisible = state;
+        else {
+            glfwHideWindow(_windowHandle);
+        }
     }
 }
 
@@ -551,7 +521,6 @@ void Window::setFramebufferResolution(glm::ivec2 resolution) {
 }
 
 void Window::swap(bool takeScreenshot) {
-
     if (!(_isVisible || _shouldRenderWhileHidden)) {
         return;
     }
@@ -706,6 +675,7 @@ void Window::makeSharedContextCurrent() {
     ZoneScoped
 
     if (_activeContext == _sharedHandle) {
+        // glfwMakeContextCurrent is expensive even if we don't change the context
         return;
     }
     _activeContext = _sharedHandle;
@@ -716,6 +686,7 @@ void Window::makeOpenGLContextCurrent() {
     ZoneScoped
 
     if (_activeContext == _windowHandle) {
+        // glfwMakeContextCurrent is expensive even if we don't change the context
         return;
     }
     _activeContext = _windowHandle;
@@ -1061,7 +1032,7 @@ void Window::createTextures() {
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error("Window %d: Requested framebuffer too big (Max: %d)",_id, max);
+        Log::Error("Window %d: Requested framebuffer too big (Max: %d)", _id, max);
         return;
     }
 
@@ -1150,7 +1121,6 @@ void Window::createVBOs() {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    //2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
@@ -1177,9 +1147,7 @@ void Window::loadShaders() {
     }
 
     // reload shader program if it exists
-    if (_stereo.shader.isLinked()) {
-        _stereo.shader.deleteProgram();
-    }
+    _stereo.shader.deleteProgram();
 
     std::string stereoVertShader = shaders::AnaglyphVert;
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {

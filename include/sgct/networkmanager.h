@@ -12,6 +12,7 @@
 #include <sgct/network.h>
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <optional>
 #include <string>
 #include <utility>
@@ -28,13 +29,20 @@ public:
     enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
 
     static NetworkManager& instance();
-    static void create(NetworkMode nm);
+    static void create(NetworkMode nm,
+        std::function<void(const char*, int)> externalDecode,
+        std::function<void(bool)> externalStatus,
+        std::function<void(void*, int, int, int)> dataTransferDecode,
+        std::function<void(bool, int)> dataTransferStatus,
+        std::function<void(int, int)> dataTransferAcknowledge);
     static void destroy();
 
     static std::condition_variable cond;
 
     ~NetworkManager();
+    
     void initialize();
+    void clearCallbacks();
 
     /**
      * \param if this application is server/master in cluster then set to true
@@ -64,10 +72,14 @@ public:
     int connectionsCount() const;
     int syncConnectionsCount() const;
     const Network& connection(int index) const;
-    Network* syncConnection(int index) const;
+    const Network& syncConnection(int index) const;
 
 private:
-    NetworkManager(NetworkMode nm);
+    NetworkManager(NetworkMode nm, std::function<void(const char*, int)> externalDecode,
+        std::function<void(bool)> externalStatus,
+        std::function<void(void*, int, int, int)> dataTransferDecode,
+        std::function<void(bool, int)> dataTransferStatus,
+        std::function<void(int, int)> dataTransferAcknowledge);
 
     void addConnection(int port, const std::string& address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
@@ -77,6 +89,12 @@ private:
         int packageId);
 
     static NetworkManager* _instance;
+
+    std::function<void(const char*, int)> _externalDecodeFn;
+    std::function<void(bool)> _externalStatusFn;
+    std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
+    std::function<void(bool, int)> _dataTransferStatusFn;
+    std::function<void(int, int)> _dataTransferAcknowledgeFn;
 
     // This could be a std::vector<Network>, but Network is not move-constructible
     // because of the std::condition_variable in it

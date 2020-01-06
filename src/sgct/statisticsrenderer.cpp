@@ -126,7 +126,6 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     
-    
     glGenVertexArrays(1, &_histogram.dynamicDraw.vao);
     glGenBuffers(1, &_histogram.dynamicDraw.vbo);
     glBindVertexArray(_histogram.dynamicDraw.vao);
@@ -231,13 +230,13 @@ void StatisticsRenderer::update() {
             const float y1 = static_cast<float>(val) / maxBinVal;
 
             const int idx = i * 6;
-            buffer[idx + 0] = { x0, y0 };
-            buffer[idx + 1] = { x1, y1 };
-            buffer[idx + 2] = { x0, y1 };
+            buffer[idx + 0u] = { x0, y0 };
+            buffer[idx + 1u] = { x1, y1 };
+            buffer[idx + 2u] = { x0, y1 };
 
-            buffer[idx + 3] = { x0, y0 };
-            buffer[idx + 4] = { x1, y0 };
-            buffer[idx + 5] = { x1, y1 };
+            buffer[idx + 3u] = { x0, y0 };
+            buffer[idx + 4u] = { x1, y0 };
+            buffer[idx + 5u] = { x1, y1 };
         }
     };
 
@@ -321,7 +320,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 #ifdef SGCT_HAS_TEXT
         constexpr const glm::vec2 Pos = glm::vec2(15.f, 50.f);
         constexpr const float Offset = 20.f;
-        constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
+        constexpr const text::Alignment mode = text::Alignment::TopLeft;
 
         text::Font& f1 = *text::FontManager::instance().font("SGCTFont", 20);
         text::Font& f2 = *text::FontManager::instance().font("SGCTFont", 12);
@@ -388,7 +387,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         // Render Histogram
         //
         auto renderHistogram = [&](int i, const glm::vec4& color) {
-            const auto [pos, size] = [&](int i) -> std::tuple<glm::vec2, glm::vec2> {
+            const auto [pos, size] = [](int i) -> std::tuple<glm::vec2, glm::vec2> {
                 constexpr const glm::vec2 Pos(400.f, 10.f);
                 constexpr const glm::vec2 Size(425.f, 200.f);
 
@@ -434,7 +433,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
 #ifdef SGCT_HAS_TEXT
         constexpr const glm::vec2 Pos = glm::vec2(15.f, 10.f);
-        constexpr const text::TextAlignMode mode = text::TextAlignMode::TopLeft;
+        constexpr const text::Alignment mode = text::Alignment::TopLeft;
 
         text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
         text::print(

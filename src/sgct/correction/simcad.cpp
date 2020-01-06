@@ -131,7 +131,7 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     // Make a triangle strip index list
-    buf.indices.reserve(4 * nRows * nCols);
+    buf.indices.reserve(4u * nRows * nCols);
     for (unsigned int r = 0; r < nRows - 1; r++) {
         if ((r % 2) == 0) {
             // even rows

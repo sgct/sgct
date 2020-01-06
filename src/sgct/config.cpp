@@ -24,6 +24,8 @@ namespace {
 namespace sgct::config {
 
 void validateUser(const User& u) {
+    ZoneScoped
+        
     if (u.tracking && u.tracking->device.empty()) {
         throw Error(1000, "Tracking device name must not be empty");
     }
@@ -36,6 +38,8 @@ void validateUser(const User& u) {
 }
 
 void validateCapture(const Capture& c) {
+    ZoneScoped
+        
     if (c.monoPath && c.monoPath->empty()) {
         throw Error(1010, "Mono path must not be empty");
     }
@@ -50,6 +54,8 @@ void validateCapture(const Capture& c) {
 void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
+    ZoneScoped
+        
     if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
         throw Error(1020, "Swap interval must not be negative");
     }
@@ -59,28 +65,29 @@ void validateSettings(const Settings& s) {
 }
 
 void validateDevice(const Device& d) {
+    ZoneScoped
+        
     auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
 
     if (d.name.empty()) {
         throw Error(1030, "Device name must not be empty");
     }
-    const bool a = std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress);
-    if (!a) {
+    if (!std::all_of(d.sensors.begin(), d.sensors.end(), validateAddress)) {
         throw Error(1031, "VRPN address for sensors must not be empty");
 
     }
-    const bool b = std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress);
-    if (!b) {
+    if (!std::all_of(d.buttons.begin(), d.buttons.end(), validateAddress)) {
         throw Error(1032, "VRPN address for buttons must not be empty");
 
     }
-    const bool c = std::all_of(d.axes.begin(), d.axes.end(), validateAddress);
-    if (!c) {
+    if (!std::all_of(d.axes.begin(), d.axes.end(), validateAddress)) {
         throw Error(1033, "VRPN address for axes must not be empty");
     }
 }
 
 void validateTracker(const Tracker& t) {
+    ZoneScoped
+        
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
     }
@@ -88,6 +95,8 @@ void validateTracker(const Tracker& t) {
 }
 
 void validatePlanarProjection(const PlanarProjection& p) {
+    ZoneScoped
+        
     if (p.fov.up == p.fov.down) {
         throw Error(1050, "Up and down field of views can not be the same");
     }
@@ -97,6 +106,8 @@ void validatePlanarProjection(const PlanarProjection& p) {
 }
 
 void validateFisheyeProjection(const FisheyeProjection& p) {
+    ZoneScoped
+        
     if (p.fov && *p.fov <= 0.f) {
         throw Error(1060, "Field of view setting must be positive");
     }
@@ -121,6 +132,8 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
 }
 
 void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
+    ZoneScoped
+        
     if (p.quality && *p.quality <= 0) {
         throw Error(1070, "Quality value must be positive");
     }
@@ -133,6 +146,8 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
 }
 
 void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
+    ZoneScoped
+        
     if (p.mappingSpoutName.empty()) {
         throw Error(1080, "Mapping name must not be empty");
     }
@@ -152,6 +167,8 @@ void validateProjectionPlane(const ProjectionPlane&) {}
 void validateMpcdiProjection(const MpcdiProjection&) {}
 
 void validateViewport(const Viewport& v) {
+    ZoneScoped
+        
     if (v.user && v.user->empty()) {
         throw Error(1090, "User must not be empty");
     }
@@ -182,13 +199,13 @@ void validateViewport(const Viewport& v) {
 }
 
 void validateWindow(const Window& w) {
+    ZoneScoped
+        
     if (w.name && w.name->empty()) {
         throw Error(1100, "Window name must not be empty");
     }
-    for (const std::string& t : w.tags) {
-        if (t.empty()) {
-            throw Error(1101, "Empty tags are not allowed for windows");
-        }
+    if (std::any_of(w.tags.begin(), w.tags.end(), std::mem_fn(&std::string::empty))) {
+        throw Error(1101, "Empty tags are not allowed for windows");
     }
     if (w.msaa && *w.msaa < 0) {
         throw Error(1102, "Number of MSAA samples must be non-negative");
@@ -207,6 +224,8 @@ void validateWindow(const Window& w) {
 }
 
 void validateNode(const Node& n) {
+    ZoneScoped
+        
     if (n.address.empty()) {
         throw Error(1110, "Node address must not be empty");
     }

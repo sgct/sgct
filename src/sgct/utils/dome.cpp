@@ -50,7 +50,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     int numVerts = 0;
     for (int e = 1; e <= _elevationSteps - 1; e++) {
         const float de = static_cast<float>(e) / static_cast<float>(_elevationSteps);
-        const float elevation = glm::radians(lift + de * (90.0f - lift));
+        const float elevation = glm::radians(lift + de * (90.f - lift));
 
         const float y = sin(elevation);
 
@@ -89,7 +89,6 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
         indices.push_back(numVerts + _azimuthSteps - a);
     }
     indices.push_back(numVerts + _azimuthSteps - 1);
-
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);

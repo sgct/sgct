@@ -112,7 +112,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     warpedPos.clear();
     smoothPos.clear();
 
-    buf.indices.reserve(6 * nCorrectionValues);
+    buf.indices.reserve(6u * nCorrectionValues);
     for (unsigned int c = 0; c < (nCols - 1); ++c) {
         for (unsigned int r = 0; r < (nRows - 1); ++r) {
             const unsigned int i0 = r * nCols + c;

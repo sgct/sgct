@@ -35,7 +35,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos
     while (!feof(meshFile)) {
         constexpr const int MaxLineLength = 1024;
         char lineBuf[MaxLineLength];
-        if (fgets(lineBuf, MaxLineLength, meshFile) != nullptr) {
+        if (fgets(lineBuf, MaxLineLength, meshFile)) {
             float x;
             float y;
             float u;

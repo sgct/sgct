@@ -29,9 +29,9 @@
 namespace {
 #ifdef SGCT_HAS_VRPN
     struct VRPNPointer {
-        std::unique_ptr<vrpn_Tracker_Remote> mSensorDevice;
-        std::unique_ptr<vrpn_Analog_Remote> mAnalogDevice;
-        std::unique_ptr<vrpn_Button_Remote> mButtonDevice;
+        std::unique_ptr<vrpn_Tracker_Remote> sensorDevice;
+        std::unique_ptr<vrpn_Analog_Remote> analogDevice;
+        std::unique_ptr<vrpn_Button_Remote> buttonDevice;
     };
     std::vector<std::vector<VRPNPointer>> gTrackers;
 
@@ -78,14 +78,14 @@ namespace {
                     }
 
                     const VRPNPointer& ptr = gTrackers[i][j];
-                    if (ptr.mSensorDevice) {
-                        ptr.mSensorDevice->mainloop();
+                    if (ptr.sensorDevice) {
+                        ptr.sensorDevice->mainloop();
                     }
-                    if (ptr.mAnalogDevice) {
-                        ptr.mAnalogDevice->mainloop();
+                    if (ptr.analogDevice) {
+                        ptr.analogDevice->mainloop();
                     }
-                    if (ptr.mButtonDevice) {
-                        ptr.mButtonDevice->mainloop();
+                    if (ptr.buttonDevice) {
+                        ptr.buttonDevice->mainloop();
                     }
                 }
             }
@@ -279,10 +279,10 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     if (device) {
         device->setSensorId(id);
 
-        if (retVal.second && ptr.mSensorDevice == nullptr) {
+        if (retVal.second && ptr.sensorDevice == nullptr) {
             Log::Info("Connecting to sensor '%s'", address.c_str());
-            ptr.mSensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
-            ptr.mSensorDevice->register_change_handler(
+            ptr.sensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
+            ptr.sensorDevice->register_change_handler(
                 _trackers.back().get(),
                 updateTracker
             );
@@ -307,13 +307,13 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     VRPNPointer& ptr = gTrackers.back().back();
     TrackingDevice* device = _trackers.back()->devices().back().get();
 
-    if (ptr.mButtonDevice == nullptr && device) {
+    if (ptr.buttonDevice == nullptr && device) {
         Log::Info(
             "Connecting to buttons '%s' on device %s",
             address.c_str(), device->name().c_str()
         );
-        ptr.mButtonDevice = std::make_unique<vrpn_Button_Remote>(address.c_str());
-        ptr.mButtonDevice->register_change_handler(device, updateButton);
+        ptr.buttonDevice = std::make_unique<vrpn_Button_Remote>(address.c_str());
+        ptr.buttonDevice->register_change_handler(device, updateButton);
         device->setNumberOfButtons(nButtons);
     }
     else {
@@ -335,14 +335,14 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     VRPNPointer& ptr = gTrackers.back().back();
     TrackingDevice* device = _trackers.back()->devices().back().get();
 
-    if (ptr.mAnalogDevice == nullptr && device) {
+    if (ptr.analogDevice == nullptr && device) {
         Log::Info(
             "Connecting to analogs '%s' on device %s",
             address.c_str(), device->name().c_str()
         );
 
-        ptr.mAnalogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
-        ptr.mAnalogDevice->register_change_handler(device, updateAnalog);
+        ptr.analogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
+        ptr.analogDevice->register_change_handler(device, updateAnalog);
         device->setNumberOfAxes(nAxes);
     }
     else {

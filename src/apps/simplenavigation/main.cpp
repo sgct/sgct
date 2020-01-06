@@ -315,7 +315,7 @@ void preSyncFun() {
 
         static float panRot = 0.f;
         panRot += static_cast<float>(
-            mouseDx * RotationSpeed * Engine::instance().dt()
+            mouseDx * RotationSpeed * Engine::instance().statistics().dt()
         );
 
         //rotation around the y-axis
@@ -329,22 +329,19 @@ void preSyncFun() {
         view = glm::inverse(glm::mat3(viewRotateX)) * glm::vec3(0.f, 0.f, 1.f);
 
         const glm::vec3 right = glm::cross(view, up);
+        const float dt = static_cast<float>(Engine::instance().statistics().dt());
 
         if (buttonForward) {
-            pos +=
-                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * view);
+            pos += (WalkingSpeed * dt * view);
         }
         if (buttonBackward) {
-            pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * view);
+            pos -= (WalkingSpeed * dt * view);
         }
         if (buttonLeft) {
-            pos -=
-                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * right);
+            pos -= (WalkingSpeed * dt * right);
         }
         if (buttonRight) {
-            pos += 
-                (WalkingSpeed * static_cast<float>(Engine::instance().dt()) * right);
+            pos += (WalkingSpeed * dt * right);
         }
 
         /**

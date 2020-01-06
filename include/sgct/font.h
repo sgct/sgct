@@ -40,7 +40,7 @@ public:
         float distToNextChar = 0.f;
         glm::vec2 pos = glm::vec2(0.f);
         glm::vec2 size = glm::vec2(0.f);
-        FT_Glyph glyph;
+        FT_Glyph glyph = nullptr;
     };
 
     /**
@@ -75,7 +75,7 @@ private:
     void createCharacter(char c);
 
     const FT_Library _library;
-    const FT_Face	_face;
+    const FT_Face _face;
     FT_Fixed _strokeSize = 1;
     const float _height;
     std::unordered_map<char, FontFaceData> _fontFaceData;

@@ -193,7 +193,7 @@ namespace sgct {
  * 7001: ShaderManager / Could not find shader with name %s
  * 7010: ShaderProgram / No shaders have been added to the program %s
  * 7011: ShaderProgram / Error linking the program %s
- * 7012: ShaderProgram / Failed to create shader program %s: Already linked
+ * 7012: ShaderProgram / Failed to create shader program %s: Already created
  * 7013: ShaderProgram / Failed to create shader program %s: Unknown error
 
  * 8000s: Window

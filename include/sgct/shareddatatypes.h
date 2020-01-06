@@ -80,9 +80,7 @@ extern template class SharedObject<bool>;
 extern template class SharedObject<std::string>;
 extern template class SharedObject<std::wstring>;
 
-/**
- * Mutex protected std::vector template for multi-thread data sharing
- */
+/// Mutex protected std::vector template for multi-thread data sharing
 template <class T>
 class SharedVector {
 public:

@@ -15,12 +15,12 @@
 namespace sgct::utils {
 
 Plane::Plane(float width, float height) {
-    std::array<helpers::VertexData, 4> verts;
-    verts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
-    verts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
-    verts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
-    verts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
-
+    const std::array<helpers::VertexData, 4> verts = {
+        helpers::VertexData{ 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f },
+        helpers::VertexData{ 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f },
+        helpers::VertexData{ 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f },
+        helpers::VertexData{ 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f }
+    };
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 

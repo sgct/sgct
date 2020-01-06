@@ -49,6 +49,8 @@ public:
         OpenGL_4_6_Core
     };
 
+    // Structure with all statistics gathered over the frame. The newest value is always
+    // at the front of the array
     struct Statistics {
         static inline const int HistoryLength = 128;
 
@@ -57,6 +59,19 @@ public:
         std::array<double, HistoryLength> syncTimes = {};
         std::array<double, HistoryLength> loopTimeMin = {};
         std::array<double, HistoryLength> loopTimeMax = {};
+
+        /// \return the frame time (delta time) in seconds
+        double dt() const;
+
+        /// \return the average frame time (delta time) in seconds
+        double avgDt(unsigned int frameCounter) const;
+
+        /// \return the minimum frame time (delta time) in the averaging window (seconds)
+        double minDt() const;
+
+        /// \return the maximum frame time (delta time) in the averaging window (seconds)
+        double maxDt() const;
+
     };
 
     struct Callbacks {
@@ -154,21 +169,6 @@ public:
     /// Returns the statistic object containing all information about the frametimes, etc
     const Statistics& statistics() const;
 
-    /// \return the frame time (delta time) in seconds
-    double dt() const;
-
-    /// \return the average frames per second
-    double avgFPS() const;
-
-    /// \return the average frame time (delta time) in seconds
-    double avgDt() const;
-
-    /// \return the minimum frame time (delta time) in the averaging window (seconds)
-    double minDt() const;
-    
-    /// \return the maximum frame time (delta time) in the averaging window (seconds)
-    double maxDt() const;
-
     /// \return the clear color as 4 floats (RGBA)
     glm::vec4 clearColor() const;
     
@@ -208,7 +208,7 @@ public:
      */
     void updateFrustums();
 
-    /// \return the index of the focus window. If no window has focus, 0 is returned
+    /// \return the index of the focus window. If no window has focus, nullptr is returned
     const Window* focusedWindow() const;
 
     /// Sets if the statistics graph should be rendered or not
@@ -239,56 +239,6 @@ public:
      */
     const std::function<void(RenderData)>& drawFunction() const;
 
-    /**
-     * This function sends a message to the external control interface.
-     *
-     * \param data a pointer to the data buffer
-     * \param length is the number of bytes of data that will be sent
-     */
-    void sendMessageToExternalControl(const void* data, int length);
-
-    /// Check if the external control is connected.
-    bool isExternalControlConnected() const;
-
-    /**
-     * Don't use this. This function is called from Network and will invoke the external
-     * network callback when messages are received.
-     */
-    void invokeDecodeCallbackForExternalControl(const char* data, int length);
-
-    /**
-     * Don't use this. This function is called from Network and will invoke the external
-     * network update callback when connection is connected/disconnected.
-     */
-    void invokeUpdateCallbackForExternalControl(bool connected);
-
-    /**
-     * This function sends data between nodes.
-     *
-     * \param data a pointer to the data buffer
-     * \param length is the number of bytes of data that will be sent
-     * \param packageId is the identification id of this specific package
-     */
-    void transferDataBetweenNodes(const void* data, int length, int packageId);
-
-    /**
-     * Don't use this. This function is called from Network and will invoke the data
-     * transfer callback when messages are received.
-     */
-    void invokeDecodeCallbackForDataTransfer(void* d, int len, int package, int id);
-
-    /**
-     * Don't use this. This function is called from Network and will invoke the data
-     * transfer callback when connection is connected/disconnected.
-     */
-    void invokeUpdateCallbackForDataTransfer(bool connected, int clientId);
-
-    /**
-     * Don't use this. This function is called from Network and will invoke the data
-     * transfer callback when data is successfully sent.
-     */
-    void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId);
-
     /// Get the time from program start in seconds
     static double getTime();
 
@@ -317,10 +267,9 @@ public:
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
     /**
-     * Set up the current viewport, sets the framebuffer resolutions, windowing and
-     * scissoring in OpenGL. This is a function that will be called by internal classes of
-     * SGCT and in general does not have to be called by any external application using
-     * this library.
+     * Set up the current viewport, the framebuffer resolutions, windowing, and scissoring
+     * in OpenGL. This is a function that is called by internal classes of SGCT and in
+     * general does not have to be called by any external application using this library.
      */
     void setupViewport(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustum);
@@ -391,11 +340,6 @@ private:
     const std::function<void(RenderData)> _draw2DFn;
     const std::function<void()> _postDrawFn;
     const std::function<void()> _cleanUpFn;
-    std::function<void(const char*, int)> _externalDecodeFn;
-    std::function<void(bool)> _externalStatusFn;
-    std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
-    std::function<void(bool, int)> _dataTransferStatusFn;
-    std::function<void(int, int)> _dataTransferAcknowledgeFn;
     
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;

@@ -23,7 +23,7 @@ class User;
 
 /**
  * The ClusterManager manages all nodes and cluster settings. This class is a static
- * singleton and is accessed using it's instance.
+ * singleton and is accessed using its instance.
  */
 class ClusterManager {
 public:
@@ -47,7 +47,7 @@ public:
      * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
-    const Node& node(int index) const; // replace with access to vector
+    const Node& node(int index) const;
 
     /**
      * Get the current node. Please observe that the address of this object might change

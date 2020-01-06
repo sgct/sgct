@@ -38,19 +38,18 @@ public:
     /// Set if log to console should be enabled. It is enabled on default
     void setLogToConsole(bool state);
 
-    /// Set the callback that gets invoked for each log
+    /// Set the callback that gets invoked for each log. If you want to disable logging to
+    /// the callback, pass a null function as a parameter
     void setLogCallback(std::function<void(const char *)> fn);
 
 private:
     Log();
 
     void printv(const char* fmt, va_list ap);
-    void logToFile(const std::vector<char>& buffer);
 
     static Log* _instance;
 
     std::vector<char> _parseBuffer;
-    std::vector<char> _combinedBuffer;
 
     Level _level = Level::Warning;
     bool _showTime = false;
@@ -59,8 +58,6 @@ private:
     std::mutex _mutex;
 
     std::function<void(const char*)> _messageCallback;
-    size_t _maxMessageSize = 2048;
-    size_t _combinedMessageSize = _maxMessageSize + 32;
 };
 
 } // namespace sgct

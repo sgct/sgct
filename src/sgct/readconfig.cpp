@@ -99,79 +99,36 @@ namespace {
         return quat;
     }
 
-    sgct::config::Window::StereoMode getStereoType(const std::string& type) {
-        if (type == "none" || type == "no_stereo") {
-            return sgct::config::Window::StereoMode::NoStereo;
-        }
-        if (type == "active" || type == "quadbuffer") {
-            return sgct::config::Window::StereoMode::Active;
-        }
-        if (type == "checkerboard") {
-            return sgct::config::Window::StereoMode::Checkerboard;
-        }
-        if (type == "checkerboard_inverted") {
-            return sgct::config::Window::StereoMode::CheckerboardInverted;
-        }
-        if (type == "anaglyph_red_cyan") {
-            return sgct::config::Window::StereoMode::AnaglyphRedCyan;
-        }
-        if (type == "anaglyph_amber_blue") {
-            return sgct::config::Window::StereoMode::AnaglyphAmberBlue;
-        }
-        if (type == "anaglyph_wimmer") {
-            return sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer;
-        }
-        if (type == "vertical_interlaced") {
-            return sgct::config::Window::StereoMode::VerticalInterlaced;
-        }
-        if (type == "vertical_interlaced_inverted") {
-            return sgct::config::Window::StereoMode::VerticalInterlacedInverted;
-        }
-        if (type == "test" || type == "dummy") {
-            return sgct::config::Window::StereoMode::Dummy;
-        }
-        if (type == "side_by_side") {
-            return sgct::config::Window::StereoMode::SideBySide;
-        }
-        if (type == "side_by_side_inverted") {
-            return sgct::config::Window::StereoMode::SideBySideInverted;
-        }
-        if (type == "top_bottom") {
-            return sgct::config::Window::StereoMode::TopBottom;
-        }
-        if (type == "top_bottom_inverted") {
-            return sgct::config::Window::StereoMode::TopBottomInverted;
-        }
+    sgct::config::Window::StereoMode getStereoType(const std::string& t) {
+        using M = sgct::config::Window::StereoMode;
+        if (t == "none" || t == "no_stereo") { return M::NoStereo; }
+        if (t == "active" || t == "quadbuffer") { return M::Active; }
+        if (t == "checkerboard") { return M::Checkerboard; }
+        if (t == "checkerboard_inverted") { return M::CheckerboardInverted; }
+        if (t == "anaglyph_red_cyan") { return M::AnaglyphRedCyan; }
+        if (t == "anaglyph_amber_blue") { return M::AnaglyphAmberBlue; }
+        if (t == "anaglyph_wimmer") { return M::AnaglyphRedCyanWimmer; }
+        if (t == "vertical_interlaced") { return M::VerticalInterlaced; }
+        if (t == "vertical_interlaced_inverted") { return M::VerticalInterlacedInverted; }
+        if (t == "test" || t == "dummy") { return M::Dummy; }
+        if (t == "side_by_side") { return M::SideBySide; }
+        if (t == "side_by_side_inverted") { return M::SideBySideInverted; }
+        if (t == "top_bottom") { return M::TopBottom; }
+        if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        sgct::Log::Error("Unknown stereo mode %s", type.c_str());
-        return sgct::config::Window::StereoMode::NoStereo;
+        sgct::Log::Error("Unknown stereo mode %s", t.c_str());
+        return M::NoStereo;
     }
 
     sgct::config::Window::ColorBitDepth getBufferColorBitDepth(const std::string& type) {
-        if (type == "8") {
-            return sgct::config::Window::ColorBitDepth::Depth8;
-        }
-        if (type == "16") {
-            return sgct::config::Window::ColorBitDepth::Depth16;
-        }
-        if (type == "16f") {
-            return sgct::config::Window::ColorBitDepth::Depth16Float;
-        }
-        if (type == "32f") {
-            return sgct::config::Window::ColorBitDepth::Depth32Float;
-        }
-        if (type == "16i") {
-            return sgct::config::Window::ColorBitDepth::Depth16Int;
-        }
-        if (type == "32i") {
-            return sgct::config::Window::ColorBitDepth::Depth32Int;
-        }
-        if (type == "16ui") {
-            return sgct::config::Window::ColorBitDepth::Depth16UInt;
-        }
-        if (type == "32ui") {
-            return sgct::config::Window::ColorBitDepth::Depth32UInt;
-        }
+        if (type == "8") { return sgct::config::Window::ColorBitDepth::Depth8; }
+        if (type == "16") { return sgct::config::Window::ColorBitDepth::Depth16; }
+        if (type == "16f") { return sgct::config::Window::ColorBitDepth::Depth16Float; }
+        if (type == "32f") { return sgct::config::Window::ColorBitDepth::Depth32Float; }
+        if (type == "16i") { return sgct::config::Window::ColorBitDepth::Depth16Int; }
+        if (type == "32i") { return sgct::config::Window::ColorBitDepth::Depth32Int; }
+        if (type == "16ui") { return sgct::config::Window::ColorBitDepth::Depth16UInt; }
+        if (type == "32ui") { return sgct::config::Window::ColorBitDepth::Depth32UInt; }
 
         sgct::Log::Error("Unknown color bit depth %s", type.c_str());
         return sgct::config::Window::ColorBitDepth::Depth8;

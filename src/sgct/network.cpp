@@ -76,7 +76,6 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType t)
     , _connectionType(t)
     , _isServer(isServer)
     , _port(port)
-    , _headerId(0)
 {
     static int id = 0;
     _id = id;
@@ -399,7 +398,7 @@ bool Network::isUpdated() const {
     return (state && _isConnected);
 }
 
-void Network::setDecodeFunction(std::function<void(const char*, int, int)> fn) {
+void Network::setDecodeFunction(std::function<void(const char*, int)> fn) {
     decoderCallback = std::move(fn);
 }
 
@@ -586,18 +585,17 @@ void Network::communicationHandler() {
 
         _socket = accept(_listenSocket, nullptr, nullptr);
 
-        int e = SGCT_ERRNO;
 #ifdef WIN32
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == WSAEINTR) {
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && SGCT_ERRNO == WSAEINTR) {
 #else
-        while (!_shouldTerminate && _socket == INVALID_SOCKET && e == EINTR) {
+        while (!_shouldTerminate && _socket == INVALID_SOCKET && SGCT_ERRNO == EINTR) {
 #endif
             Log::Info("Re-accept after interrupted system on connection %d", _id);
             _socket = accept(_listenSocket, nullptr, nullptr);
         }
 
         if (_socket == INVALID_SOCKET) {
-            Log::Error("Accept connection %d failed. Error: %d", _id, e);
+            Log::Error("Accept connection %d failed. Error: %d", _id, SGCT_ERRNO);
 
             if (_updateCallback) {
                 _updateCallback(this);
@@ -629,12 +627,8 @@ void Network::communicationHandler() {
     do {
         // resize buffer request
         if (type() != ConnectionType::DataTransfer && _requestedSize > _bufferSize) {
-            Log::Info(
-                "Re-sizing buffer from %d to %d", _bufferSize, _requestedSize.load()
-            );
-
+            Log::Info("Re-sizing buffer %d -> %d", _bufferSize, _requestedSize.load());
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
-            Log::Info("Done");
         }
         int32_t packageId = -1;
         int32_t syncFrameNumber = -1;
@@ -698,7 +692,7 @@ void Network::communicationHandler() {
             // handle sync communication
             if (_headerId == DataId && decoderCallback) {
                 if (dataSize > 0) {
-                    decoderCallback(_recvBuffer.data(), dataSize, _id);
+                    decoderCallback(_recvBuffer.data(), dataSize);
                 }
 
                 NetworkManager::cond.notify_all();
@@ -712,21 +706,10 @@ void Network::communicationHandler() {
         else if (type() == ConnectionType::ExternalConnection) {
             extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
 
-            bool breakConnection = false;
-            // look for cancel
-            if (extBuffer.find(24) != std::string::npos) {
-                breakConnection = true;
-            }
-            // look for escape
-            if (extBuffer.find(27) != std::string::npos) {
-                breakConnection = true;
-            }
-            // look for quit
-            if (extBuffer.find("quit") != std::string::npos) {
-                breakConnection = true;
-            }
-
-            if (breakConnection) {
+            if (extBuffer.find(24) != std::string::npos ||
+                extBuffer.find(27) != std::string::npos ||
+                extBuffer.find("quit") != std::string::npos)
+            {
                 setConnectedStatus(false);
                 break;
             }
@@ -739,7 +722,7 @@ void Network::communicationHandler() {
 
                 if (decoderCallback) {
                     const int size = static_cast<int>(extMessage.size());
-                    decoderCallback(extMessage.c_str(), size, _id);
+                    decoderCallback(extMessage.c_str(), size);
                 }
 
                 // reply

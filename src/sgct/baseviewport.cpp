@@ -66,15 +66,15 @@ Frustum::Mode BaseViewport::eye() const {
 
 const Projection& BaseViewport::projection(Frustum::Mode frustumMode) const {
     switch (frustumMode) {
-        case Frustum::Mode::MonoEye:        return _projections.mono;
-        case Frustum::Mode::StereoLeftEye:  return _projections.stereoLeft;
-        case Frustum::Mode::StereoRightEye: return _projections.stereoRight;
+        case Frustum::Mode::MonoEye:        return _monoProj;
+        case Frustum::Mode::StereoLeftEye:  return _stereoLeftProj;
+        case Frustum::Mode::StereoRightEye: return _stereoRightProj;
         default:                           throw std::logic_error("Unhandled case label");
     }
 }
 
 ProjectionPlane& BaseViewport::projectionPlane() {
-    return _projectionPlane;
+    return _projPlane;
 }
 
 void BaseViewport::setUserName(std::string userName) {
@@ -96,25 +96,25 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
         
     switch (mode) {
         case Frustum::Mode::MonoEye:
-            _projections.mono.calculateProjection(
+            _monoProj.calculateProjection(
                 _user->posMono(),
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip
             );
             break;
         case Frustum::Mode::StereoLeftEye:
-            _projections.stereoLeft.calculateProjection(
+            _stereoLeftProj.calculateProjection(
                 _user->posLeftEye(),
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip
             );
             break;
         case Frustum::Mode::StereoRightEye:
-            _projections.stereoRight.calculateProjection(
+            _stereoRightProj.calculateProjection(
                 _user->posRightEye(),
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip
             );
@@ -130,27 +130,27 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
 
     switch (mode) {
         case Frustum::Mode::MonoEye:
-            _projections.mono.calculateProjection(
+            _monoProj.calculateProjection(
                 eyePos,
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip,
                 _user->posMono() - eyePos
             );
             break;
         case Frustum::Mode::StereoLeftEye:
-            _projections.stereoLeft.calculateProjection(
+            _stereoLeftProj.calculateProjection(
                 eyePos,
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip,
                 _user->posLeftEye() - eyePos
             );
             break;
         case Frustum::Mode::StereoRightEye:
-            _projections.stereoRight.calculateProjection(
+            _stereoRightProj.calculateProjection(
                 eyePos,
-                _projectionPlane,
+                _projPlane,
                 nearClip,
                 farClip,
                 _user->posRightEye() - eyePos
@@ -177,7 +177,7 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
     _viewPlane.upperRight.y = dist * tan(glm::radians(up));
     _viewPlane.upperRight.z = -dist;
 
-    _projectionPlane.setCoordinates(
+    _projPlane.setCoordinates(
         _rotation * _viewPlane.lowerLeft,
         _rotation * _viewPlane.upperLeft,
         _rotation * _viewPlane.upperRight
@@ -188,7 +188,7 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
     _viewPlane.lowerLeft.x *= newRatio / oldRatio;
     _viewPlane.upperLeft.x *= newRatio / oldRatio;
     _viewPlane.upperRight.x *= newRatio / oldRatio;
-    _projectionPlane.setCoordinates(
+    _projPlane.setCoordinates(
         _rotation * _viewPlane.lowerLeft,
         _rotation * _viewPlane.upperLeft,
         _rotation * _viewPlane.upperRight
@@ -196,16 +196,16 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
 }
 
 float BaseViewport::horizontalFieldOfViewDegrees() const {
-    const float xDist = (_projectionPlane.coordinateUpperRight().x -
-        _projectionPlane.coordinateUpperLeft().x) / 2;
-    const float zDist = _projectionPlane.coordinateUpperRight().z;
+    const float xDist = (_projPlane.coordinateUpperRight().x -
+        _projPlane.coordinateUpperLeft().x) / 2;
+    const float zDist = _projPlane.coordinateUpperRight().z;
     return (glm::degrees(atan(abs(xDist / zDist)))) * 2;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
-    const glm::vec3 upperLeft = _projectionPlane.coordinateUpperLeft();
-    const glm::vec3 lowerLeft = _projectionPlane.coordinateLowerLeft();
-    const glm::vec3 upperRight = _projectionPlane.coordinateUpperRight();
+    const glm::vec3 upperLeft = _projPlane.coordinateUpperLeft();
+    const glm::vec3 lowerLeft = _projPlane.coordinateLowerLeft();
+    const glm::vec3 upperRight = _projPlane.coordinateUpperRight();
 
     const float ratio = hFov / horizontalFieldOfViewDegrees();
     const float up = glm::degrees(atan(ratio * upperLeft.y / -upperLeft.z));

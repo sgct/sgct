@@ -146,7 +146,7 @@ void draw2D(RenderData data) {
             data.window,
             data.viewport,
             *f1,
-            sgct::text::TextAlignMode::TopLeft,
+            sgct::text::Alignment::TopLeft,
             offset,
             h / 2.f - s1,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
@@ -161,7 +161,7 @@ void draw2D(RenderData data) {
             data.window,
             data.viewport,
             *f2,
-            text::TextAlignMode::TopLeft,
+            text::Alignment::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
@@ -343,6 +343,7 @@ void cleanUp() {
 }
 
 int main(int argc, char* argv[]) {
+    Log::instance().setShowTime(true);
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
@@ -382,6 +383,7 @@ int main(int argc, char* argv[]) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
+
     
     Engine::instance().render();
     Engine::destroy();

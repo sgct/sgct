@@ -42,8 +42,8 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
                 (static_cast<float>(i) / static_cast<float>(_resolution));
 
             verts[pos] = radius * sin(elevationAngle) * cos(theta);
-            verts[pos + 1] = radius * cos(elevationAngle);
-            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
+            verts[pos + 1u] = radius * cos(elevationAngle);
+            verts[pos + 2u] = radius * sin(elevationAngle) * sin(theta);
             pos += 3;
         }
     }
@@ -58,8 +58,8 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
                 (static_cast<float>(i) / static_cast<float>(_resolution / 4));
 
             verts[pos] = radius * sin(elevationAngle) * cos(theta);
-            verts[pos + 1] = radius * cos(elevationAngle);
-            verts[pos + 2] = radius * sin(elevationAngle) * sin(theta);
+            verts[pos + 1u] = radius * cos(elevationAngle);
+            verts[pos + 2u] = radius * sin(elevationAngle) * sin(theta);
             pos += 3;
         }
     }

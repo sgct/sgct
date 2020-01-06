@@ -25,9 +25,7 @@ namespace {
             std::vector<GLchar> log(logLength);
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
-            sgct::Log::Error(
-                "Shader program[%s] linking error: %s", name.c_str(), log.data()
-            );
+            sgct::Log::Error("Shader [%s] linking error: %s", name.c_str(), log.data());
         }
         return linkStatus != 0;
     }
@@ -116,24 +114,19 @@ int ShaderProgram::Shader::id() const {
     return _shaderId;
 }
 
-
 ShaderProgram::ShaderProgram(std::string name) : _name(std::move(name)) {}
 
 ShaderProgram::ShaderProgram(ShaderProgram&& rhs) noexcept
     : _name(std::move(rhs._name))
-    , _isLinked(rhs._isLinked)
     , _programId(rhs._programId)
     , _shaders(std::move(rhs._shaders))
 {
-    rhs._isLinked = false;
     rhs._programId = 0;
 }
 
 ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
     if (&rhs != this) {
         _name = std::move(rhs._name);
-        _isLinked = rhs._isLinked;
-        rhs._isLinked = false;
         _programId = rhs._programId;
         rhs._programId = 0;
         _shaders = std::move(rhs._shaders);
@@ -167,10 +160,6 @@ std::string ShaderProgram::name() const {
     return _name;
 }
 
-bool ShaderProgram::isLinked() const {
-    return _isLinked;
-}
-
 int ShaderProgram::id() const {
     return _programId;
 }
@@ -190,25 +179,15 @@ void ShaderProgram::createAndLinkProgram() {
         }
     }
     glLinkProgram(_programId);
-    _isLinked = checkLinkStatus(_programId, _name);
-    if (!_isLinked) {
+    bool isLinked = checkLinkStatus(_programId, _name);
+    if (!isLinked) {
         throw Err(7011, "Error linking the program " + _name);
     }
 }
 
 void ShaderProgram::createProgram() {
     if (_programId > 0) {
-        // If the program is already created don't recreate it. But the function should
-        // only return true if it hasn't been linked yet. If it has been already linked
-        // it can't be reused
-        if (_isLinked) {
-            throw Err(
-                7012, "Failed to create shader program " + _name + ": Already linked"
-            );
-        }
-
-        // If the program is already created but not linked yet it can be reused
-        return;
+        throw Err(7012, "Failed to create shader program " + _name + ": Already created");
     }
 
     _programId = glCreateProgram();

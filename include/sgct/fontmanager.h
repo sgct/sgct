@@ -93,8 +93,6 @@ class Font;
  */
 class FontManager {
 public:
-    enum class Path { System, Local };
-
     static FontManager& instance();
     static void destroy();
 
@@ -106,9 +104,8 @@ public:
      *
      * \param name Specify a name for the font
      * \param file Path to the font file
-     * \param path If it is a local font path directory or using the default path
      */
-    bool addFont(std::string name, std::string file, Path path = Path::System);
+    bool addFont(const std::string& name, std::string file);
 
     /**
      * Get a font face that is loaded into memory.

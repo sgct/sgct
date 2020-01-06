@@ -33,11 +33,10 @@ public:
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
      * \param fragmentSrc The fragment shader source code
-     * \param geometrySrc The geometry shader source code
      * \throws std::runtime_error If there was an error creating the shader program
      */
     void addShaderProgram(std::string name, const std::string& vertexSrc,
-        const std::string& fragmentSrc, const std::string& geometrySrc = "");
+        const std::string& fragmentSrc);
 
     /**
      * Removes a shader program from the manager. All resources allocated for the program

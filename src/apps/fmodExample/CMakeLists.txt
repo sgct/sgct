@@ -1,5 +1,10 @@
-# Copyright Linkoping University 2011
-# SGCT Project Authors see Authors.txt
+##########################################################################################
+# SGCT                                                                                   #
+# Simple Graphics Cluster Toolkit                                                        #
+#                                                                                        #
+# Copyright (c) 2012-2020                                                                #
+# For conditions of distribution and use, see copyright notice in LICENSE.md             #
+##########################################################################################
 
 add_executable(fmodexample main.cpp fmod_audio.cpp fmod_audio.h simple.frag simple.vert)
 set_compile_options(fmodexample)

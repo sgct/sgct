@@ -1,5 +1,10 @@
-# Copyright Linkoping University 2011
-# SGCT Project Authors see Authors.txt
+##########################################################################################
+# SGCT                                                                                   #
+# Simple Graphics Cluster Toolkit                                                        #
+#                                                                                        #
+# Copyright (c) 2012-2020                                                                #
+# For conditions of distribution and use, see copyright notice in LICENSE.md             #
+##########################################################################################
 
 add_executable(websockets main.cpp quad.cpp quad.h userData.cpp userData.h
   webserver.cpp webserver.h avatar.frag avatar.vert

@@ -1,3 +1,11 @@
+##########################################################################################
+# SGCT                                                                                   #
+# Simple Graphics Cluster Toolkit                                                        #
+#                                                                                        #
+# Copyright (c) 2012-2020                                                                #
+# For conditions of distribution and use, see copyright notice in LICENSE.md             #
+##########################################################################################
+
 function (set_compile_options target)
   set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
   set_property(TARGET ${target} PROPERTY CXX_STANDARD_REQUIRED ON)

@@ -1,3 +1,11 @@
+##########################################################################################
+# SGCT                                                                                   #
+# Simple Graphics Cluster Toolkit                                                        #
+#                                                                                        #
+# Copyright (c) 2012-2020                                                                #
+# For conditions of distribution and use, see copyright notice in LICENSE.md             #
+##########################################################################################
+
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(sgct)
 

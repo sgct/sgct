@@ -1,7 +1,7 @@
 SGCT
 Simple Graphics Cluster Toolkit
 
-Copyright (c) 2012-2019
+Copyright (c) 2012-2020
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 

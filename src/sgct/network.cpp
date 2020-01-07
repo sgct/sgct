@@ -584,7 +584,7 @@ void Network::communicationHandler() {
 
     // listen for client if server
     if (_isServer) {
-        Log::Info("Waiting for client to connect to connection %d:%d)", _id, port());
+        Log::Info("Waiting for client %d to connect on port %d)", _id, port());
 
         _socket = accept(_listenSocket, nullptr, nullptr);
 

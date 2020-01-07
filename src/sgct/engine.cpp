@@ -1546,11 +1546,9 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         for (const std::unique_ptr<Window>& window : thisNode.windows()) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             if (window->isDoubleBuffered()) {
-                ZoneScopedN("glfwSwapBuffers")
                 glfwSwapBuffers(window->windowHandle());
             }
             else {
-                ZoneScopedN("glFinish")
                 glFinish();
             }
         }

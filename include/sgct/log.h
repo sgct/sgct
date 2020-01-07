@@ -19,7 +19,7 @@ namespace sgct {
 class Log {
 public:
     /// Different notify levels for messages
-    enum class Level { Error, Warning, Info, Debug };
+    enum class Level { Error = 0, Warning, Info, Debug };
     
     static Log& instance();
     static void destroy();
@@ -51,7 +51,7 @@ private:
 
     std::vector<char> _parseBuffer;
 
-    Level _level = Level::Warning;
+    Level _level = Level::Info;
     bool _showTime = false;
     bool _logToConsole = true;
     

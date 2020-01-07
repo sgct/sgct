@@ -157,9 +157,12 @@ Network::Network(int port, std::string address, bool isServer, ConnectionType t)
                 break;
             }
 
-            // @TODO (abock, 2019-11-19) This will spam out messages on end, maybe it
-            // would be better to print more informative messages than just error codes
-            Log::Debug("Connect error code: %d", SGCT_ERRNO);
+            if (SGCT_ERRNO == 10061) {
+                Log::Debug("Waiting for connection...");
+            }
+            else {
+                Log::Debug("Connect error code: %d", SGCT_ERRNO);
+            }
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for next attempt
         }
     }
@@ -668,10 +671,6 @@ void Network::communicationHandler() {
             setConnectedStatus(false);
             const std::string i = std::to_string(_id);
             const std::string e = std::to_string(SGCT_ERRNO);
-            // @TODO (abock, 2019-11-29): This error is thrown if we are in a connected
-            // environment and we are closing the client. This should probably be fixed.
-            // _isConnected is already false and I guess we are woken up in the middle of
-            // the loop while the sockets are already closed
             throw Err(5014, "TCP connection " + i + " receive failed: " + e);
         }
 

@@ -83,6 +83,10 @@ void Log::printv(const char* fmt, va_list ap) {
 }
 
 void Log::Debug(const char* fmt, ...) {
+    if (instance()._level > Level::Debug || fmt == nullptr) {
+        return;
+    }
+
     va_list ap;
     va_start(ap, fmt);
     instance().printv(fmt, ap);
@@ -90,7 +94,7 @@ void Log::Debug(const char* fmt, ...) {
 }
 
 void Log::Warning(const char* fmt, ...) {
-    if (instance()._level < Level::Warning || fmt == nullptr) {
+    if (instance()._level > Level::Warning || fmt == nullptr) {
         return;
     }
 
@@ -101,7 +105,7 @@ void Log::Warning(const char* fmt, ...) {
 }
 
 void Log::Info(const char* fmt, ...) {
-    if (instance()._level < Level::Info || fmt == nullptr) {
+    if (instance()._level > Level::Info || fmt == nullptr) {
         return;
     }
 
@@ -112,7 +116,7 @@ void Log::Info(const char* fmt, ...) {
 }
 
 void Log::Error(const char* fmt, ...) {
-    if (instance()._level < Level::Error || fmt == nullptr) {
+    if (instance()._level > Level::Error || fmt == nullptr) {
         return;
     }
 

@@ -20,7 +20,7 @@ namespace sgct {
 
 class Node {
 public:
-    void applyNode(const config::Node& node);
+    void applyNode(const config::Node& node, bool initializeWindows);
 
     /// Add a window to this node. Note that a window must be opened to become
     void addWindow(std::unique_ptr<Window> window);

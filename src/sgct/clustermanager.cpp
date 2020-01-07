@@ -101,11 +101,12 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             usr->setHeadTracker(u.tracking->tracker, u.tracking->device);
         }
     }
-    for (const config::Node& node : cluster.nodes) {
-        ZoneScopedN("Create Node")
 
+    for (int i = 0; i < cluster.nodes.size(); ++i) {
+        ZoneScopedN("Create Node")
+            
         std::unique_ptr<Node> n = std::make_unique<Node>();
-        n->applyNode(node);
+        n->applyNode(cluster.nodes[i], i == _thisNodeId);
         addNode(std::move(n));
     }
     if (cluster.settings) {

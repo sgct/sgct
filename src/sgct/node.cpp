@@ -18,7 +18,7 @@
 
 namespace sgct {
 
-void Node::applyNode(const config::Node& node) {
+void Node::applyNode(const config::Node& node, bool initializeWindows) {
     ZoneScoped
 
     // Set network address
@@ -30,24 +30,23 @@ void Node::applyNode(const config::Node& node) {
         [](char c) { return static_cast<char>(::tolower(c)); }
     );
     _address = address;
-    Log::Debug("Setting address to %s", address.c_str());
 
     _syncPort = node.port;
-    Log::Debug("Setting sync port to %d", _syncPort);
 
     if (node.dataTransferPort) {
         _dataTransferPort = *node.dataTransferPort;
-        Log::Debug("Setting data transfer port to %d", _dataTransferPort);
     }
     if (node.swapLock) {
         _useSwapGroups = *node.swapLock;
     }
 
-    for (const config::Window& window : node.windows) {
-        const int nWindow = static_cast<int>(_windows.size());
-        std::unique_ptr<Window> win = std::make_unique<Window>(nWindow);
-        win->applyWindow(window);
-        addWindow(std::move(win));
+    if (initializeWindows) {
+        for (const config::Window& window : node.windows) {
+            const int nWindow = static_cast<int>(_windows.size());
+            std::unique_ptr<Window> win = std::make_unique<Window>(nWindow);
+            win->applyWindow(window);
+            addWindow(std::move(win));
+        }
     }
 }
 

@@ -388,7 +388,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         }
     }
 
-    Log::Info("SGCT version: %s", version().c_str());
+    Log::Info("SGCT version: %s", Version);
 
     Log::Debug("Validating cluster configuration");
     config::validateCluster(cluster);

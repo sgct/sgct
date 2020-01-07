@@ -117,7 +117,6 @@ set(SOURCE_FILES
   trackingdevice.cpp
   trackingmanager.cpp
   user.cpp
-  version.cpp
   viewport.cpp
   window.cpp
   correction/domeprojection.cpp

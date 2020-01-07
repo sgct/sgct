@@ -116,7 +116,7 @@ void Log::Info(const char* fmt, ...) {
 }
 
 void Log::Error(const char* fmt, ...) {
-    if (instance()._level > Level::Error || fmt == nullptr) {
+    if (fmt == nullptr) {
         return;
     }
 

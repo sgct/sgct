@@ -907,11 +907,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
         
-    {
-        ZoneScopedN("glfwMakeContextCurrent")
-        glfwMakeContextCurrent(_sharedHandle);
-    }
-
     _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>();
     if (useRightEyeTexture()) {
         _screenCaptureRight = std::make_unique<ScreenCapture>();
@@ -1234,7 +1229,6 @@ Window::StereoMode Window::stereoMode() const {
 
 void Window::addViewport(std::unique_ptr<Viewport> vpPtr) {
     _viewports.push_back(std::move(vpPtr));
-    Log::Debug("Adding viewport (total %d)", _viewports.size());
 }
 
 const std::vector<std::unique_ptr<Viewport>>& Window::viewports() const {

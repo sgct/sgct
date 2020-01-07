@@ -12,6 +12,11 @@
 #include <sgct/settings.h>
 #include <algorithm>
 
+// @TODO (abock, 2020-01-07) It would probably be better to only create a single offscreen
+// buffer of the maximum window size and reuse that between all windows.  That way we
+// wouldn't waste as much memory if a lot of windows are created.  Also, we don't even
+// need an offscreen buffer if we don't have any mesh or mask to apply
+
 namespace {
     void setDrawBuffers() {
         GLenum a[] = { GL_COLOR_ATTACHMENT0 };
@@ -177,14 +182,14 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
     if (_isMultiSampled) {
         Log::Debug(
-            "Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\t"
-            "RBO depth buffer id=%d\n\tRBO color buffer id=%d", width, height,
+            "Created %dx%d buffers: FBO id=%d  Multisample FBO id=%d"
+            "RBO depth buffer id=%d  RBO color buffer id=%d", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
         );
     }
     else {
         Log::Debug(
-            "Created %dx%d buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d",
+            "Created %dx%d buffers: FBO id=%d  RBO Depth buffer id=%d",
             width, height, _frameBuffer, _depthBuffer
         );
     }

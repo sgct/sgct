@@ -108,7 +108,7 @@ Parameters:
 -local <integer>
     Force node in configuration to localhost (index starts at 0)
 -client
-    Run the application as client\n\t(only available when running as local)
+    Run the application as client (only available when running as local)
 -debug
     Set the notify level of messagehandler to debug
 -firm-sync
@@ -118,7 +118,7 @@ Parameters:
 -ignore-sync
     Disable frame sync
 -notify <integer>
-    Set the notify level used in the MessageHandler\n\t(0 = highest priority)
+    Set the notify level used in the MessageHandler (0 = highest priority)
 -capture-png
     Use png images for screen capture (default)
 -capture-jpg

@@ -63,6 +63,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdimesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/paulbourke.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/correction/pfm.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/scalable.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/sciss.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/simcad.h
@@ -124,6 +125,7 @@ set(SOURCE_FILES
   correction/mpcdimesh.cpp
   correction/obj.cpp
   correction/paulbourke.cpp
+  correction/pfm.cpp
   correction/scalable.cpp
   correction/sciss.cpp
   correction/simcad.cpp

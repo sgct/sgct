@@ -32,6 +32,7 @@ public:
         SimCad,
         SkySkan,
         PaulBourke,
+        Pfm,
         Obj,
         Mpcdi
     };

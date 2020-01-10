@@ -857,7 +857,7 @@ void Window::initNvidiaSwapGroups() {
         HDC hDC = wglGetCurrentDC();
         unsigned int maxBarrier = 0;
         unsigned int maxGroup = 0;
-        const GLboolean res = wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
+        const BOOL res = wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }

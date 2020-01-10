@@ -80,24 +80,29 @@ namespace sgct {
  * 2040: PaulBourke / Failed to open warping mesh file
  * 2041: PaulBourke / Error reading mapping type
  * 2042: PaulBourke / Invalid data
- * 2050: Scalable / Failed to open warping mesh file
- * 2051: Scalable / Incorrect mesh data geometry
- * 2060: SCISS / Failed to open warping mesh file
- * 2061: SCISS / Incorrect file id
- * 2062: SCISS / Error parsing file version from file
- * 2063: SCISS / Error parsing type from file
- * 2064: SCISS / Error parsing view data from file
- * 2065: SCISS / Error parsing file
- * 2066: SCISS / Error parsing vertices from file
- * 2067: SCISS / Error parsing indices from file
- * 2068: SCISS / Error parsing faces from file
- * 2070: SimCAD / Error parsing XML file
- * 2071: SimCAD / Error reading XML file. Missing 'GeometryFile'
- * 2072: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
- * 2073: SimCAD / Not the same x coords as y coords
- * 2074: SimCAD / Not a valid squared matrix read from SimCAD file
- * 2080: SkySkan / Not a valid squared matrix read from SimCAD file
- * 2081: SkySkan / Data reading error
+ * 2050: Pfm / Failed to open %s
+ * 2051: Pfm / Error reading from file
+ * 2052: Pfm / Invalid header syntax
+ * 2053: Pfm / Incorrect file type
+ * 2054: Pfm / Error reading correction values
+ * 2060: Scalable / Failed to open warping mesh file
+ * 2061: Scalable / Incorrect mesh data geometry
+ * 2070: SCISS / Failed to open warping mesh file
+ * 2071: SCISS / Incorrect file id
+ * 2072: SCISS / Error parsing file version from file
+ * 2073: SCISS / Error parsing type from file
+ * 2074: SCISS / Error parsing view data from file
+ * 2075: SCISS / Error parsing file
+ * 2076: SCISS / Error parsing vertices from file
+ * 2077: SCISS / Error parsing indices from file
+ * 2078: SCISS / Error parsing faces from file
+ * 2080: SimCAD / Error parsing XML file
+ * 2081: SimCAD / Error reading XML file. Missing 'GeometryFile'
+ * 2082: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
+ * 2083: SimCAD / Not the same x coords as y coords
+ * 2084: SimCAD / Not a valid squared matrix read from SimCAD file
+ * 2090: SkySkan / Not a valid squared matrix read from SimCAD file
+ * 2091: SkySkan / Data reading error
 
  * 3000s: Engine
  * 3000: Engine / Failed to initialize GLFW
@@ -227,6 +232,7 @@ struct Error : public std::runtime_error {
         Network,
         OBJ,
         PaulBourke,
+        Pfm,
         ReadConfig,
         Scalable,
         SCISS,

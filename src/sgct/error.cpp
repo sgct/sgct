@@ -23,6 +23,7 @@ namespace {
             case sgct::Error::Component::Network: return "Network";
             case sgct::Error::Component::OBJ: return "OBJ";
             case sgct::Error::Component::PaulBourke: return "PaulBourke";
+            case sgct::Error::Component::Pfm: return "Pfm";
             case sgct::Error::Component::ReadConfig: return "ReadConfig";
             case sgct::Error::Component::Scalable: return "Scalable";
             case sgct::Error::Component::SCISS: return "SCISS";

@@ -19,6 +19,7 @@
 #include <sgct/correction/mpcdimesh.h>
 #include <sgct/correction/obj.h>
 #include <sgct/correction/paulbourke.h>
+#include <sgct/correction/pfm.h>
 #include <sgct/correction/scalable.h>
 #include <sgct/correction/sciss.h>
 #include <sgct/correction/simcad.h>
@@ -156,11 +157,12 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
 CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
     if (hintStr == "domeprojection") { return CorrectionMesh::Format::DomeProjection; }
+    if (hintStr == "mpcdi")          { return CorrectionMesh::Format::Mpcdi; }
+    if (hintStr == "pfm")            { return CorrectionMesh::Format::Pfm; }
     if (hintStr == "scalable")       { return CorrectionMesh::Format::Scaleable; }
     if (hintStr == "sciss")          { return CorrectionMesh::Format::Sciss; }
     if (hintStr == "simcad")         { return CorrectionMesh::Format::SimCad; }
     if (hintStr == "skyskan")        { return CorrectionMesh::Format::SkySkan; }
-    if (hintStr == "mpcdi")          { return CorrectionMesh::Format::Mpcdi;}
     if (!hintStr.empty()) {
         Log::Warning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
     }
@@ -252,6 +254,9 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     }
     else if ((ext == "obj") && (hint == Format::None || hint == Format::Obj)) {
         buf = generateOBJMesh(path);
+    }
+    else if ((ext == "pfm") && (hint == Format::None || hint == Format::Pfm)) {
+        buf = generatePerEyeMeshFromPFMImage(path, parentPos, parentSize);
     }
     else if (ext == "mpcdi") {
         const Viewport* vp = dynamic_cast<const Viewport*>(&parent);

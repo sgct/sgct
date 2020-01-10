@@ -39,18 +39,18 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
         std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
         std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
         std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-        throw Error(2070, "Error loading XML file '" + path + "'. " + s4);
+        throw Error(2080, "Error loading XML file '" + path + "'. " + s4);
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        throw Error(2071, "Error reading file " + path + ". Missing GeometryFile");
+        throw Error(2081, "Error reading file " + path + ". Missing GeometryFile");
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
-        throw Error(2072, "Error reading file " + path + ". Missing GeometryDefinition");
+        throw Error(2082, "Error reading file " + path + ". Missing GeometryDefinition");
     }
 
     std::vector<float> xcorrections, ycorrections;
@@ -83,14 +83,14 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
     }
 
     if (xcorrections.size() != ycorrections.size()) {
-        throw Error(2073, "Not the same x coords as y coords");
+        throw Error(2083, "Not the same x coords as y coords");
     }
 
     const float nColumnsf = sqrt(static_cast<float>(xcorrections.size()));
     const float nRowsf = sqrt(static_cast<float>(ycorrections.size()));
 
     if (ceil(nColumnsf) != nColumnsf || ceil(nRowsf) != nRowsf) {
-        throw Error(2074, "Not a valid squared matrix read from SimCAD file");
+        throw Error(2084, "Not a valid squared matrix read from SimCAD file");
     }
 
     const unsigned int nCols = static_cast<unsigned int>(nColumnsf);

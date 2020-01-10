@@ -57,7 +57,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
 
     FILE* file = fopen(path.c_str(), "rb");
     if (file == nullptr) {
-        throw Error(2060, "Failed to open " + path);
+        throw Error(2070, "Failed to open " + path);
     }
 
     char fileID[3];
@@ -66,7 +66,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     // check fileID
     if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || retHeader != 3) {
         fclose(file);
-        throw Error(2061, "Incorrect file id");
+        throw Error(2071, "Incorrect file id");
     }
 
     // read file version
@@ -74,7 +74,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const size_t retVer = fread(&fileVersion, sizeof(uint8_t), 1, file);
     if (retVer != 1) {
         fclose(file);
-        throw Error(2062, "Error parsing file version from file");
+        throw Error(2072, "Error parsing file version from file");
     }
 
     Log::Debug("SCISS file version %u", fileVersion);
@@ -84,7 +84,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const size_t retType = fread(&type, sizeof(unsigned int), 1, file);
     if (retType != 1) {
         fclose(file);
-        throw Error(2063, "Error parsing type from file");
+        throw Error(2073, "Error parsing type from file");
     }
 
     Log::Debug("Mapping type: %s (%u)", type == 0 ? "planar" : "cube", type);
@@ -94,7 +94,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const size_t retData = fread(&viewData, sizeof(SCISSViewData), 1, file);
     if (retData != 1) {
         fclose(file);
-        throw Error(2064, "Error parsing view data from file");
+        throw Error(2074, "Error parsing view data from file");
     }
 
     const double x = static_cast<double>(viewData.qx);
@@ -125,7 +125,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const size_t retSize = fread(size, sizeof(unsigned int), 2, file);
     if (retSize != 2) {
         fclose(file);
-        throw Error(2065, "Error parsing file");
+        throw Error(2075, "Error parsing file");
     }
 
     unsigned int nVertices = 0;
@@ -147,7 +147,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     );
     if (retVertices != nVertices) {
         fclose(file);
-        throw Error(2066, "Error parsing vertices from file");
+        throw Error(2076, "Error parsing vertices from file");
     }
 
     // read number of indices
@@ -155,7 +155,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const size_t retIndices = fread(&nIndices, sizeof(unsigned int), 1, file);
     if (retIndices != 1) {
         fclose(file);
-        throw Error(2067, "Error parsing indices from file");
+        throw Error(2077, "Error parsing indices from file");
     }
     Log::Debug("Number of indices: %u", nIndices);
 
@@ -165,7 +165,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         const size_t r = fread(buf.indices.data(), sizeof(unsigned int), nIndices, file);
         if (r != nIndices) {
             fclose(file);
-            throw Error(2068, "Error parsing faces from file");
+            throw Error(2078, "Error parsing faces from file");
         }
     }
 

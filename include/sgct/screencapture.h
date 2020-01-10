@@ -9,7 +9,6 @@
 #ifndef __SGCT__SCREENCAPTURE__H__
 #define __SGCT__SCREENCAPTURE__H__
 
-#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 #include <functional>
 #include <mutex>
@@ -55,7 +54,7 @@ public:
      * Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
      * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
      */
-    void setTextureTransferProperties(GLenum type);
+    void setTextureTransferProperties(unsigned int type);
 
     /// Set the image format to use
     void setCaptureFormat(CaptureFormat cf);
@@ -66,7 +65,8 @@ public:
      * \param textureId textureId is the texture that will be streamed from the GPU if
      *        frame buffer objects are used in the rendering.
      */
-    void saveScreenCapture(unsigned int textureId, CaptureSource capSrc = CaptureSource::Texture);
+    void saveScreenCapture(unsigned int textureId,
+        CaptureSource capSrc = CaptureSource::Texture);
     void setPathAndFileName(std::string path, std::string filename);
 
 private:
@@ -80,9 +80,9 @@ private:
 
     unsigned int _nThreads;
     unsigned int _pbo = 0;
-    GLenum _downloadFormat = GL_BGRA;
-    GLenum _downloadType = GL_UNSIGNED_BYTE;
-    GLenum _downloadTypeSetByUser = _downloadType;
+    unsigned int _downloadFormat = 0x80E1; // GL_BGRA;
+    unsigned int _downloadType = 0x1401; // GL_UNSIGNED_BYTE;
+    unsigned int _downloadTypeSetByUser = _downloadType;
     int _dataSize = 0;
     glm::ivec2 _resolution = glm::ivec2(0);
     int _nChannels = 0;

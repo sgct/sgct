@@ -2,6 +2,7 @@
 #include <sgct/commandline.h>
 #include <sgct/engine.h>
 #include <sgct/keys.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/readconfig.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>

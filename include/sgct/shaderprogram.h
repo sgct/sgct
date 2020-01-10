@@ -9,7 +9,6 @@
 #ifndef __SGCT__SHADERPROGRAM__H__
 #define __SGCT__SHADERPROGRAM__H__
 
-#include <sgct/ogl_headers.h>
 #include <string>
 #include <vector>
 
@@ -53,7 +52,7 @@ public:
      *             GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
      * \throws std::runtime_error If the adding of the shaders failed
      */
-    void addShaderSource(std::string src, GLenum type);
+    void addShaderSource(std::string src, unsigned int type);
 
     /**
      * Creates and adds a vertex and fragment shader and adds them to the shader program.
@@ -101,7 +100,7 @@ private:
          *        or GL_FRAGMENT_SHADER
          * \param sourceString String with shader source code
          */
-        Shader(GLenum shaderType, const std::string& sourceString);
+        Shader(unsigned int shaderType, const std::string& sourceString);
 
         Shader(const Shader& rhs);
         Shader(Shader&& rhs) noexcept;
@@ -121,7 +120,7 @@ private:
         int id() const;
 
     private:
-        const GLenum _shaderType; // The shader type
+        const unsigned int _shaderType; // The shader type
         int _shaderId = 0;  // The shader _id used for reference
     };
 

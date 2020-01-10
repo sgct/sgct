@@ -10,6 +10,7 @@
 
 #include <sgct/config.h>
 #include <sgct/log.h>
+#include <sgct/ogl_headers.h>
 
 namespace sgct {
 
@@ -221,7 +222,7 @@ void Settings::setTryKeepAspectRatio(bool state) {
     _tryKeepAspectRatio = state;
 }
 
-GLenum Settings::bufferFloatPrecision() const {
+unsigned int Settings::bufferFloatPrecision() const {
     return
         _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
 }

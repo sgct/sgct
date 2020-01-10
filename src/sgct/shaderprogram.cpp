@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/ogl_headers.h>
 
 #define Err(code, msg) Error(Error::Component::Shader, code, msg)
 
@@ -32,13 +33,10 @@ namespace {
 
     std::string getShaderTypeName(GLenum shaderType) {
         switch (shaderType) {
-        case GL_VERTEX_SHADER:          return "Vertex shader";
-        case GL_FRAGMENT_SHADER:        return "Fragment shader";
-        case GL_GEOMETRY_SHADER:        return "Geometry shader";
-        case GL_COMPUTE_SHADER:         return "Compute shader";
-        case GL_TESS_CONTROL_SHADER:    return "Tesselation control shader";
-        case GL_TESS_EVALUATION_SHADER: return "Tesselation evaluation shader";
-        default:                       throw std::logic_error("Unhandled case label");
+            case GL_VERTEX_SHADER:          return "Vertex shader";
+            case GL_FRAGMENT_SHADER:        return "Fragment shader";
+            case GL_GEOMETRY_SHADER:        return "Geometry shader";
+            default:                       throw std::logic_error("Unhandled case label");
         };
     }
 

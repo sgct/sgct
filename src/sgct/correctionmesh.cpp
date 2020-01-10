@@ -253,14 +253,14 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     else if ((ext == "obj") && (hint == Format::None || hint == Format::Obj)) {
         buf = generateOBJMesh(path);
     }
-    else if (ext == ".mpcdi") {
+    else if (ext == "mpcdi") {
         const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
         if (vp == nullptr) {
             throw Error(2020, "Configuration error. Trying load MPCDI to wrong viewport");
         }
         buf = generateMpcdiMesh(vp->mpcdiWarpMesh());
     }
-    else if ((ext == ".simcad") && (hint == Format::None || hint == Format::SimCad)) {
+    else if ((ext == "simcad") && (hint == Format::None || hint == Format::SimCad)) {
         buf = generateSimCADMesh(path, parentPos, parentSize);
     }
     else {

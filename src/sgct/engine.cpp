@@ -33,6 +33,8 @@
 #include <numeric>
 
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #endif // WIN32
 
@@ -145,7 +147,7 @@ namespace {
         }
 
         // update attachments
-        fbo->attachColorTexture(win.frameBufferTexture(ti));
+        fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
 
         if (Settings::instance().useDepthTexture()) {
             fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
@@ -179,7 +181,7 @@ namespace {
         fbo->bindBlit();
 
         // update attachments
-        fbo->attachColorTexture(win.frameBufferTexture(ti));
+        fbo->attachColorTexture(win.frameBufferTexture(ti), GL_COLOR_ATTACHMENT0);
 
         if (Settings::instance().useDepthTexture()) {
             fbo->attachDepthTexture(win.frameBufferTexture(Window::TextureIndex::Depth));
@@ -237,7 +239,7 @@ Engine& Engine::instance() {
 }
 
 void Engine::create(config::Cluster cluster, Callbacks callbacks,
-                    const Configuration& arg, Profile profile)
+                    const Configuration& arg)
 {
     ZoneScoped
 
@@ -248,7 +250,7 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
     // client code is executed from the constructor, the _instance variable has not yet
     // been set and will therefore cause the logic_error in the instance() function.
     _instance = new Engine(cluster, callbacks, arg);
-    _instance->initialize(profile);
+    _instance->initialize();
 }
 
 void Engine::destroy() {
@@ -355,18 +357,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.nCaptureThreads) {
         Settings::instance().setNumberOfCaptureThreads(*config.nCaptureThreads);
     }
-    if (cluster.checkOpenGL) {
-        _checkOpenGLCalls = *cluster.checkOpenGL;
-    }
-    if (config.checkOpenGL) {
-        _checkOpenGLCalls = *config.checkOpenGL;
-    }
-    if (cluster.checkFBOs) {
-        _checkFBOs = *cluster.checkFBOs;
-    }
-    if (config.checkFBOs) {
-        _checkFBOs = *config.checkFBOs;
-    }
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
@@ -444,10 +434,33 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     NetworkManager::instance().initialize();
 }
 
-void Engine::initialize(Profile profile) {
+void Engine::initialize() {
     ZoneScoped
 
-    initWindows(profile);
+    // Detect the available OpenGL version
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+    glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_FALSE));
+    GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
+    glfwMakeContextCurrent(offscreen);
+    gladLoadGL();
+    // Get the OpenGL version
+
+    int major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    // And get rid of the window again
+    glfwDestroyWindow(offscreen);
+    glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
+
+    Log::Info("Detected OpenGL version: %i %i", major, minor);
+
+    initWindows(major, minor);
 
     // Window resolution may have been set by the config. However, it only sets a pending
     // resolution, so it needs to apply it using the same routine as in the end of a frame
@@ -724,28 +737,15 @@ Engine::~Engine() {
     Log::Debug("Finished cleaning");
 }
 
-void Engine::initWindows(Profile profile) {
+void Engine::initWindows(int majorVersion, int minorVersion) {
     ZoneScoped
 
     int ver[3];
     glfwGetVersion(&ver[0], &ver[1], &ver[2]);
     Log::Info("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
 
-    const auto [major, minor] = [](Profile p) -> std::pair<int, int> {
-        switch (p) {
-            case Profile::OpenGL_3_3_Core: return { 3, 3 };
-            case Profile::OpenGL_4_0_Core: return { 4, 0 };
-            case Profile::OpenGL_4_1_Core: return { 4, 1 };
-            case Profile::OpenGL_4_2_Core: return { 4, 2 };
-            case Profile::OpenGL_4_3_Core: return { 4, 3 };
-            case Profile::OpenGL_4_4_Core: return { 4, 4 };
-            case Profile::OpenGL_4_5_Core: return { 4, 5 };
-            case Profile::OpenGL_4_6_Core: return { 4, 6 };
-            default: throw std::logic_error("Missing case label");
-        }
-    }(profile);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -766,90 +766,9 @@ void Engine::initWindows(Profile profile) {
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
         const bool isLastWindow = i == windows.size() - 1;
         windows[i]->openWindow(s, isLastWindow);
-        glbinding::Binding::initialize(glfwGetProcAddress);
+        gladLoadGL();
+        gladLoadWGL(wglGetCurrentDC());
         TracyGpuContext
-    }
-
-    if (_checkOpenGLCalls || _checkFBOs) {
-        // The callback mask needs to be set in order to prevent an infinite loop when
-        // calling these functions in the error checking callback
-        glbinding::Binding::setCallbackMaskExcept(
-            glbinding::CallbackMask::After,
-            { "glGetError", "glCheckFramebufferStatus" }
-        );
-        glbinding::Binding::setAfterCallback([this](const glbinding::FunctionCall& f) {
-            const GLenum error = _checkOpenGLCalls ? glGetError() : GL_NO_ERROR;
-            const GLenum fboStatus = _checkFBOs ?
-                glCheckFramebufferStatus(GL_FRAMEBUFFER) : GL_FRAMEBUFFER_COMPLETE;
-            if (error == GL_NO_ERROR && fboStatus == GL_FRAMEBUFFER_COMPLETE) {
-                return;
-            }
-
-            const char* n = f.function->name();
-            switch (error) {
-                case GL_NO_ERROR:
-                    break;
-                case GL_INVALID_ENUM:
-                    Log::Error("OpenGL error. %s: GL_INVALID_ENUM", n);
-                    break;
-                case GL_INVALID_VALUE:
-                    Log::Error("OpenGL error. %s: GL_INVALID_VALUE", n);
-                    break;
-                case GL_INVALID_OPERATION:
-                    Log::Error("OpenGL error. %s: GL_INVALID_OPERATION", n);
-                    break;
-                case GL_INVALID_FRAMEBUFFER_OPERATION:
-                    Log::Error("OpenGL error. %s: GL_INVALID_FRAMEBUFFER_OPERATION", n);
-                    break;
-                case GL_STACK_OVERFLOW:
-                    Log::Error("OpenGL error. %s: GL_STACK_OVERFLOW", n);
-                    break;
-                case GL_STACK_UNDERFLOW:
-                    Log::Error("OpenGL error. %s: GL_STACK_UNDERFLOW", n);
-                    break;
-                case GL_OUT_OF_MEMORY:
-                    Log::Error("OpenGL error. %s: GL_OUT_OF_MEMORY", n);
-                    break;
-                default:
-                    Log::Error("OpenGL error. %s: %i", n, error);
-            }
-
-            switch (fboStatus) {
-                case GL_FRAMEBUFFER_COMPLETE:
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT", n);
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                    Log::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", n
-                    );
-                    break;
-                case GL_FRAMEBUFFER_UNSUPPORTED:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_UNSUPPORTED", n);
-                    break;
-                case GL_FRAMEBUFFER_UNDEFINED:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_UNDEFINED", n);
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER", n);
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER", n);
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                    Log::Error("FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE", n);
-                    break;
-                case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                    Log::Error(
-                        "FBO error. %s: GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS", n
-                    );
-                    break;
-                default:
-                    Log::Error("FBO error. %s: %i", n, static_cast<int>(fboStatus));
-                    break;
-            }
-        });
     }
 
     // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
@@ -1130,7 +1049,7 @@ void Engine::render() {
 
         if (_statisticsRenderer) {
             // wait until the query results are available
-            GLboolean done = GL_FALSE;
+            GLint done = GL_FALSE;
             while (!done) {
                 glGetQueryObjectiv(timeQueryEnd, GL_QUERY_RESULT_AVAILABLE, &done);
             }
@@ -1461,7 +1380,10 @@ void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     // bind target FBO
-    window.fbo()->attachColorTexture(window.frameBufferTexture(targetIndex));
+    window.fbo()->attachColorTexture(
+        window.frameBufferTexture(targetIndex),
+        GL_COLOR_ATTACHMENT0
+    );
 
     glm::ivec2 framebufferSize = window.framebufferResolution();
     glViewport(0, 0, framebufferSize.x, framebufferSize.y);

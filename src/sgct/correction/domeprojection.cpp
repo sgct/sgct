@@ -12,6 +12,7 @@
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
+#include <algorithm>
 
 namespace sgct::correction {
 

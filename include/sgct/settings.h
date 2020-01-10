@@ -9,8 +9,8 @@
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
-#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
+#include <algorithm>
 #include <string>
 #include <thread>
 
@@ -122,7 +122,7 @@ public:
     int refreshRateHint() const;
     
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
-    GLenum bufferFloatPrecision() const;
+    unsigned int bufferFloatPrecision() const;
 
     /**
      * Get if capture should use backbuffer data or texture. Backbuffer data includes

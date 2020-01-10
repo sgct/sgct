@@ -9,7 +9,6 @@
 #ifndef __SGCT__CORRECTION_MESH__H__
 #define __SGCT__CORRECTION_MESH__H__
 
-#include <sgct/ogl_headers.h>
 #include <string>
 #include <vector>
 
@@ -68,7 +67,7 @@ private:
         unsigned int ibo = 0;
         unsigned int nVertices = 0;
         unsigned int nIndices = 0;
-        GLenum type = GL_TRIANGLE_STRIP;
+        unsigned int type = 0x0005; // GL_TRIANGLE_STRIP;
     };
 
     void createMesh(CorrectionMeshGeometry& geom, const correction::Buffer& buffer);

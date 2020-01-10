@@ -858,8 +858,6 @@ namespace {
 
         cluster.setThreadAffinity = parseValue<int>(root, "setThreadAffinity");
         cluster.debugLog = parseValue<bool>(root, "debugLog");
-        cluster.checkOpenGL = parseValue<bool>(root, "checkOpenGL");
-        cluster.checkFBOs = parseValue<bool>(root, "checkFBO");
         cluster.externalControlPort = parseValue<int>(root, "externalControlPort");
         cluster.firmSync = parseValue<bool>(root, "firmSync");
 

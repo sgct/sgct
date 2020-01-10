@@ -8,6 +8,7 @@
 
 #include <sgct/statisticsrenderer.h>
 
+#include <sgct/ogl_headers.h>
 #ifdef SGCT_HAS_TEXT
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>

@@ -403,9 +403,9 @@ private:
     bool _useFXAA = false;
 
     ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
-    GLenum _internalColorFormat;
-    GLenum _colorFormat;
-    GLenum _colorDataType;
+    unsigned int _internalColorFormat;
+    unsigned int _colorFormat;
+    unsigned int _colorDataType;
     int _bytesPerColor;
 
     struct {

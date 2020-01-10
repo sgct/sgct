@@ -81,14 +81,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
-        else if (arg[i] == "-check-opengl") {
-            config.checkOpenGL = true;
-            arg.erase(arg.begin() + i);
-        }
-        else if (arg[i] == "-check-fbos") {
-            config.checkFBOs = true;
-            arg.erase(arg.begin() + i);
-        }
         else {
             // Ignore unknown commands
             i++;
@@ -127,10 +119,6 @@ Parameters:
     Use tga images for screen capture
 -number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
--check-opengl
-    Enables checking of OpenGL calls. This will reduce the overall performance
--check-fbos
-    Enables the checking of framebuffer objects after window creation
 )";
 }
 

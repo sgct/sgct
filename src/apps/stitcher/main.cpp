@@ -4,6 +4,7 @@
 #include <sgct/fisheyeprojection.h>
 #include <sgct/keys.h>
 #include <sgct/nonlinearprojection.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>

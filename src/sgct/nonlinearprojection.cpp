@@ -13,6 +13,7 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <algorithm>
+#include <array>
 
 namespace sgct {
 
@@ -47,8 +48,8 @@ NonLinearProjection::~NonLinearProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void NonLinearProjection::init(GLenum internalFormat, GLenum format, GLenum type,
-                               int samples)
+void NonLinearProjection::init(unsigned int internalFormat, unsigned int format,
+                               unsigned int type, int samples)
 {
     _texInternalFormat = internalFormat;
     _texFormat = format;
@@ -246,6 +247,9 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
+    // @TODO (abock, 2020-01-09) glTexStorage2D is only available in OpenGL 4.2, but we
+    // never check against the OpenGL version or the extension, so we are just hoping that
+    // this works. It would be better to use glTexImage2D instead
     glTexStorage2D(
         GL_TEXTURE_2D,
         1,
@@ -280,6 +284,9 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
+    // @TODO (abock, 2020-01-09) glTexStorage2D is only available in OpenGL 4.2, but we
+    // never check against the OpenGL version or the extension, so we are just hoping that
+    // this works. It would be better to use glTexImage2D instead
     glTexStorage2D(
         GL_TEXTURE_CUBE_MAP,
         1,

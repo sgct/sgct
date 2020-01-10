@@ -37,18 +37,6 @@ config::Cluster loadCluster(std::optional<std::string> path);
  */
 class Engine {
 public:
-    /// The different run modes used by the init function
-    enum class Profile { 
-        OpenGL_3_3_Core,
-        OpenGL_4_0_Core,
-        OpenGL_4_1_Core,
-        OpenGL_4_2_Core,
-        OpenGL_4_3_Core,
-        OpenGL_4_4_Core,
-        OpenGL_4_5_Core,
-        OpenGL_4_6_Core
-    };
-
     // Structure with all statistics gathered over the frame. The newest value is always
     // at the front of the array
     struct Statistics {
@@ -157,7 +145,7 @@ public:
      * \param callbacks The list of callbacks that should be installed
      */
     static void create(config::Cluster cluster, Callbacks callbacks,
-        const Configuration& arg, Profile profile = Profile::OpenGL_3_3_Core);
+        const Configuration& arg);
     static void destroy();
 
     /// Terminates SGCT
@@ -282,10 +270,10 @@ private:
     /// Engine destructor destructs GLFW and releases resources/memory.
     ~Engine();
 
-    void initialize(Profile profile);
+    void initialize();
 
     /// Create and initiate a window.
-    void initWindows(Profile rm);
+    void initWindows(int majorVersion, int minorVersion);
 
     /**
      * Locks the rendering thread for synchronization. Locks the clients until data is
@@ -349,9 +337,7 @@ private:
     double _statsPrevTimestamp = 0.0;
     std::unique_ptr<StatisticsRenderer> _statisticsRenderer;
 
-    bool _checkOpenGLCalls = false;
     bool _createDebugContext = false;
-    bool _checkFBOs = false;
     bool _takeScreenshot = false;
     bool _shouldTerminate = false;
 

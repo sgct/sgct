@@ -144,12 +144,10 @@ set_compile_options(sgct)
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/glad/include)
 
+target_link_libraries(sgct PUBLIC glad)
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
-
-if (SGCT_DEP_INCLUDE_GLBINDING)
-  target_link_libraries(sgct PUBLIC glbinding::glbinding glbinding::glbinding-aux)
-endif ()
 
 if (SGCT_DEP_INCLUDE_GLM)
   set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

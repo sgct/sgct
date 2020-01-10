@@ -13,6 +13,7 @@
 #include <sgct/engine.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/window.h>
 #include <sgct/helpers/portedfunctions.h>
 #include <glm/glm.hpp>

@@ -24,7 +24,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #ifdef SGCT_HAS_SPOUT
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
 #include <SpoutLibrary.h>
 #endif
 
@@ -92,17 +94,17 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     glDisable(GL_SCISSOR_TEST);
 
     if (_mappingType != Mapping::Cubemap) {
-        GLenum saveBuffer = {};
+        GLint saveBuffer = {};
         glGetIntegerv(GL_DRAW_BUFFER0, &saveBuffer);
         GLint saveTexture = 0;
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
         GLint saveFrameBuffer = 0;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &saveFrameBuffer);
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &saveFrameBuffer);
 
 
         GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
         _spoutFBO->bind(false, 1, buffers); // bind no multi-sampled
-        _spoutFBO->attachColorTexture(_mappingTexture);
+        _spoutFBO->attachColorTexture(_mappingTexture, GL_COLOR_ATTACHMENT0);
 
         _shader.bind();
 
@@ -172,7 +174,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         GLint saveTexture = 0;
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
         GLint saveFrameBuffer = 0;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &saveFrameBuffer);
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &saveFrameBuffer);
 
 #ifdef SGCT_HAS_SPOUT
         for (int i = 0; i < NFaces; i++) {
@@ -231,7 +233,11 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // obind no multi-sampled
 
-            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapTexture(
+                _textures.cubeMapColor,
+                idx,
+                GL_COLOR_ATTACHMENT0
+            );
             _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
             glViewport(0, 0, _mappingWidth, _mappingHeight);
@@ -288,6 +294,18 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             if (_spout[idx].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
+                // @TODO (abock, 2020-01-09) This function is only available in OpenGL 4.3
+                // but we never check whether we are running a 4.3 context or not, so we
+                // should replace this with a framebuffer-based blitting instead.
+                // Something along the lines of;
+                // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+                // glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                //   GL_TEXTURE_2D, tex1, 0);
+                // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                //   GL_TEXTURE_2D, tex2, 0);
+                // glDrawBuffer(GL_COLOR_ATTACHMENT1);
+                // glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+                //   GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glCopyImageSubData(
                     _textures.cubeMapColor,
                     GL_TEXTURE_CUBE_MAP,
@@ -748,10 +766,14 @@ void SpoutOutputProjection::blitCubeFace(int face) {
 void SpoutOutputProjection::attachTextures(int face) {
     if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
-        _cubeMapFbo->attachColorTexture(_textures.colorSwap);
+        _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
     }
     else {
-        _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapColor,
+            face,
+            GL_COLOR_ATTACHMENT0
+        );
     }
 
     if (Settings::instance().useNormalTexture()) {

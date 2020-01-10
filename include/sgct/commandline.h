@@ -27,8 +27,6 @@ struct Configuration {
     std::optional<bool> ignoreSync;
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
-    std::optional<bool> checkOpenGL;
-    std::optional<bool> checkFBOs;
     std::optional<bool> useOpenGLDebugContext;
 };
 

@@ -10,7 +10,6 @@
 #define __SGCT__PROFILING__H__
 
 #include <sgct/ogl_headers.h>
-
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
 

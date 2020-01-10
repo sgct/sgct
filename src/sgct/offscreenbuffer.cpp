@@ -9,6 +9,7 @@
 #include <sgct/offscreenbuffer.h>
 
 #include <sgct/log.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/settings.h>
 #include <algorithm>
 
@@ -210,7 +211,7 @@ void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
     createFBO(width, height, samples);
 }
 
-void OffScreenBuffer::setInternalColorFormat(GLenum internalFormat) {
+void OffScreenBuffer::setInternalColorFormat(unsigned int internalFormat) {
     _internalColorFormat = internalFormat;
 }
 

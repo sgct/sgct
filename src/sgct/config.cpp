@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/profiling.h>
 #include <algorithm>
+#include <functional>
 #include <numeric>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)

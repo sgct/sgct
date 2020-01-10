@@ -184,7 +184,11 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
-            _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, idx);
+            _cubeMapFbo->attachCubeMapTexture(
+                _textures.cubeMapColor,
+                idx,
+                GL_COLOR_ATTACHMENT0
+            );
             _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
             glViewport(0, 0, _cubemapResolution, _cubemapResolution);
@@ -760,10 +764,14 @@ void FisheyeProjection::blitCubeFace(int face) {
 void FisheyeProjection::attachTextures(int face) {
     if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
-        _cubeMapFbo->attachColorTexture(_textures.colorSwap);
+        _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
     }
     else {
-        _cubeMapFbo->attachCubeMapTexture(_textures.cubeMapColor, face);
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapColor,
+            face,
+            GL_COLOR_ATTACHMENT0
+        );
     }
 
     if (Settings::instance().useNormalTexture()) {

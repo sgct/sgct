@@ -19,7 +19,7 @@ namespace sgct {
 class Log {
 public:
     /// Different notify levels for messages
-    enum class Level { Error = 0, Warning, Info, Debug };
+    enum class Level { Error = 3, Warning = 2, Info = 1, Debug = 0};
     
     static Log& instance();
     static void destroy();

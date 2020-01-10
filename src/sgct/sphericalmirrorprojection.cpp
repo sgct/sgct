@@ -134,7 +134,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         }
         _cubeMapFbo->bind();
         if (!_cubeMapFbo->isMultiSampled()) {
-            _cubeMapFbo->attachColorTexture(t);
+            _cubeMapFbo->attachColorTexture(t, GL_COLOR_ATTACHMENT0);
         }
 
         // Draw Cube Face
@@ -165,7 +165,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
         if (_cubeMapFbo->isMultiSampled()) {
             // blit MSAA fbo to texture
             _cubeMapFbo->bindBlit();
-            _cubeMapFbo->attachColorTexture(t);
+            _cubeMapFbo->attachColorTexture(t, GL_COLOR_ATTACHMENT0);
             _cubeMapFbo->blit();
         }
     };

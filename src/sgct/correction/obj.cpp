@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/profiling.h>
 
 namespace sgct::correction {

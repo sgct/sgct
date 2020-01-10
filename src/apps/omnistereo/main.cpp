@@ -3,6 +3,7 @@
 #include <sgct/engine.h>
 #include <sgct/keys.h>
 #include <sgct/image.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>

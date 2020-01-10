@@ -9,7 +9,6 @@
 #ifndef __SGCT__OFFSCREENBUFFER__H__
 #define __SGCT__OFFSCREENBUFFER__H__
 
-#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 
 namespace sgct {
@@ -23,13 +22,13 @@ public:
 
     void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);
-    void setInternalColorFormat(GLenum internalFormat);
+    void setInternalColorFormat(unsigned int internalFormat);
 
     /**
      * \param texId GL id of the texture to attach
      * \param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
      */
-    void attachColorTexture(unsigned int texId, GLenum attachment = GL_COLOR_ATTACHMENT0);
+    void attachColorTexture(unsigned int texId, unsigned int attachment);
     void attachDepthTexture(unsigned int texId);
 
     /**
@@ -38,7 +37,7 @@ public:
      * \param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
      */
     void attachCubeMapTexture(unsigned int texId, unsigned int face,
-        GLenum attachment = GL_COLOR_ATTACHMENT0);
+        unsigned int attachment);
     void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 
     /// Bind framebuffer, auto-set multisampling and draw buffers
@@ -51,7 +50,7 @@ public:
      * \param n number of color buffers
      * \param bufs array with color buffers (GL_COLOR_ATTACHMENTn)
      */
-    void bind(bool isMultisampled, GLsizei n, const GLenum* bufs);
+    void bind(bool isMultisampled, int n, const unsigned int* bufs);
     void bindBlit();
     void blit();
     bool isMultiSampled() const;
@@ -63,7 +62,7 @@ private:
     unsigned int _normalBuffer = 0;
     unsigned int _positionBuffer = 0;
     unsigned int _depthBuffer = 0;
-    GLenum _internalColorFormat = GL_RGBA8;
+    unsigned int _internalColorFormat = 0x8058; // GL_RGBA8;
 
     glm::ivec2 _size = glm::ivec2(-1);
     bool _isMultiSampled = false;

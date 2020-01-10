@@ -8,6 +8,7 @@
 #include <sgct/keys.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/window.h>
@@ -29,7 +30,6 @@ namespace {
     sgct::SharedWString sTimeOfDay;
     sgct::SharedBool extraPackages(false);
     sgct::SharedBool barrier(false);
-    sgct::SharedBool resetCounter(false);
     sgct::SharedBool stats(false);
     sgct::SharedBool takeScreenshot(false);
     sgct::SharedBool slowRendering(false);
@@ -309,20 +309,11 @@ void preSyncFun() {
 void postSyncPreDrawFun() {
     // barrier is set by swap group not window both windows has the same HDC
     Window::setBarrier(barrier.value());
-    if (resetCounter.value()) {
-        Window::resetSwapGroupFrameNumber();
-    }
     Engine::instance().setStatsGraphVisibility(stats.value());
 
     if (takeScreenshot.value()) {
         Engine::instance().takeScreenshot();
         takeScreenshot.setValue(false);
-    }
-}
-
-void postDrawFun() {
-    if (Engine::instance().isMaster()) {
-        resetCounter.setValue(false);
     }
 }
 
@@ -438,11 +429,10 @@ void encodeFun() {
     unsigned char flags = 0;
     flags = extraPackages.value()  ? flags | 2   : flags & ~2;   // bit 2
     flags = barrier.value()        ? flags | 4   : flags & ~4;   // bit 3
-    flags = resetCounter.value()   ? flags | 8   : flags & ~8;   // bit 4
-    flags = stats.value()          ? flags | 16  : flags & ~16;  // bit 5
-    flags = takeScreenshot.value() ? flags | 32  : flags & ~32;  // bit 6
-    flags = slowRendering.value()  ? flags | 64  : flags & ~64;  // bit 7
-    flags = frametest.value()      ? flags | 128 : flags & ~128; // bit 8
+    flags = stats.value()          ? flags | 8  : flags & ~8;  // bit 4
+    flags = takeScreenshot.value() ? flags | 16  : flags & ~16;  // bit 5
+    flags = slowRendering.value()  ? flags | 32  : flags & ~32;  // bit 6
+    flags = frametest.value()      ? flags | 64 : flags & ~64; // bit 7
 
     SharedUChar sf(flags);
 
@@ -466,11 +456,10 @@ void decodeFun() {
     unsigned char flags = sf.value();
     extraPackages.setValue(flags & 2);
     barrier.setValue(flags & 4);
-    resetCounter.setValue(flags & 8);
-    stats.setValue(flags & 16);
-    takeScreenshot.setValue(flags & 32);
-    slowRendering.setValue(flags & 64);
-    frametest.setValue(flags & 128);
+    stats.setValue(flags & 8);
+    takeScreenshot.setValue(flags & 16);
+    slowRendering.setValue(flags & 32);
+    frametest.setValue(flags & 64);
 
     if (extraPackages.value()) {
         SharedData::instance().readVector(extraData);
@@ -498,11 +487,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
             case Key::B:
                 if (action == Action::Press) {
                     barrier.setValue(!barrier.value());
-                }
-                break;
-            case Key::R:
-                if (action == Action::Press) {
-                    resetCounter.setValue(!resetCounter.value());
                 }
                 break;
             case Key::S:
@@ -559,7 +543,6 @@ int main(int argc, char* argv[]) {
     callbacks.draw = drawFun;
     callbacks.preSync = preSyncFun;
     callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.postDraw = postDrawFun;
 
     try {
         Engine::create(cluster, callbacks, config);

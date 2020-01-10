@@ -14,15 +14,17 @@
 #undef __gl_h_
 #endif
 
-#include <glbinding/gl33core/gl.h>
-#include <glbinding/Binding.h>
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif // NOMINMAX
+#include <Windows.h>
+#endif // WIN32
 
-#ifndef __gl_h_
-#define __gl_h_
-#endif // __gl_h_
-
-// Evil 'using namespace' in the header to make the transition from GLEW to glbinding
-// as easy as possible
-using namespace gl;
+#include <glad/glad.h>
+#include <glad/glad_wgl.h>
 
 #endif // __SGCT__OGLHEADERS__H__

@@ -197,8 +197,7 @@ namespace sgct {
  * 7013: ShaderProgram / Failed to create shader program %s: Unknown error
 
  * 8000s: Window
- * 8000: Error resolving swapgroup functions
- * 8001: Error opening GLFW window
+ * 8000: Error opening GLFW window
 
  * 9000s: Image
  * 9000: Image / Cannot load empty filepath

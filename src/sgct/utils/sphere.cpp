@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
+#include <vector>
 
 namespace sgct::utils {
 

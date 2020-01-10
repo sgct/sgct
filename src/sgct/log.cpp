@@ -83,43 +83,33 @@ void Log::printv(const char* fmt, va_list ap) {
 }
 
 void Log::Debug(const char* fmt, ...) {
-    if (instance()._level > Level::Debug || fmt == nullptr) {
-        return;
+    if (instance()._level <= Level::Debug) {
+        va_list ap;
+        va_start(ap, fmt);
+        instance().printv(fmt, ap);
+        va_end(ap);
     }
-
-    va_list ap;
-    va_start(ap, fmt);
-    instance().printv(fmt, ap);
-    va_end(ap);
-}
-
-void Log::Warning(const char* fmt, ...) {
-    if (instance()._level > Level::Warning || fmt == nullptr) {
-        return;
-    }
-
-    va_list ap;
-    va_start(ap, fmt);
-    instance().printv(fmt, ap);
-    va_end(ap);
 }
 
 void Log::Info(const char* fmt, ...) {
-    if (instance()._level > Level::Info || fmt == nullptr) {
-        return;
+    if (instance()._level <= Level::Info) {
+        va_list ap;
+        va_start(ap, fmt);
+        instance().printv(fmt, ap);
+        va_end(ap);
     }
+}
 
-    va_list ap;
-    va_start(ap, fmt);
-    instance().printv(fmt, ap);
-    va_end(ap);
+void Log::Warning(const char* fmt, ...) {
+    if (instance()._level <= Level::Warning) {
+        va_list ap;
+        va_start(ap, fmt);
+        instance().printv(fmt, ap);
+        va_end(ap);
+    }
 }
 
 void Log::Error(const char* fmt, ...) {
-    if (fmt == nullptr) {
-        return;
-    }
-
     va_list ap;
     va_start(ap, fmt);
     instance().printv(fmt, ap);

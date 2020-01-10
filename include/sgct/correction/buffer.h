@@ -9,7 +9,6 @@
 #ifndef __SGCT__BUFFER__H__
 #define __SGCT__BUFFER__H__
 
-#include <sgct/ogl_headers.h>
 #include <vector>
 
 namespace sgct::correction {
@@ -28,7 +27,7 @@ struct CorrectionMeshVertex {
 struct Buffer {
     std::vector<CorrectionMeshVertex> vertices;
     std::vector<unsigned int> indices;
-    GLenum geometryType = GL_TRIANGLES;
+    unsigned int geometryType = 0x0004; // GL_TRIANGLES
 };
 
 } // namespace sgct::correction

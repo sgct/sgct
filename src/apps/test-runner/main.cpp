@@ -1,25 +1,14 @@
-#include <sgct/clustermanager.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/image.h>
-#include <sgct/log.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/settings.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
-#include <sgct/shareddatatypes.h>
-#include <sgct/texturemanager.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <memory>
-#include <numeric>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
 
-#ifdef SGCT_HAS_TEXT
-#include <sgct/font.h>
-#include <sgct/fontmanager.h>
-#include <sgct/freetype.h>
-#endif // SGCT_HAS_TEXT
+#include <sgct/sgct.h>
+
+#include <numeric>
 
 namespace {
     struct {

@@ -1,18 +1,16 @@
-#include <sgct/actions.h>
-#include <sgct/clustermanager.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/keys.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
-#include <sgct/texturemanager.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
+
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>
-#include <sgct/window.h>
 #include <glm/gtc/matrix_inverse.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     constexpr const int GridSize = 256;

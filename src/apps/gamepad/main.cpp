@@ -1,8 +1,13 @@
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/joystick.h>
-#include <sgct/fontmanager.h>
-#include <sgct/freetype.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 

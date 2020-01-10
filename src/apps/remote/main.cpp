@@ -1,9 +1,12 @@
-#include <sgct/actions.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/keys.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shareddata.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
 
 namespace {
     sgct::SharedDouble currentTime(0.0);

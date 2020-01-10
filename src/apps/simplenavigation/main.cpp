@@ -1,15 +1,14 @@
-#include <sgct/actions.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/keys.h>
-#include <sgct/mouse.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
+
 #include <sgct/user.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 

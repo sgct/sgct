@@ -1,17 +1,17 @@
-#include <sgct/actions.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/keys.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
-#include <sgct/texturemanager.h>
-#include <sgct/window.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
+
 #include <sgct/utils/box.h>
-#include <GLFW/glfw3.h>
 #include <SpoutLibrary.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 namespace {
     std::unique_ptr<sgct::utils::Box> box;

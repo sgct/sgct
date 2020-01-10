@@ -1,21 +1,17 @@
-#include <sgct/actions.h>
-#include <sgct/clustermanager.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/keys.h>
-#include <sgct/image.h>
-#include <sgct/networkmanager.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
+
 #include <sgct/utils/dome.h>
-#include <glm/gtc/type_ptr.hpp>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <algorithm>
 #include <fstream>
-#include <memory>
-#include <mutex>
-#include <optional>
 
 namespace {
     std::unique_ptr<std::thread> loadThread;

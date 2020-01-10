@@ -1,19 +1,12 @@
-#include <sgct/actions.h>
-#include <sgct/clustermanager.h>
-#include <sgct/commandline.h>
-#include <sgct/engine.h>
-#include <sgct/font.h>
-#include <sgct/fontmanager.h>
-#include <sgct/freetype.h>
-#include <sgct/keys.h>
-#include <sgct/networkmanager.h>
-#include <sgct/node.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/shadermanager.h>
-#include <sgct/shareddata.h>
-#include <sgct/window.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <sgct/sgct.h>
 
 namespace {
     constexpr const int ExtendedSize = 10000;

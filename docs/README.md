@@ -16,7 +16,6 @@ Please note that in this nomenclature, even if an application is running only on
 1. [How it works](how-it-works.md)
 1. [Classes](classes.md)
 1. [Getting started](getting-started.md)
-1. [Tutorials](tutorials.md)
 1. [Configuration files](configuration-files.md)
 1. [Error codes](errors.md)
 

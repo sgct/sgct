@@ -310,7 +310,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glDisable(GL_LIGHTING);

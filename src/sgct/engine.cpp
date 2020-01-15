@@ -311,7 +311,6 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 
 Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
     : _preWindowFn(std::move(callbacks.preWindow))
-    , _contextCreationFn(std::move(callbacks.contextCreation))
     , _initOpenGLFn(std::move(callbacks.initOpenGL))
     , _preSyncFn(std::move(callbacks.preSync))
     , _postSyncPreDrawFn(std::move(callbacks.postSyncPreDraw))
@@ -441,7 +440,6 @@ void Engine::initialize() {
 #ifdef __APPLE__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
     glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_FALSE));
@@ -600,7 +598,8 @@ void Engine::initialize() {
     if (_initOpenGLFn) {
         Log::Info("Calling initialization callback");
         ZoneScopedN("[SGCT] OpenGL Initialization")
-        _initOpenGLFn();
+        GLFWwindow* share = thisNode.windows().front()->windowHandle();
+        _initOpenGLFn(share);
     }
 
     for (const std::unique_ptr<Window>& win : wins) {
@@ -746,7 +745,6 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     if (_createDebugContext) {
@@ -774,16 +772,6 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     // clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Window/Context creation callback
-    if (!windows.empty()) {
-        if (_contextCreationFn) {
-            ZoneScopedN("Context Creation Callback");
-
-            GLFWwindow* share = thisNode.windows().front()->windowHandle();
-            _contextCreationFn(share);
-        }
-    }
 
     std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::init));
 
@@ -913,6 +901,11 @@ void Engine::render() {
     {
         if (isMaster()) {
             TrackingManager::instance().updateTrackingDevices();
+        }
+
+        {
+            ZoneScopedN("GLFW Poll Events")
+            glfwPollEvents();
         }
 
         if (_preSyncFn) {
@@ -1065,17 +1058,12 @@ void Engine::render() {
 
             _statisticsRenderer->update();
         }
-        
+
         // master will wait for nodes render before swapping
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : windows) {
             window->swap(_takeScreenshot);
-        }
-
-        {
-            ZoneScopedN("GLFW Poll Events")
-            glfwPollEvents();
         }
 
         TracyGpuCollect;

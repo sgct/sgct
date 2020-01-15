@@ -43,7 +43,7 @@ namespace {
 
 using namespace sgct;
 
-void initFun() {
+void initFun(GLFWwindow*) {
     const GLfloat positionData[] = {
         -0.5f, -0.5f, 0.f,
          0.f, 0.5f, 0.f,
@@ -155,5 +155,5 @@ int main(int argc, char* argv[]) {
 
     Engine::instance().render();
     Engine::destroy();
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }

@@ -155,20 +155,6 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
 } // namespace
 
-CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr) {
-    if (hintStr == "domeprojection") { return CorrectionMesh::Format::DomeProjection; }
-    if (hintStr == "mpcdi")          { return CorrectionMesh::Format::Mpcdi; }
-    if (hintStr == "pfm")            { return CorrectionMesh::Format::Pfm; }
-    if (hintStr == "scalable")       { return CorrectionMesh::Format::Scaleable; }
-    if (hintStr == "sciss")          { return CorrectionMesh::Format::Sciss; }
-    if (hintStr == "simcad")         { return CorrectionMesh::Format::SimCad; }
-    if (hintStr == "skyskan")        { return CorrectionMesh::Format::SkySkan; }
-    if (!hintStr.empty()) {
-        Log::Warning("Unknown CorrectionMesh hint '%s'", hintStr.c_str());
-    }
-    return CorrectionMesh::Format::None;
-}
-
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check 
     // is a standin for whether they were created in the first place. This would only fail
@@ -184,7 +170,7 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     }
 }
 
-void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hint,
+void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
                               bool needsMaskGeometry)
 {
     ZoneScoped
@@ -233,13 +219,13 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
     else if (ext == "skyskan") {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if ((ext == "txt") && (hint == Format::None || hint == Format::SkySkan)) {
+    else if (ext == "txt") {
         buf = generateSkySkanMesh(path, parent);
     }
-    else if ((ext == "csv") && (hint == Format::None || hint == Format::DomeProjection)) {
+    else if (ext == "csv") {
         buf = generateDomeProjectionMesh(path, parentPos, parentSize);
     }
-    else if ((ext == "data") && (hint == Format::None || hint == Format::PaulBourke)) {
+    else if (ext == "data") {
         const float aspectRatio = parent.window().aspectRatio();
         buf = generatePaulBourkeMesh(path, parentPos, parentSize, aspectRatio);
 
@@ -252,10 +238,10 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
             }
         }
     }
-    else if ((ext == "obj") && (hint == Format::None || hint == Format::Obj)) {
+    else if (ext == "obj") {
         buf = generateOBJMesh(path);
     }
-    else if ((ext == "pfm") && (hint == Format::None || hint == Format::Pfm)) {
+    else if (ext == "pfm") {
         buf = generatePerEyeMeshFromPFMImage(path, parentPos, parentSize);
     }
     else if (ext == "mpcdi") {
@@ -265,7 +251,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent, Format hin
         }
         buf = generateMpcdiMesh(vp->mpcdiWarpMesh());
     }
-    else if ((ext == "simcad") && (hint == Format::None || hint == Format::SimCad)) {
+    else if (ext == "simcad") {
         buf = generateSimCADMesh(path, parentPos, parentSize);
     }
     else {

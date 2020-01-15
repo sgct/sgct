@@ -54,7 +54,6 @@ struct Settings {
     struct Display {
         std::optional<int> swapInterval;
         std::optional<int> refreshRate;
-        std::optional<bool> keepAspectRatio;
         std::optional<bool> exportWarpingMeshes;
     };
 
@@ -114,7 +113,6 @@ struct PlanarProjection {
 void validatePlanarProjection(const PlanarProjection& proj);
 
 struct FisheyeProjection {
-    enum class Method { FourFace, FiveFace };
     enum class Interpolation { Linear, Cubic };
     struct Crop {
         // Crop values are measured as [0,1] from the respective side, which is why right
@@ -126,11 +124,11 @@ struct FisheyeProjection {
     };
     std::optional<float> fov;
     std::optional<int> quality;
-    std::optional<Method> method;
     std::optional<Interpolation> interpolation;
     std::optional<float> tilt;
     std::optional<float> diameter;
     std::optional<Crop> crop;
+    std::optional<bool> keepAspectRatio;
     std::optional<glm::vec3> offset;
     std::optional<glm::vec4> background;
 };
@@ -198,12 +196,10 @@ struct Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
     
     std::optional<std::string> user;
-    std::optional<std::string> name;
     std::optional<std::string> overlayTexture;
     std::optional<std::string> blendMaskTexture;
     std::optional<std::string> blendLevelMaskTexture;
     std::optional<std::string> correctionMeshTexture;
-    std::optional<std::string> meshHint;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
     std::optional<glm::vec2> position;

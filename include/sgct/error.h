@@ -15,10 +15,11 @@
 namespace sgct {
 
 /*
- * 1000s: Config
- * 1000: User / Tracking device name must not be empty
- * 1001: User / Tracking tracker name must not be empty
- * 1002: User / Name 'default' is not permitted for a user
+ * 1000s: Configuration
+ * 1000: User / Eye separation must be zero or a positive number
+ * 1001: User / Tracking device name must not be empty
+ * 1002: User / Tracking tracker name must not be empty
+ * 1003: User / Name 'default' is not permitted for a user
  * 1010: Capture / Mono path must not be empty
  * 1011: Capture / Left path must not be empty
  * 1012: Capture / Right path must not be empty
@@ -50,24 +51,29 @@ namespace sgct {
  * 1092: Viewport / Blendmask texture path must not be empty
  * 1093: Viewport / Blendmask level texture path must not be empty
  * 1094: Viewport / Correction mesh texture path must not be empty
- * 1095: Viewport / Mesh hint must not be empty
- * 1096: Viewport / No valid projection provided
+ * 1095: Viewport / No valid projection provided
  * 1100: Window / Window name must not be empty
  * 1101: Window / Empty tags are not allowed for windows
  * 1102: Window / Number of MSAA samples must be non-negative
- * 1103: Window / Monitor index must be non-negative
+ * 1103: Window / Monitor index must be non-negative or -1
  * 1104: Window / MPCDI file must not be empty
  * 1105: Window / Window must contain at least one viewport
+ * 1106: Window / Cannot use an MPCDI file and explicitly add viewports simultaneously
+ * 1107: Window / First window cannot be blitted into as there is no source
  * 1110: Node / Node address must not be empty
  * 1111: Node / Node port must be non-negative
  * 1112: Node / Node data transfer port must be non-negative
  * 1113: Node / Every node must contain at least one window
  * 1120: Cluster / Cluster master address must not be empty
  * 1121: Cluster / Cluster external control port must be non-negative
- * 1122: Cluster / More than one unnamed users specified in the cluster
- * 1123: Cluster / Configuration must contain at least one node
+ * 1122: Cluster / There must be at least one user in the cluster
+ * 1123: Cluster / More than one unnamed users specified in the cluster
+ * 1124: Cluster / No two users can have the same name
+ * 1125: Cluster / All trackers specified in the 'User's have to be valid tracker names
+ * 1127: Cluster / Configuration must contain at least one node
+ * 1128: Cluster / Two or more nodes are using the same port
 
- * 2000s: CorrectionMeshes
+ * 2000s: Correction Meshes
  * 2000: CorrectionMesh / Failed to export. Geometry type is not supported"
  * 2001: CorrectionMesh / Failed to export " + exportPath + ". Failed to open"
  * 2010: DomeProjection / Could not determine format for warping mesh
@@ -176,9 +182,12 @@ namespace sgct {
  * 6001: PlanarProjection / Failed to parse planar projection FOV
  * 6010: ProjectionPlane / Failed parsing coordinates. Missing XML children
  * 6011: ProjectionPlane / Failed parsing ProjectionPlane coordinates. Type error
- * 6020: Viewport / Failed to parse position. Type error
- * 6021: Viewport / Failed to parse size. Type error
- * 6030: Window / Could not parse window size. Type error
+ * 6020: Viewport / Unrecognized eye position
+ * 6021: Viewport / Failed to parse position. Type error
+ * 6022: Viewport / Failed to parse size. Type error
+ * 6030: Window / Could not parse window position. Type error
+ * 6031: Window / Could not parse window size. Type error
+ * 6032: Window / Could not parse window resolution. Type error
  * 6040: Node / Missing field address in node
  * 6041: Node / Missing field port in node
  * 6050: Settings / Wrong buffer precision value. Must be 16 or 32
@@ -192,6 +201,7 @@ namespace sgct {
  * 6084: XML Parsing / Cannot find master address
  * 6085: XML Parsing / Unknown resolution %s for cube map
  * 6090: SpoutOutput / Unknown spout output mapping: %s
+ * 6100: SphericalMirror / Missing geometry paths
 
  * 7000s: Shader Handling
  * 7000: ShaderManager / Cannot add shader program %s: Already exists
@@ -202,7 +212,7 @@ namespace sgct {
  * 7013: ShaderProgram / Failed to create shader program %s: Unknown error
 
  * 8000s: Window
- * 8000: Error opening GLFW window
+ * 8000: Window / Error opening GLFW window
 
  * 9000s: Image
  * 9000: Image / Cannot load empty filepath
@@ -218,6 +228,8 @@ namespace sgct {
  * 9010: Image / Failed to create PNG info struct
  * 9011: Image / One of the called PNG functions failed
  * 9012: Image / Invalid image size %i x %i %i channels
+
+ OBS:  When adding a new error code, don't forget to update docs/errors.md accordingly
  */
 
 struct Error : public std::runtime_error {

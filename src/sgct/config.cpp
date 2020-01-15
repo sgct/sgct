@@ -26,15 +26,19 @@ namespace sgct::config {
 
 void validateUser(const User& u) {
     ZoneScoped
-        
+
+    if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
+        throw Error(1000, "Eye separation must be zero or a positive number");
+    }
+    
     if (u.tracking && u.tracking->device.empty()) {
-        throw Error(1000, "Tracking device name must not be empty");
+        throw Error(1001, "Tracking device name must not be empty");
     }
     if (u.tracking && u.tracking->tracker.empty()) {
-        throw Error(1001, "Tracking tracker name must not be empty");
+        throw Error(1002, "Tracking tracker name must not be empty");
     }
     if (u.name && *u.name == "default") {
-        throw Error(1002, "Name 'default' is not permitted for a user");
+        throw Error(1003, "Name 'default' is not permitted for a user");
     }
 }
 
@@ -185,12 +189,9 @@ void validateViewport(const Viewport& v) {
     if (v.correctionMeshTexture && v.correctionMeshTexture->empty()) {
         throw Error(1094, "Correction mesh texture path must not be empty");
     }
-    if (v.meshHint && v.meshHint->empty()) {
-        throw Error(1095, "Mesh hint must not be empty");
-    }
 
     std::visit(overloaded {
-        [](const NoProjection&) { throw Error(1096, "No valid projection provided"); },
+        [](const NoProjection&) { throw Error(1095, "No valid projection provided"); },
         [](const PlanarProjection& p) { validatePlanarProjection(p); },
         [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
         [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
@@ -199,7 +200,7 @@ void validateViewport(const Viewport& v) {
     }, v.projection);
 }
 
-void validateWindow(const Window& w) {
+void validateWindow(const Window& w, bool isFirstWindow) {
     ZoneScoped
         
     if (w.name && w.name->empty()) {
@@ -211,8 +212,8 @@ void validateWindow(const Window& w) {
     if (w.msaa && *w.msaa < 0) {
         throw Error(1102, "Number of MSAA samples must be non-negative");
     }
-    if (w.monitor && *w.monitor < 0) {
-        throw Error(1103, "Monitor index must be non-negative");
+    if (w.monitor && *w.monitor < -1) {
+        throw Error(1103, "Monitor index must be non-negative or -1");
     }
     if (w.mpcdi && w.mpcdi->empty()) {
         throw Error(1104, "MPCDI file must not be empty");
@@ -221,6 +222,16 @@ void validateWindow(const Window& w) {
         // A viewport must exist except when we load an MPCDI file
         throw Error(1105, "Window must contain at least one viewport");
     }
+    if (w.mpcdi && !w.viewports.empty()) {
+        throw Error(
+            1106,
+            "Cannot use an MPCDI file and explicitly add viewports simultaneously"
+        );
+    }
+    if (isFirstWindow && w.blitPreviousWindow && *w.blitPreviousWindow) {
+        throw Error(1107, "First window cannot be blitted into as there is no source");
+    }
+
     std::for_each(w.viewports.begin(), w.viewports.end(), validateViewport);
 }
 
@@ -239,7 +250,9 @@ void validateNode(const Node& n) {
     if (n.windows.empty()) {
         throw Error(1113, "Every node must contain at least one window");
     }
-    std::for_each(n.windows.begin(), n.windows.end(), validateWindow);
+    for (size_t i = 0; i < n.windows.size(); ++i) {
+        validateWindow(n.windows[i], i == 0);
+    }
 }
 
 void validateCluster(const Cluster& c) {
@@ -261,21 +274,104 @@ void validateCluster(const Cluster& c) {
         validateSettings(*c.settings);
     }
 
+    if (c.users.empty()) {
+        throw Error(1122, "There must be at least one user in the cluster");
+    }
+
     const int nDefaultUsers = static_cast<int>(std::count_if(
         c.users.begin(), c.users.end(),
         [](const User& user) { return !user.name.has_value(); }
     ));
 
     if (nDefaultUsers > 1) {
-        throw Error(1122, "More than one unnamed users specified");
+        throw Error(1123, "More than one unnamed users specified");
     }
     
     std::for_each(c.users.begin(), c.users.end(), validateUser);
+    // Check for mutually exclusive user names
+    std::vector<std::string> usernames;
+    std::transform(
+        c.users.begin(),
+        c.users.end(),
+        std::back_inserter(usernames),
+        [](const User& user) { return user.name ? *user.name : ""; }
+    );
+    if (std::unique(usernames.begin(), usernames.end()) != usernames.end()) {
+        throw Error(1124, "No two users can have the same name");
+    }
+
+
     std::for_each(c.trackers.begin(), c.trackers.end(), validateTracker);
+    
+    // Check that all trackers specified in the users are valid tracker names
+    const bool foundAllTrackers = std::all_of(
+        c.users.begin(),
+        c.users.end(),
+        [ts = c.trackers](const User& user) {
+            if (!user.tracking) {
+                return true;
+            }
+            return std::find_if(
+                ts.begin(),
+                ts.end(),
+                [t = *user.tracking](const Tracker& tr) { return tr.name == t.tracker; }
+            ) != ts.end();
+        }
+    );
+    if (!foundAllTrackers) {
+        throw Error(
+            1125,
+            "All trackers specified in the 'User's have to be valid tracker names"
+        );
+    }
+
+    // Check that all devices specified in the users are valid device names
+    const bool allDevicesValid = std::all_of(
+        c.users.begin(),
+        c.users.end(),
+        [ts = c.trackers](const User& user) {
+            if (!user.tracking) {
+                // If we don't have tracking configured, this user is perfectly valid
+                return true;
+            }
+            // Lets find the tracker that this user is linked to. We know that it has to
+            // exist as we checked the correct mapping between user and Tracker in the
+            // previous step in this validation. A little assert doesn't hurt though
+            const auto it = std::find_if(
+                ts.begin(),
+                ts.end(),
+                [t = *user.tracking](const Tracker& tr) { return tr.name == t.tracker; }
+            );
+            assert(it != ts.end());
+
+            const Tracker& tr = *it;
+            // See if the device that was specified is acually part of the tracker that
+            // was specified for the user
+            return std::find_if(
+                tr.devices.begin(),
+                tr.devices.end(),
+                [t = *user.tracking](const Device& dev) { return dev.name == t.device; }
+            ) != tr.devices.end();
+        }
+    );
+    
     if (c.nodes.empty()) {
-        throw Error(1123, "Configuration must contain at least one node");
+        throw Error(1127, "Configuration must contain at least one node");
     }
     std::for_each(c.nodes.begin(), c.nodes.end(), validateNode);
+
+
+    // Check for mutually exclusive ports
+    std::vector<int> ports;
+    std::transform(
+        c.nodes.begin(),
+        c.nodes.end(),
+        std::back_inserter(ports),
+        [](const Node& node) { return node.port; }
+    );
+    if (std::unique(ports.begin(), ports.end()) != ports.end()) {
+        throw Error(1128, "Two or more nodes are using the same port");
+    }
 }
 
 } // namespace sgct::config

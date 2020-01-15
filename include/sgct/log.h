@@ -40,12 +40,12 @@ public:
 
     /// Set the callback that gets invoked for each log. If you want to disable logging to
     /// the callback, pass a null function as a parameter
-    void setLogCallback(std::function<void(const char *)> fn);
+    void setLogCallback(std::function<void(Level, const char *)> fn);
 
 private:
     Log();
 
-    void printv(const char* fmt, va_list ap);
+    void printv(Level level, const char* fmt, va_list ap);
 
     static Log* _instance;
 
@@ -57,7 +57,7 @@ private:
     
     std::mutex _mutex;
 
-    std::function<void(const char*)> _messageCallback;
+    std::function<void(Level, const char*)> _messageCallback;
 };
 
 } // namespace sgct

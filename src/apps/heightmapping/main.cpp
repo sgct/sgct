@@ -261,7 +261,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     stereoMode.setValue(Engine::instance().windows()[0]->stereoMode());
 
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);

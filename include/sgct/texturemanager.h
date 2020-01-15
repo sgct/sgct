@@ -39,6 +39,14 @@ public:
     unsigned int loadTexture(const std::string& filename, bool interpolate,
         float anisotropicFilterSize = 1.f, int mipmapLevels = 8);
 
+    /**
+     * Removes a previously generated OpenGL texture.
+     *
+     * \param textureId The id of the texture that should be deleted, this has to be an id
+     *        that was returned from a previous call to loadTexture
+     */
+    void removeTexture(unsigned int textureId);
+
 private:
     ~TextureManager();
     static TextureManager* _instance;

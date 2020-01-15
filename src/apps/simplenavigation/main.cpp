@@ -259,7 +259,7 @@ void cleanUpFun() {
     glDeleteVertexArrays(1, &grid.vao);
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     glGenVertexArrays(1, &pyramid.vao);
     glGenVertexArrays(1, &grid.vao);
 

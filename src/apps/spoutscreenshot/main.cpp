@@ -95,7 +95,7 @@ void drawFun(RenderData) {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     glGenVertexArrays(1, &geometry.vao);
     glGenBuffers(1, &geometry.vbo);
 

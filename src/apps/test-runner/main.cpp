@@ -92,7 +92,7 @@ void draw(RenderData data) {
     ShaderManager::instance().shaderProgram("simple").unbind();
 }
 
-void initGL() {
+void initGL(GLFWwindow*) {
     constexpr const uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);

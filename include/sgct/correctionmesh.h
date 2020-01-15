@@ -24,30 +24,16 @@ namespace correction { struct Buffer; }
  */
 class CorrectionMesh {
 public:
-    enum class Format {
-        None = 0,
-        DomeProjection,
-        Scaleable,
-        Sciss,
-        SimCad,
-        SkySkan,
-        PaulBourke,
-        Pfm,
-        Obj,
-        Mpcdi
-    };
-
     /**
      * This function finds a suitable parser for warping meshes and loads them.
      *
      * \param path the path to the mesh data
      * \param parent the pointer to parent viewport
-     * \param hint a hint to pass to the parser selector
      * \param needsMaskGeometry If true, a separate geometry to applying blend masks is
      *        loaded
      * \throw std::runtime_error if mesh was not loaded successfully
      */
-    void loadMesh(std::string path, BaseViewport& parent, Format hint = Format::None,
+    void loadMesh(std::string path, BaseViewport& parent,
         bool needsMaskGeometry = false);
 
     /// Render the final mesh where for mapping the frame buffer to the screen.
@@ -77,9 +63,6 @@ private:
     CorrectionMeshGeometry _warpGeometry;
     CorrectionMeshGeometry _maskGeometry;
 };
-
-/// Parse hint from string to enum.
-CorrectionMesh::Format parseCorrectionMeshHint(const std::string& hintStr);
 
 } // namespace sgct
 

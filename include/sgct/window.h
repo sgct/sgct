@@ -225,9 +225,6 @@ public:
      */
     void setAlpha(bool state);
 
-    /// Set the color bit depth of the FBO and Screencapture.
-    void setColorBitDepth(ColorBitDepth cbd);
-
     /// \return true if full screen rendering is enabled
     bool isFullScreen() const;
 
@@ -303,9 +300,6 @@ public:
 
     /// Enable alpha clear color and 4-component screenshots
     bool hasAlpha() const;
-
-    /// Get the color bit depth of the FBO and Screencapture.
-    ColorBitDepth colorBitDepth() const;
 
     /// Get FOV of viewport[0]
     float horizFieldOfViewDegrees() const;

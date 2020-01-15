@@ -151,7 +151,7 @@ void preSyncFun() {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     // setup spout
     senderName[0] = '\0';
     receiver = GetSpout();

@@ -288,11 +288,6 @@ namespace {
         if (const char* a = elem.Attribute("quality"); a) {
             proj.quality = cubeMapResolutionForQuality(a);
         }
-        if (const char* a = elem.Attribute("method"); a) {
-            proj.method = std::string_view(a) == "five_face_cube" ?
-                sgct::config::FisheyeProjection::Method::FiveFace :
-                sgct::config::FisheyeProjection::Method::FourFace;
-        }
         if (const char* a = elem.Attribute("interpolation"); a) {
             proj.interpolation = std::string_view(a) == "cubic" ?
                 sgct::config::FisheyeProjection::Interpolation::Cubic :
@@ -317,6 +312,8 @@ namespace {
             }
             proj.crop = crop;
         }
+
+        proj.keepAspectRatio = parseValue<bool>(elem, "keepAspectRatio");
 
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Offset"); e) {
             proj.offset = parseValueVec3(*e);
@@ -354,6 +351,9 @@ namespace {
             if (const char* a = e->Attribute("top"); a) {
                 proj.mesh.top = a;
             }
+        }
+        else {
+            throw Err(6100, "Missing geometry paths");
         }
 
         return proj;
@@ -440,9 +440,6 @@ namespace {
         if (const char* a = elem.Attribute("user"); a) {
             viewport.user = a;
         }
-        if (const char* a = elem.Attribute("name"); a) {
-            viewport.name = a;
-        }
         if (const char* a = elem.Attribute("overlay"); a) {
             viewport.overlayTexture = a;
         }
@@ -457,9 +454,6 @@ namespace {
         }
         if (const char* a = elem.Attribute("mesh"); a) {
             viewport.correctionMeshTexture = a;
-        }
-        if (const char* a = elem.Attribute("hint"); a) {
-            viewport.meshHint = a;
         }
 
         viewport.isTracked = parseValue<bool>(elem, "tracked");
@@ -476,6 +470,9 @@ namespace {
             else if (eye == "right") {
                 viewport.eye = sgct::config::Viewport::Eye::StereoRight;
             }
+            else {
+                throw Err(6020, "Unrecognized eye position");
+            }
         }
 
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
@@ -483,7 +480,7 @@ namespace {
                 viewport.position = *pos;
             }
             else {
-                throw Err(6020, "Failed to parse position. Type error");
+                throw Err(6021, "Failed to parse position. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
@@ -491,7 +488,7 @@ namespace {
                 viewport.size = *size;
             }
             else {
-                throw Err(6021, "Failed to parse size. Type error");
+                throw Err(6022, "Failed to parse size. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
@@ -547,10 +544,8 @@ namespace {
         if (const char* a = elem.Attribute("bufferBitDepth"); a) {
             window.bufferBitDepth = getBufferColorBitDepth(a);
         }
-        if (elem.Attribute("fullscreen")) {
-            window.isFullScreen = parseValue<bool>(elem, "fullscreen");
-        }
 
+        window.isFullScreen = parseValue<bool>(elem, "fullscreen");
         window.isFloating = parseValue<bool>(elem, "floating");
         window.alwaysRender = parseValue<bool>(elem, "alwaysRender");
         window.isHidden = parseValue<bool>(elem, "hidden");
@@ -585,18 +580,28 @@ namespace {
             window.stereo = getStereoType(e->Attribute("type"));
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
-            window.pos = parseValueIVec2(*e);
+            if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
+                window.pos = *s;
+            }
+            else {
+                throw Err(6030, "Could not parse window position. Type error");
+            }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
             if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
                 window.size = *s;
             }
             else {
-                throw Err(6030, "Could not parse window size. Type error");
+                throw Err(6031, "Could not parse window size. Type error");
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Res"); e) {
-            window.resolution = parseValueIVec2(*e);
+            if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
+                window.resolution = *s;
+            }
+            else {
+                throw Err(6032, "Could not parse window resolution. Type error");
+            }
         }
 
         tinyxml2::XMLElement* vp = elem.FirstChildElement("Viewport");
@@ -669,37 +674,29 @@ namespace {
     sgct::config::Settings parseSettings(tinyxml2::XMLElement& elem) {
         sgct::config::Settings settings;
 
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("DepthBufferTexture"); e) {
-            settings.useDepthTexture = parseValue<bool>(*e, "value");
+        settings.useDepthTexture = parseValue<bool>(elem, "DepthBufferTexture");
+        settings.useNormalTexture = parseValue<bool>(elem, "NormalTexture");
+        settings.usePositionTexture = parseValue<bool>(elem, "PositionTexture");
+
+        std::optional<float> f = parseValue<float>(elem, "Precision");
+        if (f && *f == 16.f) {
+            settings.bufferFloatPrecision =
+                sgct::config::Settings::BufferFloatPrecision::Float16Bit;
         }
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("NormalTexture"); e) {
-            settings.useNormalTexture = parseValue<bool>(*e, "value");
+        else if (f && *f == 32) {
+            settings.bufferFloatPrecision =
+                sgct::config::Settings::BufferFloatPrecision::Float32Bit;
         }
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("PositionTexture"); e) {
-            settings.usePositionTexture = parseValue<bool>(*e, "value");
-        }
-        if (tinyxml2::XMLElement* e = elem.FirstChildElement("Precision"); e) {
-            std::optional<float> f = parseValue<float>(*e, "float");
-            if (f && *f == 16.f) {
-                settings.bufferFloatPrecision =
-                    sgct::config::Settings::BufferFloatPrecision::Float16Bit;
-            }
-            else if (f && *f == 32) {
-                settings.bufferFloatPrecision =
-                    sgct::config::Settings::BufferFloatPrecision::Float32Bit;
-            }
-            else if (f) {
-                throw Err(6050, "Wrong buffer precision value " + std::to_string(*f));
-            }
-            else {
-                throw Err(6051, "Wrong buffer precision value type");
-            }
+        else if (f) {
+            throw Err(6050, "Wrong buffer precision value " + std::to_string(*f));
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Display"); e) {
             sgct::config::Settings::Display display;
             display.swapInterval = parseValue<int>(*e, "swapInterval");
             display.refreshRate = parseValue<int>(*e, "refreshRate");
-            display.keepAspectRatio = parseValue<bool>(*e, "tryMaintainAspectRatio");
+            // @TODO (abock, 2020-01-14) This should probably move to the commandline
+            // arguments instead.  There is no good reason to make this fixed for a
+            // specific configuration file
             display.exportWarpingMeshes = parseValue<bool>(*e, "exportWarpingMeshes");
             settings.display = display;
         }

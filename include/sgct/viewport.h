@@ -70,7 +70,6 @@ private:
     std::string _blendMaskFilename;
     std::string _blackLevelMaskFilename;
     std::string _meshFilename;
-    std::string _meshHint;
     bool _isTracked = false;
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;

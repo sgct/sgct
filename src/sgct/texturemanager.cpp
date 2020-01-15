@@ -11,6 +11,7 @@
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/ogl_headers.h>
+#include <algorithm>
 
 namespace {
     unsigned int uploadImage(const sgct::Image& img, bool interpolate, int mipmap,
@@ -109,9 +110,7 @@ void TextureManager::destroy() {
 }
 
 TextureManager::~TextureManager() {
-    for (unsigned int id : _textures) {
-        glDeleteTextures(1, &id);
-    }
+    glDeleteTextures(_textures.size(), _textures.data());
 }
 
 unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,
@@ -131,6 +130,15 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
 
     Log::Debug("Texture created from '%s' [id=%d]", filename.c_str(), t);
     return t;
+}
+
+void TextureManager::removeTexture(unsigned int textureId) {   
+    _textures.erase(
+        std::remove(_textures.begin(), _textures.end(), textureId),
+        _textures.end()
+    );
+
+    glDeleteTextures(1, &textureId);
 }
 
 } // namespace sgct

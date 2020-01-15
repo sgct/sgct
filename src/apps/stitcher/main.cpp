@@ -273,7 +273,7 @@ void preWinInitFun() {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     // load all textures
     if (!sequence) {
         for (size_t i = 0; i < numberOfTextures; i++) {

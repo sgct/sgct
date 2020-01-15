@@ -71,122 +71,6 @@ namespace {
 
 using namespace sgct;
 
-
-void drawFun(RenderData data) {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    constexpr const double Speed = 0.44;
-
-    // create scene transform (animation)
-    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
-    scene = glm::rotate(
-        scene,
-        static_cast<float>(currentTime.value() * Speed),
-        glm::vec3(0.f, -1.f, 0.f)
-    );
-    scene = glm::rotate(
-        scene,
-        static_cast<float>(currentTime.value() * (Speed / 2.0)),
-        glm::vec3(1.f, 0.f, 0.f)
-    );
-
-    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
-
-    glActiveTexture(GL_TEXTURE0);
-    
-    if (texIndex.value() != -1) {
-        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value()));
-    }
-    else {
-        glBindTexture(GL_TEXTURE_2D, textureId);
-    }
-
-    ShaderManager::instance().shaderProgram("xform").bind();
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    box->draw();
-    ShaderManager::instance().shaderProgram("xform").unbind();
-
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-}
-
-void preSyncFun() {
-    if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
-        
-        // if texture is uploaded then iterate the index
-        if (serverUploadDone.value() && clientsUploadDone.value()) {
-            texIndex.setValue(texIndex.value() + 1);
-            serverUploadDone = false;
-            clientsUploadDone = false;
-        }
-    }
-}
-
-void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.value());
-}
-
-void initOGLFun() {
-    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
-    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
-
-    // Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); // our polygon winding is counter clockwise
-
-    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
-    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
-    prog.bind();
-    matrixLoc = glGetUniformLocation(prog.id(), "mvp");
-    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
-    prog.unbind();
-}
-
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(stats);
-    SharedData::instance().writeInt32(texIndex);
-}
-
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(stats);
-    SharedData::instance().readInt32(texIndex);
-}
-
-void cleanUpFun() {
-    box = nullptr;
-    
-    for (size_t i = 0; i < texIds.size(); i++) {
-        GLuint tex = texIds.valueAt(i);
-        if (tex) {
-            glDeleteTextures(1, &tex);
-        }
-    }
-    texIds.clear();
-
-    if (hiddenWindow) {
-        glfwDestroyWindow(hiddenWindow);
-    }
-}
-
-void keyCallback(Key key, Modifier, Action action, int) {
-    if (Engine::instance().isMaster() && (action == Action::Press)) {
-        switch (key) {
-            case Key::Esc:
-                Engine::instance().terminate();
-                break;
-            case Key::S:
-                stats.setValue(!stats.value());
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(imageMutex);
 
@@ -195,7 +79,7 @@ void readImage(unsigned char* data, int len) {
     try {
         transImg->load(reinterpret_cast<unsigned char*>(data), len);
     }
-    catch (const std::runtime_error& e) {
+    catch (const std::runtime_error & e) {
         Log::Error("%s", e.what());
         transImg = nullptr;
     }
@@ -234,7 +118,7 @@ void startDataTransfer() {
 
 void uploadTexture() {
     std::unique_lock lk(imageMutex);
-    
+
     if (!transImg) {
         // if invalid load
         texIds.addValue(0);
@@ -256,23 +140,23 @@ void uploadTexture() {
     size_t bpc = transImg->bytesPerChannel();
 
     switch (transImg->channels()) {
-        case 1:
-            internalformat = (bpc == 1 ? GL_R8 : GL_R16);
-            type = GL_RED;
-            break;
-        case 2:
-            internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
-            type = GL_RG;
-            break;
-        case 3:
-        default:
-            internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-            type = GL_BGR;
-            break;
-        case 4:
-            internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-            type = GL_BGRA;
-            break;
+    case 1:
+        internalformat = (bpc == 1 ? GL_R8 : GL_R16);
+        type = GL_RED;
+        break;
+    case 2:
+        internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
+        type = GL_RG;
+        break;
+    case 3:
+    default:
+        internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+        type = GL_BGR;
+        break;
+    case 4:
+        internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+        type = GL_BGRA;
+        break;
     }
 
     int mipMapLevels = 8;
@@ -343,7 +227,63 @@ void threadWorker() {
     }
 }
 
-void contextCreationCallback(GLFWwindow* win) {
+void drawFun(RenderData data) {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    constexpr const double Speed = 0.44;
+
+    // create scene transform (animation)
+    glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.value() * Speed),
+        glm::vec3(0.f, -1.f, 0.f)
+    );
+    scene = glm::rotate(
+        scene,
+        static_cast<float>(currentTime.value() * (Speed / 2.0)),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
+
+    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+
+    glActiveTexture(GL_TEXTURE0);
+    
+    if (texIndex.value() != -1) {
+        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value()));
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+    }
+
+    ShaderManager::instance().shaderProgram("xform").bind();
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    box->draw();
+    ShaderManager::instance().shaderProgram("xform").unbind();
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+}
+
+void preSyncFun() {
+    if (Engine::instance().isMaster()) {
+        currentTime.setValue(Engine::getTime());
+        
+        // if texture is uploaded then iterate the index
+        if (serverUploadDone.value() && clientsUploadDone.value()) {
+            texIndex.setValue(texIndex.value() + 1);
+            serverUploadDone = false;
+            clientsUploadDone = false;
+        }
+    }
+}
+
+void postSyncPreDrawFun() {
+    Engine::instance().setStatsGraphVisibility(stats.value());
+}
+
+void initOGLFun(GLFWwindow* win) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     sharedWindow = win;
@@ -357,6 +297,63 @@ void contextCreationCallback(GLFWwindow* win) {
 
     if (Engine::instance().isMaster()) {
         loadThread = std::make_unique<std::thread>(threadWorker);
+    }
+
+    textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
+    box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
+
+    // Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); // our polygon winding is counter clockwise
+
+    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
+    prog.bind();
+    matrixLoc = glGetUniformLocation(prog.id(), "mvp");
+    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
+    prog.unbind();
+}
+
+void encodeFun() {
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(stats);
+    SharedData::instance().writeInt32(texIndex);
+}
+
+void decodeFun() {
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(stats);
+    SharedData::instance().readInt32(texIndex);
+}
+
+void cleanUpFun() {
+    box = nullptr;
+    
+    for (size_t i = 0; i < texIds.size(); i++) {
+        GLuint tex = texIds.valueAt(i);
+        if (tex) {
+            glDeleteTextures(1, &tex);
+        }
+    }
+    texIds.clear();
+
+    if (hiddenWindow) {
+        glfwDestroyWindow(hiddenWindow);
+    }
+}
+
+void keyCallback(Key key, Modifier, Action action, int) {
+    if (Engine::instance().isMaster() && (action == Action::Press)) {
+        switch (key) {
+            case Key::Esc:
+                Engine::instance().terminate();
+                break;
+            case Key::S:
+                stats.setValue(!stats.value());
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -435,7 +432,6 @@ int main(int argc, char* argv[]) {
     callbacks.postSyncPreDraw = postSyncPreDrawFun;
     callbacks.cleanUp = cleanUpFun;
     callbacks.keyboard = keyCallback;
-    callbacks.contextCreation = contextCreationCallback;
     callbacks.drop = dropCallback;
     callbacks.dataTransferDecode = dataTransferDecoder;
     callbacks.dataTransferStatus = dataTransferStatus;

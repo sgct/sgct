@@ -58,9 +58,6 @@ void Settings::applySettings(const config::Settings& settings) {
         if (settings.display->refreshRate) {
             setRefreshRateHint(*settings.display->refreshRate);
         }
-        if (settings.display->keepAspectRatio) {
-            setTryKeepAspectRatio(*settings.display->keepAspectRatio);
-        }
         if (settings.display->exportWarpingMeshes) {
             setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
         }
@@ -206,20 +203,12 @@ void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
 }
 
-bool Settings::tryKeepAspectRatio() const {
-    return _tryKeepAspectRatio;
-}
-
 bool Settings::exportWarpingMeshes() const {
     return _exportWarpingMeshes;
 }
 
 bool Settings::captureFromBackBuffer() const {
     return _captureBackBuffer;
-}
-
-void Settings::setTryKeepAspectRatio(bool state) {
-    _tryKeepAspectRatio = state;
 }
 
 unsigned int Settings::bufferFloatPrecision() const {

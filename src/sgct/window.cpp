@@ -111,7 +111,7 @@ void Window::applyWindow(const config::Window& window) {
                 default: throw std::logic_error("Unhandled case label");
             }
         }(*window.bufferBitDepth);
-        setColorBitDepth(bd);
+        _bufferColorBitDepth = bd;
     }
     if (window.isFullScreen) {
         setWindowMode(*window.isFullScreen);
@@ -296,7 +296,7 @@ void Window::init() {
 
     std::string title = "SGCT node: " +
         ClusterManager::instance().thisNode().address() + " (" +
-        (NetworkManager::instance().isComputerServer() ? "master" : "client") +
+        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
         ": " + std::to_string(_id) + ")";
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
@@ -1201,14 +1201,6 @@ void Window::setAlpha(bool state) {
 
 bool Window::hasAlpha() const {
     return _hasAlpha;
-}
-
-void Window::setColorBitDepth(ColorBitDepth cbd) {
-    _bufferColorBitDepth = cbd;
-}
-
-Window::ColorBitDepth Window::colorBitDepth() const {
-    return _bufferColorBitDepth;
 }
 
 float Window::horizFieldOfViewDegrees() const {

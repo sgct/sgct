@@ -36,7 +36,7 @@ void FisheyeProjection::update(glm::vec2 size) {
 
     float x = 1.f;
     float y = 1.f;
-    if (Settings::instance().tryKeepAspectRatio()) {
+    if (_keepAspectRatio) {
         float aspect = frameBufferAspect * cropAspect;
         if (aspect >= 1.f) {
             x = 1.f / aspect;
@@ -258,10 +258,6 @@ void FisheyeProjection::setFOV(float angle) {
     _fov = angle;
 }
 
-void FisheyeProjection::setRenderingMethod(FisheyeMethod method) {
-    _method = method;
-}
-
 void FisheyeProjection::setCropFactors(float left, float right, float bottom, float top) {
     _cropLeft = glm::clamp(left, 0.f, 1.f);
     _cropRight = glm::clamp(right, 0.f, 1.f);
@@ -283,6 +279,10 @@ void FisheyeProjection::setBaseOffset(glm::vec3 offset) {
 
 void FisheyeProjection::setIgnoreAspectRatio(bool state) {
     _ignoreAspectRatio = state;
+}
+
+void FisheyeProjection::setKeepAspectRatio(bool state) {
+    _keepAspectRatio = state;
 }
 
 void FisheyeProjection::initViewports() {

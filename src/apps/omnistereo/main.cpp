@@ -446,7 +446,7 @@ void postDrawFun() {
     Engine::instance().terminate();
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
 
     box = std::make_unique<utils::Box>(0.5f, utils::Box::TextureMappingMode::Regular);

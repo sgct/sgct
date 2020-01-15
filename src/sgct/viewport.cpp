@@ -52,9 +52,6 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.correctionMeshTexture) {
         _meshFilename = *viewport.correctionMeshTexture;
     }
-    if (viewport.meshHint) {
-        _meshHint = *viewport.meshHint;
-    }
     if (viewport.isTracked) {
         _isTracked = *viewport.isTracked;
     }
@@ -147,18 +144,6 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     if (proj.quality) {
         fishProj->setCubemapResolution(*proj.quality);
     }
-    if (proj.method) {
-        FisheyeProjection::FisheyeMethod meth = [](config::FisheyeProjection::Method m) {
-            switch (m) {
-                case config::FisheyeProjection::Method::FourFace:
-                    return FisheyeProjection::FisheyeMethod::FourFaceCube;
-                case config::FisheyeProjection::Method::FiveFace:
-                    return FisheyeProjection::FisheyeMethod::FiveFaceCube;
-                default: throw std::logic_error("Unhandled case label");
-            }
-        }(*proj.method);
-        fishProj->setRenderingMethod(meth);
-    }
     if (proj.interpolation) {
         NonLinearProjection::InterpolationMode interp =
             [](config::FisheyeProjection::Interpolation i) {
@@ -187,6 +172,9 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     }
     if (proj.background) {
         fishProj->setClearColor(*proj.background);
+    }
+    if (proj.keepAspectRatio) {
+        fishProj->setKeepAspectRatio(*proj.keepAspectRatio);
     }
     fishProj->setUseDepthTransformation(true);
     _nonLinearProjection = std::move(fishProj);
@@ -284,7 +272,6 @@ void Viewport::loadData() {
         _mesh.loadMesh(
             "mesh.mpcdi",
             *this,
-            parseCorrectionMeshHint("mpcdi"),
             hasBlendMaskTexture() || hasBlackLevelMaskTexture()
         );
     }
@@ -293,7 +280,6 @@ void Viewport::loadData() {
         _mesh.loadMesh(
             _meshFilename,
             *this,
-            parseCorrectionMeshHint(_meshHint),
             hasBlendMaskTexture() || hasBlackLevelMaskTexture()
         );
     }

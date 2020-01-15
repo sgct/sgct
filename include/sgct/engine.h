@@ -68,13 +68,9 @@ public:
         /// is initialized.
         std::function<void()> preWindow;
 
-        /// This function is called directly after all SGCT windows are created. This
-        // enables the user to create additional OpenGL context for multithreaded OpenGL.
-        std::function<void(GLFWwindow*)> contextCreation;
-
         /// This function is called once before the starting the render loop and after
         /// creation of the OpenGL context.
-        std::function<void()> initOpenGL;
+        std::function<void(GLFWwindow*)> initOpenGL;
 
         /// This function is called before the synchronization stage
         std::function<void()> preSync;
@@ -122,7 +118,6 @@ public:
         std::function<void(Key, Modifier, Action, int)> keyboard;
 
         /// All windows are connected to this callback.
-        /// @TODO (abock, 2019-12-02) Check if we really want to keep/need this
         std::function<void(unsigned int, int)> character;
 
         /// This function sets the mouse button callback (GLFW wrapper) for all windows
@@ -320,8 +315,7 @@ private:
         const Viewport& viewport, Frustum::Mode mode);
 
     const std::function<void()> _preWindowFn;
-    const std::function<void(GLFWwindow*)> _contextCreationFn;
-    const std::function<void()> _initOpenGLFn;
+    const std::function<void(GLFWwindow*)> _initOpenGLFn;
     const std::function<void()> _preSyncFn;
     const std::function<void()> _postSyncPreDrawFn;
     const std::function<void(RenderData)> _drawFn;

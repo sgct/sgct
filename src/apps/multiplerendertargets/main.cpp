@@ -126,7 +126,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
     prg.bind();

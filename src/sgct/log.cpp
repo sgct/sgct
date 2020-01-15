@@ -35,7 +35,7 @@ Log::Log() {
     _parseBuffer.resize(128);
 }
 
-void Log::printv(const char* fmt, va_list ap) {
+void Log::printv(Level level, const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
@@ -68,7 +68,7 @@ void Log::printv(const char* fmt, va_list ap) {
         }
 
         if (_messageCallback) {
-            _messageCallback(combinedBuffer.data());
+            _messageCallback(level, combinedBuffer.data());
         }
     }
     else {
@@ -77,7 +77,7 @@ void Log::printv(const char* fmt, va_list ap) {
         }
 
         if (_messageCallback) {
-            _messageCallback(_parseBuffer.data());
+            _messageCallback(level, _parseBuffer.data());
         }
     }
 }
@@ -86,7 +86,7 @@ void Log::Debug(const char* fmt, ...) {
     if (instance()._level <= Level::Debug) {
         va_list ap;
         va_start(ap, fmt);
-        instance().printv(fmt, ap);
+        instance().printv(Level::Debug, fmt, ap);
         va_end(ap);
     }
 }
@@ -95,7 +95,7 @@ void Log::Info(const char* fmt, ...) {
     if (instance()._level <= Level::Info) {
         va_list ap;
         va_start(ap, fmt);
-        instance().printv(fmt, ap);
+        instance().printv(Level::Info, fmt, ap);
         va_end(ap);
     }
 }
@@ -104,7 +104,7 @@ void Log::Warning(const char* fmt, ...) {
     if (instance()._level <= Level::Warning) {
         va_list ap;
         va_start(ap, fmt);
-        instance().printv(fmt, ap);
+        instance().printv(Level::Warning, fmt, ap);
         va_end(ap);
     }
 }
@@ -112,7 +112,7 @@ void Log::Warning(const char* fmt, ...) {
 void Log::Error(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    instance().printv(fmt, ap);
+    instance().printv(Level::Error, fmt, ap);
     va_end(ap);
 }
 
@@ -128,7 +128,7 @@ void Log::setLogToConsole(bool state) {
     _logToConsole = state;
 }
 
-void Log::setLogCallback(std::function<void(const char*)> fn) {
+void Log::setLogCallback(std::function<void(Level, const char*)> fn) {
     _messageCallback = std::move(fn);
 }
 

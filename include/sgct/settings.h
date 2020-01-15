@@ -97,12 +97,6 @@ public:
     void setExportWarpingMeshes(bool state);
 
     /**
-     * Set if geometry should try to adapt after framebuffer dimensions. This is valid for
-     * multi-viewport renderings like fisheye projections.
-     */
-    void setTryKeepAspectRatio(bool state);
-    
-    /**
      * Get the capture/screenshot path.
      *
      * \param cpi index to which path to get (Mono = default, Left or Right)
@@ -129,9 +123,6 @@ public:
      * masks and warping.
      */
     bool captureFromBackBuffer() const;
-    
-    /// Get if aspect ratio is taken into acount when generation some display geometries.
-    bool tryKeepAspectRatio() const;
     
     /// Get if warping meshes should be exported as obj-files.
     bool exportWarpingMeshes() const;
@@ -172,7 +163,6 @@ private:
     bool _useNormalTexture = false;
     bool _usePositionTexture = false;
     bool _captureBackBuffer = false;
-    bool _tryKeepAspectRatio = true;
     bool _exportWarpingMeshes = false;
 
     struct {
@@ -181,7 +171,7 @@ private:
         std::string right = "SGCT";
     } _capturePath;
 
-    BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float16Bit;
+    BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float32Bit;
 };
 
 } // namespace sgct

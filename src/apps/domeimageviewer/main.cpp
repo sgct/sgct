@@ -271,7 +271,23 @@ void postSyncPreDrawFun() {
     Engine::instance().setStatsGraphVisibility(stats.value());
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow* win) {
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+    sharedWindow = win;
+    hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
+
+    if (!hiddenWindow) {
+        Log::Info("Failed to create loader context");
+    }
+
+    // restore to normal
+    glfwMakeContextCurrent(sharedWindow);
+
+    if (Engine::instance().isMaster()) {
+        loadThread = std::make_unique<std::thread>(threadWorker);
+    }
+
     dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
 
     // Set up backface culling
@@ -354,24 +370,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
             break;
         default:
             break;
-    }
-}
-
-void contextCreationCallback(GLFWwindow* win) {
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    
-    sharedWindow = win;
-    hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", nullptr, sharedWindow);
-     
-    if (!hiddenWindow) {
-        Log::Info("Failed to create loader context");
-    }
-    
-    // restore to normal
-    glfwMakeContextCurrent(sharedWindow);
-    
-    if (Engine::instance().isMaster()) {
-        loadThread = std::make_unique<std::thread>(threadWorker);
     }
 }
 
@@ -473,7 +471,6 @@ int main(int argc, char* argv[]) {
     callbacks.postSyncPreDraw = postSyncPreDrawFun;
     callbacks.cleanUp = cleanUpFun;
     callbacks.keyboard = keyCallback;
-    callbacks.contextCreation = contextCreationCallback;
     callbacks.drop = dropCallback;
     callbacks.dataTransferDecode = dataTransferDecoder;
     callbacks.dataTransferStatus = dataTransferStatus;

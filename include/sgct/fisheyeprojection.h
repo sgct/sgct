@@ -57,13 +57,6 @@ public:
     void setFOV(float angle);
 
     /**
-     * Set the method used for rendering the fisheye projection.
-     *
-     * \param method the selected method
-     */
-    void setRenderingMethod(FisheyeMethod method);
-
-    /**
      * Set the fisheye crop values. Theese values are used when rendering content for a
      * single projector dome. The elumenati geodome has usually a 4:3 SXGA+ (1400x1050)
      * projector and the fisheye is cropped 25% (350 pixels) at the top.
@@ -90,6 +83,8 @@ public:
      */
     void setIgnoreAspectRatio(bool state);
 
+    void setKeepAspectRatio(bool state);
+
 private:
     void initViewports() override;
     void initShaders() override;
@@ -108,7 +103,8 @@ private:
 
     bool _isOffAxis = false;
     bool _ignoreAspectRatio = false;
-        
+    bool _keepAspectRatio = true;
+
     glm::vec3 _offset = glm::vec3(0.f);
     glm::vec3 _baseOffset = glm::vec3(0.f);
     glm::vec3 _totalOffset = _baseOffset + _offset;

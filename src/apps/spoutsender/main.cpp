@@ -149,7 +149,7 @@ void preWindowInitFun() {
     spoutSendersCount = senderNames.size();
 }
 
-void initOGLFun() {
+void initOGLFun(GLFWwindow*) {
     // setup spout
     // Create a new SpoutData for every SGCT window
     spoutSendersData.resize(spoutSendersCount);

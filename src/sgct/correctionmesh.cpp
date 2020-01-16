@@ -204,9 +204,6 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
     
     Buffer buf;
 
-    //auto hasExtension = [&path](std::string_view v) {
-    //    return path.find(v) != std::string::npos;
-    //}; 
     std::string ext = path.substr(path.rfind('.') + 1);
 
     // find a suitable format

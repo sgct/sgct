@@ -458,7 +458,7 @@ This projection method provides the ability to share individual cube map faces o
  > This value determines the color that is used for the parts of the image that are not covered by the spherical mirror image.  The alpha component of this color has to be provided even if the final render target does not contain an alpha channel.  All attributes `r`, `g`, `b`, and `a` must be defined and be between 0 and 1.  The default color is a dark gray (0.3, 0.3, 0.3, 1.0).
 
 `Channels` \[ 0 - 1 \]
-> Determines for the "cubemap" `mapping` type, which cubemap faces should be rendered and shared via spout.  The available boolean attributes are `Right`, `zLeft`, `Bottom`, `Top`, `Left`, `zRight`.  By default all 6 cubemap faces are enabled.
+> Determines for the "cubemap" `mapping` type, which cubemap faces should be rendered and shared via spout.  The available boolean attributes that can be used to toggle the individual cube faces are `Right`, `zLeft`, `Bottom`, `Top`, `Left`, `zRight`.  By default all 6 cubemap faces are enabled.
 
 `Orientation` \[ 0 - 1 \]
  > Describes a fixed orientation for the cube, whose faces are either shared or used to reproject into the fisheye or equirectangular image.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
@@ -579,13 +579,32 @@ This node describes a single viewport inside a [Window](#window).  Every window 
  > The file referenced in this attribute is used as a postprocessing step for this viewport.  The image should be a grayscale image, where each pixel will be multiplied with the resulting image from the application in order to perform a black level adaptation.  If a pixel is completely white, the resulting pixel is the same as the applications output, if a pixel is black, the resulting pixel will be back, if it is 50% grey, the resolution pixel will be half brightness.  The default is that no black level mask is applied.
 
 `mesh` *optional* \[ string \]
- > Determines a warping mesh file that is used to warp the resulting image.  The application's rendering will always be rendered into a rectangular framebuffer, which is then mapped as a texture to the geometry provided by this file.  This makes it possible to create non-linear or curved output geometries from a regular projection by providing the proper geometry of the surface that you want to project on.
+ > Determines a warping mesh file that is used to warp the resulting image.  The application's rendering will always be rendered into a rectangular framebuffer, which is then mapped as a texture to the geometry provided by this file.  This makes it possible to create non-linear or curved output geometries from a regular projection by providing the proper geometry of the surface that you want to project on.  The reader for the warping mesh is determined by the file extension of the file that is provided in this attribute.  The default is that no warping mesh is applied.
+ > Supported geometry mesh formats:
+ > SCISS Mesh (`sgc` extension)
+ > > A mesh format that was introduced by SCISS for the Uniview software.  SCISS created two versions for this file format, one for 2D warping meshes and a second for 3D cubemap lookups.  SGCT only supports the first version of the file format, however.
+ > 
+ > Scalable Mesh (`ol` extension)
+ > > A mesh format created by [scalable](http://www.scalabledisplay.com/products/scalable-sdk/).
+ > 
+ > Dome Projection (`csv` extension)
+ > 
+ > Paul Bourke Mesh (`data` extension)
+ > > A file format created by [Paul Bourke](http://paulbourke.net/dataformats/meshwarp/),  his webpage also contains more information abuot the individual steps of the warping.
+ > 
+ > Waveform OBJ (`obj` extension)
+ > > The well known textual mesh format.
+ > 
+ > MPCDI (`mpcdi` extension)
+ > > A subset of the VESA standard.
+ > 
+ > SimCAD (`simcad` extension)
 
 `tracked` *optional* \[ boolean \]
- > Determines whether the field-of-view frustum used for this viewport should be tracking changes to the window configuration.  If this value is set to `false`, 
+ > Determines whether the field-of-view frustum used for this viewport should be tracking changes to the window configuration.  If this value is set to `false`, the field of view set in the beginning will stay unchanged.
 
 `eye` *optional* \[ center, left, or right \]
- > Forces this viewport to be rendered with a specific eye, using the corresponding [User](#user)s eye separation to compute the correct frustum.
+ > Forces this viewport to be rendered with a specific eye, using the corresponding [User](#user)s eye separation to compute the correct frustum.  If this value is not set, the viewport will be rendered according to the parent [Window](#window)'s `stereo` attribute.
 
 ### Children
 `Pos` \[ 0 - 1 \]
@@ -627,8 +646,8 @@ This XML specifies a single window that is used to render content into.  There c
 > The default value for this attribute is `8`.
 
 `fullscreen` *optional* \[ boolean \]
-> Determines whether the window should be created as an exclusive fullscreen window.  The `Size` of this window will be used to set the screen resolution if this value is `true`.  See also the `monitor` attribute to determine which monitor should be used as the target for the fullscreen window.  The default value is `false`
-
+> Determines whether the window should be created in an exclusive fullscreen mode.  The `Size` of this window will be used to set the screen resolution if this value is `true`.  See also the `monitor` attribute to determine which monitor should be used as the target for the fullscreen window.  The default value is `false`.
+o
 `floating` *optional* \[ boolean \]
 > Indicates whether the window is floating, meaning that it is rendered by the operating system always on top of other windows.  The default value is `false`.
 
@@ -639,10 +658,10 @@ This XML specifies a single window that is used to render content into.  There c
 > Determines whether this window should be visible on screen or used as an offscreen rendering target.  If a window is hidden, you should also set `alwaysRender` to `true`, or otherwise the rendering might not occur as expected.  The default for this attribute is `false`.
 
 `dbuffered` *optional* \[ boolean \]
-> Sets the buffering to single buffering (if `false`) or double buffering or quad buffering (if `true`).  The default is `true`.
+> Sets the buffering to single buffering (if `false`) or double buffering or quad buffering for stereo (if `true`).  The default is `true`.
 
 `msaa` *optional* \[ integer >= 0 \]
-> Regulates whether multisample antialiasing is used for the window and how many subsamples should be used for the antialiasing.  If the value is set to `0`, MSAA is disabled.  MSAA operates by rendering the scene at a higher resolution using multiple samples per pixel and combining these samples to reduce aliasing.  It produces good-looking results, but it increases the rendering time for the scene.  The maximum number of samples depends on the GPU that is used to start the application, but is usually around 32.  The default is `0`, disabling MSAA.
+> Determines whether multisample antialiasing is used for the window and how many subsamples should be used for the antialiasing.  If the value is set to `0`, MSAA is disabled.  MSAA operates by rendering the scene at a higher resolution using multiple samples per pixel and combining these samples to reduce aliasing.  It produces good-looking results, but it increases the rendering time for the scene.  The maximum number of samples depends on the GPU that is used to start the application, but is usually around 32.  The default is `0`, disabling MSAA.
 
 `hasAlpha` *optional* \[ boolean \]
 > Determines whether screenshots created from this window should include an alpha channel or not.  If this value is `false`, the resulting image type is `RGB`, otherwise `RGBA`.  The default is `false`.
@@ -660,13 +679,13 @@ This XML specifies a single window that is used to render content into.  There c
 > Determines whether the `draw` callback should be called for viewports in this window.  The default value is `true`.
 
 `blitPreviousWindow` *optional* \[ boolean \]
-> If this value is set to `true`, the contents of the previous window are blitted (=copied) into this window before calling its own rendering.  A common use-case for this are GUI windows that want to show the 3D rendering but not take the performance hit of rendering an expensive scene twice.  Instead of rendering the 3D scene, a GUI window would set `draw3D` to `false` and this attribute to `true`, meaning that the contents of the previous window are copied and then the 2D UI will be rendered on top of the blitted content.  The previous window is the one that is specified just before this window in the XML file itself.  This also means that the first window in the configuration file can not has this value set to `true`.  The default value is `false`.
+> If this value is set to `true`, the contents of the previous window are blitted into this window before calling its own rendering.  A common use-case for this are GUI windows that want to show the 3D rendering but not take the performance impact of rendering an expensive scene twice.  Instead of rendering the 3D scene, a GUI window would set `draw3D` to `false` and this attribute to `true`, meaning that the contents of the previous window are copied and then the 2D UI will be rendered on top of the blitted content.  The previous window is the one that is specified just before this window in the XML file itself.  This also means that the first window in the configuration file can not has this value set to `true`.  The default value is `false`.
 
 `monitor` *optional* \[ integer >= -1 \]
-> Determines which monitor should be used for the exclusive fullscreen in case `fullscreen` is set to `true`.  Monitors in the system are zero-based and range between 0 and the number of monitors - 1.  For this attribute, the special value `-1` can be used to denote that the primary monitor should be used, regardless of its index.  The default value is `-1`.
+> Determines which monitor should be used for the exclusive fullscreen in case `fullscreen` is set to `true`.  The list of monitors on the system are zero-based and range between 0 and the number of monitors - 1.  For this attribute, the special value `-1` can be used to denote that the primary monitor as defined by the operating system should be used, regardless of its index.  The default value is `-1`.
 
 `mpcdi` *optional* \[ string \]
-> If this value is set to a path that contains an MPCDI file that describes camera parameters and warping and blending masks, these values are used to initialize the contents of this window instead of providing explicit viewport information.  The default value is that no MPCDI is used.
+> If this value is set to a path that contains an MPCDI file that describes camera parameters and warping and blending masks, these values are used to initialize the contents of this window instead of providing explicit viewport information.  If this value is used, there cannot be any [Viewport](#viewport)s defined in this window as as the `mpcdi` file takes care of this.  The default value is that no MPCDI is used.
 
 ### Children
 `Stereo` \[ 0 - 1 \] 
@@ -674,14 +693,14 @@ This XML specifies a single window that is used to render content into.  There c
 > 
 > - `none`:  No stereo rendering is performed.  This is the same as if this entire node was not specified.
 > - `active`:  Using active stereo using quad buffering.  This is only a valid option for systems that support quad buffering.
-> - `checkerboard`:  Using a checkerboard pattern for stereoscopy.
+> - `checkerboard`:  Using a checkerboard pattern for stereoscopy in which left and right eyes are rendered on interleaved checkerboard patterns.
 > - `checkerboard_inverted`:  Using the same pattern as `checkerboard`, but with the left and right eyes inverted
-> - `anaglyph_red_cyan`:  Applying color filters to the left and right eyes such that red-cyan anaglyph glasses can be used to view the stereo content
-> - `anaglyph_amber_blue`:  Applying color filters to the left and right eyes such that amber-blue anaglyph glasses can be used to view the stereo content
+> - `anaglyph_red_cyan`:  Applying color filters to the rendering for the left and right eyes such that red-cyan anaglyph glasses can be used to view the stereo content.
+> - `anaglyph_amber_blue`:  Applying color filters to the rendering for the left and right eyes such that amber-blue anaglyph glasses can be used to view the stereo content.
 > - `anaglyph_wimmer`:  ¯\\_\(ツ\)_/¯
 > - `vertical_interlaced`:  A stereo format in which the left and right eye images are interlaced vertically, meaning that each row of the final image is either left or right, switching each row.
 > - `vertical_interlaced_inverted`:  The same as `vertical_interlaced`, but with the left and right eye flipped.
-> - `dummy`:  A dummy stereo mode to test streoscopic rendering without needing extra equipment.  In this stereo mode, the left and the right eye images are rendered on top of each other without any other processing.
+> - `dummy`:  A dummy stereo mode to test streoscopic rendering without needing extra equipment.  In this stereo mode, the left and the right eye images are rendered on top of each other without any other processing.  This option is available to verify that stereo rendering is working for a specific application.
 > - `side_by_side`:  The resolution of the window is split into a left half and a right half, with each eye being rendered into its half.  This is a common stereo format for 3D TVs.
 > - `side_by_side_inverted`:  The same as `side_by_side`, but the left and right images are flipped.
 > - `top_bottom`:  The same as `side_by_side`, but instead of separating the window horizontally, the window is split vertically, with the left eye being rendered in the top half of the window and the right image being rendered in the bottom half.
@@ -690,10 +709,10 @@ This XML specifies a single window that is used to render content into.  There c
 > The default value is `none`.
 
 `Pos` \[ 0 - 1 \]
-> Sets the position of the window on the overall desktop space provided by the operating system.  This node must have `x` and `y` floating point attributes that specify the x-y location of the window.  Please note that these values also can be negative on some operating systems.  On Windows, for example, the top left corner of the primary monitor is (0,0) in this coordinate system, but there can be additional monitors to the left or the top of the primary monitor, which would require negative numbers.  The default value is `x=0` and `y=0`.
+> Sets the position of the window on the overall desktop space provided by the operating system.  This node must have `x` and `y` floating point attributes that specify the x-y location of the window.  Please note that these values also can be negative on some operating systems.  On Windows, for example, the top left corner of the primary monitor is (0,0) in this coordinate system, but there can be additional monitors to the left or the top of the primary monitor, which would require negative numbers.  The default values are `x=0` and `y=0`.
 
 `Size` \[ 0 - 1 \]
-> Sets the size of the window in pixels.  This node must have `x` and `y` floating point attributes that determine that size of the window.  The default value is `x=640` and `y=480`.
+> Sets the size of the window in pixels.  This node must have `x` and `y` floating point attributes that determine that size of the window.  The default values are `x=640` and `y=480`.
 
 `Res` \[ 0 - 1 \]
 > Sets the size of the internal framebuffer that is used to render the contents of the window. In a lot of cases, this resolution is the same resolution as the size of the window, but it is a useful tool when creating images that are larger than a window would be support on an operating system.  Some operating systems restrict windows to be no larger than what can fit on a specific monitor.  This node must have `x` and `y` floating point attributes that determine that size of the window.  By default the resolution of the framebuffer is equal to the size of the window.

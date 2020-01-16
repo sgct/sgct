@@ -1,3 +1,5 @@
+# Features
+
   * Multi-window and multi-viewport support
   * Frame synchronization, swap buffer synchronization (hardware) and application data synchronization.
   * Fisheye projection

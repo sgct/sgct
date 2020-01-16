@@ -1,5 +1,5 @@
 # Errors
-SGCT uses unique error codes in the case when an unrecoverable error occurs that cannot be dealt with internally.  This page contains additional information about each error code and how to mitigate such an error.  The basic structure of the codes are that each block of 1000 numbers belongs to a different subcomponent of SGCT such that the first number in the error code identifies which component the error code came from (the component will also be named in the log message that is output).  You can also find a listing of all error codes in the `error.h`.
+SGCT uses unique error codes in the case when an unrecoverable error occurs that cannot be dealt with internally.  This page contains additional information about each error code and how to mitigate such an error if they occur.  The basic structure of the codes are that each block of 1000 numbers belongs to a different component of SGCT.  Additionally, individual components can use additional grouping as they see fit, but in general the first number in the error code identifies which component the error code came from (the component will also be named in the log message that is output).  You can also find a listing of all error codes in the `error.h`.
 
 ## 1000s: Configuration
 ### 1000

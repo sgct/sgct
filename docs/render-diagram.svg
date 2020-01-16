@@ -61,7 +61,7 @@
        inkscape:isstock="true">
       <path
          id="path5335"
-         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#e7e7e7;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
          transform="scale(-0.6)"
          inkscape:connector-curvature="0" />
@@ -168,7 +168,7 @@
       <path
          inkscape:connector-curvature="0"
          id="path5335-4"
-         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#e7e7e7;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
          transform="scale(-0.6)" />
     </marker>
@@ -183,7 +183,7 @@
       <path
          inkscape:connector-curvature="0"
          id="path5335-4-1"
-         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#e7e7e7;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
          transform="scale(-0.6)" />
     </marker>
@@ -195,13 +195,13 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="473.14133"
-     inkscape:cy="592.0847"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="28.640087"
+     inkscape:cy="274.5508"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="2128"
+     inkscape:window-width="2854"
      inkscape:window-height="1925"
      inkscape:window-x="3"
      inkscape:window-y="146"
@@ -218,7 +218,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -318,91 +318,91 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="51.693817"
-       y="34.587921"
+       x="51.875492"
+       y="34.12854"
        id="text5084"><tspan
          sodipodi:role="line"
          id="tspan5082"
-         x="51.693817"
-         y="34.587921"
-         style="stroke-width:0.26458332">Pre Window</tspan></text>
+         x="51.875492"
+         y="34.12854"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Pre Window</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="48.827801"
-       y="49.438328"
+       x="48.728397"
+       y="49.088142"
        id="text5098"><tspan
          sodipodi:role="line"
-         x="48.827801"
-         y="49.438328"
-         style="stroke-width:0.26458332"
+         x="48.728397"
+         y="49.088142"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332"
          id="tspan5100">Init OpenGL</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="58.320145"
-       y="91.493187"
+       x="58.409977"
+       y="91.15979"
        id="text5108"><tspan
          sodipodi:role="line"
          id="tspan5106"
-         x="58.320145"
-         y="91.493187"
-         style="stroke-width:0.26458332">Pre Sync</tspan></text>
+         x="58.409977"
+         y="91.15979"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Pre Sync</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="26.310356"
-       y="123.23656"
+       x="26.492029"
+       y="122.90317"
        id="text5112"><tspan
          sodipodi:role="line"
          id="tspan5110"
-         x="26.310356"
-         y="123.23656"
-         style="stroke-width:0.26458332">Post Sync Pre Draw</tspan></text>
+         x="26.492029"
+         y="122.90317"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Post Sync Pre Draw</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="70.810791"
-       y="155.95889"
+       x="70.967346"
+       y="155.48888"
        id="text5116"><tspan
          sodipodi:role="line"
          id="tspan5114"
-         x="70.810791"
-         y="155.95889"
-         style="stroke-width:0.26458332">Draw</tspan></text>
+         x="70.967346"
+         y="155.48888"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Draw</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="61.498367"
-       y="171.83058"
+       x="61.526066"
+       y="171.6577"
        id="text5120"><tspan
          sodipodi:role="line"
          id="tspan5118"
-         x="61.498367"
-         y="171.83058"
-         style="stroke-width:0.26458332">Draw 2D</tspan></text>
+         x="61.526066"
+         y="171.6577"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Draw 2D</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="54.866753"
-       y="187.70227"
+       x="55.048424"
+       y="187.23225"
        id="text5124"><tspan
          sodipodi:role="line"
          id="tspan5122"
-         x="54.866753"
-         y="187.70227"
-         style="stroke-width:0.26458332">Post Draw</tspan></text>
+         x="55.048424"
+         y="187.23225"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Post Draw</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="60.549644"
-       y="285.7392"
+       x="60.552334"
+       y="285.3017"
        id="text5128"><tspan
          sodipodi:role="line"
          id="tspan5126"
-         x="60.549644"
-         y="285.7392"
-         style="stroke-width:0.26458332">Cleanup</tspan></text>
+         x="60.552334"
+         y="285.3017"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Cleanup</tspan></text>
     <rect
        style="fill:#84e7ff;fill-opacity:1;stroke:#000000;stroke-width:0.47201732;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect5080-4-9-4-5-85"
@@ -414,14 +414,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="229.66548"
-       y="64.113052"
+       x="230.121"
+       y="63.566315"
        id="text5132"><tspan
          sodipodi:role="line"
          id="tspan5130"
-         x="229.66548"
-         y="64.113052"
-         style="stroke-width:0.26458332">Encode</tspan></text>
+         x="230.121"
+         y="63.566315"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Encode</tspan></text>
     <rect
        style="fill:#84e7ff;fill-opacity:1;stroke:#000000;stroke-width:0.47201732;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect5080-4-9-4-5-85-6"
@@ -433,14 +433,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="229.80836"
-       y="145.8708"
+       x="229.94014"
+       y="145.32407"
        id="text5136"><tspan
          sodipodi:role="line"
          id="tspan5134"
-         x="229.80836"
-         y="145.8708"
-         style="stroke-width:0.26458332">Decode</tspan></text>
+         x="229.94014"
+         y="145.32407"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Decode</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e7e7e7;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
        d="M 83.905015,56.457423 V 78.640796"
@@ -449,36 +449,36 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="71.197083"
-       y="107.36488"
+       x="71.086205"
+       y="107.03148"
        id="text5108-1"><tspan
          sodipodi:role="line"
          id="tspan5106-0"
-         x="71.197083"
-         y="107.36488"
-         style="stroke-width:0.26458332">Sync</tspan></text>
+         x="71.086205"
+         y="107.03148"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Sync</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="51.625023"
-       y="203.8703"
+       x="51.929749"
+       y="203.32356"
        id="text5124-9"><tspan
          sodipodi:role="line"
          id="tspan5122-9"
-         x="51.625023"
-         y="203.8703"
-         style="stroke-width:0.26458332">Frame lock</tspan></text>
+         x="51.929749"
+         y="203.32356"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Frame lock</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="48.870129"
-       y="219.74199"
+       x="49.090126"
+       y="219.19525"
        id="text5124-9-4"><tspan
          sodipodi:role="line"
          id="tspan5122-9-3"
-         x="48.870129"
-         y="219.74199"
-         style="stroke-width:0.26458332">Poll Events</tspan></text>
+         x="49.090126"
+         y="219.19525"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Poll Events</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e7e7e7;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Lend-0)"
        d="m 83.905007,249.27481 v 22.18337"
@@ -507,7 +507,7 @@
          id="tspan5106-3"
          x="75.632713"
          y="166.57031"
-         style="font-size:7.76111126px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Server Node</tspan></text>
+         style="font-size:7.76111126px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332;-inkscape-font-specification:'Courier New';font-family:'Courier New';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">Server Node</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#f3f3f3;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -519,7 +519,7 @@
          id="tspan5106-3-0"
          x="186.53484"
          y="32.333611"
-         style="font-size:7.76111126px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Client nodes</tspan></text>
+         style="font-size:7.76111126px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332;-inkscape-font-specification:'Courier New';font-family:'Courier New';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal">Client nodes</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e7e7e7;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
        d="M 20.782892,232.193 C -120.2945,232.193 -120.44608,88.676765 20.41605,88.676765"
@@ -529,15 +529,15 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#f3f3f3;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="-187.18796"
+       x="-186.94368"
        y="-87.3442"
        id="text7550"
        transform="rotate(-90)"><tspan
          sodipodi:role="line"
          id="tspan7548"
-         x="-187.18796"
+         x="-186.94368"
          y="-87.3442"
-         style="font-size:5.64444447px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Loop every frame</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;font-family:'Courier New';-inkscape-font-specification:'Courier New';fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Loop every frame</tspan></text>
     <rect
        style="fill:#e5ffee;fill-opacity:1;stroke:#000000;stroke-width:0.55206168;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect5080-4-9-4-5-4"
@@ -549,14 +549,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="42.720058"
-       y="140.44704"
+       x="42.878624"
+       y="139.83681"
        id="text5108-1-0"><tspan
          sodipodi:role="line"
          id="tspan5106-0-2"
-         x="42.720058"
-         y="140.44704"
-         style="stroke-width:0.26458332">Clear Buffers</tspan></text>
+         x="42.878624"
+         y="139.83681"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Clear Buffers</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e7e7e7;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend-4)"
        d="m 20.90448,169.78921 c -100.463854,0 -101.078448,-33.0527 -0.36684,-33.0527"
@@ -566,15 +566,15 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#f3f3f3;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="-162.13058"
+       x="-162.86313"
        y="-56.415813"
        id="text7550-7"
        transform="rotate(-90)"><tspan
          sodipodi:role="line"
          id="tspan7548-7"
-         x="-162.13058"
+         x="-162.86313"
          y="-56.415813"
-         style="font-size:5.64444447px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Window</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;font-family:'Courier New';-inkscape-font-specification:'Courier New';fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332">Window</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#e7e7e7;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Mend-4-0)"
        d="m 20.90448,169.78921 c -31.127363,0 -30.7611177,-33.0527 -0.366839,-33.0527"
@@ -584,14 +584,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#f3f3f3;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="-151.94051"
+       x="-152.55817"
        y="-4.543952"
        id="text7550-7-5"
        transform="rotate(-90)"><tspan
          sodipodi:role="line"
-         x="-151.94051"
+         x="-152.55817"
          y="-4.543952"
-         style="font-size:5.64444447px;line-height:0;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:0;font-family:'Courier New';-inkscape-font-specification:'Courier New';text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#f3f3f3;fill-opacity:1;stroke-width:0.26458332"
          id="tspan11335">Viewport</tspan></text>
     <rect
        style="fill:#e5ffee;fill-opacity:1;stroke:#000000;stroke-width:0.55206168;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -604,13 +604,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Source Code Pro';-inkscape-font-specification:'Source Code Pro';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="45.882397"
-       y="234.65588"
+       x="45.901684"
+       y="234.15485"
        id="text5124-9-4-0"><tspan
          sodipodi:role="line"
          id="tspan5122-9-3-0"
-         x="45.882397"
-         y="234.65588"
-         style="stroke-width:0.26458332">Swap Buffers</tspan></text>
+         x="45.901684"
+         y="234.15485"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Courier New';-inkscape-font-specification:'Courier New';stroke-width:0.26458332">Swap Buffers</tspan></text>
   </g>
 </svg>

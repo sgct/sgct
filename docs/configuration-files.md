@@ -2,7 +2,7 @@
 This page contains documentation and samples of various configuration files.
 
 ## General layout
-The format for the SGCT configuration files is XML with a single [Cluster](#Cluster) tag that can contain 1 or more [Node](#Node) tags, a [User](#User) tag, an optional [Settings](#Settings) tag, an optional [Capture](#Capture) tag, and an optional [Tracker](#Tracker) tag.  Each of the tags is described on this page further below.
+The format for the SGCT configuration files is XML with a single [Cluster](#cluster) tag that can contain 1 or more [Node](#node) tags, a [User](#user) tag, an optional [Settings](#settings) tag, an optional [Capture](#capture) tag, and an optional [Tracker](#tracker) tag.  Each of the tags is described on this page further below.
 
 ### Examples
 This section contains two almost minimal examples showing on a small variety of configuration options.  Check the `config` folder in SGCT for more examples.

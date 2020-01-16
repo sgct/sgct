@@ -1,10 +1,10 @@
-# Configuration Files
 This page contains documentation and samples of various configuration files.
 
-## General layout
+# General layout
 The format for the SGCT configuration files is XML with a single [Cluster](#cluster) tag that can contain 1 or more [Node](#node) tags, a [User](#user) tag, an optional [Settings](#settings) tag, an optional [Capture](#capture) tag, and an optional [Tracker](#tracker) tag.  Each of the tags is described on this page further below.
 
-### Examples
+
+## Examples
 This section contains two almost minimal examples showing on a small variety of configuration options.  Check the `config` folder in SGCT for more examples.
 
 Here is a minimal example of a single node, single window configuration.  This file creates a single node on `localhost` with a single window that has a size of 1280 by 720 pixels with a camera of 80 degrees horizontal field-of-view and approximately 50.5 degrees vertical field of view.
@@ -29,7 +29,6 @@ Here is a minimal example of a single node, single window configuration.  This f
   </User>
 </Cluster>
 ```
-
 The following example is a configuration that creates two nodes, both running on the local machine, the difference being that their field-of-views are offset.
 ```xml
 <?xml version="1.0" ?>
@@ -92,13 +91,14 @@ The final example is a fisheye rendering which demonstrates a more sophisticated
 ```
 
 
-## Element types
+# Element types
 The rest of the documentation contains information about the different types of XML nodes that can be added to the configuration files.  Some node types and attributes are maked as *optional* which means that they do not have to be present and their default behavior depends on the particular option and is usually mentioned in the description.
 
-### Cluster
+
+## Cluster
 The cluster XML node has attributes that determine the behavior of the overall clusters.  This node is required to be present in the XML file and has to be the root of the document.
 
-#### Attributes
+### Attributes
 `masterAddress` \[ string \]
  > Contains the address of the node that acts as the server for this cluster.  This means that one of the `Node` elements described in this configuration file *has* to have an address that corresponds to this `masterAddress`.  This value can be either an IP address or a DNS name, which will be resolved at application startup.
 
@@ -114,18 +114,19 @@ The cluster XML node has attributes that determine the behavior of the overall c
 `firmSync` *optional* \[ boolean \]
  > Determines whether the server should frame lock and wait for all client nodes or not.  The default for this is `false`.
 
-#### Children
- - [`Capture`](###Capture) \[ 0-1 \] 
- - [`Node`](###Node) \[ 1 - inf \]
- - [`Scene`](###Scene) \[ 0-1 \]
- - [`Settings`](###Settings) \[ 0-1 \]
- - [`Tracker`](###Tracker) \[ 0 - inf \]
- - [`User`](###User) \[ 1 - inf \]
+### Children
+ - [`Capture`](#capture) \[ 0-1 \] 
+ - [`Node`](#node) \[ 1 - inf \]
+ - [`Scene`](#scene) \[ 0-1 \]
+ - [`Settings`](#settings) \[ 0-1 \]
+ - [`Tracker`](#tracker) \[ 0 - inf \]
+ - [`User`](#user) \[ 1 - inf \]
 
-### Capture
+
+## Capture
 The capture node contains information relevant to capturing screenshots from an SGCT application. 
 
-#### Attributes
+### Attributes
 `path` *optional* \[ string \]
  > Sets the same path for `monoPath`, `leftPath`, and `rightPath`.  If any of these three are also specified, they will overwrite the value provided in this function.
 
@@ -141,10 +142,11 @@ The capture node contains information relevant to capturing screenshots from an 
 `format` *optional* \[ (png, PNG, tga, TGA, jpg, or JPG) \]
  > Sets the screenshot format that should be used for the screenshots taken of the application.  The default value is `PNG`.
 
-### Node
+
+## Node
 This XML node defines a single computing node that is contained in the described cluster.  In general this corresponds to a single computer, but it is also possible to create multiple nodes on a local machine by using the `127.0.0.x` IP address with `x` from `0` to `255`.  It is not possible to create multiple nodes on the same *remote* computer.
 
-#### Attributes
+### Attributes
 `address` \[ string \]
  > The IP address or the DNS name of the node.  If the `address` is a DNS name, the name resolution is delegated to the operating system and might include additional network traffic to the DNS host.  If the node ought to be the local machine either `127.0.0.x` with `x` from `0` to `255`, or `localhost` can be used.
 
@@ -157,13 +159,14 @@ This XML node defines a single computing node that is contained in the described
 `swapLock` *optional* \[ boolean \]
  > Determines whether this node should be part of an Nvidia swap group and should use the swap barrier.  Please note that this feature only works on Windows and requires Nvidia Quadro cards + G-Sync synchronization cards.  For more information on swap groups, see [here](https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/Quadro_GSync_install_guide_v4.pdf).  The default value is `false`.
 
-#### Children
- - [`Window`](###Window) \[ 1 - inf \]
+### Children
+ - [`Window`](#window) \[ 1 - inf \]
 
-### Scene
+
+## Scene
 This node determines an overall orientation of the scene.  It consists of an `Offset`, an `Orientation`, and `Scale`;  all of which is included in the projection matrix that is passed to the rendering function callback of the specific application.  This node can be used to customize the rendering for a specific rendering window.  A common use-case in planetariums, for example, is to account for a tilt in the display system by providing an `Orientation` with the same pitch as the planetarium surface.  This makes it possible to reuse the same application between the planetarium dome and fixed setups without the need for special care.
 
-#### Children
+### Children
 `Offset` \[ 0 - 1 \]
  > A linear offset of the scene center.  Must define three float attributes `x`, `y`, and `z`.  The default value is `x=0`, `y=0`, `z=0`.
 
@@ -186,10 +189,11 @@ This node determines an overall orientation of the scene.  It consists of an `Of
 `Scale` \[ 0 - 1 \]
  > A scaling factor for the entire scene.  The default value is `1.0`.
 
-### Settings
+
+## Settings
 This node controls global settings that affect the overall behavior of the SGCT library that are not limited just to a single window.
 
-#### Attributes
+### Attributes
 `DepthBufferTexture` *optional* \[ boolean \]
  > If this value is set to `true` and a non-linear projection method if provided in a window, SGCT will also provide a buffer containing the re-projected depth values of the non-linear projection.  This value defaults to `false`.
 
@@ -202,24 +206,27 @@ This node controls global settings that affect the overall behavior of the SGCT 
 `Precision` *optional* \[ 16 or 32 \]
  > Determines the floating point precision for the normal and position textures if they are enabled.  Setting this value if `NormalTexture` and `PositionTexture` are disabled does not have any effect.  This value defaults to `32`.
 
-#### Children
+### Children
 `Display` \[ 0 - 1 \]
  > Contains settings specific for the global handling of display-related settings.
  > 
  > `swapInterval` *optional* \[ integer \]
  >  > Determines the swap interval for the application.  This determines the amount of V-Sync that should occur for the application.  The two most common values for this are `0` for disabling V-Sync and `1` for regular V-Sync.  The number provided determines the number of screen updates to wait before swapping the backbuffers and returning.  For example on a 60Hz monitor, `swapInterval="1"` would lead to a maximum of 60Hz frame rate, `swapInterval="2"` would lead to a maximum of 30Hz frame rate.  The default value is `0`.
+ >
  > `refreshRate` *optional* \[ integer \]
  >  > Determines the desired refresh rate for full-screen windows of this configuration.  This value is disabled for windowed mode windows.  The default value is the highest possible refresh rate.
+ > 
  > `exportWarpingMeshes` *optional* \[ boolean \]
  >  > If this value is set to `true`, any warping mesh that is loaded for a viewport will be exported as an Waveform `obj` file while processing.  This allows debugging of the warping meshes for tools that only support loading of `obj` files.  The default value is `false`.
 
-### Tracker
-#### Attributes
+
+## Tracker
+### Attributes
 `name` \[ string \]
  > The name of the tracker group.
 
-#### Children
- - [`Device`](###Device) \[ 0 - inf \]
+### Children
+ - [`Device`](#device) \[ 0 - inf \]
 
 `Offset` \[ 0 - 1 \]
  > A linear offset of the class of trackers.  Must define three float attributes `x`, `y`, and `z`.  The default value is `x=0`, `y=0`, `z=0`.
@@ -245,20 +252,22 @@ This node controls global settings that affect the overall behavior of the SGCT 
 
 `Matrix` \[ 0 - 1 \]
 > A generic transformation matrix that is applied to all trackers in this group.  This value will overwrite the value specified in `Orientation`.  The attributes used for the matrix are named `x0`, `y0`, `z0`, `w0`, `x1`, `y1`, `z1`, `w2`, `x2`, `y2`, `z2`, `w2`, `x3`, `y3`, `z3`, `w3` and are used in this order to initialize the matrix in a column-major order.  All 16 of these values have to be present in this attribute and have to be floating point values.
+> 
 > `transpose` *optional* \[ boolean \]
 >  > If this value is present and `true` the values provided are interpreted as being in row-major order, rather than column-major order.  The default is `false`, making the matrix column-major.
 
-### User
-This XML node specifies a user position and parameters.  In most cases, only a single unnamed user in necessary.  However, in more general cases, it is possible to assign `User`s to specific [Viewports](###Viewport) to provide a more finegrained control over the rendering that occurrs in that viewport.
 
-#### Attributes
+## User
+This XML node specifies a user position and parameters.  In most cases, only a single unnamed user in necessary.  However, in more general cases, it is possible to assign `User`s to specific [Viewports](#viewport) to provide a more finegrained control over the rendering that occurrs in that viewport.
+
+### Attributes
 `name` *special* \[ string \]
 > Specifies the name of this user.  Each user needs to have a unique name, but there also *has* to be exactly one user present that has an empty name which is used as the default user.
 
 `eyeSeparation` *optional* \[ float >= 0 \]
 > Determines the eye separation used for stereoscopic viewports.  If no viewports in the configuration are using stereo, this setting is ignored.
 
-#### Children
+### Children
 `Pos` \[ 0 - 1 \]
  > A linear offset of the user position.  Must define three float attributes `x`, `y`, and `z`.  The default value is `x=0`, `y=0`, `z=0`.
 
@@ -280,20 +289,24 @@ This XML node specifies a user position and parameters.  In most cases, only a s
 
 `Matrix` \[ 0 - 1 \]
 > A generic transformation matrix that is applied to the orientation of this user.  This value will overwrite the value specified in `Orientation`.  The attributes used for the matrix are named `x0`, `y0`, `z0`, `w0`, `x1`, `y1`, `z1`, `w2`, `x2`, `y2`, `z2`, `w2`, `x3`, `y3`, `z3`, `w3` and are used in this order to initialize the matrix in a column-major order.  All 16 of these values have to be present in this attribute and have to be floating point values.
+> 
 > `transpose` *optional* \[ boolean \]
 >  > If this value is present and `true` the values provided are interpreted as being in row-major order, rather than column-major order.  The default is `false`, making the matrix column-major.
 
 `Tracking` \[ 0 - 1 \]
 > Provides information about whether this user should be tracked using a VRPN-based tracker.  This child node contains two attributes with information about the tracker that this user should be associated with.
+> 
 > `tracker` \[ string \]
-> > The name of the tracker group that this user should be linked with.  This name must be a name of a [Tracker](###Tracker) that is specified in this configuration.
+> > The name of the tracker group that this user should be linked with.  This name must be a name of a [Tracker](#tracker) that is specified in this configuration.
+> 
 > `device` \[ string \]
-> > The name of the device in the tracker group that should be used to control the tracking for this user.  The specified device has to be a [Device](###Device) that was specified in the [Tracker](###Tracker) `tracker`.
+> > The name of the device in the tracker group that should be used to control the tracking for this user.  The specified device has to be a [Device](#device) that was specified in the [Tracker](#tracker) `tracker`.
 
-### Window
-This XML specifies a single window that is used to render content into.  There can be an arbitrary(*-ish*) number of windows for each node and they all will be created and initialized at start time.  Each window has at least one [Viewport](###Viewport) that specifies exactly where in the window the rendering occurs with which parameters.
 
-#### Attributes
+## Window
+This XML specifies a single window that is used to render content into.  There can be an arbitrary(*-ish*) number of windows for each node and they all will be created and initialized at start time.  Each window has at least one [Viewport](#viewport) that specifies exactly where in the window the rendering occurs with which parameters.
+
+### Attributes
 `name` *optional* \[ string \]
 > The name of the window.  This is also used as the title of the window if window decorations are enabled.  The default name for a window if this value is not specified is "SGCT Node: %i (%s)" with `%i` = the address of this node and `%s` either "server" or "client", depending on whether the current node is the server or the client in the cluster.
 
@@ -302,16 +315,17 @@ This XML specifies a single window that is used to render content into.  There c
 
 `bufferBitDepth` *optional* \[ 8, 16, 16f, 32f, 16i, 32i, 16ui, or 32ui \]
 > Sets the bit depth and format of the color texture that is used as the render backend for this entire window.  The parameters passed into this attribute are converted to the following OpenGL parameters (internal color format and data type) to the texture creation:
-> > `8`: `GL_RGBA8`, `GL_UNSIGNED_BYTE`
-> > `16`: `GL_RGBA16`, `GL_UNSIGNED_SHORT`
-> > `16f`: `GL_RGBA16F`, `GL_HALF_FLOAT`
-> > `32f`: `GL_RGBA32F`, `GL_FLOAT`
-> > `16i`: `GL_RGBA16I`, `GL_SHORT`
-> > `32i`: `GL_RGBA32I`, `GL_INT`
-> > `16ui`: `GL_RGBA16UI`, `GL_UNSIGNED_SHORT`
-> > `32ui`: `GL_RGBA32UI`, `GL_UNSIGNED_INT`
+> 
+> - `8`: `GL_RGBA8`, `GL_UNSIGNED_BYTE`
+> - `16`: `GL_RGBA16`, `GL_UNSIGNED_SHORT`
+> - `16f`: `GL_RGBA16F`, `GL_HALF_FLOAT`
+> - `32f`: `GL_RGBA32F`, `GL_FLOAT`
+> - `16i`: `GL_RGBA16I`, `GL_SHORT`
+> - `32i`: `GL_RGBA32I`, `GL_INT`
+> - `16ui`: `GL_RGBA16UI`, `GL_UNSIGNED_SHORT`
+> - `32ui`: `GL_RGBA32UI`, `GL_UNSIGNED_INT`
 >
-> The default value for this attributeis `8`.
+> The default value for this attribute is `8`.
 
 `fullscreen` *optional* \[ boolean \]
 > Determines whether the window should be created as an exclusive fullscreen window.  The `Size` of this window will be used to set the screen resolution if this value is `true`.  See also the `monitor` attribute to determine which monitor should be used as the target for the fullscreen window.  The default value is `false`
@@ -355,26 +369,25 @@ This XML specifies a single window that is used to render content into.  There c
 `mpcdi` *optional* \[ string \]
 > If this value is set to a path that contains an MPCDI file that describes camera parameters and warping and blending masks, these values are used to initialize the contents of this window instead of providing explicit viewport information.  The default value is that no MPCDI is used.
 
-
-
-
-#### Children
+### Children
 `Stereo` \[ 0 - 1 \] 
 > Determines whether the contents of this window should be rendered stereoscopically and which stereoscopic rendering method should be used.  The only allowed attribute for this node is the `type`, which determines the type of stereo rendering.  It has to be one of:
-> > `none`:  No stereo rendering is performed.  This is the same as if this entire node was not specified.
-> > `active`:  Using active stereo using quad buffering.  This is only a valid option for systems that support quad buffering.
-> > `checkerboard`:  Using a checkerboard pattern for stereoscopy.
-> > `checkerboard_inverted`:  Using the same pattern as `checkerboard`, but with the left and right eyes inverted
-> > `anaglyph_red_cyan`:  Applying color filters to the left and right eyes such that red-cyan anaglyph glasses can be used to view the stereo content
-> > `anaglyph_amber_blue`:  Applying color filters to the left and right eyes such that amber-blue anaglyph glasses can be used to view the stereo content
-> > `anaglyph_wimmer`:  ¯\\_\(ツ\)_/¯
-> > `vertical_interlaced`:  A stereo format in which the left and right eye images are interlaced vertically, meaning that each row of the final image is either left or right, switching each row.
-> > `vertical_interlaced_inverted`:  The same as `vertical_interlaced`, but with the left and right eye flipped.
-> > `dummy`:  A dummy stereo mode to test streoscopic rendering without needing extra equipment.  In this stereo mode, the left and the right eye images are rendered on top of each other without any other processing.
-> > `side_by_side`:  The resolution of the window is split into a left half and a right half, with each eye being rendered into its half.  This is a common stereo format for 3D TVs.
-> > `side_by_side_inverted`:  The same as `side_by_side`, but the left and right images are flipped.
-> > `top_bottom`:  The same as `side_by_side`, but instead of separating the window horizontally, the window is split vertically, with the left eye being rendered in the top half of the window and the right image being rendered in the bottom half.
-> > `top_bottom_inverted`:  The same as `top_bottom_inverted`, but with the left and right eyes flipped.
+> 
+> - `none`:  No stereo rendering is performed.  This is the same as if this entire node was not specified.
+> - `active`:  Using active stereo using quad buffering.  This is only a valid option for systems that support quad buffering.
+> - `checkerboard`:  Using a checkerboard pattern for stereoscopy.
+> - `checkerboard_inverted`:  Using the same pattern as `checkerboard`, but with the left and right eyes inverted
+> - `anaglyph_red_cyan`:  Applying color filters to the left and right eyes such that red-cyan anaglyph glasses can be used to view the stereo content
+> - `anaglyph_amber_blue`:  Applying color filters to the left and right eyes such that amber-blue anaglyph glasses can be used to view the stereo content
+> - `anaglyph_wimmer`:  ¯\\_\(ツ\)_/¯
+> - `vertical_interlaced`:  A stereo format in which the left and right eye images are interlaced vertically, meaning that each row of the final image is either left or right, switching each row.
+> - `vertical_interlaced_inverted`:  The same as `vertical_interlaced`, but with the left and right eye flipped.
+> - `dummy`:  A dummy stereo mode to test streoscopic rendering without needing extra equipment.  In this stereo mode, the left and the right eye images are rendered on top of each other without any other processing.
+> - `side_by_side`:  The resolution of the window is split into a left half and a right half, with each eye being rendered into its half.  This is a common stereo format for 3D TVs.
+> - `side_by_side_inverted`:  The same as `side_by_side`, but the left and right images are flipped.
+> - `top_bottom`:  The same as `side_by_side`, but instead of separating the window horizontally, the window is split vertically, with the left eye being rendered in the top half of the window and the right image being rendered in the bottom half.
+> - `top_bottom_inverted`:  The same as `top_bottom_inverted`, but with the left and right eyes flipped.
+> 
 > The default value is `none`.
 
 `Pos` \[ 0 - 1 \]
@@ -386,34 +399,41 @@ This XML specifies a single window that is used to render content into.  There c
 `Res` \[ 0 - 1 \]
 > Sets the size of the internal framebuffer that is used to render the contents of the window. In a lot of cases, this resolution is the same resolution as the size of the window, but it is a useful tool when creating images that are larger than a window would be support on an operating system.  Some operating systems restrict windows to be no larger than what can fit on a specific monitor.  This node must have `x` and `y` floating point attributes that determine that size of the window.  By default the resolution of the framebuffer is equal to the size of the window.
 
-- [Viewport](###Viewport) \[ 1 - inf \]
+- [Viewport](#viewport) \[ 1 - inf \]
 
-### Device
+
+## Device
 This node specifies a single tracking device that belongs to a specific tracker group.  
 
-#### Attributes
+### Attributes
 `name` \[ string \]
-> Specifies the name of the device so that it can be referenced by a [User](###User) or can be accessed programmatically by the application.
+> Specifies the name of the device so that it can be referenced by a [User](#user) or can be accessed programmatically by the application.
 
-#### Children
+### Children
 `Sensor` \[ 0 - inf \]
  > This node represents a tracked sensor that provides orientation and position information.
+ > 
  > `vrpnAddress` \[ string \]
  >  > The VRPN address of this sensor
+ > 
  > `id` \[ integer \]
  >  > The sensor id for this device.  This information is not used by SGCT directly but can be used by the application to distinguish different sensors if multiple sensors are specified in the configuration file
 
 `Buttons` \[ 0 - inf \]
 > This node represents a group of toggle buttons that can be triggered through VRPN.
+> 
 > `vrpnAddress` \[ string \]
 > > The VRPN address of this button group
+> 
 > `count` \[ integer \]
 > > The number of buttons that are advertised and received through the Device
 
 `Axes` \[ 0 - inf \]
 > This node represents a number of independent 1D axes that are updated through VRPN.
+> 
 > `vrpnAddress` \[ string \]
 > > The VRPN address of this group of axes
+> 
 > `count` \[ integer \]
 > > The number of axes that are advertised
 
@@ -438,57 +458,72 @@ This node specifies a single tracking device that belongs to a specific tracker 
 
 `Matrix` \[ 0 - 1 \]
 > A generic transformation matrix that is applied to this device.  This value will overwrite the value specified in `Orientation`.  The attributes used for the matrix are named `x0`, `y0`, `z0`, `w0`, `x1`, `y1`, `z1`, `w2`, `x2`, `y2`, `z2`, `w2`, `x3`, `y3`, `z3`, `w3` and are used in this order to initialize the matrix in a column-major order.  All 16 of these values have to be present in this attribute and have to be floating point values.
+> 
 > `transpose` *optional* \[ boolean \]
 >  > If this value is present and `true` the values provided are interpreted as being in row-major order, rather than column-major order.  The default is `false`, making the matrix column-major.
 
-### Viewport
-This node describes a single viewport inside a [Window](###Window).  Every window can contain an arbitrary number of viewports that are all rendered independently.  The viewports are positioned inside the window using a normalized coordinate system.
 
-#### Attributes
+## Viewport
+This node describes a single viewport inside a [Window](#window).  Every window can contain an arbitrary number of viewports that are all rendered independently.  The viewports are positioned inside the window using a normalized coordinate system.
+
+### Attributes
 `user` *optional* \[ string \]
- > The name of the [User](###User) that this viewport should be linked to.  If a viewport is linked to a user that has a sensor, the positions of the sensor will be automatically reflected in the user position that is used to render this viewport.  The default is that no user is linked with this viewport.
+ > The name of the [User](#user) that this viewport should be linked to.  If a viewport is linked to a user that has a sensor, the positions of the sensor will be automatically reflected in the user position that is used to render this viewport.  The default is that no user is linked with this viewport.
+
 `overlay` *optional* \[ string \]
  > This attribute is a path to an overlay texture that is rendered on top of the viewport after the applications rendering is finished.  This can be used to add logos or other static assets on top of an application.  The default is that no overlay is rendered.
+
 `mask` *optional* \[ string \]
  > This value is a path to a texture that is used as a mask to remove parts of the rendered image.  The image that is provided in this should be a binary black-white image which is applied by SGCT after the application loading is finished.  All parts where the `mask` image is black will be removed.  The default is that no mask is applied.
+
 `BlackLevelMask` *optional* \[ string \]
  > The file referenced in this attribute is used as a postprocessing step for this viewport.  The image should be a grayscale image, where each pixel will be multiplied with the resulting image from the application in order to perform a black level adaptation.  If a pixel is completely white, the resulting pixel is the same as the applications output, if a pixel is black, the resulting pixel will be back, if it is 50% grey, the resolution pixel will be half brightness.  The default is that no black level mask is applied.
+
 `mesh` *optional* \[ string \]
  > Determines a warping mesh file that is used to warp the resulting image.  The application's rendering will always be rendered into a rectangular framebuffer, which is then mapped as a texture to the geometry provided by this file.  This makes it possible to create non-linear or curved output geometries from a regular projection by providing the proper geometry of the surface that you want to project on.
+
 `tracked` *optional* \[ boolean \]
  > Determines whether the field-of-view frustum used for this viewport should be tracking changes to the window configuration.  If this value is set to `false`, 
-`eye` *optional* \[ center, left, or right \]
- > Forces this viewport to be rendered with a specific eye, using the corresponding [User](###User)s eye separation to compute the correct frustum.
 
-#### Children
+`eye` *optional* \[ center, left, or right \]
+ > Forces this viewport to be rendered with a specific eye, using the corresponding [User](#user)s eye separation to compute the correct frustum.
+
+### Children
 `Pos` \[ 0 - 1 \]
- > Specifies the position of the viewport inside its parent [Window](###Window).  The coordinates for `x` and `y`, which must both be specified in this node, are usually between 0 and 1, but are not restricted.  Parts of the viewport that are outside this range would lie outside the bounds of the window and are clipped.  Viewports are free to overlap and the viewports are rendered top to bottom into the window and can overwrite previous results.
+ > Specifies the position of the viewport inside its parent [Window](#window).  The coordinates for `x` and `y`, which must both be specified in this node, are usually between 0 and 1, but are not restricted.  Parts of the viewport that are outside this range would lie outside the bounds of the window and are clipped.  Viewports are free to overlap and the viewports are rendered top to bottom into the window and can overwrite previous results.
+
 `Size` \[ 0 - 1 \]
- > Specifies the size of this viewport inside its parent [Window](###Window).  The coordinate for `x` and `y`, which must both be specified in this node, are between 0 and 1, but are not restricted.  Parts of the viewport that are outside this range would lie outside the bounds of the window and are clipped.  Viewports are free to overlap and the viewports are rendered top to bottom into the window and can overwrite previous results.
+ > Specifies the size of this viewport inside its parent [Window](#window).  The coordinate for `x` and `y`, which must both be specified in this node, are between 0 and 1, but are not restricted.  Parts of the viewport that are outside this range would lie outside the bounds of the window and are clipped.  Viewports are free to overlap and the viewports are rendered top to bottom into the window and can overwrite previous results.
 
 Following are the different kinds of projections that are currently supported.  Exactly one of the following projections has to be present in the viewport.
- - [PlanarProjection](###PlanarProjection) \[ special \]
- - [FisheyeProjection](###FisheyeProjection) \[ special \]
- - [SphericalMirrorProjection](###SphericalMirrorProjection) \[ special \]
- - [SpoutOutputProjection](###SpoutOutputProjection) \[ special \]
- - [Projectionplane](###Projectionplane) \[ special \]
+ - [PlanarProjection](#planarprojection) \[ special \]
+ - [FisheyeProjection](#fisheyeprojection) \[ special \]
+ - [SphericalMirrorProjection](#sphericalmirrorprojection) \[ special \]
+ - [SpoutOutputProjection](#spoutoutputprojection) \[ special \]
+ - [Projectionplane](#projectionplane) \[ special \]
 
-### PlanarProjection
-This projection node describes a projection for the [Viewport](###Viewport) that is a flat projection described by simple frustum, which may be asymmetric.
 
-#### Children
+## PlanarProjection
+This projection node describes a projection for the [Viewport](#viewport) that is a flat projection described by simple frustum, which may be asymmetric.
+
+### Children
 `FOV` \[ 1 \]
 > This element describes the field of view used the camera in this planar projection.
+> 
 > `down` \[ float \]
 > > The angle (in degrees) that is covered by the camera between the central point and the bottom border of the of the viewport.  The `down` and `up` angles added together are the vertical field of view of the viewport.
+> 
 > `up` \[ float \]
 > > The angle (in degrees) that is covered by the camera between the central point and the top border of the of the viewport.  The `down` and `up` angles added together are the vertical field of view of the viewport.
+> 
 > `left` \[ float \]
 > > The angle (in degrees) that is covered by the camera between the central point and the left border of the of the viewport.  The `left` and `right` angles added together are the vertical field of view of the viewport.
+> 
 > `right` \[ float \]
 > > The angle (in degrees) that is covered by the camera between the central point and the right border of the of the viewport.  The `left` and `right` angles added together are the vertical field of view of the viewport.
+> 
 > `distance` *optional* \[ float \]
-> > The distance (in meters) at which the virtual render plane is placed.  This value is only important when rendering this viewport using stereocopy as the `distance` and the [User](###User)s `eyeSeparation` are used to compute the change in frustum between the left and the right eyes.
+> > The distance (in meters) at which the virtual render plane is placed.  This value is only important when rendering this viewport using stereocopy as the `distance` and the [User](#user)s `eyeSeparation` are used to compute the change in frustum between the left and the right eyes.
 
 `Offset` \[ 0 - 1 \]
  > A linear offset in meters that is added to the virtual image plane.  Must define three float attributes `x`, `y`, and `z`.  The default value is `x=0`, `y=0`, `z=0`.
@@ -509,26 +544,28 @@ This projection node describes a projection for the [Viewport](###Viewport) that
  > 
  >  Example:  `<Orientation pitch="20.0" elevation="-12.0" roll="0.0" />`
 
-### FisheyeProjection
-This node describes a fisheye projection that is used to render into its parent [Viewport](###Viewport).  By default, a fisheye rendering is covering 180 degrees field of view and has a 1:1 aspect ratio, though these parameters can be changed with the attributes provided in this node.  This projection type counts as a non-linear projection, which requires 4-6 render passes of the application, which means that the application might render significantly slower when using these kind of projections.  However, the application does not need to be aware of the projection as this abstract is handled internally and the applications `draw` method is only called multiple times per frame with different projection methods that are used to create the full fisheye projection.
+
+## FisheyeProjection
+This node describes a fisheye projection that is used to render into its parent [Viewport](#viewport).  By default, a fisheye rendering is covering 180 degrees field of view and has a 1:1 aspect ratio, though these parameters can be changed with the attributes provided in this node.  This projection type counts as a non-linear projection, which requires 4-6 render passes of the application, which means that the application might render significantly slower when using these kind of projections.  However, the application does not need to be aware of the projection as this abstract is handled internally and the applications `draw` method is only called multiple times per frame with different projection methods that are used to create the full fisheye projection.
 
 Depending on the field of view, a cube map is created consisting of 4-6 cube maps that are reprojected in a post-processing into a fisheye of the desired field-of-view.
 
-#### Attributes
+### Attributes
 `fov` *optional* \[ float > 0 \]
 > Describes the field of view that is covered by the fisheye projection in degrees.  The resulting image will always be a circle, and this value determines how much of a field of view is covered by this circle.  Please note specifically that this also includes field-of-view settings >180, in which a larger distortion is applied to the image.  The default value is 180.
 
 `quality` *optional* \[ low, medium, high, 256, 512, 1k, 1024, 1.5k, 1536, 2k, 2048, 4k, 4096, 8k, 8192, 16k, 16384 \]
 > Determines the pixel resolution of the cube map faces that are reprojected to create the fisheye rendering.  The higher resolution these cube map faces have, the better quality the resulting fisheye rendering, but at the expense of increased rendering times.  The named values are corresponding:
-> `low`: 256
-> `medium`: 512
-> `high`: 1024
-> `1k`: 1024
-> `1.5k`: 1536
-> `2k`: 2048
-> `4k`: 4096
-> `8k`: 8192
-> `16k`: 16384
+> 
+> - `low`: 256
+> - `medium`: 512
+> - `high`: 1024
+> - `1k`: 1024
+> - `1.5k`: 1536
+> - `2k`: 2048
+> - `4k`: 4096
+> - `8k`: 8192
+> - `16k`: 16384
 > 
 > The default value is 512.
 
@@ -536,7 +573,7 @@ Depending on the field of view, a cube map is created consisting of 4-6 cube map
 > Determines the interpolation method that is used when reprojecting the cube maps into the final fisheye rendering.  The default value is "linear".
 
 `diameter` *optional* \[ float > 0 \]
-> Sets the diameter in meters for the "sphere" that the fisheye is reprojected based on.  This value is only used for stereoscopic rendering to compute the frustum offset for the [User](###User)s `eyeSeparation`.  The default value is 14.8.
+> Sets the diameter in meters for the "sphere" that the fisheye is reprojected based on.  This value is only used for stereoscopic rendering to compute the frustum offset for the [User](#user)s `eyeSeparation`.  The default value is 14.8.
 
 `tilt` *optional*\[ float \]
 > Determines the tilt of the "up vector" of the fisheye.  With a tilt of 0, the center of the fisheye image is the apex of the half-sphere that is used to reproject the cube map.  A tilted fisheye rendering is useful when projecting on a tilted planetarium dome.  The default value is 0.
@@ -544,74 +581,87 @@ Depending on the field of view, a cube map is created consisting of 4-6 cube map
 `keepAspectRatio` *optional* \[ boolean \]
  > Determines whether the application should try to maintain the original aspect ratio when resizing the window or whether the field of view should be recalculated based on the window's new aspect ratio.  The default value is `true`.
 
-#### Children
+### Children
 `Crop` \[ 0 - 1 \]
  > This node can be used to crop the fisheye after the post processing has occurred.  This might be useful for domes running a single projector with a fisheye lens.  Normally a projector has a 16:9, 16:10, or 4:3 aspect ratio, but the fiehye output has a 1:1 aspect ratio.  This circle can be squared by cropping the 1:1 aspect ratio fisheye image down to the aspect ratio of the projector that is used.
+ > 
  > `left` *optional* \[ 0 < float < 1 \]
  > > The ratio of the image that is cropped from the left.  If the value is 0, the image is not cropped at all from this side, if it is 1, the entire image is cropped. However, this cropping value must not be larger than the `1 - right` cropping value as these value might not overlap.  The default value is 0.
+ > 
  > `right` *optional* \[ 0 < float < 1 \]
  > > The ratio of the image that is cropped from the right.  If the value is 0, the image is not cropped at all from this side, if it is 1, the entire image is cropped. However, this cropping value must not be larger than the `1 - left` cropping value as these value might not overlap.  The default value is 0.
+ > 
  > `bottom` *optional* \[ 0 < float < 1 \]
  > > The ratio of the image that is cropped from the bottom.  If the value is 0, the image is not cropped at all from this side, if it is 1, the entire image is cropped. However, this cropping value must not be larger than the `1 - top` cropping value as these value might not overlap.  The default value is 0.
+ > 
  > `top` *optional* \[ 0 < float < 1 \]
  > > The ratio of the image that is cropped from the top.  If the value is 0, the image is not cropped at all from this side, if it is 1, the entire image is cropped. However, this cropping value must not be larger than the `1 - bottom` cropping value as these value might not overlap.  The default value is 0.
+
 `Offset` \[ 0 - 1 \]
  > A linear offset in meters that is added to the virtual planes used to project the fisheye rendering.  This can be used for off-axis projections.  Must define three float attributes `x`, `y`, and `z`.  The default value is `x=0`, `y=0`, `z=0`.
+
 `Background` \[ 0 - 1 \]
  > This value determines the color that is used for the parts of the image that are not covered by the spherical fisheye image.  The alpha component of this color has to be provided even if the final render target does not contain an alpha channel.  All attributes `r`, `g`, `b`, and `a` must be defined and be between 0 and 1.  The default color is (0.3, 0.3, 0.3, 1.0).
 
-### SphericalMirrorProjection
-This node is used to create a projection used for Paul Bourke's spherical mirror setup (see [here](http://paulbourke.net/dome/)), which makes it possible to use an off-the-shelf projector to create a planetarium-like environment by bouncing the image of a shiny metal mirror.  Please note that this is not the only way to produce these kind of images.  Depending on your setup and availability of warping meshes, it might suffice to use the [FisheyeProjection](###FisheyeProjection) node type instead and add a single mesh to the parent [Viewport](###Viewport) instead.  The `config` folder in SGCT contains an example of this using a default 16x9 warping mesh.  This projection type specifically deals with the case where you have four different meshes, one for the bottom, top, left, and right parts of the image.
 
-#### Attributes
+## SphericalMirrorProjection
+This node is used to create a projection used for Paul Bourke's spherical mirror setup (see [here](http://paulbourke.net/dome/)), which makes it possible to use an off-the-shelf projector to create a planetarium-like environment by bouncing the image of a shiny metal mirror.  Please note that this is not the only way to produce these kind of images.  Depending on your setup and availability of warping meshes, it might suffice to use the [FisheyeProjection](#fisheyeprojection) node type instead and add a single mesh to the parent [Viewport](#viewport) instead.  The `config` folder in SGCT contains an example of this using a default 16x9 warping mesh.  This projection type specifically deals with the case where you have four different meshes, one for the bottom, top, left, and right parts of the image.
 
+### Attributes
 `quality` *optional* \[ low, medium, high, 256, 512, 1k, 1024, 1.5k, 1536, 2k, 2048, 4k, 4096, 8k, 8192, 16k, 16384 \]
 > Determines the pixel resolution of the cube map faces that are reprojected to create the spherical mirror projection rendering.  The higher resolution these cube map faces have, the better quality the resulting spherical mirror projection rendering, but at the expense of increased rendering times.  The named values are corresponding:
-> `low`: 256
-> `medium`: 512
-> `high`: 1024
-> `1k`: 1024
-> `1.5k`: 1536
-> `2k`: 2048
-> `4k`: 4096
-> `8k`: 8192
-> `16k`: 16384
+> 
+> - `low`: 256
+> - `medium`: 512
+> - `high`: 1024
+> - `1k`: 1024
+> - `1.5k`: 1536
+> - `2k`: 2048
+> - `4k`: 4096
+> - `8k`: 8192
+> - `16k`: 16384
 > 
 > The default value is 512.
 
 `tilt` *optional*\[ float \]
 > Determines the tilt of the "up vector" of the spherical mirror projection.  With a tilt of 0, the center of the spherical mirror image is the apex of the half-sphere that is used to reproject the cube map.  The default value is 0.
 
-#### Children
+### Children
 `Background` \[ 0 - 1 \]
  > This value determines the color that is used for the parts of the image that are not covered by the spherical mirror image.  The alpha component of this color has to be provided even if the final render target does not contain an alpha channel.  All attributes `r`, `g`, `b`, and `a` must be defined and be between 0 and 1.  The default color is (0.3, 0.3, 0.3, 1.0).
 
 `Geometry` \[ 1 \]
 > Describes the warping meshes used for the spherical mirror projection.  All four warping meshes have to be present.
+> 
 > `bottom` \[ string \]
 > > The path to the warping mesh that is loaded for the bottom part of the spherical mirror projection
+> 
 > `top` \[ string \]
 > > The path to the warping mesh that is loaded for the bottom part of the spherical mirror projection
+> 
 > `left` \[ string \]
 > > The path to the warping mesh that is loaded for the bottom part of the spherical mirror projection
+> 
 > `right` \[ string \]
 > > The path to the warping mesh that is loaded for the bottom part of the spherical mirror projection
 
-### SpoutOutputProjection
+
+## SpoutOutputProjection
 This projection method provides the ability to share individual cube map faces or a fully reprojected image using the [Spout](https://spout.zeal.co/) library.  This library only supports the Windows operating system, so this projection will only work on Windows machines.  Spout's functionality is the abilty to shared textures between different applications on the same machine, making it possible to render images using SGCT and making them available to other real-time applications on the same machine for further processing.  Spout uses a text name for accessing which texture should be used for sharing.  The SpoutOutputProjection has three different output types, outputting each cube map face, sharing a fisheye image, or sharing an equirectangular projection, as determined by the `mapping` attribute.
 
-#### Attributes
+### Attributes
 `quality` *optional* \[ low, medium, high, 256, 512, 1k, 1024, 1.5k, 1536, 2k, 2048, 4k, 4096, 8k, 8192, 16k, 16384 \]
 > Determines the pixel resolution of the cube map faces.  The named values are corresponding:
-> `low`: 256
-> `medium`: 512
-> `high`: 1024
-> `1k`: 1024
-> `1.5k`: 1536
-> `2k`: 2048
-> `4k`: 4096
-> `8k`: 8192
-> `16k`: 16384
+> 
+> - `low`: 256
+> - `medium`: 512
+> - `high`: 1024
+> - `1k`: 1024
+> - `1.5k`: 1536
+> - `2k`: 2048
+> - `4k`: 4096
+> - `8k`: 8192
+> - `16k`: 16384
 > 
 > The default value is 512.
 
@@ -621,7 +671,7 @@ This projection method provides the ability to share individual cube map faces o
 `mappingSpoutName` *optional* \[ string \]
 > Sets the name of the texture if the `mapping` type is "fisheye" or "equirectangular".  If the `mapping` is "cubemap", this value is ignored.
 
-#### Children
+### Children
 `Background` \[ 0 - 1 \]
  > This value determines the color that is used for the parts of the image that are not covered by the spherical mirror image.  The alpha component of this color has to be provided even if the final render target does not contain an alpha channel.  All attributes `r`, `g`, `b`, and `a` must be defined and be between 0 and 1.  The default color is (0.3, 0.3, 0.3, 1.0).
 
@@ -644,5 +694,6 @@ This projection method provides the ability to share individual cube map faces o
  > 
  >  Example:  `<Orientation pitch="20.0" elevation="-12.0" roll="0.0" />`
 
-### Projectionplane
+
+## Projectionplane
 This projection method is based on providing three corner points that are used to construct a virtual image plane.  The lower left, upper left, and upper right points have to be provided as children of this node in this exact order.  Each child needs to have float attributes `x`, `y`, and `z`

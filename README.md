@@ -1,52 +1,80 @@
 # SGCT - Simple Graphics Cluster Toolkit
 
-SGCT is a free static cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs). SGCT applications are scalable and use a XML configuration file where all cluster nodes (IGs) and their properties are specified. Therefore there is no need of recompiling an application for different VR setups. SGCT does also support running cluster applications on a single computer for testing purposes. SGCT is designed to be as simple as possible for the developer and is well suited for rapid prototyping of immersive virtual reality (VR) applications. SGCT can also be used to create planetarium/dome content and can generate fisheye projections. Its also possible to render to file to create extreeme hi-resolution stereoscopic 3D movies.
+SGCT is a free cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projects, and other projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format where all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
 
-#### How it works
-The most important component in SGCT is the engine. The engine handles all the initiation, rendering, network communication and configuration handling. The user can bind functions (callbacks) to the engine to customize specific tasks. Callbacks for keyboard and mouse input are handled by GLFW. Bonded functions will be called in different stages in the rendering process illustrated below:
+![Rymdresan](rymdresan-l-02220-small.png)
+![Rymdresan](rymdresan-l-38919-small.png)
+![VR Setup](vr-setup.png)
 
-![SGCT Render Diagram](sgct_render_diagram.png?raw=true "SGCT Render Diagram")
+# Terminology
+We use the following terminology to talk about the way how SGCT works.  There is a single *Cluster* that consists of 1 or more *Nodes* with each node usually corresponding to a single computer.  Each *Node* contains 1 or more *Windows* with each *Window* containing 0 or more *Viewports*.  Some viewport types, such as Fisheye projections, can contain multiple *Subviewports*.  One the *Nodes* in the *Cluster* is designated as the *server*, where as the other *Nodes* are called *clients*.  The general data flow in SGCT applications is from the *server* to the *clients*, and **not** vice versa.
 
-#### Init OpenGL
-This stage is called after the OpenGL context has been created and is only called once. This callback must be set before the Engine is initiated to have any effect. During the other stages the callbacks can be set end re-set anytime.
-#### Pre Sync
-This stage is called before the data is synchronized across the cluster. Set the shared variables here on the master and the slaves will receive them during the sync stage.
-#### Sync
-This stage distributes the shared data from the master to the slaves. The slaves wait for the data to be received before the rendering takes place. The slaves also send messages to the server if there are any (console printouts, warnings and errors). There are two callbacks that can be set here, one for the master and one for the slaves. The master encodes and serializes the data and the slaves decode and de-serialize the data.
-#### Post Sync Pre Draw
-At this stage the data is synchronized and can be applied.
-#### Clear Buffers
-This stage clears the buffers and sets the clear color. If this callback is set then it overrides the default clear buffers function. This stage can be called several times per frame depending on how many passes are rendered and if stereoscopic rendering is active. If this callback is not set, the default function is:
-#### Draw
-This stage draws the scene to the current back buffer (left, right or both). This stage can be called several times per frame if multiple viewports and/or if stereoscopic rendering is active.
-#### Post Draw
-This stage is called after the rendering is finalized.
-#### Lock
-During this stage the master is locked and waiting for all slaves. No callbacks can be set during this stage. The master doesn’t lock and wait if Nvidia’s swap barrier is active.
-#### Swap Buffers
-The front and back buffers are swapped. Triple buffering should not be used on a cluster when the application waits for vertical sync. No callbacks can be set during this stage. If Nvidia’s swap barrier is active then the buffer swap will be synchronized using hardware across the cluster.
-#### Bind functions
-The following functions can be found in the Engine class to bind functions as callbacks:
-```sh
-void setInitOGLFunction( void(*fnPtr)(void) );
-void setPreSyncFunction( void(*fnPtr)(void) );
-void setPostSyncPreDrawFunction( void(*fnPtr)(void) );
-void setClearBufferFunction( void(*fnPtr)(void) );
-void setDrawFunction( void(*fnPtr)(void) );
-void setPostDrawFunction( void(*fnPtr)(void) );
-void setCleanUpFunction( void(*fnPtr)(void) ); 
-//called when application terminates
+Please note that in this nomenclature, even if an application is running only on a single machine, it is still considered a cluster, but only consisting of 1 node.  Furthermore, usually there is a 1-to-1 mapping between Nodes and computers, but that does not have to be the case as a single computer can host an arbitrary(*-ish*) number of nodes.
+
+# Index
+1. [Features](docs/features.md)
+1. [How it works](docs/how-it-works.md)
+1. [Classes](docs/classes.md)
+1. [Getting started](docs/getting-started.md)
+1. [Configuration files](docs/configuration-files.md)
+1. [Error codes](docs/errors.md)
+
+# Documentation
+Doxygen-generated documentation can be found [here](http://webstaff.itn.liu.se/~erisu46/sgct/docs/html/)
+
+# Tutorials
+For tutorials on how to use SGCT, look at the `src/apps` folder for a large amount of examples.  These can be compiled by enabling the `SGCT_EXAMPLES` CMake option.
+
+# License
+SGCT is licensed under the [3-clause BSD license](https://choosealicense.com/licenses/bsd-3-clause/)
+
 ```
-There is one additional function that binds a function as callback when an external TCP control interface is being used. This callback is called when TCP data is received.
-```sh
-void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
-// The arguments above are: buffer, size of buffer and client index. 
-```
-The following functions can be found in the SharedData class to bind functions as callbacks during the Sync stage. The encode function will be called from the master and the decode function is called on the slaves.
-```sh
-void setEncodeFunction( void(*fnPtr)(void) );
-void setDecodeFunction( void(*fnPtr)(void) );
-```
-#### Getting Started
+Copyright (c) 2012-2020
+Miroslav Andel, Linköping University
+Alexander Bock, Linköping University
 
-More information, guides etc can be found on the [SGCT Wiki](http://sgct.itn.liu.se) and we suggest beginners start reading the [Getting Started](http://sgct.itn.liu.se/getting-started) section.
+Contributors: Alexander Fridlund, Joel Kronander, Daniel Jönsson, Erik Sundén, Gene Payne
+
+For any questions or information about the SGCT project please contact: alexander.bock@liu.se
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1.   Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+2.   Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+3.   Neither the name of the copyright holder nor the names of its contributors
+     may be used to endorse or promote products derived from this software
+     without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+For any questions or further information about the SGCT project, please contact [alexander.bock@liu.se](mailto:alexander.bock@liu.se).
+
+## External libraries
+SGCT uses and acknowledges the following external libraries:
+
+ - [FreeType](http://www.freetype.org)
+ - [GLAD](https://github.com/Dav1dde/glad)
+ - [GLFW](ttps://www.glfw.org)
+ - [GLM](http://glm.g-truc.net)
+ - [libpng](http://www.libpng.org)
+ - [OpenVR](https://github.com/ValveSoftware/openvr)
+ - [Spout](https://github.com/box/spout)
+ - [stb_image](https://github.com/let-def/stb_image)
+ - [TinyXML](https:/github.com/leethomason/tinyxml2)
+ - [Tracy](https://github.com/nette/tracy)
+ - [VRPN](https://github.com/vrpn/vrpn)
+ - [zlib](https://www.zlib.net)
+

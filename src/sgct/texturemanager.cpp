@@ -110,7 +110,7 @@ void TextureManager::destroy() {
 }
 
 TextureManager::~TextureManager() {
-    glDeleteTextures(_textures.size(), _textures.data());
+    glDeleteTextures(static_cast<GLsizei>(_textures.size()), _textures.data());
 }
 
 unsigned int TextureManager::loadTexture(const std::string& filename, bool interpolate,

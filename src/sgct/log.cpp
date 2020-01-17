@@ -15,6 +15,24 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+#endif // WIN32
+
+namespace {
+    const char* levelToString(sgct::Log::Level level) {
+        switch (level) {
+            case sgct::Log::Level::Debug: return "Debug";
+            case sgct::Log::Level::Info: return "Info";
+            case sgct::Log::Level::Warning: return "Warning";
+            case sgct::Log::Level::Error: return "Error";
+            default: throw std::logic_error("Missing case label");
+        }
+    }
+} // namespace
+
 namespace sgct {
 
 Log* Log::_instance = nullptr;
@@ -35,7 +53,7 @@ Log::Log() {
     _parseBuffer.resize(128);
 }
 
-void Log::printv(Level level, const char* fmt, va_list ap) {
+void Log::printv(Level lvl, const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
@@ -50,6 +68,9 @@ void Log::printv(Level level, const char* fmt, va_list ap) {
     vsprintf(_parseBuffer.data(), fmt, ap);
     va_end(ap); // Results Are Stored In Text
 
+    std::vector<char> buffer(size + 64);
+    std::fill(buffer.begin(), buffer.end(), char(0));
+
     // print local
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
@@ -59,26 +80,37 @@ void Log::printv(Level level, const char* fmt, va_list ap) {
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 
-        std::vector<char> combinedBuffer(size + 32);
-        std::fill(combinedBuffer.begin(), combinedBuffer.end(), char(0));
-        sprintf(combinedBuffer.data(), "%s | %s", TimeBuffer, _parseBuffer.data());
-
-        if (_logToConsole) {
-            std::cout << combinedBuffer.data() << '\n';
+        if (_showLevel) {
+            sprintf(
+                buffer.data(),
+                "%s | (%s) %s\n",
+                TimeBuffer,
+                levelToString(lvl),
+                _parseBuffer.data()
+            );
         }
-
-        if (_messageCallback) {
-            _messageCallback(level, combinedBuffer.data());
+        else {
+            sprintf(buffer.data(), "%s | %s\n", TimeBuffer, _parseBuffer.data());
         }
     }
     else {
-        if (_logToConsole) {
-            std::cout << _parseBuffer.data() << '\n';
+        if (_showLevel) {
+            sprintf(buffer.data(), "(%s) %s\n", levelToString(lvl), _parseBuffer.data());
         }
+        else {
+            sprintf(buffer.data(), "%s\n", _parseBuffer.data());
+        }
+    }
 
-        if (_messageCallback) {
-            _messageCallback(level, _parseBuffer.data());
-        }
+    if (_logToConsole) {
+        std::cout << buffer.data();
+#ifdef WIN32
+        OutputDebugStringA(buffer.data());
+#endif // WIN32
+    }
+
+    if (_messageCallback) {
+        _messageCallback(lvl, _parseBuffer.data());
     }
 }
 
@@ -122,6 +154,10 @@ void Log::setNotifyLevel(Level nl) {
 
 void Log::setShowTime(bool state) {
     _showTime = state;
+}
+
+void Log::setShowLogLevel(bool state) {
+    _showLevel = state;
 }
 
 void Log::setLogToConsole(bool state) {

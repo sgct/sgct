@@ -48,12 +48,6 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const glm::ivec2&
         }
     } while (nNewlines < read3lines);
 
-
-
-    unsigned int srcIdx = 0;
-
-
-
     char fileFormatHeader[2];
     unsigned int nCols = 0;
     unsigned int nRows = 0;

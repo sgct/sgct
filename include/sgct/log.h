@@ -32,8 +32,11 @@ public:
     /// Set the notify level for displaying messages
     void setNotifyLevel(Level nl);
 
-    /// Set if time of day should be displayed with each print message
+    /// Set whether time of day should be displayed with each print message
     void setShowTime(bool state);
+
+    /// Sets whether the log level should be displayed with each print message
+    void setShowLogLevel(bool state);
 
     /// Set if log to console should be enabled. It is enabled on default
     void setLogToConsole(bool state);
@@ -53,6 +56,7 @@ private:
 
     Level _level = Level::Info;
     bool _showTime = false;
+    bool _showLevel = true;
     bool _logToConsole = true;
     
     std::mutex _mutex;

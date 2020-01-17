@@ -102,6 +102,7 @@ set(SOURCE_FILES
   nonlinearprojection.cpp
   offscreenbuffer.cpp
   openvr.cpp
+  profiling.cpp
   projection.cpp
   projectionplane.cpp
   readconfig.cpp
@@ -144,6 +145,9 @@ configure_file(
 
 add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
 set_compile_options(sgct)
+if (WIN32)
+  target_compile_definitions(sgct PRIVATE "_CRT_SECURE_NO_WARNINGS")
+endif ()
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)

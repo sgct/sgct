@@ -331,7 +331,6 @@ void cleanUp() {
 }
 
 int main(int argc, char* argv[]) {
-    Log::instance().setShowTime(true);
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);

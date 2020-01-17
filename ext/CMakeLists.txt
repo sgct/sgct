@@ -7,6 +7,7 @@
 ##########################################################################################
 
 add_subdirectory(glad)
+set_property(TARGET glad PROPERTY FOLDER "Dependencies")
 
 if (SGCT_DEP_INCLUDE_GLFW)
   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs")
@@ -49,6 +50,7 @@ endif ()
 if (NOT TARGET tracy)
   add_library(tracy "${PROJECT_SOURCE_DIR}/ext/tracy/TracyClient.cpp")
   target_include_directories(tracy PUBLIC "${PROJECT_SOURCE_DIR}/ext/tracy")
+  set_property(TARGET tracy PROPERTY FOLDER "Dependencies")
   if (SGCT_DEP_ENABLE_TRACY)
     target_compile_definitions(tracy PUBLIC TRACY_ENABLE)
   endif ()

@@ -456,7 +456,7 @@ void Engine::initialize() {
     glfwDestroyWindow(offscreen);
     glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
 
-    Log::Info("Detected OpenGL version: %i %i", major, minor);
+    Log::Info("Detected OpenGL version: %i.%i", major, minor);
 
     initWindows(major, minor);
 
@@ -1032,6 +1032,7 @@ void Engine::render() {
         Window::makeSharedContextCurrent();
 
         if (_statisticsRenderer) {
+            ZoneScopedN("glQueryCounter")
             glQueryCounter(timeQueryEnd, GL_TIMESTAMP);
         }
 
@@ -1041,6 +1042,7 @@ void Engine::render() {
         }
 
         if (_statisticsRenderer) {
+            ZoneScopedN("Statistics Update")
             // wait until the query results are available
             GLint done = GL_FALSE;
             while (!done) {

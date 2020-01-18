@@ -9,6 +9,7 @@
 #include <sgct/statisticsrenderer.h>
 
 #include <sgct/ogl_headers.h>
+#include <sgct/profiling.h>
 #ifdef SGCT_HAS_TEXT
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
@@ -53,6 +54,8 @@ namespace sgct {
 StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     : _statistics(statistics)
 {
+    ZoneScoped
+
     // Static background quad
     struct Vertex {
         Vertex(float x_, float y_) : x(x_), y(y_) {}
@@ -143,6 +146,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 }
 
 StatisticsRenderer::~StatisticsRenderer() {
+    ZoneScoped
+    
     _shader.deleteProgram();
 
     glDeleteVertexArrays(1, &_lines.staticDraw.vao);
@@ -157,6 +162,8 @@ StatisticsRenderer::~StatisticsRenderer() {
 }
 
 void StatisticsRenderer::update() {
+    ZoneScoped
+
     // Lines rendering
     // The statistics are stored as 1D double arrays, but we need 2D float arrays
     for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
@@ -259,6 +266,8 @@ void StatisticsRenderer::update() {
 }
 
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
+    ZoneScoped
+
     glm::vec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
 
@@ -266,6 +275,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         //
         // Render lines
         //
+        ZoneScopedN("Lines")
+       
         _shader.bind();
 
         const glm::vec2 size = glm::vec2(
@@ -387,6 +398,9 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         //
         // Render Histogram
         //
+
+        ZoneScopedN("Histogram")
+
         auto renderHistogram = [&](int i, const glm::vec4& color) {
             const auto [pos, size] = [](int i) -> std::tuple<glm::vec2, glm::vec2> {
                 constexpr const glm::vec2 Pos(400.f, 10.f);

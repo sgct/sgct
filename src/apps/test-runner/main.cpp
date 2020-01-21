@@ -20,8 +20,8 @@ namespace {
         int nVertTriangle = 0;
     } geometry;
 
-    sgct::SharedBool takeScreenshot(false);
-    sgct::SharedBool captureBackbuffer(false);
+    bool takeScreenshot = false;
+    bool captureBackbuffer = false;
 
     float radius = 7.4f;
     std::string texture;
@@ -209,10 +209,10 @@ void initGL(GLFWwindow*) {
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.value());
-    if (takeScreenshot.value()) {
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer);
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -220,17 +220,17 @@ void postDraw() {
     if (Engine::instance().isMaster()) {
         if (Engine::instance().currentFrameNumber() == 10) {
             Log::Info("Taking first screenshot");
-            takeScreenshot.setValue(true);
+            takeScreenshot = true;
         }
 
         if (Engine::instance().currentFrameNumber() == 15) {
             Log::Info("Capturing from Back buffer");
-            captureBackbuffer.setValue(true);
+            captureBackbuffer = true;
         }
 
         if (Engine::instance().currentFrameNumber() == 20) {
             Log::Info("Taking second screenshot");
-            takeScreenshot.setValue(true);
+            takeScreenshot = true;
         }
 
         if (Engine::instance().currentFrameNumber() == 25) {
@@ -239,14 +239,17 @@ void postDraw() {
     }
 }
 
-void encode() {
-    SharedData::instance().writeBool(takeScreenshot);
-    SharedData::instance().writeBool(captureBackbuffer);
+std::vector<unsigned char> encode() {
+    std::vector<unsigned char> data;
+    serializeObject(data, takeScreenshot);
+    serializeObject(data, captureBackbuffer);
+    return data;
 }
 
-void decode() {
-    SharedData::instance().readBool(takeScreenshot);
-    SharedData::instance().readBool(captureBackbuffer);
+void decode(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, takeScreenshot);
+    deserializeObject(data, pos, captureBackbuffer);
 }
 
 void cleanUp() {

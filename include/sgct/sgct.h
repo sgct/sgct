@@ -21,7 +21,6 @@
 #include <sgct/ogl_headers.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
-#include <sgct/shareddatatypes.h>
 #include <sgct/texturemanager.h>
 
 #ifdef SGCT_HAS_TEXT

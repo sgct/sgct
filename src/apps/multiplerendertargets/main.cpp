@@ -15,8 +15,8 @@ namespace {
     std::unique_ptr<sgct::utils::Box> box;
 
     // variables to share across cluster
-    sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool takeScreenshot(false);
+    double currentTime = 0.0;
+    bool takeScreenshot = false;
 
     // shader locs
     int textureLoc = -1;
@@ -83,12 +83,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * Speed),
+        static_cast<float>(currentTime * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * (Speed / 2.0)),
+        static_cast<float>(currentTime * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -115,14 +115,14 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
     }
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.value()) {
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -144,14 +144,17 @@ void initOGLFun(GLFWwindow*) {
     glFrontFace(GL_CCW);
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(takeScreenshot);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, takeScreenshot);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(takeScreenshot);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, takeScreenshot);
 }
 
 void cleanUpFun() {
@@ -164,7 +167,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
             Engine::instance().terminate();
         }
         else if (key == Key::P) {
-            takeScreenshot.setValue(true);
+            takeScreenshot = true;
         }
     }
 }

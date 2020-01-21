@@ -47,7 +47,7 @@ namespace {
         float eyeSeparation = 0.065f;
         float domeDiameter = 14.8f;
     } settings;
-    sgct::SharedBool takeScreenshot(false);
+    bool takeScreenshot = false;
 
     struct {
         GLuint vao;
@@ -210,7 +210,7 @@ void preSyncFun() {
             );
         }
 
-        takeScreenshot.setValue(true);
+        takeScreenshot = true;
         iterator++;
     }
     else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
@@ -222,7 +222,7 @@ void preSyncFun() {
             );
         }
 
-        takeScreenshot.setValue(true);
+        takeScreenshot = true;
         iterator++;
     }
 
@@ -230,9 +230,9 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.value()) {
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -393,12 +393,15 @@ void initOGLFun(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
 }
 
-void encodeFun() {
-    SharedData::instance().writeBool(takeScreenshot);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, takeScreenshot);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readBool(takeScreenshot);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, takeScreenshot);
 }
 
 void keyCallback(Key key, Modifier, Action action, int) {
@@ -409,7 +412,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::P:
             case Key::F10:
-                takeScreenshot.setValue(true);
+                takeScreenshot = true;
                 break;
             default:
                 break;
@@ -619,10 +622,9 @@ int main(int argc, char** argv) {
     callbacks.encode = encodeFun;
     callbacks.decode = decodeFun;
 
-    Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
-
     try {
         Engine::create(cluster, callbacks, config);
+        Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());

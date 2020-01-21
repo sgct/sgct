@@ -9,19 +9,19 @@
 #include <sgct/sgct.h>
 
 namespace {
-    sgct::SharedDouble currentTime(0.0);
+    double currentTime = 0.0;
 
-    sgct::SharedBool showGraph(false);
-    sgct::SharedFloat sizeFactor(0.5f);
+    bool showGraph = false;
+    float sizeFactor = 0.5f;
 } // namespace
 
 using namespace sgct;
 
 void drawFun(RenderData) {
-    constexpr const float Speed = 50.0f;
-    glRotatef(static_cast<float>(currentTime.value()) * Speed, 0.f, 1.f, 0.f);
+    constexpr const float Speed = 50.f;
+    glRotatef(static_cast<float>(currentTime) * Speed, 0.f, 1.f, 0.f);
 
-    const float size = sizeFactor.value();
+    const float size = sizeFactor;
 
     glBegin(GL_TRIANGLES);
     glColor3f(1.f, 0.f, 0.f);
@@ -38,37 +38,40 @@ void drawFun(RenderData) {
 void preSyncFun() {
     // set the time only on the master
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
     }
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(showGraph.value());
+    Engine::instance().setStatsGraphVisibility(showGraph);
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeFloat(sizeFactor);
-    SharedData::instance().writeBool(showGraph);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, sizeFactor);
+    serializeObject(data, showGraph);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readFloat(sizeFactor);
-    SharedData::instance().readBool(showGraph);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, sizeFactor);
+    deserializeObject(data, pos, showGraph);
 }
 
 void externalControlMessageCallback(const char* receivedChars, int size) {
     if (Engine::instance().isMaster()) {
         std::string_view msg(receivedChars, size);
         if (size == 7 && msg.substr(0, 5) == "graph") {
-            showGraph.setValue(msg.substr(6, 1) == "1");
+            showGraph = msg.substr(6, 1) == "1";
         }
         else if (size >= 6 && msg.substr(0, 4) == "size") {
             // parse string to int
             int tmpVal = std::stoi(std::string(msg.substr(5)));
             // recalc percent to float
-            sizeFactor.setValue(static_cast<float>(tmpVal) / 100.f);
+            sizeFactor = static_cast<float>(tmpVal) / 100.f;
         }
 
         Log::Info("Message: '%s', size: %d", receivedChars, size);

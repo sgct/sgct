@@ -19,16 +19,16 @@ namespace {
     int nVertices = 0;
     GLint matrixLocation = -1;
 
-    sgct::SharedDouble currentTime(0.0);
-    sgct::SharedWString sTimeOfDay;
-    sgct::SharedBool extraPackages(false);
-    sgct::SharedBool barrier(false);
-    sgct::SharedBool stats(false);
-    sgct::SharedBool takeScreenshot(false);
-    sgct::SharedBool slowRendering(false);
-    sgct::SharedBool frametest(false);
-    sgct::SharedFloat speed(5.f);
-    sgct::SharedVector<float> extraData;
+    double currentTime = 0.0;
+    std::wstring sTimeOfDay;
+    bool extraPackages = false;
+    bool barrier = false;
+    bool stats = false;
+    bool takeScreenshot = false;
+    bool slowRendering = false;
+    bool frametest = false;
+    float speed = 5.f;
+    std::vector<float> extraData;
 
     constexpr const char* vertexShader = R"(
 #version 330 core
@@ -60,9 +60,9 @@ void myDraw2DFun(RenderData data) {
         100,
         500,
         glm::vec4(0.f, 1.f, 0.f, 1.f),
-        "Time: %ls", sTimeOfDay.value().c_str()
+        "Time: %ls", sTimeOfDay.c_str()
     );
-    if (extraPackages.value() && extraData.size() == ExtendedSize) {
+    if (extraPackages && extraData.size() == ExtendedSize) {
         float xp = data.window.framebufferResolution().x / 2.f - 150.f;
         text::print(
             data.window,
@@ -73,19 +73,19 @@ void myDraw2DFun(RenderData data) {
             150.f,
             glm::vec4(0.f, 1.f, 0.5f, 1.f),
             "Vector val: %f, size: %u",
-            extraData.valueAt(ExtendedSize / 2), extraData.size()
+            extraData[ExtendedSize / 2], extraData.size()
         );
     }
 #endif // SGCT_HAS_TEXT
 }
 
 void drawFun(RenderData data) {
-    if (slowRendering.value()) {
+    if (slowRendering) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
     // test quadbuffer
-    if (frametest.value()) {
+    if (frametest) {
         if (Engine::instance().currentFrameNumber() % 2 == 0) {
             // even
             if (data.frustumMode == Frustum::Mode::StereoRightEye) {
@@ -116,7 +116,7 @@ void drawFun(RenderData data) {
     ShaderManager::instance().shaderProgram("simple").bind();
     glm::mat4 matrix = glm::rotate(
         data.modelViewProjectionMatrix,
-        glm::radians(static_cast<float>(currentTime.value()) * speed.value()),
+        glm::radians(static_cast<float>(currentTime) * speed),
         glm::vec3(0.f, 1.f, 0.f)
     );
     matrix = glm::scale(matrix, glm::vec3(1.f, 0.5f, 1.f));
@@ -277,7 +277,7 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::instance().getTime());
+        currentTime = Engine::instance().getTime();
 
         time_t now = time(nullptr);
         constexpr const int TimeBufferSize = 256;
@@ -295,18 +295,18 @@ void preSyncFun() {
 #endif
         const std::string time = TimeBuffer;
         const std::wstring wTime(time.begin(), time.end());
-        sTimeOfDay.setValue(wTime);
+        sTimeOfDay = wTime;
     }
 }
 
 void postSyncPreDrawFun() {
     // barrier is set by swap group not window both windows has the same HDC
-    Window::setBarrier(barrier.value());
-    Engine::instance().setStatsGraphVisibility(stats.value());
+    Window::setBarrier(barrier);
+    Engine::instance().setStatsGraphVisibility(stats);
 
-    if (takeScreenshot.value()) {
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -417,45 +417,48 @@ void initOGLFun(GLFWwindow*) {
     matrixLocation = glGetUniformLocation(prog.id(), "matrix");
     prog.unbind();
 }
+void decodeFun(const std::vector<unsigned char>& data);
 
-void encodeFun() {
+std::vector<unsigned char> encodeFun() {
     unsigned char flags = 0;
-    flags = extraPackages.value()  ? flags | 2   : flags & ~2;   // bit 2
-    flags = barrier.value()        ? flags | 4   : flags & ~4;   // bit 3
-    flags = stats.value()          ? flags | 8  : flags & ~8;  // bit 4
-    flags = takeScreenshot.value() ? flags | 16  : flags & ~16;  // bit 5
-    flags = slowRendering.value()  ? flags | 32  : flags & ~32;  // bit 6
-    flags = frametest.value()      ? flags | 64 : flags & ~64; // bit 7
+    flags = extraPackages  ? flags | 2   : flags & ~2;   // bit 2
+    flags = barrier        ? flags | 4   : flags & ~4;   // bit 3
+    flags = stats          ? flags | 8  : flags & ~8;  // bit 4
+    flags = takeScreenshot ? flags | 16  : flags & ~16;  // bit 5
+    flags = slowRendering  ? flags | 32  : flags & ~32;  // bit 6
+    flags = frametest      ? flags | 64 : flags & ~64; // bit 7
 
-    SharedUChar sf(flags);
-
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeFloat(speed);
-    SharedData::instance().writeUChar(sf);
-    SharedData::instance().writeWString(sTimeOfDay);
-
-    if (extraPackages.value()) {
-        SharedData::instance().writeVector(extraData);
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, speed);
+    serializeObject(data, flags);
+    serializeObject(data, sTimeOfDay);
+    if (extraPackages) {
+        serializeObject(data, extraData);
     }
+
+    decodeFun(data);
+
+    return data;
 }
 
-void decodeFun() {
-    SharedUChar sf;
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readFloat(speed);
-    SharedData::instance().readUChar(sf);
-    SharedData::instance().readWString(sTimeOfDay);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, speed);
+    unsigned char flags;
+    deserializeObject(data, pos, flags);
+    deserializeObject(data, pos, sTimeOfDay);
 
-    unsigned char flags = sf.value();
-    extraPackages.setValue(flags & 2);
-    barrier.setValue(flags & 4);
-    stats.setValue(flags & 8);
-    takeScreenshot.setValue(flags & 16);
-    slowRendering.setValue(flags & 32);
-    frametest.setValue(flags & 64);
+    extraPackages = flags & 2;
+    barrier = flags & 4;
+    stats = flags & 8;
+    takeScreenshot = flags & 16;
+    slowRendering = flags & 32;
+    frametest = flags & 64;
 
-    if (extraPackages.value()) {
-        SharedData::instance().readVector(extraData);
+    if (extraPackages) {
+        deserializeObject(data, pos, extraData);
     }
 }
 
@@ -469,22 +472,22 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::F:
                 if (action == Action::Press) {
-                    frametest.setValue(!frametest.value());
+                    frametest = !frametest;
                 }
                 break;
             case Key::E:
                 if (action == Action::Press) {
-                    extraPackages.setValue(!extraPackages.value());
+                    extraPackages = !extraPackages;
                 }
                 break;
             case Key::B:
                 if (action == Action::Press) {
-                    barrier.setValue(!barrier.value());
+                    barrier = !barrier;
                 }
                 break;
             case Key::S:
                 if (action == Action::Press) {
-                    stats.setValue(!stats.value());
+                    stats = !stats;
                 }
                 break;
             case Key::G:
@@ -500,19 +503,19 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::F9:
                 if (action == Action::Press) {
-                    slowRendering.setValue(!slowRendering.value());
+                    slowRendering = !slowRendering;
                 }
                 break;
             case Key::F10:
                 if (action == Action::Press) {
-                    takeScreenshot.setValue(true);
+                    takeScreenshot = true;
                 }
                 break;
             case Key::Up:
-                speed.setValue(speed.value() * 1.1f);
+                speed *= speed;
                 break;
             case Key::Down:
-                speed.setValue(speed.value() / 1.1f);
+                speed /= 1.1f;
                 break;
             default:
                 break;
@@ -525,7 +528,6 @@ int main(int argc, char** argv) {
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
 
-    Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     Engine::Callbacks callbacks;
     callbacks.initOpenGL = initOGLFun;
 
@@ -539,6 +541,7 @@ int main(int argc, char** argv) {
 
     try {
         Engine::create(cluster, callbacks, config);
+        Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());
@@ -548,7 +551,7 @@ int main(int argc, char** argv) {
 
     if (Engine::instance().isMaster()) {
         for (int i = 0; i < ExtendedSize; i++) {
-            extraData.addValue(static_cast<float>(rand() % 500) / 500.f);
+            extraData.push_back(static_cast<float>(rand() % 500) / 500.f);
         }
     }
 

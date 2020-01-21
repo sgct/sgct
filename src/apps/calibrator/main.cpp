@@ -21,10 +21,10 @@ namespace {
         int nVertTriangle = 0;
     } geometry;
 
-    sgct::SharedBool showId(false);
-    sgct::SharedBool showStats(false);
-    sgct::SharedBool takeScreenshot(false);
-    sgct::SharedBool captureBackbuffer(false);
+    bool showId = false;
+    bool showStats = false;
+    bool takeScreenshot = false;
+    bool captureBackbuffer = false;
 
     float tilt = 0.f;
     float radius = 7.4f;
@@ -118,7 +118,7 @@ void draw(RenderData data) {
 
 void draw2D(RenderData data) {
 #ifdef SGCT_HAS_TEXT
-    if (showId.value()) {
+    if (showId) {
         const float w =
             static_cast<float>(data.window.resolution().x) * data.viewport.size().x;
         const float h =
@@ -280,11 +280,11 @@ void initGL(GLFWwindow*) {
 }
 
 void postSyncPreDraw() {
-    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer.value());
-    Engine::instance().setStatsGraphVisibility(showStats.value());
-    if (takeScreenshot.value()) {
+    Settings::instance().setCaptureFromBackBuffer(captureBackbuffer);
+    Engine::instance().setStatsGraphVisibility(showStats);
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -293,34 +293,37 @@ void keyboardCallback(Key key, Modifier, Action action, int) {
         Engine::instance().terminate();
     }
     if (key == Key::I && action == Action::Press) {
-        showId.setValue(!showId.value());
+        showId = !showId;
     }
 
     if (key == Key::S && action == Action::Press) {
-        showStats.setValue(!showStats.value());
+        showStats = !showStats;
     }
 
     if (key == Key::P && action == Action::Press) {
-        takeScreenshot.setValue(true);
+        takeScreenshot = true;
     }
 
     if (key == Key::B && action == Action::Press) {
-        captureBackbuffer.setValue(!captureBackbuffer.value());
+        captureBackbuffer = !captureBackbuffer;
     }
 }
 
-void encode() {
-    SharedData::instance().writeBool(showId);
-    SharedData::instance().writeBool(showStats);
-    SharedData::instance().writeBool(takeScreenshot);
-    SharedData::instance().writeBool(captureBackbuffer);
+std::vector<unsigned char> encode() {
+    std::vector<unsigned char> data;
+    serializeObject(data, showId);
+    serializeObject(data, showStats);
+    serializeObject(data, takeScreenshot);
+    serializeObject(data, captureBackbuffer);
+    return data;
 }
 
-void decode() {
-    SharedData::instance().readBool(showId);
-    SharedData::instance().readBool(showStats);
-    SharedData::instance().readBool(takeScreenshot);
-    SharedData::instance().readBool(captureBackbuffer);
+void decode(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, showId);
+    deserializeObject(data, pos, showStats);
+    deserializeObject(data, pos, takeScreenshot);
+    deserializeObject(data, pos, captureBackbuffer);
 }
 
 void cleanUp() {

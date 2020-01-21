@@ -9,7 +9,7 @@
 #include <sgct/sgct.h>
 
 namespace {
-    sgct::SharedDouble currentTime(0.0);
+    double currentTime = 0.0;
 
     GLuint vertexArray = 0;
     GLuint vertexPositionBuffer = 0;
@@ -90,7 +90,7 @@ void drawFun(RenderData data) {
 
     glm::mat4 scene = glm::rotate(
         glm::mat4(1.f),
-        static_cast<float>(currentTime.value()) * Speed,
+        static_cast<float>(currentTime) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
@@ -106,16 +106,19 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
     }
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
 }
 
 void cleanUpFun() {

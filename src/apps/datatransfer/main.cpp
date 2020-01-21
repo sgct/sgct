@@ -23,15 +23,15 @@ namespace {
     std::unique_ptr<sgct::Image> transImg;
     unsigned int textureId = 0;
 
-    sgct::SharedBool stats(false);
-    sgct::SharedInt32 texIndex(-1);
+    bool stats = false;
+    int32_t texIndex = -1;
 
-    sgct::SharedInt32 currentPackage(-1);
-    sgct::SharedBool transfer(false);
-    sgct::SharedBool serverUploadDone(false);
-    sgct::SharedBool clientsUploadDone(false);
-    sgct::SharedVector<std::string> imagePaths;
-    sgct::SharedVector<GLuint> texIds;
+    int32_t currentPackage = -1;
+    bool transfer = false;
+    bool serverUploadDone = false;
+    bool clientsUploadDone = false;
+    std::vector<std::string> imagePaths;
+    std::vector<GLuint> texIds;
     double sendTimer = 0.0;
 
     bool isRunning = true;
@@ -40,7 +40,7 @@ namespace {
     GLint matrixLoc = -1;
 
     // variables to share across cluster
-    sgct::SharedDouble currentTime(0.0);
+    double currentTime(0.0);
 
     constexpr const char* vertexShader = R"(
   #version 330 core
@@ -87,9 +87,9 @@ void readImage(unsigned char* data, int len) {
 
 void startDataTransfer() {
     // iterate
-    int id = currentPackage.value();
+    int id = currentPackage;
     id++;
-    currentPackage.setValue(id);
+    currentPackage = id;
 
     // make sure to keep within bounds
     if (static_cast<int>(imagePaths.size()) <= id) {
@@ -99,7 +99,7 @@ void startDataTransfer() {
     sendTimer = Engine::getTime();
 
     // load from file
-    const std::string& tmpPair = imagePaths.valueAt(static_cast<size_t>(id));
+    const std::string& tmpPair = imagePaths[static_cast<size_t>(id)];
 
     std::ifstream file(tmpPair.c_str(), std::ios::binary);
     file.seekg(0, std::ios::end);
@@ -121,7 +121,7 @@ void uploadTexture() {
 
     if (!transImg) {
         // if invalid load
-        texIds.addValue(0);
+        texIds.push_back(0);
         return;
     }
 
@@ -197,7 +197,7 @@ void uploadTexture() {
         tex, transImg->size().x, transImg->size().y, transImg->channels()
     );
 
-    texIds.addValue(tex);
+    texIds.push_back(tex);
     transImg = nullptr;
 
     glFinish();
@@ -207,11 +207,9 @@ void uploadTexture() {
 void threadWorker() {
     while (isRunning) {
         // runs only on master
-        if (transfer.value() && !serverUploadDone.value() &&
-            !clientsUploadDone.value())
-        {
+        if (transfer && !serverUploadDone && !clientsUploadDone) {
             startDataTransfer();
-            transfer.setValue(false);
+            transfer = false;
 
             // load texture on master
             uploadTexture();
@@ -237,12 +235,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * Speed),
+        static_cast<float>(currentTime * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * (Speed / 2.0)),
+        static_cast<float>(currentTime * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -250,8 +248,8 @@ void drawFun(RenderData data) {
 
     glActiveTexture(GL_TEXTURE0);
     
-    if (texIndex.value() != -1) {
-        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value()));
+    if (texIndex != -1) {
+        glBindTexture(GL_TEXTURE_2D, texIds[texIndex]);
     }
     else {
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -268,11 +266,11 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
         
         // if texture is uploaded then iterate the index
-        if (serverUploadDone.value() && clientsUploadDone.value()) {
-            texIndex.setValue(texIndex.value() + 1);
+        if (serverUploadDone && clientsUploadDone) {
+            texIndex++;
             serverUploadDone = false;
             clientsUploadDone = false;
         }
@@ -280,7 +278,7 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.value());
+    Engine::instance().setStatsGraphVisibility(stats);
 }
 
 void initOGLFun(GLFWwindow* win) {
@@ -314,23 +312,26 @@ void initOGLFun(GLFWwindow* win) {
     prog.unbind();
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(stats);
-    SharedData::instance().writeInt32(texIndex);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, stats);
+    serializeObject(data, texIndex);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(stats);
-    SharedData::instance().readInt32(texIndex);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, stats);
+    deserializeObject(data, pos, texIndex);
 }
 
 void cleanUpFun() {
     box = nullptr;
     
     for (size_t i = 0; i < texIds.size(); i++) {
-        GLuint tex = texIds.valueAt(i);
+        GLuint tex = texIds[i];
         if (tex) {
             glDeleteTextures(1, &tex);
         }
@@ -349,7 +350,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 Engine::instance().terminate();
                 break;
             case Key::S:
-                stats.setValue(!stats.value());
+                stats = !stats;
                 break;
             default:
                 break;
@@ -362,7 +363,7 @@ void dataTransferDecoder(void* data, int length, int packageId, int clientIndex)
         "Decoding %d bytes in transfer id: %d on node %d", length, packageId, clientIndex
     );
 
-    currentPackage.setValue(packageId);
+    currentPackage = packageId;
 
     // read the image on master
     readImage(reinterpret_cast<unsigned char*>(data), length);
@@ -381,7 +382,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     );
     
     static int counter = 0;
-    if (packageId == currentPackage.value()) {
+    if (packageId == currentPackage) {
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
@@ -415,8 +416,8 @@ void dropCallback(int, const char** paths) {
     const bool foundJpeg = tmpStr.find(".jpeg") != std::string::npos;
     const bool foundPng = tmpStr.find(".png") != std::string::npos;
     if (foundJpg || foundJpeg || foundPng) {
-        imagePaths.addValue(paths[0]);
-        transfer.setValue(true);
+        imagePaths.push_back(paths[0]);
+        transfer = true;
     }
 }
 

@@ -20,18 +20,18 @@ namespace {
     GLFWwindow* sharedWindow;
     std::vector<std::unique_ptr<sgct::Image>> transImages;
 
-    sgct::SharedBool stats(false);
-    sgct::SharedInt32 texIndex(-1);
-    sgct::SharedInt32 incrIndex(1);
-    sgct::SharedInt32 numSyncedTex(0);
+    bool stats = false;
+    int32_t texIndex = -1;
+    int32_t incrIndex = 1;
+    int32_t numSyncedTex = 0;
 
-    sgct::SharedInt32 lastPackage(-1);
-    sgct::SharedBool transfer(false);
-    sgct::SharedBool serverUploadDone(false);
-    sgct::SharedInt32 serverUploadCount(0);
-    sgct::SharedBool clientsUploadDone(false);
-    sgct::SharedVector<std::string> imagePaths;
-    sgct::SharedVector<GLuint> texIds;
+    int32_t lastPackage = -1;
+    bool transfer = false;
+    bool serverUploadDone = false;
+    int32_t serverUploadCount(0);
+    bool clientsUploadDone = false;
+    std::vector<std::string> imagePaths;
+    std::vector<GLuint> texIds;
     double sendTimer = 0.0;
 
     bool isRunning = true;
@@ -39,7 +39,7 @@ namespace {
     std::unique_ptr<sgct::utils::Dome> dome;
     GLint matrixLoc = -1;
 
-    sgct::SharedDouble currentTime(0.0);
+    double currentTime(0.0);
 
     constexpr const char* vertexShader = R"(
   #version 330 core
@@ -84,7 +84,7 @@ void readImage(unsigned char* data, int len) {
 }
 
 void startDataTransfer() {
-    int id = lastPackage.value();
+    int id = lastPackage;
     id++;
 
     // make sure to keep within bounds
@@ -94,11 +94,11 @@ void startDataTransfer() {
     sendTimer = Engine::getTime();
 
     const int imageCounter = static_cast<int32_t>(imagePaths.size());
-    lastPackage.setValue(imageCounter - 1);
+    lastPackage = imageCounter - 1;
 
     for (int i = id; i < imageCounter; i++) {
         // load from file
-        const std::string& p = imagePaths.valueAt(static_cast<size_t>(i));
+        const std::string& p = imagePaths[static_cast<size_t>(i)];
 
         std::ifstream file(p.c_str(), std::ios::binary);
         file.seekg(0, std::ios::end);
@@ -125,7 +125,7 @@ void uploadTexture() {
     for (size_t i = 0; i < transImages.size(); i++) {
         if (!transImages[i]) {
             // if invalid load
-            texIds.addValue(0);
+            texIds.push_back(0);
             continue;
         }
 
@@ -186,7 +186,7 @@ void uploadTexture() {
             transImages[i]->channels()
         );
 
-        texIds.addValue(tex);
+        texIds.push_back(tex);
         transImages[i] = nullptr;
     }
 
@@ -198,13 +198,13 @@ void uploadTexture() {
 
 void threadWorker() {
     while (isRunning) {
-        const bool trans = transfer.value();
-        const bool serverDone = serverUploadDone.value();
-        const bool clientDone = clientsUploadDone.value();
+        const bool trans = transfer;
+        const bool serverDone = serverUploadDone;
+        const bool clientDone = clientsUploadDone;
         // runs only on master
         if (trans && !serverDone && !clientDone) {
             startDataTransfer();
-            transfer.setValue(false);
+            transfer = false;
 
             // load textures on master
             uploadTexture();
@@ -221,7 +221,7 @@ void threadWorker() {
 
 
 void drawFun(RenderData data) {
-    if (texIndex.value() == -1) {
+    if (texIndex == -1) {
         return;
     }
 
@@ -232,13 +232,13 @@ void drawFun(RenderData data) {
 
     glActiveTexture(GL_TEXTURE0);
 
-    if ((texIds.size() > (texIndex.value() + 1)) &&
+    if ((texIds.size() > (texIndex + 1)) &&
         data.frustumMode == Frustum::Mode::StereoRightEye)
     {
-        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value() + 1));
+        glBindTexture(GL_TEXTURE_2D, texIds[texIndex + 1]);
     }
     else {
-        glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value()));
+        glBindTexture(GL_TEXTURE_2D, texIds[texIndex]);
     }
 
     ShaderManager::instance().shaderProgram("xform").bind();
@@ -252,14 +252,14 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
 
         // if texture is uploaded then iterate the index
-        if (serverUploadDone.value() && clientsUploadDone.value()) {
+        if (serverUploadDone && clientsUploadDone) {
             numSyncedTex = static_cast<int32_t>(texIds.size());
             
             // only iterate up to the first new image, even if multiple images was added
-            texIndex = numSyncedTex.value() - serverUploadCount.value();
+            texIndex = numSyncedTex - serverUploadCount;
 
             serverUploadDone = false;
             clientsUploadDone = false;
@@ -268,7 +268,7 @@ void preSyncFun() {
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.value());
+    Engine::instance().setStatsGraphVisibility(stats);
 }
 
 void initOGLFun(GLFWwindow* win) {
@@ -303,28 +303,31 @@ void initOGLFun(GLFWwindow* win) {
     prog.unbind();
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(stats);
-    SharedData::instance().writeInt32(texIndex);
-    SharedData::instance().writeInt32(incrIndex);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, stats);
+    serializeObject(data, texIndex);
+    serializeObject(data, incrIndex);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(stats);
-    SharedData::instance().readInt32(texIndex);
-    SharedData::instance().readInt32(incrIndex);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, stats);
+    deserializeObject(data, pos, texIndex);
+    deserializeObject(data, pos, incrIndex);
 }
 
 void cleanUpFun() {
     dome = nullptr;
 
     for (size_t i = 0; i < texIds.size(); i++) {
-        GLuint tex = texIds.valueAt(i);
+        GLuint tex = texIds[i];
         if (tex) {
             glDeleteTextures(1, &tex);
-            texIds.setValueAt(i, 0);
+            texIds[i] = 0;
         }
     }
     texIds.clear();
@@ -343,29 +346,27 @@ void keyCallback(Key key, Modifier, Action action, int) {
             Engine::instance().terminate();
             break;
         case Key::S:
-            stats.setValue(!stats.value());
+            stats = !stats;
             break;
         case Key::Key1:
-            incrIndex.setValue(1);
+            incrIndex = 1;
             break;
         case Key::Key2:
-            incrIndex.setValue(2);
+            incrIndex = 2;
             break;
         case Key::Left:
-            if (numSyncedTex.value() > 0) {
-                if (texIndex.value() > incrIndex.value() - 1) {
-                    texIndex.setValue(texIndex.value() - incrIndex.value());
+            if (numSyncedTex > 0) {
+                if (texIndex > incrIndex - 1) {
+                    texIndex = texIndex - incrIndex;
                 }
                 else {
-                    texIndex.setValue(numSyncedTex.value() - 1);
+                    texIndex = numSyncedTex - 1;
                 }
             }
             break;
         case Key::Right:
-            if (numSyncedTex.value() > 0) {
-                texIndex.setValue(
-                    (texIndex.value() + incrIndex.value()) % numSyncedTex.value()
-                );
+            if (numSyncedTex > 0) {
+                texIndex = (texIndex + incrIndex) % numSyncedTex;
             }
             break;
         default:
@@ -381,7 +382,7 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
         receivedLength, packageId, clientIndex
     );
 
-    lastPackage.setValue(packageId);
+    lastPackage = packageId;
     
     // read the image on slave
     readImage(reinterpret_cast<unsigned char*>(receivedData), receivedLength);
@@ -400,7 +401,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     );
     
     static int counter = 0;
-    if (packageId == lastPackage.value()) {
+    if (packageId == lastPackage) {
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
@@ -435,7 +436,7 @@ void dropCallback(int count, const char** paths) {
         // sort in alphabetical order
         std::sort(pathStrings.begin(), pathStrings.end());
 
-        serverUploadCount.setValue(0);
+        serverUploadCount = 0;
 
         // iterate all drop paths
         for (size_t i = 0; i < pathStrings.size(); i++) {
@@ -444,16 +445,16 @@ void dropCallback(int count, const char** paths) {
             const size_t foundJpg = tmpStr.find(".jpg");
             const size_t foundJpeg = tmpStr.find(".jpeg");
             if (foundJpg != std::string::npos || foundJpeg != std::string::npos) {
-                imagePaths.addValue(pathStrings[i]);
-                transfer.setValue(true); // tell transfer thread to start processing data
-                serverUploadCount.setValue(serverUploadCount.value() + 1);
+                imagePaths.push_back(pathStrings[i]);
+                transfer = true; // tell transfer thread to start processing data
+                serverUploadCount++;
             }
 
             const size_t foundPng = tmpStr.find(".png");
             if (foundPng != std::string::npos) {
-                imagePaths.addValue(pathStrings[i]);
-                transfer.setValue(true); // tell transfer thread to start processing data
-                serverUploadCount.setValue(serverUploadCount.value() + 1);
+                imagePaths.push_back(pathStrings[i]);
+                transfer = true; // tell transfer thread to start processing data
+                serverUploadCount++;
             }
         }
     }

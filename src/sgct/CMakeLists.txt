@@ -46,7 +46,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shareddatatypes.h
   ${PROJECT_SOURCE_DIR}/include/sgct/sphericalmirrorprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/spoutoutputprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
@@ -111,7 +110,6 @@ set(SOURCE_FILES
   shadermanager.cpp
   shaderprogram.cpp
   shareddata.cpp
-  shareddatatypes.cpp
   sphericalmirrorprojection.cpp
   spoutoutputprojection.cpp
   statisticsrenderer.cpp

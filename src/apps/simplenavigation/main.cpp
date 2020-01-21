@@ -36,7 +36,7 @@ namespace {
     glm::vec3 up(0.f, 1.f, 0.f);
     glm::vec3 pos(0.f, 0.f, 0.f);
 
-    sgct::SharedObject<glm::mat4> xform;
+    glm::mat4 xform;
     glm::mat4 pyramidTransforms[NumberOfPyramids];
 
     struct {
@@ -215,7 +215,7 @@ void createPyramid(float width) {
 
 
 void drawPyramid(glm::mat4 mvp, int index) {
-    const glm::mat4 proj = mvp * xform.value() * pyramidTransforms[index];
+    const glm::mat4 proj = mvp * xform * pyramidTransforms[index];
 
     ShaderManager::instance().shaderProgram("pyramidShader").bind();
 
@@ -238,7 +238,7 @@ void drawPyramid(glm::mat4 mvp, int index) {
 }
 
 void drawXZGrid(glm::mat4 mvp) {
-    const glm::mat4 proj = mvp * xform.value();
+    const glm::mat4 proj = mvp * xform;
 
     ShaderManager::instance().shaderProgram("gridShader").bind();
     glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(proj));
@@ -358,17 +358,14 @@ void preSyncFun() {
          * multiplication order.
          */
 
-        glm::mat4 result;
         // 4. transform user back to original position
-        result = glm::translate(glm::mat4(1.f), Engine::defaultUser().posMono());
+        xform = glm::translate(glm::mat4(1.f), Engine::defaultUser().posMono());
         // 3. apply view rotation
-        result *= viewRotateX;
+        xform *= viewRotateX;
         // 2. apply navigation translation
-        result *= glm::translate(glm::mat4(1.f), pos);
+        xform *= glm::translate(glm::mat4(1.f), pos);
         // 1. transform user to coordinate system origin
-        result *= glm::translate(glm::mat4(1.f), -Engine::defaultUser().posMono());
-
-        xform.setValue(result);
+        xform *= glm::translate(glm::mat4(1.f), -Engine::defaultUser().posMono());
     }
 }
 
@@ -388,12 +385,15 @@ void drawFun(RenderData data) {
     glDisable(GL_BLEND);
 }
 
-void encodeFun() {
-    SharedData::instance().writeObj(xform);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, xform);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readObj(xform);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, xform);
 }
 
 void keyCallback(Key key, Modifier, Action action, int) {
@@ -448,10 +448,9 @@ int main(int argc, char** argv) {
     callbacks.encode = encodeFun;
     callbacks.decode = decodeFun;
 
-    Engine::instance().setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-
     try {
         Engine::create(cluster, callbacks, config);
+        Engine::instance().setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());

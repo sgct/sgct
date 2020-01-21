@@ -31,11 +31,11 @@ namespace {
     bool mPause = false;
 
     // variables to share across cluster
-    sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool stats(false);
-    sgct::SharedBool takeScreenshot(false);
-    sgct::SharedBool useTracking(false);
-    sgct::SharedObject<sgct::Window::StereoMode> stereoMode;
+    double currentTime = 0.0;
+    bool stats = false;
+    bool takeScreenshot = false;
+    bool useTracking = false;
+    sgct::Window::StereoMode stereoMode;
 
     struct Vertex {
         float x, y, z;
@@ -206,7 +206,7 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.15f, 2.5f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * Speed),
+        static_cast<float>(currentTime * Speed),
         glm::vec3(0.f, 1.f, 0.f)
     );
 
@@ -227,7 +227,7 @@ void drawFun(RenderData data) {
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
-    glUniform1f(currTimeLoc, static_cast<float>(currentTime.value()));
+    glUniform1f(currTimeLoc, static_cast<float>(currentTime));
 
     glBindVertexArray(vertexArray);
 
@@ -243,26 +243,24 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster() && !mPause) {
-        currentTime.setValue(
-            currentTime.value() + Engine::instance().statistics().avgDt(
-                Engine::instance().currentFrameNumber()
-            )
+        currentTime += Engine::instance().statistics().avgDt(
+            Engine::instance().currentFrameNumber()
         );
     }
 }
 
 void postSyncPreDrawFun() {
-    Engine::instance().setStatsGraphVisibility(stats.value());
-    TrackingManager::instance().setEnabled(useTracking.value());
+    Engine::instance().setStatsGraphVisibility(stats);
+    TrackingManager::instance().setEnabled(useTracking);
 
-    if (takeScreenshot.value()) {
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
 void initOGLFun(GLFWwindow*) {
-    stereoMode.setValue(Engine::instance().windows()[0]->stereoMode());
+    stereoMode = Engine::instance().windows()[0]->stereoMode();
 
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
     normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
@@ -328,20 +326,23 @@ void initOGLFun(GLFWwindow*) {
     glBindVertexArray(0);
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(stats);
-    SharedData::instance().writeBool(takeScreenshot);
-    SharedData::instance().writeBool(useTracking);
-    SharedData::instance().writeObj(stereoMode);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, stats);
+    serializeObject(data, takeScreenshot);
+    serializeObject(data, useTracking);
+    serializeObject(data, stereoMode);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(stats);
-    SharedData::instance().readBool(takeScreenshot);
-    SharedData::instance().readBool(useTracking);
-    SharedData::instance().readObj(stereoMode);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, stats);
+    deserializeObject(data, pos, takeScreenshot);
+    deserializeObject(data, pos, useTracking);
+    deserializeObject(data, pos, stereoMode);
 }
 
 void keyCallback(Key key, Modifier, Action action, int) {
@@ -351,13 +352,13 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 Engine::instance().terminate();
                 break;
             case Key::S:
-                stats.setValue(!stats.value());
+                stats = !stats;
                 break;
             case Key::Q:
                 Engine::instance().terminate();
                 break;
             case Key::T:
-                useTracking.setValue(!useTracking.value());
+                useTracking = !useTracking;
                 break;
             case Key::E:
                 ClusterManager::instance().defaultUser().setTransform(
@@ -374,20 +375,20 @@ void keyCallback(Key key, Modifier, Action action, int) {
                 break;
             case Key::P:
             case Key::F10:
-                takeScreenshot.setValue(true);
+                takeScreenshot = true;
                 break;
             case Key::Left:
-                if (static_cast<int>(stereoMode.value()) > 0) {
-                    const int v = static_cast<int>(stereoMode.value()) - 1;
+                if (static_cast<int>(stereoMode) > 0) {
+                    const int v = static_cast<int>(stereoMode) - 1;
                     Window::StereoMode m = static_cast<Window::StereoMode>(v);
-                    stereoMode.setValue(m);
+                    stereoMode = m;
                 }
                 break;
             case Key::Right:
             {
-                const int v = static_cast<int>(stereoMode.value()) + 1;
+                const int v = static_cast<int>(stereoMode) + 1;
                 Window::StereoMode m = static_cast<Window::StereoMode>(v);
-                stereoMode.setValue(m);
+                stereoMode = m;
                 break;
             }
             default:

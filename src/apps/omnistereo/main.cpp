@@ -24,8 +24,8 @@ namespace {
     unsigned int textureId = 0;
 
     // variables to share across cluster
-    sgct::SharedDouble currentTime(0.0);
-    sgct::SharedBool takeScreenshot(true);
+    double currentTime = 0.0;
+    bool takeScreenshot = true;
 
     struct OmniData {
         std::map<sgct::Frustum::Mode, glm::mat4> viewProjectionMatrix;
@@ -430,14 +430,14 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
     }
 }
 
 void postSyncPreDrawFun() {
-    if (takeScreenshot.value()) {
+    if (takeScreenshot) {
         Engine::instance().takeScreenshot();
-        takeScreenshot.setValue(false);
+        takeScreenshot = false;
     }
 }
 
@@ -474,14 +474,17 @@ void initOGLFun(GLFWwindow*) {
     initOmniStereo(maskOutSimilarities);
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
-    SharedData::instance().writeBool(takeScreenshot);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    serializeObject(data, takeScreenshot);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
-    SharedData::instance().readBool(takeScreenshot);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
+    deserializeObject(data, pos, takeScreenshot);
 }
 
 void cleanUpFun() {

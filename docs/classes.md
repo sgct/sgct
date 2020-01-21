@@ -14,8 +14,8 @@ This class is the core of SGCT.  There is more description about this class in t
 ## readconfig.h
 This file contains the function to read an XML cluster configuration into a configuration option which can be used to initialize the `Engine` class.
 
-## SharedData / shareddatatypes.h
-The `SharedData` class is a singleton that handles the network synchronization of state between the server and the clients.  The server has to provide the state it wants to transmit to the clients using the `write*` functions (for example `writeFloat`, `writeUInt64`, ...) in the `Encode` callback and the clients have to read the same values in the same order using the `read*` functions in the `Decode` callback.  The `sharedddatatypes.h` file contains all predefined helper types to make this functionality easy to use.  The buffer it uses grows dynamically over time, which means that the amount of data that can be transmitted can change from frame to frame.  However, keep in mind that an overly large buffer will lead to performance degredation.
+## SharedData
+The `SharedData` class is a singleton that handles the network synchronization of state between the server and the clients.  The server has to provide the state it wants as a `std::vector<unsigned char>` to transmit to the clients in the `Encode` callback and the clients have to read the values in the `Decode` callback.
 
 ## actions.h / joystick.h / keys.h / modifiers.h / mouse.h
 These files contain all the enumerations that are necessary to use the interaction-based (keyboard, mouse, and joysticks/gamepads) callbacks.

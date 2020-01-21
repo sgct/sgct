@@ -12,15 +12,15 @@
 
 namespace {
     std::unique_ptr<std::thread> connectionThread;
-    std::atomic_bool connected;
-    std::atomic_bool running;
+    std::atomic_bool connected = false;
+    std::atomic_bool running = true;
 
     unsigned int textureId = 0;
 
     std::unique_ptr<sgct::utils::Box> box;
     GLint matrixLoc = -1;
 
-    sgct::SharedDouble currentTime(0.0);
+    double currentTime(0.0);
 
     int port;
     std::string address;
@@ -181,12 +181,12 @@ void drawFun(RenderData data) {
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * Speed),
+        static_cast<float>(currentTime * Speed),
         glm::vec3(0.f, -1.f, 0.f)
     );
     scene = glm::rotate(
         scene,
-        static_cast<float>(currentTime.value() * (Speed / 2.0)),
+        static_cast<float>(currentTime * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
@@ -206,7 +206,7 @@ void drawFun(RenderData data) {
 
 void preSyncFun() {
     if (Engine::instance().isMaster()) {
-        currentTime.setValue(Engine::getTime());
+        currentTime = Engine::getTime();
     }
 }
 
@@ -234,12 +234,15 @@ void initOGLFun(GLFWwindow*) {
     }
 }
 
-void encodeFun() {
-    SharedData::instance().writeDouble(currentTime);
+std::vector<unsigned char> encodeFun() {
+    std::vector<unsigned char> data;
+    serializeObject(data, currentTime);
+    return data;
 }
 
-void decodeFun() {
-    SharedData::instance().readDouble(currentTime);
+void decodeFun(const std::vector<unsigned char>& data) {
+    unsigned int pos = 0;
+    deserializeObject(data, pos, currentTime);
 }
 
 void cleanUpFun() {
@@ -269,9 +272,6 @@ void keyCallback(Key key, Modifier, Action action, int) {
 }
 
 int main(int argc, char** argv) {
-    connected = false;
-    running = true;
-
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);

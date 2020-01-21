@@ -94,10 +94,10 @@ public:
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
-        std::function<void()> encode;
+        std::function<std::vector<unsigned char>()> encode;
 
         /// This function is called by decode all shared data sent to us from the master
-        std::function<void()> decode;
+        std::function<void(const std::vector<unsigned char>&)> decode;
 
         /// This function is called when a TCP message is received
         std::function<void(const char*, int)> externalDecode;

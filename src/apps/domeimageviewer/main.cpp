@@ -73,13 +73,13 @@ using namespace sgct;
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(imageMutex);
 
-    std::unique_ptr<sgct::Image> img = std::make_unique<sgct::Image>();
+    std::unique_ptr<Image> img = std::make_unique<Image>();
     try {
         img->load(data, len);
         transImages.push_back(std::move(img));
     }
     catch (const std::runtime_error& e) {
-        sgct::Log::Error("%s", e.what());
+        Log::Error("%s", e.what());
     }
 }
 
@@ -91,7 +91,7 @@ void startDataTransfer() {
     if (static_cast<int>(imagePaths.size()) <= id) {
         return;
     }
-    sendTimer = sgct::Engine::getTime();
+    sendTimer = Engine::getTime();
 
     const int imageCounter = static_cast<int32_t>(imagePaths.size());
     lastPackage.setValue(imageCounter - 1);
@@ -180,7 +180,7 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        sgct::Log::Info(
+        Log::Info(
             "Texture id %d loaded (%dx%dx%d)",
             tex, transImages[i]->size().x, transImages[i]->size().y,
             transImages[i]->channels()
@@ -233,7 +233,7 @@ void drawFun(RenderData data) {
     glActiveTexture(GL_TEXTURE0);
 
     if ((texIds.size() > (texIndex.value() + 1)) &&
-        data.frustumMode == sgct::Frustum::Mode::StereoRightEye)
+        data.frustumMode == Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds.valueAt(texIndex.value() + 1));
     }
@@ -402,13 +402,13 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == lastPackage.value()) {
         counter++;
-        if (counter == (sgct::ClusterManager::instance().numberOfNodes() - 1)) {
+        if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
             
             Log::Info(
                 "Time to distribute and upload textures on cluster: %f ms",
-                (sgct::Engine::getTime() - sendTimer) * 1000.0
+                (Engine::getTime() - sendTimer) * 1000.0
             );
         }
     }

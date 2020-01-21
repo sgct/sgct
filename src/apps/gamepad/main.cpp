@@ -43,7 +43,7 @@ void draw2DFun(RenderData data) {
             data.window,
             data.viewport,
             *text::FontManager::instance().font("SGCTFont", 12),
-            sgct::text::Alignment::TopLeft,
+            text::Alignment::TopLeft,
             18,
             32,
             glm::vec4(1.f, 0.5f, 0.f, 1.f),

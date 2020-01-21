@@ -58,7 +58,7 @@ namespace {
 
 using namespace sgct;
 
-void networkConnectionUpdated(sgct::Network* conn) {
+void networkConnectionUpdated(Network* conn) {
     if (conn->isServer()) {
         // wake up the connection handler thread on server if node disconnects to enable
         // reconnection
@@ -77,7 +77,7 @@ void networkAck(int packageId, int) {
 
     if (timerData.second == packageId) {
         Log::Info(
-            "Loop time: %lf ms", (sgct::Engine::getTime() - timerData.first) * 1000.0
+            "Loop time: %lf ms", (Engine::getTime() - timerData.first) * 1000.0
         );
     }
 }
@@ -99,11 +99,11 @@ void connect() {
         return;
     }
 
-    networkPtr = std::make_unique<sgct::Network>(
+    networkPtr = std::make_unique<Network>(
         port,
         address,
         isServer,
-        sgct::Network::ConnectionType::DataTransfer
+        Network::ConnectionType::DataTransfer
     );
 
     // init
@@ -218,12 +218,12 @@ void initOGLFun(GLFWwindow*) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    sgct::ShaderManager::instance().addShaderProgram(
+    ShaderManager::instance().addShaderProgram(
         "xform",
         vertexShader,
         fragmentShader
     );
-    const ShaderProgram& prg = sgct::ShaderManager::instance().shaderProgram("xform");
+    const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");
     glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0 );
@@ -235,11 +235,11 @@ void initOGLFun(GLFWwindow*) {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeDouble(currentTime);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readDouble(currentTime);
 }
 
 void cleanUpFun() {

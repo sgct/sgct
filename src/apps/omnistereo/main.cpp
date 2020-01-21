@@ -141,10 +141,10 @@ void initOmniStereo(bool mask) {
         return;
     }
 
-    sgct::Image turnMap;
+    Image turnMap;
     turnMap.load(turnMapSrc);
 
-    sgct::Image sepMap;
+    Image sepMap;
     sepMap.load(sepMapSrc);
 
     Window& win = *Engine::instance().windows()[1];
@@ -289,7 +289,7 @@ void initOmniStereo(bool mask) {
                     };
 
 
-                    sgct::ProjectionPlane projPlane;
+                    ProjectionPlane projPlane;
 
                     projPlane.setCoordinates(
                         convertCoords(glm::vec2(0.f, 0.f)),
@@ -314,7 +314,7 @@ void initOmniStereo(bool mask) {
                     const glm::vec3 tiltedEyePos = glm::mat3(tiltEyeMat) * rotatedEyePos;
 
                     // calc projection
-                    sgct::Projection proj;
+                    Projection proj;
                     proj.calculateProjection(
                         tiltedEyePos,
                         projPlane,
@@ -378,7 +378,7 @@ void drawOmniStereo(RenderData renderData) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
-    sgct::Frustum::Mode fm = renderData.frustumMode;
+    Frustum::Mode fm = renderData.frustumMode;
     for (int x = 0; x < res.x; x++) {
         for (int y = 0; y < res.y; y++) {
             if (omniProjections[x][y].enabled) {
@@ -480,8 +480,8 @@ void encodeFun() {
 }
 
 void decodeFun() {
-    sgct::SharedData::instance().readDouble(currentTime);
-    sgct::SharedData::instance().readBool(takeScreenshot);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(takeScreenshot);
 }
 
 void cleanUpFun() {

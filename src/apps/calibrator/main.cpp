@@ -134,12 +134,12 @@ void draw2D(RenderData data) {
             data.window,
             data.viewport,
             *f1,
-            sgct::text::Alignment::TopLeft,
+            text::Alignment::TopLeft,
             offset,
             h / 2.f - s1,
             glm::vec4(0.f, 0.f, 1.f, 1.f),
             "%d",
-            sgct::ClusterManager::instance().thisNodeId()
+            ClusterManager::instance().thisNodeId()
         );
 
         const float s2 = h / 20.f;

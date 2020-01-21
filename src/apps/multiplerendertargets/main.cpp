@@ -145,13 +145,13 @@ void initOGLFun(GLFWwindow*) {
 }
 
 void encodeFun() {
-    sgct::SharedData::instance().writeDouble(currentTime);
-    sgct::SharedData::instance().writeBool(takeScreenshot);
+    SharedData::instance().writeDouble(currentTime);
+    SharedData::instance().writeBool(takeScreenshot);
 }
 
 void decodeFun() {
-    sgct::SharedData::instance().readDouble(currentTime);
-    sgct::SharedData::instance().readBool(takeScreenshot);
+    SharedData::instance().readDouble(currentTime);
+    SharedData::instance().readBool(takeScreenshot);
 }
 
 void cleanUpFun() {

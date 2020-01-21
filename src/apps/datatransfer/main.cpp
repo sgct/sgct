@@ -74,7 +74,7 @@ using namespace sgct;
 void readImage(unsigned char* data, int len) {
     std::unique_lock lk(imageMutex);
 
-    transImg = std::make_unique<sgct::Image>();
+    transImg = std::make_unique<Image>();
 
     try {
         transImg->load(reinterpret_cast<unsigned char*>(data), len);
@@ -96,7 +96,7 @@ void startDataTransfer() {
         return;
     }
 
-    sendTimer = sgct::Engine::getTime();
+    sendTimer = Engine::getTime();
 
     // load from file
     const std::string& tmpPair = imagePaths.valueAt(static_cast<size_t>(id));
@@ -217,7 +217,7 @@ void threadWorker() {
             uploadTexture();
             serverUploadDone = true;
 
-            if (sgct::ClusterManager::instance().numberOfNodes() == 1) {
+            if (ClusterManager::instance().numberOfNodes() == 1) {
                 // no cluster
                 clientsUploadDone = true;
             }
@@ -383,13 +383,13 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     static int counter = 0;
     if (packageId == currentPackage.value()) {
         counter++;
-        if (counter == (sgct::ClusterManager::instance().numberOfNodes() - 1)) {
+        if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
 
             Log::Info(
                 "Time to distribute and upload textures on cluster: %f ms", 
-                (sgct::Engine::getTime() - sendTimer) * 1000.0
+                (Engine::getTime() - sendTimer) * 1000.0
             );
         }
     }

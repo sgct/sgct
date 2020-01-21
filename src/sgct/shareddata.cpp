@@ -57,7 +57,6 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
         std::unique_lock lk(mutex::DataSync);
 
         // reset
-        _pos = 0;
         _dataBlock.clear();
 
         if (receivedLength > static_cast<int>(_dataBlock.capacity())) {
@@ -79,9 +78,7 @@ void SharedData::encode() {
     {
         std::unique_lock lk(mutex::DataSync);
         _dataBlock.clear();
-        _headerSpace[0] = Network::DataId;
 
-        // reserve header space
         _dataBlock.insert(
             _dataBlock.begin(),
             _headerSpace.cbegin(),

@@ -268,7 +268,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
     connected = false;
     running = true;
 

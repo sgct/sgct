@@ -25,6 +25,9 @@
 #endif // WIN32
 
 #include <glad/glad.h>
+
+#ifdef WIN32
 #include <glad/glad_wgl.h>
+#endif // WIN32
 
 #endif // __SGCT__OGLHEADERS__H__

@@ -440,7 +440,7 @@ Sides getSideIndex(size_t index) {
 }
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     Configuration config = parseArguments(arguments);
     config::Cluster cluster = loadCluster(config.configFilename);

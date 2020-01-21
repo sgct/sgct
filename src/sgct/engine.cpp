@@ -280,10 +280,16 @@ config::Cluster loadCluster(std::optional<std::string> path) {
     else {
         config::Cluster cluster;
         // Create a default configuration
-        sgct::config::ProjectionPlane proj;
-        proj.lowerLeft = glm::vec3(-16.f/9.f, -1.f, 0.f);
-        proj.upperLeft = glm::vec3(-16.f/9.f, 1.f, 0.f);
-        proj.upperRight = glm::vec3(16.f/9.f, 1.f, 0.f);
+        constexpr const float hFov = 90.f;
+        constexpr const float vFov = hFov / (16.f / 9.f);
+
+        sgct::config::PlanarProjection proj;
+        sgct::config::PlanarProjection::FOV fov;
+        fov.down = -vFov / 2.f;
+        fov.up = vFov / 2.f;
+        fov.left = -hFov / 2.f;
+        fov.right = hFov / 2.f;
+        proj.fov = fov;
 
         sgct::config::Viewport viewport;
         viewport.projection = proj;
@@ -765,7 +771,9 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
         const bool isLastWindow = i == windows.size() - 1;
         windows[i]->openWindow(s, isLastWindow);
         gladLoadGL();
+#ifdef WIN32
         gladLoadWGL(wglGetCurrentDC());
+#endif // WIN32
         TracyGpuContext
     }
 

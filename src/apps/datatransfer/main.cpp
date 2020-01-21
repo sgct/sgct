@@ -420,7 +420,7 @@ void dropCallback(int, const char** paths) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);

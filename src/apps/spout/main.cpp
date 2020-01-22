@@ -66,9 +66,7 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(
-            "Spout: Initing %ux%u texture from '%s'", width, height, senderName
-        );
+        Log::Info("Spout: Initing %ux%u texture from '%s'", width, height, senderName);
         initialized = true;
     }
 
@@ -159,7 +157,7 @@ void initOGLFun(GLFWwindow*) {
     // set background
     Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
     
-    texture = TextureManager::instance().loadTexture("box", "box.png", true);
+    //texture = TextureManager::instance().loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 

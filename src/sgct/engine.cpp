@@ -442,26 +442,29 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 void Engine::initialize() {
     ZoneScoped
 
-    // Detect the available OpenGL version
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
-    glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_FALSE));
-    GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
-    glfwMakeContextCurrent(offscreen);
-    gladLoadGL();
-    // Get the OpenGL version
-
     int major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    {
+        ZoneScopedN("OpenGL Version")
 
-    // And get rid of the window again
-    glfwDestroyWindow(offscreen);
-    glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
+        // Detect the available OpenGL version
+    #ifdef __APPLE__
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #endif
+        glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_FALSE));
+        GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
+        glfwMakeContextCurrent(offscreen);
+        gladLoadGL();
 
+        // Get the OpenGL version
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+        // And get rid of the window again
+        glfwDestroyWindow(offscreen);
+        glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
+    }
     Log::Info("Detected OpenGL version: %i.%i", major, minor);
 
     initWindows(major, minor);

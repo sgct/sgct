@@ -17,7 +17,7 @@ namespace {
 
 using namespace sgct;
 
-void draw2DFun(RenderData data) {
+void draw2DFun(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;

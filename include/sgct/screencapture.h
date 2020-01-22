@@ -39,7 +39,7 @@ public:
     ScreenCapture();
     ~ScreenCapture();
 
-    void init(int windowIndex, EyeIndex ei);
+    void initialize(int windowIndex, EyeIndex ei);
 
     /**
      * Initializes the PBO or re-sizes it if the frame buffer size have changed.

@@ -85,7 +85,7 @@ void initFun(GLFWwindow*) {
     prg.unbind(); 
 }
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     constexpr const float Speed = 0.8f;
 
     glm::mat4 scene = glm::rotate(
@@ -110,13 +110,13 @@ void preSyncFun() {
     }
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
 }

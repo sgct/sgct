@@ -49,7 +49,7 @@ public:
     Network(int port, std::string address, bool isServer, ConnectionType type);
     ~Network();
 
-    void init();
+    void initialize();
     void closeNetwork(bool forced);
     void initShutdown();
 

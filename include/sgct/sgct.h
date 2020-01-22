@@ -33,4 +33,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cstddef>
+#include <vector>
+
 #endif // __SGCT__SGCT__H__

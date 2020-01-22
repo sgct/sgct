@@ -220,7 +220,7 @@ void threadWorker() {
 }
 
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     if (texIndex == -1) {
         return;
     }
@@ -303,8 +303,8 @@ void initOGLFun(GLFWwindow* win) {
     prog.unbind();
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, stats);
     serializeObject(data, texIndex);
@@ -312,7 +312,7 @@ std::vector<unsigned char> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, stats);

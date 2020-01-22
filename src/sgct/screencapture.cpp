@@ -179,7 +179,7 @@ void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
     _baseName = std::move(filename);
 }
 
-void ScreenCapture::init(int windowIndex, ScreenCapture::EyeIndex ei) {
+void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     _eyeIndex = ei;
     
     _captureInfos.resize(_nThreads);

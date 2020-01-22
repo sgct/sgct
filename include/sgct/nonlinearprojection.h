@@ -33,7 +33,7 @@ public:
      * Init the non linear projection. The arguments should match the texture settings for
      * the parent window's FBO target.
      */
-    void init(unsigned int internalFormat, unsigned int format, unsigned int type,
+    void initialize(unsigned int internalFormat, unsigned int format, unsigned int type,
         int samples);
 
     virtual void render(const Window& window, const BaseViewport& viewport,

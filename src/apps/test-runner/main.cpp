@@ -71,7 +71,7 @@ void main() { FragOut = color; }
 
 using namespace sgct;
 
-void draw(RenderData data) {
+void draw(const RenderData& data) {
     ShaderManager::instance().shaderProgram("simple").bind();
     const glm::mat4 mvp = data.modelViewProjectionMatrix;
     glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -239,14 +239,14 @@ void postDraw() {
     }
 }
 
-std::vector<unsigned char> encode() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encode() {
+    std::vector<std::byte> data;
     serializeObject(data, takeScreenshot);
     serializeObject(data, captureBackbuffer);
     return data;
 }
 
-void decode(const std::vector<unsigned char>& data) {
+void decode(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, takeScreenshot);
     deserializeObject(data, pos, captureBackbuffer);

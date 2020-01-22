@@ -92,7 +92,7 @@ public:
     ~Window();
 
     void close();
-    void init();
+    void initialize();
 
     /// Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs
     void initOGL();

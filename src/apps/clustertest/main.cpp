@@ -50,7 +50,7 @@ void main() { color = vec4(1.0); }
 
 using namespace sgct;
 
-void myDraw2DFun(RenderData data) {
+void myDraw2DFun(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     text::print(
         data.window,
@@ -79,7 +79,7 @@ void myDraw2DFun(RenderData data) {
 #endif // SGCT_HAS_TEXT
 }
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     if (slowRendering) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -417,9 +417,8 @@ void initOGLFun(GLFWwindow*) {
     matrixLocation = glGetUniformLocation(prog.id(), "matrix");
     prog.unbind();
 }
-void decodeFun(const std::vector<unsigned char>& data);
 
-std::vector<unsigned char> encodeFun() {
+std::vector<std::byte> encodeFun() {
     unsigned char flags = 0;
     flags = extraPackages  ? flags | 2   : flags & ~2;   // bit 2
     flags = barrier        ? flags | 4   : flags & ~4;   // bit 3
@@ -428,7 +427,7 @@ std::vector<unsigned char> encodeFun() {
     flags = slowRendering  ? flags | 32  : flags & ~32;  // bit 6
     flags = frametest      ? flags | 64 : flags & ~64; // bit 7
 
-    std::vector<unsigned char> data;
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, speed);
     serializeObject(data, flags);
@@ -437,12 +436,10 @@ std::vector<unsigned char> encodeFun() {
         serializeObject(data, extraData);
     }
 
-    decodeFun(data);
-
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, speed);

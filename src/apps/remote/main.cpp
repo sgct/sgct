@@ -17,7 +17,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(RenderData) {
+void drawFun(const RenderData&) {
     constexpr const float Speed = 50.f;
     glRotatef(static_cast<float>(currentTime) * Speed, 0.f, 1.f, 0.f);
 
@@ -46,15 +46,15 @@ void postSyncPreDrawFun() {
     Engine::instance().setStatsGraphVisibility(showGraph);
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, sizeFactor);
     serializeObject(data, showGraph);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, sizeFactor);

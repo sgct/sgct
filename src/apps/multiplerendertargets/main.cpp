@@ -73,7 +73,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -144,14 +144,14 @@ void initOGLFun(GLFWwindow*) {
     glFrontFace(GL_CCW);
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, takeScreenshot);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, takeScreenshot);

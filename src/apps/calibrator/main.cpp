@@ -91,7 +91,7 @@ void main() {
 
 using namespace sgct;
 
-void draw(RenderData data) {
+void draw(const RenderData& data) {
     ShaderManager::instance().shaderProgram("simple").bind();
     const glm::mat4 mvp = data.modelViewProjectionMatrix;
 
@@ -116,7 +116,7 @@ void draw(RenderData data) {
     ShaderManager::instance().shaderProgram("simple").unbind();
 }
 
-void draw2D(RenderData data) {
+void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (showId) {
         const float w =
@@ -309,8 +309,8 @@ void keyboardCallback(Key key, Modifier, Action action, int) {
     }
 }
 
-std::vector<unsigned char> encode() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encode() {
+    std::vector<std::byte> data;
     serializeObject(data, showId);
     serializeObject(data, showStats);
     serializeObject(data, takeScreenshot);
@@ -318,7 +318,7 @@ std::vector<unsigned char> encode() {
     return data;
 }
 
-void decode(const std::vector<unsigned char>& data) {
+void decode(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, showId);
     deserializeObject(data, pos, showStats);

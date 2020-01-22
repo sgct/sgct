@@ -174,7 +174,7 @@ Network::~Network() {
     closeNetwork(false);
 }
 
-void Network::init() {
+void Network::initialize() {
     _mainThread = std::make_unique<std::thread>([this]() { connectionHandler(); });
 }
 

@@ -113,7 +113,7 @@ void connect() {
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
         networkPtr->setAcknowledgeFunction(networkAck);
-        networkPtr->init();
+        networkPtr->initialize();
     }
     catch (const std::runtime_error& err) {
         Log::Error("Network error: %s", err.what());
@@ -171,7 +171,7 @@ void sendTestMessage() {
     counter++;
 }
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -234,13 +234,13 @@ void initOGLFun(GLFWwindow*) {
     }
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
 }

@@ -12,6 +12,7 @@
 #include <sgct/mutexes.h>
 #include <sgct/network.h>
 #include <array>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -26,9 +27,9 @@ public:
     static SharedData& instance();
     static void destroy();
 
-    void setEncodeFunction(std::function<std::vector<unsigned char>()> function);
+    void setEncodeFunction(std::function<std::vector<std::byte>()> function);
     void setDecodeFunction(
-        std::function<void(const std::vector<unsigned char>&)> function);
+        std::function<void(const std::vector<std::byte>&)> function);
 
     /// This fuction is called internally by SGCT and shouldn't be used by the user.
     void encode();
@@ -44,27 +45,27 @@ private:
     SharedData();
 
     // function pointers
-    std::function<std::vector<unsigned char>()> _encodeFn;
-    std::function<void(const std::vector<unsigned char>&)> _decodeFn;
+    std::function<std::vector<std::byte>()> _encodeFn;
+    std::function<void(const std::vector<std::byte>&)> _decodeFn;
 
     static SharedData* _instance;
-    std::vector<unsigned char> _dataBlock;
-    std::array<unsigned char, Network::HeaderSize> _headerSpace;
+    std::vector<std::byte> _dataBlock;
+    std::array<std::byte, Network::HeaderSize> _headerSpace;
 };
 
 template <typename T>
-void serializeObject(std::vector<unsigned char>& buffer, const T& value) {
+void serializeObject(std::vector<std::byte>& buffer, const T& value) {
     static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
    
     buffer.insert(
         buffer.end(),
-        reinterpret_cast<const unsigned char*>(&value),
-        reinterpret_cast<const unsigned char*>(&value) + sizeof(T)
+        reinterpret_cast<const std::byte*>(&value),
+        reinterpret_cast<const std::byte*>(&value) + sizeof(T)
     );
 }
 
 template <typename T>
-void serializeObject(std::vector<unsigned char>& buffer, const std::vector<T>& value) {
+void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value) {
     static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
 
     const uint32_t size = static_cast<uint32_t>(value.size());
@@ -73,22 +74,22 @@ void serializeObject(std::vector<unsigned char>& buffer, const std::vector<T>& v
     if (size > 0) {
         buffer.insert(
             buffer.end(),
-            reinterpret_cast<const unsigned char*>(value.data()),
-            reinterpret_cast<const unsigned char*>(value.data()) + size * sizeof(T)
+            reinterpret_cast<const std::byte*>(value.data()),
+            reinterpret_cast<const std::byte*>(value.data()) + size * sizeof(T)
         );
     }
 }
 
 template <>
-void serializeObject(std::vector<unsigned char>& buffer, const std::string& value);
+void serializeObject(std::vector<std::byte>& buffer, const std::string& value);
 
 
 template <>
-void serializeObject(std::vector<unsigned char>& buffer, const std::wstring& value);
+void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value);
 
 
 template <typename T>
-void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& pos,
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        T& value)
 {
     static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
@@ -98,7 +99,7 @@ void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& p
 }
 
 template <typename T>
-void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& pos,
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        std::vector<T>& value)
 {
     value.clear();
@@ -111,16 +112,19 @@ void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& p
     }
 
     value.clear();
-    value.assign(&buffer[pos], &buffer[pos] + size * sizeof(T));
+    value.assign(
+        reinterpret_cast<const T*>(buffer.data() + pos),
+        reinterpret_cast<const T*>(buffer.data() + pos + size * sizeof(T))
+    );
 }
 
 template <>
-void deserializeObject(const std::vector<unsigned char>& buffer,
-    unsigned int& pos, std::string& value);
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
+    std::string& value);
 
 template <>
-void deserializeObject(const std::vector<unsigned char>& buffer,
-    unsigned int& pos, std::wstring& value);
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
+    std::wstring& value);
 
 } // namespace sgct
 

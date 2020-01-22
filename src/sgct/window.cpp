@@ -282,7 +282,7 @@ void Window::close() {
 #endif
 }
 
-void Window::init() {
+void Window::initialize() {
     ZoneScoped
 
     if (!_isFullScreen) {
@@ -341,7 +341,7 @@ void Window::initOGL() {
         }
 
         vp->nonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
-        vp->nonLinearProjection()->init(
+        vp->nonLinearProjection()->initialize(
             _internalColorFormat,
             _colorFormat,
             _colorDataType,
@@ -912,16 +912,16 @@ void Window::initScreenCapture() {
 
     if (_screenCaptureLeftOrMono) {
         if (useRightEyeTexture()) {
-            _screenCaptureLeftOrMono->init(_id, ScreenCapture::EyeIndex::StereoLeft);
+            _screenCaptureLeftOrMono->initialize(_id, ScreenCapture::EyeIndex::StereoLeft);
         }
         else {
-            _screenCaptureLeftOrMono->init(_id, ScreenCapture::EyeIndex::Mono);
+            _screenCaptureLeftOrMono->initialize(_id, ScreenCapture::EyeIndex::Mono);
         }
         initializeCapture(*_screenCaptureLeftOrMono);
     }
 
     if (_screenCaptureRight) {
-        _screenCaptureRight->init(_id, ScreenCapture::EyeIndex::StereoRight);
+        _screenCaptureRight->initialize(_id, ScreenCapture::EyeIndex::StereoRight);
         initializeCapture(*_screenCaptureRight);
     }
 }

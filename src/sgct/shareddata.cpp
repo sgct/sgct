@@ -37,15 +37,15 @@ SharedData::SharedData() {
 
     // fill rest of header with Network::DefaultId
     std::memset(_headerSpace.data(), Network::DefaultId, Network::HeaderSize);
-    _headerSpace[0] = Network::DataId;
+    _headerSpace[0] = std::byte { Network::DataId };
 }
 
-void SharedData::setEncodeFunction(std::function<std::vector<unsigned char>()> function) {
+void SharedData::setEncodeFunction(std::function<std::vector<std::byte>()> function) {
     _encodeFn = std::move(function);
 }
 
 void SharedData::setDecodeFunction(
-                          std::function<void(const std::vector<unsigned char>&)> function)
+                              std::function<void(const std::vector<std::byte>&)> function)
 {
     _decodeFn = std::move(function);
 }
@@ -62,12 +62,19 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
         if (receivedLength > static_cast<int>(_dataBlock.capacity())) {
             _dataBlock.reserve(receivedLength);
         }
-        _dataBlock.insert(_dataBlock.end(), receivedData, receivedData + receivedLength);
+        _dataBlock.insert(
+            _dataBlock.end(),
+            reinterpret_cast<const std::byte*>(receivedData),
+            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
+        );
     }
 
     if (_decodeFn) {
-        std::vector<unsigned char> data;
-        data.assign(receivedData, receivedData + receivedLength);
+        std::vector<std::byte> data;
+        data.assign(
+            reinterpret_cast<const std::byte*>(receivedData),
+            reinterpret_cast<const std::byte*>(receivedData) + receivedLength
+        );
         _decodeFn(data);
     }
 }
@@ -87,13 +94,13 @@ void SharedData::encode() {
     }
 
     if (_encodeFn) {
-        std::vector<unsigned char> data = _encodeFn();
+        std::vector<std::byte> data = _encodeFn();
         _dataBlock.insert(_dataBlock.end(), data.begin(), data.end());
     }
 }
 
 unsigned char* SharedData::dataBlock() {
-    return _dataBlock.data();
+    return reinterpret_cast<unsigned char*>(_dataBlock.data());
 }
 
 int SharedData::dataSize() {
@@ -105,43 +112,53 @@ int SharedData::bufferSize() {
 }
 
 template <>
-void serializeObject(std::vector<unsigned char>& buffer, const std::string& value) {
+void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
-    unsigned char* p = reinterpret_cast<unsigned char*>(&length);
+    std::byte* p = reinterpret_cast<std::byte*>(&length);
 
     buffer.insert(buffer.end(), p, p + sizeof(uint32_t));
-    buffer.insert(buffer.end(), value.data(), value.data() + length);
+    buffer.insert(
+        buffer.end(),
+        reinterpret_cast<const std::byte*>(value.data()),
+        reinterpret_cast<const std::byte*>(value.data() + length)
+    );
 }
 
 template <>
-void serializeObject(std::vector<unsigned char>& buffer, const std::wstring& value) {
+void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
-    unsigned char* p = reinterpret_cast<unsigned char*>(&length);
-    const unsigned char* ws = reinterpret_cast<const unsigned char*>(&value[0]);
+    std::byte* p = reinterpret_cast<std::byte*>(&length);
+    const std::byte* ws = reinterpret_cast<const std::byte*>(&value[0]);
 
     buffer.insert(buffer.end(), p, p + sizeof(uint32_t));
     buffer.insert(buffer.end(), ws, ws + length * sizeof(wchar_t));
 }
 
 template <>
-void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& pos,
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        std::string& value)
 {
     uint32_t size;
     deserializeObject<uint32_t>(buffer, pos, size);
 
-    value = std::string(buffer.begin() + pos, buffer.begin() + pos + size);
+    value = std::string(
+        reinterpret_cast<const char*>(buffer.data() + pos),
+        reinterpret_cast<const char*>(buffer.data() + pos + size)
+    );
     pos += size * sizeof(std::string::value_type);
 }
 
 template <>
-void deserializeObject(const std::vector<unsigned char>& buffer, unsigned int& pos,
+void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        std::wstring& value)
 {
     uint32_t size;
     deserializeObject<uint32_t>(buffer, pos, size);
 
-    value = std::wstring(buffer.begin() + pos, buffer.begin() + pos + size);
+    value = std::wstring(
+        reinterpret_cast<const char*>(buffer.data() + pos),
+        reinterpret_cast<const char*>(buffer.data() + pos + size)
+    );
     pos += size * sizeof(std::wstring::value_type);
 }
 

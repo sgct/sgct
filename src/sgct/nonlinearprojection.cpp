@@ -48,8 +48,8 @@ NonLinearProjection::~NonLinearProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void NonLinearProjection::init(unsigned int internalFormat, unsigned int format,
-                               unsigned int type, int samples)
+void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int format,
+                                     unsigned int type, int samples)
 {
     _texInternalFormat = internalFormat;
     _texFormat = format;

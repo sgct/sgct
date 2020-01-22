@@ -194,7 +194,7 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
     return res;
 }
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -326,8 +326,8 @@ void initOGLFun(GLFWwindow*) {
     glBindVertexArray(0);
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, stats);
     serializeObject(data, takeScreenshot);
@@ -336,7 +336,7 @@ std::vector<unsigned char> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, stats);

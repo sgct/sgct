@@ -119,7 +119,7 @@ void drawFace(Rotation rot) {
 }
 
 
-void drawFun(RenderData) {
+void drawFun(const RenderData&) {
     if (numberOfTextures == 0) {
         return;
     }
@@ -393,13 +393,13 @@ void initOGLFun(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, takeScreenshot);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, takeScreenshot);
 }

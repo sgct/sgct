@@ -633,7 +633,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 
     // must be initialized after binding
-    net->init();
+    net->initialize();
     _networkConnections.push_back(std::move(net));
 
     // Update the previously existing shortcuts (maybe remove them altogether?)

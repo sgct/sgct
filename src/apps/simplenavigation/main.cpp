@@ -369,7 +369,7 @@ void preSyncFun() {
     }
 }
 
-void drawFun(RenderData data) {
+void drawFun(const RenderData& data) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -385,13 +385,13 @@ void drawFun(RenderData data) {
     glDisable(GL_BLEND);
 }
 
-std::vector<unsigned char> encodeFun() {
-    std::vector<unsigned char> data;
+std::vector<std::byte> encodeFun() {
+    std::vector<std::byte> data;
     serializeObject(data, xform);
     return data;
 }
 
-void decodeFun(const std::vector<unsigned char>& data) {
+void decodeFun(const std::vector<std::byte>& data) {
     unsigned int pos = 0;
     deserializeObject(data, pos, xform);
 }

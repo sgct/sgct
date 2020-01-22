@@ -80,11 +80,11 @@ public:
 
         /// This function draws the scene and could be called several times per frame
         /// as it's called once per viewport and once per eye if stereoscopy is used.
-        std::function<void(RenderData)> draw;
+        std::function<void(const RenderData&)> draw;
 
         /// This function is be called after overlays and post effects has been drawn and
         /// can used to render text and HUDs that will not be filtered or antialiased.
-        std::function<void(RenderData)> draw2D;
+        std::function<void(const RenderData&)> draw2D;
 
         /// This function is called after the draw stage but before the OpenGL buffer swap
         std::function<void()> postDraw;
@@ -94,10 +94,10 @@ public:
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
-        std::function<std::vector<unsigned char>()> encode;
+        std::function<std::vector<std::byte>()> encode;
 
         /// This function is called by decode all shared data sent to us from the master
-        std::function<void(const std::vector<unsigned char>&)> decode;
+        std::function<void(const std::vector<std::byte>&)> decode;
 
         /// This function is called when a TCP message is received
         std::function<void(const char*, int)> externalDecode;
@@ -220,7 +220,7 @@ public:
      *
      * \return The currently bound draw function
      */
-    const std::function<void(RenderData)>& drawFunction() const;
+    const std::function<void(const RenderData&)>& drawFunction() const;
 
     /// Get the time from program start in seconds
     static double getTime();
@@ -318,8 +318,8 @@ private:
     const std::function<void(GLFWwindow*)> _initOpenGLFn;
     const std::function<void()> _preSyncFn;
     const std::function<void()> _postSyncPreDrawFn;
-    const std::function<void(RenderData)> _drawFn;
-    const std::function<void(RenderData)> _draw2DFn;
+    const std::function<void(const RenderData&)> _drawFn;
+    const std::function<void(const RenderData&)> _draw2DFn;
     const std::function<void()> _postDrawFn;
     const std::function<void()> _cleanUpFn;
     

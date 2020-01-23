@@ -388,6 +388,7 @@ void postDraw() {
 
         if (Engine::instance().currentFrameNumber() == 35) {
             Log::Info("Setting to capture from front buffer");
+            Log::Info("Changing the rendering to the test box");
             captureBackbuffer = false;
             renderGrid = false;
             renderTestBox = true;
@@ -408,6 +409,7 @@ void postDraw() {
             takeScreenshot = true;
         }
 
+        // Give the screenshot threads some time to finished before we terminate
         if (Engine::instance().currentFrameNumber() == 75) {
             Engine::instance().terminate();
         }

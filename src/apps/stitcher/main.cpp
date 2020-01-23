@@ -119,7 +119,7 @@ void drawFace(Rotation rot) {
 }
 
 
-void drawFun(const RenderData&) {
+void draw(const RenderData&) {
     if (numberOfTextures == 0) {
         return;
     }
@@ -156,7 +156,7 @@ void drawFun(const RenderData&) {
     glPopAttrib();
 }
 
-void preSyncFun() {
+void preSync() {
     if (sequence && iterator <= stopIndex) {
         for (size_t i = 0; i < numberOfTextures; i++) {
             char tmpStr[256];
@@ -229,14 +229,14 @@ void preSyncFun() {
     counter = 0;
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     if (takeScreenshot) {
         Engine::instance().takeScreenshot();
         takeScreenshot = false;
     }
 }
 
-void preWinInitFun() {
+void preWinInit() {
     Engine::instance().defaultUser().setEyeSeparation(settings.eyeSeparation);
     for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {
         Engine::instance().setScreenShotNumber(startFrame);
@@ -273,7 +273,7 @@ void preWinInitFun() {
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     // load all textures
     if (!sequence) {
         for (size_t i = 0; i < numberOfTextures; i++) {
@@ -393,17 +393,17 @@ void initOGLFun(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, takeScreenshot);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, takeScreenshot);
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
             case Key::Esc:
@@ -612,14 +612,14 @@ int main(int argc, char** argv) {
     }
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.preWindow = preWinInitFun;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.preWindow = preWinInit;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

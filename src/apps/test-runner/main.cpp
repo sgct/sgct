@@ -432,7 +432,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, renderTestBox);
 }
 
-void cleanUp() {
+void cleanup() {
     glDeleteVertexArrays(1, &grid.vao);
     glDeleteBuffers(1, &grid.vbo);
     glDeleteBuffers(1, &grid.iboLine);
@@ -451,13 +451,13 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initGL;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
     callbacks.postSyncPreDraw = postSyncPreDraw;
     callbacks.draw = draw;
     callbacks.postDraw = postDraw;
-    callbacks.initOpenGL = initGL;
-    callbacks.cleanUp = cleanUp;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
+    callbacks.cleanup = cleanup;
 
     try {
         Engine::create(cluster, callbacks, config);

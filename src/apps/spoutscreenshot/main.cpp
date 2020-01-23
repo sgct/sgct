@@ -76,7 +76,7 @@ bool bindSpout() {
     return false;
 }
 
-void drawFun(RenderData) {
+void draw(RenderData) {
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
@@ -95,7 +95,7 @@ void drawFun(RenderData) {
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     glGenVertexArrays(1, &geometry.vao);
     glGenBuffers(1, &geometry.vbo);
 
@@ -141,7 +141,7 @@ void initOGLFun(GLFWwindow*) {
     prog.unbind();
 }
 
-void cleanUpFun() {
+void cleanup() {
     glDeleteVertexArrays(1, &geometry.vao);
     glDeleteBuffers(1, &geometry.vbo);
 
@@ -151,7 +151,7 @@ void cleanUpFun() {
     }
 }
 
-void keyboardCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (action == Action::Press) {
         switch (key) {
             case Key::Esc:
@@ -194,10 +194,10 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyboardCallback;
+    callbacks.initOpenGL = initOGL;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

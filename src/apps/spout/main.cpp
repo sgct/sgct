@@ -88,7 +88,7 @@ bool bindSpout() {
     return false;
 }
 
-void drawFun(RenderData data) {
+void draw(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -143,13 +143,13 @@ void drawFun(RenderData data) {
     glDisable(GL_DEPTH_TEST);
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     // setup spout
     senderName[0] = '\0';
     receiver = GetSpout();
@@ -176,18 +176,17 @@ void initOGLFun(GLFWwindow*) {
     prog.unbind();
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
 }
 
-void cleanUpFun() {
+void cleanup() {
     box = nullptr;
 
     if (receiver) {
@@ -196,7 +195,7 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
@@ -208,13 +207,13 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

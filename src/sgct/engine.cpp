@@ -323,7 +323,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     , _drawFn(std::move(callbacks.draw))
     , _draw2DFn(std::move(callbacks.draw2D))
     , _postDrawFn(std::move(callbacks.postDraw))
-    , _cleanUpFn(std::move(callbacks.cleanUp))
+    , _cleanupFn(std::move(callbacks.cleanup))
 {
     ZoneScoped
 
@@ -658,8 +658,8 @@ Engine::~Engine() {
     const bool hasNode = cm.thisNodeId() > -1 && cm.thisNodeId() < cm.numberOfNodes();
     if (hasNode) {
         Window::makeSharedContextCurrent();
-        if (_cleanUpFn) {
-            _cleanUpFn();
+        if (_cleanupFn) {
+            _cleanupFn();
         }
     }
 

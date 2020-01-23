@@ -171,7 +171,7 @@ void sendTestMessage() {
     counter++;
 }
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -204,13 +204,13 @@ void drawFun(const RenderData& data) {
     glDisable(GL_DEPTH_TEST);
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     textureId = TextureManager::instance().loadTexture("box.png", true, 8.f);
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);
 
@@ -234,17 +234,17 @@ void initOGLFun(GLFWwindow*) {
     }
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
 }
 
-void cleanUpFun() {
+void cleanup() {
     box = nullptr;
     running = false;
 
@@ -259,7 +259,7 @@ void cleanUpFun() {
     disconnect();
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         if (key == Key::Esc) {
             Engine::instance().terminate();
@@ -292,13 +292,13 @@ int main(int argc, char** argv) {
     }
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

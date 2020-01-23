@@ -251,7 +251,7 @@ void drawXZGrid(glm::mat4 mvp) {
     ShaderManager::instance().shaderProgram("gridShader").unbind();
 }
 
-void cleanUpFun() {
+void cleanup() {
     glDeleteBuffers(1, &pyramid.vbo);
     glDeleteBuffers(1, &grid.vbo);
 
@@ -259,7 +259,7 @@ void cleanUpFun() {
     glDeleteVertexArrays(1, &grid.vao);
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     glGenVertexArrays(1, &pyramid.vao);
     glGenVertexArrays(1, &grid.vao);
 
@@ -301,7 +301,7 @@ void initOGLFun(GLFWwindow*) {
     pyramidProg.unbind();
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         const Window* wnd = Engine::instance().focusedWindow();
         if (mouseLeftButton && wnd) {
@@ -369,7 +369,7 @@ void preSyncFun() {
     }
 }
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -385,17 +385,17 @@ void drawFun(const RenderData& data) {
     glDisable(GL_BLEND);
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, xform);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, xform);
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:
@@ -423,7 +423,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
     }
 }
 
-void mouseButtonCallback(MouseButton button, Modifier, Action action) {
+void mouseButton(MouseButton button, Modifier, Action action) {
     const Window* wnd = Engine::instance().focusedWindow();
     if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft && wnd) {
         mouseLeftButton = (action == Action::Press);
@@ -438,14 +438,14 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.mouseButton = mouseButtonCallback;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
+    callbacks.mouseButton = mouseButton;
 
     try {
         Engine::create(cluster, callbacks, config);

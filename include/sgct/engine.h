@@ -90,7 +90,7 @@ public:
         std::function<void()> postDraw;
 
         /// This is called before all SGCT components will be destroyed
-        std::function<void()> cleanUp;
+        std::function<void()> cleanup;
 
         /// This function is called to encode all shared data that is sent to the
         /// connected nodes in a clustered setup.
@@ -321,7 +321,7 @@ private:
     const std::function<void(const RenderData&)> _drawFn;
     const std::function<void(const RenderData&)> _draw2DFn;
     const std::function<void()> _postDrawFn;
-    const std::function<void()> _cleanUpFn;
+    const std::function<void()> _cleanupFn;
     
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;

@@ -43,7 +43,7 @@ namespace {
 
 using namespace sgct;
 
-void initFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     const GLfloat positionData[] = {
         -0.5f, -0.5f, 0.f,
          0.f, 0.5f, 0.f,
@@ -85,7 +85,7 @@ void initFun(GLFWwindow*) {
     prg.unbind(); 
 }
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     constexpr const float Speed = 0.8f;
 
     glm::mat4 scene = glm::rotate(
@@ -104,29 +104,29 @@ void drawFun(const RenderData& data) {
     ShaderManager::instance().shaderProgram("xform").unbind();
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
 }
 
-void cleanUpFun() {
+void cleanup() {
     glDeleteBuffers(1, &vertexPositionBuffer);
     glDeleteBuffers(1, &vertexColorBuffer);
     glDeleteVertexArrays(1, &vertexArray);
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
@@ -138,13 +138,13 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initFun;
-    callbacks.draw = drawFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.preSync = preSyncFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

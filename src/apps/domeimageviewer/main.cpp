@@ -220,7 +220,7 @@ void threadWorker() {
 }
 
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     if (texIndex == -1) {
         return;
     }
@@ -250,7 +250,7 @@ void drawFun(const RenderData& data) {
     glDisable(GL_DEPTH_TEST);
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
 
@@ -267,11 +267,11 @@ void preSyncFun() {
     }
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(stats);
 }
 
-void initOGLFun(GLFWwindow* win) {
+void initOGL(GLFWwindow* win) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     sharedWindow = win;
@@ -303,7 +303,7 @@ void initOGLFun(GLFWwindow* win) {
     prog.unbind();
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, stats);
@@ -312,14 +312,14 @@ std::vector<std::byte> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, stats);
     deserializeObject(data, pos, texIndex);
     deserializeObject(data, pos, incrIndex);
 }
 
-void cleanUpFun() {
+void cleanup() {
     dome = nullptr;
 
     for (size_t i = 0; i < texIds.size(); i++) {
@@ -336,7 +336,7 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (!Engine::instance().isMaster() || action != Action::Press) {
         return;
     }
@@ -414,7 +414,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     }
 }
 
-void dropCallback(int count, const char** paths) {
+void drop(int count, const char** paths) {
     if (Engine::instance().isMaster()) {
         std::vector<std::string> pathStrings;
         for (int i = 0; i < count; i++) {
@@ -465,18 +465,18 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.drop = dropCallback;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
+    callbacks.drop = drop;
     callbacks.dataTransferDecode = dataTransferDecoder;
     callbacks.dataTransferStatus = dataTransferStatus;
     callbacks.dataTransferAcknowledge = dataTransferAcknowledge;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
 
     try {
         Engine::create(cluster, callbacks, config);

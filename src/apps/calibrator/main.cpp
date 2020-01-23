@@ -288,7 +288,7 @@ void postSyncPreDraw() {
     }
 }
 
-void keyboardCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
@@ -325,7 +325,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, captureBackbuffer);
 }
 
-void cleanUp() {
+void cleanup() {
     glDeleteVertexArrays(1, &geometry.vao);
     glDeleteBuffers(1, &geometry.vbo);
     glDeleteBuffers(1, &geometry.iboLine);
@@ -355,14 +355,14 @@ int main(int argc, char** argv) {
     }
 
     Engine::Callbacks callbacks;
+    callbacks.initOpenGL = initGL;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
     callbacks.postSyncPreDraw = postSyncPreDraw;
     callbacks.draw = draw;
     callbacks.draw2D = draw2D;
-    callbacks.initOpenGL = initGL;
-    callbacks.cleanUp = cleanUp;
-    callbacks.keyboard = keyboardCallback;
-    callbacks.encode = encode;
-    callbacks.decode = decode;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

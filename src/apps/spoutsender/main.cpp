@@ -59,7 +59,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(RenderData data) {
+void draw(RenderData data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -92,7 +92,7 @@ void drawFun(RenderData data) {
     glDisable(GL_DEPTH_TEST);
 }
 
-void postDrawFun() {
+void postDraw() {
     glActiveTexture(GL_TEXTURE0);
     
     for (size_t i = 0; i < spoutSendersCount; i++) {
@@ -120,13 +120,13 @@ void postDrawFun() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-void preWindowInitFun() {
+void preWindowInit() {
     std::string baseName = "SGCT_Window";
 
     const std::vector<std::unique_ptr<Window>>& win = Engine::instance().windows();
@@ -149,7 +149,7 @@ void preWindowInitFun() {
     spoutSendersCount = senderNames.size();
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     // setup spout
     // Create a new SpoutData for every SGCT window
     spoutSendersData.resize(spoutSendersCount);
@@ -187,18 +187,17 @@ void initOGLFun(GLFWwindow*) {
     prog.unbind();
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
 }
 
-void cleanUpFun() {
+void cleanup() {
     box = nullptr;
 
     for (size_t i = 0; i < spoutSendersCount; i++) {
@@ -207,7 +206,7 @@ void cleanUpFun() {
     }
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
@@ -219,15 +218,15 @@ int main(int argc, char* argv[]) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.postDraw = postDrawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.preWindow = preWindowInitFun;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.preWindow = preWindowInit;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.draw = draw;
+    callbacks.postDraw = postDraw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

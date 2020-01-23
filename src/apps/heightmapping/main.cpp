@@ -194,7 +194,7 @@ Geometry generateTerrainGrid(float width, float depth, int wRes, int dRes) {
     return res;
 }
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -241,7 +241,7 @@ void drawFun(const RenderData& data) {
     prog.unbind();
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster() && !mPause) {
         currentTime += Engine::instance().statistics().avgDt(
             Engine::instance().currentFrameNumber()
@@ -249,7 +249,7 @@ void preSyncFun() {
     }
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(stats);
     TrackingManager::instance().setEnabled(useTracking);
 
@@ -259,7 +259,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     stereoMode = Engine::instance().windows()[0]->stereoMode();
 
     heightTextureId = TextureManager::instance().loadTexture("heightmap.png", true, 0);
@@ -326,7 +326,7 @@ void initOGLFun(GLFWwindow*) {
     glBindVertexArray(0);
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, stats);
@@ -336,7 +336,7 @@ std::vector<std::byte> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, stats);
     deserializeObject(data, pos, takeScreenshot);
@@ -344,7 +344,7 @@ void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, stereoMode);
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
             case Key::Esc:
@@ -396,7 +396,7 @@ void keyCallback(Key key, Modifier, Action action, int) {
     }
 }
 
-void cleanUpFun() {
+void cleanup() {
     glDeleteBuffers(1, &vertexPositionBuffer);
     glDeleteVertexArrays(1, &vertexArray);
 }
@@ -407,14 +407,14 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

@@ -17,7 +17,7 @@ namespace {
 
 using namespace sgct;
 
-void draw2DFun(const RenderData& data) {
+void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.draw2D = draw2DFun;
+    callbacks.draw2D = draw2D;
 
     try {
         Engine::create(cluster, callbacks, config);

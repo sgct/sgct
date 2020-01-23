@@ -17,7 +17,6 @@ set(files
     "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-3.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-4.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-5.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/test-windows.xml"
 )
 copy_files(test-runner ${files})
 copy_sgct_dynamic_libraries(test-runner)

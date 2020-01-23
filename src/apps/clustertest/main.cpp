@@ -50,7 +50,7 @@ void main() { color = vec4(1.0); }
 
 using namespace sgct;
 
-void myDraw2DFun(const RenderData& data) {
+void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     text::print(
         data.window,
@@ -79,7 +79,7 @@ void myDraw2DFun(const RenderData& data) {
 #endif // SGCT_HAS_TEXT
 }
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     if (slowRendering) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -275,7 +275,7 @@ void drawFun(const RenderData& data) {
 #endif // SGCT_HAS_TEXT
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::instance().getTime();
 
@@ -299,7 +299,7 @@ void preSyncFun() {
     }
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     // barrier is set by swap group not window both windows has the same HDC
     Window::setBarrier(barrier);
     Engine::instance().setStatsGraphVisibility(stats);
@@ -310,7 +310,7 @@ void postSyncPreDrawFun() {
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glDisable(GL_LIGHTING);
@@ -418,7 +418,7 @@ void initOGLFun(GLFWwindow*) {
     prog.unbind();
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     unsigned char flags = 0;
     flags = extraPackages  ? flags | 2   : flags & ~2;   // bit 2
     flags = barrier        ? flags | 4   : flags & ~4;   // bit 3
@@ -439,7 +439,7 @@ std::vector<std::byte> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, speed);
     unsigned char flags;
@@ -458,7 +458,7 @@ void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
     }
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:
@@ -525,15 +525,14 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-
-    callbacks.keyboard = keyCallback;
-    callbacks.draw2D = myDraw2DFun;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.draw2D = draw2D;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

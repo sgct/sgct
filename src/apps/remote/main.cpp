@@ -17,7 +17,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(const RenderData&) {
+void draw(const RenderData&) {
     constexpr const float Speed = 50.f;
     glRotatef(static_cast<float>(currentTime) * Speed, 0.f, 1.f, 0.f);
 
@@ -35,18 +35,18 @@ void drawFun(const RenderData&) {
     glEnd();
 }
 
-void preSyncFun() {
+void preSync() {
     // set the time only on the master
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(showGraph);
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, sizeFactor);
@@ -54,13 +54,13 @@ std::vector<std::byte> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, sizeFactor);
     deserializeObject(data, pos, showGraph);
 }
 
-void externalControlMessageCallback(const char* receivedChars, int size) {
+void externalControlMessage(const char* receivedChars, int size) {
     if (Engine::instance().isMaster()) {
         std::string_view msg(receivedChars, size);
         if (size == 7 && msg.substr(0, 5) == "graph") {
@@ -77,7 +77,7 @@ void externalControlMessageCallback(const char* receivedChars, int size) {
     }
 }
 
-void externalControlStatusCallback(bool connected) {
+void externalControlStatus(bool connected) {
     if (connected) {
         Log::Info("External control connected");
     }
@@ -86,7 +86,7 @@ void externalControlStatusCallback(bool connected) {
     }
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }
@@ -98,14 +98,14 @@ int main(int argc, char** argv) {
     config::Cluster cluster = loadCluster(config.configFilename);
 
     Engine::Callbacks callbacks;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.externalDecode = externalControlMessageCallback;
-    callbacks.externalStatus = externalControlStatusCallback;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.externalDecode = externalControlMessage;
+    callbacks.externalStatus = externalControlStatus;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

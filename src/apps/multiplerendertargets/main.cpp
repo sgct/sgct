@@ -73,7 +73,7 @@ namespace {
 
 using namespace sgct;
 
-void drawFun(const RenderData& data) {
+void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -113,20 +113,20 @@ void drawFun(const RenderData& data) {
     glDisable(GL_DEPTH_TEST);
 }
 
-void preSyncFun() {
+void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
     }
 }
 
-void postSyncPreDrawFun() {
+void postSyncPreDraw() {
     if (takeScreenshot) {
         Engine::instance().takeScreenshot();
         takeScreenshot = false;
     }
 }
 
-void initOGLFun(GLFWwindow*) {
+void initOGL(GLFWwindow*) {
     ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
     prg.bind();
@@ -144,23 +144,23 @@ void initOGLFun(GLFWwindow*) {
     glFrontFace(GL_CCW);
 }
 
-std::vector<std::byte> encodeFun() {
+std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, currentTime);
     serializeObject(data, takeScreenshot);
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, takeScreenshot);
 }
 
-void cleanUpFun() {
+void cleanup() {
     box = nullptr;
 }
 
-void keyCallback(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int) {
     if (Engine::instance().isMaster() && (action == Action::Press)) {
         if (key == Key::Esc) {
             Engine::instance().terminate();
@@ -186,16 +186,15 @@ int main(int argc, char** argv) {
         cluster.settings = settings;
     }
 
-
     Engine::Callbacks callbacks;
-    callbacks.initOpenGL = initOGLFun;
-    callbacks.draw = drawFun;
-    callbacks.preSync = preSyncFun;
-    callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.cleanUp = cleanUpFun;
-    callbacks.keyboard = keyCallback;
-    callbacks.encode = encodeFun;
-    callbacks.decode = decodeFun;
+    callbacks.initOpenGL = initOGL;
+    callbacks.preSync = preSync;
+    callbacks.encode = encode;
+    callbacks.decode = decode;
+    callbacks.postSyncPreDraw = postSyncPreDraw;
+    callbacks.draw = draw;
+    callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

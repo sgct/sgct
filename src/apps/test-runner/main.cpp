@@ -16,16 +16,14 @@ namespace {
         GLuint vbo = 0;
         GLuint iboLine = 0;
         int nVertLine = 0;
-        GLuint iboTriangle = 0;
-        int nVertTriangle = 0;
-    } geometry;
+    } gridGeometry;
 
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
+    bool renderGrid = true;
+    bool renderTestBox = false;
 
     float radius = 7.4f;
-    std::string texture;
-    unsigned int textureId = 0;
 
     struct Vertex {
         float elevation, azimuth;
@@ -71,39 +69,17 @@ void main() { FragOut = color; }
 
 using namespace sgct;
 
-void draw(const RenderData& data) {
-    ShaderManager::instance().shaderProgram("simple").bind();
-    const glm::mat4 mvp = data.modelViewProjectionMatrix;
-    glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-
-    glBindVertexArray(geometry.vao);
-    if (textureId != 0) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboTriangle);
-        glDrawElements(GL_TRIANGLES, geometry.nVertTriangle, GL_UNSIGNED_SHORT, nullptr);
-    }
-    else {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboLine);
-        glDrawElements(GL_LINE_STRIP, geometry.nVertLine, GL_UNSIGNED_SHORT, nullptr);
-    }
-    glBindVertexArray(0);
-
-    ShaderManager::instance().shaderProgram("simple").unbind();
-}
-
 void initGL(GLFWwindow*) {
     constexpr const uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);
 
-    glGenVertexArrays(1, &geometry.vao);
-    glGenBuffers(1, &geometry.vbo);
-    glGenBuffers(1, &geometry.iboLine);
-    glGenBuffers(1, &geometry.iboTriangle);
+    glGenVertexArrays(1, &gridGeometry.vao);
+    glGenBuffers(1, &gridGeometry.vbo);
+    glGenBuffers(1, &gridGeometry.iboLine);
 
-    glBindVertexArray(geometry.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, geometry.vbo);
+    glBindVertexArray(gridGeometry.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, gridGeometry.vbo);
 
     constexpr const int ElevationSteps = 40;
     constexpr const int AzimuthSteps = 160;
@@ -158,34 +134,8 @@ void initGL(GLFWwindow*) {
             indices.push_back(RestartIndex);
         }
 
-        geometry.nVertLine = static_cast<int>(indices.size());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboLine);
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            indices.size() * sizeof(uint16_t),
-            indices.data(),
-            GL_STATIC_DRAW
-        );
-    }
-    {
-        // Triangle representation
-        std::vector<uint16_t> indices;
-        for (int e = 0; e < ElevationSteps; ++e) {
-            for (int a = 0; a < AzimuthSteps; ++a) {
-                const uint16_t base = static_cast<uint16_t>(e * AzimuthSteps + a);
-                // first triangle
-                indices.push_back(base);
-                indices.push_back(base + 1);
-                indices.push_back(base + AzimuthSteps);
-
-                //// second triangle
-                indices.push_back(base + 1);
-                indices.push_back(base + AzimuthSteps + 1);
-                indices.push_back(base + AzimuthSteps);
-            }
-        }
-        geometry.nVertTriangle = static_cast<int>(indices.size());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry.iboTriangle);
+        gridGeometry.nVertLine = static_cast<int>(indices.size());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gridGeometry.iboLine);
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
             indices.size() * sizeof(uint16_t),
@@ -195,9 +145,9 @@ void initGL(GLFWwindow*) {
     }
     glBindVertexArray(0);
 
-    if (!texture.empty()) {
-        textureId = TextureManager::instance().loadTexture(texture, true, 0);
-    }
+    //if (!texture.empty()) {
+    //    textureId = TextureManager::instance().loadTexture(texture, true, 0);
+    //}
 
     ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("simple");
@@ -216,47 +166,66 @@ void postSyncPreDraw() {
     }
 }
 
+void drawGrid() {
+    glBindVertexArray(gridGeometry.vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gridGeometry.iboLine);
+    glDrawElements(GL_LINE_STRIP, gridGeometry.nVertLine, GL_UNSIGNED_SHORT, nullptr);
+    glBindVertexArray(0);
+}
+
+void draw(const RenderData& data) {
+    ShaderManager::instance().shaderProgram("simple").bind();
+    const glm::mat4 mvp = data.modelViewProjectionMatrix;
+    glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    drawGrid();
+
+    ShaderManager::instance().shaderProgram("simple").unbind();
+}
+
 void postDraw() {
-    if (Engine::instance().isMaster()) {
-        if (Engine::instance().currentFrameNumber() == 10) {
-            Log::Info("Taking first screenshot");
-            takeScreenshot = true;
-        }
+    //if (Engine::instance().isMaster()) {
+    //    if (Engine::instance().currentFrameNumber() == 10) {
+    //        Log::Info("Taking first screenshot");
+    //        takeScreenshot = true;
+    //    }
 
-        if (Engine::instance().currentFrameNumber() == 15) {
-            Log::Info("Capturing from Back buffer");
-            captureBackbuffer = true;
-        }
+    //    if (Engine::instance().currentFrameNumber() == 15) {
+    //        Log::Info("Capturing from Back buffer");
+    //        captureBackbuffer = true;
+    //    }
 
-        if (Engine::instance().currentFrameNumber() == 20) {
-            Log::Info("Taking second screenshot");
-            takeScreenshot = true;
-        }
+    //    if (Engine::instance().currentFrameNumber() == 20) {
+    //        Log::Info("Taking second screenshot");
+    //        takeScreenshot = true;
+    //    }
 
-        if (Engine::instance().currentFrameNumber() == 25) {
-            Engine::instance().terminate();
-        }
-    }
+    //    if (Engine::instance().currentFrameNumber() == 25) {
+    //        Engine::instance().terminate();
+    //    }
+    //}
 }
 
 std::vector<std::byte> encode() {
     std::vector<std::byte> data;
     serializeObject(data, takeScreenshot);
     serializeObject(data, captureBackbuffer);
+    serializeObject(data, renderGrid);
+    serializeObject(data, renderTestBox);
     return data;
 }
 
-void decode(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, takeScreenshot);
     deserializeObject(data, pos, captureBackbuffer);
+    deserializeObject(data, pos, renderGrid);
+    deserializeObject(data, pos, renderTestBox);
 }
 
 void cleanUp() {
-    glDeleteVertexArrays(1, &geometry.vao);
-    glDeleteBuffers(1, &geometry.vbo);
-    glDeleteBuffers(1, &geometry.iboLine);
-    glDeleteBuffers(1, &geometry.iboTriangle);
+    glDeleteVertexArrays(1, &gridGeometry.vao);
+    glDeleteBuffers(1, &gridGeometry.vbo);
+    glDeleteBuffers(1, &gridGeometry.iboLine);
 }
 
 int main(int argc, char** argv) {

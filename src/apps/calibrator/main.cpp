@@ -318,8 +318,7 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, showId);
     deserializeObject(data, pos, showStats);
     deserializeObject(data, pos, takeScreenshot);

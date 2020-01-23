@@ -54,8 +54,7 @@ std::vector<std::byte> encodeFun() {
     return data;
 }
 
-void decodeFun(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decodeFun(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, sizeFactor);
     deserializeObject(data, pos, showGraph);

@@ -185,9 +185,9 @@ This node specifies a single tracking device that belongs to a specific tracker 
  > Describes a fixed orientation for the device.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`
@@ -312,9 +312,9 @@ This projection node describes a projection for the [Viewport](#viewport) that i
  > Describes a fixed orientation for the virtual image plane.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`
@@ -340,9 +340,9 @@ This node determines an overall orientation of the scene.  It consists of an `Of
  > Describes a fixed orientation of the global scene.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`
@@ -464,9 +464,9 @@ This projection method provides the ability to share individual cube map faces o
  > Describes a fixed orientation for the cube, whose faces are either shared or used to reproject into the fisheye or equirectangular image.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`
@@ -494,9 +494,9 @@ This node defines a group of tracking devices or sensors as they are advertised 
  > Describes a fixed orientation of this class of trackers.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`
@@ -534,9 +534,9 @@ This node specifies a user position and parameters.  In most cases, only a singl
  > Describes a fixed orientation for the viewing direction of this user.  This can be provided either as Euler angles or as a quaternion.  The two modes *cannot* be mixed.  The following descibes the different attributes that can be used for the orientation.  Please note that *all* attributes for the chosen method have to be specified.  If the `Matrix` attribute is also specified, it will overwrite the value specified here.
  > 
  > Euler angles:
- >  - `pitch` or `elevation`
- >  - `yaw`, `heading`, or `azimuth`
- >  - `roll` or `bank`
+ >  - `pitch` or `elevation`: negative numbers tilt the camera downwards;  positive numbers tilt upwards.  The allowed range is \[-90, 90\].
+ >  - `yaw`, `heading`, or `azimuth`: negative numbers pan the camera to the left;  positive numbers pan to the right.  The allowed range is \[-360, 360\].
+ >  - `roll` or `bank`: negative numbers rotate the camera to the left;  positive numbers to the right.  The allowed range is \[-180, 180\].
  > 
  > Quaternion:
  >  - `x`

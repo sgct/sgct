@@ -306,7 +306,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 
         sgct::config::User user;
         user.eyeSeparation = 0.06f;
-        user.position = glm::vec3(0.f, 0.f, 4.f);
+        user.position = glm::vec3(0.f);
         cluster.users.push_back(user);
 
         cluster.masterAddress = "localhost";

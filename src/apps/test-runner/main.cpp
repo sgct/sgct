@@ -34,10 +34,12 @@ namespace {
         GLuint textureBottom = 0;
     } box;
 
+    bool runTests = false;
+
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
     bool renderGrid = true;
-    bool renderTestBox = false;
+    bool renderBox = false;
 
     float radius = 7.4f;
 
@@ -342,7 +344,7 @@ void draw(const RenderData& data) {
         ShaderManager::instance().shaderProgram("grid").unbind();
     }
 
-    if (renderTestBox) {
+    if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
         glUniformMatrix4fv(box.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
         glBindVertexArray(box.vao);
@@ -368,8 +370,11 @@ void draw(const RenderData& data) {
 }
 
 void postDraw() {
-    Log::Info("Frame: %i", Engine::instance().currentFrameNumber());
-    if (Engine::instance().isMaster()) {
+    if (runTests) {
+        Log::Info("Frame: %i", Engine::instance().currentFrameNumber());
+    }
+
+    if (Engine::instance().isMaster() && runTests) {
 
         if (Engine::instance().currentFrameNumber() == 5) {
             Log::Info("Setting to take first grid screenshot");
@@ -391,7 +396,7 @@ void postDraw() {
             Log::Info("Changing the rendering to the test box");
             captureBackbuffer = false;
             renderGrid = false;
-            renderTestBox = true;
+            renderBox = true;
         }
 
         if (Engine::instance().currentFrameNumber() == 45) {
@@ -421,7 +426,8 @@ std::vector<std::byte> encode() {
     serializeObject(data, takeScreenshot);
     serializeObject(data, captureBackbuffer);
     serializeObject(data, renderGrid);
-    serializeObject(data, renderTestBox);
+    serializeObject(data, renderBox);
+    serializeObject(data, runTests);
     return data;
 }
 
@@ -429,7 +435,8 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, takeScreenshot);
     deserializeObject(data, pos, captureBackbuffer);
     deserializeObject(data, pos, renderGrid);
-    deserializeObject(data, pos, renderTestBox);
+    deserializeObject(data, pos, renderBox);
+    deserializeObject(data, pos, runTests);
 }
 
 void cleanup() {
@@ -445,10 +452,19 @@ void cleanup() {
     TextureManager::instance().removeTexture(box.textureBottom);
 }
 
+void keyboard(Key key, Modifier, Action action, int) {
+    if (key == Key::Space && action == Action::Press) {
+        renderGrid = !renderGrid;
+        renderBox = !renderBox;
+    }
+}
+
 int main(int argc, char** argv) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
+
+    runTests = std::find(arg.begin(), arg.end(), "-runTests") != arg.end();
 
     Engine::Callbacks callbacks;
     callbacks.initOpenGL = initGL;
@@ -458,6 +474,7 @@ int main(int argc, char** argv) {
     callbacks.draw = draw;
     callbacks.postDraw = postDraw;
     callbacks.cleanup = cleanup;
+    callbacks.keyboard = keyboard;
 
     try {
         Engine::create(cluster, callbacks, config);

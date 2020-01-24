@@ -130,14 +130,14 @@ glm::ivec4 NonLinearProjection::viewportCoords() {
 }
 
 void NonLinearProjection::initTextures() {
-    generateCubeMap(_textures.cubeMapColor, _texInternalFormat);
+    generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
     Log::Debug(
         "%dx%d color cube map texture (id: %d) generated",
         _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
     );
     
     if (Settings::instance().useDepthTexture()) {
-        generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32);
+        generateCubeMap(_textures.cubeMapDepth, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
         Log::Debug(
             "%dx%d depth cube map texture (id: %d) generated",
             _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
@@ -145,13 +145,13 @@ void NonLinearProjection::initTextures() {
 
         if (_useDepthTransformation) {
             // generate swap textures
-            generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32);
+            generateMap(_textures.depthSwap, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
             Log::Debug(
                 "%dx%d depth swap map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.depthSwap
             );
 
-            generateMap(_textures.colorSwap, _texInternalFormat);
+            generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
             Log::Debug(
                 "%dx%d color swap map texture (id: %d) generated",
                 _cubemapResolution, _cubemapResolution, _textures.colorSwap
@@ -162,7 +162,9 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance().useNormalTexture()) {
         generateCubeMap(
             _textures.cubeMapNormals,
-            Settings::instance().bufferFloatPrecision()
+            Settings::instance().bufferFloatPrecision(),
+            GL_RGB,
+            GL_FLOAT
         );
         Log::Debug(
             "%dx%d normal cube map texture (id: %d) generated",
@@ -173,7 +175,9 @@ void NonLinearProjection::initTextures() {
     if (Settings::instance().usePositionTexture()) {
         generateCubeMap(
             _textures.cubeMapPositions,
-            Settings::instance().bufferFloatPrecision()
+            Settings::instance().bufferFloatPrecision(),
+            GL_RGB,
+            GL_FLOAT
         );
         Log::Debug(
             "%dx%d position cube map texture (%d) generated",
@@ -230,7 +234,7 @@ void NonLinearProjection::setupViewport(BaseViewport& vp) {
     glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
 }
 
-void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalFormat) {
+void NonLinearProjection::generateMap(unsigned int& texture, unsigned int internalFormat, unsigned int format, unsigned int type) {
     glDeleteTextures(1, &texture);
 
     GLint maxMapRes;
@@ -247,16 +251,12 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    // @TODO (abock, 2020-01-09) glTexStorage2D is only available in OpenGL 4.2, but we
-    // never check against the OpenGL version or the extension, so we are just hoping that
-    // this works. It would be better to use glTexImage2D instead
-    glTexStorage2D(
-        GL_TEXTURE_2D,
-        1,
-        internalFormat,
-        _cubemapResolution,
-        _cubemapResolution
-    );
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -264,7 +264,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, GLenum internalForm
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internalFormat) {
+void NonLinearProjection::generateCubeMap(unsigned int& texture, unsigned int internalFormat, unsigned int format, unsigned int type) {
     glDeleteTextures(1, &texture);
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -284,16 +284,12 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture, GLenum internal
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    // @TODO (abock, 2020-01-09) glTexStorage2D is only available in OpenGL 4.2, but we
-    // never check against the OpenGL version or the extension, so we are just hoping that
-    // this works. It would be better to use glTexImage2D instead
-    glTexStorage2D(
-        GL_TEXTURE_CUBE_MAP,
-        1,
-        internalFormat,
-        _cubemapResolution,
-        _cubemapResolution
-    );
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, internalFormat, _cubemapResolution, _cubemapResolution, 0, format, type, nullptr);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

@@ -92,8 +92,8 @@ protected:
     virtual void initShaders() = 0;
 
     void setupViewport(BaseViewport& vp);
-    void generateMap(unsigned int& texture, unsigned int internalFormat);
-    void generateCubeMap(unsigned int& texture, unsigned int internalFormat);
+    void generateMap(unsigned int& texture, unsigned int internalFormat, unsigned int format, unsigned int type);
+    void generateCubeMap(unsigned int& texture, unsigned int internalFormat, unsigned int format, unsigned int type);
 
     struct {
         unsigned int cubeMapColor = 0;

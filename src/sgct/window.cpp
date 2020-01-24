@@ -757,6 +757,10 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
         glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif // __APPLE__
         if (!_isVisible) {
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         }
@@ -995,19 +999,29 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glBindTexture(GL_TEXTURE_2D, id);
     
     // Determine the internal texture format, the texture format, and the pixel type
-    const GLenum internalFormat = [this](Window::TextureType t) -> GLenum {
+    const std::tuple<GLenum, GLenum, GLenum> formats = [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum> {
         switch (t) {
-            case TextureType::Color: return _internalColorFormat;
-            case TextureType::Depth: return GL_DEPTH_COMPONENT32;
+            case TextureType::Color: return { _internalColorFormat, _colorFormat, _colorDataType };
+            case TextureType::Depth: return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
             case TextureType::Position:
-                return Settings::instance().bufferFloatPrecision();
+                return { Settings::instance().bufferFloatPrecision(), GL_RGB, GL_FLOAT };
             default: throw std::logic_error("Unhandled case label");
         }
     }(type);
 
     const glm::ivec2 res = _framebufferRes;
-    glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, res.x, res.y);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        std::get<0>(formats),
+        res.x,
+        res.y,
+        0,
+        std::get<1>(formats),
+        std::get<2>(formats),
+        nullptr
+    );
     Log::Debug("%dx%d texture generated for window %d", res.x, res.y, id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

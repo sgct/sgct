@@ -91,8 +91,18 @@ The final example is a fisheye rendering which demonstrates a more sophisticated
 ```
 
 
+
 # Element types
 The rest of the documentation contains information about the different types of XML nodes that can be added to the configuration files.  For the nomenclature, *Attributes* are parameters of an XML node where as *Children* are child XML node of the node that is currently discussed.  Some *Attributes* are maked as *optional* which means that they do not have to be present and their default behavior depends on the particular option, which is mentioned in the description.  For *Children*, it is mentioned how many children are allowed or have to be preset for a specific node.
+
+## Projection Types
+This is a quick link to the most used parts of this documentation, the description of the projection types:
+ - [PlanarProjection](#planarprojection) \[ special \]
+ - [FisheyeProjection](#fisheyeprojection) \[ special \]
+ - [SphericalMirrorProjection](#sphericalmirrorprojection) \[ special \]
+ - [SpoutOutputProjection](#spoutoutputprojection) \[ special \]
+ - [Projectionplane](#projectionplane) \[ special \]
+
 
 
 ## Capture
@@ -326,7 +336,7 @@ This projection node describes a projection for the [Viewport](#viewport) that i
 
 
 ## Projectionplane
-This projection method is based on providing three corner points that are used to construct a virtual image plane.  The lower left, upper left, and upper right points have to be provided as children of this node in this exact order.  Each child needs to have float attributes `x`, `y`, and `z`.
+This projection method is based on providing three corner points that are used to construct a virtual image plane.  The lower left, upper left, and upper right points have to be provided as children of this node in this exact order using `Pos` as the child name.  Each child needs to have float attributes `x`, `y`, and `z`.  So each child has to be the form `<Pos x="..." y="..." z="..." />`.
 
 
 ## Scene

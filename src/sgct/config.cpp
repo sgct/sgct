@@ -191,13 +191,16 @@ void validateViewport(const Viewport& v) {
     }
 
     std::visit(overloaded {
-        [](const NoProjection&) { throw Error(1095, "No valid projection provided"); },
         [](const PlanarProjection& p) { validatePlanarProjection(p); },
         [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
         [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
         [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
-        [](const ProjectionPlane& p) { validateProjectionPlane(p); }
-    }, v.projection);
+        [](const ProjectionPlane& p) { validateProjectionPlane(p); },
+
+        [](const NoProjection&) { throw Error(1095, "No valid projection provided"); }
+        },
+        v.projection
+    );
 }
 
 void validateWindow(const Window& w, bool isFirstWindow) {

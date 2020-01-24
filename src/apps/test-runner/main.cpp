@@ -35,11 +35,14 @@ namespace {
     } box;
 
     bool runTests = false;
+    uint64_t frameNumber = 0;
 
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
     bool renderGrid = true;
     bool renderBox = false;
+    bool showId = false;
+    bool showStats = false;
 
     float radius = 7.4f;
 
@@ -326,6 +329,7 @@ void initGL(GLFWwindow*) {
 
 void postSyncPreDraw() {
     Settings::instance().setCaptureFromBackBuffer(captureBackbuffer);
+    Engine::instance().setStatsGraphVisibility(showStats);
     if (takeScreenshot) {
         Log::Info("Triggering screenshot");
         Engine::instance().takeScreenshot();
@@ -369,29 +373,74 @@ void draw(const RenderData& data) {
     }
 }
 
+void draw2D(const RenderData& data) {
+#ifdef SGCT_HAS_TEXT
+    if (showId) {
+        const float w =
+            static_cast<float>(data.window.resolution().x)* data.viewport.size().x;
+        const float h =
+            static_cast<float>(data.window.resolution().y)* data.viewport.size().y;
+
+        const float offset = w / 2.f - w / 7.f;
+
+        const float s1 = h / 8.f;
+        const unsigned int fontSize1 = static_cast<unsigned int>(s1);
+        text::Font* f1 = text::FontManager::instance().font("SGCTFont", fontSize1);
+
+        text::print(
+            data.window,
+            data.viewport,
+            *f1,
+            text::Alignment::TopLeft,
+            offset,
+            h / 2.f - s1,
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            "%d",
+            ClusterManager::instance().thisNodeId()
+        );
+
+        const float s2 = h / 20.f;
+        const unsigned int fontSize2 = static_cast<unsigned int>(s2);
+        text::Font* f2 = text::FontManager::instance().font("SGCTFont", fontSize2);
+        text::print(
+            data.window,
+            data.viewport,
+            *f2,
+            text::Alignment::TopLeft,
+            offset,
+            h / 2.f - (s1 + s2) * 1.2f,
+            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            "%s",
+            ClusterManager::instance().thisNode().address().c_str()
+        );
+    }
+#endif // SGCT_HAS_TEXT
+}
+
 void postDraw() {
     if (runTests) {
-        Log::Info("Frame: %i", Engine::instance().currentFrameNumber());
+        frameNumber++;
+        Log::Info("Frame: %i", frameNumber);
     }
 
     if (Engine::instance().isMaster() && runTests) {
 
-        if (Engine::instance().currentFrameNumber() == 5) {
+        if (frameNumber == 5) {
             Log::Info("Setting to take first grid screenshot");
             takeScreenshot = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 15) {
+        if (frameNumber == 15) {
             Log::Info("Setting to capture from Back buffer");
             captureBackbuffer = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 25) {
+        if (frameNumber == 25) {
             Log::Info("Setting to take second grid screenshot");
             takeScreenshot = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 35) {
+        if (frameNumber == 35) {
             Log::Info("Setting to capture from front buffer");
             Log::Info("Changing the rendering to the test box");
             captureBackbuffer = false;
@@ -399,23 +448,23 @@ void postDraw() {
             renderBox = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 45) {
+        if (frameNumber == 45) {
             Log::Info("Setting to take first box screenshot");
             takeScreenshot = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 55) {
+        if (frameNumber == 55) {
             Log::Info("Setting to capture from Back buffer");
             captureBackbuffer = true;
         }
 
-        if (Engine::instance().currentFrameNumber() == 65) {
+        if (frameNumber == 65) {
             Log::Info("Setting to take seocond box screenshot");
             takeScreenshot = true;
         }
 
         // Give the screenshot threads some time to finished before we terminate
-        if (Engine::instance().currentFrameNumber() == 75) {
+        if (frameNumber == 75) {
             Engine::instance().terminate();
         }
     }
@@ -428,6 +477,9 @@ std::vector<std::byte> encode() {
     serializeObject(data, renderGrid);
     serializeObject(data, renderBox);
     serializeObject(data, runTests);
+    serializeObject(data, frameNumber);
+    serializeObject(data, showId);
+    serializeObject(data, showStats);
     return data;
 }
 
@@ -437,6 +489,9 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, renderGrid);
     deserializeObject(data, pos, renderBox);
     deserializeObject(data, pos, runTests);
+    deserializeObject(data, pos, frameNumber);
+    deserializeObject(data, pos, showId);
+    deserializeObject(data, pos, showStats);
 }
 
 void cleanup() {
@@ -457,6 +512,31 @@ void keyboard(Key key, Modifier, Action action, int) {
         renderGrid = !renderGrid;
         renderBox = !renderBox;
     }
+
+    if (key == Key::Enter && action == Action::Press) {
+        frameNumber = 0;
+        runTests = true;
+    }
+
+    if (key == Key::Esc && action == Action::Press) {
+        Engine::instance().terminate();
+    }
+
+    if (key == Key::I && action == Action::Press) {
+        showId = !showId;
+    }
+
+    if (key == Key::S && action == Action::Press) {
+        showStats = !showStats;
+    }
+
+    if (key == Key::P && action == Action::Press) {
+        takeScreenshot = true;
+    }
+
+    if (key == Key::B && action == Action::Press) {
+        captureBackbuffer = !captureBackbuffer;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -472,6 +552,7 @@ int main(int argc, char** argv) {
     callbacks.decode = decode;
     callbacks.postSyncPreDraw = postSyncPreDraw;
     callbacks.draw = draw;
+    callbacks.draw2D = draw2D;
     callbacks.postDraw = postDraw;
     callbacks.cleanup = cleanup;
     callbacks.keyboard = keyboard;

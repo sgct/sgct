@@ -35,7 +35,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/nonlinearprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/ogl_headers.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h
   ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projectionplane.h
@@ -100,7 +99,6 @@ set(SOURCE_FILES
   node.cpp
   nonlinearprojection.cpp
   offscreenbuffer.cpp
-  openvr.cpp
   profiling.cpp
   projection.cpp
   projectionplane.cpp
@@ -135,6 +133,11 @@ set(SOURCE_FILES
   utils/plane.cpp
   utils/sphere.cpp
 )
+
+if (SGCT_OPENVR_SUPPORT)
+  set(HEADER_FILES ${HEADER_FILES} ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h)
+  set(SOURCE_FILES ${SOURCE_FILES} openvr.cpp)
+endif ()
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in

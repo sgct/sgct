@@ -23,6 +23,7 @@ set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REV
 
 if (APPLE)
   set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "OSX Architectures" FORCE)
+  mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
 endif ()
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
@@ -51,7 +52,6 @@ add_subdirectory(ext)
 
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)
-  option(SGCT_EXAMPLE_FMOD "Build FMOD examples" OFF)
   option(SGCT_EXAMPLE_IMGUI "Build ImGUI examples" OFF)
   option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
   option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)

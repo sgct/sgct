@@ -357,6 +357,9 @@ void validateCluster(const Cluster& c) {
             ) != tr.devices.end();
         }
     );
+    if (!allDevicesValid) {
+        throw Error(1126, "All devices in the 'User's have to be valid devices");
+    }
     
     if (c.nodes.empty()) {
         throw Error(1127, "Configuration must contain at least one node");

@@ -102,11 +102,11 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
 
-    for (int i = 0; i < cluster.nodes.size(); ++i) {
+    for (size_t i = 0; i < cluster.nodes.size(); ++i) {
         ZoneScopedN("Create Node")
             
         std::unique_ptr<Node> n = std::make_unique<Node>();
-        n->applyNode(cluster.nodes[i], i == _thisNodeId);
+        n->applyNode(cluster.nodes[i], static_cast<int>(i) == _thisNodeId);
         addNode(std::move(n));
     }
     if (cluster.settings) {

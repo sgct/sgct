@@ -83,12 +83,12 @@ NetworkManager::NetworkManager(NetworkMode nm,
                              std::function<void(void*, int, int, int)> dataTransferDecode,
                                         std::function<void(bool, int)> dataTransferStatus,
                                     std::function<void(int, int)> dataTransferAcknowledge)
-    : _mode(nm)
-    , _externalDecodeFn(std::move(externalDecode))
+    : _externalDecodeFn(std::move(externalDecode))
     , _externalStatusFn(std::move(externalStatus))
     , _dataTransferDecodeFn(std::move(dataTransferDecode))
     , _dataTransferStatusFn(std::move(dataTransferStatus))
     , _dataTransferAcknowledgeFn(std::move(dataTransferAcknowledge))
+    , _mode(nm)
 {
     ZoneScoped
 

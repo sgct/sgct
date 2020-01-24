@@ -56,7 +56,7 @@ public:
 
     /**
      * Creates and adds a vertex and fragment shader and adds them to the shader program.
-     * 
+     *
      * \param vertexSrc Source text for the vertex program
      * \param fragmentSrc Source text for the fragment program
      * \throws std::runtime_error If the adding of the shaders failed
@@ -71,7 +71,7 @@ public:
      * \return Whether the program was created and linked correctly or not
      */
     void createAndLinkProgram();
-    
+
     /// Use the shader program in the current rendering pipeline
     void bind() const;
 
@@ -126,7 +126,7 @@ private:
 
     /// Will create and the program and return whether it was properly created or not
     void createProgram();
-    
+
     std::string _name; /// Name of the program, has to be unique
     int _programId = 0; /// Unique program _id
 

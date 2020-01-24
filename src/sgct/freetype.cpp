@@ -62,7 +62,7 @@ namespace {
 
 namespace sgct::text {
 
-void print(const Window& window, const BaseViewport& viewport, Font& font, Alignment mode, 
+void print(const Window& window, const BaseViewport& viewport, Font& font, Alignment mode,
            float x, float y, const glm::vec4& color, const char* format, ...)
 {
     va_list args;

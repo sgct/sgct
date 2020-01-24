@@ -11,8 +11,6 @@ set_compile_options(remote)
 target_link_libraries(remote PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/single_remote.xml"
 )
 copy_files(remote ${files})

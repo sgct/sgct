@@ -107,7 +107,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const glm::ivec2&
             for (unsigned int c = 0; c < nCols; c++) {
                 // vertex-mapping
                 const float u =
-                    (static_cast<float>(c) / (static_cast<float>(nCols + 1) - 1.f)) + 
+                    (static_cast<float>(c) / (static_cast<float>(nCols + 1) - 1.f)) +
                     ((1.f / nCols) * 0.5f);
                 const float v =
                     1.f - ((static_cast<float>(r) / (static_cast<float>(nRows + 1) - 1.f))

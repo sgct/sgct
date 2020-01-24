@@ -93,7 +93,7 @@ void BaseViewport::linkUserName() {
 
 void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
     ZoneScoped
-        
+
     switch (mode) {
         case Frustum::Mode::MonoEye:
             _monoProj.calculateProjection(

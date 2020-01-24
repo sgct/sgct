@@ -103,7 +103,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
         vertex.x /= aspect;
         vertex.x = (vertex.x + 1.f) / 2.f;
         vertex.y = (vertex.y + 1.f) / 2.f;
-        
+
         // scale, re-position and convert to [-1, 1]
         vertex.x = (vertex.x * size.x + pos.x) * 2.f - 1.f;
         vertex.y = (vertex.y * size.y + pos.y) * 2.f - 1.f;

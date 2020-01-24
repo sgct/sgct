@@ -119,7 +119,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     // load image
     Image img;
     img.load(filename);
-    
+
     if (img.data() == nullptr) {
         // image data not valid
         return 0;
@@ -132,7 +132,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     return t;
 }
 
-void TextureManager::removeTexture(unsigned int textureId) {   
+void TextureManager::removeTexture(unsigned int textureId) {
     _textures.erase(
         std::remove(_textures.begin(), _textures.end(), textureId),
         _textures.end()

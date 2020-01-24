@@ -82,7 +82,7 @@ namespace {
         catch (const std::invalid_argument&) {
             throw Error(4004, "Failed to parse frustum element. Conversion error");
         }
-                        
+
         proj.frustum = frustum;
         proj.orientation = quat;
 

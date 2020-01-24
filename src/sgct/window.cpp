@@ -201,7 +201,7 @@ void Window::applyWindow(const config::Window& window) {
 
     if (window.resolution) {
         ZoneScopedN("Resolution")
-        
+
         setFramebufferResolution(*window.resolution);
         setFixResolution(true);
     }
@@ -312,7 +312,7 @@ void Window::initOGL() {
     ZoneScoped
 
     _colorFormat = GL_BGRA;
-    
+
     std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) =
         [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
     {
@@ -328,7 +328,7 @@ void Window::initOGL() {
             default: throw std::logic_error("Unhandled case label");
         }
     }(_bufferColorBitDepth);
-    
+
     createTextures();
     createVBOs(); // must be created before FBO
     createFBOs();
@@ -459,7 +459,7 @@ void Window::swap(bool takeScreenshot) {
     }
 
     makeOpenGLContextCurrent();
-        
+
     if (takeScreenshot) {
         ZoneScopedN("Take Screenshot")
         if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
@@ -778,7 +778,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         if (refreshRateHint > 0) {
             glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
         }
-        
+
         if (_monitorIndex > 0 && _monitorIndex < count) {
             mon = monitors[_monitorIndex];
         }
@@ -797,7 +797,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
             _windowRes = glm::ivec2(currentMode->width, currentMode->height);
         }
     }
-    
+
     {
         ZoneScopedN("glfwCreateWindow")
         _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", mon, share);
@@ -824,7 +824,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     if (!_useFixResolution) {
         _framebufferRes = bufferSize;
     }
-        
+
     // Swap inerval:
     //  -1 = adaptive sync
     //   0 = vertical sync off
@@ -836,14 +836,14 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // multi-monitor application. Setting last window to the requested interval, which
     // does mean all other windows will respect the last window in the pipeline.
     glfwSwapInterval(isLastWindow ? Settings::instance().swapInterval() : 0);
-    
+
     // if client, disable mouse pointer
     if (!Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     _hasFocus = glfwGetWindowAttrib(_windowHandle, GLFW_FOCUSED) == GLFW_TRUE;
-        
+
     _screenCaptureLeftOrMono = std::make_unique<ScreenCapture>();
     if (useRightEyeTexture()) {
         _screenCaptureRight = std::make_unique<ScreenCapture>();
@@ -916,7 +916,10 @@ void Window::initScreenCapture() {
 
     if (_screenCaptureLeftOrMono) {
         if (useRightEyeTexture()) {
-            _screenCaptureLeftOrMono->initialize(_id, ScreenCapture::EyeIndex::StereoLeft);
+            _screenCaptureLeftOrMono->initialize(
+                _id,
+                ScreenCapture::EyeIndex::StereoLeft
+            );
         }
         else {
             _screenCaptureLeftOrMono->initialize(_id, ScreenCapture::EyeIndex::Mono);
@@ -997,12 +1000,16 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     glDeleteTextures(1, &id);
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    
+
     // Determine the internal texture format, the texture format, and the pixel type
-    const std::tuple<GLenum, GLenum, GLenum> formats = [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum> {
+    const std::tuple<GLenum, GLenum, GLenum> formats =
+        [this](Window::TextureType t) -> std::tuple<GLenum, GLenum, GLenum>
+    {
         switch (t) {
-            case TextureType::Color: return { _internalColorFormat, _colorFormat, _colorDataType };
-            case TextureType::Depth: return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
+            case TextureType::Color:
+                return { _internalColorFormat, _colorFormat, _colorDataType };
+            case TextureType::Depth:
+                return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
             case TextureType::Position:
                 return { Settings::instance().bufferFloatPrecision(), GL_RGB, GL_FLOAT };
@@ -1149,7 +1156,7 @@ void Window::resizeFBOs() {
     createTextures();
 
     _finalFBO->resizeFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
-        
+
     if (!_finalFBO->isMultiSampled()) {
         _finalFBO->bind();
         _finalFBO->attachColorTexture(_frameBufferTextures.leftEye, GL_COLOR_ATTACHMENT0);

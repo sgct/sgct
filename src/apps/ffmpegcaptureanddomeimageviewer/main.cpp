@@ -615,7 +615,7 @@ void preSyncFun() {
         // if texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
             numSyncedTex = static_cast<int32_t>(texIds.size());
-            
+
             // only iterate up to the first new image, even if multiple images was added
             texIndex = numSyncedTex - serverUploadCount;
 
@@ -743,10 +743,10 @@ void cleanUpFun() {
 
     glDeleteTextures(1, &texId);
     texId = 0;
-    
+
     glDeleteTextures(static_cast<GLsizei>(texIds.size()), texIds.data());
     texIds.clear();
-    
+
     if (hiddenWindow) {
         glfwDestroyWindow(hiddenWindow);
     }
@@ -830,14 +830,14 @@ void dataTransferStatus(bool connected, int clientIndex) {
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
     Log::Info("Transfer id: %d is completed on node %d", packageId, clientIndex);
-    
+
     static int counter = 0;
     if (packageId == lastPackage) {
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
-            
+
             Log::Info(
                 "Time to distribute and upload textures on cluster: %f ms",
                 (sgct::Engine::getTime() - sendTimer) * 1000.0
@@ -906,7 +906,7 @@ int main(int argc, char* argv[]) {
     //   ffmpeg -list_devices true -f dshow -i dummy
     // for mac:
     //   ffmpeg -f avfoundation -list_devices true -i ""
-    // 
+    //
     // to obtain device properties in windows use:
     //   ffmpeg -f dshow -list_options true -i video=<device name>
     //

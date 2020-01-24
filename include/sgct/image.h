@@ -17,7 +17,7 @@ namespace sgct {
 class Image {
 public:
     enum class FormatType { PNG = 0, JPEG, TGA, Unknown };
-    
+
     Image() = default;
     ~Image();
 

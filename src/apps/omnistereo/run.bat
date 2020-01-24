@@ -1,1 +1,0 @@
-omnistereo.exe -config test.xml -turnmap turnmap.jpg -sepmap sepmap.png

@@ -86,7 +86,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
                                    Frustum::Mode frustumMode)
 {
     ZoneScoped
-        
+
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -198,8 +198,8 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 
 void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
-        
-    auto renderFace = [this](const Window& window, BaseViewport& vp, unsigned int idx, 
+
+    auto renderFace = [this](const Window& window, BaseViewport& vp, unsigned int idx,
                              Frustum::Mode frustumMode)
     {
         if (!_spout[idx].enabled || !vp.isEnabled()) {
@@ -500,7 +500,7 @@ void SpoutOutputProjection::initViewports() {
     // right
     {
         _subViewports.right.setSize(glm::vec2(1.f, 1.f));
-       
+
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = Distance;
 

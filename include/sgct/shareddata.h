@@ -56,7 +56,7 @@ private:
 template <typename T>
 void serializeObject(std::vector<std::byte>& buffer, const T& value) {
     static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
-   
+
     buffer.insert(
         buffer.end(),
         reinterpret_cast<const std::byte*>(&value),

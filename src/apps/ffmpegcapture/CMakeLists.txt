@@ -32,8 +32,6 @@ target_link_libraries(ffmpegcapture PRIVATE
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
 )
 copy_files(ffmpegcapture ${files})
 copy_sgct_dynamic_libraries(ffmpegcapture)

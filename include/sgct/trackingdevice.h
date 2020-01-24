@@ -21,7 +21,7 @@ class TrackingDevice {
 public:
     /// Constructor
     TrackingDevice(int parentIndex, std::string name);
-    
+
     /// Set if this device is enabled or not
     void setEnabled(bool state);
 
@@ -55,7 +55,7 @@ public:
 
     /// \return a digital value from array
     bool button(int index) const;
-    
+
     /// \return a digital value from array
     bool buttonPrevious(int index) const;
 
@@ -64,7 +64,7 @@ public:
 
     /// \return an analog value from array
     double analogPrevious(int index) const;
-    
+
     bool isEnabled() const;
     bool hasSensor() const;
     bool hasButtons() const;

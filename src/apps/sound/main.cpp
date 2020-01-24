@@ -1,3 +1,11 @@
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
 #include "sgct.h"
 
 //include open AL
@@ -73,7 +81,7 @@ void myInitOGLFun()
     glEnable( GL_DEPTH_TEST );
 
     sphere = new sgct_utils::SGCTSphere(0.5f, 8);
-	dome = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10);
+    dome = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10);
 
     alutInit(NULL, 0);
 

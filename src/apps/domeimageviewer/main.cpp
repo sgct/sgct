@@ -257,7 +257,7 @@ void preSync() {
         // if texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
             numSyncedTex = static_cast<int32_t>(texIds.size());
-            
+
             // only iterate up to the first new image, even if multiple images was added
             texIndex = numSyncedTex - serverUploadCount;
 
@@ -382,7 +382,7 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
     );
 
     lastPackage = packageId;
-    
+
     // read the image on slave
     readImage(reinterpret_cast<unsigned char*>(receivedData), receivedLength);
     uploadTexture();
@@ -398,14 +398,14 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     Log::Info(
         "Transfer id: %d is completed on node %d.", packageId, clientIndex
     );
-    
+
     static int counter = 0;
     if (packageId == lastPackage) {
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;
             counter = 0;
-            
+
             Log::Info(
                 "Time to distribute and upload textures on cluster: %f ms",
                 (Engine::getTime() - sendTimer) * 1000.0

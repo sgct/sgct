@@ -55,9 +55,9 @@ private:
 
     TrackingManager() = default;
     ~TrackingManager();
-    
+
     Tracker* tracker(const std::string& name) const;
-    
+
     void addDeviceToCurrentTracker(std::string name);
     void addSensorToCurrentDevice(std::string address, int id);
     void addButtonsToCurrentDevice(std::string address, int nButtons);

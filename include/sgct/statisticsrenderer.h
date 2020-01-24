@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__STATISTICS__H__
-#define __SGCT__STATISTICS__H__
+#ifndef __SGCT__STATISTICSRENDERER__H__
+#define __SGCT__STATISTICSRENDERER__H__
 
 #include <sgct/engine.h>
 #include <sgct/shaderprogram.h>
@@ -107,4 +107,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__STATISTICS__H__
+#endif // __SGCT__STATISTICSRENDERER__H__

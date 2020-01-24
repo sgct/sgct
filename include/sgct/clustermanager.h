@@ -91,7 +91,7 @@ public:
 
     /// \return the number of nodes in the cluster
     int numberOfNodes() const;
-    
+
     /// \return the scene transform specified in the configuration file
     const glm::mat4& sceneTransform() const;
 

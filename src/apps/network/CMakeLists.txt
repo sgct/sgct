@@ -11,8 +11,6 @@ set_compile_options(network)
 target_link_libraries(network PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )
 copy_files(network ${files})

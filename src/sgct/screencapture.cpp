@@ -85,7 +85,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
 
     _resolution = std::move(resolution);
     _bytesPerColor = bytesPerColor;
-    
+
     _nChannels = channels;
     _dataSize = _resolution.x * _resolution.y * _nChannels * _bytesPerColor;
 
@@ -126,7 +126,7 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped
-        
+
     std::string file = addFrameNumberToFilename(Engine::instance().screenShotNumber());
     checkImageBuffer(capSrc);
 
@@ -139,7 +139,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     Image* imPtr = prepareImage(threadIndex, std::move(file));
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-        
+
     if (capSrc == CaptureSource::Texture) {
         glBindTexture(GL_TEXTURE_2D, textureId);
         glGetTexImage(GL_TEXTURE_2D, 0, _downloadFormat, _downloadType, nullptr);
@@ -181,7 +181,7 @@ void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
 
 void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     _eyeIndex = ei;
-    
+
     _captureInfos.resize(_nThreads);
     for (unsigned int i = 0; i < _nThreads; i++) {
         _captureInfos[i].frameBufferImage = nullptr;
@@ -226,7 +226,7 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
                 throw std::logic_error("Unhandled case label");
         }
         const Window& win = *Engine::instance().windows()[_windowIndex];
-        
+
         if (win.name().empty()) {
             filename += "_win" + std::to_string(_windowIndex);
         }

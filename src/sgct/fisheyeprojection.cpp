@@ -63,7 +63,7 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
                                Frustum::Mode frustumMode)
 {
     ZoneScoped
-        
+
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
     glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
@@ -342,7 +342,7 @@ void FisheyeProjection::initViewports() {
         // +X face
         {
             _subViewports.right.setSize(glm::vec2(1.f - cropLevel, 1.f));
-      
+
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(-90.f),
@@ -406,7 +406,7 @@ void FisheyeProjection::initViewports() {
         // -Y face
         {
             _subViewports.top.setSize(glm::vec2(1.f, 1.f - cropLevel));
-            
+
             const glm::mat4 rotMat = glm::rotate(
                 rollRot,
                 glm::radians(90.f),
@@ -697,7 +697,7 @@ void FisheyeProjection::initShaders() {
         _shaderLoc.normalCubemap = glGetUniformLocation(_shader.id(), "normalmap");
         glUniform1i(_shaderLoc.normalCubemap, 2);
     }
-    
+
     if (Settings::instance().usePositionTexture()) {
         _shaderLoc.positionCubemap = glGetUniformLocation(_shader.id(), "positionmap");
         glUniform1i(_shaderLoc.positionCubemap, 3);
@@ -721,7 +721,7 @@ void FisheyeProjection::initShaders() {
         );
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
-        
+
         _shaderLoc.swapColor = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
         glUniform1i(_shaderLoc.swapColor, 0);
         _shaderLoc.swapDepth = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");

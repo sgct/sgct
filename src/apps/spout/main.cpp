@@ -62,7 +62,7 @@ namespace {
 } // namespace
 
 using namespace sgct;
- 
+
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
@@ -153,10 +153,10 @@ void initOGL(GLFWwindow*) {
     // setup spout
     senderName[0] = '\0';
     receiver = GetSpout();
-    
+
     // set background
     Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
-    
+
     //texture = TextureManager::instance().loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);

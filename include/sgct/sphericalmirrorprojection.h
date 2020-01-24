@@ -44,7 +44,7 @@ private:
     void initVBO() override;
     void initViewports() override;
     void initShaders() override;
-       
+
     float _tilt = 0.f;
     float _diameter = 2.4f;
 

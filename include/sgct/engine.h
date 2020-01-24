@@ -154,7 +154,7 @@ public:
 
     /// \return the clear color as 4 floats (RGBA)
     glm::vec4 clearColor() const;
-    
+
     /// \return the near clipping plane distance in meters
     float nearClipPlane() const;
 
@@ -290,7 +290,7 @@ private:
      * be a simple quad or a geometry correction and blending mesh.
      */
     void renderFBOTexture(Window& window);
-    
+
     /// This function combines a texture and a shader into a new texture
     void renderFXAA(Window& window, Window::TextureIndex targetIndex);
 
@@ -322,7 +322,7 @@ private:
     const std::function<void(const RenderData&)> _draw2DFn;
     const std::function<void()> _postDrawFn;
     const std::function<void()> _cleanupFn;
-    
+
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;
     glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);

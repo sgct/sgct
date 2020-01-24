@@ -39,7 +39,7 @@ public:
     enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 
     static const size_t HeaderSize = 13;
-    
+
     /**
      * \param port is the network port (TCP)
      * \param address is the hostname, IPv4 address or ip6 address
@@ -58,7 +58,7 @@ public:
     void setUpdateFunction(std::function<void(Network*)> fn);
     void setConnectedFunction(std::function<void (void)> fn);
     void setAcknowledgeFunction(std::function<void(int, int)> fn);
-    
+
     void setConnectedStatus(bool state);
     void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
@@ -87,7 +87,7 @@ public:
     bool isUpdated() const;
     void sendData(const void* data, int length);
 
-    /// \return last error code 
+    /// \return last error code
     static int lastError();
     static int receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
 

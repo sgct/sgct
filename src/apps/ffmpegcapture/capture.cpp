@@ -33,7 +33,7 @@ bool Capture::initialize() {
     av_register_all();
     avdevice_register_all();
     // avformat_network_init();
-    
+
     // reduce latency
     av_dict_set(&_options, "fflags", "nobuffer", 0);
     // reduce the latency by flushing out packets immediately
@@ -138,7 +138,7 @@ bool Capture::poll() {
     if (!_isInitialized) {
         return false;
     }
-    
+
     bool allOk = true;
 
     if (av_read_frame(_fmtContext, &_pkt) >= 0) {

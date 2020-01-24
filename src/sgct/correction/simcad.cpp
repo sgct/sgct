@@ -65,7 +65,7 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
                 std::vector<std::string> xcoords = helpers::split(xcoordstr, ' ');
                 for (const std::string& x : xcoords) {
                     xcorrections.push_back(std::stof(x) / xrange);
-                } 
+                }
             }
         }
         else if (childVal == "Y-FlatParameters") {

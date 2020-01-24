@@ -18,7 +18,7 @@ namespace sgct::utils {
 /// This class creates and renders a textured box.
 class Plane {
 public:
-    /// This constructor requires a valid OpenGL contex 
+    /// This constructor requires a valid OpenGL contex
     Plane(float width, float height);
     ~Plane();
 

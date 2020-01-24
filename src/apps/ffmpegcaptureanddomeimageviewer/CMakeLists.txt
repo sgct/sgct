@@ -32,10 +32,6 @@ target_link_libraries(fmpegcaptureanddomeimageviewer PRIVATE
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_two_nodes.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_two_nodes.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
 )
 copy_files(fmpegcaptureanddomeimageviewer ${files})

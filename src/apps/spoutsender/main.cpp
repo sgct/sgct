@@ -94,7 +94,7 @@ void draw(RenderData data) {
 
 void postDraw() {
     glActiveTexture(GL_TEXTURE0);
-    
+
     for (size_t i = 0; i < spoutSendersCount; i++) {
         if (!spoutSendersData[i].initialized) {
             continue;
@@ -106,9 +106,9 @@ void postDraw() {
         const GLuint texId = win->frameBufferTexture(
             isLeft ? Window::TextureIndex::LeftEye : Window::TextureIndex::RightEye
         );
-            
+
         glBindTexture(GL_TEXTURE_2D, texId);
-            
+
         spoutSendersData[i].spoutSender->SendTexture(
             texId,
             static_cast<GLuint>(GL_TEXTURE_2D),
@@ -158,7 +158,7 @@ void initOGL(GLFWwindow*) {
 
         strcpy_s(spoutSendersData[i].senderName, senderNames[i].c_str());
         int winIndex = windowData[i].first;
-        
+
         const bool success = spoutSendersData[i].spoutSender->CreateSender(
             spoutSendersData[i].senderName,
             Engine::instance().windows()[winIndex]->framebufferResolution().x,
@@ -166,10 +166,10 @@ void initOGL(GLFWwindow*) {
         );
         spoutSendersData[i].initialized = success;
     }
-    
+
     // set background
     Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
-    
+
     texture = TextureManager::instance().loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);

@@ -87,7 +87,7 @@ class Font;
  *     sgct::text::TopLeft,
  *     50,
  *     50,
- *     L"Hallå Världen!"
+ *     L"HallÃ¥ VÃ¤rlden!"
  * );
  * \endcode
  */
@@ -141,7 +141,7 @@ private:
     FT_Library _library;
 
     // Holds all predefined font paths for generating font glyphs
-    std::map<std::string, std::string> _fontPaths; 
+    std::map<std::string, std::string> _fontPaths;
 
     // All generated fonts
     std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> _fontMap;

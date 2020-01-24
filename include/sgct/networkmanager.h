@@ -40,7 +40,7 @@ public:
     static std::condition_variable cond;
 
     ~NetworkManager();
-    
+
     void initialize();
     void clearCallbacks();
 

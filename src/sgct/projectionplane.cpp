@@ -8,7 +8,7 @@
 
 #include <sgct/projectionplane.h>
 
-// @TODO (abock, 2019-10-15) There seems to be an issue with the rendering of the 
+// @TODO (abock, 2019-10-15) There seems to be an issue with the rendering of the
 // z coordinate of the place is 0 even if the user position is not a zero
 
 namespace sgct {

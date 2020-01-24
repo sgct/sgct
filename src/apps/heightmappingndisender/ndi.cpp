@@ -1,9 +1,10 @@
-/*************************************************************************
-Copyright (c) 2017 Miroslav Andel
-All rights reserved.
-
-For conditions of distribution and use, see copyright notice in sgct.h
-*************************************************************************/
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
 
 #include "sgct.h"
 #include "ndi.h"

@@ -22,7 +22,7 @@ namespace sgct::correction {
 
 Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     ZoneScoped
-    
+
     Buffer buf;
 
     Log::Info("Reading SkySkan mesh data from '%s'", path.c_str());
@@ -81,7 +81,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
             if (uvTweaks[1] > -1.f) {
                 v *= uvTweaks[1];
             }
-            
+
             buf.vertices[counter].x = x;
             buf.vertices[counter].y = y;
             buf.vertices[counter].s = u;

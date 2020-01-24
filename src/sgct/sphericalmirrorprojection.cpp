@@ -54,7 +54,7 @@ namespace {
 
 namespace sgct {
 
-SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent, 
+SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
                                                      std::string bottomMesh,
                                                      std::string leftMesh,
                                                      std::string rightMesh,
@@ -70,11 +70,11 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
 
 void SphericalMirrorProjection::update(glm::vec2) {}
 
-void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport, 
+void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
                                        Frustum::Mode frustumMode)
 {
     ZoneScoped
-        
+
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
     float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
@@ -127,7 +127,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 
 void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
-        
+
     auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {
             return;

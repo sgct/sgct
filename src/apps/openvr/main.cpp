@@ -1,3 +1,11 @@
+/*****************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2020                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
 #include <sgct.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
@@ -423,7 +431,7 @@ void createXZGrid(int size, float yPos)
 {
     numberOfVerts[GRID] = size * 4;
     Vertex * vertData = new (std::nothrow) Vertex[numberOfVerts[GRID]];
-    
+
     int i = 0;
     for (int x = -(size / 2); x < (size / 2); x++)
     {
@@ -453,7 +461,7 @@ void createXZGrid(int size, float yPos)
 
     glBindVertexArray(VAOs[GRID]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[GRID]);
-    
+
     //upload data to GPU
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numberOfVerts[GRID], vertData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
@@ -500,7 +508,7 @@ void createPyramid(float width)
     vertData.push_back(Vertex(-width / 2.0f, 0.0f, width / 2.0f));
     vertData.push_back(Vertex(0.0f, 2.0f, 0.0f));
     vertData.push_back(Vertex(width / 2.0f, 0.0f, width / 2.0f));
-    
+
     //triangles
     //-x
     vertData.push_back(Vertex(-width / 2.0f, 0.0f, -width / 2.0f));

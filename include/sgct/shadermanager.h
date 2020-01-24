@@ -53,7 +53,7 @@ public:
      * \param name Name of the shader program
      */
     bool shaderProgramExists(const std::string& name) const;
-    
+
     /**
      * Get the specified shader program from the shader manager.
      *

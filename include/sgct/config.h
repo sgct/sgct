@@ -78,7 +78,7 @@ struct Device {
         std::string vrpnAddress;
         int count = 0;
     };
-    
+
     std::string name;
     std::vector<Sensors> sensors;
     std::vector<Buttons> buttons;
@@ -194,7 +194,7 @@ void validateMpcdiProjection(const MpcdiProjection& proj);
 
 struct Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
-    
+
     std::optional<std::string> user;
     std::optional<std::string> overlayTexture;
     std::optional<std::string> blendMaskTexture;
@@ -204,7 +204,7 @@ struct Viewport {
     std::optional<Eye> eye;
     std::optional<glm::vec2> position;
     std::optional<glm::vec2> size;
-    
+
     std::variant<NoProjection, PlanarProjection, FisheyeProjection,
         SphericalMirrorProjection, SpoutOutputProjection, ProjectionPlane> projection;
 };

@@ -47,7 +47,7 @@ namespace {
 } // namespace
 
 using namespace sgct;
- 
+
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
@@ -124,7 +124,7 @@ void initOGL(GLFWwindow*) {
     // setup spout
     sender = '\0';
     receiver = GetSpout();
-    
+
     // set background
     Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
 

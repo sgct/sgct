@@ -54,7 +54,7 @@ void TrackingDevice::setSensorTransform(glm::vec3 vec, glm::quat rot) {
         Log::Error("Error getting handle to tracker for device '%s'", _name.c_str());
         return;
     }
-    
+
     const glm::mat4 parentTrans = parent->getTransform();
 
     // create matrixes

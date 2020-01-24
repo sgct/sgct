@@ -29,7 +29,7 @@ ClusterManager& ClusterManager::instance() {
 
 void ClusterManager::create(const config::Cluster& cluster, int clusterID) {
     ZoneScoped
-        
+
     _instance = new ClusterManager(clusterID);
     _instance->applyCluster(cluster);
 }
@@ -49,7 +49,7 @@ ClusterManager::~ClusterManager() {}
 
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     ZoneScoped
-        
+
     _masterAddress = cluster.masterAddress;
     if (cluster.debugLog && *cluster.debugLog) {
         Log::instance().setNotifyLevel(Log::Level::Debug);
@@ -104,7 +104,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
 
     for (size_t i = 0; i < cluster.nodes.size(); ++i) {
         ZoneScopedN("Create Node")
-            
+
         std::unique_ptr<Node> n = std::make_unique<Node>();
         n->applyNode(cluster.nodes[i], static_cast<int>(i) == _thisNodeId);
         addNode(std::move(n));

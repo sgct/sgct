@@ -43,7 +43,7 @@ public:
     void setUser(User* user);
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
-    
+
     const glm::vec2& position() const;
     const glm::vec2& size() const;
     float horizontalFieldOfViewDegrees() const;
@@ -73,7 +73,7 @@ protected:
     Projection _monoProj;
     Projection _stereoLeftProj;
     Projection _stereoRightProj;
-    
+
     ProjectionPlane _projPlane;
     Frustum::Mode _eye = Frustum::Mode::MonoEye;
 

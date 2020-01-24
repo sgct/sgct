@@ -23,10 +23,6 @@ target_link_libraries(openvr PRIVATE
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_window_same_as_hmd.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_with_fullscreen_mono.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_fullscreen.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_fullscreen.command"
 )
 copy_files(openvr ${files})
 copy_sgct_dynamic_libraries(openvr)

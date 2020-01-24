@@ -146,7 +146,7 @@ void Dome::draw() {
     }
 
     // one extra for the cap vertex and one extra for duplication of last index
-    const unsigned int size = _azimuthSteps + 2; 
+    const unsigned int size = _azimuthSteps + 2;
     const unsigned int offset = (2 * _azimuthSteps + 2) * (_elevationSteps - 1);
     glDrawElements(
         GL_TRIANGLE_FAN,

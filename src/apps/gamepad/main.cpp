@@ -21,7 +21,10 @@ void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (joyStick1Name) {
         int numberOfAxes = 0;
-        const float* pos = glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
+        const float* pos = glfwGetJoystickAxes(
+            static_cast<int>(Joystick::Joystick1),
+            &numberOfAxes
+        );
         std::string joystickInfoStr = "Axes: ";
 
         for (int i = 0; i < numberOfAxes; i++) {

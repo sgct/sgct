@@ -82,7 +82,7 @@ void initOGL(GLFWwindow*) {
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");
-    prg.unbind(); 
+    prg.unbind();
 }
 
 void draw(const RenderData& data) {

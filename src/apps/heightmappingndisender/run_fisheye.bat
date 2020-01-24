@@ -1,1 +1,0 @@
-heightmappingndisender.exe -config fisheye.xml

@@ -42,7 +42,7 @@ public:
     virtual void update(glm::vec2 size) = 0;
 
     void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
-    
+
     /**
      * Set the resolution of the cubemap faces.
      *

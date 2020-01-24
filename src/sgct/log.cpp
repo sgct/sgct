@@ -62,9 +62,9 @@ void Log::printv(Level lvl, const char* fmt, va_list ap) {
         _parseBuffer.resize(size);
         std::fill(_parseBuffer.begin(), _parseBuffer.end(), char(0));
     }
-        
+
     _parseBuffer[0] = '\0';
-    
+
     vsprintf(_parseBuffer.data(), fmt, ap);
     va_end(ap); // Results Are Stored In Text
 

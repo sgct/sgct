@@ -101,14 +101,14 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     const double y = static_cast<double>(viewData.qy);
     const double z = static_cast<double>(viewData.qz);
     const double w = static_cast<double>(viewData.qw);
-        
+
     // Switching the Euler angles to switch from a right-handed coordinate system to
     // a left-handed one
     glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
     double yaw = -angles.x;
     double pitch = angles.y;
     double roll = -angles.z;
-        
+
     Log::Debug(
         "Rotation quat = [%f %f %f %f]. yaw = %lf, pitch = %lf, roll = %lf",
         viewData.qx, viewData.qy, viewData.qz, viewData.qw, yaw, pitch, roll);

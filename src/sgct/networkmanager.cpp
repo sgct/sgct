@@ -183,7 +183,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
 
 NetworkManager::~NetworkManager() {
     ZoneScoped
-        
+
     _isRunning = false;
 
     cond.notify_all();
@@ -218,7 +218,7 @@ NetworkManager::~NetworkManager() {
 
 void NetworkManager::initialize() {
     ZoneScoped
-        
+
     ClusterManager& cm = ClusterManager::instance();
 
     _isServer = [&](NetworkMode nm) {

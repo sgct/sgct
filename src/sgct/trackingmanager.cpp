@@ -163,7 +163,7 @@ void TrackingManager::applyDevice(const config::Device& device) {
 
 void TrackingManager::applyTracker(const config::Tracker& tracker) {
     ZoneScoped
-        
+
     addTracker(tracker.name);
 
     for (const config::Device& device : tracker.devices) {
@@ -228,7 +228,7 @@ void TrackingManager::startSampling() {
 void TrackingManager::updateTrackingDevices() {
 #ifdef SGCT_HAS_VRPN
     ZoneScoped
-        
+
     for (const std::unique_ptr<Tracker>& tracker : _trackers) {
         for (const std::unique_ptr<TrackingDevice>& device : tracker->devices()) {
             if (device->isEnabled() && device.get() == _head && _headUser) {

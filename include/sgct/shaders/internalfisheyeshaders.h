@@ -62,7 +62,7 @@ constexpr const char* SampleOffsetFun = R"(
     }
   }
 )";
-   
+
 constexpr const char* BaseVert = R"(
   #version 330 core
 
@@ -628,9 +628,9 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
     // get angle from -45 to 45 degrees (-pi/4 to +pi/4)
     vec2 angle = 1.57079632679 * tr_uv - 0.5;
 
-    float x_norm = tan(angle.x); 
-    float y_norm = tan(angle.y); 
-    float r = z * sqrt(x_norm * x_norm + y_norm * y_norm + 1.0); 
+    float x_norm = tan(angle.x);
+    float y_norm = tan(angle.y);
+    float r = z * sqrt(x_norm * x_norm + y_norm * y_norm + 1.0);
 
     Color = texture(cTex, tr_uv);
     gl_FragDepth = a + b / r;

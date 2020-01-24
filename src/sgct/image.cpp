@@ -146,7 +146,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     double t0 = Engine::getTime();
-    
+
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
         throw Err(9008, "Can't create PNG file '" + filename + "'");
@@ -206,7 +206,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
         PNG_COMPRESSION_TYPE_BASE,
         PNG_FILTER_TYPE_BASE
     );
-    
+
     if (colorType == PNG_COLOR_TYPE_RGB || colorType == PNG_COLOR_TYPE_RGB_ALPHA) {
         png_set_bgr(png_ptr);
     }
@@ -267,7 +267,7 @@ void Image::setBytesPerChannel(int bpc) {
 
 void Image::allocateOrResizeData() {
     double t0 = Engine::getTime();
-    
+
     const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {
         std::string s =

@@ -516,7 +516,11 @@ int Network::readSyncMessage(char* header, int32_t& syncFrame, uint32_t& dataSiz
 
             // resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
-            updateBuffer(_uncompressBuffer, uncompressedDataSize, _uncompressedBufferSize);
+            updateBuffer(
+                _uncompressBuffer,
+                uncompressedDataSize,
+                _uncompressedBufferSize
+            );
         }
     }
 
@@ -543,7 +547,11 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 
             // resize buffer if needed
             updateBuffer(_recvBuffer, dataSize, _bufferSize);
-            updateBuffer(_uncompressBuffer, uncompressedDataSize, _uncompressedBufferSize);
+            updateBuffer(
+                _uncompressBuffer,
+                uncompressedDataSize,
+                _uncompressedBufferSize
+            );
         }
         else if (_headerId == Ack && _acknowledgeCallback != nullptr) {
             std::memcpy(&packageId, header + 1, sizeof(packageId));
@@ -573,7 +581,7 @@ int Network::readExternalMessage() {
         Log::Info("Receiving data after interrupted system error (attempt %d)", attempts);
         attempts++;
     }
-    
+
     return iResult;
 }
 
@@ -637,7 +645,7 @@ void Network::communicationHandler() {
         int32_t syncFrameNumber = -1;
         uint32_t dataSize = 0;
         uint32_t uncompressedDataSize = 0;
-        
+
         _headerId = DefaultId;
 
         if (type() == ConnectionType::SyncConnection) {
@@ -741,7 +749,7 @@ void Network::communicationHandler() {
             else {
                 if (_headerId == DataId && _packageDecoderCallback && dataSize > 0) {
                     _packageDecoderCallback(_recvBuffer.data(), dataSize, packageId, _id);
-                        
+
                     // send acknowledge
                     uint32_t pLength = 0;
                     char sendBuff[HeaderSize];

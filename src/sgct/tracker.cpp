@@ -87,7 +87,7 @@ void Tracker::setTransform(glm::mat4 mat) {
     _transform = std::move(mat);
 }
 
-glm::mat4 Tracker::getTransform() const { 
+glm::mat4 Tracker::getTransform() const {
     std::unique_lock lock(mutex::Tracking);
     return _transform;
 }

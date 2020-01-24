@@ -42,7 +42,7 @@ namespace sgct::openvr {
         vr::TrackedPropertyError* peError = nullptr);
     glm::mat4 eyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
     glm::mat4 eyeToHeadTransform(vr::Hmd_Eye nEye);
-    
+
     glm::mat4 poseMatrix();
     glm::quat inverseRotation(glm::mat4 poseMat);
 } // namespace sgct::openvr

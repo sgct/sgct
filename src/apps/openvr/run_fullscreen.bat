@@ -1,1 +1,0 @@
-openvr.exe -config openvr_with_fullscreen_mono.xml

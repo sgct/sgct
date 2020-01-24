@@ -114,7 +114,7 @@ public:
 
     /// Get the refreshrate hint of the window in fullscreen mode.
     int refreshRateHint() const;
-    
+
     /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
     unsigned int bufferFloatPrecision() const;
 
@@ -123,7 +123,7 @@ public:
      * masks and warping.
      */
     bool captureFromBackBuffer() const;
-    
+
     /// Get if warping meshes should be exported as obj-files.
     bool exportWarpingMeshes() const;
 
@@ -158,7 +158,7 @@ private:
     int _swapInterval = 1;
     int _refreshRate = 0;
     int _nCaptureThreads = std::max(std::thread::hardware_concurrency() - 1, 0u);
-    
+
     bool _useDepthTexture = false;
     bool _useNormalTexture = false;
     bool _usePositionTexture = false;

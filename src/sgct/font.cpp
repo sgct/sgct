@@ -106,7 +106,9 @@ namespace {
                 unsigned char stroke = strokeInRange ?
                     0 : res.gd.strokeBitmap->buffer[i + res.gd.strokeBitmap->width * j];
 
-                res.pixels[idx + 1u] = stroke < res.pixels[idx] ? res.pixels[idx] : stroke;
+                res.pixels[idx + 1u] = stroke < res.pixels[idx] ?
+                    res.pixels[idx] :
+                    stroke;
             }
         }
 
@@ -190,7 +192,7 @@ namespace {
         // delete the stroke glyph
         FT_Stroker_Done(res.gd.stroker);
         FT_Done_Glyph(res.gd.strokeGlyph);
-        
+
         // Can't delete them while they are used, delete when font is cleaned
         ffd.glyph = res.gd.glyph;
         ffd.distToNextChar = static_cast<float>(face->glyph->advance.x / 64);

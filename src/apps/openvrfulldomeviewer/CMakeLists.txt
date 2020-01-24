@@ -25,10 +25,6 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye_right.jpg"
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_mono.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/openvr_stereo.xml"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_mono.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_mono.command"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run_stereo.command"
 )
 copy_files(openvrfulldomeviewer ${files})
 copy_sgct_dynamic_libraries(openvrfulldomeviewer)

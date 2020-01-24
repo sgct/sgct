@@ -252,7 +252,7 @@ glm::mat4 currentViewProjectionMatrix(Frustum::Mode nEye) {
     }
 }
 
-std::string trackedDeviceString(vr::IVRSystem* pHmd, vr::TrackedDeviceIndex_t unDevice, 
+std::string trackedDeviceString(vr::IVRSystem* pHmd, vr::TrackedDeviceIndex_t unDevice,
                                 vr::TrackedDeviceProperty prop,
                                 vr::TrackedPropertyError* peError)
 {

@@ -156,7 +156,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 } // namespace
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
-    // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check 
+    // Yes, glDeleteVertexArrays and glDeleteBuffers work when passing 0, but this check
     // is a standin for whether they were created in the first place. This would only fail
     // if there is no OpenGL context, which would cause these functions to fail, too.
     if (vao) {
@@ -185,7 +185,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
         Buffer buf = setupSimpleMesh(parentPos, parentSize);
         createMesh(_quadGeometry, buf);
     }
-    
+
     // generate unwarped mesh for mask
     if (needsMaskGeometry) {
         ZoneScopedN("Create unwarped mask")
@@ -201,7 +201,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
         createMesh(_warpGeometry, buf);
         return;
     }
-    
+
     Buffer buf;
 
     std::string ext = path.substr(path.rfind('.') + 1);

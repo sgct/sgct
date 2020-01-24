@@ -77,7 +77,7 @@ namespace {
     v = vec3(mv * transformedVertex);
     vec3 l = vec3(mvLight * lightPos);
     lightDir = normalize(l - v);
-  
+
     // Output position of the vertex, in clip space : MVP * position
     gl_Position =  mvp * transformedVertex;
   })";

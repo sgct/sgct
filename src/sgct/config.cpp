@@ -30,7 +30,7 @@ void validateUser(const User& u) {
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
         throw Error(1000, "Eye separation must be zero or a positive number");
     }
-    
+
     if (u.tracking && u.tracking->device.empty()) {
         throw Error(1001, "Tracking device name must not be empty");
     }
@@ -44,7 +44,7 @@ void validateUser(const User& u) {
 
 void validateCapture(const Capture& c) {
     ZoneScoped
-        
+
     if (c.monoPath && c.monoPath->empty()) {
         throw Error(1010, "Mono path must not be empty");
     }
@@ -60,7 +60,7 @@ void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
     ZoneScoped
-        
+
     if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
         throw Error(1020, "Swap interval must not be negative");
     }
@@ -71,7 +71,7 @@ void validateSettings(const Settings& s) {
 
 void validateDevice(const Device& d) {
     ZoneScoped
-        
+
     auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
 
     if (d.name.empty()) {
@@ -92,7 +92,7 @@ void validateDevice(const Device& d) {
 
 void validateTracker(const Tracker& t) {
     ZoneScoped
-        
+
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
     }
@@ -101,7 +101,7 @@ void validateTracker(const Tracker& t) {
 
 void validatePlanarProjection(const PlanarProjection& p) {
     ZoneScoped
-        
+
     if (p.fov.up == p.fov.down) {
         throw Error(1050, "Up and down field of views can not be the same");
     }
@@ -112,7 +112,7 @@ void validatePlanarProjection(const PlanarProjection& p) {
 
 void validateFisheyeProjection(const FisheyeProjection& p) {
     ZoneScoped
-        
+
     if (p.fov && *p.fov <= 0.f) {
         throw Error(1060, "Field of view setting must be positive");
     }
@@ -138,7 +138,7 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
 
 void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
     ZoneScoped
-        
+
     if (p.quality && *p.quality <= 0) {
         throw Error(1070, "Quality value must be positive");
     }
@@ -152,7 +152,7 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
 
 void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
     ZoneScoped
-        
+
     if (p.mappingSpoutName.empty()) {
         throw Error(1080, "Mapping name must not be empty");
     }
@@ -173,7 +173,7 @@ void validateMpcdiProjection(const MpcdiProjection&) {}
 
 void validateViewport(const Viewport& v) {
     ZoneScoped
-        
+
     if (v.user && v.user->empty()) {
         throw Error(1090, "User must not be empty");
     }
@@ -205,7 +205,7 @@ void validateViewport(const Viewport& v) {
 
 void validateWindow(const Window& w, bool isFirstWindow) {
     ZoneScoped
-        
+
     if (w.name && w.name->empty()) {
         throw Error(1100, "Window name must not be empty");
     }
@@ -240,7 +240,7 @@ void validateWindow(const Window& w, bool isFirstWindow) {
 
 void validateNode(const Node& n) {
     ZoneScoped
-        
+
     if (n.address.empty()) {
         throw Error(1110, "Node address must not be empty");
     }
@@ -289,7 +289,7 @@ void validateCluster(const Cluster& c) {
     if (nDefaultUsers > 1) {
         throw Error(1123, "More than one unnamed users specified");
     }
-    
+
     std::for_each(c.users.begin(), c.users.end(), validateUser);
     // Check for mutually exclusive user names
     std::vector<std::string> usernames;
@@ -305,7 +305,7 @@ void validateCluster(const Cluster& c) {
 
 
     std::for_each(c.trackers.begin(), c.trackers.end(), validateTracker);
-    
+
     // Check that all trackers specified in the users are valid tracker names
     const bool foundAllTrackers = std::all_of(
         c.users.begin(),
@@ -360,7 +360,7 @@ void validateCluster(const Cluster& c) {
     if (!allDevicesValid) {
         throw Error(1126, "All devices in the 'User's have to be valid devices");
     }
-    
+
     if (c.nodes.empty()) {
         throw Error(1127, "Configuration must contain at least one node");
     }

@@ -94,7 +94,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 
 void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
     ZoneScoped
-        
+
     if (mpcdi.position) {
         setPos(*mpcdi.position);
     }
@@ -118,7 +118,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
 
 void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
     ZoneScoped
-        
+
     setViewPlaneCoordsUsingFOVs(
         proj.fov.up,
         proj.fov.down,
@@ -134,10 +134,10 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
     ZoneScoped
-        
+
     auto fishProj = std::make_unique<FisheyeProjection>(_parent);
     fishProj->setUser(_user);
-    
+
     if (proj.fov) {
         fishProj->setFOV(*proj.fov);
     }
@@ -181,9 +181,9 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 }
 
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
-#ifdef SGCT_HAS_SPOUT  
+#ifdef SGCT_HAS_SPOUT
     ZoneScoped
-        
+
     auto proj = std::make_unique<SpoutOutputProjection>(_parent);
     proj->setUser(_user);
     if (p.quality) {
@@ -225,7 +225,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
     ZoneScoped
-        
+
     auto proj = std::make_unique<SphericalMirrorProjection>(
         _parent,
         p.mesh.bottom,
@@ -254,7 +254,7 @@ void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
 
 void Viewport::loadData() {
     ZoneScoped
-        
+
     TextureManager& mgr = TextureManager::instance();
     if (!_overlayFilename.empty()) {
         _overlayTextureIndex = mgr.loadTexture(_overlayFilename, true, 1);
@@ -287,7 +287,7 @@ void Viewport::loadData() {
 
 void Viewport::renderQuadMesh() const {
     ZoneScoped
-        
+
     if (_isEnabled) {
         _mesh.renderQuadMesh();
     }

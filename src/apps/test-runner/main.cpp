@@ -16,14 +16,14 @@ namespace {
         GLuint vbo = 0;
         GLuint iboLine = 0;
         int nVertLine = 0;
-    
+
         GLint matrixLocation = -1;
     } grid;
 
     struct {
         GLuint vao = 0;
         GLuint vbo = 0;
-    
+
         GLint matrixLocation = -1;
 
         GLuint textureFront = 0;
@@ -297,7 +297,7 @@ void initializeBox() {
 
     Log::Info("Loading %s", "test-pattern-0.png");
     box.textureFront = TextureManager::instance().loadTexture("test-pattern-0.png", true);
-    Log::Info("Loading %s", "test-pattern-1.png"); 
+    Log::Info("Loading %s", "test-pattern-1.png");
     box.textureRight = TextureManager::instance().loadTexture("test-pattern-1.png", true);
     Log::Info("Loading %s", "test-pattern-2.png");
     box.textureBack = TextureManager::instance().loadTexture("test-pattern-2.png", true);

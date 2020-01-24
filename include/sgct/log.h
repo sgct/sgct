@@ -20,7 +20,7 @@ class Log {
 public:
     /// Different notify levels for messages
     enum class Level { Error = 3, Warning = 2, Info = 1, Debug = 0};
-    
+
     static Log& instance();
     static void destroy();
 
@@ -58,7 +58,7 @@ private:
     bool _showTime = false;
     bool _showLevel = true;
     bool _logToConsole = true;
-    
+
     std::mutex _mutex;
 
     std::function<void(Level, const char*)> _messageCallback;

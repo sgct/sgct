@@ -1,1 +1,0 @@
-FFmpegCaptureExample.exe -config fisheye.xml

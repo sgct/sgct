@@ -206,7 +206,7 @@ namespace {
             e.QueryFloatAttribute("z3", &value[14]) == tinyxml2::XML_NO_ERROR,
             e.QueryFloatAttribute("w3", &value[15]) == tinyxml2::XML_NO_ERROR
         };
-        
+
         bool suc = std::all_of(std::begin(err), std::end(err), [](bool v) { return v; });
         return suc ? std::optional(glm::make_mat4(value)) : std::nullopt;
     }

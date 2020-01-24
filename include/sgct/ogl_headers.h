@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__OGLHEADERS__H__
-#define __SGCT__OGLHEADERS__H__
+#ifndef __SGCT__OGL_HEADERS__H__
+#define __SGCT__OGL_HEADERS__H__
 
 #ifdef __APPLE__
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
@@ -30,4 +30,4 @@
 #include <glad/glad_wgl.h>
 #endif // WIN32
 
-#endif // __SGCT__OGLHEADERS__H__
+#endif // __SGCT__OGL_HEADERS__H__

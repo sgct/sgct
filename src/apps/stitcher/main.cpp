@@ -261,7 +261,7 @@ void preWinInit() {
                 p->setDomeDiameter(settings.domeDiameter);
             }
         }
-        
+
         win->setNumberOfAASamples(settings.numberOfMSAASamples);
         win->setFramebufferResolution(
             glm::ivec2(settings.resolution, settings.resolution)

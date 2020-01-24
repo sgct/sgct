@@ -11,8 +11,6 @@ set_compile_options(datatransfer)
 target_link_libraries(datatransfer PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
 )

@@ -217,11 +217,11 @@ constexpr const char* SBSFrag = R"(
   void main() {
     vec2 uv = tr_uv * vec2(2.0, 1.0);
     if (tr_uv.s < 0.5) {
-      out_color = tr_color * texture(leftTex, uv); 
+      out_color = tr_color * texture(leftTex, uv);
     }
     else {
       uv -= vec2(1.0, 0.0);
-      out_color = tr_color * texture(rightTex, uv); 
+      out_color = tr_color * texture(rightTex, uv);
     }
   }
 )";
@@ -308,7 +308,7 @@ constexpr const char* FXAAVert = R"(
 
   uniform float rt_w;
   uniform float rt_h;
-  uniform float FXAA_SUBPIX_OFFSET; 
+  uniform float FXAA_SUBPIX_OFFSET;
 
   void main() {
     gl_Position = vec4(in_position, 1.0);
@@ -324,26 +324,26 @@ constexpr const char* FXAAVert = R"(
 constexpr const char* FXAAFrag = R"(
   #version 330 core
 
-  // FXAA_EDGE_THRESHOLD: The minimum amount of local contrast required to apply algorithm 
-  //   1/3 - too little 
-  //   1/4 - low quality 
-  //   1/8 - high quality 
-  //   1/16 - overkill 
+  // FXAA_EDGE_THRESHOLD: The minimum amount of local contrast required to apply algorithm
+  //   1/3 - too little
+  //   1/4 - low quality
+  //   1/8 - high quality
+  //   1/16 - overkill
   const float FXAA_EDGE_THRESHOLD_MIN = 1.0 / 16.0;
   const float FXAA_EDGE_THRESHOLD = 1.0 / 8.0;
 
-  // FXAA_EDGE_THRESHOLD_MIN: Trims the algorithm from processing dark. 
-  //   1/32 - visible limit 
-  //   1/16 - high quality 
-  //   1/12 - upper limit (start of visible unfiltered edges) 
+  // FXAA_EDGE_THRESHOLD_MIN: Trims the algorithm from processing dark.
+  //   1/32 - visible limit
+  //   1/16 - high quality
+  //   1/12 - upper limit (start of visible unfiltered edges)
   const float FXAA_SPAN_MAX = 8.0;
 
-  // FXAA_SUBPIX_TRIM: Controls removal of sub-pixel aliasing 
-  //   1/2 - low removal 
-  //   1/3 - medium removal 
-  //   1/4 - default removal 
-  //   1/8 - high removal 
-  //     0 - complete removal 
+  // FXAA_SUBPIX_TRIM: Controls removal of sub-pixel aliasing
+  //   1/2 - low removal
+  //   1/3 - medium removal
+  //   1/4 - default removal
+  //   1/8 - high removal
+  //     0 - complete removal
   uniform float FXAA_SUBPIX_TRIM; // 1.0 / 8.0;
 
   in vec2 tr_texcoordOffset[4];
@@ -354,11 +354,11 @@ constexpr const char* FXAAFrag = R"(
   uniform float rt_h;
   uniform sampler2D tex;
 
-  void main() { 
-    vec3 rgbNW = textureLod(tex, tr_texcoordOffset[0], 0.0).xyz; 
-    vec3 rgbNE = textureLod(tex, tr_texcoordOffset[1], 0.0).xyz; 
-    vec3 rgbSW = textureLod(tex, tr_texcoordOffset[2], 0.0).xyz; 
-    vec3 rgbSE = textureLod(tex, tr_texcoordOffset[3], 0.0).xyz; 
+  void main() {
+    vec3 rgbNW = textureLod(tex, tr_texcoordOffset[0], 0.0).xyz;
+    vec3 rgbNE = textureLod(tex, tr_texcoordOffset[1], 0.0).xyz;
+    vec3 rgbSW = textureLod(tex, tr_texcoordOffset[2], 0.0).xyz;
+    vec3 rgbSE = textureLod(tex, tr_texcoordOffset[3], 0.0).xyz;
     vec3 rgbM  = textureLod(tex, tr_uv, 0.0).xyz;
 
     const vec3 luma = vec3(0.299, 0.587, 0.114);
@@ -371,18 +371,18 @@ constexpr const char* FXAAFrag = R"(
     float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
     float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
     float range = lumaMax - lumaMin;
-    // local contrast check, for not processing homogeneous areas 
+    // local contrast check, for not processing homogeneous areas
     if (range < max(FXAA_EDGE_THRESHOLD_MIN, lumaMax * FXAA_EDGE_THRESHOLD)) {
       out_color = vec4(rgbM, 1.0);
-      return; 
-    } 
+      return;
+    }
 
     vec2 dir = vec2(
       -((lumaNW + lumaNE) - (lumaSW + lumaSE)),
       ((lumaNW + lumaSW) - (lumaNE + lumaSE))
     );
 
-    const float FXAA_REDUCE_MIN = 1.0 / 128.0; 
+    const float FXAA_REDUCE_MIN = 1.0 / 128.0;
     float dirReduce = max(
       (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_SUBPIX_TRIM),
       FXAA_REDUCE_MIN
@@ -391,7 +391,7 @@ constexpr const char* FXAAFrag = R"(
     float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
 
     dir = min(
-      vec2(FXAA_SPAN_MAX,  FXAA_SPAN_MAX), 
+      vec2(FXAA_SPAN_MAX,  FXAA_SPAN_MAX),
       max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)
     ) / vec2(rt_w, rt_h);
 
@@ -405,12 +405,12 @@ constexpr const char* FXAAFrag = R"(
     );
     float lumaB = dot(rgbB, luma);
 
-    if ((lumaB < lumaMin) || (lumaB > lumaMax))  { 
-      out_color = vec4(rgbA, 1.0); 
-    } 
+    if ((lumaB < lumaMin) || (lumaB > lumaMax))  {
+      out_color = vec4(rgbA, 1.0);
+    }
     else {
-      out_color = vec4(rgbB, 1.0); 
-    } 
+      out_color = vec4(rgbB, 1.0);
+    }
   }
 )";
 

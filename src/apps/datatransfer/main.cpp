@@ -56,7 +56,7 @@ namespace {
     gl_Position =  mvp * vec4(vertPositions, 1.0);
     uv = texCoords;
   })";
-    
+
     constexpr const char* fragmentShader = R"(
   #version 330 core
 
@@ -247,7 +247,7 @@ void draw(const RenderData& data) {
     const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
 
     glActiveTexture(GL_TEXTURE0);
-    
+
     if (texIndex != -1) {
         glBindTexture(GL_TEXTURE_2D, texIds[texIndex]);
     }
@@ -267,7 +267,7 @@ void draw(const RenderData& data) {
 void preSync() {
     if (Engine::instance().isMaster()) {
         currentTime = Engine::getTime();
-        
+
         // if texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
             texIndex++;
@@ -328,7 +328,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
 
 void cleanup() {
     box = nullptr;
-    
+
     for (size_t i = 0; i < texIds.size(); i++) {
         GLuint tex = texIds[i];
         if (tex) {
@@ -379,7 +379,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
     Log::Info(
         "Transfer id: %d is completed on node %d.", packageId, clientIndex
     );
-    
+
     static int counter = 0;
     if (packageId == currentPackage) {
         counter++;
@@ -388,7 +388,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             counter = 0;
 
             Log::Info(
-                "Time to distribute and upload textures on cluster: %f ms", 
+                "Time to distribute and upload textures on cluster: %f ms",
                 (Engine::getTime() - sendTimer) * 1000.0
             );
         }

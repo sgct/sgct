@@ -129,7 +129,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     );
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-    
+
     glGenVertexArrays(1, &_histogram.dynamicDraw.vao);
     glGenBuffers(1, &_histogram.dynamicDraw.vbo);
     glBindVertexArray(_histogram.dynamicDraw.vao);
@@ -147,7 +147,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 
 StatisticsRenderer::~StatisticsRenderer() {
     ZoneScoped
-    
+
     _shader.deleteProgram();
 
     glDeleteVertexArrays(1, &_lines.staticDraw.vao);
@@ -253,7 +253,7 @@ void StatisticsRenderer::update() {
     convertValues(h.buffer.syncTimes, h.values.syncTimes, h.maxBinValue.syncTimes);
     convertValues(h.buffer.loopTimeMin, h.values.loopTimeMin, h.maxBinValue.loopTimeMin);
     convertValues(h.buffer.loopTimeMax, h.values.loopTimeMax, h.maxBinValue.loopTimeMax);
-    
+
 
     glBindBuffer(GL_ARRAY_BUFFER, _histogram.dynamicDraw.vbo);
     glBufferData(
@@ -276,7 +276,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         // Render lines
         //
         ZoneScopedN("Lines")
-       
+
         _shader.bind();
 
         const glm::vec2 size = glm::vec2(

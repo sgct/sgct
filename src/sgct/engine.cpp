@@ -139,7 +139,7 @@ namespace {
 
     void prepareBuffer(Window& win, Window::TextureIndex ti) {
         ZoneScoped
-            
+
         OffScreenBuffer* fbo = win.fbo();
         fbo->bind();
         if (fbo->isMultiSampled()) {
@@ -727,13 +727,13 @@ Engine::~Engine() {
     if (hasNode && !cm.thisNode().windows().empty()) {
         cm.thisNode().windows()[0]->makeOpenGLContextCurrent();
     }
-    
+
     Log::Debug("Destroying shared data");
     SharedData::destroy();
-    
+
     Log::Debug("Destroying cluster manager");
     ClusterManager::destroy();
-    
+
     Log::Debug("Destroying settings");
     Settings::destroy();
 
@@ -742,7 +742,7 @@ Engine::~Engine() {
 
     Log::Debug("Terminating glfw");
     glfwTerminate();
- 
+
     Log::Debug("Finished cleaning");
 }
 
@@ -1139,7 +1139,7 @@ void Engine::renderFBOTexture(Window& window) {
 
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(window, BufferMode::BackBufferBlack, frustum);
-   
+
     Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
@@ -1168,7 +1168,7 @@ void Engine::renderFBOTexture(Window& window) {
         // render right eye in active stereo mode
         if (window.stereoMode() == Window::StereoMode::Active) {
             glViewport(0, 0, size.x, size.y);
-            
+
             // clear buffers
             setAndClearBuffer(
                 window,
@@ -1190,7 +1190,7 @@ void Engine::renderFBOTexture(Window& window) {
         if (!maskShaderSet) {
             _fboQuad.bind();
         }
-        
+
         glDrawBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glReadBuffer(window.isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glActiveTexture(GL_TEXTURE0);
@@ -1242,7 +1242,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
         // if passive stereo or mono
         if (sm == Window::StereoMode::NoStereo) {
             // @TODO (abock, 2019-12-04) Not sure about this one; the frustum is set in
-            // the calling function based on the stereo mode already and we are 
+            // the calling function based on the stereo mode already and we are
             // overwriting it here
             frustum = vp->eye();
         }
@@ -1369,7 +1369,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 vp->projection(frustum).viewProjectionMatrix() *
                     ClusterManager::instance().sceneTransform()
             );
-            
+
             _draw2DFn(renderData);
         }
     }
@@ -1419,7 +1419,7 @@ unsigned int Engine::currentFrameNumber() const {
 
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
     ZoneScoped
-        
+
     ClusterManager& cm = ClusterManager::instance();
     Node& thisNode = cm.thisNode();
 
@@ -1445,7 +1445,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         ZoneScopedN("GLFW Poll Events")
         glfwPollEvents();
     }
-    
+
     // Must wait until all nodes are running if using swap barrier
     if (cm.ignoreSync() || cm.numberOfNodes() <= 1) {
         return;
@@ -1522,7 +1522,7 @@ void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
                                         const Viewport& viewport, Frustum::Mode mode)
 {
     ZoneScoped
-        
+
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     setupViewport(window, viewport, mode);
@@ -1553,7 +1553,7 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
                            Frustum::Mode frustum)
 {
     ZoneScoped
-        
+
     const glm::vec2 res = glm::vec2(window.framebufferResolution());
     const glm::vec2 p = viewport.position() * res;
     const glm::vec2 s = viewport.size() * res;

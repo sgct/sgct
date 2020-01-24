@@ -26,7 +26,7 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
     }
 
     // Create VAO
-    const unsigned int numberOfVertices = 
+    const unsigned int numberOfVertices =
         (_segments * ((_resolution / 4) + 1) + _rings * _resolution) * 6;
     std::vector<float> verts(numberOfVertices, 0.f);
 

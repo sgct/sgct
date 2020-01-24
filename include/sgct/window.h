@@ -136,7 +136,7 @@ public:
      * it's hidden.
      */
     void setRenderWhileHidden(bool state);
-    
+
     /// Set the focued flag for this window (should not be done by user)
     void setFocused(bool state);
 
@@ -303,7 +303,7 @@ public:
 
     /// Get FOV of viewport[0]
     float horizFieldOfViewDegrees() const;
-    
+
     /// \return Get the window resolution.
     glm::ivec2 resolution() const;
 
@@ -319,7 +319,7 @@ public:
      */
     glm::vec2 scale() const;
 
-    /// \return the aspect ratio of the window 
+    /// \return the aspect ratio of the window
     float aspectRatio() const;
 
     /// \return Get the frame buffer bytes per color component (BPCC) count.

@@ -11,8 +11,6 @@ set_compile_options(omnistereo)
 target_link_libraries(omnistereo PRIVATE sgct)
 
 set(files
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.bat"
-  "${CMAKE_CURRENT_SOURCE_DIR}/run.command"
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/test.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/turnmap.jpg"

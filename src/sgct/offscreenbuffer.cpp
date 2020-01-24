@@ -93,7 +93,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
         if (Settings::instance().usePositionTexture()) {
             glGenRenderbuffers(1, &_positionBuffer);
         }
-        
+
         // Bind FBO
         // Setup Render Buffers for multisample FBO
         glBindFramebuffer(GL_FRAMEBUFFER, _multiSampledFrameBuffer);

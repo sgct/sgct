@@ -220,7 +220,7 @@ void draw(const RenderData& data) {
         glUniform2f(offsetUVLoc, 0.f, 0.f);
 
         glCullFace(GL_BACK);
-        
+
         //transform and draw plane
         glm::mat4 planeTransform = glm::mat4(1.f);
         // azimuth
@@ -240,7 +240,7 @@ void draw(const RenderData& data) {
             planeTransform,
             glm::radians(planeRoll),
             glm::vec3(0.f, 0.f, 1.f)
-        ); 
+        );
         // distance
         planeTransform = glm::translate(planeTransform, glm::vec3(0.f, 0.f, -5.f));
 
@@ -286,7 +286,7 @@ void preSync() {
 
 void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(stats);
-    
+
     if (takeScreenshot) {
         Engine::instance().takeScreenshot();
         takeScreenshot = false;
@@ -317,14 +317,14 @@ void myInitOGLFun(GLFWwindow* win) {
     }
 
     capture.setVideoDecoderCallback(uploadData);
-    
+
     // create plane
     float planeWidth = 8.f;
     float planeHeight =
         planeWidth *
         (static_cast<float>(capture.height()) / static_cast<float>(capture.width()));
     plane = std::make_unique<utils::Plane>(planeWidth, planeHeight);
-    
+
     // create dome
     dome = std::make_unique<utils::Dome>(7.4f, 180.f, 256, 128);
 
@@ -432,7 +432,7 @@ int main(int argc, char** argv) {
     // ffmpeg -list_devices true -f dshow -i dummy
     // for mac:
     // ffmpeg -f avfoundation -list_devices true -i ""
-    // 
+    //
     // to obtain device properties in windows use:
     // ffmpeg -f dshow -list_options true -i video=<device name>
     //

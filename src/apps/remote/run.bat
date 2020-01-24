@@ -1,1 +1,0 @@
-remote.exe -config single_remote.xml

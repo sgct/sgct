@@ -27,7 +27,7 @@ NonLinearProjection::NonLinearProjection(const Window* parent)
         BaseViewport(parent)
     }
 {}
-    
+
 NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &_textures.cubeMapColor);
     glDeleteTextures(1, &_textures.cubeMapDepth);
@@ -135,7 +135,7 @@ void NonLinearProjection::initTextures() {
         "%dx%d color cube map texture (id: %d) generated",
         _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
     );
-    
+
     if (Settings::instance().useDepthTexture()) {
         generateCubeMap(
             _textures.cubeMapDepth,
@@ -209,7 +209,7 @@ void NonLinearProjection::initVBO() {
 
     glGenBuffers(1, &_vbo);
     Log::Debug("Generating VBO: %d", _vbo);
-    
+
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     // 2TF + 3VF = 2*4 + 3*4 = 20

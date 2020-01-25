@@ -624,7 +624,7 @@ void Engine::initialize() {
 #ifdef WIN32
     constexpr const char* FontName = "verdanab.ttf";
 #elif defined(__APPLE__)
-    constexpr const char* FontName = "Tahoma Bold.ttf";
+    constexpr const char* FontName = "HelveticaNeue.ttc";
 #else
     constexpr const char* FontName = "FreeSansBold.ttf";
 #endif

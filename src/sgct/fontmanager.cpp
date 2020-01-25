@@ -92,7 +92,7 @@ FontManager::FontManager() {
     }
 #elif defined(__APPLE__)
     // System Fonts
-    SystemFontPath = "/Library/Fonts/";
+    SystemFontPath = "/System/Library/Fonts/";
 #else
     SystemFontPath = "/usr/share/fonts/truetype/freefont/";
 #endif

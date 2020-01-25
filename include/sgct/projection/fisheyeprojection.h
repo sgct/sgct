@@ -9,7 +9,7 @@
 #ifndef __SGCT__FISHEYEPROJECTION__H__
 #define __SGCT__FISHEYEPROJECTION__H__
 
-#include <sgct/nonlinearprojection.h>
+#include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
 #include <glm/glm.hpp>

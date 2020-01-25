@@ -16,7 +16,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
   ${PROJECT_SOURCE_DIR}/include/sgct/error.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/fisheyeprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/font.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
@@ -25,19 +24,17 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
   ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
   ${PROJECT_SOURCE_DIR}/include/sgct/log.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
   ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
   ${PROJECT_SOURCE_DIR}/include/sgct/network.h
   ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/node.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/nonlinearprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/ogl_headers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/projectionplane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h
   ${PROJECT_SOURCE_DIR}/include/sgct/screencapture.h
   ${PROJECT_SOURCE_DIR}/include/sgct/sgct.h
@@ -45,8 +42,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/shadermanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaderprogram.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/sphericalmirrorprojection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/spoutoutputprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
@@ -69,6 +64,11 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheyeprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/nonlinearprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirrorprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/spoutoutputprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders_cubic.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalshaders.h
@@ -87,7 +87,6 @@ set(SOURCE_FILES
   correctionmesh.cpp
   engine.cpp
   error.cpp
-  fisheyeprojection.cpp
   font.cpp
   fontmanager.cpp
   freetype.cpp
@@ -97,19 +96,15 @@ set(SOURCE_FILES
   network.cpp
   networkmanager.cpp
   node.cpp
-  nonlinearprojection.cpp
   offscreenbuffer.cpp
   profiling.cpp
   projection.cpp
-  projectionplane.cpp
   readconfig.cpp
   screencapture.cpp
   settings.cpp
   shadermanager.cpp
   shaderprogram.cpp
   shareddata.cpp
-  sphericalmirrorprojection.cpp
-  spoutoutputprojection.cpp
   statisticsrenderer.cpp
   texturemanager.cpp
   tracker.cpp
@@ -127,6 +122,11 @@ set(SOURCE_FILES
   correction/sciss.cpp
   correction/simcad.cpp
   correction/skyskan.cpp
+  projection/fisheyeprojection.cpp
+  projection/nonlinearprojection.cpp
+  projection/projectionplane.cpp
+  projection/sphericalmirrorprojection.cpp
+  projection/spoutoutputprojection.cpp
   utils/box.cpp
   utils/dome.cpp
   utils/domegrid.cpp

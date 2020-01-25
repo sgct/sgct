@@ -10,15 +10,15 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
-#include <sgct/fisheyeprojection.h>
 #include <sgct/log.h>
-#include <sgct/nonlinearprojection.h>
 #include <sgct/profiling.h>
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
-#include <sgct/sphericalmirrorprojection.h>
-#include <sgct/spoutoutputprojection.h>
 #include <sgct/texturemanager.h>
+#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/nonlinearprojection.h>
+#include <sgct/projection/sphericalmirrorprojection.h>
+#include <sgct/projection/spoutoutputprojection.h>
 #include <algorithm>
 #include <array>
 #include <optional>

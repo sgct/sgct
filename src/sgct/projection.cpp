@@ -8,7 +8,7 @@
 
 #include <sgct/projection.h>
 
-#include <sgct/projectionplane.h>
+#include <sgct/projection/projectionplane.h>
 #ifdef WIN32
 #pragma warning(push)
 #pragma warning(disable : 4127)

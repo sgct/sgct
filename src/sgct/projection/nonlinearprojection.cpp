@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/nonlinearprojection.h>
+#include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>

@@ -8,8 +8,8 @@
 
 #include <sgct/sgct.h>
 
-#include <sgct/fisheyeprojection.h>
-#include <sgct/nonlinearprojection.h>
+#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>
 
 namespace {

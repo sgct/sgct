@@ -9,7 +9,6 @@
 #include <sgct/correctionmesh.h>
 
 #include <sgct/error.h>
-#include <sgct/fisheyeprojection.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
@@ -24,6 +23,7 @@
 #include <sgct/correction/sciss.h>
 #include <sgct/correction/simcad.h>
 #include <sgct/correction/skyskan.h>
+#include <sgct/projection/fisheyeprojection.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>

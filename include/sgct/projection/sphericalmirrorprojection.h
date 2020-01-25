@@ -9,7 +9,7 @@
 #ifndef __SGCT__SPHERICALMIRRORPROJECTION__H__
 #define __SGCT__SPHERICALMIRRORPROJECTION__H__
 
-#include <sgct/nonlinearprojection.h>
+#include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
 

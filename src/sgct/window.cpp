@@ -16,15 +16,15 @@
 #include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/nonlinearprojection.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
-#include <sgct/shaders/internalshaders.h>
 #include <sgct/helpers/stringfunctions.h>
+#include <sgct/projection/nonlinearprojection.h>
+#include <sgct/shaders/internalshaders.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 

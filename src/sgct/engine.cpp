@@ -16,7 +16,6 @@
 #include <sgct/freetype.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/nonlinearprojection.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
 #include <sgct/readconfig.h>
@@ -28,6 +27,7 @@
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>
 #include <sgct/version.h>
+#include <sgct/projection/nonlinearprojection.h>
 #include <sgct/shaders/internalshaders.h>
 #include <iostream>
 #include <numeric>

@@ -11,7 +11,7 @@
 
 #include <sgct/frustum.h>
 #include <sgct/projection.h>
-#include <sgct/projectionplane.h>
+#include <sgct/projection/projectionplane.h>
 #include <glm/glm.hpp>
 #ifdef WIN32
 #pragma warning(push)

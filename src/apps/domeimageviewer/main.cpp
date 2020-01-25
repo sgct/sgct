@@ -232,7 +232,7 @@ void draw(const RenderData& data) {
 
     glActiveTexture(GL_TEXTURE0);
 
-    if ((texIds.size() > (texIndex + 1)) &&
+    if ((static_cast<int>(texIds.size()) > (texIndex + 1)) &&
         data.frustumMode == Frustum::Mode::StereoRightEye)
     {
         glBindTexture(GL_TEXTURE_2D, texIds[texIndex + 1]);

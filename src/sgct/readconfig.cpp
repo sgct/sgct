@@ -427,6 +427,18 @@ namespace {
         return proj;
     }
 
+    sgct::config::EquirectangularProjection parseEquirectangularProjection(
+                                                            tinyxml2::XMLElement& element)
+    {
+        sgct::config::EquirectangularProjection proj;
+        if (const char* a = element.Attribute("quality"); a) {
+            proj.quality = cubeMapResolutionForQuality(a);
+        }
+
+        return proj;
+    }
+
+
     sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement& element) {
         tinyxml2::XMLElement* elem = element.FirstChildElement();
         // There should be exactly three positions in this child
@@ -524,6 +536,12 @@ namespace {
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("CylindricalProjection"); e)
         {
             viewport.projection = parseCylindricalProjection(*e);
+        }
+        if (tinyxml2::XMLElement* e = elem.FirstChildElement("EquirectangularProjection");
+            e
+        )
+        {
+            viewport.projection = parseEquirectangularProjection(*e);
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Viewplane"); e) {
             viewport.projection = parseProjectionPlane(*e);

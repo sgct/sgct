@@ -15,11 +15,12 @@
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
-#include <sgct/projection/cylindricalprojection.h>
-#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/cylindrical.h>
+#include <sgct/projection/equirectangular.h>
+#include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <sgct/projection/sphericalmirrorprojection.h>
-#include <sgct/projection/spoutoutputprojection.h>
+#include <sgct/projection/sphericalmirror.h>
+#include <sgct/projection/spout.h>
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -85,6 +86,9 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
         },
         [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
         [this](const config::CylindricalProjection& p) { applyCylindricalProjection(p); },
+        [this](const config::EquirectangularProjection& p) {
+            applyEquirectangularProjection(p);
+        },
         [this](const config::ProjectionPlane& p) {
             _projPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
             _viewPlane.lowerLeft = p.lowerLeft;
@@ -240,6 +244,19 @@ void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p
     }
     if (p.radius) {
         proj->setRadius(*p.radius);
+    }
+
+    _nonLinearProjection = std::move(proj);
+}
+
+void Viewport::applyEquirectangularProjection(const config::EquirectangularProjection& p)
+{
+    ZoneScoped
+
+    auto proj = std::make_unique<EquirectangularProjection>(_parent);
+    proj->setUser(_user);
+    if (p.quality) {
+        proj->setCubemapResolution(*p.quality);
     }
 
     _nonLinearProjection = std::move(proj);

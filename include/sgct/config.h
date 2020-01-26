@@ -200,6 +200,12 @@ void validateCylindricalProjection(const CylindricalProjection& proj);
 
 
 
+struct EquirectangularProjection {
+    std::optional<int> quality;
+};
+void validateEquirectangularProjection(const EquirectangularProjection& proj);
+
+
 struct ProjectionPlane {
     glm::vec3 lowerLeft = glm::vec3(0.f);
     glm::vec3 upperLeft = glm::vec3(0.f);
@@ -242,9 +248,9 @@ struct Viewport {
     std::optional<glm::vec2> position;
     std::optional<glm::vec2> size;
 
-    std::variant<NoProjection, PlanarProjection, FisheyeProjection,
-        SphericalMirrorProjection, SpoutOutputProjection, CylindricalProjection,
-        ProjectionPlane
+    std::variant<NoProjection, CylindricalProjection, EquirectangularProjection,
+        FisheyeProjection, PlanarProjection, ProjectionPlane, SphericalMirrorProjection,
+        SpoutOutputProjection
     > projection;
 };
 void validateViewport(const Viewport& viewport);

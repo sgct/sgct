@@ -23,7 +23,7 @@
 #include <sgct/correction/sciss.h>
 #include <sgct/correction/simcad.h>
 #include <sgct/correction/skyskan.h>
-#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/fisheye.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>

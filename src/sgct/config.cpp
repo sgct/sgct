@@ -169,6 +169,8 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
 
 void validateCylindricalProjection(const CylindricalProjection&) {}
 
+void validateEquirectangularProjection(const EquirectangularProjection&) {}
+
 void validateProjectionPlane(const ProjectionPlane&) {}
 
 void validateMpcdiProjection(const MpcdiProjection&) {}
@@ -198,6 +200,9 @@ void validateViewport(const Viewport& v) {
         [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
         [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
         [](const CylindricalProjection& p) { validateCylindricalProjection(p); },
+        [](const EquirectangularProjection& p) {
+            validateEquirectangularProjection(p);
+        },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
 
         [](const NoProjection&) { throw Error(1095, "No valid projection provided"); }

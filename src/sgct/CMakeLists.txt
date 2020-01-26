@@ -64,12 +64,13 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/projection/cylindricalprojection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheyeprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/cylindrical.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/equirectangular.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheye.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/nonlinearprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirrorprojection.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/projection/spoutoutputprojection.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/spout.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders_cubic.h
   ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalshaders.h
@@ -123,12 +124,13 @@ set(SOURCE_FILES
   correction/sciss.cpp
   correction/simcad.cpp
   correction/skyskan.cpp
-  projection/cylindricalprojection.cpp
-  projection/fisheyeprojection.cpp
+  projection/cylindrical.cpp
+  projection/equirectangular.cpp
+  projection/fisheye.cpp
   projection/nonlinearprojection.cpp
   projection/projectionplane.cpp
-  projection/sphericalmirrorprojection.cpp
-  projection/spoutoutputprojection.cpp
+  projection/sphericalmirror.cpp
+  projection/spout.cpp
   utils/box.cpp
   utils/dome.cpp
   utils/domegrid.cpp

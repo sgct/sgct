@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__FISHEYEPROJECTION__H__
-#define __SGCT__FISHEYEPROJECTION__H__
+#ifndef __SGCT__FISHEYE__H__
+#define __SGCT__FISHEYE__H__
 
 #include <sgct/projection/nonlinearprojection.h>
 
@@ -128,4 +128,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__FISHEYEPROJECTION__H__
+#endif // __SGCT__FISHEYE__H__

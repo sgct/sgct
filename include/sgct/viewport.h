@@ -18,6 +18,7 @@
 
 namespace sgct::config {
     struct CylindricalProjection;
+    struct EquirectangularProjection;
     struct FisheyeProjection;
     struct MpcdiProjection;
     struct PlanarProjection;
@@ -65,6 +66,7 @@ private:
     void applyFisheyeProjection(const config::FisheyeProjection& proj);
     void applySpoutOutputProjection(const config::SpoutOutputProjection& proj);
     void applyCylindricalProjection(const config::CylindricalProjection& proj);
+    void applyEquirectangularProjection(const config::EquirectangularProjection& proj);
     void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);
 
     CorrectionMesh _mesh;

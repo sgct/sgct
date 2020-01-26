@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/projection/cylindricalprojection.h>
+#include <sgct/projection/equirectangular.h>
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
@@ -20,13 +20,13 @@
 
 namespace sgct {
 
-CylindricalProjection::CylindricalProjection(const Window* parent)
+EquirectangularProjection::EquirectangularProjection(const Window* parent)
     : NonLinearProjection(parent)
 {
     setUseDepthTransformation(true);
 }
 
-void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
+void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
                                    Frustum::Mode frustumMode)
 {
     ZoneScoped
@@ -58,10 +58,6 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glDepthFunc(GL_ALWAYS);
 
     glUniform1i(_shaderLoc.cubemap, 0);
-    glm::ivec2 size = window.framebufferResolution();
-    glUniform2f(_shaderLoc.size, static_cast<float>(size.x), static_cast<float>(size.y));
-    glUniform1f(_shaderLoc.rotation, glm::radians(_rotation));
-    glUniform1f(_shaderLoc.heightOffset, _heightOffset);
 
 
     glBindVertexArray(_vao);
@@ -81,7 +77,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glDepthFunc(GL_LESS);
 }
 
-void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
+void EquirectangularProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
 
     auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
@@ -121,7 +117,7 @@ void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumM
     render(window, _subViewports.back, 5, frustumMode);
 }
 
-void CylindricalProjection::update(glm::vec2) {
+void EquirectangularProjection::update(glm::vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
@@ -135,10 +131,10 @@ void CylindricalProjection::update(glm::vec2) {
     glBindVertexArray(0);
 }
 
-void CylindricalProjection::initViewports() {
+void EquirectangularProjection::initViewports() {
     // radius is needed to calculate the distance to all view planes
     // const float radius = _diameter / 2.f;
-    const float radius = _radius;
+    const float radius = 1.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
@@ -252,11 +248,18 @@ void CylindricalProjection::initViewports() {
             glm::vec3(rollRot * upperRightBase)
         );
     }
-
-   _subViewports.back.setEnabled(false);
+    // -Z face
+    {
+        glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
+        _subViewports.back.projectionPlane().setCoordinates(
+            glm::vec3(r * lowerLeftBase),
+            glm::vec3(r * upperLeftBase),
+            glm::vec3(r * upperRightBase)
+        );
+    }
 }
 
-void CylindricalProjection::initShaders() {
+void EquirectangularProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
 
@@ -267,20 +270,16 @@ void CylindricalProjection::initShaders() {
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
-  uniform vec2 size;
-  uniform float rotation;
-  uniform float heightOffset;
 
   const float PI = 3.141592654;
 
   void main() {
-    vec2 pixel = gl_FragCoord.xy;
-    vec2 pixelNormalized = pixel / size;
-    float angle = 2.0 * PI * pixelNormalized.x;
-    vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
-
-    vec3 sample = (vec3(direction, pixelNormalized.y + heightOffset));
-    out_diffuse = texture(cubemap, sample);
+    float phi = PI * (1.0 - tr_uv.t);
+    float theta = 2.0 * PI * (tr_uv.s - 0.5);
+    float x = sin(phi) * sin(theta);
+    float y = sin(phi) * cos(theta);
+    float z = cos(phi);
+    out_diffuse = texture(cubemap, vec3(x, y, z));
   }
 )";
 
@@ -297,14 +296,11 @@ void CylindricalProjection::initShaders() {
 
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
-    _shaderLoc.size = glGetUniformLocation(_shader.id(), "size");
-    _shaderLoc.rotation = glGetUniformLocation(_shader.id(), "rotation");
-    _shaderLoc.heightOffset = glGetUniformLocation(_shader.id(), "heightOffset");
 
     ShaderProgram::unbind();
 }
 
-void CylindricalProjection::drawCubeFace(BaseViewport& face, RenderData renderData) {
+void EquirectangularProjection::drawCubeFace(BaseViewport& face, RenderData renderData) {
     glLineWidth(1.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -325,14 +321,14 @@ void CylindricalProjection::drawCubeFace(BaseViewport& face, RenderData renderDa
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void CylindricalProjection::blitCubeFace(int face) {
+void EquirectangularProjection::blitCubeFace(int face) {
     // copy AA-buffer to "regular"/non-AA buffer
     _cubeMapFbo->bindBlit();
     attachTextures(face);
     _cubeMapFbo->blit();
 }
 
-void CylindricalProjection::attachTextures(int face) {
+void EquirectangularProjection::attachTextures(int face) {
     if (Settings::instance().useDepthTexture()) {
         _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
         _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
@@ -361,18 +357,5 @@ void CylindricalProjection::attachTextures(int face) {
         );
     }
 }
-
-void CylindricalProjection::setRotation(float rotation) {
-    _rotation = rotation;
-}
-
-void CylindricalProjection::setHeightOffset(float heightOffset) {
-    _heightOffset = heightOffset;
-}
-
-void CylindricalProjection::setRadius(float radius) {
-    _radius = radius;
-}
-
 
 } // namespace sgct

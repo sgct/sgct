@@ -8,7 +8,7 @@
 
 #include <sgct/sgct.h>
 
-#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>
 

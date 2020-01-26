@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/projection/fisheyeprojection.h>
+#include <sgct/projection/fisheye.h>
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>

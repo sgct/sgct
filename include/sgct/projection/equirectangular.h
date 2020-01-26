@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __SGCT__CYLINDRICALPROJECTION__H__
-#define __SGCT__CYLINDRICALPROJECTION__H__
+#ifndef __SGCT__EQUIRECTANGULAR__H__
+#define __SGCT__EQUIRECTANGULAR__H__
 
 #include <sgct/projection/nonlinearprojection.h>
 
@@ -16,9 +16,9 @@
 
 namespace sgct {
 
-class CylindricalProjection : public NonLinearProjection {
+class EquirectangularProjection : public NonLinearProjection {
 public:
-    CylindricalProjection(const Window* parent);
+    EquirectangularProjection(const Window* parent);
 
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) override;
@@ -26,10 +26,6 @@ public:
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     void update(glm::vec2 size) override;
-
-    void setRotation(float rotation);
-    void setHeightOffset(float heightOffset);
-    void setRadius(float radius);
 
 private:
     void initViewports() override;
@@ -39,20 +35,11 @@ private:
     void blitCubeFace(int face);
     void attachTextures(int face);
 
-    float _rotation = 0.f;
-    float _heightOffset = 0.f;
-    float _radius = 5.f;
-
     struct {
         int cubemap = -1;
-        int size = -1;
-        int rotation = -1;
-        int heightOffset = -1;
     } _shaderLoc;
-
 };
-
 
 } // namespace sgct
 
-#endif // __SGCT__CYLINDRICALPROJECTION__H__
+#endif // __SGCT__EQUIRECTANGULAR__H__

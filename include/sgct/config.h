@@ -32,6 +32,8 @@ struct User {
 };
 void validateUser(const User& user);
 
+
+
 struct Capture {
     enum class Format { PNG, JPG, TGA };
     std::optional<std::string> monoPath;
@@ -41,12 +43,16 @@ struct Capture {
 };
 void validateCapture(const Capture& capture);
 
+
+
 struct Scene {
     std::optional<glm::vec3> offset;
     std::optional<glm::quat> orientation;
     std::optional<float> scale;
 };
 void validateScene(const Scene& scene);
+
+
 
 struct Settings {
     enum class BufferFloatPrecision { Float16Bit, Float32Bit};
@@ -64,6 +70,8 @@ struct Settings {
     std::optional<Display> display;
 };
 void validateSettings(const Settings& settings);
+
+
 
 struct Device {
     struct Sensors {
@@ -88,6 +96,8 @@ struct Device {
 };
 void validateDevice(const Device& device);
 
+
+
 struct Tracker {
     std::string name;
     std::vector<Device> devices;
@@ -97,7 +107,12 @@ struct Tracker {
 };
 void validateTracker(const Tracker& tracker);
 
+
+
 struct NoProjection {};
+
+
+
 struct PlanarProjection {
     struct FOV {
         float down = 0.f;
@@ -111,6 +126,8 @@ struct PlanarProjection {
     std::optional<glm::vec3> offset;
 };
 void validatePlanarProjection(const PlanarProjection& proj);
+
+
 
 struct FisheyeProjection {
     enum class Interpolation { Linear, Cubic };
@@ -134,6 +151,8 @@ struct FisheyeProjection {
 };
 void validateFisheyeProjection(const FisheyeProjection& proj);
 
+
+
 struct SphericalMirrorProjection {
     struct Mesh {
         std::string bottom;
@@ -147,6 +166,8 @@ struct SphericalMirrorProjection {
     Mesh mesh;
 };
 void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
+
+
 
 struct SpoutOutputProjection {
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
@@ -167,12 +188,24 @@ struct SpoutOutputProjection {
 };
 void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
+
+
+struct CylindricalProjection {
+    std::optional<int> quality;
+    std::optional<float> rotation;
+};
+void validateCylindricalProjection(const CylindricalProjection& proj);
+
+
+
 struct ProjectionPlane {
     glm::vec3 lowerLeft = glm::vec3(0.f);
     glm::vec3 upperLeft = glm::vec3(0.f);
     glm::vec3 upperRight = glm::vec3(0.f);
 };
 void validateProjectionPlane(const ProjectionPlane& proj);
+
+
 
 struct MpcdiProjection {
     struct Frustum {
@@ -192,6 +225,8 @@ struct MpcdiProjection {
 };
 void validateMpcdiProjection(const MpcdiProjection& proj);
 
+
+
 struct Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
@@ -206,9 +241,13 @@ struct Viewport {
     std::optional<glm::vec2> size;
 
     std::variant<NoProjection, PlanarProjection, FisheyeProjection,
-        SphericalMirrorProjection, SpoutOutputProjection, ProjectionPlane> projection;
+        SphericalMirrorProjection, SpoutOutputProjection, CylindricalProjection,
+        ProjectionPlane
+    > projection;
 };
 void validateViewport(const Viewport& viewport);
+
+
 
 struct Window {
     enum class ColorBitDepth {
@@ -265,6 +304,8 @@ struct Window {
 };
 void validateWindow(const Window& window);
 
+
+
 struct Node {
     std::string address;
     int port = 0;
@@ -273,6 +314,8 @@ struct Node {
     std::vector<Window> windows;
 };
 void validateNode(const Node& node);
+
+
 
 struct Cluster {
     std::string masterAddress;

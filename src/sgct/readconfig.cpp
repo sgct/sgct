@@ -412,6 +412,19 @@ namespace {
         return proj;
     }
 
+    sgct::config::CylindricalProjection parseCylindricalProjection(
+                                                            tinyxml2::XMLElement& element)
+    {
+        sgct::config::CylindricalProjection proj;
+
+        if (const char* a = element.Attribute("quality"); a) {
+            proj.quality = cubeMapResolutionForQuality(a);
+        }
+        proj.rotation = parseValue<float>(element, "rotation");
+
+        return proj;
+    }
+
     sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement& element) {
         tinyxml2::XMLElement* elem = element.FirstChildElement();
         // There should be exactly three positions in this child
@@ -505,6 +518,10 @@ namespace {
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("SpoutOutputProjection"); e)
         {
             viewport.projection = parseSpoutOutputProjection(*e);
+        }
+        if (tinyxml2::XMLElement* e = elem.FirstChildElement("CylindricalProjection"); e)
+        {
+            viewport.projection = parseCylindricalProjection(*e);
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Viewplane"); e) {
             viewport.projection = parseProjectionPlane(*e);

@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="localhost">
+  <Node address="localhost" port="20401">
+    <Window fullScreen="false">
+      <Size x="1280" y="720" />
+      <Viewport>
+        <Pos x="0.0" y="0.0" />
+        <Size x="1.0" y="1.0" />
+          <CylindricalProjection quality="4k"/>
+      </Viewport>
+    </Window>
+  </Node>
+  <User eyeSeparation="0.06">
+    <Pos x="0.0" y="0.0" z="0.0" />
+  </User>
+</Cluster>

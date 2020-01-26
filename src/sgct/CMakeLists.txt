@@ -64,6 +64,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
   ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/cylindricalprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheyeprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/nonlinearprojection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
@@ -122,6 +123,7 @@ set(SOURCE_FILES
   correction/sciss.cpp
   correction/simcad.cpp
   correction/skyskan.cpp
+  projection/cylindricalprojection.cpp
   projection/fisheyeprojection.cpp
   projection/nonlinearprojection.cpp
   projection/projectionplane.cpp

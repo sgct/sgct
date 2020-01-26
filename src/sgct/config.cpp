@@ -154,7 +154,7 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
     ZoneScoped
 
     if (p.mappingSpoutName.empty()) {
-        throw Error(1080, "Mapping name must not be empty");
+        throw Error(1080, "Spout Mapping name must not be empty");
     }
     if (p.quality && *p.quality <= 0) {
         throw Error(1081, "Quality value must be positive");
@@ -166,6 +166,8 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
         throw Error(1083, "All background color components have to be positive");
     }
 }
+
+void validateCylindricalProjection(const CylindricalProjection&) {}
 
 void validateProjectionPlane(const ProjectionPlane&) {}
 
@@ -195,6 +197,7 @@ void validateViewport(const Viewport& v) {
         [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
         [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
         [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
+        [](const CylindricalProjection& p) { validateCylindricalProjection(p); },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
 
         [](const NoProjection&) { throw Error(1095, "No valid projection provided"); }

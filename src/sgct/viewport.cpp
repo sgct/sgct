@@ -15,6 +15,7 @@
 #include <sgct/readconfig.h>
 #include <sgct/screencapture.h>
 #include <sgct/texturemanager.h>
+#include <sgct/projection/cylindricalprojection.h>
 #include <sgct/projection/fisheyeprojection.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirrorprojection.h>
@@ -83,6 +84,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
             applySphericalMirrorProjection(p);
         },
         [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
+        [this](const config::CylindricalProjection& p) { applyCylindricalProjection(p); },
         [this](const config::ProjectionPlane& p) {
             _projPlane.setCoordinates(p.lowerLeft, p.upperLeft, p.upperRight);
             _viewPlane.lowerLeft = p.lowerLeft;
@@ -220,6 +222,21 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     (void)p;
     Log::Warning("Spout library not added to SGCT");
 #endif
+}
+
+void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p) {
+    ZoneScoped
+
+    auto proj = std::make_unique<CylindricalProjection>(_parent);
+    proj->setUser(_user);
+    if (p.quality) {
+        proj->setCubemapResolution(*p.quality);
+    }
+    if (p.rotation) {
+        proj->setRotation(*p.rotation);
+    }
+
+    _nonLinearProjection = std::move(proj);
 }
 
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)

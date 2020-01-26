@@ -421,6 +421,8 @@ namespace {
             proj.quality = cubeMapResolutionForQuality(a);
         }
         proj.rotation = parseValue<float>(element, "rotation");
+        proj.heightOffset = parseValue<float>(element, "heightOffset");
+        proj.radius = parseValue<float>(element, "radius");
 
         return proj;
     }

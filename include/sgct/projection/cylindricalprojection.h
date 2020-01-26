@@ -27,9 +27,9 @@ public:
 
     void update(glm::vec2 size) override;
 
-
-
     void setRotation(float rotation);
+    void setHeightOffset(float heightOffset);
+    void setRadius(float radius);
 
 private:
     void initViewports() override;
@@ -39,21 +39,15 @@ private:
     void blitCubeFace(int face);
     void attachTextures(int face);
 
-
     float _rotation = 0.f;
+    float _heightOffset = 0.f;
+    float _radius = 5.f;
 
     struct {
         int cubemap = -1;
         int size = -1;
-        // int depthCubemap = -1;
-        // int normalCubemap = -1;
-        // int positionCubemap = -1;
-        // int halfFov = -1;
-        // int offset = -1;
-        // int swapColor = -1;
-        // int swapDepth = -1;
-        // int swapNear = -1;
-        // int swapFar = -1;
+        int rotation = -1;
+        int heightOffset = -1;
     } _shaderLoc;
 
 };

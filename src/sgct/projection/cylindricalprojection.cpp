@@ -60,6 +60,8 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glUniform1i(_shaderLoc.cubemap, 0);
     glm::ivec2 size = window.framebufferResolution();
     glUniform2f(_shaderLoc.size, static_cast<float>(size.x), static_cast<float>(size.y));
+    glUniform1f(_shaderLoc.rotation, glm::radians(_rotation));
+    glUniform1f(_shaderLoc.heightOffset, _heightOffset);
 
 
     glBindVertexArray(_vao);
@@ -136,7 +138,7 @@ void CylindricalProjection::update(glm::vec2) {
 void CylindricalProjection::initViewports() {
     // radius is needed to calculate the distance to all view planes
     // const float radius = _diameter / 2.f;
-    const float radius = 5.f;
+    const float radius = _radius;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face
@@ -251,29 +253,12 @@ void CylindricalProjection::initViewports() {
         );
     }
 
-    // -Z face
-    {
-        const glm::mat4 rotMat = glm::rotate(
-            rollRot,
-            glm::radians(180.f),
-            glm::vec3(0.f, 1.f, 0.f)
-        );
-
-        _subViewports.back.projectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeftBase),
-            glm::vec3(rotMat * upperLeftBase),
-            glm::vec3(rotMat * upperRightBase)
-        );
-    }
-    // _subViewports.bottom.setEnabled(false);
-    // _subViewports.top.setEnabled(false);
+   _subViewports.back.setEnabled(false);
 }
 
 void CylindricalProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
-
-    const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
 
     std::string fragmentShader = R"(
   #version 330 core
@@ -283,46 +268,21 @@ void CylindricalProjection::initShaders() {
 
   uniform samplerCube cubemap;
   uniform vec2 size;
-
-  // vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
-
-  //   float s = 2.0 * (texel.s - 0.5);
-  //   float t = 2.0 * (texel.t - 0.5);
-  //   float r2 = s*s + t*t;
-  //   if (r2 <= 1.0) {
-  //     float phi = sqrt(r2) * halfFov;
-  //     float theta = atan(s, t);
-  //     float x = sin(phi) * sin(theta);
-  //     float y = -sin(phi) * cos(theta);
-  //     float z = cos(phi);
-
-  //     vec3 rotVec = vec3(1.0, 0.0, 0.0);
-  //     return texture(map, rotVec);
-  //   }
-  //   else {
-  //     return bg;
-  //   }
-  // }
+  uniform float rotation;
+  uniform float heightOffset;
 
   const float PI = 3.141592654;
-
 
   void main() {
     vec2 pixel = gl_FragCoord.xy;
     vec2 pixelNormalized = pixel / size;
-    float angle = pixelNormalized.x * 2.0 * PI;
-    vec2 direction = vec2(cos(angle), sin(angle));
+    float angle = 2.0 * PI * pixelNormalized.x;
+    vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
 
-    vec3 sample = (vec3(direction, pixelNormalized.y));
+    vec3 sample = (vec3(direction, pixelNormalized.y + heightOffset));
     out_diffuse = texture(cubemap, sample);
-
-    out_diffuse = texture(cubemap, sample.xyz);
-
-//    out_diffuse = vec4(pixelNormalized, 0.0, 1.0);
   }
-
 )";
-
 
     // replace color
     std::string color = "vec4(" + std::to_string(_clearColor.r) + ',' +
@@ -338,6 +298,8 @@ void CylindricalProjection::initShaders() {
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);
     _shaderLoc.size = glGetUniformLocation(_shader.id(), "size");
+    _shaderLoc.rotation = glGetUniformLocation(_shader.id(), "rotation");
+    _shaderLoc.heightOffset = glGetUniformLocation(_shader.id(), "heightOffset");
 
     ShaderProgram::unbind();
 }
@@ -403,5 +365,14 @@ void CylindricalProjection::attachTextures(int face) {
 void CylindricalProjection::setRotation(float rotation) {
     _rotation = rotation;
 }
+
+void CylindricalProjection::setHeightOffset(float heightOffset) {
+    _heightOffset = heightOffset;
+}
+
+void CylindricalProjection::setRadius(float radius) {
+    _radius = radius;
+}
+
 
 } // namespace sgct

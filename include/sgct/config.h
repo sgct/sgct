@@ -193,6 +193,8 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 struct CylindricalProjection {
     std::optional<int> quality;
     std::optional<float> rotation;
+    std::optional<float> heightOffset;
+    std::optional<float> radius;
 };
 void validateCylindricalProjection(const CylindricalProjection& proj);
 

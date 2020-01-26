@@ -235,6 +235,12 @@ void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p
     if (p.rotation) {
         proj->setRotation(*p.rotation);
     }
+    if (p.heightOffset) {
+        proj->setHeightOffset(*p.heightOffset);
+    }
+    if (p.radius) {
+        proj->setRadius(*p.radius);
+    }
 
     _nonLinearProjection = std::move(proj);
 }

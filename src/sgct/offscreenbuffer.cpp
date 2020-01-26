@@ -9,7 +9,7 @@
 #include <sgct/offscreenbuffer.h>
 
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/settings.h>
 #include <algorithm>
 

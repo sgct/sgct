@@ -18,7 +18,7 @@
 #include <sgct/log.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/shadermanager.h>
 #include <sgct/shareddata.h>
 #include <sgct/texturemanager.h>

@@ -11,7 +11,7 @@
 #include <sgct/font.h>
 
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <freetype/ftstroke.h>
 #include <array>
 #include <optional>

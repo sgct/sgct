@@ -8,7 +8,7 @@
 
 #include <sgct/utils/box.h>
 
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/helpers/vertexdata.h>
 #include <array>
 

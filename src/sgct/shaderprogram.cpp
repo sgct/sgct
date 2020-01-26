@@ -10,7 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 
 #define Err(code, msg) Error(Error::Component::Shader, code, msg)
 

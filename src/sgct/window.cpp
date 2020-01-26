@@ -17,7 +17,7 @@
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/screencapture.h>
 #include <sgct/settings.h>

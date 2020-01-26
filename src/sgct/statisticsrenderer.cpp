@@ -8,7 +8,7 @@
 
 #include <sgct/statisticsrenderer.h>
 
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #ifdef SGCT_HAS_TEXT
 #include <sgct/font.h>

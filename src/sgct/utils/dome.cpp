@@ -9,7 +9,7 @@
 #include <sgct/utils/dome.h>
 
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>
 

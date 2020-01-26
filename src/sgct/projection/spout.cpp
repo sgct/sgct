@@ -12,7 +12,7 @@
 #include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>

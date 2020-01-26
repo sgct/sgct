@@ -8,7 +8,7 @@
 
 #include <sgct/utils/sphere.h>
 
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>

@@ -32,7 +32,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/node.h
   ${PROJECT_SOURCE_DIR}/include/sgct/offscreenbuffer.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/ogl_headers.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/opengl.h
   ${PROJECT_SOURCE_DIR}/include/sgct/profiling.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection.h
   ${PROJECT_SOURCE_DIR}/include/sgct/readconfig.h

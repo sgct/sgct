@@ -9,7 +9,7 @@
 #include <sgct/utils/domegrid.h>
 
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 

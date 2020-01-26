@@ -10,7 +10,7 @@
 
 #include <sgct/image.h>
 #include <sgct/log.h>
-#include <sgct/ogl_headers.h>
+#include <sgct/opengl.h>
 #include <algorithm>
 
 namespace {

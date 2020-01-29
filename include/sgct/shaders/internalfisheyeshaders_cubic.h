@@ -242,7 +242,6 @@ constexpr const char* FisheyeFragOffAxis = R"(
 
   uniform samplerCube cubemap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -264,7 +263,6 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -287,7 +285,6 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -312,7 +309,6 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -335,7 +331,6 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -359,7 +354,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   uniform samplerCube depthmap;
   uniform samplerCube normalmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -384,7 +378,6 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   uniform samplerCube depthmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -411,7 +404,6 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);

@@ -52,6 +52,9 @@ constexpr const char* SampleLatlonFun = R"(
 constexpr const char* SampleOffsetFun = R"(
   #version 330 core
 
+  uniform float halfFov;
+  uniform vec3 offset;
+
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float s = 2.0 * (texel.s - 0.5);
     float t = 2.0 * (texel.t - 0.5);
@@ -370,7 +373,6 @@ constexpr const char* FisheyeFragOffAxis = R"(
 
   uniform samplerCube cubemap;
   uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);

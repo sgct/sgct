@@ -2202,8 +2202,8 @@ bool sgct_core::CorrectionMesh::readAndGeneratePerEyeMeshFromPFMImage(const std:
             retval = SGCT_READ(&dumpValue, numCorrectionValues, value32bit, 1, meshFile);
 #else
             retval = SGCT_READ(xcorrections + i, value32bit, 1, meshFile);
-            retval = SGCT_READ(correctycorrectionsionGridY + i, value32bit, 1, meshFile);
-            retval = SGCT_READ(&errorPosition, value32bit, 1, meshFile);
+            retval = SGCT_READ(ycorrections + i, value32bit, 1, meshFile);
+            retval = SGCT_READ(&dumpValue, value32bit, 1, meshFile);
 #endif
         }
         fclose(meshFile);

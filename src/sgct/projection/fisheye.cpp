@@ -632,20 +632,6 @@ void FisheyeProjection::initShaders() {
                 throw std::logic_error("Unhandled case label");
         }
     }(_isOffAxis, useDepth, Settings::instance().drawBufferType(), isCubic);
-    if (isCubic) {
-        // add functions to shader
-        helpers::findAndReplace(
-            fragmentShader,
-            "**interpolate**",
-            shaders_fisheye_cubic::interpolate
-        );
-
-        helpers::findAndReplace(
-            fragmentShader,
-            "**size**",
-            std::to_string(_cubemapResolution) + ".0"
-        );
-    }
 
     std::string samplerShader = 
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
@@ -684,6 +670,11 @@ void FisheyeProjection::initShaders() {
     _shader = ShaderProgram("FisheyeShader");
     _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
     _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
+    if (isCubic) {
+        _shader.addShaderSource(shaders_fisheye_cubic::interpolate, GL_FRAGMENT_SHADER);
+    }
+
+
     _shader.createAndLinkProgram();
     _shader.bind();
 
@@ -693,6 +684,9 @@ void FisheyeProjection::initShaders() {
         1,
         glm::value_ptr(_clearColor)
     );
+    if (isCubic) {
+        glUniform1f(glGetUniformLocation(_shader.id(), "size"), _cubemapResolution);
+    }
 
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);

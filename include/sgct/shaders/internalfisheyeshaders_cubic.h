@@ -58,12 +58,13 @@ constexpr const char* FisheyeFrag = R"(
 
   uniform samplerCube cubemap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
   }
 )";
 
@@ -77,12 +78,13 @@ constexpr const char* FisheyeFragNormal = R"(
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
   }
 )";
@@ -97,12 +99,13 @@ constexpr const char* FisheyeFragPosition = R"(
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
   }
 )";
@@ -119,12 +122,13 @@ constexpr const char* FisheyeFragNormalPosition = R"(
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
     out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
   }
@@ -139,12 +143,13 @@ constexpr const char* FisheyeFragDepth = R"(
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
   }
 )";
@@ -160,12 +165,13 @@ constexpr const char* FisheyeFragDepthNormal = R"(
   uniform samplerCube depthmap;
   uniform samplerCube normalmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
     gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
   }
@@ -182,12 +188,13 @@ constexpr const char* FisheyeFragDepthPosition = R"(
   uniform samplerCube depthmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
     gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
   }
@@ -206,15 +213,16 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
   uniform float halfFov;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    out_normal = filter(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = filter(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -227,12 +235,13 @@ constexpr const char* FisheyeFragOffAxis = R"(
   uniform samplerCube cubemap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
   }
 )";
 
@@ -247,12 +256,13 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
   uniform samplerCube normalmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
   }
 )";
@@ -268,12 +278,13 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
     out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
   }
 )";
@@ -291,14 +302,15 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    out_normal = filter(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = filter(tr_uv, positionmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -312,13 +324,14 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
   uniform samplerCube depthmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -334,14 +347,15 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   uniform samplerCube normalmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    out_normal = filter(tr_uv, normalmap, vec4(0.0)).xyz;
+    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -357,14 +371,15 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    out_position = filter(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -382,15 +397,16 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   uniform samplerCube positionmap;
   uniform float halfFov;
   uniform vec3 offset;
+  uniform vec4 bgColor;
 
   **sample_fun**
   **interpolate**
 
   void main() {
-    out_diffuse = filter(tr_uv, cubemap, **bgColor**);
-    out_normal = filter(tr_uv, normalmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    out_position = filter(tr_uv, positionmap, vec4(0.0, 0.0, 0.0, 0.0)).xyz;
-    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0, 1.0, 1.0, 1.0)).x;
+    out_diffuse = filter(tr_uv, cubemap, bgColor);
+    out_normal = filter(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = filter(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = filter(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 

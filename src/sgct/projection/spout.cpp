@@ -683,12 +683,6 @@ void SpoutOutputProjection::initShaders() {
     // replace add correct transform in the fragment shader
     helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
 
-    // replace color
-    std::string color = "vec4(" + std::to_string(_clearColor.r) + ',' +
-        std::to_string(_clearColor.g) + ',' + std::to_string(_clearColor.b) + ',' +
-        std::to_string(_clearColor.a) + ')';
-    helpers::findAndReplace(fisheyeFragShader, "**bgColor**", color);
-
     const std::string name = [](Mapping mapping) {
         switch (mapping) {
             case Mapping::Fisheye: return "FisheyeShader";
@@ -702,6 +696,12 @@ void SpoutOutputProjection::initShaders() {
     _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
     _shader.createAndLinkProgram();
     _shader.bind();
+
+    glUniform4fv(
+        glGetUniformLocation(_shader.id(), "bgColor"),
+        1,
+        glm::value_ptr(_clearColor)
+    );
 
     _cubemapLoc = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_cubemapLoc, 0);

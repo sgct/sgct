@@ -283,12 +283,6 @@ void EquirectangularProjection::initShaders() {
   }
 )";
 
-    // replace color
-    std::string color = "vec4(" + std::to_string(_clearColor.r) + ',' +
-        std::to_string(_clearColor.g) + ',' + std::to_string(_clearColor.b) + ',' +
-        std::to_string(_clearColor.a) + ')';
-    helpers::findAndReplace(fragmentShader, "**bgColor**", color);
-
     _shader = ShaderProgram("CylindricalProjectinoShader");
     _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
     _shader.createAndLinkProgram();

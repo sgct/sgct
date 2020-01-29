@@ -674,16 +674,16 @@ void FisheyeProjection::initShaders() {
         );
     }
 
-    // replace color
-    std::string color = "vec4(" + std::to_string(_clearColor.r) + ',' +
-        std::to_string(_clearColor.g) + ',' + std::to_string(_clearColor.b) + ',' +
-        std::to_string(_clearColor.a) + ')';
-    helpers::findAndReplace(fragmentShader, "**bgColor**", color);
-
     _shader = ShaderProgram("FisheyeShader");
     _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
+
+    glUniform4fv(
+        glGetUniformLocation(_shader.id(), "bgColor"),
+        1,
+        glm::value_ptr(_clearColor)
+    );
 
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_shaderLoc.cubemap, 0);

@@ -60,7 +60,8 @@ constexpr const char* FisheyeFrag = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -80,7 +81,8 @@ constexpr const char* FisheyeFragNormal = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -101,7 +103,8 @@ constexpr const char* FisheyeFragPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -124,7 +127,8 @@ constexpr const char* FisheyeFragNormalPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -145,7 +149,8 @@ constexpr const char* FisheyeFragDepth = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -167,7 +172,8 @@ constexpr const char* FisheyeFragDepthNormal = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -190,7 +196,8 @@ constexpr const char* FisheyeFragDepthPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -215,7 +222,8 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -237,7 +245,8 @@ constexpr const char* FisheyeFragOffAxis = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -258,7 +267,8 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -280,7 +290,8 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -304,7 +315,8 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -326,7 +338,8 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -349,7 +362,8 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -373,7 +387,8 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {
@@ -399,7 +414,8 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
   **interpolate**
 
   void main() {

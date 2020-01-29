@@ -12,6 +12,10 @@
 namespace sgct::shaders_fisheye {
 
 constexpr const char* SampleFun = R"(
+  #version 330 core
+
+  uniform float halfFov;
+
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float s = 2.0 * (texel.s - 0.5);
     float t = 2.0 * (texel.t - 0.5);
@@ -32,6 +36,8 @@ constexpr const char* SampleFun = R"(
 )";
 
 constexpr const char* SampleLatlonFun = R"(
+  #version 330 core
+
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float phi = 3.14159265359 * (1.0 - texel.t);
     float theta = 6.28318530718 * (texel.s - 0.5);
@@ -44,6 +50,8 @@ constexpr const char* SampleLatlonFun = R"(
 )";
 
 constexpr const char* SampleOffsetFun = R"(
+  #version 330 core
+
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float s = 2.0 * (texel.s - 0.5);
     float t = 2.0 * (texel.t - 0.5);
@@ -100,7 +108,7 @@ constexpr const char* FisheyeFrag = R"(
 
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
 
   void main() {
     out_diffuse = getCubeSample(tr_uv, cubemap, bgColor);
@@ -365,7 +373,7 @@ constexpr const char* FisheyeFragOffAxis = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
-  **sample_fun**
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
 
   void main() {
     out_diffuse = getCubeSample(tr_uv, cubemap, bgColor);

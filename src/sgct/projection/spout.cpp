@@ -632,31 +632,6 @@ void SpoutOutputProjection::initShaders() {
         );
     }
 
-    // add functions to shader
-    switch (_mappingType) {
-        case Mapping::Fisheye:
-            helpers::findAndReplace(
-                fisheyeFragShader,
-                "**sample_fun**",
-                shaders_fisheye::SampleFun
-            );
-            break;
-        case Mapping::Equirectangular:
-            helpers::findAndReplace(
-                fisheyeFragShader,
-                "**sample_fun**",
-                shaders_fisheye::SampleLatlonFun
-            );
-            break;
-        default:
-            helpers::findAndReplace(
-                fisheyeFragShader,
-                "**sample_fun**",
-                shaders_fisheye::SampleFun
-            );
-            break;
-    }
-
     glm::mat4 pitchRot = glm::rotate(
         glm::mat4(1.f),
         glm::radians(_rigOrientation.x),
@@ -694,6 +669,16 @@ void SpoutOutputProjection::initShaders() {
 
     _shader = ShaderProgram(name);
     _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
+
+    std::string samplerShaderCode = [](Mapping mappingType){
+        switch (mappingType) {
+            case Mapping::Fisheye: return shaders_fisheye::SampleFun;
+            case Mapping::Equirectangular: return shaders_fisheye::SampleLatlonFun;
+            default: return shaders_fisheye::SampleFun;
+        }
+    }(_mappingType);
+    helpers::findAndReplace(samplerShaderCode, "**rotVec**", ssRot.str());
+    _shader.addShaderSource(samplerShaderCode, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
 

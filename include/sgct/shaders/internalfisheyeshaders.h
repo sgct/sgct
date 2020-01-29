@@ -31,7 +31,7 @@ constexpr const char* RotationFiveSixFaceCubeFun = R"(
     const float Angle = 0.7071067812;
     float x = Angle*dir.x - Angle*dir.y;
     float y = Angle*dir.x + Angle*dir.y;
-    float z = z;
+    float z = dir.z;
     return vec3(x, y, z);
   }
 )";

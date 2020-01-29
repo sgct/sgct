@@ -11,10 +11,47 @@
 
 namespace sgct::shaders_fisheye {
 
+constexpr const char* RotationFourFaceCubeFun = R"(
+  #version 330 core
+
+  vec3 rotate(vec3 dir) {
+    const float Angle = 0.7071067812;
+    float x = Angle*dir.x + Angle*dir.z;
+    float y = dir.y;
+    float z = -Angle*dir.x + Angle*dir.z;
+
+    return vec3(x, y, z);
+  }
+)";
+
+constexpr const char* RotationFiveSixFaceCubeFun = R"(
+  #version 330 core
+
+  vec3 rotate(vec3 dir) {
+    const float Angle = 0.7071067812;
+    float x = Angle*dir.x - Angle*dir.y;
+    float y = Angle*dir.x + Angle*dir.y;
+    float z = z;
+    return vec3(x, y, z);
+  }
+)";
+
+constexpr const char* RotationFun = R"(
+  #version 330 core
+
+  uniform mat4 rotMatrix;
+
+  vec3 rotate(vec3 dir) {
+    return (rotMatrix * vec4(dir, 0.0)).xyz;
+  }
+)";
+
 constexpr const char* SampleFun = R"(
   #version 330 core
 
   uniform float halfFov;
+
+  vec3 rotate(vec3 dir);
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float s = 2.0 * (texel.s - 0.5);
@@ -23,11 +60,8 @@ constexpr const char* SampleFun = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      return texture(map, rotVec);
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      return texture(map, rotate(dir));
     }
     else {
       return bg;
@@ -38,14 +72,13 @@ constexpr const char* SampleFun = R"(
 constexpr const char* SampleLatlonFun = R"(
   #version 330 core
 
+  vec3 rotate(vec3 dir);
+
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float phi = 3.14159265359 * (1.0 - texel.t);
     float theta = 6.28318530718 * (texel.s - 0.5);
-    float x = sin(phi) * sin(theta);
-    float y = sin(phi) * cos(theta);
-    float z = cos(phi);
-    **rotVec**;
-    return texture(map, rotVec);
+    vec3 dir = vec3(sin(phi) * sin(theta), sin(phi) * cos(theta), cos(phi));
+    return texture(map, rotate(dir));
   }
 )";
 
@@ -54,6 +87,8 @@ constexpr const char* SampleOffsetFun = R"(
 
   uniform float halfFov;
   uniform vec3 offset;
+
+  vec3 rotate(vec3 dir);
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
     float s = 2.0 * (texel.s - 0.5);
@@ -65,8 +100,8 @@ constexpr const char* SampleOffsetFun = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      return texture(map, rotVec);
+      vec3 dir = vec3(x, y, z);
+      return texture(map, rotate(dir));
     }
     else {
       return bg;
@@ -107,7 +142,6 @@ constexpr const char* FisheyeFrag = R"(
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
-  uniform float halfFov;
 
   uniform vec4 bgColor;
 
@@ -130,6 +164,8 @@ constexpr const char* FisheyeFragNormal = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -137,12 +173,10 @@ constexpr const char* FisheyeFragNormal = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -163,6 +197,8 @@ constexpr const char* FisheyeFragPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -170,12 +206,10 @@ constexpr const char* FisheyeFragPosition = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_position = texture(positionmap, rotVec).xyz;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_position = texture(positionmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -198,6 +232,8 @@ constexpr const char* FisheyeFragNormalPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -205,13 +241,11 @@ constexpr const char* FisheyeFragNormalPosition = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      out_position = texture(positionmap, rotVec).xyz;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      out_position = texture(positionmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -232,6 +266,8 @@ constexpr const char* FisheyeFragDepth = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -239,12 +275,10 @@ constexpr const char* FisheyeFragDepth = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -266,6 +300,8 @@ constexpr const char* FisheyeFragDepthNormal = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -273,13 +309,11 @@ constexpr const char* FisheyeFragDepthNormal = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -302,6 +336,8 @@ constexpr const char* FisheyeFragDepthPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -309,13 +345,11 @@ constexpr const char* FisheyeFragDepthPosition = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_position = texture(positionmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_position = texture(positionmap, rotDir).xyz;
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -340,6 +374,8 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
   uniform float halfFov;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -347,14 +383,12 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
     if (r2 <= 1.0) {
       float phi = sqrt(r2) * halfFov;
       float theta = atan(s, t);
-      float x = sin(phi) * sin(theta);
-      float y = -sin(phi) * cos(theta);
-      float z = cos(phi);
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      out_position = texture(positionmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
+      vec3 rotDir = rotate(dir);
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      out_position = texture(positionmap, rotDir).xyz;
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -372,7 +406,6 @@ constexpr const char* FisheyeFragOffAxis = R"(
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -395,6 +428,8 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -405,9 +440,9 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -429,6 +464,8 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -439,9 +476,9 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_position = texture(positionmap, rotVec).xyz;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      out_position = texture(positionmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -465,6 +502,8 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -475,10 +514,10 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      out_position = texture(positionmap, rotVec).xyz;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      out_position = texture(positionmap, rotDir).xyz;
     }
     else {
       out_diffuse = bgColor;
@@ -500,6 +539,8 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -510,9 +551,9 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -535,6 +576,8 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -545,10 +588,10 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -572,6 +615,8 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -582,6 +627,7 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
+      vec3 rotDir = rotate(vec3(x, y, z));
       **rotVec**;
       out_diffuse = texture(cubemap, rotVec);
       out_position = texture(positionmap, rotVec).xyz;
@@ -611,6 +657,8 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   uniform vec3 offset;
   uniform vec4 bgColor;
 
+  vec3 rotate(vec3 dir);
+
   void main() {
     float s = 2.0 * (tr_uv.s - 0.5);
     float t = 2.0 * (tr_uv.t - 0.5);
@@ -621,11 +669,11 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
       float x = sin(phi) * sin(theta) - offset.x;
       float y = -sin(phi) * cos(theta) - offset.y;
       float z = cos(phi) - offset.z;
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_normal = texture(normalmap, rotVec).xyz;
-      out_position = texture(positionmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
+      vec3 rotDir = rotate(vec3(x, y, z));
+      out_diffuse = texture(cubemap, rotDir);
+      out_normal = texture(normalmap, rotDir).xyz;
+      out_position = texture(positionmap, rotDir).xyz;
+      gl_FragDepth = texture(depthmap, rotDir).x;
     }
     else {
       out_diffuse = bgColor;
@@ -655,9 +703,9 @@ constexpr const char* FisheyeDepthCorrectionFrag = R"(
     // get angle from -45 to 45 degrees (-pi/4 to +pi/4)
     vec2 angle = 1.57079632679 * tr_uv - 0.5;
 
-    float x_norm = tan(angle.x);
-    float y_norm = tan(angle.y);
-    float r = z * sqrt(x_norm * x_norm + y_norm * y_norm + 1.0);
+    float xNorm = tan(angle.x);
+    float yNorm = tan(angle.y);
+    float r = z * sqrt(xNorm * xNorm + yNorm * yNorm + 1.0);
 
     Color = texture(cTex, tr_uv);
     gl_FragDepth = a + b / r;

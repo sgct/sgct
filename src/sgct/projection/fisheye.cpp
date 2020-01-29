@@ -636,42 +636,24 @@ void FisheyeProjection::initShaders() {
     std::string samplerShader = 
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
-    // replace add correct transform in the fragment shader
-    if (_method == FisheyeMethod::FourFaceCube) {
-        helpers::findAndReplace(
-            fragmentShader,
-            "**rotVec**",
-            "const float _angle = 0.7071067812;"
-            "vec3 rotVec = vec3(_angle*x + _angle*z, y, -_angle*x + _angle*z)"
-        );
-        helpers::findAndReplace(
-            samplerShader,
-            "**rotVec**",
-            "const float _angle = 0.7071067812;"
-            "vec3 rotVec = vec3(_angle*x + _angle*z, y, -_angle*x + _angle*z)"
-        );
-    }
-    else {
-        // five or six face
-        helpers::findAndReplace(
-            fragmentShader,
-            "**rotVec**",
-            "const float _angle = 0.7071067812;"
-            "vec3 rotVec = vec3(_angle*x - _angle*y, _angle*x + _angle*y, z)"
-        );
-        helpers::findAndReplace(
-            samplerShader,
-            "**rotVec**",
-            "const float _angle = 0.7071067812;"
-            "vec3 rotVec = vec3(_angle*x - _angle*y, _angle*x + _angle*y, z)"
-        );
-    }
-
     _shader = ShaderProgram("FisheyeShader");
     _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
     _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
     if (isCubic) {
         _shader.addShaderSource(shaders_fisheye_cubic::interpolate, GL_FRAGMENT_SHADER);
+    }
+    if (_method == FisheyeMethod::FourFaceCube) {
+        _shader.addShaderSource(
+            shaders_fisheye::RotationFourFaceCubeFun,
+            GL_FRAGMENT_SHADER
+        );
+    }
+    else {
+        // five or six face
+        _shader.addShaderSource(
+            shaders_fisheye::RotationFiveSixFaceCubeFun,
+            GL_FRAGMENT_SHADER
+        );
     }
 
 

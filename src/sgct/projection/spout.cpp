@@ -632,32 +632,6 @@ void SpoutOutputProjection::initShaders() {
         );
     }
 
-    glm::mat4 pitchRot = glm::rotate(
-        glm::mat4(1.f),
-        glm::radians(_rigOrientation.x),
-        glm::vec3(0.f, 1.f, 0.f)
-    );
-    glm::mat4 yawRot = glm::rotate(
-        pitchRot,
-        glm::radians(_rigOrientation.y),
-        glm::vec3(1.f, 0.f, 0.f)
-    );
-    glm::mat4 rollRot = glm::rotate(
-        yawRot,
-        glm::radians(_rigOrientation.z),
-        glm::vec3(0.f, 0.f, 1.f)
-    );
-
-    std::stringstream ssRot;
-    ssRot.precision(5);
-    ssRot << "vec3 rotVec = vec3(" <<
-        rollRot[0].x << "f*x + " << rollRot[0].y << "f*y + " << rollRot[0].z << "f*z, " <<
-        rollRot[1].x << "f*x + " << rollRot[1].y << "f*y + " << rollRot[1].z << "f*z, " <<
-        rollRot[2].x << "f*x + " << rollRot[2].y << "f*y + " << rollRot[2].z << "f*z)";
-
-    // replace add correct transform in the fragment shader
-    helpers::findAndReplace(fisheyeFragShader, "**rotVec**", ssRot.str());
-
     const std::string name = [](Mapping mapping) {
         switch (mapping) {
             case Mapping::Fisheye: return "FisheyeShader";
@@ -677,8 +651,8 @@ void SpoutOutputProjection::initShaders() {
             default: return shaders_fisheye::SampleFun;
         }
     }(_mappingType);
-    helpers::findAndReplace(samplerShaderCode, "**rotVec**", ssRot.str());
     _shader.addShaderSource(samplerShaderCode, GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(shaders_fisheye::RotationFun, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
 
@@ -687,6 +661,30 @@ void SpoutOutputProjection::initShaders() {
         1,
         glm::value_ptr(_clearColor)
     );
+
+    {
+        const glm::mat4 pitchRot = glm::rotate(
+            glm::mat4(1.f),
+            glm::radians(_rigOrientation.x),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::mat4 yawRot = glm::rotate(
+            pitchRot,
+            glm::radians(_rigOrientation.y),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        const glm::mat4 rollRot = glm::rotate(
+            yawRot,
+            glm::radians(_rigOrientation.z),
+            glm::vec3(0.f, 0.f, 1.f)
+        );
+        glUniformMatrix4fv(
+            glGetUniformLocation(_shader.id(), "rotMatrix"),
+            1,
+            GL_FALSE,
+            value_ptr(rollRot)
+        );
+    }
 
     _cubemapLoc = glGetUniformLocation(_shader.id(), "cubemap");
     glUniform1i(_cubemapLoc, 0);

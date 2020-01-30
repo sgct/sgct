@@ -1054,10 +1054,11 @@ void Window::createVBOs() {
     TracyGpuZone("Create VBOs")
 
     constexpr const std::array<const float, 36> QuadVerts = {
-        -1.f, -1.f, -1.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f,
-         1.f, -1.f, -1.f, 1.f, 0.f, 1.f, 1.f, 1.f, 1.f,
-        -1.f,  1.f, -1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f,
-         1.f,  1.f, -1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f
+    //     x     y     z      u    v      r    g    b    a
+        -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f,
+         1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f,
+        -1.f,  1.f, -1.f,   0.f, 1.f,   1.f, 1.f, 1.f, 1.f,
+         1.f,  1.f, -1.f,   1.f, 1.f,   1.f, 1.f, 1.f, 1.f
     };
 
     glGenVertexArrays(1, &_vao);

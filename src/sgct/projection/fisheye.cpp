@@ -48,10 +48,10 @@ void FisheyeProjection::update(glm::vec2 size) {
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     const std::array<const float, 20> v = {
-              _cropLeft,        _cropBottom, -x, -y, -1.f,
-              _cropLeft,  1.f - _cropTop,    -x,  y, -1.f,
-        1.f - _cropRight,       _cropBottom,  x, -y, -1.f,
-        1.f - _cropRight, 1.f - _cropTop,     x,  y, -1.f
+         -x, -y, -1.f,        _cropLeft,        _cropBottom,
+         -x,  y, -1.f,        _cropLeft,  1.f - _cropTop,
+          x, -y, -1.f, 1.f - _cropRight,        _cropBottom,
+          x,  y, -1.f, 1.f - _cropRight,  1.f - _cropTop,
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);

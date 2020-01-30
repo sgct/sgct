@@ -203,7 +203,7 @@ void NonLinearProjection::initFBO() {
 }
 
 void NonLinearProjection::initVBO() {
-    std::array<float, 20> vertices;
+    std::array<float, 36> vertices;
     glGenVertexArrays(1, &_vao);
     Log::Debug("Generating VAO: %d", _vao);
 
@@ -212,19 +212,28 @@ void NonLinearProjection::initVBO() {
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    // 2TF + 3VF = 2*4 + 3*4 = 20
     glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertices.data(), GL_STREAM_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), nullptr);
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
-        3,
+        2,
         GL_FLOAT,
         GL_FALSE,
-        5 * sizeof(float),
-        reinterpret_cast<void*>(8)
+        9 * sizeof(float),
+        reinterpret_cast<void*>(3 * sizeof(float))
+    );
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        9 * sizeof(float),
+        reinterpret_cast<void*>(5 * sizeof(float))
     );
 
     glBindVertexArray(0);

@@ -14,6 +14,7 @@
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
+#include <sgct/internalshaders.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
@@ -28,7 +29,6 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <sgct/shaders/internalshaders.h>
 #include <iostream>
 #include <numeric>
 
@@ -598,7 +598,7 @@ void Engine::initialize() {
         ShaderProgram::unbind();
 
         _overlay = ShaderProgram("OverlayShader");
-        _overlay.addShaderSource(shaders::OverlayVert, shaders::OverlayFrag);
+        _overlay.addShaderSource(shaders::BaseVert, shaders::OverlayFrag);
         _overlay.createAndLinkProgram();
         _overlay.bind();
         glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);

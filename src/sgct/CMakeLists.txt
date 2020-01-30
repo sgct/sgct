@@ -21,6 +21,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
   ${PROJECT_SOURCE_DIR}/include/sgct/frustum.h
   ${PROJECT_SOURCE_DIR}/include/sgct/image.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/internalshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
   ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
   ${PROJECT_SOURCE_DIR}/include/sgct/log.h
@@ -68,8 +69,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/spout.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalfisheyeshaders.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/shaders/internalshaders.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/box.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/dome.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/domegrid.h

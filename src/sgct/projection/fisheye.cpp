@@ -10,12 +10,12 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/internalshaders.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
-#include <sgct/shaders/internalfisheyeshaders.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 

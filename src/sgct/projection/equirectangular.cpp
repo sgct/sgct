@@ -10,11 +10,11 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/internalshaders.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
-#include <sgct/shaders/internalfisheyeshaders.h>
 
 namespace sgct {
 

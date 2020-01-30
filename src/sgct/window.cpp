@@ -12,6 +12,7 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
@@ -23,7 +24,6 @@
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <sgct/shaders/internalshaders.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -1053,11 +1053,11 @@ void Window::createVBOs() {
     ZoneScoped
     TracyGpuZone("Create VBOs")
 
-    constexpr const std::array<const float, 20> QuadVerts = {
-        0.f, 0.f, -1.f, -1.f, -1.f,
-        1.f, 0.f,  1.f, -1.f, -1.f,
-        0.f, 1.f, -1.f,  1.f, -1.f,
-        1.f, 1.f,  1.f,  1.f, -1.f
+    constexpr const std::array<const float, 36> QuadVerts = {
+        0.f, 0.f, -1.f, -1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
+        1.f, 0.f,  1.f, -1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
+        0.f, 1.f, -1.f,  1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
+        1.f, 1.f,  1.f,  1.f, -1.f,  1.f, 1.f, 1.f, 1.f
     };
 
     glGenVertexArrays(1, &_vao);
@@ -1069,7 +1069,7 @@ void Window::createVBOs() {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
 
@@ -1079,8 +1079,18 @@ void Window::createVBOs() {
         3,
         GL_FLOAT,
         GL_FALSE,
-        5 * sizeof(float),
-        reinterpret_cast<void*>(8)
+        9 * sizeof(float),
+        reinterpret_cast<void*>(2 * sizeof(float))
+    );
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        9 * sizeof(float),
+        reinterpret_cast<void*>(5 * sizeof(float))
     );
 
     glBindVertexArray(0);
@@ -1097,7 +1107,7 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string stereoVertShader = shaders::AnaglyphVert;
+    std::string stereoVertShader = shaders::BaseVert;
     std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {

@@ -545,8 +545,8 @@ constexpr const char* InterpolateCubicFun = R"(
 constexpr const char* BaseVert = R"(
   #version 330 core
 
-  layout (location = 1) in vec3 in_position;
-  layout (location = 0) in vec2 in_texCoords;
+  layout (location = 0) in vec3 in_position;
+  layout (location = 1) in vec2 in_texCoords;
   out vec2 tr_uv;
 
   void main() {

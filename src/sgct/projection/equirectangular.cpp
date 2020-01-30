@@ -14,7 +14,6 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
 #include <sgct/shaders/internalfisheyeshaders_cubic.h>
 

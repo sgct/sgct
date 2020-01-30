@@ -15,7 +15,6 @@
 #include <sgct/fontmanager.h>
 #include <sgct/opengl.h>
 #include <sgct/window.h>
-#include <sgct/helpers/portedfunctions.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -68,7 +67,16 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
     va_list args;
     va_start(args, format);
 
-    int size = 1 + vscprintf(format, args);
+#ifdef WIN32
+    const int size = _vscprintf(format, args) + 1; // null-terminating char
+#else // WIN32
+    // Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
+    va_list argsCopy;
+    va_copy(argsCopy, args);
+    const int size = vsnprintf(nullptr, 0, format, argsCopy);
+    va_end(argsCopy);
+#endif // WIN32
+
     std::vector<char> buf(size, 0);
     vsprintf(buf.data(), format, args);
     va_end(args);

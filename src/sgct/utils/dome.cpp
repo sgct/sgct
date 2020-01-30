@@ -10,7 +10,6 @@
 
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>
 
 namespace sgct::utils {
@@ -19,7 +18,16 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     : _elevationSteps(elevationSteps)
     , _azimuthSteps(azimuthSteps)
 {
-    std::vector<helpers::VertexData> vertices;
+    struct VertexData {
+        float s = 0.f;
+        float t = 0.f;  // Texcoord0 -> size=8
+        float nx = 0.f;
+        float ny = 0.f;
+        float nz = 0.f; // size=12
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;  // size=12 ; total size=32 = power of two
+    };
 
     if (_azimuthSteps < 4) {
         Log::Warning("Azimuth steps must be higher than 4");
@@ -31,7 +39,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     // Create VAO
     const float lift = (180.f - FOV) / 2.f;
 
-    std::vector<helpers::VertexData> verts;
+    std::vector<VertexData> verts;
     std::vector<unsigned int> indices;
 
     for (int a = 0; a < _azimuthSteps; a++) {
@@ -95,14 +103,9 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        static_cast<int>(verts.size()) * sizeof(helpers::VertexData),
-        verts.data(),
-        GL_STATIC_DRAW
-    );
+    const GLsizei size = sizeof(VertexData);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * size, verts.data(), GL_STATIC_DRAW);
 
-    const GLsizei size = sizeof(helpers::VertexData);
     // texcoords
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, size, nullptr);
@@ -117,7 +120,7 @@ Dome::Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevation
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        static_cast<int>(indices.size()) * sizeof(unsigned int),
+        indices.size() * sizeof(unsigned int),
         indices.data(),
         GL_STATIC_DRAW
     );

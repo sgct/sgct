@@ -9,14 +9,25 @@
 #include <sgct/utils/box.h>
 
 #include <sgct/opengl.h>
-#include <sgct/helpers/vertexdata.h>
 #include <array>
 
 namespace sgct::utils {
 
 Box::Box(float size, TextureMappingMode mode) {
+    struct VertexData {
+        float s = 0.f;
+        float t = 0.f;  // Texcoord0 -> size=8
+        float nx = 0.f;
+        float ny = 0.f;
+        float nz = 0.f; // size=12
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;  // size=12 ; total size=32 = power of two
+    };
+
+
     const float halfSize = size / 2.f;
-    std::array<helpers::VertexData, 36> v;
+    std::array<VertexData, 36> v;
 
     if (mode == TextureMappingMode::Regular) {
         // A (front/+z)
@@ -171,14 +182,8 @@ Box::Box(float size, TextureMappingMode mode) {
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        v.size() * sizeof(helpers::VertexData),
-        v.data(),
-        GL_STATIC_DRAW
-    );
-
-    constexpr const int s = sizeof(helpers::VertexData);
+    constexpr const int s = sizeof(VertexData);
+    glBufferData(GL_ARRAY_BUFFER, v.size() * s, v.data(), GL_STATIC_DRAW);
 
     // texcoords
     glEnableVertexAttribArray(0);

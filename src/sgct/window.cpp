@@ -22,7 +22,6 @@
 #include <sgct/screencapture.h>
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/shaders/internalshaders.h>
 #include <glm/gtc/matrix_transform.hpp>

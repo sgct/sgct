@@ -15,7 +15,6 @@
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

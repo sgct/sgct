@@ -10,15 +10,25 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
 #include <algorithm>
+#include <sstream>
 #include <unordered_map>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
 namespace {
+    std::vector<std::string> split(std::string str, char delimiter) {
+        std::vector<std::string> res;
+        std::stringstream ss(std::move(str));
+        std::string part;
+        while (std::getline(ss, part, delimiter)) {
+            res.push_back(part);
+        }
+        return res;
+    }
+
     glm::quat parseOrientationNode(tinyxml2::XMLElement& element) {
         float x = 0.f;
         float y = 0.f;
@@ -576,7 +586,7 @@ namespace {
             window.name = a;
         }
         if (const char* a = elem.Attribute("tags"); a) {
-            window.tags = sgct::helpers::split(a, ',');
+            window.tags = split(a, ',');
         }
         if (const char* a = elem.Attribute("bufferBitDepth"); a) {
             window.bufferBitDepth = getBufferColorBitDepth(a);

@@ -12,11 +12,23 @@
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
-#include <sgct/helpers/stringfunctions.h>
 #include <glm/glm.hpp>
 #include <tinyxml2.h>
+#include <sstream>
 
 #define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
+
+namespace {
+    std::vector<std::string> split(std::string str, char delimiter) {
+        std::vector<std::string> res;
+        std::stringstream ss(std::move(str));
+        std::string part;
+        while (std::getline(ss, part, delimiter)) {
+            res.push_back(part);
+        }
+        return res;
+    }
+} // namespace
 
 namespace sgct::correction {
 
@@ -62,7 +74,7 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
             float xrange = 1.f;
             if (child->QueryFloatAttribute("range", &xrange) == XML_NO_ERROR) {
                 std::string xcoordstr(child->GetText());
-                std::vector<std::string> xcoords = helpers::split(xcoordstr, ' ');
+                std::vector<std::string> xcoords = split(xcoordstr, ' ');
                 for (const std::string& x : xcoords) {
                     xcorrections.push_back(std::stof(x) / xrange);
                 }
@@ -72,7 +84,7 @@ Buffer generateSimCADMesh(const std::string& path, const glm::ivec2& pos,
             float yrange = 1.f;
             if (child->QueryFloatAttribute("range", &yrange) == XML_NO_ERROR) {
                 std::string ycoordstr(child->GetText());
-                std::vector<std::string> ycoords = helpers::split(ycoordstr, ' ');
+                std::vector<std::string> ycoords = split(ycoordstr, ' ');
                 for (const std::string& y : ycoords) {
                     ycorrections.push_back(std::stof(y) / yrange);
                 }

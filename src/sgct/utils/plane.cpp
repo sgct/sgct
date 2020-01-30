@@ -9,24 +9,34 @@
 #include <sgct/utils/plane.h>
 
 #include <sgct/opengl.h>
-#include <sgct/helpers/vertexdata.h>
 #include <array>
 
 namespace sgct::utils {
 
 Plane::Plane(float width, float height) {
-    const std::array<helpers::VertexData, 4> verts = {
-        helpers::VertexData{ 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f },
-        helpers::VertexData{ 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f },
-        helpers::VertexData{ 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f },
-        helpers::VertexData{ 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f }
+    struct VertexData {
+        float s = 0.f;
+        float t = 0.f;  // Texcoord0 -> size=8
+        float nx = 0.f;
+        float ny = 0.f;
+        float nz = 0.f; // size=12
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;  // size=12 ; total size=32 = power of two
+    };
+
+    const std::array<VertexData, 4> verts = {
+        VertexData{ 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f },
+        VertexData{ 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f },
+        VertexData{ 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f },
+        VertexData{ 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f }
     };
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    const GLsizei size = sizeof(helpers::VertexData);
+    const GLsizei size = sizeof(VertexData);
     glBufferData(GL_ARRAY_BUFFER, 4 * size, verts.data(), GL_STATIC_DRAW);
 
     // texcoords

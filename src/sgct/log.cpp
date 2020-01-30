@@ -10,7 +10,6 @@
 
 #include <sgct/networkmanager.h>
 #include <sgct/mutexes.h>
-#include <sgct/helpers/portedfunctions.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -57,7 +56,16 @@ void Log::printv(Level lvl, const char* fmt, va_list ap) {
     // prevent writing to console simultaneously
     std::unique_lock lock(_mutex);
 
-    size_t size = static_cast<size_t>(1u + vscprintf(fmt, ap));
+#ifdef WIN32
+    const size_t size = _vscprintf(fmt, ap) + 1; // null-terminating char
+#else // WIN32
+    // Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
+    va_list argsCopy;
+    va_copy(argsCopy, ap);
+    const size_t size = static_cast<size_t>(vsnprintf(nullptr, 0, fmt, argsCopy));
+    va_end(argsCopy);
+#endif // WIN32
+
     if (size > _parseBuffer.size()) {
         _parseBuffer.resize(size);
         std::fill(_parseBuffer.begin(), _parseBuffer.end(), char(0));

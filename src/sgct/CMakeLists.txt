@@ -61,9 +61,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/sciss.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/simcad.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/skyskan.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/helpers/portedfunctions.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/helpers/stringfunctions.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/helpers/vertexdata.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/cylindrical.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/equirectangular.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/fisheye.h

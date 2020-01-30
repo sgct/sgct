@@ -9,7 +9,6 @@
 #include <sgct/utils/sphere.h>
 
 #include <sgct/opengl.h>
-#include <sgct/helpers/vertexdata.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
@@ -23,7 +22,18 @@ Sphere::Sphere(float radius, unsigned int segments) {
     unsigned int nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
     _nFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
 
-    std::vector<helpers::VertexData> verts(nVertices);
+    struct VertexData {
+        float s = 0.f;
+        float t = 0.f;  // Texcoord0 -> size=8
+        float nx = 0.f;
+        float ny = 0.f;
+        float nz = 0.f; // size=12
+        float x = 0.f;
+        float y = 0.f;
+        float z = 0.f;  // size=12 ; total size=32 = power of two
+    };
+
+    std::vector<VertexData> verts(nVertices);
 
     // First vertex: top pole (+y is "up" in object local coords)
     verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
@@ -84,7 +94,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
         indices[base + 3u * i + 1] = nVertices - 3 - i;
     }
 
-    constexpr const GLsizei size = sizeof(helpers::VertexData);
+    constexpr const GLsizei size = sizeof(VertexData);
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);

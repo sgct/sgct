@@ -1054,10 +1054,10 @@ void Window::createVBOs() {
     TracyGpuZone("Create VBOs")
 
     constexpr const std::array<const float, 36> QuadVerts = {
-        0.f, 0.f, -1.f, -1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
-        1.f, 0.f,  1.f, -1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
-        0.f, 1.f, -1.f,  1.f, -1.f, 1.f, 1.f, 1.f, 1.f,
-        1.f, 1.f,  1.f,  1.f, -1.f,  1.f, 1.f, 1.f, 1.f
+        -1.f, -1.f, -1.f, 0.f, 0.f, 1.f, 1.f, 1.f, 1.f,
+         1.f, -1.f, -1.f, 1.f, 0.f, 1.f, 1.f, 1.f, 1.f,
+        -1.f,  1.f, -1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f,
+         1.f,  1.f, -1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f
     };
 
     glGenVertexArrays(1, &_vao);
@@ -1071,16 +1071,16 @@ void Window::createVBOs() {
 
     glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(float), QuadVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), nullptr);
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
-        3,
+        2,
         GL_FLOAT,
         GL_FALSE,
         9 * sizeof(float),
-        reinterpret_cast<void*>(2 * sizeof(float))
+        reinterpret_cast<void*>(3 * sizeof(float))
     );
 
     glEnableVertexAttribArray(2);

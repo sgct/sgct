@@ -67,6 +67,11 @@ SphericalMirrorProjection::SphericalMirrorProjection(const Window* parent,
     setUseDepthTransformation(false);
 }
 
+SphericalMirrorProjection::~SphericalMirrorProjection() {
+    _shader.deleteProgram();
+    _depthCorrectionShader.deleteProgram();
+}
+
 void SphericalMirrorProjection::update(glm::vec2) {}
 
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,

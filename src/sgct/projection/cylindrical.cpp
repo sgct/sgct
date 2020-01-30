@@ -38,6 +38,8 @@ CylindricalProjection::CylindricalProjection(const Window* parent)
 CylindricalProjection::~CylindricalProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
+    _shader.deleteProgram();
+    _depthCorrectionShader.deleteProgram();
 }
 
 void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,

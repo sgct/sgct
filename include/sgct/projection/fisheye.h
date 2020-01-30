@@ -128,6 +128,8 @@ private:
     } _shaderLoc;
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
+    ShaderProgram _shader;
+    ShaderProgram _depthCorrectionShader;
 };
 
 } // namespace sgct

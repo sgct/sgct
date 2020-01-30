@@ -39,6 +39,8 @@ FisheyeProjection::FisheyeProjection(const Window* parent)
 FisheyeProjection::~FisheyeProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
+    _shader.deleteProgram();
+    _depthCorrectionShader.deleteProgram();
 }
 
 void FisheyeProjection::update(glm::vec2 size) {

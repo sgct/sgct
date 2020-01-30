@@ -126,7 +126,7 @@ protected:
 
     int _cubemapResolution = 512;
     glm::vec4 _clearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
-    glm::ivec4 _vpCoords = glm::ivec4(0, 0, 0, 0);
+    glm::ivec4 _vpCoords = glm::ivec4(0);
     bool _useDepthTransformation = false;
     bool _isStereo = false;
     unsigned int _texInternalFormat;
@@ -134,8 +134,6 @@ protected:
     unsigned int _texType;
     int _samples = 1;
 
-    ShaderProgram _shader;
-    ShaderProgram _depthCorrectionShader;
     std::unique_ptr<OffScreenBuffer> _cubeMapFbo;
 };
 

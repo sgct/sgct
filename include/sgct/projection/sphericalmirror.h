@@ -20,7 +20,7 @@ class SphericalMirrorProjection : public NonLinearProjection {
 public:
     SphericalMirrorProjection(const Window* parent, std::string bottomMesh,
         std::string leftMesh, std::string rightMesh, std::string topMesh);
-    virtual ~SphericalMirrorProjection() = default;
+    virtual ~SphericalMirrorProjection();
 
     void update(glm::vec2 size) override;
 
@@ -61,6 +61,8 @@ private:
     // shader locations
     int _texLoc = -1;
     int _matrixLoc = -1;
+    ShaderProgram _shader;
+    ShaderProgram _depthCorrectionShader;
 };
 
 } // namespace sgct

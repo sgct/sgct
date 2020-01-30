@@ -41,9 +41,6 @@ NonLinearProjection::~NonLinearProjection() {
     glDeleteTextures(1, &_textures.cubeFaceTop);
     glDeleteTextures(1, &_textures.cubeFaceFront);
     glDeleteTextures(1, &_textures.cubeFaceBack);
-
-    _shader.deleteProgram();
-    _depthCorrectionShader.deleteProgram();
 }
 
 void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int format,
@@ -198,10 +195,6 @@ void NonLinearProjection::initFBO() {
     _cubeMapFbo = std::make_unique<OffScreenBuffer>();
     _cubeMapFbo->setInternalColorFormat(_texInternalFormat);
     _cubeMapFbo->createFBO(_cubemapResolution, _cubemapResolution, _samples);
-}
-
-void NonLinearProjection::initVBO() {
-
 }
 
 void NonLinearProjection::setupViewport(BaseViewport& vp) {

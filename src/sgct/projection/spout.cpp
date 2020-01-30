@@ -74,6 +74,8 @@ SpoutOutputProjection::~SpoutOutputProjection() {
 #endif
 
     glDeleteTextures(1, &_mappingTexture);
+    _shader.deleteProgram();
+    _depthCorrectionShader.deleteProgram();
 }
 
 void SpoutOutputProjection::update(glm::vec2) {

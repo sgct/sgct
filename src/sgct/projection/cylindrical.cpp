@@ -15,7 +15,6 @@
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
-#include <sgct/shaders/internalfisheyeshaders_cubic.h>
 
 namespace sgct {
 
@@ -280,7 +279,7 @@ void CylindricalProjection::initShaders() {
 )";
 
     _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 

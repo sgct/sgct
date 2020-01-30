@@ -601,7 +601,7 @@ void Engine::initialize() {
         _overlay.addShaderSource(shaders::OverlayVert, shaders::OverlayFrag);
         _overlay.createAndLinkProgram();
         _overlay.bind();
-        glUniform1i(glGetUniformLocation(_overlay.id(), "Tex"), 0);
+        glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);
         ShaderProgram::unbind();
     }
 

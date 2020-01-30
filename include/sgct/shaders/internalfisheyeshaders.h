@@ -109,20 +109,61 @@ constexpr const char* SampleOffsetFun = R"(
   }
 )";
 
-constexpr const char* BaseVert = R"(
+constexpr const char* InterpolateLinearFun = R"(
   #version 330 core
 
-  layout (location = 0) in vec2 in_texCoords;
-  layout (location = 1) in vec3 in_position;
-  out vec2 tr_uv;
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
 
-  void main() {
-    gl_Position = vec4(in_position, 1.0);
-    tr_uv = in_texCoords;
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg) {
+    return getCubeSample(tc, map, bg);
   }
 )";
 
-constexpr const char* FisheyeVert = R"(
+constexpr const char* InterpolateCubicFun = R"(
+  #version 330 core
+
+  uniform float size;
+
+  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+
+  vec4 cubic(float x) {
+    float x2 = x * x;
+    float x3 = x2 * x;
+    vec4 w = vec4(-x + 2*x2 - x3, 2 - 5*x2 + 3*x3, x + 4*x2 - 3*x3, -x2 + x3);
+    return w / 2.0;
+  }
+
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg) {
+    vec2 transTex = tc * vec2(size, size);
+    vec2 frac = fract(transTex);
+    transTex -= frac;
+
+    vec4 xcubic = cubic(frac.x);
+    vec4 ycubic = cubic(frac.y);
+
+    const float h = 1.0;
+    vec4 c = transTex.xxyy + vec4(-h, +h, -h, +h);
+    vec4 s = vec4(
+      xcubic.x + xcubic.y,
+      xcubic.z + xcubic.w,
+      ycubic.x + ycubic.y,
+      ycubic.z + ycubic.w
+    );
+    vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
+
+    vec4 sample0 = getCubeSample(vec2(offset.x, offset.z) / size, map, bg);
+    vec4 sample1 = getCubeSample(vec2(offset.y, offset.z) / size, map, bg);
+    vec4 sample2 = getCubeSample(vec2(offset.x, offset.w) / size, map, bg);
+    vec4 sample3 = getCubeSample(vec2(offset.y, offset.w) / size, map, bg);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
+  }
+)";
+
+constexpr const char* BaseVert = R"(
   #version 330 core
 
   layout (location = 0) in vec2 in_texCoords;
@@ -142,13 +183,12 @@ constexpr const char* FisheyeFrag = R"(
   out vec4 out_diffuse;
 
   uniform samplerCube cubemap;
-
   uniform vec4 bgColor;
 
-  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+  vec4 sample(vec2 texel, samplerCube map, vec4 bg);
 
   void main() {
-    out_diffuse = getCubeSample(tr_uv, cubemap, bgColor);
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
   }
 )";
 
@@ -161,27 +201,13 @@ constexpr const char* FisheyeFragNormal = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -194,27 +220,13 @@ constexpr const char* FisheyeFragPosition = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_position = texture(positionmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_position = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -229,29 +241,14 @@ constexpr const char* FisheyeFragNormalPosition = R"(
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      out_position = texture(positionmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      out_position = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -263,27 +260,13 @@ constexpr const char* FisheyeFragDepth = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -295,31 +278,16 @@ constexpr const char* FisheyeFragDepthNormal = R"(
   layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
-  uniform samplerCube normalmap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
+  uniform samplerCube normalmap;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -331,31 +299,16 @@ constexpr const char* FisheyeFragDepthPosition = R"(
   layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
-  uniform samplerCube positionmap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
+  uniform samplerCube positionmap;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_position = texture(positionmap, rotDir).xyz;
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_position = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -368,34 +321,18 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
   layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
+  uniform samplerCube depthmap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
-  uniform samplerCube depthmap;
-  uniform float halfFov;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      vec3 dir = vec3(sin(phi) * sin(theta), -sin(phi) * cos(theta), cos(phi));
-      vec3 rotDir = rotate(dir);
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      out_position = texture(positionmap, rotDir).xyz;
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      out_position = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -408,10 +345,10 @@ constexpr const char* FisheyeFragOffAxis = R"(
   uniform samplerCube cubemap;
   uniform vec4 bgColor;
 
-  vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    out_diffuse = getCubeSample(tr_uv, cubemap, bgColor);
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
   }
 )";
 
@@ -424,30 +361,13 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
-  uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -460,30 +380,13 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube positionmap;
-  uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      out_position = texture(positionmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_position = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -498,32 +401,14 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   uniform samplerCube cubemap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
-  uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      out_position = texture(positionmap, rotDir).xyz;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      out_position = vec3(0.0);
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
   }
 )";
 
@@ -535,30 +420,13 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
 
   uniform samplerCube cubemap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -570,34 +438,16 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   layout(location = 1) out vec3 out_normal;
 
   uniform samplerCube cubemap;
-  uniform samplerCube normalmap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
-  uniform vec3 offset;
+  uniform samplerCube normalmap;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -609,35 +459,16 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   layout(location = 1) out vec3 out_position;
 
   uniform samplerCube cubemap;
-  uniform samplerCube positionmap;
   uniform samplerCube depthmap;
-  uniform float halfFov;
-  uniform vec3 offset;
+  uniform samplerCube positionmap;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      **rotVec**;
-      out_diffuse = texture(cubemap, rotVec);
-      out_position = texture(positionmap, rotVec).xyz;
-      gl_FragDepth = texture(depthmap, rotVec).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_position = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 
@@ -650,37 +481,18 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   layout(location = 2) out vec3 out_position;
 
   uniform samplerCube cubemap;
+  uniform samplerCube depthmap;
   uniform samplerCube normalmap;
   uniform samplerCube positionmap;
-  uniform samplerCube depthmap;
-  uniform float halfFov;
-  uniform vec3 offset;
   uniform vec4 bgColor;
 
-  vec3 rotate(vec3 dir);
+  vec4 sample(vec2 tc, samplerCube map, vec4 bg);
 
   void main() {
-    float s = 2.0 * (tr_uv.s - 0.5);
-    float t = 2.0 * (tr_uv.t - 0.5);
-    float r2 = s*s + t*t;
-    if (r2 <= 1.0) {
-      float phi = sqrt(r2) * halfFov;
-      float theta = atan(s, t);
-      float x = sin(phi) * sin(theta) - offset.x;
-      float y = -sin(phi) * cos(theta) - offset.y;
-      float z = cos(phi) - offset.z;
-      vec3 rotDir = rotate(vec3(x, y, z));
-      out_diffuse = texture(cubemap, rotDir);
-      out_normal = texture(normalmap, rotDir).xyz;
-      out_position = texture(positionmap, rotDir).xyz;
-      gl_FragDepth = texture(depthmap, rotDir).x;
-    }
-    else {
-      out_diffuse = bgColor;
-      out_normal = vec3(0.0);
-      out_position = vec3(0.0);
-      gl_FragDepth = 1.0;
-    }
+    out_diffuse = sample(tr_uv, cubemap, bgColor);
+    out_normal = sample(tr_uv, normalmap, vec4(0.0)).xyz;
+    out_position = sample(tr_uv, positionmap, vec4(0.0)).xyz;
+    gl_FragDepth = sample(tr_uv, depthmap, vec4(1.0)).x;
   }
 )";
 

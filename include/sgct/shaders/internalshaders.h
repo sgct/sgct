@@ -16,14 +16,14 @@ constexpr const char* BaseVert = R"(
 
   layout (location = 0) in vec2 in_position;
   layout (location = 1) in vec2 in_texCoords;
-  layout (location = 2) in vec4 in_vertColor;
+  layout (location = 2) in vec4 in_color;
   out vec2 tr_uv;
   out vec4 tr_color;
 
   void main() {
     gl_Position = vec4(in_position, 0.0, 1.0);
     tr_uv = in_texCoords;
-    tr_color = in_vertColor;
+    tr_color = in_color;
   }
 )";
 
@@ -60,10 +60,10 @@ constexpr const char* OverlayFrag = R"(
   in vec2 tr_uv;
   out vec4 out_color;
 
-  uniform sampler2D Tex;
+  uniform sampler2D tex;
 
   void main() {
-    out_color = texture(Tex, tr_uv);
+    out_color = texture(tex, tr_uv);
   }
 )";
 
@@ -72,14 +72,14 @@ constexpr const char* AnaglyphVert = R"(
 
   layout (location = 0) in vec2 in_position;
   layout (location = 1) in vec2 in_texCoords;
-  layout (location = 2) in vec3 in_vertColor;
+  layout (location = 2) in vec3 in_color;
   out vec2 tr_uv;
   out vec4 tr_color;
 
   void main() {
     gl_Position = vec4(in_position, 0.0, 1.0);
     tr_uv = in_texCoords;
-    tr_color = vec4(in_vertColor, 1.0);
+    tr_color = vec4(in_color, 1.0);
   }
 )";
 

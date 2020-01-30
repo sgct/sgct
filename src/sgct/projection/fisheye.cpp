@@ -16,7 +16,6 @@
 #include <sgct/user.h>
 #include <sgct/window.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
-#include <sgct/shaders/internalfisheyeshaders_cubic.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
@@ -535,19 +534,16 @@ void FisheyeProjection::initShaders() {
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     const bool useDepth = Settings::instance().useDepthTexture();
     std::string fragmentShader = [](bool isOffAxis, bool useDepth,
-                                    Settings::DrawBufferType t, bool isCubic)
+                                    Settings::DrawBufferType t)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
         constexpr auto tuple = [](bool isOffAxis, bool useDepth,
-                                  Settings::DrawBufferType t, bool isCubic) -> uint16_t
+                                  Settings::DrawBufferType t) -> uint16_t
         {
             // Injective mapping from <bool, bool, bool, DrawBufferType> to uint16_t
             uint16_t res = 0;
             res += static_cast<uint8_t>(t);
-            if (isCubic) {
-                res += 1 << 10;
-            }
             if (isOffAxis) {
                 res += 1 << 11;
             }
@@ -558,89 +554,60 @@ void FisheyeProjection::initShaders() {
         };
 
         using DrawBufferType = Settings::DrawBufferType;
-        switch (tuple(isOffAxis, useDepth, t, isCubic)) {
-            case tuple(true, true, DrawBufferType::Diffuse, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisDepth;
-            case tuple(true, true, DrawBufferType::Diffuse, false):
+        switch (tuple(isOffAxis, useDepth, t)) {
+            case tuple(true, true, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragOffAxisDepth;
-            case tuple(true, true, DrawBufferType::DiffuseNormal, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormal;
-            case tuple(true, true, DrawBufferType::DiffuseNormal, false):
+            case tuple(true, true, DrawBufferType::DiffuseNormal):
                 return shaders_fisheye::FisheyeFragOffAxisDepthNormal;
-            case tuple(true, true, DrawBufferType::DiffusePosition, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthPosition;
-            case tuple(true, true, DrawBufferType::DiffusePosition, false):
+            case tuple(true, true, DrawBufferType::DiffusePosition):
                 return shaders_fisheye::FisheyeFragOffAxisDepthPosition;
-            case tuple(true, true, DrawBufferType::DiffuseNormalPosition, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisDepthNormalPosition;
-            case tuple(true, true, DrawBufferType::DiffuseNormalPosition, false):
+            case tuple(true, true, DrawBufferType::DiffuseNormalPosition):
                 return shaders_fisheye::FisheyeFragOffAxisDepthNormalPosition;
 
-            case tuple(true, false, DrawBufferType::Diffuse, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxis;
-            case tuple(true, false, DrawBufferType::Diffuse, false):
+            case tuple(true, false, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragOffAxis;
-            case tuple(true, false, DrawBufferType::DiffuseNormal, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisNormal;
-            case tuple(true, false, DrawBufferType::DiffuseNormal, false):
+            case tuple(true, false, DrawBufferType::DiffuseNormal):
                 return shaders_fisheye::FisheyeFragOffAxisNormal;
-            case tuple(true, false, DrawBufferType::DiffusePosition, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisPosition;
-            case tuple(true, false, DrawBufferType::DiffusePosition, false):
+            case tuple(true, false, DrawBufferType::DiffusePosition):
                 return shaders_fisheye::FisheyeFragOffAxisPosition;
-            case tuple(true, false, DrawBufferType::DiffuseNormalPosition, true):
-                return shaders_fisheye_cubic::FisheyeFragOffAxisNormalPosition;
-            case tuple(true, false, DrawBufferType::DiffuseNormalPosition, false):
+            case tuple(true, false, DrawBufferType::DiffuseNormalPosition):
                 return shaders_fisheye::FisheyeFragOffAxisNormalPosition;
 
-            case tuple(false, true, DrawBufferType::Diffuse, true):
-                return shaders_fisheye_cubic::FisheyeFragDepth;
-            case tuple(false, true, DrawBufferType::Diffuse, false):
+            case tuple(false, true, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragDepth;
-            case tuple(false, true, DrawBufferType::DiffuseNormal, true):
-                return shaders_fisheye_cubic::FisheyeFragDepthNormal;
-            case tuple(false, true, DrawBufferType::DiffuseNormal, false):
+            case tuple(false, true, DrawBufferType::DiffuseNormal):
                 return shaders_fisheye::FisheyeFragDepthNormal;
-            case tuple(false, true, DrawBufferType::DiffusePosition, true):
-                return shaders_fisheye_cubic::FisheyeFragDepthPosition;
-            case tuple(false, true, DrawBufferType::DiffusePosition, false):
+            case tuple(false, true, DrawBufferType::DiffusePosition):
                 return shaders_fisheye::FisheyeFragDepthPosition;
-            case tuple(false, true, DrawBufferType::DiffuseNormalPosition, true):
-                return shaders_fisheye_cubic::FisheyeFragDepthNormalPosition;
-            case tuple(false, true, DrawBufferType::DiffuseNormalPosition, false):
+            case tuple(false, true, DrawBufferType::DiffuseNormalPosition):
                 return shaders_fisheye::FisheyeFragDepthNormalPosition;
 
-            case tuple(false, false, DrawBufferType::Diffuse, true):
-                return shaders_fisheye_cubic::FisheyeFrag;
-            case tuple(false, false, DrawBufferType::Diffuse, false):
+            case tuple(false, false, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFrag;
-            case tuple(false, false, DrawBufferType::DiffuseNormal, true):
-                return shaders_fisheye_cubic::FisheyeFragNormal;
-            case tuple(false, false, DrawBufferType::DiffuseNormal, false):
+            case tuple(false, false, DrawBufferType::DiffuseNormal):
                 return shaders_fisheye::FisheyeFragNormal;
-            case tuple(false, false, DrawBufferType::DiffusePosition, true):
-                return shaders_fisheye_cubic::FisheyeFragPosition;
-            case tuple(false, false, DrawBufferType::DiffusePosition, false):
+            case tuple(false, false, DrawBufferType::DiffusePosition):
                 return shaders_fisheye::FisheyeFragPosition;
-            case tuple(false, false, DrawBufferType::DiffuseNormalPosition, true):
-                return shaders_fisheye_cubic::FisheyeFragNormalPosition;
-            case tuple(false, false, DrawBufferType::DiffuseNormalPosition, false):
+            case tuple(false, false, DrawBufferType::DiffuseNormalPosition):
                 return shaders_fisheye::FisheyeFragNormalPosition;
 
             default:
                 throw std::logic_error("Unhandled case label");
         }
-    }(_isOffAxis, useDepth, Settings::instance().drawBufferType(), isCubic);
+    }(_isOffAxis, useDepth, Settings::instance().drawBufferType());
 
     std::string samplerShader = 
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
     _shader = ShaderProgram("FisheyeShader");
-    _shader.addShaderSource(shaders_fisheye::FisheyeVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
     _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
-    if (isCubic) {
-        _shader.addShaderSource(shaders_fisheye_cubic::interpolate, GL_FRAGMENT_SHADER);
-    }
+    _shader.addShaderSource(
+        isCubic ?
+            shaders_fisheye::InterpolateCubicFun :
+            shaders_fisheye::InterpolateLinearFun,
+        GL_FRAGMENT_SHADER
+    );
     if (_method == FisheyeMethod::FourFaceCube) {
         _shader.addShaderSource(
             shaders_fisheye::RotationFourFaceCubeFun,

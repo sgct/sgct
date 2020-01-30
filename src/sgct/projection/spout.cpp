@@ -17,7 +17,6 @@
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <sgct/shaders/internalfisheyeshaders.h>
-#include <sgct/shaders/internalfisheyeshaders_cubic.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -584,7 +583,7 @@ void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
 
-    std::string fisheyeVertShader = shaders_fisheye::FisheyeVert;
+    std::string fisheyeVertShader = shaders_fisheye::BaseVert;
     std::string fisheyeFragShader;
 
     if (Settings::instance().useDepthTexture()) {

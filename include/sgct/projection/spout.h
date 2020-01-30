@@ -48,6 +48,7 @@ private:
     static const int NFaces = 6;
 
     void initTextures() override;
+    void initVBO() override;
     void initViewports() override;
     void initShaders() override;
     void initFBO() override;
@@ -78,6 +79,9 @@ private:
     Mapping _mappingType = Mapping::Cubemap;
     std::string _mappingName = "SPOUT_OS_MAPPING";
     glm::vec3 _rigOrientation = glm::vec3(0.f);
+
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 
     int _mappingWidth;
     int _mappingHeight;

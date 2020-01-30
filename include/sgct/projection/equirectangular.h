@@ -19,6 +19,7 @@ namespace sgct {
 class EquirectangularProjection : public NonLinearProjection {
 public:
     EquirectangularProjection(const Window* parent);
+    ~EquirectangularProjection();
 
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) override;
@@ -28,6 +29,7 @@ public:
     void update(glm::vec2 size) override;
 
 private:
+    void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
@@ -38,6 +40,8 @@ private:
     struct {
         int cubemap = -1;
     } _shaderLoc;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
 } // namespace sgct

@@ -19,6 +19,7 @@ namespace sgct {
 class CylindricalProjection : public NonLinearProjection {
 public:
     CylindricalProjection(const Window* parent);
+    ~CylindricalProjection();
 
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) override;
@@ -32,6 +33,7 @@ public:
     void setRadius(float radius);
 
 private:
+    void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
@@ -48,7 +50,8 @@ private:
         int rotation = -1;
         int heightOffset = -1;
     } _shaderLoc;
-
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
 } // namespace sgct

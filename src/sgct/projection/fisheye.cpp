@@ -11,6 +11,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/internalshaders.h>
+#include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
@@ -19,11 +20,26 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
+namespace {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
+} // namespace
+
 namespace sgct {
 
 FisheyeProjection::FisheyeProjection(const Window* parent)
     : NonLinearProjection(parent)
 {}
+
+FisheyeProjection::~FisheyeProjection() {
+    glDeleteBuffers(1, &_vbo);
+    glDeleteVertexArrays(1, &_vao);
+}
 
 void FisheyeProjection::update(glm::vec2 size) {
     const float cropAspect =
@@ -47,13 +63,13 @@ void FisheyeProjection::update(glm::vec2 size) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    const std::array<const float, 20> v = {
-         -x, -y, -1.f,        _cropLeft,        _cropBottom,
-         -x,  y, -1.f,        _cropLeft,  1.f - _cropTop,
-          x, -y, -1.f, 1.f - _cropRight,        _cropBottom,
-          x,  y, -1.f, 1.f - _cropRight,  1.f - _cropTop,
+    const std::array<const Vertex, 4> v = {
+        Vertex{ -x, -y, -1.f, _cropLeft, _cropBottom },
+        Vertex{ -x,  y, -1.f, _cropLeft, 1.f - _cropTop },
+        Vertex{  x, -y, -1.f, 1.f - _cropRight, _cropBottom },
+        Vertex{  x,  y, -1.f, 1.f - _cropRight, 1.f - _cropTop }
     };
-    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(Vertex), v.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
 }
 
@@ -281,6 +297,31 @@ void FisheyeProjection::setIgnoreAspectRatio(bool state) {
 
 void FisheyeProjection::setKeepAspectRatio(bool state) {
     _keepAspectRatio = state;
+}
+
+void FisheyeProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
+    Log::Debug("Generating VAO: %d", _vao);
+    glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
+    Log::Debug("Generating VBO: %d", _vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(offsetof(Vertex, s))
+    );
+
+    glBindVertexArray(0);
 }
 
 void FisheyeProjection::initViewports() {

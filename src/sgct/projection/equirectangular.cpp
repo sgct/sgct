@@ -11,10 +11,21 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/internalshaders.h>
+#include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
+
+namespace {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
+} // namespace
 
 namespace sgct {
 
@@ -22,6 +33,11 @@ EquirectangularProjection::EquirectangularProjection(const Window* parent)
     : NonLinearProjection(parent)
 {
     setUseDepthTransformation(true);
+}
+
+EquirectangularProjection::~EquirectangularProjection() {
+    glDeleteBuffers(1, &_vbo);
+    glDeleteVertexArrays(1, &_vao);
 }
 
 void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
@@ -126,6 +142,31 @@ void EquirectangularProjection::update(glm::vec2) {
         1.f, 1.f,  1.f,  1.f, -1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
+    glBindVertexArray(0);
+}
+
+void EquirectangularProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
+    Log::Debug("Generating VAO: %d", _vao);
+    glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
+    Log::Debug("Generating VBO: %d", _vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(offsetof(Vertex, s))
+    );
+
     glBindVertexArray(0);
 }
 

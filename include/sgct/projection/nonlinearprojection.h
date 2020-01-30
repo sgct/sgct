@@ -87,7 +87,7 @@ public:
 protected:
     virtual void initTextures();
     virtual void initFBO();
-    virtual void initVBO();
+    virtual void initVBO() = 0;
     virtual void initViewports() = 0;
     virtual void initShaders() = 0;
 
@@ -133,8 +133,6 @@ protected:
     unsigned int _texFormat;
     unsigned int _texType;
     int _samples = 1;
-    unsigned int _vao = 0;
-    unsigned int _vbo = 0;
 
     ShaderProgram _shader;
     ShaderProgram _depthCorrectionShader;

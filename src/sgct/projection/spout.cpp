@@ -37,6 +37,16 @@ namespace {
 } // namespace
 #endif // SGCT_HAS_SPOUT
 
+namespace {
+    struct Vertex {
+        float x;
+        float y;
+        float z;
+        float s;
+        float t;
+    };
+} // namespace
+
 namespace sgct {
 
 SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
@@ -467,6 +477,31 @@ void SpoutOutputProjection::initTextures() {
             );
             break;
         }
+}
+
+void SpoutOutputProjection::initVBO() {
+    glGenVertexArrays(1, &_vao);
+    Log::Debug("Generating VAO: %d", _vao);
+    glBindVertexArray(_vao);
+
+    glGenBuffers(1, &_vbo);
+    Log::Debug("Generating VBO: %d", _vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(offsetof(Vertex, s))
+    );
+
+    glBindVertexArray(0);
 }
 
 void SpoutOutputProjection::initViewports() {

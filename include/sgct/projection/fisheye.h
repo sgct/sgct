@@ -22,6 +22,7 @@ public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
     FisheyeProjection(const Window* parent);
+    ~FisheyeProjection();
 
     /// Update projection when aspect ratio changes for the viewport.
     void update(glm::vec2 size) override;
@@ -86,6 +87,7 @@ public:
     void setKeepAspectRatio(bool state);
 
 private:
+    void initVBO() override;
     void initViewports() override;
     void initShaders() override;
 
@@ -124,6 +126,8 @@ private:
         int swapNear = -1;
         int swapFar = -1;
     } _shaderLoc;
+    unsigned int _vao = 0;
+    unsigned int _vbo = 0;
 };
 
 } // namespace sgct

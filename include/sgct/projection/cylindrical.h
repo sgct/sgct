@@ -37,7 +37,6 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    void drawCubeFace(BaseViewport& face, RenderData renderData);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

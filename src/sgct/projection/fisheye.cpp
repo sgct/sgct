@@ -188,7 +188,22 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             vp.projection(mode).viewProjectionMatrix() *
                 ClusterManager::instance().sceneTransform()
         );
-        drawCubeFace(vp, renderData);
+        glLineWidth(1.f);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        glDepthFunc(GL_LESS);
+
+        glEnable(GL_SCISSOR_TEST);
+        setupViewport(vp);
+
+        const glm::vec4 color = Engine::instance().clearColor();
+        const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
+        glClearColor(color.r, color.g, color.b, alpha);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glDisable(GL_SCISSOR_TEST);
+        Engine::instance().drawFunction()(renderData);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // blit MSAA fbo to texture
         if (_cubeMapFbo->isMultiSampled()) {
@@ -725,27 +740,6 @@ void FisheyeProjection::initShaders() {
 
         ShaderProgram::unbind();
     }
-}
-
-void FisheyeProjection::drawCubeFace(BaseViewport& face, RenderData renderData) {
-    glLineWidth(1.f);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_SCISSOR_TEST);
-    setupViewport(face);
-
-    const glm::vec4 color = Engine::instance().clearColor();
-    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
-    glClearColor(color.r, color.g, color.b, alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glDisable(GL_SCISSOR_TEST);
-
-    Engine::instance().drawFunction()(renderData);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void FisheyeProjection::blitCubeFace(int face) {

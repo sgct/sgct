@@ -69,10 +69,6 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.captureFormat = Settings::CaptureFormat::TGA;
             arg.erase(arg.begin() + i);
         }
-        else if (arg[i] == "-capture-png") {
-            config.captureFormat = Settings::CaptureFormat::PNG;
-            arg.erase(arg.begin() + i);
-        }
         else if (arg[i] == "-capture-jpg") {
             config.captureFormat = Settings::CaptureFormat::JPG;
             arg.erase(arg.begin() + i);
@@ -80,6 +76,10 @@ Configuration parseArguments(std::vector<std::string>& arg) {
         else if (arg[i] == "-number-capture-threads" && arg.size() > (i + 1)) {
             config.nCaptureThreads = std::stoi(arg[i + 1]);
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
+        }
+        else if (arg[i] == "-export-correction-meshes") {
+            config.exportCorrectionMeshes = true;
+            arg.erase(arg.begin() + i);
         }
         else {
             // Ignore unknown commands
@@ -102,21 +102,21 @@ Parameters:
 -client
     Run the application as client (only available when running as local)
 -debug
-    Set the notify level of messagehandler to debug
+    Set the notify level of Log to debug
 -firm-sync
     Enable firm frame sync
 -loose-sync
     Disable firm frame sync
 -ignore-sync
     Disable frame sync
--notify <integer>
-    Set the notify level used in the MessageHandler (0 = highest priority)
--capture-png
-    Use png images for screen capture (default)
+-notify <"error", "warning", "info", or "debug">
+    Set the notify level used in the Log
 -capture-jpg
     Use jpg images for screen capture
 -capture-tga
     Use tga images for screen capture
+-export-correction-meshes
+    Exports the correction warping meshes to OBJ files when loading them
 -number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
 )";

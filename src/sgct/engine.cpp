@@ -362,6 +362,9 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.nCaptureThreads) {
         Settings::instance().setNumberOfCaptureThreads(*config.nCaptureThreads);
     }
+    if (config.exportCorrectionMeshes) {
+        Settings::instance().setExportWarpingMeshes(*config.exportCorrectionMeshes);
+    }
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }

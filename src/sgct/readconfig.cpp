@@ -741,10 +741,6 @@ namespace {
             sgct::config::Settings::Display display;
             display.swapInterval = parseValue<int>(*e, "swapInterval");
             display.refreshRate = parseValue<int>(*e, "refreshRate");
-            // @TODO (abock, 2020-01-14) This should probably move to the commandline
-            // arguments instead.  There is no good reason to make this fixed for a
-            // specific configuration file
-            display.exportWarpingMeshes = parseValue<bool>(*e, "exportWarpingMeshes");
             settings.display = display;
         }
 

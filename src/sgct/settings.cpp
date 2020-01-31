@@ -58,9 +58,6 @@ void Settings::applySettings(const config::Settings& settings) {
         if (settings.display->refreshRate) {
             setRefreshRateHint(*settings.display->refreshRate);
         }
-        if (settings.display->exportWarpingMeshes) {
-            setExportWarpingMeshes(*settings.display->exportWarpingMeshes);
-        }
     }
 }
 

@@ -60,7 +60,6 @@ struct Settings {
     struct Display {
         std::optional<int> swapInterval;
         std::optional<int> refreshRate;
-        std::optional<bool> exportWarpingMeshes;
     };
 
     std::optional<bool> useDepthTexture;

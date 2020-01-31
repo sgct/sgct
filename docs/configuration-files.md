@@ -391,9 +391,6 @@ This node controls global settings that affect the overall behavior of the SGCT 
  >
  > `refreshRate` *optional* \[ integer \]
  >  > Determines the desired refresh rate for full-screen windows of this configuration.  This value is disabled for windowed mode windows.  The default value is the highest possible refresh rate.
- > 
- > `exportWarpingMeshes` *optional* \[ boolean \]
- >  > If this value is set to `true`, any warping mesh that is loaded for a viewport will be exported as an Waveform `obj` file while processing.  This allows debugging of the warping meshes for tools that only support loading of `obj` files.  The default value is `false`.
 
 
 ## SphericalMirrorProjection

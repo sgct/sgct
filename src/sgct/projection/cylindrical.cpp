@@ -140,10 +140,10 @@ void CylindricalProjection::update(glm::vec2) {
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     const std::array<const float, 20> v = {
-        0.f, 0.f, -1.f, -1.f, -1.f,
-        0.f, 1.f, -1.f,  1.f, -1.f,
-        1.f, 0.f,  1.f, -1.f, -1.f,
-        1.f, 1.f,  1.f,  1.f, -1.f
+        -1.f, -1.f, -1.f, 0.f, 0.f,
+        -1.f,  1.f, -1.f, 0.f, 1.f,
+         1.f, -1.f, -1.f, 1.f, 0.f,
+         1.f,  1.f, -1.f, 1.f, 1.f
     };
     glBufferData(GL_ARRAY_BUFFER, v.size() * sizeof(float), v.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);

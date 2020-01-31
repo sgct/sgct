@@ -97,11 +97,13 @@ The rest of the documentation contains information about the different types of 
 
 ## Projection Types
 This is a quick link to the most used parts of this documentation, the description of the projection types:
- - [PlanarProjection](#planarprojection) \[ special \]
- - [FisheyeProjection](#fisheyeprojection) \[ special \]
- - [SphericalMirrorProjection](#sphericalmirrorprojection) \[ special \]
- - [SpoutOutputProjection](#spoutoutputprojection) \[ special \]
- - [Projectionplane](#projectionplane) \[ special \]
+ - [PlanarProjection](#planarprojection)
+ - [FisheyeProjection](#fisheyeprojection)
+ - [SphericalMirrorProjection](#sphericalmirrorprojection)
+ - [SpoutOutputProjection](#spoutoutputprojection)
+ - [Projectionplane](#projectionplane)
+ - [Equirectangular] (#equirectangular)
+ - [Cylindrical](#cylindrical)
 
 
 
@@ -212,6 +214,53 @@ This node specifies a single tracking device that belongs to a specific tracker 
 > 
 > `transpose` *optional* \[ boolean \]
 >  > If this value is present and `true` the values provided are interpreted as being in row-major order, rather than column-major order.  The default is `false`, making the matrix column-major.
+
+
+# CylindricalProjection
+This projection method renders the scene into a view that can be mapped on the inside or outside of a cylinder.  This projection method is support by some live media curation tools.  The forward-facing direction will be at the left border of the image unless changed via the `rotation` option.
+
+`quality` *optional* \[ low, medium, high, 256, 512, 1k, 1024, 1.5k, 1536, 2k, 2048, 4k, 4096, 8k, 8192, 16k, 16384 \]
+> Determines the pixel resolution of the cube map faces that are reprojected to create the fisheye rendering.  The higher resolution these cube map faces have, the better quality the resulting fisheye rendering, but at the expense of increased rendering times.  The named values are corresponding:
+> 
+> - `low`: 256
+> - `medium`: 512
+> - `high`: 1024
+> - `1k`: 1024
+> - `1.5k`: 1536
+> - `2k`: 2048
+> - `4k`: 4096
+> - `8k`: 8192
+> - `16k`: 16384
+> 
+> The default value is 512.
+
+`rotation` *optional* \[ float \]
+> Provides a rotation angle (in radians) why which the cylindrical projection is offset into the resulting image.
+
+`radius` *optional* \[ float \]
+> Sets the radius of the sphere, which is only used in the cases when stereoscopic rendering is used.
+
+`heightOffset` *optional* \[ float \]
+> Offsets the height from which the cylindrical projection is generated.  This is, in general, only necessary if the user position is offset and you want to counter that offset to continue producing a "standard" cylindrical projection
+
+
+# EquirectangularProjection
+This projection method renderes an equirectangular projection (also called lat-long projection or equidistant cylindrical projection) is a default projection method used for spherical objects or maps.
+
+`quality` *optional* \[ low, medium, high, 256, 512, 1k, 1024, 1.5k, 1536, 2k, 2048, 4k, 4096, 8k, 8192, 16k, 16384 \]
+> Determines the pixel resolution of the cube map faces that are reprojected to create the fisheye rendering.  The higher resolution these cube map faces have, the better quality the resulting fisheye rendering, but at the expense of increased rendering times.  The named values are corresponding:
+> 
+> - `low`: 256
+> - `medium`: 512
+> - `high`: 1024
+> - `1k`: 1024
+> - `1.5k`: 1536
+> - `2k`: 2048
+> - `4k`: 4096
+> - `8k`: 8192
+> - `16k`: 16384
+> 
+> The default value is 512.
 
 
 ## FisheyeProjection
@@ -626,6 +675,8 @@ Following are the different kinds of projections that are currently supported.  
  - [SphericalMirrorProjection](#sphericalmirrorprojection) \[ special \]
  - [SpoutOutputProjection](#spoutoutputprojection) \[ special \]
  - [Projectionplane](#projectionplane) \[ special \]
+ - [Equirectangular] (#equirectangular) \[ special \]
+ - [Cylindrical](#cylindrical) \[ special \]
 
 
 ## Window

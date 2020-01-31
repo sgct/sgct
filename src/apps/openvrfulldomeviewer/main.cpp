@@ -239,7 +239,7 @@ void myPreDrawFun()
 }
 
 void myDrawFun()
-{    
+{
     if (texIndex.getVal() != -1)
     {
         glEnable(GL_DEPTH_TEST);

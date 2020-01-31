@@ -639,7 +639,7 @@ void FisheyeProjection::initShaders() {
         }
     }(_isOffAxis, useDepth, Settings::instance().drawBufferType());
 
-    std::string samplerShader = 
+    std::string samplerShader =
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
     _shader = ShaderProgram("FisheyeShader");

@@ -44,6 +44,8 @@ FisheyeProjection::~FisheyeProjection() {
 }
 
 void FisheyeProjection::update(glm::vec2 size) {
+    // do the cropping in the fragment shader and not by changing the vbo
+
     const float cropAspect =
         ((1.f - 2.f * _cropBottom) + (1.f - 2.f * _cropTop)) /
         ((1.f - 2.f * _cropLeft) + (1.f - 2.f * _cropRight));
@@ -173,42 +175,8 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             return;
         }
 
-        _cubeMapFbo->bind();
-        if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
+        renderCubeFace(win, vp, idx, mode);
 
-        RenderData renderData(
-            win,
-            vp,
-            mode,
-            ClusterManager::instance().sceneTransform(),
-            vp.projection(mode).viewMatrix(),
-            vp.projection(mode).projectionMatrix(),
-            vp.projection(mode).viewProjectionMatrix() *
-                ClusterManager::instance().sceneTransform()
-        );
-        glLineWidth(1.f);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        glDepthFunc(GL_LESS);
-
-        glEnable(GL_SCISSOR_TEST);
-        setupViewport(vp);
-
-        const glm::vec4 color = Engine::instance().clearColor();
-        const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
-        glClearColor(color.r, color.g, color.b, alpha);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDisable(GL_SCISSOR_TEST);
-        Engine::instance().drawFunction()(renderData);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        // blit MSAA fbo to texture
-        if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
 
         // re-calculate depth values from a cube to spherical model
         if (Settings::instance().useDepthTexture()) {

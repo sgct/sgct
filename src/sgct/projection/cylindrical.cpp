@@ -98,56 +98,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
 void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
 
-    auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
-    {
-        if (!vp.isEnabled()) {
-            return;
-        }
-
-        _cubeMapFbo->bind();
-        if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
-
-        RenderData renderData(
-            win,
-            vp,
-            mode,
-            ClusterManager::instance().sceneTransform(),
-            vp.projection(mode).viewMatrix(),
-            vp.projection(mode).projectionMatrix(),
-            vp.projection(mode).viewProjectionMatrix() *
-                ClusterManager::instance().sceneTransform()
-        );
-        glLineWidth(1.f);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        glDepthFunc(GL_LESS);
-
-        glEnable(GL_SCISSOR_TEST);
-        setupViewport(vp);
-
-        const glm::vec4 color = Engine::instance().clearColor();
-        const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
-        glClearColor(color.r, color.g, color.b, alpha);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDisable(GL_SCISSOR_TEST);
-        Engine::instance().drawFunction()(renderData);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        // blit MSAA fbo to texture
-        if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
-    };
-
-    render(window, _subViewports.right, 0, frustumMode);
-    render(window, _subViewports.left, 1, frustumMode);
-    render(window, _subViewports.bottom, 2, frustumMode);
-    render(window, _subViewports.top, 3, frustumMode);
-    render(window, _subViewports.front, 4, frustumMode);
-    render(window, _subViewports.back, 5, frustumMode);
+    renderCubeFaces(window, frustumMode);
 }
 
 void CylindricalProjection::update(glm::vec2) {

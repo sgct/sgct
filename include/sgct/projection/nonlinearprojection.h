@@ -99,7 +99,8 @@ protected:
 
     void attachTextures(int face);
     void blitCubeFace(int face);
-    void renderCubeface(const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode);
+    void renderCubeFace(const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode);
+    void renderCubeFaces(Window& window, Frustum::Mode frustumMode);
 
     struct {
         unsigned int cubeMapColor = 0;

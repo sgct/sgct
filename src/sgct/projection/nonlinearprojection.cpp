@@ -387,7 +387,7 @@ void NonLinearProjection::blitCubeFace(int face) {
     _cubeMapFbo->blit();
 }
 
-void NonLinearProjection::renderCubeface(const Window& win, BaseViewport& vp, int idx,
+void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, int idx,
                                          Frustum::Mode mode)
 {
     if (!vp.isEnabled()) {
@@ -432,5 +432,13 @@ void NonLinearProjection::renderCubeface(const Window& win, BaseViewport& vp, in
     }
 }
 
+void NonLinearProjection::renderCubeFaces(Window& window, Frustum::Mode frustumMode) {
+    renderCubeFace(window, _subViewports.right, 0, frustumMode);
+    renderCubeFace(window, _subViewports.left, 1, frustumMode);
+    renderCubeFace(window, _subViewports.bottom, 2, frustumMode);
+    renderCubeFace(window, _subViewports.top, 3, frustumMode);
+    renderCubeFace(window, _subViewports.front, 4, frustumMode);
+    renderCubeFace(window, _subViewports.back, 5, frustumMode);
+}
 
 } // namespace sgct

@@ -36,6 +36,16 @@ namespace sgct {
 
 Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
 
+void Viewport::initialize(glm::vec2 size, bool hasStereo, unsigned int internalFormat,
+                          unsigned int format, unsigned int type, int samples)
+{
+    if (_nonLinearProjection) {
+        _nonLinearProjection->setStereo(hasStereo);
+        _nonLinearProjection->initialize(internalFormat, format, type, samples);
+        _nonLinearProjection->update(std::move(size));
+    }
+}
+
 void Viewport::applyViewport(const config::Viewport& viewport) {
     ZoneScoped
 

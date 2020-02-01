@@ -335,20 +335,15 @@ void Window::initOGL() {
     loadShaders();
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        if (!vp->hasSubViewports()) {
-            continue;
-        }
-
-        vp->nonLinearProjection()->setStereo(_stereoMode != StereoMode::NoStereo);
-        vp->nonLinearProjection()->initialize(
+        glm::vec2 viewportSize = glm::vec2(_framebufferRes) * vp->size();
+        vp->initialize(
+            viewportSize,
+            _stereoMode != StereoMode::NoStereo,
             _internalColorFormat,
             _colorFormat,
             _colorDataType,
             _nAASamples
         );
-
-        glm::vec2 viewport = glm::vec2(_framebufferRes) * vp->size();
-        vp->nonLinearProjection()->update(std::move(viewport));
     }
 }
 

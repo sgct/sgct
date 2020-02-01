@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct.h>
+#include <sgct/openvr.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
 #include <stdio.h>
@@ -14,7 +15,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <sgct/openvr.h>
 
 // This is basically the simpleNavgationExample
 // Extended with only a few lines to support OpenVR

@@ -39,7 +39,6 @@ CylindricalProjection::~CylindricalProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
     _shader.deleteProgram();
-    _depthCorrectionShader.deleteProgram();
 }
 
 void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
@@ -287,7 +286,7 @@ void CylindricalProjection::initShaders() {
   }
 )";
 
-    _shader = ShaderProgram("CylindricalProjectinoShader");
+    _shader = ShaderProgram("CylindricalProjectionShader");
     _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();

@@ -39,7 +39,6 @@ EquirectangularProjection::~EquirectangularProjection() {
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
     _shader.deleteProgram();
-    _depthCorrectionShader.deleteProgram();
 }
 
 void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,

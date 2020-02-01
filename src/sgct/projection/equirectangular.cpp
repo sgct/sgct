@@ -350,41 +350,4 @@ void EquirectangularProjection::initShaders() {
     ShaderProgram::unbind();
 }
 
-void EquirectangularProjection::blitCubeFace(int face) {
-    // copy AA-buffer to "regular"/non-AA buffer
-    _cubeMapFbo->bindBlit();
-    attachTextures(face);
-    _cubeMapFbo->blit();
-}
-
-void EquirectangularProjection::attachTextures(int face) {
-    if (Settings::instance().useDepthTexture()) {
-        _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
-        _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
-    }
-    else {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapColor,
-            face,
-            GL_COLOR_ATTACHMENT0
-        );
-    }
-
-    if (Settings::instance().useNormalTexture()) {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapNormals,
-            face,
-            GL_COLOR_ATTACHMENT1
-        );
-    }
-
-    if (Settings::instance().usePositionTexture()) {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapPositions,
-            face,
-            GL_COLOR_ATTACHMENT2
-        );
-    }
-}
-
 } // namespace sgct

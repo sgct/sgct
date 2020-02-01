@@ -8,6 +8,9 @@
 
 #include <sgct/projection/nonlinearprojection.h>
 
+#include <sgct/callbackdata.h>
+#include <sgct/clustermanager.h>
+#include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/profiling.h>
@@ -346,5 +349,88 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
 
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
+
+void NonLinearProjection::attachTextures(int face) {
+    if (Settings::instance().useDepthTexture()) {
+        _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
+        _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
+    }
+    else {
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapColor,
+            face,
+            GL_COLOR_ATTACHMENT0
+        );
+    }
+
+    if (Settings::instance().useNormalTexture()) {
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapNormals,
+            face,
+            GL_COLOR_ATTACHMENT1
+        );
+    }
+
+    if (Settings::instance().usePositionTexture()) {
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapPositions,
+            face,
+            GL_COLOR_ATTACHMENT2
+        );
+    }
+}
+
+void NonLinearProjection::blitCubeFace(int face) {
+    // copy AA-buffer to "regular"/non-AA buffer
+    _cubeMapFbo->bindBlit();
+    attachTextures(face);
+    _cubeMapFbo->blit();
+}
+
+void NonLinearProjection::renderCubeface(const Window& win, BaseViewport& vp, int idx,
+                                         Frustum::Mode mode)
+{
+    if (!vp.isEnabled()) {
+        return;
+    }
+
+    _cubeMapFbo->bind();
+    if (!_cubeMapFbo->isMultiSampled()) {
+        attachTextures(idx);
+    }
+
+    RenderData renderData(
+        win,
+        vp,
+        mode,
+        ClusterManager::instance().sceneTransform(),
+        vp.projection(mode).viewMatrix(),
+        vp.projection(mode).projectionMatrix(),
+        vp.projection(mode).viewProjectionMatrix() *
+            ClusterManager::instance().sceneTransform()
+    );
+    glLineWidth(1.f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_SCISSOR_TEST);
+    setupViewport(vp);
+
+    const glm::vec4 color = Engine::instance().clearColor();
+    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
+    glClearColor(color.r, color.g, color.b, alpha);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_SCISSOR_TEST);
+    Engine::instance().drawFunction()(renderData);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    // blit MSAA fbo to texture
+    if (_cubeMapFbo->isMultiSampled()) {
+        blitCubeFace(idx);
+    }
+}
+
 
 } // namespace sgct

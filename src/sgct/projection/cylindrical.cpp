@@ -119,7 +119,6 @@ void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             vp.projection(mode).viewProjectionMatrix() *
                 ClusterManager::instance().sceneTransform()
         );
-
         glLineWidth(1.f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -348,43 +347,6 @@ void CylindricalProjection::initShaders() {
     _shaderLoc.heightOffset = glGetUniformLocation(_shader.id(), "heightOffset");
 
     ShaderProgram::unbind();
-}
-
-void CylindricalProjection::blitCubeFace(int face) {
-    // copy AA-buffer to "regular"/non-AA buffer
-    _cubeMapFbo->bindBlit();
-    attachTextures(face);
-    _cubeMapFbo->blit();
-}
-
-void CylindricalProjection::attachTextures(int face) {
-    if (Settings::instance().useDepthTexture()) {
-        _cubeMapFbo->attachDepthTexture(_textures.depthSwap);
-        _cubeMapFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
-    }
-    else {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapColor,
-            face,
-            GL_COLOR_ATTACHMENT0
-        );
-    }
-
-    if (Settings::instance().useNormalTexture()) {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapNormals,
-            face,
-            GL_COLOR_ATTACHMENT1
-        );
-    }
-
-    if (Settings::instance().usePositionTexture()) {
-        _cubeMapFbo->attachCubeMapTexture(
-            _textures.cubeMapPositions,
-            face,
-            GL_COLOR_ATTACHMENT2
-        );
-    }
 }
 
 void CylindricalProjection::setRotation(float rotation) {

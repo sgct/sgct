@@ -91,9 +91,6 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    void blitCubeFace(int face);
-    void attachTextures(int face);
-
     float _fov = 180.f;
     float _tilt = 0.f;
     float _diameter = 14.8f;

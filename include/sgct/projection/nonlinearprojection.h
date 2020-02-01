@@ -97,6 +97,10 @@ protected:
     void generateCubeMap(unsigned int& texture, unsigned int internalFormat,
         unsigned int format, unsigned int type);
 
+    void attachTextures(int face);
+    void blitCubeFace(int face);
+    void renderCubeface(const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode);
+
     struct {
         unsigned int cubeMapColor = 0;
         unsigned int cubeMapDepth = 0;

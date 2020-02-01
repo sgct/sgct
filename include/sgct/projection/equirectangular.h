@@ -33,9 +33,6 @@ private:
     void initViewports() override;
     void initShaders() override;
 
-    void blitCubeFace(int face);
-    void attachTextures(int face);
-
     struct {
         int cubemap = -1;
     } _shaderLoc;

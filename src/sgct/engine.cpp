@@ -368,6 +368,17 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
+    if (config.screenshotPrefix) {
+        std::string path = *config.screenshotPrefix;
+        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
+        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
+    }
+    if (config.omitNodeNameInScreenshot) {
+        Settings::instance().setAddNodeNamesToScreenshot(
+            !*config.omitNodeNameInScreenshot
+        );
+    }
     if (cluster.setThreadAffinity) {
 #ifdef WIN32
         SetThreadAffinityMask(GetCurrentThread(), *cluster.setThreadAffinity);
@@ -548,8 +559,12 @@ void Engine::initialize() {
     Log::Info("Vendor: %s", glGetString(GL_VENDOR));
     Log::Info("Renderer: %s", glGetString(GL_RENDERER));
 
-    if (ClusterManager::instance().numberOfNodes() > 1) {
-        std::string path = Settings::instance().capturePath() + "_node";
+    if (ClusterManager::instance().numberOfNodes() > 1 &&
+        Settings::instance().shouldAddNodeNamesToScreenshot())
+    {
+        std::string path = Settings::instance().capturePath().empty() ?
+            "node" :
+            Settings::instance().capturePath() + "_name";
         path += std::to_string(ClusterManager::instance().thisNodeId());
 
         Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);

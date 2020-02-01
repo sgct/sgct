@@ -200,6 +200,10 @@ void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
 }
 
+void Settings::setAddNodeNamesToScreenshot(bool state) {
+    _addNodeNameToScreenshots = state;
+}
+
 bool Settings::exportWarpingMeshes() const {
     return _exportWarpingMeshes;
 }
@@ -211,6 +215,10 @@ bool Settings::captureFromBackBuffer() const {
 unsigned int Settings::bufferFloatPrecision() const {
     return
         _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
+}
+
+bool Settings::shouldAddNodeNamesToScreenshot() const {
+    return _addNodeNameToScreenshots;
 }
 
 } // namespace sgct

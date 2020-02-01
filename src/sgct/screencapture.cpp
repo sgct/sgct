@@ -231,7 +231,12 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
             filename += "_win" + std::to_string(_windowIndex);
         }
         else {
-            filename += '_' + win.name();
+            if (filename.empty()) {
+                filename = win.name();
+            }
+            else {
+                filename += '_' + win.name();
+            }
         }
     }
     else {
@@ -240,24 +245,28 @@ std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
 
     filename += eye;
 
+    if (!filename.empty()) {
+        filename += '_';
+    }
+
     // add frame numbers
     if (frameNumber < 10) {
-        filename += "_00000" + std::to_string(frameNumber);
+        filename += "00000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 100) {
-        filename += "_0000" + std::to_string(frameNumber);
+        filename += "0000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 1000) {
-        filename += "_000" + std::to_string(frameNumber);
+        filename += "000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 10000) {
-        filename += "_00" + std::to_string(frameNumber);
+        filename += "00" + std::to_string(frameNumber);
     }
     else if (frameNumber < 100000) {
-        filename += "_0" + std::to_string(frameNumber);
+        filename += '0' + std::to_string(frameNumber);
     }
     else if (frameNumber < 1000000) {
-        filename += '_' + std::to_string(frameNumber);
+        filename += std::to_string(frameNumber);
     }
 
     return filename + '.' + suffix;

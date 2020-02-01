@@ -39,3 +39,9 @@ Commandline arguments are parsed through the `parseArguments` function contained
 
  > `-number-capture-threads` \[ integer \]
  >  > Sets the maximum number of threads that should be used for frame capturing
+
+ > `-screenshot-prefix`
+ >  > Sets the prefix used for the screenshots taken by this application.  The default value for the prefix is "SGCT"
+
+ > `-omit-node-name-in-screenshot`
+ >  > If set, screenshots will not contain the name of the node in multi-node configurations.  The default value is that the numerical identifier is used as the name for the node.

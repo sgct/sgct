@@ -96,6 +96,9 @@ public:
     /// Set to true if warping meshes should be exported as OBJ files.
     void setExportWarpingMeshes(bool state);
 
+    /// If set to true, the node name is added to screenshots
+    void setAddNodeNamesToScreenshot(bool state);
+
     /**
      * Get the capture/screenshot path.
      *
@@ -146,6 +149,9 @@ public:
     /// Get the number of capture threads (for screenshot recording)
     int numberCaptureThreads() const;
 
+    /// Returns whether screenshots should contain the node name
+    bool shouldAddNodeNamesToScreenshot() const;
+
     /// \return the drawBufferType
     DrawBufferType drawBufferType() const;
 
@@ -164,6 +170,7 @@ private:
     bool _usePositionTexture = false;
     bool _captureBackBuffer = false;
     bool _exportWarpingMeshes = false;
+    bool _addNodeNameToScreenshots = true;
 
     struct {
         std::string mono = "SGCT";

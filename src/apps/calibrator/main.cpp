@@ -424,48 +424,65 @@ void postDraw() {
     }
 
     if (Engine::instance().isMaster() && runTests) {
+        constexpr const int FrameGridFirstScreenshot = 5;
+        constexpr const int FrameGridSettingBackBuffer = 10;
+        constexpr const int FrameGridSecondScreenshot = 15;
+        constexpr const int ChangeToBox = 20;
+        constexpr const int FrameBoxFirstScreenshot = 25;
+        constexpr const int FrameBoxSettingBackBuffer = 30;
+        constexpr const int FrameBoxSecondScreenshot = 35;
+        constexpr const int FrameTerminate = 40;
 
-        if (frameNumber == 5) {
-            Log::Info("Setting to take first grid screenshot");
-            takeScreenshot = true;
-        }
-
-        if (frameNumber == 15) {
-            Log::Info("Setting to capture from Back buffer");
-            captureBackbuffer = true;
-        }
-
-        if (frameNumber == 25) {
-            Log::Info("Setting to take second grid screenshot");
-            takeScreenshot = true;
-        }
-
-        if (frameNumber == 35) {
-            Log::Info("Setting to capture from front buffer");
-            Log::Info("Changing the rendering to the test box");
-            captureBackbuffer = false;
-            renderGrid = false;
-            renderBox = true;
-        }
-
-        if (frameNumber == 45) {
-            Log::Info("Setting to take first box screenshot");
-            takeScreenshot = true;
-        }
-
-        if (frameNumber == 55) {
-            Log::Info("Setting to capture from Back buffer");
-            captureBackbuffer = true;
-        }
-
-        if (frameNumber == 65) {
-            Log::Info("Setting to take seocond box screenshot");
-            takeScreenshot = true;
-        }
-
-        // Give the screenshot threads some time to finished before we terminate
-        if (frameNumber == 75) {
-            Engine::instance().terminate();
+        switch (frameNumber) {
+            case FrameGridFirstScreenshot:
+                Log::Info("Setting to take first grid screenshot");
+                takeScreenshot = true;
+                break;
+            case FrameGridFirstScreenshot + 2:
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                break;
+            case FrameGridSettingBackBuffer:
+                Log::Info("Setting to capture from Back buffer");
+                captureBackbuffer = true;
+                break;
+            case FrameGridSecondScreenshot:
+                Log::Info("Setting to take second grid screenshot");
+                takeScreenshot = true;
+                break;
+            case FrameGridSecondScreenshot + 2:
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                break;
+            case ChangeToBox:
+                Log::Info("Setting to capture from front buffer");
+                Log::Info("Changing the rendering to the test box");
+                captureBackbuffer = false;
+                renderGrid = false;
+                renderBox = true;
+                break;
+            case FrameBoxFirstScreenshot:
+                Log::Info("Setting to take first box screenshot");
+                takeScreenshot = true;
+                break;
+            case FrameBoxFirstScreenshot + 2:
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                break;
+            case FrameBoxSettingBackBuffer:
+                Log::Info("Setting to capture from Back buffer");
+                captureBackbuffer = true;
+                break;
+            case FrameBoxSecondScreenshot:
+                Log::Info("Setting to take second box screenshot");
+                takeScreenshot = true;
+                break;
+            case FrameBoxSecondScreenshot + 2:
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                break;
+            case FrameTerminate:
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                Engine::instance().terminate();
+                break;
+            default:
+                break;
         }
     }
 }

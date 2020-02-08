@@ -9,8 +9,7 @@
 #ifndef __SGCT__CONFIG__H__
 #define __SGCT__CONFIG__H__
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <sgct/math.h>
 #include <optional>
 #include <string>
 #include <variant>
@@ -26,8 +25,8 @@ struct User {
 
     std::optional<std::string> name;
     std::optional<float> eyeSeparation;
-    std::optional<glm::vec3> position;
-    std::optional<glm::mat4> transformation;
+    std::optional<vec3> position;
+    std::optional<mat4> transformation;
     std::optional<Tracking> tracking;
 };
 void validateUser(const User& user);
@@ -36,9 +35,7 @@ void validateUser(const User& user);
 
 struct Capture {
     enum class Format { PNG, JPG, TGA };
-    std::optional<std::string> monoPath;
-    std::optional<std::string> leftPath;
-    std::optional<std::string> rightPath;
+    std::optional<std::string> path;
     std::optional<Format> format;
 };
 void validateCapture(const Capture& capture);
@@ -46,8 +43,8 @@ void validateCapture(const Capture& capture);
 
 
 struct Scene {
-    std::optional<glm::vec3> offset;
-    std::optional<glm::quat> orientation;
+    std::optional<vec3> offset;
+    std::optional<quat> orientation;
     std::optional<float> scale;
 };
 void validateScene(const Scene& scene);
@@ -90,8 +87,8 @@ struct Device {
     std::vector<Sensors> sensors;
     std::vector<Buttons> buttons;
     std::vector<Axes> axes;
-    std::optional<glm::vec3> offset;
-    std::optional<glm::mat4> transformation;
+    std::optional<vec3> offset;
+    std::optional<mat4> transformation;
 };
 void validateDevice(const Device& device);
 
@@ -100,9 +97,9 @@ void validateDevice(const Device& device);
 struct Tracker {
     std::string name;
     std::vector<Device> devices;
-    std::optional<glm::vec3> offset;
+    std::optional<vec3> offset;
     std::optional<double> scale;
-    std::optional<glm::mat4> transformation;
+    std::optional<mat4> transformation;
 };
 void validateTracker(const Tracker& tracker);
 
@@ -121,8 +118,8 @@ struct PlanarProjection {
         std::optional<float> distance;
     };
     FOV fov;
-    std::optional<glm::quat> orientation;
-    std::optional<glm::vec3> offset;
+    std::optional<quat> orientation;
+    std::optional<vec3> offset;
 };
 void validatePlanarProjection(const PlanarProjection& proj);
 
@@ -145,8 +142,8 @@ struct FisheyeProjection {
     std::optional<float> diameter;
     std::optional<Crop> crop;
     std::optional<bool> keepAspectRatio;
-    std::optional<glm::vec3> offset;
-    std::optional<glm::vec4> background;
+    std::optional<vec3> offset;
+    std::optional<vec4> background;
 };
 void validateFisheyeProjection(const FisheyeProjection& proj);
 
@@ -161,7 +158,7 @@ struct SphericalMirrorProjection {
     };
     std::optional<int> quality;
     std::optional<float> tilt;
-    std::optional<glm::vec4> background;
+    std::optional<vec4> background;
     Mesh mesh;
 };
 void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
@@ -181,9 +178,9 @@ struct SpoutOutputProjection {
     std::optional<int> quality;
     std::optional<Mapping> mapping;
     std::string mappingSpoutName;
-    std::optional<glm::vec4> background;
+    std::optional<vec4> background;
     std::optional<Channels> channels;
-    std::optional<glm::vec3> orientation;
+    std::optional<vec3> orientation;
 };
 void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
@@ -206,9 +203,9 @@ void validateEquirectangularProjection(const EquirectangularProjection& proj);
 
 
 struct ProjectionPlane {
-    glm::vec3 lowerLeft = glm::vec3(0.f);
-    glm::vec3 upperLeft = glm::vec3(0.f);
-    glm::vec3 upperRight = glm::vec3(0.f);
+    vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };
+    vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
+    vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
 };
 void validateProjectionPlane(const ProjectionPlane& proj);
 
@@ -222,13 +219,13 @@ struct MpcdiProjection {
         float right;
     };
     std::optional<std::string> id;
-    std::optional<glm::vec2> position;
-    std::optional<glm::vec2> size;
-    std::optional<glm::vec2> resolution;
+    std::optional<vec2> position;
+    std::optional<vec2> size;
+    std::optional<vec2> resolution;
     std::optional<Frustum> frustum;
     std::optional<float> distance;
-    std::optional<glm::quat> orientation;
-    std::optional<glm::vec3> offset;
+    std::optional<quat> orientation;
+    std::optional<vec3> offset;
 };
 void validateMpcdiProjection(const MpcdiProjection& proj);
 
@@ -244,8 +241,8 @@ struct Viewport {
     std::optional<std::string> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;
-    std::optional<glm::vec2> position;
-    std::optional<glm::vec2> size;
+    std::optional<vec2> position;
+    std::optional<vec2> size;
 
     std::variant<NoProjection, CylindricalProjection, EquirectangularProjection,
         FisheyeProjection, PlanarProjection, ProjectionPlane, SphericalMirrorProjection,
@@ -303,9 +300,9 @@ struct Window {
     std::optional<int> monitor;
     std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;
-    std::optional<glm::ivec2> pos;
-    glm::ivec2 size = glm::ivec2(1);
-    std::optional<glm::ivec2> resolution;
+    std::optional<ivec2> pos;
+    ivec2 size = ivec2{ 1, 1 };
+    std::optional<ivec2> resolution;
 
     std::vector<Viewport> viewports;
 };

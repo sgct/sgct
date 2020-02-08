@@ -11,6 +11,9 @@
 #include <sgct/user.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     constexpr const float RotationSpeed = 0.0017f;
@@ -358,13 +361,14 @@ void preSync() {
          */
 
         // 4. transform user back to original position
-        xform = glm::translate(glm::mat4(1.f), Engine::defaultUser().posMono());
+        vec3 mono = Engine::defaultUser().posMono();
+        xform = glm::translate(glm::mat4(1.f), glm::vec3(mono.x, mono.y, mono.z));
         // 3. apply view rotation
         xform *= viewRotateX;
         // 2. apply navigation translation
         xform *= glm::translate(glm::mat4(1.f), pos);
         // 1. transform user to coordinate system origin
-        xform *= glm::translate(glm::mat4(1.f), -Engine::defaultUser().posMono());
+        xform *= glm::translate(glm::mat4(1.f), -glm::vec3(mono.x, mono.y, mono.z));
     }
 }
 
@@ -374,10 +378,10 @@ void draw(const RenderData& data) {
 
     glDisable(GL_DEPTH_TEST);
 
-    drawXZGrid(data.modelViewProjectionMatrix);
+    drawXZGrid(glm::make_mat4(data.modelViewProjectionMatrix.values));
 
     for (int i = 0; i < NumberOfPyramids; i++) {
-        drawPyramid(data.modelViewProjectionMatrix, i);
+        drawPyramid(glm::make_mat4(data.modelViewProjectionMatrix.values), i);
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -448,7 +452,7 @@ int main(int argc, char** argv) {
 
     try {
         Engine::create(cluster, callbacks, config);
-        Engine::instance().setClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+        Engine::instance().setClearColor(vec4{ 0.1f, 0.1f, 0.1f, 1.f });
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());

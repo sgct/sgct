@@ -65,7 +65,7 @@ void Image::load(const std::string& filename) {
     }
 
     stbi_set_flip_vertically_on_load(1);
-    _data = stbi_load(filename.c_str(), &_size[0], &_size[1], &_nChannels, 0);
+    _data = stbi_load(filename.c_str(), &_size.x, &_size.y, &_nChannels, 0);
     if (_data == nullptr) {
         throw Err(9001, "Could not open file '" + filename + "' for loading image");
     }
@@ -82,7 +82,7 @@ void Image::load(const std::string& filename) {
 
 void Image::load(unsigned char* data, int length) {
     stbi_set_flip_vertically_on_load(1);
-    _data = stbi_load_from_memory(data, length, &_size[0], &_size[1], &_nChannels, 0);
+    _data = stbi_load_from_memory(data, length, &_size.x, &_size.y, &_nChannels, 0);
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
 
@@ -249,11 +249,11 @@ int Image::bytesPerChannel() const {
     return _bytesPerChannel;
 }
 
-glm::ivec2 Image::size() const {
+ivec2 Image::size() const {
     return _size;
 }
 
-void Image::setSize(glm::ivec2 size) {
+void Image::setSize(ivec2 size) {
     _size = std::move(size);
 }
 

@@ -81,12 +81,20 @@ Configuration parseArguments(std::vector<std::string>& arg) {
             config.exportCorrectionMeshes = true;
             arg.erase(arg.begin() + i);
         }
+        else if (arg[i] == "-screenshot-path") {
+            config.screenshotPath = arg[i + 1];
+            arg.erase(arg.begin() + i, arg.begin() + i + 2);
+        }
         else if (arg[i] == "-screenshot-prefix") {
             config.screenshotPrefix = arg[i + 1];
             arg.erase(arg.begin() + i, arg.begin() + i + 2);
         }
+        else if (arg[i] == "-add-node-name-in-screenshot") {
+            config.addNodeNameInScreenshot = true;
+            arg.erase(arg.begin() + i);
+        }
         else if (arg[i] == "-omit-node-name-in-screenshot") {
-            config.omitNodeNameInScreenshot = true;
+            config.omitWindowNameInScreenshot = true;
             arg.erase(arg.begin() + i);
         }
         else {
@@ -125,10 +133,14 @@ Parameters:
     Use tga images for screen capture
 -export-correction-meshes
     Exports the correction warping meshes to OBJ files when loading them
+-screenshot-path
+    Sets the file path for the screenshots location
 -screenshot-prefix
     Sets the prefix used for taking screenshots
+-add-node-name-in-screenshot
+    If set, screenshots will contain the name of the node in multi-node configurations
 -omit-node-name-in-screenshot
-    If set, screenshots will not contain the name of the node in multi-node configurations
+    If set, screenshots will not contain the name of the window if multiple windows exist
 -number-capture-threads <integer>
     Set the maximum amount of thread that should be used during framecapture
 )";

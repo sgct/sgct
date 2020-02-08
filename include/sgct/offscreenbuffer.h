@@ -9,7 +9,7 @@
 #ifndef __SGCT__OFFSCREENBUFFER__H__
 #define __SGCT__OFFSCREENBUFFER__H__
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 
 namespace sgct {
 
@@ -64,7 +64,7 @@ private:
     unsigned int _depthBuffer = 0;
     unsigned int _internalColorFormat = 0x8058; // GL_RGBA8;
 
-    glm::ivec2 _size = glm::ivec2(-1);
+    ivec2 _size = ivec2{ -1, -1 };
     bool _isMultiSampled = false;
 };
 

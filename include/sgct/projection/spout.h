@@ -12,7 +12,6 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
-#include <glm/glm.hpp>
 #include <array>
 #include <memory>
 
@@ -32,10 +31,10 @@ public:
         bool zRight);
     void setSpoutMappingName(std::string name);
     void setSpoutMapping(Mapping type);
-    void setSpoutRigOrientation(glm::vec3 orientation);
+    void setSpoutRigOrientation(vec3 orientation);
 
     /// Update projection when aspect ratio changes for the viewport.
-    void update(glm::vec2 size) override;
+    void update(vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
     void render(const Window& window, const BaseViewport& viewport,
@@ -78,7 +77,7 @@ private:
     unsigned int _mappingTexture = 0;
     Mapping _mappingType = Mapping::Cubemap;
     std::string _mappingName = "SPOUT_OS_MAPPING";
-    glm::vec3 _rigOrientation = glm::vec3(0.f);
+    vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

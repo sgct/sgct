@@ -11,7 +11,6 @@
 
 #include <sgct/baseviewport.h>
 #include <sgct/shaderprogram.h>
-#include <glm/glm.hpp>
 #include <memory>
 #include <string>
 
@@ -39,7 +38,7 @@ public:
     virtual void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) = 0;
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
-    virtual void update(glm::vec2 size) = 0;
+    virtual void update(vec2 size) = 0;
 
     void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
 
@@ -68,7 +67,7 @@ public:
      *
      * \param color is the RGBA color vector
      */
-    void setClearColor(glm::vec4 color);
+    void setClearColor(vec4 color);
 
     /**
      * Set the alpha clear color value for the non-linear projection renderer.
@@ -82,7 +81,7 @@ public:
     /// \return the resolution of the cubemap
     int cubemapResolution() const;
 
-    glm::ivec4 viewportCoords();
+    ivec4 viewportCoords();
 
 protected:
     virtual void initTextures();
@@ -130,8 +129,8 @@ protected:
     Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
     int _cubemapResolution = 512;
-    glm::vec4 _clearColor = glm::vec4(0.3f, 0.3f, 0.3f, 1.f);
-    glm::ivec4 _vpCoords = glm::ivec4(0);
+    vec4 _clearColor = vec4{ 0.3f, 0.3f, 0.3f, 1.f };
+    ivec4 _vpCoords = ivec4{ 0, 0, 0, 0 };
     bool _useDepthTransformation = false;
     bool _isStereo = false;
     unsigned int _texInternalFormat;

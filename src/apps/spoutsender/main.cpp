@@ -10,6 +10,8 @@
 
 #include <sgct/utils/box.h>
 #include <SpoutLibrary.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     std::unique_ptr<sgct::utils::Box> box;
@@ -77,7 +79,7 @@ void draw(RenderData data) {
         static_cast<float>(currentTime * (Speed / 2.0)),
         glm::vec3(1.f, 0.f, 0.f)
     );
-    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
 
     glActiveTexture(GL_TEXTURE0);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
@@ -168,7 +170,7 @@ void initOGL(GLFWwindow*) {
     }
 
     // set background
-    Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
+    Engine::instance().setClearColor(vec4{ 0.3f, 0.3f, 0.3f, 0.f });
 
     texture = TextureManager::instance().loadTexture("box.png", true);
 

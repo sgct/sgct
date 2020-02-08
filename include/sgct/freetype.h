@@ -9,7 +9,7 @@
 #ifndef __SGCT__FREETYPE__H__
 #define __SGCT__FREETYPE__H__
 
-#include <glm/fwd.hpp>
+#include <sgct/math.h>
 
 namespace sgct {
     class BaseViewport;
@@ -23,8 +23,7 @@ class Font;
 enum class Alignment { TopLeft, TopCenter, TopRight};
 
 void print(const Window& window, const BaseViewport& viewport, Font& font,
-    Alignment mode, float x, float y, const glm::vec4& color,
-    const char* format, ...);
+    Alignment mode, float x, float y, const vec4& color, const char* format, ...);
 
 } // namespace sgct::text
 

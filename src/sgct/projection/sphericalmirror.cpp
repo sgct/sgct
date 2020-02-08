@@ -16,8 +16,17 @@
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <algorithm>
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif // WIN32
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
 
 namespace {
     constexpr const char* SphericalProjectionVert = R"(
@@ -49,6 +58,13 @@ namespace {
 
   void main() { out_color = tr_color * texture(tex, tr_uv); }
 )";
+
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
 } // namespace
 
 namespace sgct {
@@ -72,7 +88,7 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void SphericalMirrorProjection::update(glm::vec2) {}
+void SphericalMirrorProjection::update(vec2) {}
 
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
                                        Frustum::Mode frustumMode)
@@ -84,7 +100,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
     glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _shader.bind();
@@ -147,9 +163,9 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
 
         setupViewport(bv);
 
-        const glm::vec4 color = Engine::instance().clearColor();
-        const float a = window.hasAlpha() ? 0.f : color.a;
-        glClearColor(color.r, color.g, color.b, a);
+        const vec4 color = Engine::instance().clearColor();
+        const float a = window.hasAlpha() ? 0.f : color.w;
+        glClearColor(color.x, color.y, color.z, a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         RenderData renderData(
@@ -234,9 +250,9 @@ void SphericalMirrorProjection::initViewports() {
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.right.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 
@@ -244,9 +260,9 @@ void SphericalMirrorProjection::initViewports() {
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.left.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 
@@ -257,18 +273,18 @@ void SphericalMirrorProjection::initViewports() {
     {
         glm::mat4 r = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
         _subViewports.top.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 
     // front
     {
         _subViewports.front.projectionPlane().setCoordinates(
-            glm::vec3(tiltMat * lowerLeftBase),
-            glm::vec3(tiltMat * upperLeftBase),
-            glm::vec3(tiltMat * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(tiltMat * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(tiltMat * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(tiltMat * upperRightBase))
         );
     }
 

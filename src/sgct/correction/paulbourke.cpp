@@ -17,8 +17,8 @@
 
 namespace sgct::correction {
 
-Buffer generatePaulBourkeMesh(const std::string& path, const glm::ivec2& pos,
-                              const glm::ivec2& size, float aspectRatio)
+Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const vec2& size,
+                              float aspectRatio)
 {
     ZoneScoped
 

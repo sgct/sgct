@@ -12,3 +12,8 @@ target_link_libraries(example1 PRIVATE sgct)
 
 copy_sgct_dynamic_libraries(example1)
 set_target_properties(example1 PROPERTIES FOLDER "Examples")
+
+set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(GLM REQUIRED)
+mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
+target_include_directories(example1 SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})

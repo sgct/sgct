@@ -64,7 +64,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
     glGenFramebuffers(1, &_frameBuffer);
     glGenRenderbuffers(1, &_depthBuffer);
 
-    _size = glm::ivec2(width, height);
+    _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
 
     // create a multisampled buffer
@@ -199,7 +199,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 }
 
 void OffScreenBuffer::resizeFBO(int width, int height, int samples) {
-    _size = glm::ivec2(width, height);
+    _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
 
     glDeleteFramebuffers(1, &_frameBuffer);

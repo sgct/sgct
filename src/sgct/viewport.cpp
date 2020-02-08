@@ -36,7 +36,7 @@ namespace sgct {
 
 Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
 
-void Viewport::initialize(glm::vec2 size, bool hasStereo, unsigned int internalFormat,
+void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
                           unsigned int format, unsigned int type, int samples)
 {
     if (_nonLinearProjection) {
@@ -123,7 +123,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
             mpcdi.frustum->down,
             mpcdi.frustum->left,
             mpcdi.frustum->right,
-            mpcdi.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
+            mpcdi.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
             mpcdi.distance.value_or(10.f)
         );
         if (mpcdi.offset) {
@@ -140,7 +140,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
         proj.fov.down,
         proj.fov.left,
         proj.fov.right,
-        proj.orientation.value_or(glm::quat(1.f, 0.f, 0.f, 0.f)),
+        proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
         proj.fov.distance.value_or(10.f)
     );
     if (proj.offset) {

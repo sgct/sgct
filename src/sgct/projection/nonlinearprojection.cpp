@@ -102,12 +102,12 @@ void NonLinearProjection::setStereo(bool state) {
     _isStereo = state;
 }
 
-void NonLinearProjection::setClearColor(glm::vec4 color) {
+void NonLinearProjection::setClearColor(vec4 color) {
     _clearColor = std::move(color);
 }
 
 void NonLinearProjection::setAlpha(float alpha) {
-    _clearColor.a = alpha;
+    _clearColor.w = alpha;
 }
 
 void NonLinearProjection::setUser(User* user) {
@@ -123,7 +123,7 @@ int NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
-glm::ivec4 NonLinearProjection::viewportCoords() {
+ivec4 NonLinearProjection::viewportCoords() {
     return _vpCoords;
 }
 
@@ -203,12 +203,12 @@ void NonLinearProjection::initFBO() {
 void NonLinearProjection::setupViewport(BaseViewport& vp) {
     const float cmRes = static_cast<float>(_cubemapResolution);
 
-    _vpCoords = glm::ivec4(
+    _vpCoords = ivec4{
         static_cast<int>(floor(vp.position().x * cmRes + 0.5f)),
         static_cast<int>(floor(vp.position().y * cmRes + 0.5f)),
         static_cast<int>(floor(vp.size().x * cmRes + 0.5f)),
         static_cast<int>(floor(vp.size().y * cmRes + 0.5f))
-    );
+    };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
     glScissor(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -417,9 +417,9 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
     glEnable(GL_SCISSOR_TEST);
     setupViewport(vp);
 
-    const glm::vec4 color = Engine::instance().clearColor();
-    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
-    glClearColor(color.r, color.g, color.b, alpha);
+    const vec4 color = Engine::instance().clearColor();
+    const float alpha = renderData.window.hasAlpha() ? 0.f : color.w;
+    glClearColor(color.x, color.y, color.z, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);

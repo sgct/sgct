@@ -8,6 +8,9 @@
 
 #include <sgct/sgct.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 namespace {
     constexpr const int ExtendedSize = 10000;
 
@@ -59,7 +62,7 @@ void draw2D(const RenderData& data) {
         text::Alignment::TopLeft,
         100,
         500,
-        glm::vec4(0.f, 1.f, 0.f, 1.f),
+        vec4{ 0.f, 1.f, 0.f, 1.f },
         "Time: %ls", sTimeOfDay.c_str()
     );
     if (extraPackages && extraData.size() == ExtendedSize) {
@@ -71,7 +74,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             xp,
             150.f,
-            glm::vec4(0.f, 1.f, 0.5f, 1.f),
+            vec4{ 0.f, 1.f, 0.5f, 1.f },
             "Vector val: %f, size: %u",
             extraData[ExtendedSize / 2], extraData.size()
         );
@@ -90,32 +93,32 @@ void draw(const RenderData& data) {
             // even
             if (data.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind  -> red
-                Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 1.f, 1.f));
+                Engine::instance().setClearColor(vec4{ 0.f, 0.f, 1.f, 1.f });
             }
             else {
                 // right -> blue
-                Engine::instance().setClearColor(glm::vec4(1.f, 0.f, 0.f, 1.f));
+                Engine::instance().setClearColor(vec4{ 1.f, 0.f, 0.f, 1.f });
             }
         }
         else {
             // odd
             if (data.frustumMode == Frustum::Mode::StereoRightEye) {
                 // left eye or mono since clear color is one step behind
-                Engine::instance().setClearColor(glm::vec4(0.5f, 0.5f, 0.5f, 1.f));
+                Engine::instance().setClearColor(vec4{ 0.5f, 0.5f, 0.5f, 1.f });
             }
             else {
                 //right
-                Engine::instance().setClearColor(glm::vec4(0.f, 1.f, 0.f, 1.f));
+                Engine::instance().setClearColor(vec4{ 0.f, 1.f, 0.f, 1.f });
             }
         }
     }
     else {
-        Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
+        Engine::instance().setClearColor(vec4{ 0.f, 0.f, 0.f, 0.f });
     }
 
     ShaderManager::instance().shaderProgram("simple").bind();
     glm::mat4 matrix = glm::rotate(
-        data.modelViewProjectionMatrix,
+        glm::make_mat4(data.modelViewProjectionMatrix.values),
         glm::radians(static_cast<float>(currentTime) * speed),
         glm::vec3(0.f, 1.f, 0.f)
     );
@@ -137,7 +140,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopRight,
             pos,
             200,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Left"
         );
     }
@@ -149,7 +152,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos,
             150,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Right"
         );
     }
@@ -161,7 +164,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos,
             200,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Mono"
         );
     }
@@ -174,7 +177,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos - pos / 2.f,
             450,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Swap group: Active"
         );
 
@@ -185,7 +188,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos - pos / 2.f,
             500,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Press B to toggle barrier and R to reset counter"
         );
 
@@ -197,7 +200,7 @@ void draw(const RenderData& data) {
                 text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 400,
-                glm::vec4(1.f),
+                vec4{ 1.f, 1.f, 1.f, 1.f },
                 "Swap barrier: Active"
             );
         }
@@ -209,7 +212,7 @@ void draw(const RenderData& data) {
                 text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 400,
-                glm::vec4(1.f),
+                vec4{ 1.f, 1.f, 1.f, 1.f },
                 "Swap barrier: Inactive"
             );
         }
@@ -222,7 +225,7 @@ void draw(const RenderData& data) {
                 text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 350,
-                glm::vec4(1.f),
+                vec4{ 1.f, 1.f, 1.f, 1.f },
                 "Swap group master: True"
             );
         }
@@ -234,7 +237,7 @@ void draw(const RenderData& data) {
                 text::Alignment::TopLeft,
                 pos - pos / 2.f,
                 350,
-                glm::vec4(1.f),
+                vec4{ 1.f, 1.f, 1.f, 1.f },
                 "Swap group master: False"
             );
         }
@@ -246,7 +249,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos - pos / 2.f,
             300,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Nvidia frame counter: %u", data.window.swapGroupFrameNumber()
         );
         text::print(
@@ -256,7 +259,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos - pos / 2.f,
             250,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Framerate: %.3lf", 1.0 / Engine::instance().statistics().dt()
         );
     }
@@ -268,7 +271,7 @@ void draw(const RenderData& data) {
             text::Alignment::TopLeft,
             pos - pos / 2.f,
             450,
-            glm::vec4(1.f),
+            vec4{ 1.f, 1.f, 1.f, 1.f },
             "Swap group: Inactive"
         );
     }
@@ -536,7 +539,7 @@ int main(int argc, char** argv) {
 
     try {
         Engine::create(cluster, callbacks, config);
-        Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 0.f));
+        Engine::instance().setClearColor(vec4{ 0.f, 0.f, 0.f, 0.f });
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());

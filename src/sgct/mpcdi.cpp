@@ -10,6 +10,10 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
@@ -19,6 +23,13 @@
 namespace sgct::mpcdi {
 
 namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+
     struct SubFile {
         std::string fileName;
         std::vector<char> buffer;
@@ -30,17 +41,17 @@ namespace {
             proj.id = a;
         }
 
-        glm::vec2 vpPosition;
-        if (elem.QueryFloatAttribute("x", &vpPosition[0]) != tinyxml2::XML_NO_ERROR ||
-            elem.QueryFloatAttribute("y", &vpPosition[1]) != tinyxml2::XML_NO_ERROR)
+        vec2 vpPosition;
+        if (elem.QueryFloatAttribute("x", &vpPosition.x) != tinyxml2::XML_NO_ERROR ||
+            elem.QueryFloatAttribute("y", &vpPosition.y) != tinyxml2::XML_NO_ERROR)
         {
             throw Error(4000, "Failed to parse position from XML");
         }
         proj.position = vpPosition;
 
-        glm::vec2 vpSize;
-        if (elem.QueryFloatAttribute("xSize", &vpSize[0]) != tinyxml2::XML_NO_ERROR ||
-            elem.QueryFloatAttribute("ySize", &vpSize[1]) != tinyxml2::XML_NO_ERROR)
+        vec2 vpSize;
+        if (elem.QueryFloatAttribute("xSize", &vpSize.x) != tinyxml2::XML_NO_ERROR ||
+            elem.QueryFloatAttribute("ySize", &vpSize.y) != tinyxml2::XML_NO_ERROR)
         {
             throw Error(4001, "Failed to parse size from XML");
         }
@@ -84,13 +95,13 @@ namespace {
         }
 
         proj.frustum = frustum;
-        proj.orientation = quat;
+        proj.orientation = fromGLM<glm::quat, sgct::quat>(quat);
 
         return proj;
     }
 
     void parseBuffer(const tinyxml2::XMLElement& elem, ReturnValue& res) {
-        glm::ivec2 resolution = glm::ivec2(-1);
+        ivec2 resolution = ivec2{ -1, -1 };
         if (elem.Attribute("xResolution")) {
             elem.QueryAttribute("xResolution", &resolution.x);
         }

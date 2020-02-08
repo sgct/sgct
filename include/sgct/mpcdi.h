@@ -10,7 +10,7 @@
 #define __SGCT__MPCDI__H__
 
 #include <sgct/config.h>
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <string>
 #include <vector>
 
@@ -18,7 +18,7 @@ namespace sgct::mpcdi {
 
 struct ReturnValue {
     /// The window resolution
-    glm::ivec2 resolution = glm::ivec2(0);
+    ivec2 resolution = ivec2{ 0, 0 };
     struct ViewportInfo {
         /// The configuration struct for the individual viewports
         config::MpcdiProjection proj;

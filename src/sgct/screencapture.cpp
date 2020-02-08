@@ -8,6 +8,7 @@
 
 #include <sgct/screencapture.h>
 
+#include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
@@ -80,7 +81,7 @@ ScreenCapture::~ScreenCapture() {
     glDeleteBuffers(1, &_pbo);
 }
 
-void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor) {
+void ScreenCapture::initOrResize(ivec2 resolution, int channels, int bytesPerColor) {
     glDeleteBuffers(1, &_pbo);
 
     _resolution = std::move(resolution);
@@ -127,7 +128,7 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped
 
-    std::string file = addFrameNumberToFilename(Engine::instance().screenShotNumber());
+    std::string file = createFilename(Engine::instance().screenShotNumber());
     checkImageBuffer(capSrc);
 
     int threadIndex = availableCaptureThread();
@@ -147,7 +148,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     else {
         // set the target framebuffer to read
         glReadBuffer(sourceForCaptureSource(capSrc));
-        const glm::ivec2& s = imPtr->size();
+        const ivec2& s = imPtr->size();
         const GLsizei w = static_cast<GLsizei>(s.x);
         const GLsizei h = static_cast<GLsizei>(s.y);
         glReadPixels(0, 0, w, h, _downloadFormat, _downloadType, nullptr);
@@ -174,11 +175,6 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
-void ScreenCapture::setPathAndFileName(std::string path, std::string filename) {
-    _path = std::move(path);
-    _baseName = std::move(filename);
-}
-
 void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     _eyeIndex = ei;
 
@@ -194,82 +190,54 @@ void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     Log::Debug("Number of screencapture threads is set to %d", _nThreads);
 }
 
-std::string ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
+std::string ScreenCapture::createFilename(unsigned int frameNumber) {
+    const std::string eyeSuffix = [](EyeIndex eyeIndex) {
+        switch (eyeIndex) {
+            case EyeIndex::Mono:        return "";
+            case EyeIndex::StereoLeft:  return "L";
+            case EyeIndex::StereoRight: return "R";
+            default:                    throw std::logic_error("Unhandled case label");
+        }
+    }(_eyeIndex);
+
+    char Buffer[7];
+    std::fill(std::begin(Buffer), std::end(Buffer), '\0');
+    sprintf(Buffer, "%06d", frameNumber);
+
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
-            case CaptureFormat::PNG: return "png";
-            case CaptureFormat::TGA: return "tga";
-            case CaptureFormat::JPEG: return "jpg";
-            default: throw std::logic_error("Unhandled case label");
+        case CaptureFormat::PNG: return "png";
+        case CaptureFormat::TGA: return "tga";
+        case CaptureFormat::JPEG: return "jpg";
+        default: throw std::logic_error("Unhandled case label");
         }
     }(_format);
 
-    // use default settings if path is empty
-    std::string filename;
-    std::string eye;
-    const bool useDefaultSettings = _path.empty() && _baseName.empty();
-    if (useDefaultSettings) {
-        using CapturePath = Settings::CapturePath;
-        switch (_eyeIndex) {
-            case EyeIndex::Mono:
-                filename = Settings::instance().capturePath(CapturePath::Mono);
-                break;
-            case EyeIndex::StereoLeft:
-                eye = "_L";
-                filename = Settings::instance().capturePath(CapturePath::LeftStereo);
-                break;
-            case EyeIndex::StereoRight:
-                eye = "_R";
-                filename = Settings::instance().capturePath(CapturePath::RightStereo);
-                break;
-            default:
-                throw std::logic_error("Unhandled case label");
-        }
-        const Window& win = *Engine::instance().windows()[_windowIndex];
-
-        if (win.name().empty()) {
-            filename += "_win" + std::to_string(_windowIndex);
-        }
-        else {
-            if (filename.empty()) {
-                filename = win.name();
-            }
-            else {
-                filename += '_' + win.name();
-            }
-        }
+    std::string file;
+    if (!Settings::instance().capturePath().empty()) {
+        file = Settings::instance().capturePath() + '/';
     }
-    else {
-        filename = _path.empty() ? _baseName : _path + '/' + _baseName;
+    if (!Settings::instance().prefixScreenshot().empty()) {
+        file += Settings::instance().prefixScreenshot();
+        file += '_';
+    }
+    if (Settings::instance().addNodeNameToScreenshot() &&
+        ClusterManager::instance().numberOfNodes() > 1)
+    {
+        file += "node" + std::to_string(ClusterManager::instance().thisNodeId());
+        file += '_';
+    }
+    if (Settings::instance().addWindowNameToScreenshot()) {
+        const Window& w = *Engine::instance().windows()[_windowIndex];
+        file += w.name().empty() ? "win" + std::to_string(_windowIndex) : w.name();
+        file += '_';
     }
 
-    filename += eye;
-
-    if (!filename.empty()) {
-        filename += '_';
+    if (!eyeSuffix.empty()) {
+        file += eyeSuffix + '_';
     }
 
-    // add frame numbers
-    if (frameNumber < 10) {
-        filename += "00000" + std::to_string(frameNumber);
-    }
-    else if (frameNumber < 100) {
-        filename += "0000" + std::to_string(frameNumber);
-    }
-    else if (frameNumber < 1000) {
-        filename += "000" + std::to_string(frameNumber);
-    }
-    else if (frameNumber < 10000) {
-        filename += "00" + std::to_string(frameNumber);
-    }
-    else if (frameNumber < 100000) {
-        filename += '0' + std::to_string(frameNumber);
-    }
-    else if (frameNumber < 1000000) {
-        filename += std::to_string(frameNumber);
-    }
-
-    return filename + '.' + suffix;
+    return file + std::string(Buffer)  + '.' + suffix;
 }
 
 int ScreenCapture::availableCaptureThread() {
@@ -296,7 +264,9 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
     const Window& win = *Engine::instance().windows()[_windowIndex];
 
     if (captureSource == CaptureSource::Texture) {
-        if (_resolution != win.framebufferResolution()) {
+        if (_resolution.x != win.framebufferResolution().x &&
+            _resolution.y != win.framebufferResolution().y)
+        {
             _downloadType = _downloadTypeSetByUser;
             const int bytesPerColor = win.framebufferBPCC();
             initOrResize(win.framebufferResolution(), _nChannels, bytesPerColor);
@@ -304,7 +274,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
     }
     else {
         // capture directly from back buffer (no HDR support)
-        if (_resolution != win.resolution()) {
+        if (_resolution.x != win.resolution().x && _resolution.y != win.resolution().y) {
             _downloadType = GL_UNSIGNED_BYTE;
             initOrResize(win.resolution(), _nChannels, 1);
         }

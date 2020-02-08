@@ -14,9 +14,21 @@
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <optional>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
+
+namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+} // namespace
 
 namespace sgct::correction {
 
@@ -36,8 +48,8 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     std::optional<float> elevation;
     std::optional<float> hFov;
     std::optional<float> vFov;
-    glm::vec2 fovTweaks(1.f);
-    glm::vec2 uvTweaks(1.f);
+    vec2 fovTweaks{ 1.f, 1.f };
+    vec2 uvTweaks{ 1.f, 1.f };
     bool areDimsSet = false;
 
     unsigned int sizeX = 0;
@@ -65,21 +77,21 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         else if (sscanf(lineBuffer, "Vertical FOV=%f", &v) == 1) {
             vFov = v;
         }
-        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1) {}
-        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1) {}
-        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks[0]) == 1) {}
-        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks[1]) == 1) {}
+        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks.x) == 1) {}
+        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks.y) == 1) {}
+        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks.x) == 1) {}
+        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks.y) == 1) {}
         else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
             areDimsSet = true;
             buf.vertices.resize(sizeX * sizeY);
         }
         else if (areDimsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4) {
-            if (uvTweaks[0] > -1.f) {
-                u *= uvTweaks[0];
+            if (uvTweaks.x > -1.f) {
+                u *= uvTweaks.x;
             }
 
-            if (uvTweaks[1] > -1.f) {
-                v *= uvTweaks[1];
+            if (uvTweaks.y > -1.f) {
+                v *= uvTweaks.y;
             }
 
             buf.vertices[counter].x = x;
@@ -114,21 +126,27 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         Log::Info("HFOV: %f VFOV: %f", *hFov, *vFov);
     }
 
-    if (fovTweaks[0] > 0.f) {
-        hFov = *hFov * fovTweaks[0];
+    if (fovTweaks.x > 0.f) {
+        hFov = *hFov * fovTweaks.x;
     }
-    if (fovTweaks[1] > 0.f) {
-        vFov = *vFov * fovTweaks[1];
+    if (fovTweaks.y > 0.f) {
+        vFov = *vFov * fovTweaks.y;
     }
 
     glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
     rotQuat = glm::rotate(rotQuat, glm::radians(-*azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(*elevation), glm::vec3(1.f, 0.f, 0.f));
 
-    parent.user().setPos(glm::vec3(0.f));
+    parent.user().setPos(vec3{ 0.f, 0.f, 0.f });
     const float vHalf = *vFov / 2.f;
     const float hHalf = *hFov / 2.f;
-    parent.setViewPlaneCoordsUsingFOVs(vHalf, -vHalf, -hHalf, hHalf, rotQuat);
+    parent.setViewPlaneCoordsUsingFOVs(
+        vHalf,
+        -vHalf,
+        -hHalf,
+        hHalf,
+        fromGLM<glm::quat, quat>(rotQuat)
+    );
     Engine::instance().updateFrustums();
 
     for (unsigned int c = 0; c < (sizeX - 1); c++) {
@@ -161,8 +179,8 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     }
 
     for (CorrectionMeshVertex& vertex : buf.vertices) {
-        const glm::vec2& s = parent.size();
-        const glm::vec2& p = parent.position();
+        const vec2& s = parent.size();
+        const vec2& p = parent.position();
 
         // convert to [-1, 1]
         vertex.x = 2.f * (vertex.x * s.x + p.x) - 1.f;

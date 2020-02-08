@@ -16,6 +16,9 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     struct Vertex {
@@ -25,6 +28,13 @@ namespace {
         float s;
         float t;
     };
+
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
 } // namespace
 
 namespace sgct {
@@ -48,7 +58,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
@@ -100,7 +110,7 @@ void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumM
     renderCubeFaces(window, frustumMode);
 }
 
-void CylindricalProjection::update(glm::vec2) {
+void CylindricalProjection::update(vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
@@ -164,7 +174,7 @@ void CylindricalProjection::initViewports() {
 
     // +X face
     {
-        _subViewports.right.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.right.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
@@ -176,16 +186,16 @@ void CylindricalProjection::initViewports() {
         upperRight.x = radius;
 
         _subViewports.right.projectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeftBase),
-            glm::vec3(rotMat * upperLeftBase),
-            glm::vec3(rotMat * upperRight)
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRight))
         );
     }
 
     // -X face
     {
-        _subViewports.left.setPos(glm::vec2(0.f, 0.f));
-        _subViewports.left.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.left.setPos(vec2{ 0.f, 0.f });
+        _subViewports.left.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
@@ -199,16 +209,16 @@ void CylindricalProjection::initViewports() {
         upperLeft.x = -radius;
 
         _subViewports.left.projectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeft),
-            glm::vec3(rotMat * upperLeft),
-            glm::vec3(rotMat * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
         );
     }
 
     // +Y face
     {
-        _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
-        _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
+        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
@@ -220,15 +230,15 @@ void CylindricalProjection::initViewports() {
         lowerLeft.y = -radius;
 
         _subViewports.bottom.projectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeft),
-            glm::vec3(rotMat * upperLeftBase),
-            glm::vec3(rotMat * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
         );
     }
 
     // -Y face
     {
-        _subViewports.top.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.top.setSize(vec2{ 1.f, 1.f });
 
         const glm::mat4 rotMat = glm::rotate(
             rollRot,
@@ -242,18 +252,18 @@ void CylindricalProjection::initViewports() {
         upperRight.y = radius;
 
         _subViewports.top.projectionPlane().setCoordinates(
-            glm::vec3(rotMat * lowerLeftBase),
-            glm::vec3(rotMat * upperLeft),
-            glm::vec3(rotMat * upperRight)
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRight))
         );
     }
 
     // +Z face
     {
         _subViewports.front.projectionPlane().setCoordinates(
-            glm::vec3(rollRot * lowerLeftBase),
-            glm::vec3(rollRot * upperLeftBase),
-            glm::vec3(rollRot * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperRightBase))
         );
     }
 

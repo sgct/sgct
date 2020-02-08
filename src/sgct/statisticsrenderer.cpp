@@ -20,15 +20,15 @@
 
 namespace {
     // Line parameters
-    constexpr const glm::vec4 ColorStaticGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
-    constexpr const glm::vec4 ColorStaticFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
-    constexpr const glm::vec4 ColorStaticBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
+    constexpr const sgct::vec4 ColorStaticGrid = sgct::vec4{ 1.f, 1.f, 1.f, 0.2f };
+    constexpr const sgct::vec4 ColorStaticFrequency = sgct::vec4{ 1.f, 0.f, 0.f, 1.f };
+    constexpr const sgct::vec4 ColorStaticBackground = sgct::vec4{ 0.f, 0.f, 0.f, 0.5f };
 
-    constexpr const glm::vec4 ColorFrameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
-    constexpr const glm::vec4 ColorDrawTime = glm::vec4(1.f, 0.1f, 1.1f, 0.8f);
-    constexpr const glm::vec4 ColorSyncTime = glm::vec4(0.1f, 1.f, 1.f, 0.8f);
-    constexpr const glm::vec4 ColorLoopTimeMin = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
-    constexpr const glm::vec4 ColorLoopTimeMax = glm::vec4(0.15f, 0.15f, 0.8f, 0.8f);
+    constexpr const sgct::vec4 ColorFrameTime = sgct::vec4{ 1.f, 1.f, 0.f, 0.8f };
+    constexpr const sgct::vec4 ColorDrawTime = sgct::vec4{ 1.f, 0.1f, 1.1f, 0.8f };
+    constexpr const sgct::vec4 ColorSyncTime = sgct::vec4{ 0.1f, 1.f, 1.f, 0.8f };
+    constexpr const sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
+    constexpr const sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
 
     constexpr const char* StatsVertShader = R"(
 #version 330 core
@@ -268,8 +268,13 @@ void StatisticsRenderer::update() {
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
     ZoneScoped
 
-    glm::vec2 res = window.framebufferResolution();
-    const glm::mat4 orthoMat = glm::ortho(0.f, res.x, 0.f, res.y);
+    ivec2 res = window.framebufferResolution();
+    const glm::mat4 orthoMat = glm::ortho(
+        0.f,
+        static_cast<float>(res.x),
+        0.f,
+        static_cast<float>(res.y)
+    );
 
     {
         //
@@ -292,38 +297,38 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glBindVertexArray(_lines.staticDraw.vao);
 
         // draw background (1024x1024 canvas)
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorStaticBackground));
+        glUniform4fv(_colorLoc, 1, &ColorStaticBackground.x);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         // 1 ms lines
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorStaticGrid));
+        glUniform4fv(_colorLoc, 1, &ColorStaticGrid.x);
         glDrawArrays(GL_LINES, 4, _lines.staticDraw.nLines * 2);
 
         // zero line, 60hz & 30hz
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorStaticFrequency));
+        glUniform4fv(_colorLoc, 1, &ColorStaticFrequency.x);
         glDrawArrays(GL_LINES, 4 + _lines.staticDraw.nLines * 2, 6);
 
         glBindVertexArray(_lines.dynamicDraw.vao);
 
         // frametime
         constexpr const int StatsLength = Engine::Statistics::HistoryLength;
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorFrameTime));
+        glUniform4fv(_colorLoc, 1, &ColorFrameTime.x);
         glDrawArrays(GL_LINE_STRIP, 0 * StatsLength, StatsLength);
 
         // drawtime
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorDrawTime));
+        glUniform4fv(_colorLoc, 1, &ColorDrawTime.x);
         glDrawArrays(GL_LINE_STRIP, 1 * StatsLength, StatsLength);
 
         // synctime
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorSyncTime));
+        glUniform4fv(_colorLoc, 1, &ColorSyncTime.x);
         glDrawArrays(GL_LINE_STRIP, 2 * StatsLength, StatsLength);
 
         // looptimemin
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorLoopTimeMin));
+        glUniform4fv(_colorLoc, 1, &ColorLoopTimeMin.x);
         glDrawArrays(GL_LINE_STRIP, 3 * StatsLength, StatsLength);
 
         // looptimemax
-        glUniform4fv(_colorLoc, 1, glm::value_ptr(ColorLoopTimeMax));
+        glUniform4fv(_colorLoc, 1, &ColorLoopTimeMax.x);
         glDrawArrays(GL_LINE_STRIP, 4 * StatsLength, StatsLength);
 
         glBindVertexArray(0);
@@ -343,7 +348,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             f1,
             mode,
             Pos.x, Pos.y + 7 * Offset,
-            glm::vec4(1.f, 0.8f, 0.8f, 1.f),
+            vec4{ 1.f, 0.8f, 0.8f, 1.f },
             "Frame number: %i", Engine::instance().currentFrameNumber()
         );
         text::print(
@@ -401,7 +406,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         ZoneScopedN("Histogram")
 
-        auto renderHistogram = [&](int i, const glm::vec4& color) {
+        auto renderHistogram = [&](int i, const vec4& color) {
             const auto [pos, size] = [](int i) -> std::tuple<glm::vec2, glm::vec2> {
                 constexpr const glm::vec2 Pos(400.f, 10.f);
                 constexpr const glm::vec2 Size(425.f, 200.f);
@@ -435,7 +440,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
             glBindVertexArray(_histogram.dynamicDraw.vao);
             constexpr const int nSize = 6 * Histogram::Bins;
-            glUniform4fv(_colorLoc, 1, glm::value_ptr(color));
+            glUniform4fv(_colorLoc, 1, &color.x);
             glDrawArrays(GL_TRIANGLES, i * nSize, nSize);
         };
 
@@ -457,7 +462,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             f,
             mode,
             Pos.x, Pos.y,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
             "Histogram Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
         );
         text::print(
@@ -466,7 +471,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             f,
             mode,
             Pos.x, Pos.y + 12.f,
-            glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
+            vec4{ 0.8f, 0.8f, 0.8f, 1.f },
             "Histogram Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
         );
 #endif // SGCT_HAS_TEXT

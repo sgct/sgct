@@ -9,8 +9,7 @@
 #ifndef __SGCT__TRACKINGDEVICE__H__
 #define __SGCT__TRACKINGDEVICE__H__
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <sgct/math.h>
 #include <string>
 #include <vector>
 
@@ -33,7 +32,7 @@ public:
 
     /// Set the number of analog axes
     void setNumberOfAxes(int numOfAxes);
-    void setSensorTransform(glm::vec3 vec, glm::quat rot);
+    void setSensorTransform(vec3 vec, quat rot);
     void setButtonValue(bool val, int index);
     void setAnalogValue(const double* array, int size);
 
@@ -41,13 +40,13 @@ public:
     void setOrientation(float xRot, float yRot, float zRot);
 
     /// Set the orientation quaternion used to generate the orientation matrix
-    void setOrientation(glm::quat q);
+    void setOrientation(quat q);
 
     /// Set the offset vector used to generate the offset matrix
-    void setOffset(glm::vec3 offset);
+    void setOffset(vec3 offset);
 
     /// Set the device transform matrix
-    void setTransform(glm::mat4 mat);
+    void setTransform(mat4 mat);
 
     const std::string& name() const;
     int numberOfButtons() const;
@@ -74,40 +73,40 @@ public:
     int sensorId();
 
     /// \return the sensor's position in world coordinates
-    glm::vec3 position() const;
+    vec3 position() const;
 
     /// \return the sensor's position in world coordinates
-    glm::vec3 previousPosition() const;
+    vec3 previousPosition() const;
 
     /// \return the sensor's rotation as as euler angles in world coordinates
-    glm::vec3 eulerAngles() const;
+    vec3 eulerAngles() const;
 
     /// \return the sensor's rotation as as euler angles in world coordinates
-    glm::vec3 eulerAnglesPrevious() const;
+    vec3 eulerAnglesPrevious() const;
 
     /// \return the sensor's rotation as a quaternion in world coordinates
-    glm::quat rotation() const;
+    quat rotation() const;
 
     /// \return the sensor's rotation as a quaternion in world coordinates
-    glm::quat rotationPrevious() const;
+    quat rotationPrevious() const;
 
     /// \return the sensor's transform matrix in world coordinates
-    glm::mat4 worldTransform() const;
+    mat4 worldTransform() const;
 
     /// \return the sensor's transform matrix in world coordinates
-    glm::mat4 worldTransformPrevious() const;
+    mat4 worldTransformPrevious() const;
 
     /// \return the raw sensor rotation quaternion
-    glm::dquat sensorRotation() const;
+    quat sensorRotation() const;
 
     /// \return the raw sensor rotation quaternion
-    glm::dquat sensorRotationPrevious() const;
+    quat sensorRotationPrevious() const;
 
     /// \return the raw sensor position vector
-    glm::dvec3 sensorPosition() const;
+    vec3 sensorPosition() const;
 
     /// \return the raw sensor position vector
-    glm::dvec3 sensorPositionPrevious() const;
+    vec3 sensorPositionPrevious() const;
 
     double trackerTimeStamp();
     double trackerTimeStampPrevious();
@@ -134,18 +133,18 @@ private:
     int _nAxes = 0;
     int _sensorId = -1;
 
-    glm::mat4 _deviceTransform = glm::mat4(1.f);
+    mat4 _deviceTransform = mat4(1.f);
 
-    glm::mat4 _worldTransform = glm::mat4(1.f);
-    glm::mat4 _worldTransformPrevious = glm::mat4(1.f);
+    mat4 _worldTransform = mat4(1.f);
+    mat4 _worldTransformPrevious = mat4(1.f);
 
-    glm::dquat _sensorRotation = glm::dquat(0.0, 0.0, 0.0, 0.0);
-    glm::dquat _sensorRotationPrevious = glm::dquat(0.0, 0.0, 0.0, 0.0);
+    quat _sensorRotation = quat{ 0.f, 0.f, 0.f, 0.f };
+    quat _sensorRotationPrevious = quat{ 0.f, 0.f, 0.f, 0.f };
 
-    glm::dvec3 _sensorPos = glm::dvec3(0.0);
-    glm::dvec3 _sensorPosPrevious = glm::dvec3(0.0);
-    glm::quat _orientation = glm::quat(1.f, 0.f, 0.f, 0.f);
-    glm::vec3 _offset = glm::vec3(0.f);
+    vec3 _sensorPos = vec3{ 0.f, 0.f, 0.f };
+    vec3 _sensorPosPrevious = vec3{ 0.f, 0.f, 0.f };
+    quat _orientation = quat{ 0.f, 0.f, 0.f, 0.f };
+    vec3 _offset = vec3{ 0.f, 0.f, 0.f };
 
     double _trackerTime = 0.0;
     double _trackerTimePrevious = 0.0;

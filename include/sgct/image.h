@@ -9,7 +9,7 @@
 #ifndef __SGCT__IMAGE__H__
 #define __SGCT__IMAGE__H__
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <string>
 
 namespace sgct {
@@ -32,9 +32,9 @@ public:
     const unsigned char* data() const;
     int channels() const;
     int bytesPerChannel() const;
-    glm::ivec2 size() const;
+    ivec2 size() const;
 
-    void setSize(glm::ivec2 size);
+    void setSize(ivec2 size);
     void setChannels(int channels);
     void setBytesPerChannel(int bpc);
 
@@ -49,7 +49,7 @@ private:
     void savePNG(std::string filename, int compressionLevel = -1);
 
     int _nChannels = 0;
-    glm::ivec2 _size = glm::ivec2(0);
+    ivec2 _size = ivec2{ 0, 0 };
     unsigned int _dataSize = 0;
     int _bytesPerChannel = 1;
     unsigned char* _data = nullptr;

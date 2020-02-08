@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/profiling.h>
 #include <algorithm>
+#include <assert.h>
 #include <functional>
 #include <numeric>
 
@@ -45,14 +46,8 @@ void validateUser(const User& u) {
 void validateCapture(const Capture& c) {
     ZoneScoped
 
-    if (c.monoPath && c.monoPath->empty()) {
-        throw Error(1010, "Mono path must not be empty");
-    }
-    if (c.monoPath && c.leftPath->empty()) {
-        throw Error(1011, "Left path must not be empty");
-    }
-    if (c.monoPath && c.rightPath->empty()) {
-        throw Error(1012, "Right path must not be empty");
+    if (c.path && c.path->empty()) {
+        throw Error(1010, "Capture path must not be empty");
     }
 }
 
@@ -125,14 +120,17 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1063, "Quality value must be positive");
     }
-    if (p.quality && glm::fract(glm::log(*p.quality)) == 0.f) {
+    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
         throw Error(1064, "Quality setting only allows powers of two");
     }
     if (p.diameter && *p.diameter <= 0.f) {
         throw Error(1065, "Diameter must be positive");
     }
-    if (p.background && glm::any(glm::lessThan(*p.background, glm::vec4(0.f)))) {
-        throw Error(1066, "All background color components have to be positive");
+    if (p.background) {
+        vec4 b = *p.background;
+        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
+            throw Error(1066, "All background color components have to be positive");
+        }
     }
 }
 
@@ -142,11 +140,14 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1070, "Quality value must be positive");
     }
-    if (p.quality && glm::fract(glm::log(*p.quality)) == 0.f) {
+    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
         throw Error(1071, "Quality setting only allows powers of two");
     }
-    if (p.background && glm::any(glm::lessThan(*p.background, glm::vec4(0.f)))) {
-        throw Error(1072, "All background color components have to be positive");
+    if (p.background) {
+        vec4 b = *p.background;
+        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
+            throw Error(1072, "All background color components have to be positive");
+        }
     }
 }
 
@@ -159,11 +160,14 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1081, "Quality value must be positive");
     }
-    if (p.quality && glm::fract(glm::log(*p.quality)) == 0.f) {
+    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
         throw Error(1082, "Quality setting only allows powers of two");
     }
-    if (p.background && glm::any(glm::lessThan(*p.background, glm::vec4(0.f)))) {
-        throw Error(1083, "All background color components have to be positive");
+    if (p.background) {
+        vec4 b = *p.background;
+        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
+            throw Error(1083, "All background color components have to be positive");
+        }
     }
 }
 

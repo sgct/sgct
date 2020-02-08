@@ -34,14 +34,20 @@ Commandline arguments are parsed through the `parseArguments` function contained
  > `-capture-tga`
  >  > Sets the capture format for screenshots to output TGA files instead of the default PNG format.
 
- > `-exportWarpingMeshes`
+ > `-export-correction-meshes`
  >  > If this value is provided, any warping mesh that is loaded for a viewport will be exported as an Waveform `obj` file while processing.  This allows debugging of the warping meshes for tools that only support loading of `obj` files.
 
  > `-number-capture-threads` \[ integer \]
  >  > Sets the maximum number of threads that should be used for frame capturing
 
- > `-screenshot-prefix`
+ > `-screenshot-path` \[ string \]
+ >  > Sets the file path for the screenshots location
+
+ > `-screenshot-prefix` \[ string \]
  >  > Sets the prefix used for the screenshots taken by this application.  The default value for the prefix is "SGCT"
 
+ > `-add-node-name-in-screenshot`
+ >  > If set, screenshots will contain the name of the node in multi-node configurations.  The default value is that the numerical identifier for the node is not used in the screenshots.
+
  > `-omit-node-name-in-screenshot`
- >  > If set, screenshots will not contain the name of the node in multi-node configurations.  The default value is that the numerical identifier is used as the name for the node.
+ >  > If set, screenshots will not contain the name of the window if multiple windows exist.  The default is that the name of the window is included.

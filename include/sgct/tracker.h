@@ -9,8 +9,8 @@
 #ifndef __SGCT__TRACKER__H__
 #define __SGCT__TRACKER__H__
 
+#include <sgct/math.h>
 #include <sgct/trackingdevice.h>
-#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
@@ -30,19 +30,19 @@ public:
     TrackingDevice* deviceBySensorId(int id) const;
 
     /// Set the orientation as quaternion
-    void setOrientation(glm::quat q);
+    void setOrientation(quat q);
     /// Set the orientation as euler angles (degrees)
     void setOrientation(float xRot, float yRot, float zRot);
-    void setOffset(glm::vec3 offset);
+    void setOffset(vec3 offset);
     void setScale(double scaleVal);
 
     /**
      * Set the tracker system transform matrix
      * worldTransform = (trackerTransform * sensorMat) * deviceTransformMat
      */
-    void setTransform(glm::mat4 mat);
+    void setTransform(mat4 mat);
 
-    glm::mat4 getTransform() const;
+    mat4 getTransform() const;
     double scale() const;
 
     const std::string& name() const;
@@ -53,9 +53,9 @@ private:
     std::vector<std::unique_ptr<TrackingDevice>> _trackingDevices;
 
     double _scale = 1.0;
-    glm::mat4 _transform = glm::mat4(1.f);
-    glm::mat4 _orientation = glm::mat4(1.f);
-    glm::vec3 _offset = glm::vec3(0.f);
+    mat4 _transform = mat4(1.f);
+    mat4 _orientation = mat4(1.f);
+    vec3 _offset = vec3{ 0.f, 0.f, 0.f };
 };
 
 } // namespace sgct

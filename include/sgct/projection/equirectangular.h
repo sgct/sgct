@@ -13,6 +13,7 @@
 
 #include <sgct/callbackdata.h>
 #include <sgct/frustum.h>
+#include <sgct/math.h>
 
 namespace sgct {
 
@@ -26,7 +27,7 @@ public:
 
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
-    void update(glm::vec2 size) override;
+    void update(vec2 size) override;
 
 private:
     void initVBO() override;

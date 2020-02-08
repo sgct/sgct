@@ -14,9 +14,21 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
 namespace sgct {
+
+namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+} // namespace
 
 ClusterManager* ClusterManager::_instance = nullptr;
 
@@ -61,16 +73,19 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
     if (cluster.scene) {
-        const glm::mat4 sceneTranslate = cluster.scene->offset ?
-            glm::translate(glm::mat4(1.f), *cluster.scene->offset) : glm::mat4(1.f);
+        const glm::mat4 translate = cluster.scene->offset ?
+            glm::translate(
+                glm::mat4(1.f), glm::make_vec3(&cluster.scene->offset->x)
+            ) : glm::mat4(1.f);
 
-        const glm::mat4 sceneRotation = cluster.scene->orientation ?
-            glm::mat4_cast(*cluster.scene->orientation) : glm::mat4(1.f);
+        const glm::mat4 rotation = cluster.scene->orientation ?
+            glm::mat4_cast(glm::make_quat(&cluster.scene->orientation->x)) :
+            glm::mat4(1.f);
 
-        const glm::mat4 sceneScale = cluster.scene->scale ?
+        const glm::mat4 scale = cluster.scene->scale ?
             glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) : glm::mat4(1.f);
 
-        _sceneTransform = sceneRotation * sceneTranslate * sceneScale;
+        _sceneTransform = fromGLM<glm::mat4, mat4>(rotation * translate * scale);
     }
     // The users must be handled before the nodes due to the nodes depending on the users
     for (const config::User& u : cluster.users) {
@@ -185,7 +200,7 @@ int ClusterManager::numberOfNodes() const {
     return static_cast<int>(_nodes.size());
 }
 
-const glm::mat4& ClusterManager::sceneTransform() const {
+const mat4& ClusterManager::sceneTransform() const {
     return _sceneTransform;
 }
 

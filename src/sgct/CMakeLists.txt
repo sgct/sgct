@@ -25,6 +25,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/joystick.h
   ${PROJECT_SOURCE_DIR}/include/sgct/keys.h
   ${PROJECT_SOURCE_DIR}/include/sgct/log.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/math.h
   ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
   ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
@@ -89,6 +90,7 @@ set(SOURCE_FILES
   freetype.cpp
   image.cpp
   log.cpp
+  math.cpp
   mpcdi.cpp
   network.cpp
   networkmanager.cpp
@@ -156,13 +158,11 @@ target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/glad/include)
 target_link_libraries(sgct PUBLIC glad)
 target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
 
-if (SGCT_DEP_INCLUDE_GLM)
-  set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
-  find_package(GLM REQUIRED)
-  message(STATUS "Including GLM found at ${GLM_INCLUDE_DIRS}")
-  mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
-  target_include_directories(sgct SYSTEM PUBLIC ${GLM_INCLUDE_DIRS})
-endif ()
+set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(GLM REQUIRED)
+message(STATUS "Including GLM found at ${GLM_INCLUDE_DIRS}")
+mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
+target_include_directories(sgct SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})
 
 if (SGCT_DEP_INCLUDE_GLFW)
   target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)

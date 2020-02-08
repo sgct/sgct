@@ -12,9 +12,20 @@
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 
 namespace sgct {
+
+namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+} // namespace
 
 Tracker::Tracker(std::string name) : _name(std::move(name)) {}
 
@@ -51,13 +62,15 @@ TrackingDevice* Tracker::deviceBySensorId(int id) const {
     return it != _trackingDevices.cend() ? it->get() : nullptr;
 }
 
-void Tracker::setOrientation(glm::quat q) {
+void Tracker::setOrientation(quat q) {
     std::unique_lock lock(mutex::Tracking);
 
     // create inverse rotation matrix
-    _orientation = glm::inverse(glm::mat4_cast(q));
-    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
-    _transform = transMat * _orientation;
+    glm::mat4 orientation = glm::inverse(glm::mat4_cast(glm::make_quat(&q.x)));
+    _orientation = fromGLM<glm::mat4, mat4>(orientation);
+
+    glm::mat4 transMat = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
+    _transform = fromGLM<glm::mat4, mat4>(transMat * orientation);
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -65,14 +78,14 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.f, 0.f, 1.f));
-    setOrientation(std::move(rotQuat));
+    setOrientation(fromGLM<glm::quat, quat>(std::move(rotQuat)));
 }
 
-void Tracker::setOffset(glm::vec3 offset) {
+void Tracker::setOffset(vec3 offset) {
     std::unique_lock lock(mutex::Tracking);
     _offset = std::move(offset);
-    const glm::mat4 transMat = glm::translate(glm::mat4(1.f), _offset);
-    _transform = transMat * _orientation;
+    glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
+    _transform = fromGLM<glm::mat4, mat4>(trans * glm::make_mat4(_orientation.values));
 }
 
 void Tracker::setScale(double scaleVal) {
@@ -82,12 +95,12 @@ void Tracker::setScale(double scaleVal) {
     }
 }
 
-void Tracker::setTransform(glm::mat4 mat) {
+void Tracker::setTransform(mat4 mat) {
     std::unique_lock lock(mutex::Tracking);
     _transform = std::move(mat);
 }
 
-glm::mat4 Tracker::getTransform() const {
+mat4 Tracker::getTransform() const {
     std::unique_lock lock(mutex::Tracking);
     return _transform;
 }

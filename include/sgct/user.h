@@ -9,7 +9,7 @@
 #ifndef __SGCT__USER__H__
 #define __SGCT__USER__H__
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <string>
 
 namespace sgct {
@@ -21,7 +21,7 @@ public:
     User(std::string name);
 
     /// Sets user's head position
-    void setPos(glm::vec3 pos);
+    void setPos(vec3 pos);
 
     /**
      * Set if the user's head position & orientation should be managed by a VRPN tracking
@@ -37,7 +37,7 @@ public:
      *
      * \param transform the transform matrix
      */
-    void setTransform(glm::mat4 transform);
+    void setTransform(mat4 transform);
 
     /**
      * Set the user's head orientation using euler angles. Note that rotations are
@@ -50,7 +50,7 @@ public:
     void setOrientation(float xRot, float yRot, float zRot);
 
     /// Set the user's head orientation using a quaternion
-    void setOrientation(glm::quat q);
+    void setOrientation(quat q);
 
     /// Changes the interocular distance and recalculates the user's eye positions.
     void setEyeSeparation(float eyeSeparation);
@@ -58,9 +58,9 @@ public:
     /// Get the users name
     const std::string& name() const;
 
-    const glm::vec3& posMono() const;
-    const glm::vec3& posLeftEye() const;
-    const glm::vec3& posRightEye() const;
+    const vec3& posMono() const;
+    const vec3& posLeftEye() const;
+    const vec3& posRightEye() const;
 
     float eyeSeparation() const;
     const std::string& headTrackerName() const;
@@ -82,11 +82,11 @@ private:
      */
     void updateEyeTransform();
 
-    glm::vec3 _posMono = glm::vec3(0.f);
-    glm::vec3 _posLeftEye = glm::vec3(0.f);
-    glm::vec3 _posRightEye = glm::vec3(0.f);
+    vec3 _posMono = vec3{ 0.f, 0.f, 0.f };
+    vec3 _posLeftEye = vec3{ 0.f, 0.f, 0.f };
+    vec3 _posRightEye = vec3{ 0.f, 0.f, 0.f };
 
-    glm::mat4 _transform = glm::mat4(1.0);
+    mat4 _transform = mat4(1.0);
     float _eyeSeparation = 0.06f;
 
     const std::string _name;

@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 
+#include <glm/glm.hpp>
 #include <numeric>
 
 namespace {
@@ -338,10 +339,10 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    const glm::mat4 mvp = data.modelViewProjectionMatrix;
+    const mat4 mvp = data.modelViewProjectionMatrix;
     if (renderGrid) {
         ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+        glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, mvp.values);
         glBindVertexArray(grid.vao);
         glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
         glBindVertexArray(0);
@@ -350,7 +351,7 @@ void draw(const RenderData& data) {
 
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.matrixLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+        glUniformMatrix4fv(box.matrixLocation, 1, GL_FALSE, mvp.values);
         glBindVertexArray(box.vao);
 
         glActiveTexture(GL_TEXTURE0);
@@ -394,7 +395,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - s1,
-            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            vec4{ 0.f, 0.f, 1.f, 1.f },
             "%d",
             ClusterManager::instance().thisNodeId()
         );
@@ -409,7 +410,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
-            glm::vec4(0.f, 0.f, 1.f, 1.f),
+            vec4{ 0.f, 0.f, 1.f, 1.f },
             "%s",
             ClusterManager::instance().thisNode().address().c_str()
         );

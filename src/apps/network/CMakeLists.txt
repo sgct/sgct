@@ -16,3 +16,8 @@ set(files
 copy_files(network ${files})
 copy_sgct_dynamic_libraries(network)
 set_target_properties(network PROPERTIES FOLDER "Examples")
+
+set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(GLM REQUIRED)
+mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
+target_include_directories(network SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})

@@ -228,7 +228,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    const glm::mat4 mvp = data.modelViewProjectionMatrix;
+    const mat4& mvp = data.modelViewProjectionMatrix;
 
     glActiveTexture(GL_TEXTURE0);
 
@@ -242,7 +242,7 @@ void draw(const RenderData& data) {
     }
 
     ShaderManager::instance().shaderProgram("xform").bind();
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, mvp.values);
     dome->draw();
     ShaderManager::instance().shaderProgram("xform").unbind();
 

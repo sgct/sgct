@@ -62,14 +62,8 @@ void Settings::applySettings(const config::Settings& settings) {
 }
 
 void Settings::applyCapture(const config::Capture& capture) {
-    if (capture.monoPath) {
-        setCapturePath(*capture.monoPath, CapturePath::Mono);
-    }
-    if (capture.leftPath) {
-        setCapturePath(*capture.leftPath, CapturePath::LeftStereo);
-    }
-    if (capture.rightPath) {
-        setCapturePath(*capture.rightPath, CapturePath::RightStereo);
+    if (capture.path) {
+        setCapturePath(*capture.path);
     }
     if (capture.format) {
         CaptureFormat f = [](config::Capture::Format format) {
@@ -160,32 +154,20 @@ Settings::DrawBufferType Settings::drawBufferType() const {
     }
 }
 
-void Settings::setCapturePath(std::string path, CapturePath cpi) {
-    switch (cpi) {
-        case CapturePath::Mono:
-            _capturePath.mono = std::move(path);
-            break;
-        case CapturePath::LeftStereo:
-            _capturePath.left = std::move(path);
-            break;
-        case CapturePath::RightStereo:
-            _capturePath.right = std::move(path);
-            break;
-        default: throw std::logic_error("Unhandled case label");
-    }
+void Settings::setCapturePath(std::string path) {
+    _screenshot.capturePath = std::move(path);
 }
 
 void Settings::setCaptureFormat(CaptureFormat format) {
     _captureFormat = format;
 }
 
-const std::string& Settings::capturePath(CapturePath cpi) const {
-    switch (cpi) {
-        case CapturePath::Mono: return _capturePath.mono;
-        case CapturePath::LeftStereo: return _capturePath.left;
-        case CapturePath::RightStereo: return _capturePath.right;
-        default: throw std::logic_error("Unhandled case label");
-    }
+void Settings::setScreenshotPrefix(std::string prefix) {
+    _screenshot.prefix = std::move(prefix);
+}
+
+const std::string& Settings::capturePath() const {
+    return _screenshot.capturePath;
 }
 
 Settings::CaptureFormat Settings::captureFormat() const {
@@ -200,8 +182,12 @@ void Settings::setExportWarpingMeshes(bool state) {
     _exportWarpingMeshes = state;
 }
 
-void Settings::setAddNodeNamesToScreenshot(bool state) {
-    _addNodeNameToScreenshots = state;
+void Settings::setAddNodeNameToScreenshot(bool state) {
+    _screenshot.addNodeName = state;
+}
+
+void Settings::setAddWindowNameToScreenshot(bool state) {
+    _screenshot.addWindowName = state;
 }
 
 bool Settings::exportWarpingMeshes() const {
@@ -217,8 +203,16 @@ unsigned int Settings::bufferFloatPrecision() const {
         _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
 }
 
-bool Settings::shouldAddNodeNamesToScreenshot() const {
-    return _addNodeNameToScreenshots;
+bool Settings::addNodeNameToScreenshot() const {
+    return _screenshot.addNodeName;
+}
+
+bool Settings::addWindowNameToScreenshot() const {
+    return _screenshot.addWindowName;
+}
+
+const std::string& Settings::prefixScreenshot() const {
+    return _screenshot.prefix;
 }
 
 } // namespace sgct

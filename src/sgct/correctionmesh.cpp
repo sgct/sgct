@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/viewport.h>
@@ -33,7 +34,7 @@
 namespace sgct {
 
 namespace {
-correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
+correction::Buffer setupMaskMesh(const vec2& pos, const vec2& size) {
     correction::Buffer buff;
     buff.geometryType = GL_TRIANGLE_STRIP;
     buff.indices = { 0, 3, 1, 2 };
@@ -62,7 +63,7 @@ correction::Buffer setupMaskMesh(const glm::vec2& pos, const glm::vec2& size) {
     return buff;
 }
 
-correction::Buffer setupSimpleMesh(const glm::vec2& pos, const glm::vec2& size) {
+correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
     correction::Buffer buff;
     buff.geometryType = GL_TRIANGLE_STRIP;
     buff.indices = { 0, 3, 1, 2 };
@@ -176,8 +177,8 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
     ZoneScoped
 
     using namespace correction;
-    const glm::vec2& parentPos = parent.position();
-    const glm::vec2& parentSize = parent.size();
+    const vec2& parentPos = parent.position();
+    const vec2& parentSize = parent.size();
 
     // generate unwarped mask
     {
@@ -231,7 +232,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
             auto fishPrj = dynamic_cast<FisheyeProjection*>(vp->nonLinearProjection());
             if (fishPrj) {
                 fishPrj->setIgnoreAspectRatio(true);
-                fishPrj->update(glm::ivec2(1.f, 1.f));
+                fishPrj->update(vec2{ 1.f, 1.f });
             }
         }
     }

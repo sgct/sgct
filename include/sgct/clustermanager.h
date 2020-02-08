@@ -9,7 +9,7 @@
 #ifndef __SGCT__CLUSTERMANAGER__H__
 #define __SGCT__CLUSTERMANAGER__H__
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -93,7 +93,7 @@ public:
     int numberOfNodes() const;
 
     /// \return the scene transform specified in the configuration file
-    const glm::mat4& sceneTransform() const;
+    const mat4& sceneTransform() const;
 
     /// \return the id to the node which runs this application
     int thisNodeId() const;
@@ -133,7 +133,7 @@ private:
 
     std::vector<std::unique_ptr<Node>> _nodes;
     std::vector<std::unique_ptr<User>> _users;
-    glm::mat4 _sceneTransform = glm::mat4(1.f);
+    mat4 _sceneTransform = mat4(1.f);
 };
 
 } // namespace sgct

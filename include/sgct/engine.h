@@ -153,7 +153,7 @@ public:
     const Statistics& statistics() const;
 
     /// \return the clear color as 4 floats (RGBA)
-    glm::vec4 clearColor() const;
+    vec4 clearColor() const;
 
     /// \return the near clipping plane distance in meters
     float nearClipPlane() const;
@@ -183,7 +183,7 @@ public:
      *
      * \param color the clear color
      */
-    void setClearColor(glm::vec4 color);
+    void setClearColor(vec4 color);
 
     /**
      * This functions updates the frustum of all viewports on demand. However if the
@@ -325,7 +325,7 @@ private:
 
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;
-    glm::vec4 _clearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    vec4 _clearColor = vec4{ 0.f, 0.f, 0.f, 1.f };
 
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;

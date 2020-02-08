@@ -22,7 +22,7 @@ public:
         std::string leftMesh, std::string rightMesh, std::string topMesh);
     virtual ~SphericalMirrorProjection();
 
-    void update(glm::vec2 size) override;
+    void update(vec2 size) override;
 
     /// Render the non linear projection to currently bounded FBO
     void render(const Window& window, const BaseViewport& viewport,

@@ -16,6 +16,7 @@
 #include <sgct/image.h>
 #include <sgct/keys.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/opengl.h>
@@ -28,10 +29,6 @@
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
 #endif // SGCT_HAS_TEXT
-
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <cstddef>
 #include <vector>

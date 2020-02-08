@@ -11,9 +11,9 @@
 
 #ifdef SGCT_HAS_TEXT
 
+#include <sgct/math.h>
 #include <sgct/shaderprogram.h>
 
-#include <glm/fwd.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -121,7 +121,7 @@ public:
      * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
      * texture index at which the font information is stored
      */
-    void bindShader(const glm::mat4& mvp, const glm::vec4& color, int texture) const;
+    void bindShader(const mat4& mvp, const vec4& color, int texture) const;
 
 private:
     /// Constructor initiates the freetype library

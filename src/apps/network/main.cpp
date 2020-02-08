@@ -9,6 +9,8 @@
 #include <sgct/sgct.h>
 
 #include <sgct/utils/box.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     std::unique_ptr<std::thread> connectionThread;
@@ -190,7 +192,7 @@ void draw(const RenderData& data) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);

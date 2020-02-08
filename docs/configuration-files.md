@@ -112,16 +112,7 @@ The capture node contains information relevant to capturing screenshots from an 
 
 ### Attributes
 `path` *optional* \[ string \]
- > Sets the same path for `monoPath`, `leftPath`, and `rightPath`.  If any of these three are also specified, they will overwrite the value provided in this function.  The default value is `SGCT` relative to the current working directory.
-
-`monoPath` *optional* \[ string \]
- > Sets the path used when creating screenshots in the cases when no stereo mode is enabled.  The default value is `SGCT` relative to the working directory.  This value is ignored if the configuration uses any type of stereoscopic rendering method.
-
-`leftPath` *optional* \[ string \]
- > Sets the path used for the screenshots of the left eye in the cases when a stereo configuration is used.  This value is ignored if the configuration does not enable any type of stereo rendering.  The default value is `SGCT` relative to the working directory.
-
-`rightPath` *optional* \[ string \]
- > Sets the path used for the screenshots of the right eye in the cases when a stereo configuration is used.  This value is ignored if the configuration does not enable any type of stereo rendering.  The default value is `SGCT` relative to the working directory.
+ > Sets the path used when creating screenshots.  The default value is to use the current working directory.
 
 `format` *optional* \[ (png, PNG, tga, TGA, jpg, or JPG) \]
  > Sets the screenshot format that should be used for the screenshots taken of the application.  The default value is `PNG`.

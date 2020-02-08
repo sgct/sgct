@@ -9,7 +9,7 @@
 #ifndef __SGCT__SCREENCAPTURE__H__
 #define __SGCT__SCREENCAPTURE__H__
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -47,7 +47,7 @@ public:
      * \param resolution the  pixel resolution of the frame buffer
      * \param channels the number of color channels
      */
-    void initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor);
+    void initOrResize(ivec2 resolution, int channels, int bytesPerColor);
 
     /**
      * Set the opengl texture properties for glGetTexImage.
@@ -67,10 +67,9 @@ public:
      */
     void saveScreenCapture(unsigned int textureId,
         CaptureSource capSrc = CaptureSource::Texture);
-    void setPathAndFileName(std::string path, std::string filename);
 
 private:
-    std::string addFrameNumberToFilename(unsigned int frameNumber);
+    std::string createFilename(unsigned int frameNumber);
     int availableCaptureThread();
     void checkImageBuffer(CaptureSource captureSource);
     Image* prepareImage(int index, std::string file);
@@ -84,12 +83,10 @@ private:
     unsigned int _downloadType = 0x1401; // GL_UNSIGNED_BYTE;
     unsigned int _downloadTypeSetByUser = _downloadType;
     int _dataSize = 0;
-    glm::ivec2 _resolution = glm::ivec2(0);
+    ivec2 _resolution = ivec2{ 0, 0 };
     int _nChannels = 0;
     int _bytesPerColor = 1;
 
-    std::string _baseName;
-    std::string _path;
     EyeIndex _eyeIndex = EyeIndex::Mono;
     CaptureFormat _format = CaptureFormat::PNG;
     int _windowIndex = 0;

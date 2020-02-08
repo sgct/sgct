@@ -9,7 +9,6 @@
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
-#include <glm/glm.hpp>
 #include <algorithm>
 #include <string>
 #include <thread>
@@ -24,7 +23,6 @@ namespace config {
 /// This singleton class will hold global SGCT settings.
 class Settings {
 public:
-    enum class CapturePath { Mono, LeftStereo, RightStereo };
     enum class CaptureFormat { PNG, TGA, JPG };
 
     enum class DrawBufferType {
@@ -80,12 +78,14 @@ public:
      * Set capture/screenshot path used by SGCT.
      *
      * \param path the path including filename without suffix
-     * \param cpi index to which path to set (Mono = default, Left or Right)
      */
-    void setCapturePath(std::string path, CapturePath cpi = CapturePath::Mono);
+    void setCapturePath(std::string path);
 
     /// Set the screenshot capture format.
     void setCaptureFormat(CaptureFormat format);
+
+    /// Sets the prefix to be used for all screenshots
+    void setScreenshotPrefix(std::string prefix);
 
     /**
      * Set if capture should capture warped from backbuffer instead of texture. Backbuffer
@@ -97,14 +97,13 @@ public:
     void setExportWarpingMeshes(bool state);
 
     /// If set to true, the node name is added to screenshots
-    void setAddNodeNamesToScreenshot(bool state);
+    void setAddNodeNameToScreenshot(bool state);
 
-    /**
-     * Get the capture/screenshot path.
-     *
-     * \param cpi index to which path to get (Mono = default, Left or Right)
-     */
-    const std::string& capturePath(CapturePath i = CapturePath::Mono) const;
+    /// If set to true, the window name is added to screenshots
+    void setAddWindowNameToScreenshot(bool state);
+
+    /// Get the capture/screenshot path.
+    const std::string& capturePath() const;
 
     /**
      * Get swap interval for all windows
@@ -150,7 +149,13 @@ public:
     int numberCaptureThreads() const;
 
     /// Returns whether screenshots should contain the node name
-    bool shouldAddNodeNamesToScreenshot() const;
+    bool addNodeNameToScreenshot() const;
+
+    /// Returns whether screenshots should contain the window name
+    bool addWindowNameToScreenshot() const;
+
+    /// Returns the prefix that is used for all screenshots
+    const std::string& prefixScreenshot() const;
 
     /// \return the drawBufferType
     DrawBufferType drawBufferType() const;
@@ -170,13 +175,13 @@ private:
     bool _usePositionTexture = false;
     bool _captureBackBuffer = false;
     bool _exportWarpingMeshes = false;
-    bool _addNodeNameToScreenshots = true;
-
+    
     struct {
-        std::string mono = "SGCT";
-        std::string left = "SGCT";
-        std::string right = "SGCT";
-    } _capturePath;
+        std::string capturePath;
+        std::string prefix;
+        bool addNodeName = false;
+        bool addWindowName = true;
+    } _screenshot;
 
     BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float32Bit;
 };

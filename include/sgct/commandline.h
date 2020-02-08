@@ -28,8 +28,10 @@ struct Configuration {
     std::optional<Settings::CaptureFormat> captureFormat;
     std::optional<int> nCaptureThreads;
     std::optional<bool> exportCorrectionMeshes;
+    std::optional<std::string> screenshotPath;
     std::optional<std::string> screenshotPrefix;
-    std::optional<bool> omitNodeNameInScreenshot;
+    std::optional<bool> addNodeNameInScreenshot;
+    std::optional<bool> omitWindowNameInScreenshot;
     std::optional<bool> useOpenGLDebugContext;
 };
 

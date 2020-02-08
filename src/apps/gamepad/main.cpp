@@ -49,7 +49,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             18,
             32,
-            glm::vec4(1.f, 0.5f, 0.f, 1.f),
+            vec4{ 1.f, 0.5f, 0.f, 1.f },
             "%s", joystickInfoStr.c_str()
         );
     }

@@ -12,7 +12,6 @@
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
-#include <glm/glm.hpp>
 
 namespace sgct {
 
@@ -25,7 +24,7 @@ public:
     ~FisheyeProjection();
 
     /// Update projection when aspect ratio changes for the viewport.
-    void update(glm::vec2 size) override;
+    void update(vec2 size) override;
 
     /// Render the non-linear projection to currently bounded FBO
     void render(const Window& window, const BaseViewport& viewport,
@@ -69,14 +68,14 @@ public:
      * Base of fisheye is the XY-plane. This function is normally used in fisheye stereo
      * rendering.
      */
-    void setOffset(glm::vec3 offset);
+    void setOffset(vec3 offset);
 
     /**
      * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
      * Base of fisheye is the XY-plane. The base offset will be added to the offset
      * specified by setFisheyeOffset. These values are set from the XML config.
      */
-    void setBaseOffset(glm::vec3 offset);
+    void setBaseOffset(vec3 offset);
 
     /**
      * Ignore the framebuffer aspect ratio to allow non-circular fisheye. This is useful
@@ -103,9 +102,9 @@ private:
     bool _ignoreAspectRatio = false;
     bool _keepAspectRatio = true;
 
-    glm::vec3 _offset = glm::vec3(0.f);
-    glm::vec3 _baseOffset = glm::vec3(0.f);
-    glm::vec3 _totalOffset = _baseOffset + _offset;
+    vec3 _offset = vec3{ 0.f, 0.f, 0.f };
+    vec3 _baseOffset = vec3{ 0.f, 0.f, 0.f };
+    vec3 _totalOffset = vec3{ 0.f, 0.f, 0.f };
 
     FisheyeMethod _method = FisheyeMethod::FourFaceCube;
 

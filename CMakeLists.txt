@@ -45,7 +45,6 @@ option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
 option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" ON)
-option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
 
 add_subdirectory(src/sgct)
 add_subdirectory(ext)

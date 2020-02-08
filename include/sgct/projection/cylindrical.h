@@ -26,7 +26,7 @@ public:
 
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
-    void update(glm::vec2 size) override;
+    void update(vec2 size) override;
 
     void setRotation(float rotation);
     void setHeightOffset(float heightOffset);

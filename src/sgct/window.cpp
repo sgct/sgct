@@ -46,7 +46,7 @@ namespace {
         const sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
-                win->setWindowResolution(glm::ivec2(width, height));
+                win->setWindowResolution(sgct::ivec2{ width, height });
             }
         }
     }
@@ -58,7 +58,7 @@ namespace {
         const sgct::Node& node = sgct::ClusterManager::instance().thisNode();
         for (const std::unique_ptr<sgct::Window>& win : node.windows()) {
             if (win->windowHandle() == window) {
-                win->setFramebufferResolution(glm::ivec2(width, height));
+                win->setFramebufferResolution(sgct::ivec2{ width, height });
             }
         }
     }
@@ -155,7 +155,7 @@ void Window::applyWindow(const config::Window& window) {
         ZoneScopedN("MPCDI")
 
         mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
-        setWindowPosition(glm::ivec2(0));
+        setWindowPosition(ivec2{ 0, 0 });
         initWindowResolution(r.resolution);
         setFramebufferResolution(r.resolution);
         setFixResolution(true);
@@ -335,7 +335,10 @@ void Window::initOGL() {
     loadShaders();
 
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
-        glm::vec2 viewportSize = glm::vec2(_framebufferRes) * vp->size();
+        const vec2 viewportSize = vec2{
+            _framebufferRes.x * vp->size().x,
+            _framebufferRes.y * vp->size().y
+        };
         vp->initialize(
             viewportSize,
             _stereoMode != StereoMode::NoStereo,
@@ -427,7 +430,7 @@ void Window::setWindowTitle(const char* title) {
     glfwSetWindowTitle(_windowHandle, title);
 }
 
-void Window::setWindowResolution(glm::ivec2 resolution) {
+void Window::setWindowResolution(ivec2 resolution) {
     // In case this callback gets triggered from elsewhere than SGCT's glfwPollEvents, we
     // want to make sure the actual resizing is deferred to the end of the frame. This can
     // happen if some other library pulls events from the operating system for example by
@@ -439,7 +442,7 @@ void Window::setWindowResolution(glm::ivec2 resolution) {
     _pendingWindowRes = std::move(resolution);
 }
 
-void Window::setFramebufferResolution(glm::ivec2 resolution) {
+void Window::setFramebufferResolution(ivec2 resolution) {
     // Defer actual update of framebuffer resolution until next call to updateResolutions.
     // (Same reason as described for setWindowResolution above.)
     if (!_useFixResolution) {
@@ -544,7 +547,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     Log::Debug("HFOV changed to %f for window %d", hFovDeg, _viewports.size(), _id);
 }
 
-void Window::initWindowResolution(glm::ivec2 resolution) {
+void Window::initWindowResolution(ivec2 resolution) {
     ZoneScoped
 
     _windowRes = resolution;
@@ -572,13 +575,13 @@ void Window::update() {
         if (Settings::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
-            const glm::ivec2 res = resolution();
+            const ivec2 res = resolution();
             sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
             sc.setTextureTransferProperties(_colorDataType);
-            const glm::ivec2 res = framebufferResolution();
+            const ivec2 res = framebufferResolution();
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
         }
     };
@@ -592,7 +595,10 @@ void Window::update() {
     // resize non linear projection buffers
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         if (vp->hasSubViewports()) {
-            glm::vec2 viewport = glm::vec2(_framebufferRes) * vp->size();
+            const vec2 viewport = vec2{
+                _framebufferRes.x * vp->size().x,
+                _framebufferRes.y * vp->size().y
+            };
             vp->nonLinearProjection()->update(std::move(viewport));
         }
     }
@@ -664,7 +670,7 @@ bool Window::isStereo() const {
     return _stereoMode != StereoMode::NoStereo;
 }
 
-void Window::setWindowPosition(glm::ivec2 positions) {
+void Window::setWindowPosition(ivec2 positions) {
     _windowPos = std::move(positions);
     _setWindowPos = true;
 }
@@ -788,7 +794,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
         if (!_isWindowResolutionSet) {
             const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
-            _windowRes = glm::ivec2(currentMode->width, currentMode->height);
+            _windowRes = ivec2{ currentMode->width, currentMode->height };
         }
     }
 
@@ -814,9 +820,11 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 
     _windowInitialRes = _windowRes;
-    _scale = glm::vec2(bufferSize) / glm::vec2(_windowRes);
+    _scale.x = static_cast<float>(bufferSize.x) / static_cast<float>(_windowRes.x);
+    _scale.y = static_cast<float>(bufferSize.y) / static_cast<float>(_windowRes.y);
     if (!_useFixResolution) {
-        _framebufferRes = bufferSize;
+        _framebufferRes.x = bufferSize.x;
+        _framebufferRes.y = bufferSize.y;
     }
 
     // Swap inerval:
@@ -884,13 +892,13 @@ void Window::initScreenCapture() {
         const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
-            const glm::ivec2 res = resolution();
+            const ivec2 res = resolution();
             sc.initOrResize(res, nCaptureChannels, 1);
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
         }
         else {
             // default: capture from texture (supports HDR)
-            const glm::ivec2 res = framebufferResolution();
+            const ivec2 res = framebufferResolution();
             sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
             sc.setTextureTransferProperties(_colorDataType);
         }
@@ -1011,7 +1019,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         }
     }(type);
 
-    const glm::ivec2 res = _framebufferRes;
+    const ivec2 res = _framebufferRes;
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
@@ -1147,7 +1155,7 @@ GLFWwindow* Window::windowHandle() const {
     return _windowHandle;
 }
 
-glm::ivec2 Window::finalFBODimensions() const {
+ivec2 Window::finalFBODimensions() const {
     return _framebufferRes;
 }
 
@@ -1233,19 +1241,19 @@ float Window::horizFieldOfViewDegrees() const {
     return _viewports[0]->horizontalFieldOfViewDegrees();
 }
 
-glm::ivec2 Window::resolution() const {
+ivec2 Window::resolution() const {
     return _windowRes;
 }
 
-glm::ivec2 Window::framebufferResolution() const {
+ivec2 Window::framebufferResolution() const {
     return _framebufferRes;
 }
 
-glm::ivec2 Window::initialResolution() const {
+ivec2 Window::initialResolution() const {
     return _windowInitialRes;
 }
 
-glm::vec2 Window::scale() const {
+vec2 Window::scale() const {
     return _scale;
 }
 

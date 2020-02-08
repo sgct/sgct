@@ -11,7 +11,6 @@
 
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
-#include <glm/glm.hpp>
 #include <optional>
 #include <vector>
 
@@ -153,7 +152,7 @@ public:
      * \param x The width of the window in pixels.
      * \param y The height of the window in pixels.
      */
-    void setWindowResolution(glm::ivec2 resolution);
+    void setWindowResolution(ivec2 resolution);
 
     /**
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
@@ -162,7 +161,7 @@ public:
      * \param x The width of the frame buffer in pixels.
      * \param y The height of the frame buffer in pixels.
      */
-    void setFramebufferResolution(glm::ivec2 resolution);
+    void setFramebufferResolution(ivec2 resolution);
 
     /**
      * Set this window's position in screen coordinates.
@@ -170,7 +169,7 @@ public:
      * \param x horizontal position in pixels
      * \param y vertical position in pixels
      */
-    void setWindowPosition(glm::ivec2 positions);
+    void setWindowPosition(ivec2 positions);
 
     /// Set if fullscreen mode should be used
     void setWindowMode(bool fullscreen);
@@ -288,7 +287,7 @@ public:
      * this FBO but a fisheye renders first a cubemap and then to the final FBO. Post
      * effects are rendered using these dimensions.
      */
-    glm::ivec2 finalFBODimensions() const;
+    ivec2 finalFBODimensions() const;
 
     /// Returns pointer to FBO container
     OffScreenBuffer* fbo() const;
@@ -305,19 +304,19 @@ public:
     float horizFieldOfViewDegrees() const;
 
     /// \return Get the window resolution.
-    glm::ivec2 resolution() const;
+    ivec2 resolution() const;
 
     /// \return Get the frame buffer resolution.
-    glm::ivec2 framebufferResolution() const;
+    ivec2 framebufferResolution() const;
 
     /// \return Get the initial window resolution.
-    glm::ivec2 initialResolution() const;
+    ivec2 initialResolution() const;
 
     /**
      * \return Get the scale value (relation between pixel and point size). Normally this
      *         value is 1.f but 2.f on some retina computers.
      */
-    glm::vec2 scale() const;
+    vec2 scale() const;
 
     /// \return the aspect ratio of the window
     float aspectRatio() const;
@@ -344,7 +343,7 @@ public:
 private:
     enum class TextureType { Color, Depth, Normal, Position };
 
-    void initWindowResolution(glm::ivec2 resolution);
+    void initWindowResolution(ivec2 resolution);
 
     void initScreenCapture();
     /// This function creates textures that will act as FBO targets.
@@ -382,17 +381,17 @@ private:
     bool _setWindowPos = false;
     bool _isDecorated = true;
     bool _hasAlpha = false;
-    glm::ivec2 _framebufferRes = glm::ivec2(512, 256);
-    glm::ivec2 _windowInitialRes = glm::ivec2(640, 480);
-    std::optional<glm::ivec2> _pendingWindowRes;
-    std::optional<glm::ivec2> _pendingFramebufferRes;
-    glm::ivec2 _windowRes = glm::ivec2(640, 480);
-    glm::ivec2 _windowPos = glm::ivec2(0, 0);
-    glm::ivec2 _windowResOld = glm::ivec2(640, 480);
+    ivec2 _framebufferRes = ivec2{ 512, 256 };
+    ivec2 _windowInitialRes = ivec2{ 640, 480 };
+    std::optional<ivec2> _pendingWindowRes;
+    std::optional<ivec2> _pendingFramebufferRes;
+    ivec2 _windowRes = ivec2{ 640, 480 };
+    ivec2 _windowPos = ivec2{ 0, 0 };
+    ivec2 _windowResOld = ivec2{ 640, 480 };
     int _monitorIndex = 0;
     GLFWwindow* _windowHandle = nullptr;
     float _aspectRatio = 1.f;
-    glm::vec2 _scale = glm::vec2(0.f, 0.f);
+    vec2 _scale = vec2{ 0.f, 0.f };
 
     bool _useFXAA = false;
 

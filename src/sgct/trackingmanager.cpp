@@ -47,8 +47,17 @@ namespace {
             return;
         }
 
-        glm::dvec3 pos = glm::dvec3(t.pos[0], t.pos[1], t.pos[2]) * tracker->scale();
-        glm::dquat rotation(t.quat[3], t.quat[0], t.quat[1], t.quat[2]);
+        sgct::vec3 pos = sgct::vec3{
+            static_cast<float>(t.pos[0] * tracker->scale()),
+            static_cast<float>(t.pos[1] * tracker->scale()),
+            static_cast<float>(t.pos[2] * tracker->scale())
+        };
+        sgct::quat rotation = sgct::quat{
+            static_cast<float>(t.quat[0]),
+            static_cast<float>(t.quat[1]),
+            static_cast<float>(t.quat[2]),
+            static_cast<float>(t.quat[3])
+        };
         device->setSensorTransform(pos, rotation);
     }
 

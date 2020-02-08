@@ -36,7 +36,7 @@ class Viewport : public BaseViewport {
 public:
     Viewport(const Window* parent);
 
-    void initialize(glm::vec2 size, bool hasStereo, unsigned int internalFormat,
+    void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
         unsigned int format, unsigned int type, int samples);
 
     void applyViewport(const sgct::config::Viewport& viewport);

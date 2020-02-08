@@ -126,7 +126,7 @@ void initOGL(GLFWwindow*) {
     receiver = GetSpout();
 
     // set background
-    Engine::instance().setClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 0.f));
+    Engine::instance().setClearColor(vec4{ 0.3f, 0.3f, 0.3f, 0.f });
 
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);

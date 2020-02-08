@@ -10,20 +10,9 @@
 #define __SGCT__BASEVIEWPORT__H__
 
 #include <sgct/frustum.h>
+#include <sgct/math.h>
 #include <sgct/projection.h>
 #include <sgct/projection/projectionplane.h>
-#include <glm/glm.hpp>
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable : 4127)
-#endif // WIN32
-
-#include <glm/gtc/quaternion.hpp>
-
-#ifdef WIN32
-#pragma warning(pop)
-#endif // WIN32
-
 #include <string>
 
 namespace sgct {
@@ -37,15 +26,15 @@ public:
     BaseViewport(const Window* parent);
     virtual ~BaseViewport() = default;
 
-    void setPos(glm::vec2 position);
-    void setSize(glm::vec2 size);
+    void setPos(vec2 position);
+    void setSize(vec2 size);
     void setEnabled(bool state);
     void setUser(User* user);
     void setUserName(std::string userName);
     void setEye(Frustum::Mode eye);
 
-    const glm::vec2& position() const;
-    const glm::vec2& size() const;
+    const vec2& position() const;
+    const vec2& size() const;
     float horizontalFieldOfViewDegrees() const;
 
     User& user() const;
@@ -63,7 +52,7 @@ public:
     /// Make projection symmetric relative to user
     void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
-        glm::quat rot, float dist = 10.f);
+        quat rot, float dist = 10.f);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     void setHorizontalFieldOfView(float hFov);
 
@@ -81,15 +70,15 @@ protected:
 
     std::string _userName;
     bool _isEnabled = true;
-    glm::vec2 _position = glm::vec2(0.f, 0.f);
-    glm::vec2 _size = glm::vec2(1.f, 1.f);
+    vec2 _position = vec2{ 0.f, 0.f };
+    vec2 _size = vec2{ 1.f, 1.f };
 
     struct {
-        glm::vec3 lowerLeft = glm::vec3(0.0);
-        glm::vec3 upperLeft = glm::vec3(0.0);
-        glm::vec3 upperRight = glm::vec3(0.0);
+        vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };
+        vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
+        vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
     } _viewPlane;
-    glm::quat _rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    quat _rotation = quat{ 0.f, 0.f, 0.f, 1.f };
 };
 
 } // namespace sgct

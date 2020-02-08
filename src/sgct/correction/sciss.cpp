@@ -14,6 +14,8 @@
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SCISS, code, msg)
 
@@ -171,13 +173,13 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
 
     fclose(file);
 
-    parent.user().setPos(glm::vec3(viewData.x, viewData.y, viewData.z));
+    parent.user().setPos(vec3{ viewData.x, viewData.y, viewData.z });
     parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,
         viewData.fovLeft,
         viewData.fovRight,
-        glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
+        quat{ viewData.qx, viewData.qy, viewData.qz, viewData.qw }
     );
 
     Engine::instance().updateFrustums();
@@ -190,8 +192,8 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
         scissVertex.tx = glm::clamp(scissVertex.tx, 0.f, 1.f);
         scissVertex.ty = glm::clamp(scissVertex.ty, 0.f, 1.f);
 
-        const glm::vec2& s = parent.size();
-        const glm::vec2& p = parent.position();
+        const vec2& s = parent.size();
+        const vec2& p = parent.position();
 
         // convert to [-1, 1]
         CorrectionMeshVertex& vertex = buf.vertices[i];

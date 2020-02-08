@@ -34,6 +34,13 @@ namespace {
     constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
         "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
+
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
 } // namespace
 #endif // SGCT_HAS_SPOUT
 
@@ -78,7 +85,7 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     _depthCorrectionShader.deleteProgram();
 }
 
-void SpoutOutputProjection::update(glm::vec2) {
+void SpoutOutputProjection::update(vec2) {
     constexpr const std::array<const float, 20> v = {
         0.f, 0.f, -1.f, -1.f, -1.f,
         0.f, 1.f, -1.f,  1.f, -1.f,
@@ -99,7 +106,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
-    glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
@@ -254,9 +261,9 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             glScissor(0, 0, _mappingWidth, _mappingHeight);
             glEnable(GL_SCISSOR_TEST);
 
-            const glm::vec4 color = Engine::instance().clearColor();
+            const vec4 color = Engine::instance().clearColor();
             const bool hasAlpha = window.hasAlpha();
-            glClearColor(color.r, color.g, color.b, hasAlpha ? 0.f : color.a);
+            glClearColor(color.x, color.y, color.z, hasAlpha ? 0.f : color.w);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glDisable(GL_CULL_FACE);
@@ -364,7 +371,7 @@ void SpoutOutputProjection::setSpoutMapping(Mapping type) {
     _mappingType = type;
 }
 
-void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
+void SpoutOutputProjection::setSpoutRigOrientation(vec3 orientation) {
     _rigOrientation = std::move(orientation);
 }
 
@@ -534,23 +541,23 @@ void SpoutOutputProjection::initViewports() {
 
     // right
     {
-        _subViewports.right.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.right.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.right.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRight)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRight))
         );
     }
 
     // left
     {
-        _subViewports.left.setPos(glm::vec2(0.f, 0.f));
-        _subViewports.left.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.left.setPos(vec2{ 0.f, 0.f });
+        _subViewports.left.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.x = -Distance;
@@ -559,25 +566,25 @@ void SpoutOutputProjection::initViewports() {
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.left.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 
     // bottom
     {
-        _subViewports.bottom.setPos(glm::vec2(0.f, 0.f));
-        _subViewports.bottom.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.bottom.setPos(vec2{ 0.f, 0.f });
+        _subViewports.bottom.setSize(vec2{ 1.f, 1.f });
 
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
         _subViewports.bottom.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeft),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 
@@ -588,30 +595,30 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
         upperRight.y = Distance;
 
-        _subViewports.top.setSize(glm::vec2(1.f, 1.f));
+        _subViewports.top.setSize(vec2{ 1.f, 1.f });
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
         _subViewports.top.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeft),
-            glm::vec3(r * upperRight)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRight))
         );
     }
 
     // front
     _subViewports.front.projectionPlane().setCoordinates(
-        glm::vec3(rollRot * lowerLeftBase),
-        glm::vec3(rollRot * upperLeftBase),
-        glm::vec3(rollRot * upperRightBase)
+        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * lowerLeftBase)),
+        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperLeftBase)),
+        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperRightBase))
     );
 
     // back
     {
         glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
         _subViewports.back.projectionPlane().setCoordinates(
-            glm::vec3(r * lowerLeftBase),
-            glm::vec3(r * upperLeftBase),
-            glm::vec3(r * upperRightBase)
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
         );
     }
 }
@@ -691,11 +698,7 @@ void SpoutOutputProjection::initShaders() {
     _shader.createAndLinkProgram();
     _shader.bind();
 
-    glUniform4fv(
-        glGetUniformLocation(_shader.id(), "bgColor"),
-        1,
-        glm::value_ptr(_clearColor)
-    );
+    glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
 
     {
         const glm::mat4 pitchRot = glm::rotate(
@@ -762,9 +765,9 @@ void SpoutOutputProjection::drawCubeFace(BaseViewport& vp, RenderData renderData
     glEnable(GL_SCISSOR_TEST);
     setupViewport(vp);
 
-    const glm::vec4 color = Engine::instance().clearColor();
-    const float alpha = renderData.window.hasAlpha() ? 0.f : color.a;
-    glClearColor(color.r, color.g, color.b, alpha);
+    const vec4 color = Engine::instance().clearColor();
+    const float alpha = renderData.window.hasAlpha() ? 0.f : color.w;
+    glClearColor(color.x, color.y, color.z, alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);

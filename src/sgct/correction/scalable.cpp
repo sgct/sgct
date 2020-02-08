@@ -15,9 +15,7 @@
 
 namespace sgct::correction {
 
-Buffer generateScalableMesh(const std::string& path, const glm::ivec2& pos,
-                            const glm::ivec2& size)
-{
+Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2& size) {
     ZoneScoped
 
     Buffer buf;

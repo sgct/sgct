@@ -10,7 +10,9 @@
 
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     constexpr const int GridSize = 256;
@@ -42,11 +44,6 @@ namespace {
         float s, t;
     };
     using Geometry = std::vector<Vertex>;
-    // struct Geometry {
-    //     std::vector<float> vertPos;
-    //     std::vector<float> texCoord;
-    //     GLsizei numberOfVerts = 0;
-    // };
 
     constexpr const char* vertexShader = R"(
   #version 330 core
@@ -219,11 +216,13 @@ void draw(const RenderData& data) {
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 
-    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values) * scene;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    const glm::mat4 mv = data.viewMatrix * data.modelMatrix * scene;
+    const glm::mat4 mv = glm::make_mat4(data.viewMatrix.values) *
+        glm::make_mat4(data.modelMatrix.values) * scene;
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-    const glm::mat4 mvLight = data.viewMatrix * data.modelMatrix;
+    const glm::mat4 mvLight =
+        glm::make_mat4(data.viewMatrix.values) * glm::make_mat4(data.modelMatrix.values);
     glUniformMatrix4fv(mvLightLoc, 1, GL_FALSE, glm::value_ptr(mvLight));
     const glm::mat3 normal = glm::inverseTranspose(glm::mat3(mv));
     glUniformMatrix3fv(nmLoc, 1, GL_FALSE, glm::value_ptr(normal));
@@ -358,11 +357,6 @@ void keyboard(Key key, Modifier, Action action, int) {
                 break;
             case Key::T:
                 useTracking = !useTracking;
-                break;
-            case Key::E:
-                ClusterManager::instance().defaultUser().setTransform(
-                    glm::translate(glm::dmat4(1.0), glm::dvec3(0.0, 0.0, 4.0))
-                );
                 break;
             case Key::Space:
                 mPause = !mPause;

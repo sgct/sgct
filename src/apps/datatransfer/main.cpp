@@ -11,6 +11,8 @@
 #include <sgct/utils/box.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <fstream>
 #include <memory>
@@ -244,7 +246,7 @@ void draw(const RenderData& data) {
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    const glm::mat4 mvp = data.modelViewProjectionMatrix * scene;
+    const glm::mat4 mvp = glm::make_mat4x4(data.modelViewProjectionMatrix.values) * scene;
 
     glActiveTexture(GL_TEXTURE0);
 

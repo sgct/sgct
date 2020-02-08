@@ -11,6 +11,9 @@
 #include <sgct/utils/box.h>
 #include <sgct/utils/domegrid.h>
 #include <sgct/user.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
     constexpr const float Diameter = 14.8f;
@@ -148,7 +151,10 @@ void initOmniStereo(bool mask) {
     sepMap.load(sepMapSrc);
 
     Window& win = *Engine::instance().windows()[1];
-    const glm::ivec2 res = win.framebufferResolution() / tileSize;
+    const ivec2 res = ivec2{
+        win.framebufferResolution().x / tileSize,
+        win.framebufferResolution().y / tileSize
+    };
 
     Log::Info(
         "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
@@ -169,15 +175,15 @@ void initOmniStereo(bool mask) {
             case 0:
             default:
                 fm = Frustum::Mode::MonoEye;
-                eyePos = glm::vec3(0.f, 0.f, 0.f);
+                eyePos = glm::vec3{ 0.f, 0.f, 0.f };
                 break;
             case 1:
                 fm = Frustum::Mode::StereoLeftEye;
-                eyePos = glm::vec3(-eyeSep / 2.f, 0.f, 0.f);
+                eyePos = glm::vec3{ -eyeSep / 2.f, 0.f, 0.f };
                 break;
             case 2:
                 fm = Frustum::Mode::StereoRightEye;
-                eyePos = glm::vec3(eyeSep / 2.f, 0.f, 0.f);
+                eyePos = glm::vec3{ eyeSep / 2.f, 0.f, 0.f };
                 break;
         }
 
@@ -284,8 +290,8 @@ void initOmniStereo(bool mask) {
                             glm::radians(-90.f),
                             glm::vec3(1.f, 0.f, 0.f)
                         );
-                        glm::vec3 convergencePos = glm::mat3(rotMat) * p;
-                        return convergencePos;
+                        glm::vec3 convPos = glm::mat3(rotMat) * p;
+                        return vec3{ convPos.x, convPos.y, convPos.z };
                     };
 
 
@@ -316,15 +322,16 @@ void initOmniStereo(bool mask) {
                     // calc projection
                     Projection proj;
                     proj.calculateProjection(
-                        tiltedEyePos,
+                        vec3{ tiltedEyePos.x, tiltedEyePos.y, tiltedEyePos.z },
                         projPlane,
                         Engine::instance().nearClipPlane(),
                         Engine::instance().farClipPlane()
                     );
 
                     omniProjections[x][y].enabled = true;
-                    omniProjections[x][y].viewProjectionMatrix[fm] =
-                        proj.viewProjectionMatrix();
+                    omniProjections[x][y].viewProjectionMatrix[fm] = glm::make_mat4(
+                        proj.viewProjectionMatrix().values
+                    );
                     VPCounter++;
                 }
             }
@@ -372,7 +379,10 @@ void drawOmniStereo(const RenderData& renderData) {
     double t0 = Engine::instance().getTime();
 
     Window& win = *Engine::instance().windows()[1];
-    glm::ivec2 res = win.framebufferResolution() / tileSize;
+    ivec2 res = ivec2{
+        win.framebufferResolution().x / tileSize,
+        win.framebufferResolution().y / tileSize
+    };
 
     ShaderManager::instance().shaderProgram("xform").bind();
     glActiveTexture(GL_TEXTURE0);
@@ -384,7 +394,7 @@ void drawOmniStereo(const RenderData& renderData) {
             if (omniProjections[x][y].enabled) {
                 glViewport(x * tileSize, y * tileSize, tileSize, tileSize);
                 const glm::mat4 vp = omniProjections[x][y].viewProjectionMatrix[fm];
-                renderBoxes(vp * renderData.modelMatrix);
+                renderBoxes(vp * glm::make_mat4(renderData.modelMatrix.values));
             }
         }
     }
@@ -412,7 +422,8 @@ void draw(const RenderData& data) {
         drawOmniStereo(data);
     }
     else {
-        const glm::mat4 vp = data.projectionMatrix * data.viewMatrix;
+        const glm::mat4 vp = glm::make_mat4(data.projectionMatrix.values) *
+            glm::make_mat4(data.viewMatrix.values);
 
         ShaderManager::instance().shaderProgram("grid").bind();
         renderGrid(vp);
@@ -421,7 +432,7 @@ void draw(const RenderData& data) {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
-        renderBoxes(vp * data.modelMatrix);
+        renderBoxes(vp * glm::make_mat4(data.modelMatrix.values));
     }
 
     glDisable(GL_CULL_FACE);

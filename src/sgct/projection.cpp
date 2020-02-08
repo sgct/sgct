@@ -13,21 +13,35 @@
 #pragma warning(push)
 #pragma warning(disable : 4127)
 #endif // WIN32
-
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #ifdef WIN32
 #pragma warning(pop)
 #endif // WIN32
 
+#include <cstring>
+
 namespace sgct {
 
-void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj,
-                                     float nearClip, float farClip, glm::vec3 offset)
+namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+} // namespace
+
+void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
+                                     float nearClip, float farClip, vec3 offset)
 {
-    const glm::vec3 lowerLeft = proj.coordinateLowerLeft();
-    const glm::vec3 upperLeft = proj.coordinateUpperLeft();
-    const glm::vec3 upperRight = proj.coordinateUpperRight();
+    const glm::vec3 b = glm::make_vec3(&base.x);
+    const glm::vec3 o = glm::make_vec3(&offset.x);
+
+    const glm::vec3 lowerLeft = glm::make_vec3(&proj.coordinateLowerLeft().x);
+    const glm::vec3 upperLeft = glm::make_vec3(&proj.coordinateUpperLeft().x);
+    const glm::vec3 upperRight = glm::make_vec3(&proj.coordinateUpperRight().x);
 
     // calculate viewplane's internal coordinate system bases
     const glm::vec3 planeX = glm::normalize(upperRight - upperLeft);
@@ -52,7 +66,7 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     const glm::mat3 invDcm = glm::inverse(dcm);
     const glm::vec3 viewPlaneLowerLeft = invDcm * lowerLeft;
     const glm::vec3 viewPlaneUpperRight = invDcm * upperRight;
-    const glm::vec3 eyePos = invDcm * base;
+    const glm::vec3 eyePos = invDcm * b;
 
     // nearFactor = near clipping plane / focus plane dist
     const float nearF = abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
@@ -64,30 +78,34 @@ void Projection::calculateProjection(glm::vec3 base, const ProjectionPlane& proj
     _frustum.nearPlane = nearClip;
     _frustum.farPlane = farClip;
 
-    _viewMatrix = glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(base + offset));
+    _viewMatrix = fromGLM<glm::mat4, mat4>(
+        glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(b + o))
+    );
 
     // calc frustum matrix
-    _projectionMatrix = glm::frustum(
-        _frustum.left,
-        _frustum.right,
-        _frustum.bottom,
-        _frustum.top,
-        _frustum.nearPlane,
-        _frustum.farPlane
+    _projectionMatrix = fromGLM<glm::mat4, mat4>(
+        glm::frustum(
+            _frustum.left,
+            _frustum.right,
+            _frustum.bottom,
+            _frustum.top,
+            _frustum.nearPlane,
+            _frustum.farPlane
+        )
     );
 
     _viewProjectionMatrix = _projectionMatrix * _viewMatrix;
 }
 
-const glm::mat4& Projection::viewProjectionMatrix() const {
+const mat4& Projection::viewProjectionMatrix() const {
     return _viewProjectionMatrix;
 }
 
-const glm::mat4& Projection::viewMatrix() const {
+const mat4& Projection::viewMatrix() const {
     return _viewMatrix;
 }
 
-const glm::mat4& Projection::projectionMatrix() const {
+const mat4& Projection::projectionMatrix() const {
     return _projectionMatrix;
 }
 

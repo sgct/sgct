@@ -15,13 +15,7 @@ SGCT uses unique error codes in the case when an unrecoverable error occurs that
 > \[User\] Name 'default' is not permitted for a user
 
 ### 1010
-> \[Capture\] Mono path must not be empty
-
-### 1011
-> \[Capture\] Left path must not be empty
-
-### 1012
-> \[Capture\] Right path must not be empty
+> \[Capture\] Capture path must not be empty
 
 ### 1020
 > \[Settings\] Swap interval must not be negative

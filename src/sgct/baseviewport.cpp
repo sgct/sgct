@@ -12,6 +12,11 @@
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <stdexcept>
+#include <type_traits>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace sgct {
 
@@ -20,11 +25,11 @@ BaseViewport::BaseViewport(const Window* parent)
     , _user(&ClusterManager::instance().defaultUser())
 {}
 
-void BaseViewport::setPos(glm::vec2 position) {
+void BaseViewport::setPos(vec2 position) {
     _position = std::move(position);
 }
 
-void BaseViewport::setSize(glm::vec2 size) {
+void BaseViewport::setSize(vec2 size) {
     _size = std::move(size);
 }
 
@@ -40,11 +45,11 @@ void BaseViewport::setEye(Frustum::Mode eye) {
     _eye = eye;
 }
 
-const glm::vec2& BaseViewport::position() const {
+const vec2& BaseViewport::position() const {
     return _position;
 }
 
-const glm::vec2& BaseViewport::size() const {
+const vec2& BaseViewport::size() const {
     return _size;
 }
 
@@ -126,7 +131,7 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
 void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                                              float farClip)
 {
-    const glm::vec3& eyePos = _user->posMono();
+    const vec3& eyePos = _user->posMono();
 
     switch (mode) {
         case Frustum::Mode::MonoEye:
@@ -134,34 +139,42 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
                 eyePos,
                 _projPlane,
                 nearClip,
-                farClip,
-                _user->posMono() - eyePos
+                farClip
             );
             break;
         case Frustum::Mode::StereoLeftEye:
-            _stereoLeftProj.calculateProjection(
-                eyePos,
-                _projPlane,
-                nearClip,
-                farClip,
-                _user->posLeftEye() - eyePos
-            );
+        {
+            const vec3 p {
+                _user->posLeftEye().x - eyePos.x,
+                _user->posLeftEye().y - eyePos.y,
+                _user->posLeftEye().z - eyePos.z
+            };
+            _stereoLeftProj.calculateProjection(eyePos, _projPlane, nearClip, farClip, p);
             break;
+        }
         case Frustum::Mode::StereoRightEye:
+        {
+            const vec3 p {
+                _user->posRightEye().x + eyePos.x,
+                _user->posRightEye().y + eyePos.y,
+                _user->posRightEye().z + eyePos.z
+            };
+
             _stereoRightProj.calculateProjection(
                 eyePos,
                 _projPlane,
                 nearClip,
                 farClip,
-                _user->posRightEye() - eyePos
+                p
             );
             break;
+        }
         default: throw std::logic_error("Unhandled case label");
     }
 }
 
 void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
-                                               float right, glm::quat rot, float dist)
+                                               float right, quat rot, float dist)
 {
     _rotation = std::move(rot);
 
@@ -188,6 +201,7 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
     _viewPlane.lowerLeft.x *= newRatio / oldRatio;
     _viewPlane.upperLeft.x *= newRatio / oldRatio;
     _viewPlane.upperRight.x *= newRatio / oldRatio;
+
     _projPlane.setCoordinates(
         _rotation * _viewPlane.lowerLeft,
         _rotation * _viewPlane.upperLeft,
@@ -203,9 +217,9 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
-    const glm::vec3 upperLeft = _projPlane.coordinateUpperLeft();
-    const glm::vec3 lowerLeft = _projPlane.coordinateLowerLeft();
-    const glm::vec3 upperRight = _projPlane.coordinateUpperRight();
+    const vec3 upperLeft = _projPlane.coordinateUpperLeft();
+    const vec3 lowerLeft = _projPlane.coordinateLowerLeft();
+    const vec3 upperRight = _projPlane.coordinateUpperRight();
 
     const float ratio = hFov / horizontalFieldOfViewDegrees();
     const float up = glm::degrees(atan(ratio * upperLeft.y / -upperLeft.z));

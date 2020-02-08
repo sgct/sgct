@@ -16,3 +16,8 @@ set(files
 copy_files(simplenavigation ${files})
 copy_sgct_dynamic_libraries(simplenavigation)
 set_target_properties(simplenavigation PROPERTIES FOLDER "Examples")
+
+set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(GLM REQUIRED)
+mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
+target_include_directories(simplenavigation SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})

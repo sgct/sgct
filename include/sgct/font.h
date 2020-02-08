@@ -11,7 +11,7 @@
 
 #ifdef SGCT_HAS_TEXT
 
-#include <glm/glm.hpp>
+#include <sgct/math.h>
 #include <string>
 #include <unordered_map>
 
@@ -38,8 +38,8 @@ public:
     struct FontFaceData {
         unsigned int texId = 0;
         float distToNextChar = 0.f;
-        glm::vec2 pos = glm::vec2(0.f);
-        glm::vec2 size = glm::vec2(0.f);
+        vec2 pos = vec2{ 0.f, 0.f };
+        vec2 size = vec2{ 0.f, 0.f };
         FT_Glyph glyph = nullptr;
     };
 

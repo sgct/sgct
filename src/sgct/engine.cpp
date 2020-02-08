@@ -29,6 +29,7 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
+#include <assert.h>
 #include <iostream>
 #include <numeric>
 
@@ -130,9 +131,9 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT);
         }
         else {
-            const glm::vec4 color = sgct::Engine::instance().clearColor();
-            const float alpha = window.hasAlpha() ? 0.f : color.a;
-            glClearColor(color.r, color.g, color.b, alpha);
+            const vec4 color = sgct::Engine::instance().clearColor();
+            const float alpha = window.hasAlpha() ? 0.f : color.w;
+            glClearColor(color.x, color.y, color.z, alpha);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
@@ -296,7 +297,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 
         sgct::config::Window window;
         window.isFullScreen = false;
-        window.size = glm::ivec2(1280, 720);
+        window.size = ivec2{ 1280, 720 };
         window.viewports.push_back(viewport);
 
         sgct::config::Node node;
@@ -306,7 +307,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
 
         sgct::config::User user;
         user.eyeSeparation = 0.06f;
-        user.position = glm::vec3(0.f);
+        user.position = vec3{ 0.f, 0.f, 0.f };
         cluster.users.push_back(user);
 
         cluster.masterAddress = "localhost";
@@ -368,15 +369,18 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (config.useOpenGLDebugContext) {
         _createDebugContext = *config.useOpenGLDebugContext;
     }
-    if (config.screenshotPrefix) {
-        std::string path = *config.screenshotPrefix;
-        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
+    if (config.screenshotPath) {
+        Settings::instance().setCapturePath(*config.screenshotPath);
     }
-    if (config.omitNodeNameInScreenshot) {
-        Settings::instance().setAddNodeNamesToScreenshot(
-            !*config.omitNodeNameInScreenshot
+    if (config.screenshotPrefix) {
+        Settings::instance().setScreenshotPrefix(*config.screenshotPrefix);
+    }
+    if (config.addNodeNameInScreenshot) {
+        Settings::instance().setAddNodeNameToScreenshot(*config.addNodeNameInScreenshot);
+    }
+    if (config.omitWindowNameInScreenshot) {
+        Settings::instance().setAddWindowNameToScreenshot(
+            !*config.omitWindowNameInScreenshot
         );
     }
     if (cluster.setThreadAffinity) {
@@ -559,19 +563,6 @@ void Engine::initialize() {
     Log::Info("Vendor: %s", glGetString(GL_VENDOR));
     Log::Info("Renderer: %s", glGetString(GL_RENDERER));
 
-    if (ClusterManager::instance().numberOfNodes() > 1 &&
-        Settings::instance().shouldAddNodeNamesToScreenshot())
-    {
-        std::string path = Settings::instance().capturePath().empty() ?
-            "node" :
-            Settings::instance().capturePath() + "_name";
-        path += std::to_string(ClusterManager::instance().thisNodeId());
-
-        Settings::instance().setCapturePath(path, Settings::CapturePath::Mono);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::LeftStereo);
-        Settings::instance().setCapturePath(path, Settings::CapturePath::RightStereo);
-    }
-
     Window::makeSharedContextCurrent();
 
     //
@@ -588,7 +579,7 @@ void Engine::initialize() {
 
         const int id = _fxaa->shader.id();
         _fxaa->sizeX = glGetUniformLocation(id, "rt_w");
-        const glm::ivec2 framebufferSize = wins[0]->framebufferResolution();
+        const ivec2 framebufferSize = wins[0]->framebufferResolution();
         glUniform1f(_fxaa->sizeX, static_cast<float>(framebufferSize.x));
 
         _fxaa->sizeY = glGetUniformLocation(id, "rt_h");
@@ -1151,9 +1142,10 @@ void Engine::renderFBOTexture(Window& window) {
     Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
         Frustum::Mode::StereoLeftEye : Frustum::Mode::MonoEye;
 
-    const glm::ivec2 size = glm::ivec2(
-        glm::ceil(window.scale() * glm::vec2(window.resolution()))
-    );
+    const ivec2 size = ivec2{
+        static_cast<int>(std::ceil(window.scale().x * window.resolution().x)),
+        static_cast<int>(std::ceil(window.scale().y * window.resolution().y))
+    };
 
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(window, BufferMode::BackBufferBlack, frustum);
@@ -1405,7 +1397,7 @@ void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
         GL_COLOR_ATTACHMENT0
     );
 
-    glm::ivec2 framebufferSize = window.framebufferResolution();
+    ivec2 framebufferSize = window.framebufferResolution();
     glViewport(0, 0, framebufferSize.x, framebufferSize.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -1572,10 +1564,13 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
 {
     ZoneScoped
 
-    const glm::vec2 res = glm::vec2(window.framebufferResolution());
-    const glm::vec2 p = viewport.position() * res;
-    const glm::vec2 s = viewport.size() * res;
-    glm::ivec4 vpCoordinates = glm::ivec4(glm::ivec2(p), glm::ivec2(s));
+    const ivec2 res = window.framebufferResolution();
+    ivec4 vpCoordinates = ivec4{
+        static_cast<int>(viewport.position().x * res.x),
+        static_cast<int>(viewport.position().y * res.y),
+        static_cast<int>(viewport.size().x * res.x),
+        static_cast<int>(viewport.size().y * res.y)
+    };
 
     Window::StereoMode sm = window.stereoMode();
     if (frustum == Frustum::Mode::StereoLeftEye) {
@@ -1631,7 +1626,7 @@ const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
 
-glm::vec4 Engine::clearColor() const {
+vec4 Engine::clearColor() const {
     return _clearColor;
 }
 
@@ -1659,7 +1654,7 @@ void Engine::setEyeSeparation(float eyeSeparation) {
     updateFrustums();
 }
 
-void Engine::setClearColor(glm::vec4 color) {
+void Engine::setClearColor(vec4 color) {
     _clearColor = std::move(color);
 }
 

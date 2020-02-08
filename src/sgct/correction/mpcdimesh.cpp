@@ -60,7 +60,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
         throw Error(2023, "Incorrect file type. Unknown header type");
     }
     const int nCorrectionValues = nCols * nRows;
-    std::vector<glm::vec2> corrGrid(nCorrectionValues);
+    std::vector<vec2> corrGrid(nCorrectionValues);
     for (int i = 0; i < nCorrectionValues; ++i) {
         float x;
         std::memcpy(&x, &srcBuff[srcIdx], sizeof(float));
@@ -76,8 +76,8 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
         srcIdx += sizeof(float);
     }
 
-    std::vector<glm::vec2> smoothPos(nCorrectionValues);
-    std::vector<glm::vec2> warpedPos(nCorrectionValues);
+    std::vector<vec2> smoothPos(nCorrectionValues);
+    std::vector<vec2> warpedPos(nCorrectionValues);
     for (int i = 0; i < nCorrectionValues; ++i) {
         const float gridIdxCol = static_cast<float>(i % nCols);
         const float gridIdxRow = static_cast<float>(i / nCols);
@@ -87,7 +87,8 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
         // Reverse the y position as the values from the PFM file are given in raster-scan
         // order, which is left to right but starts at upper-left rather than lower-left.
         smoothPos[i].y = 1.f - (gridIdxRow / static_cast<float>(nRows - 1));
-        warpedPos[i] = smoothPos[i] + corrGrid[i];
+        warpedPos[i].x = smoothPos[i].x + corrGrid[i].x;
+        warpedPos[i].y = smoothPos[i].y + corrGrid[i].y;
     }
 
     corrGrid.clear();

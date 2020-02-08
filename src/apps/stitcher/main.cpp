@@ -246,7 +246,7 @@ void preWinInit() {
             if (!vp->hasSubViewports()) {
                 continue;
             }
-            vp->nonLinearProjection()->setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+            vp->nonLinearProjection()->setClearColor(vec4{ 0.f, 0.f, 0.f, 1.f });
             vp->nonLinearProjection()->setCubemapResolution(settings.cubemapRes);
             vp->nonLinearProjection()->setInterpolationMode(
                 settings.cubic ?
@@ -263,9 +263,7 @@ void preWinInit() {
         }
 
         win->setNumberOfAASamples(settings.numberOfMSAASamples);
-        win->setFramebufferResolution(
-            glm::ivec2(settings.resolution, settings.resolution)
-        );
+        win->setFramebufferResolution(ivec2{ settings.resolution, settings.resolution });
         win->setUseFXAA(settings.fxaa);
         win->setStereoMode(
             settings.stereo ? Window::StereoMode::Dummy : Window::StereoMode::NoStereo
@@ -482,12 +480,12 @@ int main(int argc, char** argv) {
             );
         }
         else if (arg == "-rot" && argc > (i + 4)) {
-            glm::ivec4 rotations = glm::ivec4(
+            ivec4 rotations = ivec4{
                 atoi(argv[i + 1]),
                 atoi(argv[i + 2]),
                 atoi(argv[i + 3]),
                 atoi(argv[i + 4])
-            );
+            };
             Log::Info(
                 "Setting image rotations to L: %d, R: %d, T: %d, B: %d",
                 rotations.x, rotations.y, rotations.z, rotations.w
@@ -495,21 +493,21 @@ int main(int argc, char** argv) {
 
             auto convertRotations = [](int v) {
                 switch (v) {
-                    case 0:
-                    default:
-                        return Rotation::Deg0;
-                    case 90:
-                        return Rotation::Deg90;
-                    case 180:
-                        return Rotation::Deg180;
-                    case 270:
-                        return Rotation::Deg270;
+                case 0:
+                default:
+                    return Rotation::Deg0;
+                case 90:
+                    return Rotation::Deg90;
+                case 180:
+                    return Rotation::Deg180;
+                case 270:
+                    return Rotation::Deg270;
                 }
             };
-            sideRotations[0] = convertRotations(rotations[0]);
-            sideRotations[1] = convertRotations(rotations[1]);
-            sideRotations[2] = convertRotations(rotations[2]);
-            sideRotations[3] = convertRotations(rotations[3]);
+            sideRotations[0] = convertRotations(rotations.x);
+            sideRotations[1] = convertRotations(rotations.y);
+            sideRotations[2] = convertRotations(rotations.z);
+            sideRotations[3] = convertRotations(rotations.w);
         }
         else if (arg == "-start" && argc > (i + 1)) {
             startFrame = atoi(argv[i + 1]);
@@ -552,19 +550,19 @@ int main(int argc, char** argv) {
             );
         }
         else if (arg == "-msaa" && argc > (i + 1)) {
-        settings.numberOfMSAASamples = atoi(argv[i + 1]);
+            settings.numberOfMSAASamples = atoi(argv[i + 1]);
             Log::Info(
                 "Number of MSAA samples set to %d", settings.numberOfMSAASamples
             );
         }
         else if (arg == "-res" && argc > (i + 1)) {
-        settings.resolution = atoi(argv[i + 1]);
+            settings.resolution = atoi(argv[i + 1]);
             Log::Info(
                 "Resolution set to %d", settings.resolution
             );
         }
         else if (arg == "-cubemap" && argc > (i + 1)) {
-        settings.cubemapRes = atoi(argv[i + 1]);
+            settings.cubemapRes = atoi(argv[i + 1]);
             Log::Info(
                 "Cubemap resolution set to %d", settings.cubemapRes
             );
@@ -589,25 +587,12 @@ int main(int argc, char** argv) {
             Settings::instance().setCaptureFormat(f);
             Log::Info("Format set to %s", argv[i + 1]);
         }
-        else if (arg == "-leftPath" && argc > (i + 1)) {
-            Settings::instance().setCapturePath(
-                argv[i + 1],
-                Settings::CapturePath::Mono
-            );
-            Settings::instance().setCapturePath(
-                argv[i + 1],
-                Settings::CapturePath::LeftStereo
-            );
-
+        else if (arg == "-path" && argc > (i + 1)) {
+            Settings::instance().setCapturePath(argv[i + 1]);
             Log::Info("Left path set to %s", argv[i + 1]);
         }
-        else if (arg == "-rightPath" && argc > (i + 1)) {
-            Settings::instance().setCapturePath(
-                argv[i + 1],
-                Settings::CapturePath::RightStereo
-            );
-
-            Log::Info("Right path set to %s", argv[i + 1]);
+        else if (arg == "-leftPath" || arg == "-rightPath") {
+            Log::Warning("-leftPath and -rightPath are no longer supported; use -path");
         }
     }
 
@@ -623,7 +608,7 @@ int main(int argc, char** argv) {
 
     try {
         Engine::create(cluster, callbacks, config);
-        Engine::instance().setClearColor(glm::vec4(0.f, 0.f, 0.f, 1.f));
+        Engine::instance().setClearColor(vec4{ 0.f, 0.f, 0.f, 1.f });
     }
     catch (const std::runtime_error& e) {
         Log::Error("%s", e.what());

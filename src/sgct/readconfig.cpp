@@ -10,6 +10,8 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/math.h>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
 #include <algorithm>
@@ -19,6 +21,13 @@
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
 namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+
     std::vector<std::string> split(std::string str, char delimiter) {
         std::vector<std::string> res;
         std::stringstream ss(std::move(str));
@@ -29,7 +38,7 @@ namespace {
         return res;
     }
 
-    glm::quat parseOrientationNode(tinyxml2::XMLElement& element) {
+    sgct::quat parseOrientationNode(tinyxml2::XMLElement& element) {
         float x = 0.f;
         float y = 0.f;
         float z = 0.f;
@@ -106,7 +115,7 @@ namespace {
             }
         }
 
-        return quat;
+        return fromGLM<glm::quat, sgct::quat>(quat);
     }
 
     sgct::config::Window::StereoMode getStereoType(const std::string& t) {
@@ -165,60 +174,60 @@ namespace {
         }
     }
 
-    std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
-        glm::ivec2 value;
-        bool xe = e.QueryIntAttribute("x", &value[0]) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryIntAttribute("y", &value[1]) == tinyxml2::XML_NO_ERROR;
+    std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
+        sgct::ivec2 value;
+        bool xe = e.QueryIntAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
+        bool ye = e.QueryIntAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
         return (xe && ye) ? std::optional(value) : std::nullopt;
     }
 
-    std::optional<glm::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
-        glm::vec2 value;
-        bool xe = e.QueryFloatAttribute("x", &value[0]) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryFloatAttribute("y", &value[1]) == tinyxml2::XML_NO_ERROR;
+    std::optional<sgct::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
+        sgct::vec2 value;
+        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
+        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
         return (xe && ye) ? std::optional(value) : std::nullopt;
     }
 
-    std::optional<glm::vec3> parseValueVec3(const tinyxml2::XMLElement& e) {
-        glm::vec3 value;
-        bool xe = e.QueryFloatAttribute("x", &value[0]) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryFloatAttribute("y", &value[1]) == tinyxml2::XML_NO_ERROR;
-        bool ze = e.QueryFloatAttribute("z", &value[2]) == tinyxml2::XML_NO_ERROR;
+    std::optional<sgct::vec3> parseValueVec3(const tinyxml2::XMLElement& e) {
+        sgct::vec3 value;
+        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
+        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
+        bool ze = e.QueryFloatAttribute("z", &value.z) == tinyxml2::XML_NO_ERROR;
         return (xe && ye && ze) ? std::optional(value) : std::nullopt;
     }
 
-    std::optional<glm::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
-        glm::vec4 value;
-        bool re = e.QueryFloatAttribute("r", &value[0]) == tinyxml2::XML_NO_ERROR;
-        bool ge = e.QueryFloatAttribute("g", &value[1]) == tinyxml2::XML_NO_ERROR;
-        bool be = e.QueryFloatAttribute("b", &value[2]) == tinyxml2::XML_NO_ERROR;
-        bool ae = e.QueryFloatAttribute("a", &value[3]) == tinyxml2::XML_NO_ERROR;
+    std::optional<sgct::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
+        sgct::vec4 value;
+        bool re = e.QueryFloatAttribute("r", &value.x) == tinyxml2::XML_NO_ERROR;
+        bool ge = e.QueryFloatAttribute("g", &value.y) == tinyxml2::XML_NO_ERROR;
+        bool be = e.QueryFloatAttribute("b", &value.z) == tinyxml2::XML_NO_ERROR;
+        bool ae = e.QueryFloatAttribute("a", &value.w) == tinyxml2::XML_NO_ERROR;
         return (re && ge && be && ae) ? std::optional(value) : std::nullopt;
     }
 
-    std::optional<glm::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
-        float value[16];
+    std::optional<sgct::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
+        sgct::mat4 r;
         bool err[16] = {
-            e.QueryFloatAttribute("x0", &value[0]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y0", &value[1]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z0", &value[2]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w0", &value[3]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x1", &value[4]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y1", &value[5]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z1", &value[6]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w1", &value[7]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x2", &value[8]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y2", &value[9]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z2", &value[10]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w2", &value[11]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x3", &value[12]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y3", &value[13]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z3", &value[14]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w3", &value[15]) == tinyxml2::XML_NO_ERROR
+            e.QueryFloatAttribute("x0", &r.values[0]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("y0", &r.values[1]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("z0", &r.values[2]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("w0", &r.values[3]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("x1", &r.values[4]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("y1", &r.values[5]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("z1", &r.values[6]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("w1", &r.values[7]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("x2", &r.values[8]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("y2", &r.values[9]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("z2", &r.values[10]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("w2", &r.values[11]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("x3", &r.values[12]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("y3", &r.values[13]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("z3", &r.values[14]) == tinyxml2::XML_NO_ERROR,
+            e.QueryFloatAttribute("w3", &r.values[15]) == tinyxml2::XML_NO_ERROR
         };
 
         bool suc = std::all_of(std::begin(err), std::end(err), [](bool v) { return v; });
-        return suc ? std::optional(glm::make_mat4(value)) : std::nullopt;
+        return suc ? std::optional(r) : std::nullopt;
     }
 
     template <typename T>
@@ -411,12 +420,11 @@ namespace {
             proj.channels = c;
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("RigOrientation"); e) {
-            glm::vec3 orientation = glm::vec3(
+            proj.orientation = sgct::vec3{
                 *parseValue<float>(*e, "pitch"),
                 *parseValue<float>(*e, "yaw"),
                 *parseValue<float>(*e, "roll")
-            );
-            proj.orientation = orientation;
+            };
         }
 
         return proj;
@@ -458,9 +466,9 @@ namespace {
         if (!(c1 && c2 && c3)) {
             throw Err(6010, "Failed parsing coordinates. Missing XML children");
         }
-        std::optional<glm::vec3> p1 = parseValueVec3(*c1);
-        std::optional<glm::vec3> p2 = parseValueVec3(*c2);
-        std::optional<glm::vec3> p3 = parseValueVec3(*c3);
+        std::optional<sgct::vec3> p1 = parseValueVec3(*c1);
+        std::optional<sgct::vec3> p2 = parseValueVec3(*c2);
+        std::optional<sgct::vec3> p3 = parseValueVec3(*c3);
         if (!(p1 && p2 && p3)) {
             throw Err(6011, "Failed parsing ProjectionPlane coordinates. Type error");
         }
@@ -513,7 +521,7 @@ namespace {
         }
 
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
-            if (std::optional<glm::vec2> pos = parseValueVec2(*e); pos) {
+            if (std::optional<sgct::vec2> pos = parseValueVec2(*e); pos) {
                 viewport.position = *pos;
             }
             else {
@@ -521,7 +529,7 @@ namespace {
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
-            if (std::optional<glm::vec2> size = parseValueVec2(*e); size) {
+            if (std::optional<sgct::vec2> size = parseValueVec2(*e); size) {
                 viewport.size = *size;
             }
             else {
@@ -627,7 +635,7 @@ namespace {
             window.stereo = getStereoType(e->Attribute("type"));
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Pos"); e) {
-            if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
+            if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
                 window.pos = *s;
             }
             else {
@@ -635,7 +643,7 @@ namespace {
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Size"); e) {
-            if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
+            if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
                 window.size = *s;
             }
             else {
@@ -643,7 +651,7 @@ namespace {
             }
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Res"); e) {
-            if (std::optional<glm::ivec2> s = parseValueIVec2(*e); s) {
+            if (std::optional<sgct::ivec2> s = parseValueIVec2(*e); s) {
                 window.resolution = *s;
             }
             else {
@@ -698,13 +706,18 @@ namespace {
             user.position = parseValueVec3(*e);
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-            user.transformation = glm::mat4_cast(parseOrientationNode(*e));
+            sgct::quat orientation = parseOrientationNode(*e);
+            user.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                glm::mat4_cast(glm::make_quat(&orientation.x))
+            );
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
             user.transformation = parseValueMat4(*e);
             if (user.transformation) {
                 if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                    user.transformation = glm::transpose(*user.transformation);
+                    user.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                        glm::transpose(glm::make_mat4(user.transformation->values))
+                    );
                 }
             }
         }
@@ -750,18 +763,7 @@ namespace {
     sgct::config::Capture parseCapture(tinyxml2::XMLElement& element) {
         sgct::config::Capture res;
         if (const char* a = element.Attribute("path"); a) {
-            res.monoPath = a;
-            res.leftPath = a;
-            res.rightPath = a;
-        }
-        if (const char* a = element.Attribute("monoPath"); a) {
-            res.monoPath = a;
-        }
-        if (const char* a = element.Attribute("leftPath"); a) {
-            res.leftPath = a;
-        }
-        if (const char* a = element.Attribute("rightPath"); a) {
-            res.rightPath = a;
+            res.path = a;
         }
         if (const char* a = element.Attribute("format"); a) {
             res.format = [](std::string_view format) {
@@ -813,13 +815,18 @@ namespace {
             device.offset = parseValueVec3(*e);
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-            device.transformation = glm::mat4_cast(parseOrientationNode(*e));
+            sgct::quat orientation = parseOrientationNode(*e);
+            device.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                glm::mat4_cast(glm::make_quat(&orientation.x))
+            );
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
             device.transformation = parseValueMat4(*e);
             if (device.transformation) {
                 if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                    device.transformation = glm::transpose(*device.transformation);
+                    device.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                        glm::transpose(glm::make_mat4(device.transformation->values))
+                    );
                 }
             }
         }
@@ -844,7 +851,10 @@ namespace {
             tracker.offset = parseValueVec3(*e);
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
-            tracker.transformation = glm::mat4_cast(parseOrientationNode(*e));
+            sgct::quat orientation = parseOrientationNode(*e);
+            tracker.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                glm::mat4_cast(glm::make_quat(&orientation.x))
+            );
         }
         if (tinyxml2::XMLElement* e = element.FirstChildElement("Scale"); e) {
             tracker.scale = parseValue<double>(*e, "value");
@@ -853,7 +863,9 @@ namespace {
             tracker.transformation = parseValueMat4(*e);
             if (tracker.transformation) {
                 if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                    tracker.transformation = glm::transpose(*tracker.transformation);
+                    tracker.transformation = fromGLM<glm::mat4, sgct::mat4>(
+                        glm::transpose(glm::make_mat4(tracker.transformation->values))
+                    );
                 }
             }
         }

@@ -9,14 +9,14 @@
 #ifndef __SGCT__CORRECTION_DOMEPROJECTION__H__
 #define __SGCT__CORRECTION_DOMEPROJECTION__H__
 
+#include <sgct/math.h>
 #include <sgct/correction/buffer.h>
-#include <glm/fwd.hpp>
 #include <string>
 
 namespace sgct::correction {
 
-Buffer generateDomeProjectionMesh(const std::string& path, const glm::ivec2& pos,
-    const glm::ivec2& size);
+Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
+    const vec2& size);
 
 } // namespace sgct::correction
 

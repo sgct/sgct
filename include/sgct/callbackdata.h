@@ -10,7 +10,8 @@
 #define __SGCT__CALLBACKDATA__H__
 
 #include <sgct/frustum.h>
-#include <glm/glm.hpp>
+#include <sgct/math.h>
+#include <utility>
 
 namespace sgct {
 
@@ -19,8 +20,8 @@ class Window;
 
 struct RenderData {
     RenderData(const Window& window_, const BaseViewport& viewport_,
-               Frustum::Mode frustumMode_, glm::mat4 modelMatrix_, glm::mat4 viewMatrix_,
-               glm::mat4 projectionMatrix_, glm::mat4 modelViewProjectionMatrix_)
+               Frustum::Mode frustumMode_, mat4 modelMatrix_, mat4 viewMatrix_,
+               mat4 projectionMatrix_, mat4 modelViewProjectionMatrix_)
         : window(window_)
         , viewport(viewport_)
         , frustumMode(frustumMode_)
@@ -33,12 +34,12 @@ struct RenderData {
     const BaseViewport& viewport;
     const Frustum::Mode frustumMode;
 
-    const glm::mat4 modelMatrix;
-    const glm::mat4 viewMatrix;
-    const glm::mat4 projectionMatrix;
+    const mat4 modelMatrix;
+    const mat4 viewMatrix;
+    const mat4 projectionMatrix;
     // @TODO (abock, 2019-12-03) Performance measurements needed to see whether this
     // caching is necessary
-    const glm::mat4 modelViewProjectionMatrix;
+    const mat4 modelViewProjectionMatrix;
 };
 
 } // namespace sgct

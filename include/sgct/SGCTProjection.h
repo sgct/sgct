@@ -32,9 +32,9 @@ public:
     inline const glm::mat4 & getProjectionMatrix() { return mProjectionMatrix; }
     
 protected:
-    glm::mat4 mViewMatrix;
-    glm::mat4 mViewProjectionMatrix;
-    glm::mat4 mProjectionMatrix;
+    glm::mat4 mViewMatrix = glm::mat4(1.f);
+    glm::mat4 mViewProjectionMatrix = glm::mat4(1.f);
+    glm::mat4 mProjectionMatrix = glm::mat4(1.f);
 
     Frustum mFrustum;
 };

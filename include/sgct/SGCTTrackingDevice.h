@@ -82,12 +82,12 @@ private:
     size_t mNumberOfAxes;
     int mSensorId;
 
-    glm::mat4 mDeviceTransformMatrix;
+    glm::mat4 mDeviceTransformMatrix = glm::mat4(1.f);
     glm::mat4 mWorldTransform[2];
     glm::dquat mSensorRotation[2];
     glm::dvec3 mSensorPos[2];
-    glm::quat mOrientation;
-    glm::vec3 mOffset;
+    glm::quat mOrientation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    glm::vec3 mOffset = glm::vec3(0.f);
 
     double mTrackerTime[2];
     double mAnalogTime[2];

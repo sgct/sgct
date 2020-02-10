@@ -31,9 +31,9 @@ public:
         enum TouchAction { NoAction, Released, Pressed, Stationary, Moved };
         int id;
         TouchAction action;
-        glm::vec2 pixelCoords;
-        glm::vec2 normPixelCoords;
-        glm::vec2 normPixelDiff;
+        glm::vec2 pixelCoords = glm::vec2(0.f);
+        glm::vec2 normPixelCoords = glm::vec2(0.f);
+        glm::vec2 normPixelDiff = glm::vec2(0.f);
         TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(0.f, 0.f) {}
         TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np, glm::vec2 nd) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(nd) {}
     };

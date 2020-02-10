@@ -19,6 +19,12 @@ sgct_core::BaseViewport::BaseViewport()
     mEye = Frustum::MonoEye;
     mUser = ClusterManager::instance()->getDefaultUserPtr();
     mName.assign("NoName");
+
+    std::fill(
+        std::begin(mUnTransformedViewPlaneCoords),
+        std::end(mUnTransformedViewPlaneCoords),
+        glm::vec3(0.f)
+    );
 }
 
 bool sgct_core::BaseViewport::isEnabled()

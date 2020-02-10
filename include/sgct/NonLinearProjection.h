@@ -93,7 +93,7 @@ namespace sgct_core
 
         sgct::ShaderProgram mShader, mDepthCorrectionShader;
         OffScreenBuffer * mCubeMapFBO_Ptr;
-        glm::vec4 mClearColor;
+        glm::vec4 mClearColor = glm::vec4(0.f);
     };
 
 }

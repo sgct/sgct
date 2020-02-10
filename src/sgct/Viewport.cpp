@@ -236,7 +236,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
         if( strcmp("frustum", val[3]) == 0 )
         {
             float distance = 10.0f;
-            glm::quat rotQuat;
+            glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
             glm::vec3 offset(0.0f, 0.0f, 0.0f);
 
             element[4] = element[3]->FirstChildElement();
@@ -321,7 +321,7 @@ void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
     bool validFOV = false;
     float down, left, right, up;
     float distance = 10.0f;
-    glm::quat rotQuat;
+    glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
     glm::vec3 offset(0.0f, 0.0f, 0.0f);
 
     tinyxml2::XMLElement * subElement = element->FirstChildElement();
@@ -470,7 +470,7 @@ void sgct_core::Viewport::parseFisheyeProjection(tinyxml2::XMLElement * element)
         }
         if (strcmp("Background", val) == 0)
         {
-            glm::vec4 color;
+            glm::vec4 color = glm::vec4(0.f);
             float ftmp;
 
             if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
@@ -537,7 +537,7 @@ void sgct_core::Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement * elem
 
 		if (strcmp("Background", val) == 0)
 		{
-			glm::vec4 color;
+			glm::vec4 color = glm::vec4(0.f);
 			float ftmp;
 
 			if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
@@ -618,7 +618,7 @@ void sgct_core::Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement * 
 
         if (strcmp("Background", val) == 0)
         {
-            glm::vec4 color;
+            glm::vec4 color = glm::vec4(0.f);
             float ftmp;
 
             if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)

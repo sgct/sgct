@@ -29,8 +29,8 @@ public:
     FontFaceData();
     unsigned int mTexId;
     float mDistToNextChar;
-	glm::vec2 mPos;
-	glm::vec2 mSize;
+	glm::vec2 mPos = glm::vec2(0.f);
+	glm::vec2 mSize = glm::vec2(0.f);
 	FT_Glyph mGlyph;
 	bool mInterpolated;
 };

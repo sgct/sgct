@@ -65,9 +65,9 @@ namespace sgct_core
         bool mOffAxis;
         bool mIgnoreAspectRatio;
         
-        glm::vec3 mOffset;
-        glm::vec3 mBaseOffset;
-        glm::vec3 mTotalOffset;
+        glm::vec3 mOffset = glm::vec3(0.f);
+        glm::vec3 mBaseOffset = glm::vec3(0.f);
+        glm::vec3 mTotalOffset = glm::vec3(0.f);
 
         FisheyeMethod mMethod;
 

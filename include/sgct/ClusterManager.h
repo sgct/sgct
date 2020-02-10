@@ -158,10 +158,10 @@ private:
     std::vector<SGCTUser*> mUsers;
     sgct::SGCTTrackingManager * mTrackingManager;
 
-    glm::mat4 mSceneTransform;
-    glm::mat4 mSceneScale;
-    glm::mat4 mSceneTranslate;
-    glm::mat4 mSceneRotation;
+    glm::mat4 mSceneTransform = glm::mat4(1.f);
+    glm::mat4 mSceneScale = glm::mat4(1.f);
+    glm::mat4 mSceneTranslate = glm::mat4(1.f);
+    glm::mat4 mSceneRotation = glm::mat4(1.f);
     MeshImplementation mMeshImpl;
     NetworkManager::NetworkMode mNetMode;
 };

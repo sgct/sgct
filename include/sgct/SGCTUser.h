@@ -58,7 +58,7 @@ private:
 
 private:
     glm::vec3 mPos[3];
-    glm::mat4 mTransform;
+    glm::mat4 mTransform = glm::mat4(1.f);
 
     float mEyeSeparation;
     float mHalfEyeSeparation;

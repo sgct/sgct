@@ -117,7 +117,7 @@ private:
 
     FT_Library  mFTLibrary;                    // Freetype library
 	FT_Face mFace;
-    glm::vec4 mStrokeColor;
+    glm::vec4 mStrokeColor = glm::vec4(0.f);
 
     bool mDrawInScreenSpace;
 

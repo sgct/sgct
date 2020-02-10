@@ -51,9 +51,9 @@ private:
     std::string mName;
 
     double mScale;
-    glm::mat4 mXform;
-    glm::mat4 mOrientation;
-    glm::vec3 mOffset;
+    glm::mat4 mXform = glm::mat4(1.f);
+    glm::mat4 mOrientation = glm::mat4(1.f);
+    glm::vec3 mOffset = glm::vec3(0.f);
 };
 
 }

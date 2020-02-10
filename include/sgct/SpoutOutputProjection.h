@@ -70,7 +70,7 @@ namespace sgct_core
         GLuint spoutMappingTexture;
         Mapping spoutMappingType;
         std::string spoutMappingName;
-        glm::vec3 spoutRigOrientation;
+        glm::vec3 spoutRigOrientation = glm::vec3(0.f);
 
         int spoutMappingWidth;
         int spoutMappingHeight;

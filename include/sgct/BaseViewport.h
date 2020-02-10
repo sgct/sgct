@@ -67,16 +67,16 @@ protected:
     SGCTUser * mUser;
     std::string mName;
     std::string mUserName;
-    bool mEnabled;
-    float mX;
-    float mY;
-    float mXSize;
-    float mYSize;
+    bool mEnabled = true;
+    float mX = 0.f;
+    float mY = 0.f;
+    float mXSize = 1.f;
+    float mYSize = 1.f;
 
     glm::vec3 mUnTransformedViewPlaneCoords[3];
-    glm::quat mRot;
-    float mDistance;
-    glm::vec4 mFOV;
+    glm::quat mRot = glm::quat(1.f, 0.f, 0.f, 0.f);
+    float mDistance = 0.f;
+    glm::vec4 mFOV = glm::vec4(0.f);
 };
 
 }

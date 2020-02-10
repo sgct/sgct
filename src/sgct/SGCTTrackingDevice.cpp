@@ -225,7 +225,7 @@ Set the orientation euler angles (degrees) used to generate the orientation matr
 void sgct::SGCTTrackingDevice::setOrientation(float xRot, float yRot, float zRot)
 {
     //create rotation quaternion based on x, y, z rotations
-    glm::quat rotQuat;
+    glm::quat rotQuat = glm::quat(1.f, 0.f, 0.f, 0.f);
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.0f, 0.0f, 1.0f));

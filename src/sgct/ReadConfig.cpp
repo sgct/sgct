@@ -879,7 +879,7 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
     bool eulerMode = false;
     bool quatMode = false;
 
-    glm::quat quat;
+    glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
 
     if (element->QueryFloatAttribute("w", &tmpf) == tinyxml2::XML_NO_ERROR)
     {
@@ -973,7 +973,7 @@ glm::quat sgct_core::ReadConfig::parseMpcdiOrientationNode(const float yaw,
     float y = -yaw;
     float z = -roll;
 
-    glm::quat quat;
+    glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
     quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
     quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
     quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));

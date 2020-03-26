@@ -226,7 +226,63 @@ namespace Stitcher_GUI
             if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName.Length > 0)
             {
                 input_left_L_textbox.Text = openFileDialog.FileName;
+
+                string baseDir = Path.GetDirectoryName(input_left_L_textbox.Text);
+                string fileName = Path.GetFileName(input_left_L_textbox.Text);
+
+                //Check if we can pre-fill other fields
+                if (baseDir.EndsWith("LEFT_Left"))
+                {
+                    string basename = baseDir.Remove(baseDir.Length - 9, 9);
+                    if (Directory.Exists(basename + "LEFT_Right"))
+                    {
+                        input_right_L_textbox.Text = basename + "LEFT_Right" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "LEFT_Bottom"))
+                    {
+                        input_bottom_L_textbox.Text = basename + "LEFT_Bottom" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "LEFT_Top"))
+                    {
+                        input_top_L_textbox.Text = basename + "LEFT_Top" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "RIGHT_Left"))
+                    {
+                        input_left_R_textbox.Text = basename + "RIGHT_Left" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "RIGHT_Right"))
+                    {
+                        input_right_R_textbox.Text = basename + "RIGHT_Right" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "RIGHT_Bottom"))
+                    {
+                        input_bottom_R_textbox.Text = basename + "RIGHT_Bottom" + "\\" + fileName;
+                    }
+                    if (Directory.Exists(basename + "RIGHT_Top"))
+                    {
+                        input_top_R_textbox.Text = basename + "RIGHT_Top" + "\\" + fileName;
+                    }
+                }
+
                 updateStartButtonStatus();
+
+                string ext = Path.GetExtension(input_left_L_textbox.Text);
+                int stopIndex = Directory.GetFiles(baseDir, "*" + ext, SearchOption.TopDirectoryOnly).Length;
+                string fileNameNoExt = Path.GetFileNameWithoutExtension(input_left_L_textbox.Text);
+                string possibleStartIdx = System.Text.RegularExpressions.Regex.Match(fileNameNoExt, @"\d+$").Value;
+
+                if (Int32.TryParse(possibleStartIdx, out int j))
+                {
+                    input_startindex_textBox.Text = j.ToString();
+                    input_stopindex_textBox.Text = (stopIndex+j-1).ToString();
+                    start_index_textBox.Text = j.ToString();
+                }
+                else
+                {
+                    input_startindex_textBox.Text = "0";
+                    start_index_textBox.Text = "0";
+                    input_stopindex_textBox.Text = stopIndex.ToString();
+                }
             }
         }
 

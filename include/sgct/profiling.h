@@ -20,8 +20,4 @@ void operator delete(void* ptr) noexcept;
 
 #endif // TRACY_ENABLE
 
-namespace sgct {
-
-} // namespace sgct
-
 #endif // __SGCT__PROFILING__H__

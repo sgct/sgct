@@ -145,7 +145,7 @@ configure_file(
   ${PROJECT_SOURCE_DIR}/include/sgct/version.h @ONLY
 )
 
-add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
+add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
 set_compile_options(sgct)
 if (WIN32)
   target_compile_definitions(sgct PRIVATE "_CRT_SECURE_NO_WARNINGS")

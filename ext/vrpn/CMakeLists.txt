@@ -328,6 +328,8 @@ set(VRPN_CLIENT_LIBRARY)
 if(VRPN_BUILD_CLIENT_LIBRARY)
 	add_library(vrpn ${VRPN_CLIENT_SOURCES} ${VRPN_CLIENT_PUBLIC_HEADERS})
 	target_link_libraries(vrpn ${EXTRA_LIBS})
+	set_target_properties(vrpn PROPERTIES DEFINE_SYMBOL VRPNDLL_EXPORTS)
+	
 	set(VRPN_CLIENT_LIBRARY vrpn)
 
 	set_property(TARGET

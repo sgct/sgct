@@ -26,7 +26,7 @@ if (APPLE)
   mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
 endif ()
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

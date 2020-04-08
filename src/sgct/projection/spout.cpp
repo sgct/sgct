@@ -34,17 +34,17 @@ namespace {
     constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
         "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
+} // namespace
+#endif // SGCT_HAS_SPOUT
 
+namespace {
     template <typename From, typename To>
     To fromGLM(From v) {
         To r;
         std::memcpy(&r, glm::value_ptr(v), sizeof(To));
         return r;
     }
-} // namespace
-#endif // SGCT_HAS_SPOUT
 
-namespace {
     struct Vertex {
         float x;
         float y;

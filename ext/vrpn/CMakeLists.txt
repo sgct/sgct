@@ -329,7 +329,8 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 	add_library(vrpn ${VRPN_CLIENT_SOURCES} ${VRPN_CLIENT_PUBLIC_HEADERS})
 	target_link_libraries(vrpn ${EXTRA_LIBS})
 	set_target_properties(vrpn PROPERTIES DEFINE_SYMBOL VRPNDLL_EXPORTS)
-	
+	target_include_directories(vrpn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+	target_include_directories(vrpn PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 	set(VRPN_CLIENT_LIBRARY vrpn)
 
 	set_property(TARGET

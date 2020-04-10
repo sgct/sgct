@@ -794,8 +794,6 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::initialize));
-
     if (RunFrameLockCheckThread) {
         if (ClusterManager::instance().numberOfNodes() > 1) {
             _thread = std::make_unique<std::thread>(updateFrameLockLoop, nullptr);

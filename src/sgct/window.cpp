@@ -281,32 +281,6 @@ void Window::close() {
 #endif
 }
 
-void Window::initialize() {
-    ZoneScoped
-
-    if (!_isFullScreen) {
-        if (_setWindowPos) {
-            glfwSetWindowPos(_windowHandle, _windowPos.x, _windowPos.y);
-        }
-        glfwSetWindowSizeCallback(_windowHandle, windowResizeCallback);
-        glfwSetFramebufferSizeCallback(_windowHandle, frameBufferResizeCallback);
-        glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
-    }
-
-    std::string title = "SGCT node: " +
-        ClusterManager::instance().thisNode().address() + " (" +
-        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
-        ": " + std::to_string(_id) + ")";
-
-    setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
-
-    {
-        // swap the buffers and update the window
-        ZoneScopedN("glfwSwapBuffers")
-        glfwSwapBuffers(_windowHandle);
-    }
-}
-
 void Window::initOGL() {
     ZoneScoped
 
@@ -827,7 +801,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _framebufferRes.y = bufferSize.y;
     }
 
-    // Swap inerval:
+    // Swap interval:
     //  -1 = adaptive sync
     //   0 = vertical sync off
     //   1 = wait for vertical sync
@@ -851,6 +825,28 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         _screenCaptureRight = std::make_unique<ScreenCapture>();
     }
     _finalFBO = std::make_unique<OffScreenBuffer>();
+
+    if (!_isFullScreen) {
+        if (_setWindowPos) {
+            glfwSetWindowPos(_windowHandle, _windowPos.x, _windowPos.y);
+        }
+        glfwSetWindowSizeCallback(_windowHandle, windowResizeCallback);
+        glfwSetFramebufferSizeCallback(_windowHandle, frameBufferResizeCallback);
+        glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
+    }
+
+    std::string title = "SGCT node: " +
+        ClusterManager::instance().thisNode().address() + " (" +
+        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
+        ": " + std::to_string(_id) + ")";
+
+    setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
+
+    {
+        // swap the buffers and update the window
+        ZoneScopedN("glfwSwapBuffers")
+        glfwSwapBuffers(_windowHandle);
+    }
 }
 
 void Window::initNvidiaSwapGroups() {

@@ -34,12 +34,12 @@ struct RenderData {
     const BaseViewport& viewport;
     const Frustum::Mode frustumMode;
 
-    const mat4 modelMatrix;
-    const mat4 viewMatrix;
-    const mat4 projectionMatrix;
+    mat4 modelMatrix;
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
     // @TODO (abock, 2019-12-03) Performance measurements needed to see whether this
     // caching is necessary
-    const mat4 modelViewProjectionMatrix;
+    mat4 modelViewProjectionMatrix;
 };
 
 } // namespace sgct

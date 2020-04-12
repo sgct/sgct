@@ -183,7 +183,7 @@ else()
 endif()
 # Define same target as find_package(ZLIB)
 add_library(ZLIB::ZLIB ALIAS zlib1)
-target_include_directories(zlib1 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(zlib1 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 set(MINIZIP_PATH contrib/minizip)
 set(MINIZIP_SRCS
@@ -207,7 +207,7 @@ if(WIN32)
   list(APPEND MINIZIP_PUBLIC_HDRS ${MINIZIP_PATH}/iowin32.h)
 endif()
 
-add_library(minizip ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
+add_library(minizip STATIC ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
 add_library(minizip::minizip ALIAS minizip)
 
 target_link_libraries(minizip PRIVATE ZLIB::ZLIB)

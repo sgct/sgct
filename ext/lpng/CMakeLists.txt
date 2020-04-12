@@ -6,11 +6,10 @@
 # For conditions of distribution and use, see the disclaimer
 # and license in png.h
 
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.10.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-cmake_policy(SET CMP0026 OLD)
 
 if(UNIX AND NOT DEFINED CMAKE_BUILD_TYPE)
   if(CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION EQUAL 4)
@@ -133,7 +132,6 @@ if(MSVC)
 endif(MSVC)
 
 # NOW BUILD OUR TARGET
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
 
 # does not work without changing name
 add_library(png ${libpng_sources})
@@ -142,7 +140,11 @@ if(MSVC)
   set_target_properties(png PROPERTIES PREFIX "lib")
 endif()
 target_link_libraries(png PRIVATE ZLIB::ZLIB ${M_LIBRARY})
-
+target_include_directories(png PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR} 
+  ${ZLIB_INCLUDE_DIR}
+)
 # Ensure the CMAKE_LIBRARY_OUTPUT_DIRECTORY is set
 IF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
   SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "lib")

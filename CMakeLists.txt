@@ -9,6 +9,13 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(sgct)
 
+if(POLICY CMP0056)
+     cmake_policy(SET CMP0056 NEW)
+endif()
+if(POLICY CMP0066)
+     cmake_policy(SET CMP0066 NEW)
+endif()
+
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
 set(SGCT_VERSION_REVISION "0")

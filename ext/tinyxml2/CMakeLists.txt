@@ -36,7 +36,7 @@ endif(MSVC)
 
 ################################
 # Add targets
-add_library(tinyxml2 tinyxml2.cpp tinyxml2.h)
+add_library(tinyxml2 STATIC tinyxml2.cpp tinyxml2.h)
 add_library(tinyxml2::tinyxml2 ALIAS tinyxml2)
 target_include_directories(tinyxml2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

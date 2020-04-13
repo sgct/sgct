@@ -15,6 +15,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
 #include <algorithm>
+#include <filesystem>
 #include <sstream>
 #include <unordered_map>
 
@@ -483,22 +484,22 @@ namespace {
     sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
         sgct::config::Viewport viewport;
         if (const char* a = elem.Attribute("user"); a) {
-            viewport.user = a;
+            viewport.user = std::filesystem::absolute(a).string();
         }
         if (const char* a = elem.Attribute("overlay"); a) {
-            viewport.overlayTexture = a;
+            viewport.overlayTexture = std::filesystem::absolute(a).string();
         }
         if (const char* a = elem.Attribute("mask"); a) {
-            viewport.blendMaskTexture = a;
+            viewport.blendMaskTexture = std::filesystem::absolute(a).string();
         }
         if (const char* a = elem.Attribute("BlendMask"); a) {
-            viewport.blendMaskTexture = a;
+            viewport.blendMaskTexture = std::filesystem::absolute(a).string();
         }
         if (const char* a = elem.Attribute("BlackLevelMask"); a) {
-            viewport.blendLevelMaskTexture = a;
+            viewport.blendLevelMaskTexture = std::filesystem::absolute(a).string();
         }
         if (const char* a = elem.Attribute("mesh"); a) {
-            viewport.correctionMeshTexture = a;
+            viewport.correctionMeshTexture = std::filesystem::absolute(a).string();
         }
 
         viewport.isTracked = parseValue<bool>(elem, "tracked");
@@ -587,7 +588,7 @@ namespace {
         return scene;
     }
 
-    sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, const std::string& f) {
+    sgct::config::Window parseWindow(tinyxml2::XMLElement& elem) {
         sgct::config::Window window;
 
         if (const char* a = elem.Attribute("name"); a) {
@@ -622,14 +623,7 @@ namespace {
         window.monitor = parseValue<int>(elem, "monitor");
 
         if (const char* a = elem.Attribute("mpcdi"); a) {
-            std::string path;
-            const size_t lastSlashPos = f.find_last_of("/");
-            if (lastSlashPos != std::string::npos) {
-                path = f.substr(0, lastSlashPos) + "/";
-            }
-            path += a;
-            std::replace(path.begin(), path.end(), '\\', '/');
-            window.mpcdi = path;
+            window.mpcdi = std::filesystem::absolute(a).string();
         }
 
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Stereo"); e) {
@@ -669,7 +663,7 @@ namespace {
         return window;
     }
 
-    sgct::config::Node parseNode(tinyxml2::XMLElement& elem, const std::string& file) {
+    sgct::config::Node parseNode(tinyxml2::XMLElement& elem) {
         sgct::config::Node node;
         if (const char* a = elem.Attribute("address"); a) {
             node.address = a;
@@ -688,7 +682,7 @@ namespace {
 
         tinyxml2::XMLElement* wnd = elem.FirstChildElement("Window");
         while (wnd) {
-            sgct::config::Window window = parseWindow(*wnd, file);
+            sgct::config::Window window = parseWindow(*wnd);
             node.windows.push_back(window);
             wnd = wnd->NextSiblingElement("Window");
         }
@@ -939,7 +933,7 @@ namespace {
 
         tinyxml2::XMLElement* nodeElem = root.FirstChildElement("Node");
         while (nodeElem) {
-            sgct::config::Node node = parseNode(*nodeElem, filename);
+            sgct::config::Node node = parseNode(*nodeElem);
             cluster.nodes.push_back(node);
             nodeElem = nodeElem->NextSiblingElement("Node");
         }
@@ -953,7 +947,16 @@ namespace sgct {
 config::Cluster readConfig(const std::string& filename) {
     Log::Debug("Parsing XML config '%s'", filename.c_str());
 
+    // First save the old current working directory, set the new one
+    std::filesystem::path oldPwd = std::filesystem::current_path();
+    std::filesystem::path configFolder = std::filesystem::path(filename).parent_path();
+    std::filesystem::current_path(configFolder);
+
+    // Then load the cluster
     config::Cluster cluster = readXMLFile(filename);
+
+    // and reset the current working directory to the old value
+    std::filesystem::current_path(oldPwd);
 
     Log::Debug("Config file '%s' read successfully", filename.c_str());
     Log::Info("Number of nodes in cluster: %d", cluster.nodes.size());

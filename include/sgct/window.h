@@ -171,7 +171,10 @@ public:
     void setWindowPosition(ivec2 positions);
 
     /// Set if fullscreen mode should be used
-    void setWindowMode(bool fullscreen);
+    void setFullscreen(bool fullscreen);
+
+    /// Sets whether a full screen window should automatically iconify when losing focus
+    void setAutoiconify(bool shouldAutoiconify);
 
     /// Set if the window should float (be on top / topmost)
     void setFloating(bool floating);
@@ -225,6 +228,9 @@ public:
 
     /// \return true if full screen rendering is enabled
     bool isFullScreen() const;
+
+    /// \return true if full screen windows should automatically iconify when losing focus
+    bool shouldAutoiconify() const;
 
     /// \return true if window is floating/allways on top/topmost
     bool isFloating() const;
@@ -375,6 +381,7 @@ private:
     bool _shouldBitPreviousWindow = false;
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
+    bool _shouldAutoiconify = false;
     bool _isFloating = false;
     bool _isDoubleBuffered = true;
     bool _setWindowPos = false;

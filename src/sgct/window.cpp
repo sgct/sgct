@@ -113,7 +113,10 @@ void Window::applyWindow(const config::Window& window) {
         _bufferColorBitDepth = bd;
     }
     if (window.isFullScreen) {
-        setWindowMode(*window.isFullScreen);
+        setFullscreen(*window.isFullScreen);
+    }
+    if (window.shouldAutoiconify) {
+        setAutoiconify(*window.shouldAutoiconify);
     }
     if (window.isFloating) {
         setFloating(*window.isFloating);
@@ -620,6 +623,10 @@ bool Window::isFullScreen() const {
     return _isFullScreen;
 }
 
+bool Window::shouldAutoiconify() const {
+    return _shouldAutoiconify;
+}
+
 bool Window::isFloating() const {
     return _isFloating;
 }
@@ -649,8 +656,12 @@ void Window::setWindowPosition(ivec2 positions) {
     _setWindowPos = true;
 }
 
-void Window::setWindowMode(bool fullscreen) {
+void Window::setFullscreen(bool fullscreen) {
     _isFullScreen = fullscreen;
+}
+
+void Window::setAutoiconify(bool shouldAutoiconify) {
+    _shouldAutoiconify = shouldAutoiconify;
 }
 
 void Window::setFloating(bool floating) {
@@ -727,8 +738,8 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
         const int antiAliasingSamples = numberOfAASamples();
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
-
-        glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+        
+        glfwWindowHint(GLFW_AUTO_ICONIFY, _shouldAutoiconify ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);
 
@@ -748,11 +759,6 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
-        const int refreshRateHint = Settings::instance().refreshRateHint();
-        if (refreshRateHint > 0) {
-            glfwWindowHint(GLFW_REFRESH_RATE, refreshRateHint);
-        }
-
         if (_monitorIndex > 0 && _monitorIndex < count) {
             mon = monitors[_monitorIndex];
         }
@@ -766,10 +772,20 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
             }
         }
 
+        const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
         if (!_isWindowResolutionSet) {
-            const GLFWvidmode* currentMode = glfwGetVideoMode(mon);
             _windowRes = ivec2{ currentMode->width, currentMode->height };
         }
+
+        glfwWindowHint(GLFW_RED_BITS, currentMode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, currentMode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, currentMode->blueBits);
+
+        const int refreshRateHint = Settings::instance().refreshRateHint();
+        glfwWindowHint(
+            GLFW_REFRESH_RATE,
+            refreshRateHint > 0 ? refreshRateHint : currentMode->refreshRate
+        );
     }
 
     {

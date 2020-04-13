@@ -26,4 +26,5 @@ set(files
 )
 copy_files(openvr ${files})
 copy_sgct_dynamic_libraries(openvr)
+set_property(TARGET openvr PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:openvr>)
 set_target_properties(openvr PROPERTIES FOLDER "Examples")

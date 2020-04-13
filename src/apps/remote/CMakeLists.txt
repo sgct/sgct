@@ -15,6 +15,7 @@ set(files
 )
 copy_files(remote ${files})
 copy_sgct_dynamic_libraries(remote)
+set_property(TARGET remote PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:remote>)
 set_target_properties(remote PROPERTIES FOLDER "Examples")
 
 if (MSVC)

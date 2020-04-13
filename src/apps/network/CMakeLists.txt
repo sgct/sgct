@@ -15,6 +15,7 @@ set(files
 )
 copy_files(network ${files})
 copy_sgct_dynamic_libraries(network)
+set_property(TARGET network PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:network>)
 set_target_properties(network PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

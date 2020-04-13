@@ -25,4 +25,5 @@ set(files
 )
 copy_files(calibrator ${files})
 copy_sgct_dynamic_libraries(calibrator)
+set_property(TARGET calibrator PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:calibrator>)
 set_target_properties(calibrator PROPERTIES FOLDER "Examples")

@@ -16,6 +16,7 @@ set(files
 )
 copy_files(datatransfer ${files})
 copy_sgct_dynamic_libraries(datatransfer)
+set_property(TARGET datatransfer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:datatransfer>)
 set_target_properties(datatransfer PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

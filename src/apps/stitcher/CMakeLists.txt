@@ -22,6 +22,7 @@ set(files
 )
 copy_files(stitcher ${files})
 copy_sgct_dynamic_libraries(stitcher)
+set_property(TARGET stitcher PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:stitcher>)
 set_target_properties(stitcher PROPERTIES FOLDER "Examples")
 
 if (MSVC)

@@ -16,4 +16,5 @@ set(files
 )
 copy_files(domeimageviewer ${files})
 copy_sgct_dynamic_libraries(domeimageviewer)
+set_property(TARGET domeimageviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:domeimageviewer>)
 set_target_properties(domeimageviewer PROPERTIES FOLDER "Examples")

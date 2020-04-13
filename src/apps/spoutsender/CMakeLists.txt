@@ -13,6 +13,7 @@ target_link_libraries(spoutsender PRIVATE sgct)
 set(files "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png")
 copy_files(spoutsender ${files})
 copy_sgct_dynamic_libraries(spoutsender)
+set_property(TARGET spoutsender PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutsender>)
 set_target_properties(spoutsender PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

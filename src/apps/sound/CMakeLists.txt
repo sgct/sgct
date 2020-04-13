@@ -28,4 +28,5 @@ set(files
 )
 copy_files(soundExample ${files})
 copy_sgct_dynamic_libraries(sound)
+set_property(TARGET sound PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:sound>)
 set_target_properties(sound PROPERTIES FOLDER "Examples")

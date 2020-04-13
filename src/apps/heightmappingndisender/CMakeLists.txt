@@ -22,4 +22,5 @@ set(files
 )
 copy_files(heightmappingndisender ${files})
 copy_sgct_dynamic_libraries(heightmappingndisender)
+set_property(TARGET heightmappingndisender PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:heightmappingndisender>)
 set_target_properties(heightmappingndisender PROPERTIES FOLDER "Examples")

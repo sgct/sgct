@@ -15,6 +15,7 @@ set(files
 )
 copy_files(simplenavigation ${files})
 copy_sgct_dynamic_libraries(simplenavigation)
+set_property(TARGET simplenavigation PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:simplenavigation>)
 set_target_properties(simplenavigation PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

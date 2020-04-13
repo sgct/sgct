@@ -28,4 +28,5 @@ set(files
 )
 copy_files(openvrfulldomeviewer ${files})
 copy_sgct_dynamic_libraries(openvrfulldomeviewer)
+set_property(TARGET openvrfulldomeviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:openvrfulldomeviewer>)
 set_target_properties(openvrfulldomeviewer PROPERTIES FOLDER "Examples")

@@ -11,6 +11,7 @@ set_compile_options(example1)
 target_link_libraries(example1 PRIVATE sgct)
 
 copy_sgct_dynamic_libraries(example1)
+set_property(TARGET example1 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:example1>)
 set_target_properties(example1 PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

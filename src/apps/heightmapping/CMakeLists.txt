@@ -17,6 +17,7 @@ set(files
 )
 copy_files(heightmapping ${files})
 copy_sgct_dynamic_libraries(heightmapping)
+set_property(TARGET heightmapping PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:heightmapping>)
 set_target_properties(heightmapping PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

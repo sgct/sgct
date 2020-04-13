@@ -35,4 +35,5 @@ set(files
 )
 copy_files(ffmpegcapture ${files})
 copy_sgct_dynamic_libraries(ffmpegcapture)
+set_property(TARGET ffmpegcapture PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:ffmpegcapture>)
 set_target_properties(ffmpegcapture PROPERTIES FOLDER "Examples")

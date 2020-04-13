@@ -18,6 +18,7 @@ set(files
 )
 copy_files(omnistereo ${files})
 copy_sgct_dynamic_libraries(omnistereo)
+set_property(TARGET omnistereo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:omnistereo>)
 set_target_properties(omnistereo PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

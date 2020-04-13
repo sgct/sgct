@@ -10,6 +10,7 @@ add_executable(clustertest main.cpp)
 set_compile_options(clustertest)
 target_link_libraries(clustertest PRIVATE sgct)
 copy_sgct_dynamic_libraries(clustertest)
+set_property(TARGET clustertest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:clustertest>)
 set_target_properties(clustertest PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

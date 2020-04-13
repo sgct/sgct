@@ -15,6 +15,7 @@ set(files
 )
 copy_files(multiplerendertargets ${files})
 copy_sgct_dynamic_libraries(multiplerendertargets)
+set_property(TARGET multiplerendertargets PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:multiplerendertargets>)
 set_target_properties(multiplerendertargets PROPERTIES FOLDER "Examples")
 
 set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")

@@ -36,4 +36,5 @@ set(files
 )
 copy_files(fmpegcaptureanddomeimageviewer ${files})
 copy_sgct_dynamic_libraries(fmpegcaptureanddomeimageviewer)
+set_property(TARGET fmpegcaptureanddomeimageviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:fmpegcaptureanddomeimageviewer>)
 set_target_properties(fmpegcaptureanddomeimageviewer PROPERTIES FOLDER "Examples")

@@ -50,7 +50,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/user.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/version.h
   ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/window.h
   ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
@@ -142,16 +141,17 @@ endif ()
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
-  ${PROJECT_SOURCE_DIR}/include/sgct/version.h @ONLY
+  include/sgct/version.h @ONLY
 )
 
-add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
+add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES} ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h)
 set_compile_options(sgct)
 if (WIN32)
   target_compile_definitions(sgct PRIVATE "_CRT_SECURE_NO_WARNINGS")
 endif ()
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/glad/include)
 

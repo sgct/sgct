@@ -97,6 +97,9 @@ public:
         std::function<std::vector<std::byte>()> encode;
 
         /// This function is called by decode all shared data sent to us from the master
+        /// The first parameter is the block of data that contains the data to be decoded,
+        /// the second parameter is the position in the data at which to start the
+        /// decoding.
         std::function<void(const std::vector<std::byte>&, unsigned int)> decode;
 
         /// This function is called when a TCP message is received

@@ -2,25 +2,20 @@
 
 SGCT is a free cross-platform C++ library for developing OpenGL applications that are synchronized across a cluster of image generating computers (IGs).  SGCT is designed to be as simple as possible to use for the developer and targets the use in immersive real-time applications.  SGCT supports a number of output formats, such as virtual reality (VR), planetarium/dome geometries, fisheye projections, and other types of projections.  In all cases, the client code only needs to render its scene using the projection matrices provided by SGCT and the compositing is then handled internally.  SGCT also supports a variety of stereoscopic formats such as active quad buffers, passive side-by-side, passive over-and-under, checkerboard/DLP/pixel interlaced, and different kinds of anaglyphic stereoscopy.  SGCT applications are scalable and use an XML configuration file format in which all IGs and their properties are specified.  With this approach, there is no need for recompilation of an application for different immersive environments and  applications extend naturally to a server-client clustered architecture without recompilation either.
 
-![Rymdresan](rymdresan-l-02220-small.png)
-![Rymdresan](rymdresan-l-38919-small.png)
-![VR Setup](vr-setup.png)
-
 # Terminology
 We use the following terminology to talk about the way how SGCT works.  There is a single *Cluster* that consists of 1 or more *Node*s with each node usually corresponding to a single computer.  Each *Node* contains 1 or more *Window*s with each *Window* containing 1 or more *Viewport*s.  Some viewport types, such as Fisheye projections, can contain multiple *Subviewport*s, which are created automatically.  One the *Node*s in the *Cluster* is designated as the *server*, where as the other *Nodes* are *client*s.  The general dataflow in SGCT applications is from the *server* to the *clients*, and **not** vice versa.
 
 Please note that in this nomenclature, even if an application is running only on a single machine, it is still considered a cluster, but only consisting of 1 node that also acts as the server for 0 clients.  As there are no clients, it does not have an impact on the performance, however.  Furthermore, usually there is a 1-to-1 mapping between Nodes and computers, but that does not have to be the case as a single computer can host an arbitrary(*-ish*) number of nodes.
 
 # Index
-1. [Features](docs/features.md)
-1. [How it works](docs/how-it-works.md)
-1. [Classes](docs/classes.md)
-1. [Getting started](docs/getting-started.md)
-1. [Configuration files](docs/configuration-files.md)
-1. [Error codes](docs/errors.md)
-
-# Documentation
-Doxygen-generated documentation can be found [here](http://webstaff.itn.liu.se/~alebo68/sgct/doxygen/html/)
+1. [Documentation](https://sgct.github.io/)
+1. [Features](https://sgct.github.io/features.html)
+1. [How it works](https://sgct.github.io/how-it-works.html)
+1. [Classes](https://sgct.github.io/classes.html)
+1. [Getting started](dohttps://sgct.github.io/getting-started.html)
+1. [Configuration files](https://sgct.github.io/configuration-files.html)
+1. [Error codes](https://sgct.github.io/errors.html)
+1. [Doxygen-generated documentation](http://webstaff.itn.liu.se/~alebo68/sgct/doxygen/html/)
 
 # Tutorials
 For tutorials on how to use SGCT, look at the `src/apps` folder for a large amount of examples.  These can be compiled by enabling the `SGCT_EXAMPLES` CMake option.
@@ -33,7 +28,8 @@ Copyright (c) 2012-2020
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 
-Contributors: Alexander Fridlund, Joel Kronander, Daniel Jönsson, Erik Sundén, Gene Payne
+Contributors: Alexander Fridlund, Joel Kronander, Daniel Jönsson, Erik Sundén, Gene Payne,
+              Peter Steneteg
 
 For any questions or information about the SGCT project please contact: alexander.bock@liu.se
 
@@ -77,4 +73,3 @@ SGCT uses and acknowledges the following external libraries:
  - [Tracy](https://github.com/nette/tracy)
  - [VRPN](https://github.com/vrpn/vrpn)
  - [zlib](https://www.zlib.net)
-

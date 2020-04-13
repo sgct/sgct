@@ -5,7 +5,8 @@ Copyright (c) 2012-2020
 Miroslav Andel, Linköping University
 Alexander Bock, Linköping University
 
-Contributors: Alexander Fridlund, Joel Kronander, Daniel Jönsson, Erik Sundén, Gene Payne
+Contributors: Alexander Fridlund, Joel Kronander, Daniel Jönsson, Erik Sundén, Gene Payne,
+              Peter Steneteg
 
 For any questions or information about the project contact: alexander.bock@liu.se
 

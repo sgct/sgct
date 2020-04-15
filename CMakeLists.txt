@@ -9,12 +9,12 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(sgct)
 
-if(POLICY CMP0056)
-     cmake_policy(SET CMP0056 NEW)
-endif()
-if(POLICY CMP0066)
-     cmake_policy(SET CMP0066 NEW)
-endif()
+if (POLICY CMP0056)
+  cmake_policy(SET CMP0056 NEW)
+endif ()
+if (POLICY CMP0066)
+  cmake_policy(SET CMP0066 NEW)
+endif ()
 
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
@@ -41,7 +41,6 @@ if (APPLE)
   mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
 endif ()
 
-
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 
 option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
@@ -49,7 +48,7 @@ option(SGCT_OPENVR_SUPPORT "SGCT OpenVR support" OFF)
 option(SGCT_VRPN_SUPPORT "SGCT VRPN support" ON)
 if (WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
-endif()
+endif ()
 
 # Exceptions for external libraries
 option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
@@ -67,10 +66,10 @@ option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 add_subdirectory(ext)
 add_subdirectory(src/sgct)
 
-if(SGCT_EXAMPLES)
+if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)
   option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
   option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
   option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
   add_subdirectory(src/apps)
-endif()
+endif ()

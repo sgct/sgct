@@ -394,8 +394,8 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data, unsigned int apos) {
-    deserializeObject(data, apos, xform);
+void decode(const std::vector<std::byte>& data, unsigned int startPos) {
+    deserializeObject(data, startPos, xform);
 }
 
 void keyboard(Key key, Modifier, Action action, int) {

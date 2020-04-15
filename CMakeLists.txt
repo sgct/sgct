@@ -32,8 +32,8 @@ include(support/cmake/disable_external_warnings.cmake)
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
 list(APPEND CMAKE_MODULE_PATH 
-	${PROJECT_SOURCE_DIR}/support/cmake/modules 
-	${PROJECT_BINARY_DIR}/pkg
+  ${PROJECT_SOURCE_DIR}/support/cmake/modules 
+  ${PROJECT_BINARY_DIR}/pkg
 )
 
 if (APPLE)

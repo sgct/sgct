@@ -24,6 +24,8 @@
 #include <Windows.h>
 #endif // WIN32
 
+#include <freetype/ftglyph.h>
+
 namespace {
     std::string SystemFontPath;
 

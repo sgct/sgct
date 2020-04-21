@@ -14,16 +14,6 @@
 #undef __gl_h_
 #endif
 
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif // NOMINMAX
-#include <Windows.h>
-#endif // WIN32
-
 #include <glad/glad.h>
 
 #ifdef WIN32

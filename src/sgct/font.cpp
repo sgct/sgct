@@ -12,6 +12,7 @@
 
 #include <sgct/log.h>
 #include <sgct/opengl.h>
+#include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
 #include <array>
 #include <optional>

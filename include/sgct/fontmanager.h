@@ -23,11 +23,11 @@
 #pragma clang diagnostic ignored "-Wold-style-cast"
 #endif // __clang__
 
-#include <freetype/ftglyph.h>
-
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif // __clang__
+
+typedef struct FT_LibraryRec_  *FT_Library;
 
 namespace sgct::text {
 

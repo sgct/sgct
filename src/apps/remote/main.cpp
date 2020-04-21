@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/opengl.h>
 
 namespace {
     double currentTime = 0.0;

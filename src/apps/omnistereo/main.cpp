@@ -7,7 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <sgct/utils/box.h>
 #include <sgct/utils/domegrid.h>
 #include <sgct/user.h>

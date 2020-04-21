@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/opengl.h>
 
 #include <sgct/trackingmanager.h>
 #include <sgct/user.h>

@@ -13,8 +13,10 @@
 #include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
+
 #include <algorithm>
 #include <array>
 

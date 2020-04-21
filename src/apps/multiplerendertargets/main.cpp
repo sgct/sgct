@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/opengl.h>
 
 #include <sgct/utils/box.h>
 #include <glm/glm.hpp>

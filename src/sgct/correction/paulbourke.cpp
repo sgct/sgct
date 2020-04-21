@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
 #include <glm/glm.hpp>

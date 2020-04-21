@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
 #include <algorithm>

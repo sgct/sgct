@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/opengl.h>
 
 #include <sgct/utils/dome.h>
 #define GLFW_INCLUDE_NONE

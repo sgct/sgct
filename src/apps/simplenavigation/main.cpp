@@ -7,7 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <sgct/user.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

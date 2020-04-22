@@ -6,25 +6,25 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifdef WIN32
+#include <sgct/sgct.h>
+#include <sgct/opengl.h>
+#include <sgct/utils/box.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
-#endif // WIN32
-
-#include <sgct/sgct.h>
-#include <sgct/opengl.h>
-#include <sgct/utils/box.h>
 #include <SpoutLibrary.h>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
 
 namespace {
     std::unique_ptr<sgct::utils::Box> box;

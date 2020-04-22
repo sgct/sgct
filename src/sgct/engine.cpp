@@ -7,17 +7,6 @@
  ****************************************************************************************/
 
 #include <sgct/engine.h>
-
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <Windows.h>
-#endif // WIN32
-
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/error.h>
@@ -39,7 +28,7 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <numeric>
 

@@ -8,16 +8,6 @@
 
 #include <sgct/projection/spout.h>
 
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <Windows.h>
-#endif // WIN32
-
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/internalshaders.h>
@@ -35,7 +25,10 @@
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <SpoutLibrary.h>
 #endif
 

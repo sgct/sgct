@@ -6,18 +6,15 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifdef WIN32
+#include <sgct/sgct.h>
+#include <sgct/opengl.h>
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <Windows.h>
-#endif // WIN32
-
-#include <sgct/sgct.h>
-#include <sgct/opengl.h>
 #include <SpoutLibrary.h>
 
 namespace {

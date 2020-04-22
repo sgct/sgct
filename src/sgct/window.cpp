@@ -7,17 +7,6 @@
  ****************************************************************************************/
 
 #include <sgct/window.h>
-
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <Windows.h>
-#endif // WIN32
-
 #include <sgct/clustermanager.h>
 #include <sgct/config.h>
 #include <sgct/engine.h>
@@ -36,6 +25,16 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif // WIN32
 
 #include <glad/glad_wgl.h>
 

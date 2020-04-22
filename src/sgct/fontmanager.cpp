@@ -10,6 +10,14 @@
 
 #include <sgct/fontmanager.h>
 
+#include <sgct/font.h>
+#include <sgct/log.h>
+#include <sgct/opengl.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
+
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -20,14 +28,6 @@
 #define VC_EXTRALEAN
 #include <Windows.h>
 #endif // WIN32
-
-#include <sgct/font.h>
-#include <sgct/log.h>
-#include <sgct/opengl.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <algorithm>
 
 #include <freetype/ftglyph.h>
 

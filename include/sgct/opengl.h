@@ -13,21 +13,25 @@
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #undef __gl_h_
 #endif
-
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif // NOMINMAX
-#include <Windows.h>
-#endif // WIN32
+ 
+/* Workaround for APIENTRY macro redefinition
+ * Problem: glad.h will define APIENTRY if it is not defined. But if windows.h is included 
+ * after glad.h it will also unconditionally set APIENTRY and we get a macro redefinition 
+ * warning.
+ * Solution: We manually define APIENTRY before including glad.h and keep track of if we did
+ * to be able to undefine it if we did define it.
+ */
+#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#define APIENTRY __stdcall
+#define SCGT_GLAD_APIENTRY_DEFINED
+#endif
 
 #include <glad/glad.h>
 
-#ifdef WIN32
-#include <glad/glad_wgl.h>
-#endif // WIN32
+#ifdef SCGT_GLAD_APIENTRY_DEFINED
+#undef APIENTRY
+#undef SCGT_GLAD_APIENTRY_DEFINED
+#endif
+
 
 #endif // __SGCT__OPENGL_H__

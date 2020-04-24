@@ -7,7 +7,6 @@
  ****************************************************************************************/
 
 #include <sgct/engine.h>
-
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/error.h>
@@ -29,15 +28,11 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <numeric>
 
-#ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#endif // WIN32
+#include <glad/glad_wgl.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

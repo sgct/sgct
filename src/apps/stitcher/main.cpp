@@ -7,7 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>

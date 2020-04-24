@@ -13,9 +13,11 @@
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

@@ -7,11 +7,19 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <sgct/utils/box.h>
-#include <SpoutLibrary.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <SpoutLibrary.h>
 
 namespace {
     std::unique_ptr<sgct::utils::Box> box;

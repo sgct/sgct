@@ -21,6 +21,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cstdarg>
+
 namespace {
     template <typename From, typename To>
     To fromGLM(From v) {

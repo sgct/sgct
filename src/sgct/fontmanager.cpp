@@ -17,12 +17,19 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+
 #ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #define VC_EXTRALEAN
 #include <Windows.h>
 #endif // WIN32
+
+#include <freetype/ftglyph.h>
 
 namespace {
     std::string SystemFontPath;

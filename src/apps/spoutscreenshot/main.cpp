@@ -7,7 +7,14 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
+#include <sgct/opengl.h>
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <SpoutLibrary.h>
 
 namespace {

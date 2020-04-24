@@ -12,6 +12,7 @@
 #include <sgct/engine.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>

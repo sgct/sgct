@@ -8,7 +8,8 @@
 
 add_executable(network main.cpp)
 set_compile_options(network)
-target_link_libraries(network PRIVATE sgct)
+find_package(GLM REQUIRED)
+target_link_libraries(network PRIVATE sgct glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
@@ -17,8 +18,3 @@ copy_files(network ${files})
 copy_sgct_dynamic_libraries(network)
 set_property(TARGET network PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:network>)
 set_target_properties(network PROPERTIES FOLDER "Examples")
-
-set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
-find_package(GLM REQUIRED)
-mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
-target_include_directories(network SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})

@@ -12,9 +12,11 @@
 #include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
+
 #include <algorithm>
 #ifdef WIN32
 #pragma warning(push)

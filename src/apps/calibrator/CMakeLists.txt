@@ -8,12 +8,9 @@
 
 add_executable(calibrator main.cpp)
 set_compile_options(calibrator)
-target_link_libraries(calibrator PRIVATE sgct)
-
-set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
 find_package(GLM REQUIRED)
-mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
-target_include_directories(calibrator SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})
+target_link_libraries(calibrator PRIVATE sgct glm)
+
 
 set(files
     "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/test-pattern-0.png"

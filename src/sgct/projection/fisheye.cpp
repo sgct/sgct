@@ -13,10 +13,12 @@
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
+#include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 

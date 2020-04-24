@@ -8,7 +8,8 @@
 
 add_executable(omnistereo main.cpp)
 set_compile_options(omnistereo)
-target_link_libraries(omnistereo PRIVATE sgct)
+find_package(GLM REQUIRED)
+target_link_libraries(omnistereo PRIVATE sgct glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"
@@ -20,8 +21,3 @@ copy_files(omnistereo ${files})
 copy_sgct_dynamic_libraries(omnistereo)
 set_property(TARGET omnistereo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:omnistereo>)
 set_target_properties(omnistereo PROPERTIES FOLDER "Examples")
-
-set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
-find_package(GLM REQUIRED)
-mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
-target_include_directories(omnistereo SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})

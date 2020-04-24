@@ -7,7 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <sgct/user.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -394,8 +394,8 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data, unsigned int pos) {
-    deserializeObject(data, pos, xform);
+void decode(const std::vector<std::byte>& data, unsigned int startPos) {
+    deserializeObject(data, startPos, xform);
 }
 
 void keyboard(Key key, Modifier, Action action, int) {

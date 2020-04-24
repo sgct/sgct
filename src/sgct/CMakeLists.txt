@@ -135,68 +135,70 @@ set(SOURCE_FILES
 )
 
 if (SGCT_OPENVR_SUPPORT)
-  set(HEADER_FILES ${HEADER_FILES} ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h)
-  set(SOURCE_FILES ${SOURCE_FILES} openvr.cpp)
+  list(APPEND HEADER_FILES ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h)
+  list(APPEND SOURCE_FILES openvr.cpp)
 endif ()
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   include/sgct/version.h @ONLY
 )
+list(APPEND ${HEADER_FILES} ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h)
 
-add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES} ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h)
+source_group(TREE ${PROJECT_SOURCE_DIR}/include/sgct PREFIX "Header Files" FILES ${HEADER_FILES})
+source_group(TREE ${PROJECT_SOURCE_DIR}/src/sgct PREFIX "Source Files" FILES ${SOURCE_FILES})
+
+add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
+add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
-if (WIN32)
-  target_compile_definitions(sgct PRIVATE "_CRT_SECURE_NO_WARNINGS")
-endif ()
 
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
-target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/glad/include)
 
-target_link_libraries(sgct PUBLIC glad)
-target_link_libraries(sgct PRIVATE zlibstatic miniziplibstatic)
-
-set(GLM_ROOT_DIR "${PROJECT_SOURCE_DIR}/ext/glm")
+find_package(glad REQUIRED)
+find_package(ZLIB REQUIRED)
 find_package(GLM REQUIRED)
-message(STATUS "Including GLM found at ${GLM_INCLUDE_DIRS}")
-mark_as_advanced(GLM_INCLUDE_DIR GLM_INCLUDE_DIRS)
-target_include_directories(sgct SYSTEM PRIVATE ${GLM_INCLUDE_DIRS})
-
-if (SGCT_DEP_INCLUDE_GLFW)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_GLFW)
-  target_link_libraries(sgct PUBLIC glfw)
+find_package(glfw3 REQUIRED)
+find_package(PNG REQUIRED)
+find_package(tinyxml2 REQUIRED)
+find_package(OpenGL REQUIRED)
+if (SGCT_VRPN_SUPPORT)
+  find_package(vrpn REQUIRED)
+endif ()
+if (SGCT_OPENVR_SUPPORT)
+  find_package(openvr REQUIRED)
 endif ()
 
-if (SGCT_DEP_INCLUDE_LIBPNG)
-  target_compile_definitions(sgct PRIVATE SGCT_HAS_LIBPNG)
-  target_link_libraries(sgct PRIVATE png16_static)
-endif ()
+target_link_libraries(sgct 
+  PUBLIC 
+    glad::glad
+    glfw
+    tracy
+    ${OPENGL_gl_LIBRARY}
+    $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
+    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
+  PRIVATE
+    ZLIB::ZLIB
+    minizip::minizip
+    glm
+    PNG::PNG
+    tinyxml2::tinyxml2
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
+)
 
-if (SGCT_DEP_INCLUDE_TINYXML)
-  target_compile_definitions(sgct PRIVATE SGCT_HAS_TINYXML)
-  target_link_libraries(sgct PRIVATE tinyxml2static)
-endif ()
+target_compile_definitions(sgct 
+  PUBLIC 
+    $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:SGCT_HAS_TRACY>
+    $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
+    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
+    $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
+  PRIVATE
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
+    $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
+)
 
-target_link_libraries(sgct PUBLIC tracy)
-if (SGCT_DEP_ENABLE_TRACY)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_TRACY TRACY_ENABLE)
-endif ()
-
-if (SGCT_DEP_INCLUDE_VRPN)
-  target_compile_definitions(sgct PRIVATE SGCT_HAS_VRPN)
-  target_link_libraries(sgct PRIVATE vrpn)
-endif ()
-
-if (SGCT_FREETYPE_SUPPORT)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_TEXT)
-  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/freetype2/include)
-  target_link_libraries(sgct PUBLIC freetype)
-endif ()
-
-if (SGCT_SPOUT_SUPPORT)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_SPOUT)
+if (WIN32 AND SGCT_SPOUT_SUPPORT)
   target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout)
   target_link_libraries(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
 
@@ -211,50 +213,20 @@ if (SGCT_SPOUT_SUPPORT)
   )
 endif ()
 
-if (SGCT_OPENVR_SUPPORT)
-  target_compile_definitions(sgct PUBLIC SGCT_HAS_OPENVR)
-  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/openvr/headers)
-endif ()
-
-find_package(OpenGL REQUIRED)
-target_link_libraries(sgct PUBLIC ${OPENGL_gl_LIBRARY})
-
 if (WIN32)
   target_link_libraries(sgct PRIVATE ws2_32)
 elseif (APPLE)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
-
   target_link_libraries(sgct PRIVATE
     ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
   )
-else() # Linux
+else () # Linux
   find_package(X11 REQUIRED)
   find_package(Threads REQUIRED)
-
   target_link_libraries(sgct PRIVATE
     ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
   )
 endif ()
-
-target_include_directories(sgct SYSTEM PUBLIC
-  ${PROJECT_SOURCE_DIR}/ext/glfw/include
-)
-target_include_directories(sgct SYSTEM PRIVATE
-  ${PROJECT_SOURCE_DIR}/ext/tinyxml2
-)
-
-target_include_directories(sgct SYSTEM PUBLIC
-  ${PROJECT_BINARY_DIR}/ext/vrpn
-  ${PROJECT_SOURCE_DIR}/ext/vrpn
-  ${PROJECT_BINARY_DIR}/ext/lpng
-  ${PROJECT_SOURCE_DIR}/ext/lpng
-  ${PROJECT_SOURCE_DIR}/ext/zlib
-  ${PROJECT_BINARY_DIR}/ext/lpng/zlib
-  ${PROJECT_SOURCE_DIR}/ext/lpng/zlib
-  ${PROJECT_SOURCE_DIR}/ext/zlib/contrib/minizip
-  ${PROJECT_BINARY_DIR}/ext/libjpeg-turbo
-  ${PROJECT_SOURCE_DIR}/ext/libjpeg-turbo
-)

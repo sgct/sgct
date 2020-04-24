@@ -7,7 +7,7 @@
  ****************************************************************************************/
 
 #include <sgct/sgct.h>
-
+#include <sgct/opengl.h>
 #include <glm/glm.hpp>
 #include <numeric>
 

@@ -6,13 +6,10 @@
 # For conditions of distribution and use, see the disclaimer
 # and license in png.h
 
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.10.0)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-cmake_policy(SET CMP0026 OLD)
-
-ADD_SUBDIRECTORY(../zlib "${CMAKE_CURRENT_BINARY_DIR}/zlib")
 
 if(UNIX AND NOT DEFINED CMAKE_BUILD_TYPE)
   if(CMAKE_MAJOR_VERSION EQUAL 2 AND CMAKE_MINOR_VERSION EQUAL 4)
@@ -44,10 +41,9 @@ set(PNGLIB_NAME libpng${PNGLIB_MAJOR}${PNGLIB_MINOR})
 set(PNGLIB_VERSION ${PNGLIB_MAJOR}.${PNGLIB_MINOR}.${PNGLIB_RELEASE})
 
 # needed packages
-#find_package(ZLIB REQUIRED)
-include_directories(../zlib)
+find_package(ZLIB REQUIRED)
+
 #include zconf.h
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/zlib")
 
 if(NOT WIN32)
   find_library(M_LIBRARY
@@ -136,21 +132,19 @@ if(MSVC)
 endif(MSVC)
 
 # NOW BUILD OUR TARGET
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
-
-unset(PNG_LIB_TARGETS)
 
 # does not work without changing name
-set(PNG_LIB_NAME_STATIC ${PNG_LIB_NAME}_static)
-add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
-list(APPEND PNG_LIB_TARGETS ${PNG_LIB_NAME_STATIC})
+add_library(png ${libpng_sources})
 if(MSVC)
-# msvc does not append 'lib' - do it here to have consistent name
-#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib" FOLDER "Dependencies")
+  # msvc does not append 'lib' - do it here to have consistent name
+  set_target_properties(png PROPERTIES PREFIX "lib")
 endif()
-target_link_libraries(${PNG_LIB_NAME_STATIC} ${ZLIB_LIBRARY} ${M_LIBRARY})
-
+target_link_libraries(png PRIVATE ZLIB::ZLIB ${M_LIBRARY})
+target_include_directories(png PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR} 
+  ${ZLIB_INCLUDE_DIR}
+)
 # Ensure the CMAKE_LIBRARY_OUTPUT_DIRECTORY is set
 IF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
   SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "lib")
@@ -165,7 +159,7 @@ endif(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 # libs.  We are able to change OUTPUT_NAME to remove the _static
 # for all other platforms.
 if(NOT MSVC)
-set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES
+set_target_properties(png PROPERTIES
   OUTPUT_NAME ${PNG_LIB_NAME}
   CLEAN_DIRECT_OUTPUT 1)
 endif()
@@ -181,12 +175,12 @@ endif()
 
 # INSTALL
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-install(TARGETS ${PNG_LIB_NAME_STATIC}
+install(TARGETS png
 	${PNG_EXPORT_RULE}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 if(NOT WIN32 OR CYGWIN OR MINGW)
-  get_target_property(BUILD_TARGET_LOCATION ${PNG_LIB_NAME_STATIC} LOCATION_${CMAKE_BUILD_TYPE})
+  get_target_property(BUILD_TARGET_LOCATION png LOCATION_${CMAKE_BUILD_TYPE})
   get_filename_component(BUILD_TARGET_FILE ${BUILD_TARGET_LOCATION} NAME)
   # CREATE_SYMLINK(${BUILD_TARGET_FILE} libpng${CMAKE_STATIC_LIBRARY_SUFFIX})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}

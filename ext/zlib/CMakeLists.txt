@@ -173,41 +173,59 @@ string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
 #    set(ZLIB_SRCS ${ZLIB_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 #endif( MINGW )
 
-if (NOT TARGET zlibstatic)
-  add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
-endif ()
+
+if (BUILD_SHARED_LIBS)
+    add_library(zlib1 SHARED ${ZLIB_SRCS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+    set_target_properties(zlib1 PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
+    set_target_properties(zlib1 PROPERTIES SOVERSION 1)
+else()
+    add_library(zlib1 STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+endif()
+# Define same target as find_package(ZLIB)
+add_library(ZLIB::ZLIB ALIAS zlib1)
+target_include_directories(zlib1 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 set(MINIZIP_PATH contrib/minizip)
-set(MINIZIP_PUBLIC_HDRS
-    ${MINIZIP_PATH}/zip.h
-    ${MINIZIP_PATH}/unzip.h
-    ${MINIZIP_PATH}/ioapi.h
-    ${MINIZIP_PATH}/iowin32.h
-)
 set(MINIZIP_SRCS
-    ${MINIZIP_PATH}/miniunz.c
-    ${MINIZIP_PATH}/unzip.c
-    ${MINIZIP_PATH}/ioapi.c
+  ${MINIZIP_PATH}/ioapi.c
+  ${MINIZIP_PATH}/unzip.c
+  ${MINIZIP_PATH}/zip.c
+  ${MINIZIP_PATH}/mztools.c
 )
+if(WIN32)
+  list(APPEND MINIZIP_SRCS ${MINIZIP_PATH}/iowin32.c)
+endif()
 
-add_library(miniziplibstatic STATIC ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
+set(MINIZIP_PUBLIC_HDRS
+  ${MINIZIP_PATH}/crypt.h
+  ${MINIZIP_PATH}/ioapi.h
+  ${MINIZIP_PATH}/unzip.h
+  ${MINIZIP_PATH}/zip.h
+  ${MINIZIP_PATH}/mztools.h
+)
+if(WIN32)
+  list(APPEND MINIZIP_PUBLIC_HDRS ${MINIZIP_PATH}/iowin32.h)
+endif()
 
-#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+add_library(minizip STATIC ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
+add_library(minizip::minizip ALIAS minizip)
+
+target_link_libraries(minizip PRIVATE ZLIB::ZLIB)
+target_compile_definitions(minizip PRIVATE -D_ZLIB_H)
+target_include_directories(minizip PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${MINIZIP_PATH})
+
 if(UNIX)
 	# On unix-like platforms the library is almost always called libz
-	set_target_properties(zlibstatic PROPERTIES OUTPUT_NAME z FOLDER "Dependencies")
-	set_target_properties(miniziplibstatic PROPERTIES OUTPUT_NAME minizip FOLDER "Dependencies")
-else()
-	set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
-	set_target_properties(miniziplibstatic PROPERTIES FOLDER "Dependencies")
+	set_target_properties(zlib1 PROPERTIES OUTPUT_NAME z)
+	set_target_properties(minizip PROPERTIES OUTPUT_NAME minizip)
 endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS zlibstatic
+    install(TARGETS zlib1
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
-    install(TARGETS miniziplibstatic
+    install(TARGETS minizip
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )

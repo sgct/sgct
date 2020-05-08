@@ -484,7 +484,7 @@ namespace {
     sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
         sgct::config::Viewport viewport;
         if (const char* a = elem.Attribute("user"); a) {
-            viewport.user = std::filesystem::absolute(a).string();
+            viewport.user = a;
         }
         if (const char* a = elem.Attribute("overlay"); a) {
             viewport.overlayTexture = std::filesystem::absolute(a).string();

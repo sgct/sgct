@@ -9,6 +9,7 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <stdexcept>
@@ -93,6 +94,9 @@ void BaseViewport::linkUserName() {
     User* user = ClusterManager::instance().user(_userName);
     if (user) {
         _user = user;
+    }
+    else {
+        Log::Warning("Could not find user with name %s", _userName.c_str());
     }
 }
 

@@ -92,7 +92,8 @@ void BaseViewport::linkUserName() {
     ZoneScoped
 
     User* user = ClusterManager::instance().user(_userName);
-    if (user) {
+    if (!_userName.empty() && user) {
+        // If the user name is not empty, the User better exists
         _user = user;
     }
     else {

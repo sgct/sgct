@@ -53,7 +53,7 @@ OffScreenBuffer::~OffScreenBuffer() {
     glDeleteRenderbuffers(1, &_positionBuffer);
 }
 
-void OffScreenBuffer::createFBO(int width, int height, int samples) {
+void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrored) {
     // @TODO (abock, 2019-11-15)  When calling this function initially with checking
     // FBO mode enabled, the bind functions further down will trigger missing attachment
     // warnings due to the fact that SGCT handles the creation of the FBO and attachments
@@ -66,6 +66,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples) {
 
     _size = ivec2{ width, height };
     _isMultiSampled = samples > 1;
+    _mirror = mirrored;
 
     // create a multisampled buffer
     if (_isMultiSampled) {
@@ -254,20 +255,30 @@ void OffScreenBuffer::unbind() {
 }
 
 void OffScreenBuffer::blit() {
+    ivec2 src0 = ivec2{ 0, 0 };
+    ivec2 src1 = ivec2{ _size.x, _size.y };
+    ivec2 dst0 = ivec2{ 0, 0 };
+    ivec2 dst1 = ivec2{ _size.x, _size.y };
+    
+    if (_mirror) {
+        dst0.x = _size.x;
+        dst1.x = 0;
+    }
+
     // use no interpolation since src and dst size is equal
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     if (Settings::instance().useDepthTexture()) {
         glBlitFramebuffer(
-            0, 0, _size.x, _size.y,
-            0, 0, _size.x, _size.y,
+            src0.x, src0.y, src1.x, src1.y,
+            dst0.x, dst0.y, dst1.x, dst1.y,
             GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST
         );
     }
     else {
         glBlitFramebuffer(
-            0, 0, _size.x, _size.y,
-            0, 0, _size.x, _size.y,
+            src0.x, src0.y, src1.x, src1.y,
+            dst0.x, dst0.y, dst1.x, dst1.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }
@@ -277,8 +288,8 @@ void OffScreenBuffer::blit() {
         glDrawBuffer(GL_COLOR_ATTACHMENT1);
 
         glBlitFramebuffer(
-            0, 0, _size.x, _size.y,
-            0, 0, _size.x, _size.y,
+            src0.x, src0.y, src1.x, src1.y,
+            dst0.x, dst0.y, dst1.x, dst1.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }
@@ -288,8 +299,8 @@ void OffScreenBuffer::blit() {
         glDrawBuffer(GL_COLOR_ATTACHMENT2);
 
         glBlitFramebuffer(
-            0, 0, _size.x, _size.y,
-            0, 0, _size.x, _size.y,
+            src0.x, src0.y, src1.x, src1.y,
+            dst0.x, dst0.y, dst1.x, dst1.y,
             GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
     }

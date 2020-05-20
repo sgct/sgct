@@ -614,6 +614,7 @@ namespace {
 
         window.isDecorated = parseValue<bool>(elem, "decorated");
         window.isDecorated = parseValue<bool>(elem, "border");
+        window.isMirrored = parseValue<bool>(elem, "mirror");
         window.draw2D = parseValue<bool>(elem, "draw2D");
         window.draw3D = parseValue<bool>(elem, "draw3D");
         window.blitPreviousWindow = parseValue<bool>(elem, "blitPreviousWindow");

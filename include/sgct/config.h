@@ -297,6 +297,7 @@ struct Window {
     std::optional<bool> isDecorated;
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
+    std::optional<bool> isMirrored;
     std::optional<bool> blitPreviousWindow;
     std::optional<int> monitor;
     std::optional<std::string> mpcdi;

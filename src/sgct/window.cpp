@@ -147,6 +147,9 @@ void Window::applyWindow(const config::Window& window) {
     if (window.isDecorated) {
         setWindowDecoration(*window.isDecorated);
     }
+    if (window.isMirrored) {
+        _mirror = true;
+    }
     if (window.draw2D) {
         setCallDraw2DFunction(*window.draw2D);
     }
@@ -1061,7 +1064,7 @@ void Window::createFBOs() {
     TracyGpuZone("Create FBOs")
 
     _finalFBO->setInternalColorFormat(_internalColorFormat);
-    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples);
+    _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _mirror);
 
     Log::Debug(
         "Window %d: FBO initiated successfully. Number of samples: %d",

@@ -386,6 +386,7 @@ private:
     bool _isDoubleBuffered = true;
     bool _setWindowPos = false;
     bool _isDecorated = true;
+    bool _isMirrored = false;
     bool _hasAlpha = false;
     ivec2 _framebufferRes = ivec2{ 512, 256 };
     ivec2 _windowInitialRes = ivec2{ 640, 480 };
@@ -421,6 +422,7 @@ private:
 
     StereoMode _stereoMode = StereoMode::NoStereo;
     int _nAASamples = 1;
+    bool _mirror = false;
     int _id;
 
     unsigned int _vao = 0;

@@ -608,12 +608,9 @@ namespace {
         window.isHidden = parseValue<bool>(elem, "hidden");
         window.doubleBuffered = parseValue<bool>(elem, "dbuffered");
 
-        window.msaa = parseValue<int>(elem, "numberOfSamples");
         window.msaa = parseValue<int>(elem, "msaa");
-        window.msaa = parseValue<int>(elem, "MSAA");
         window.hasAlpha = parseValue<bool>(elem, "alpha");
         window.useFxaa = parseValue<bool>(elem, "fxaa");
-        window.useFxaa = parseValue<bool>(elem, "FXAA");
 
         window.isDecorated = parseValue<bool>(elem, "decorated");
         window.isDecorated = parseValue<bool>(elem, "border");

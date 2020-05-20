@@ -148,7 +148,7 @@ void Window::applyWindow(const config::Window& window) {
         setWindowDecoration(*window.isDecorated);
     }
     if (window.isMirrored) {
-        _mirror = true;
+        _mirror = *window.isMirrored;
     }
     if (window.draw2D) {
         setCallDraw2DFunction(*window.draw2D);

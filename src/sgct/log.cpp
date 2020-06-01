@@ -20,6 +20,8 @@
 #include <Windows.h>
 #endif // WIN32
 
+#include <cstdarg> // va_copy
+
 namespace {
     const char* levelToString(sgct::Log::Level level) {
         switch (level) {

@@ -69,7 +69,7 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
     const glm::vec3 eyePos = invDcm * b;
 
     // nearFactor = near clipping plane / focus plane dist
-    const float nearF = abs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
+    const float nearF = fabs(nearClip / (viewPlaneLowerLeft.z - eyePos.z));
 
     _frustum.left = (viewPlaneLowerLeft.x - eyePos.x) * nearF;
     _frustum.right = (viewPlaneUpperRight.x - eyePos.x) * nearF;

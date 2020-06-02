@@ -15,6 +15,7 @@
 
 namespace sgct {
 enum class MouseButton {
+#ifdef WIN32
     Button1 = 0, // = GLFW_MOUSE_BUTTON_1;
     Button2 = 1, // = GLFW_MOUSE_BUTTON_2;
     Button3 = 2, // = GLFW_MOUSE_BUTTON_3;
@@ -26,6 +27,11 @@ enum class MouseButton {
     ButtonLeft = Button1,
     ButtonRight = Button2,
     ButtonMiddle = Button3
+#else
+    ButtonLeft = 0,
+    ButtonRight = 1,
+    ButtonMiddle = 2
+#endif
 };
 } // namespace sgct
 

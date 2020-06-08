@@ -8,7 +8,7 @@
 
 add_executable(network main.cpp)
 set_compile_options(network)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(network PRIVATE sgct glm)
 
 set(files

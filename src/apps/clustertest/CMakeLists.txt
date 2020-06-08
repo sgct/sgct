@@ -9,7 +9,7 @@
 add_executable(clustertest main.cpp)
 set_compile_options(clustertest)
 
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(clustertest PRIVATE sgct glm)
 copy_sgct_dynamic_libraries(clustertest)
 set_property(TARGET clustertest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:clustertest>)

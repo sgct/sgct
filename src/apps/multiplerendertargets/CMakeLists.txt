@@ -8,7 +8,7 @@
 
 add_executable(multiplerendertargets main.cpp)
 set_compile_options(multiplerendertargets)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(multiplerendertargets PRIVATE sgct glm)
 
 set(files

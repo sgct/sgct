@@ -218,7 +218,7 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
     const float xDist = (_projPlane.coordinateUpperRight().x -
         _projPlane.coordinateUpperLeft().x) / 2.f;
     const float zDist = _projPlane.coordinateUpperRight().z;
-    return (glm::degrees(atan(abs(xDist / zDist)))) * 2.f;
+    return (glm::degrees(atan(std::fabs(xDist / zDist)))) * 2.f;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
@@ -232,7 +232,7 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
     const float left = glm::degrees(atan(ratio * upperLeft.x / -upperLeft.z));
     const float right = glm::degrees(atan(ratio * upperRight.x / -upperRight.z));
 
-    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, abs(upperLeft.z));
+    setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, std::fabs(upperLeft.z));
 }
 
 } // namespace sgct

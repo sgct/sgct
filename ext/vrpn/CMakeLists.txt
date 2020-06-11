@@ -326,6 +326,7 @@ set(VRPN_SERVER_LIBRARY)
 set(VRPN_CLIENT_LIBRARY)
 
 if(VRPN_BUILD_CLIENT_LIBRARY)
+	set_source_files_properties(vrpn ${VRPN_CLIENT_SOURCES} PROPERTIES LANGUAGE "CXX" )
 	add_library(vrpn ${VRPN_CLIENT_SOURCES} ${VRPN_CLIENT_PUBLIC_HEADERS})
 	target_link_libraries(vrpn ${EXTRA_LIBS})
 	set_target_properties(vrpn PROPERTIES DEFINE_SYMBOL VRPNDLL_EXPORTS)

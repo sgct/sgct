@@ -9,6 +9,8 @@
 #ifndef __SGCT__PROFILING__H__
 #define __SGCT__PROFILING__H__
 
+#include <sgct/opengl.h>
+
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
 

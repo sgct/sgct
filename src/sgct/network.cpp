@@ -11,7 +11,8 @@
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #define VC_EXTRALEAN
-    #include <windows.h>
+    #define NOMINMAX
+    #include <Windows.h>
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #define SGCT_ERRNO WSAGetLastError()

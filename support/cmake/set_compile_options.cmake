@@ -27,7 +27,8 @@ function (set_compile_options target)
     target_compile_options(
       ${target}
       PRIVATE
-      "-stdlib=libc++"
+      "-stdlib=libstdc++"
+      "-std=gnu++17"
       "-Wall"
       "-Wextra"
       "-Wabstract-vbase-init"

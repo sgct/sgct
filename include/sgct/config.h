@@ -249,7 +249,7 @@ struct Viewport {
         SpoutOutputProjection
     > projection;
 };
-void validateViewport(const Viewport& viewport);
+void validateViewport(const Viewport& viewport, bool draw3D);
 
 
 

@@ -179,7 +179,7 @@ void validateProjectionPlane(const ProjectionPlane&) {}
 
 void validateMpcdiProjection(const MpcdiProjection&) {}
 
-void validateViewport(const Viewport& v) {
+void validateViewport(const Viewport& v, bool draw3D) {
     ZoneScoped
 
     if (v.user && v.user->empty()) {
@@ -209,7 +209,12 @@ void validateViewport(const Viewport& v) {
         },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
 
-        [](const NoProjection&) { throw Error(1095, "No valid projection provided"); }
+        [v, draw3D](const NoProjection&) {
+            if (draw3D) {
+                // We only need a projection if we actually want to render a 3D scene
+                throw Error(1095, "No valid projection provided");
+            }
+        }
         },
         v.projection
     );
@@ -247,7 +252,9 @@ void validateWindow(const Window& w, bool isFirstWindow) {
         throw Error(1107, "First window cannot be blitted into as there is no source");
     }
 
-    std::for_each(w.viewports.begin(), w.viewports.end(), validateViewport);
+    for (const Viewport& vp : w.viewports) {
+        validateViewport(vp, *w.draw3D);
+    }
 }
 
 void validateNode(const Node& n) {

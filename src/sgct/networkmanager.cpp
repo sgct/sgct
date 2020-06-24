@@ -394,7 +394,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
             minTime = std::min(currentTime, minTime);
 
             const int currentSize =
-                static_cast<int>(SharedData::instance().dataSize()) - Network::HeaderSize;
+                SharedData::instance().dataSize() - static_cast<int>(Network::HeaderSize);
 
             // iterate counter
             const int currentFrame = connection->iterateFrameCounter();
@@ -405,7 +405,7 @@ std::optional<std::pair<double, double>> NetworkManager::sync(SyncMode sm) {
 
             connection->sendData(
                 SharedData::instance().dataBlock(),
-                static_cast<int>(SharedData::instance().dataSize())
+                SharedData::instance().dataSize()
             );
         }
 

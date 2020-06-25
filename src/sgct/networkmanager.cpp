@@ -147,8 +147,13 @@ NetworkManager::NetworkManager(NetworkMode nm,
     addrinfo* info;
     {
         ZoneScopedN("getaddrinfo")
-        int result = getaddrinfo(tmpStr, "http", &hints, &info);
-        if (result != 0) {
+        //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
+        #ifdef __APPLE__
+            int result = getaddrinfo("localhost", "http", &hints, &info);
+        #else
+            int result = getaddrinfo(tmpStr, "http", &hints, &info);
+        #endif // __APPLE__
+	if (result != 0) {
             std::string err = std::to_string(Network::lastError());
             throw Error(5028, "Failed to get address info: " + err);
         }

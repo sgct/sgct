@@ -16,10 +16,10 @@
 
 namespace sgct {
 
-class CylindricalProjection : public NonLinearProjection {
+class CylindricalProjection final : public NonLinearProjection {
 public:
     CylindricalProjection(const Window* parent);
-    ~CylindricalProjection();
+    ~CylindricalProjection() final;
 
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) override;

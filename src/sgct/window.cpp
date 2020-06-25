@@ -36,7 +36,11 @@
 #include <Windows.h>
 #endif // WIN32
 
+#ifdef _WIN32
 #include <glad/glad_wgl.h>
+#else
+#include <glad/glad.h>
+#endif
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

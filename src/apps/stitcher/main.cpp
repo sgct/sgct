@@ -12,6 +12,8 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>
 
+#include <cstring>
+
 namespace {
     enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };
     enum class Sides {

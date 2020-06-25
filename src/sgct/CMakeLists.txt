@@ -158,7 +158,7 @@ target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyxml2 REQUIRED)

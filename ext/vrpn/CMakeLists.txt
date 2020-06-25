@@ -263,31 +263,31 @@ endif()
 # Build the library itself and declare what bits need to be installed
 
 set(VRPN_CLIENT_SOURCES
-	vrpn_Analog.C
-	vrpn_Analog_Output.C
-	vrpn_Auxiliary_Logger.C
-	vrpn_BaseClass.C
-	vrpn_Button.C
-	vrpn_Connection.C
-	vrpn_Dial.C
-	vrpn_FileConnection.C
-	vrpn_FileController.C
-	vrpn_ForceDevice.C
-	vrpn_Forwarder.C
-	vrpn_ForwarderController.C
-	vrpn_FunctionGenerator.C
-	vrpn_Imager.C
-	vrpn_LamportClock.C
-	vrpn_Mutex.C
-	vrpn_Poser.C
-	vrpn_RedundantTransmission.C
-	vrpn_Serial.C
-	vrpn_SerialPort.C
-	vrpn_Shared.C
-	vrpn_SharedObject.C
-	vrpn_Sound.C
-	vrpn_Text.C
-	vrpn_Tracker.C)
+	vrpn_Analog.c
+	vrpn_Analog_Output.c
+	vrpn_Auxiliary_Logger.c
+	vrpn_BaseClass.c
+	vrpn_Button.c
+	vrpn_Connection.c
+	vrpn_Dial.c
+	vrpn_FileConnection.c
+	vrpn_FileController.c
+	vrpn_ForceDevice.c
+	vrpn_Forwarder.c
+	vrpn_ForwarderController.c
+	vrpn_FunctionGenerator.c
+	vrpn_Imager.c
+	vrpn_LamportClock.c
+	vrpn_Mutex.c
+	vrpn_Poser.c
+	vrpn_RedundantTransmission.c
+	vrpn_Serial.c
+	vrpn_SerialPort.c
+	vrpn_Shared.c
+	vrpn_SharedObject.c
+	vrpn_Sound.c
+	vrpn_Text.c
+	vrpn_Tracker.c)
 
 set(VRPN_CLIENT_PUBLIC_HEADERS
 	"${PROJECT_BINARY_DIR}/vrpn_Configure.h"

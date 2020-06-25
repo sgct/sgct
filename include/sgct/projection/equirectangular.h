@@ -17,10 +17,10 @@
 
 namespace sgct {
 
-class EquirectangularProjection : public NonLinearProjection {
+class EquirectangularProjection final : public NonLinearProjection {
 public:
     EquirectangularProjection(const Window* parent);
-    ~EquirectangularProjection();
+    ~EquirectangularProjection() final;
 
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode) override;

@@ -32,7 +32,7 @@ namespace sgct {
 class NonLinearProjection;
 
 /// This class holds and manages viewportdata and calculates frustums
-class Viewport : public BaseViewport {
+class Viewport final : public BaseViewport {
 public:
     Viewport(const Window* parent);
 

@@ -8,7 +8,7 @@
 
 add_executable(heightmapping main.cpp)
 set_compile_options(heightmapping)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(heightmapping PRIVATE sgct glm)
 
 set(files

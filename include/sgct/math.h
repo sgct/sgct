@@ -6,8 +6,8 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#ifndef __MATH_H__
-#define __MATH_H__
+#ifndef __SGCT__MATH_H__
+#define __SGCT__MATH_H__
 
 namespace sgct {
 
@@ -69,4 +69,4 @@ vec3 operator*(const quat& q, const vec3& v);
 
 } // namespace sgct
 
-#endif // __MATH_H_HH
+#endif // __SGCT__MATH_H__

@@ -8,7 +8,7 @@
 
 add_executable(example1 main.cpp)
 set_compile_options(example1)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(example1 PRIVATE sgct glm)
 
 copy_sgct_dynamic_libraries(example1)

@@ -15,7 +15,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
-#include <unzip.h>
+#include <minizip/unzip.h>
 #include <algorithm>
 
 #define Error(code, msg) Error(Error::Component::MPCDI, code, msg)

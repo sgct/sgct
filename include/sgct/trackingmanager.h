@@ -53,7 +53,7 @@ public:
 private:
     static TrackingManager* _instance;
 
-    TrackingManager() = default;
+    TrackingManager();
     ~TrackingManager();
 
     Tracker* tracker(const std::string& name) const;

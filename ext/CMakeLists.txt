@@ -77,14 +77,14 @@ if (SGCT_DEP_INCLUDE_OPENVR AND SGCT_OPENVR_SUPPORT)
   sgct_register_package(openvr openvr)
 endif ()
 
-if (NOT TARGET tracy)
+if (SGCT_DEP_INCLUDE_TRACY)
   add_library(tracy STATIC "${PROJECT_SOURCE_DIR}/ext/tracy/TracyClient.cpp")
   target_include_directories(tracy PUBLIC "tracy")
   set_property(TARGET tracy PROPERTY FOLDER "Dependencies")
   target_compile_definitions(tracy 
-    PUBLIC 
-      $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:TRACY_ENABLE>
     PRIVATE
       _CRT_SECURE_NO_WARNINGS
   )
+  add_library(unofficial::tracy::tracy ALIAS tracy)
+  sgct_register_package(unofficial-tracy tracy)
 endif ()

@@ -164,6 +164,7 @@ find_package(glfw3 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyxml2 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(unofficial-tracy REQUIRED)
 
 if (SGCT_FREETYPE_SUPPORT)
     find_package(freetype REQUIRED)
@@ -179,7 +180,7 @@ target_link_libraries(sgct
   PUBLIC 
     glad::glad
     glfw
-    tracy
+    unofficial::tracy::tracy
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
@@ -194,6 +195,7 @@ target_link_libraries(sgct
 
 target_compile_definitions(sgct 
   PUBLIC 
+    $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:TRACY_ENABLE>
     $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:SGCT_HAS_TRACY>
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>

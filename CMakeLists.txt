@@ -66,6 +66,7 @@ option(SGCT_DEP_INCLUDE_GLAD "Include GLAD library" ON)
 option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
 option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
+option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
 
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 

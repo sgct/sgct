@@ -212,7 +212,7 @@ add_library(minizip::minizip ALIAS minizip)
 
 target_link_libraries(minizip PRIVATE ZLIB::ZLIB)
 target_compile_definitions(minizip PRIVATE -D_ZLIB_H)
-target_include_directories(minizip PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${MINIZIP_PATH})
+target_include_directories(minizip PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/contrib/)
 
 if(UNIX)
 	# On unix-like platforms the library is almost always called libz

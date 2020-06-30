@@ -15,6 +15,10 @@ endif ()
 if (POLICY CMP0066)
   cmake_policy(SET CMP0066 NEW)
 endif ()
+if (POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif ()
+
 
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
@@ -31,9 +35,10 @@ include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+
 list(APPEND CMAKE_MODULE_PATH 
   ${PROJECT_SOURCE_DIR}/support/cmake/modules 
-  ${PROJECT_BINARY_DIR}/pkg
 )
 
 if (APPLE)

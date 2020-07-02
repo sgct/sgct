@@ -13,6 +13,7 @@
 #include <sgct/sgct.h>
 #include <sgct/utils/dome.h>
 #include <sgct/utils/plane.h>
+#include <sgct/opengl.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -483,7 +484,7 @@ void draw3DFun(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    const glm::mat4 mvp = data.modelViewProjectionMatrix;
+    const glm::mat4 mvp = glm::make_mat4(data.modelViewProjectionMatrix.values);
 
     // Set up backface culling
     glCullFace(GL_BACK);
@@ -603,7 +604,7 @@ void draw2DFun(const RenderData& data) {
             text::Alignment::TopLeft,
             Padding,
             static_cast<float>(resY - fontSize) - Padding,
-            glm::vec4(1.f, 1.f, 1.f, 1.f), // color
+            sgct::vec4{1.f, 1.f, 1.f, 1.f}, // color
             "Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",
             capture.format().c_str(), capture.width(), capture.height(), captureRate
         );
@@ -723,8 +724,7 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, info);
     deserializeObject(data, pos, stats);
     deserializeObject(data, pos, wireframe);
@@ -737,7 +737,7 @@ void decode(const std::vector<std::byte>& data) {
     deserializeObject(data, pos, chromaKeyColorIdx);
 }
 
-void cleanUpFun() {
+void cleanupFun() {
     dome = nullptr;
     plane = nullptr;
 
@@ -944,7 +944,7 @@ int main(int argc, char* argv[]) {
     callbacks.draw2D = draw2DFun;
     callbacks.preSync = preSyncFun;
     callbacks.postSyncPreDraw = postSyncPreDrawFun;
-    callbacks.cleanUp = cleanUpFun;
+    callbacks.cleanup = cleanupFun;
     callbacks.keyboard = keyCallback;
     callbacks.drop = dropCallback;
     callbacks.encode = encode;

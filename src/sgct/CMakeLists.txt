@@ -152,9 +152,17 @@ add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
-target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+target_include_directories(sgct 
+  PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(sgct SYSTEM PRIVATE 
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ext/stb>
+)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -237,3 +245,13 @@ else () # Linux
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
   )
 endif ()
+
+if(SGCT_INSTALL)
+  install(TARGETS sgct EXPORT sgct-targets ARCHIVE LIBRARY RUNTIME)
+  install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+  )
+  install(EXPORT sgct-targets FILE sgct-config.cmake NAMESPACE sgct:: DESTINATION share/sgct)
+endif()

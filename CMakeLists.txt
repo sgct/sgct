@@ -70,6 +70,8 @@ option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
 
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 
+option(SGCT_INSTALL "Install scgt library" OFF)
+
 add_subdirectory(ext)
 add_subdirectory(src/sgct)
 

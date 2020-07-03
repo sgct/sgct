@@ -246,12 +246,27 @@ else () # Linux
   )
 endif ()
 
-if(SGCT_INSTALL)
-  install(TARGETS sgct EXPORT sgct-targets ARCHIVE LIBRARY RUNTIME)
+if (SGCT_INSTALL)
+  include(GNUInstallDirs)
+  install(TARGETS sgct EXPORT sgctTargets 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
   install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-    DESTINATION include
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
   )
-  install(EXPORT sgct-targets FILE sgct-config.cmake NAMESPACE sgct:: DESTINATION share/sgct)
-endif()
+  install(
+    EXPORT sgctTargets 
+    FILE sgctTargets.cmake
+    NAMESPACE sgct:: 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+  install(
+      FILES ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+
+endif ()

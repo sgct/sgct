@@ -10,6 +10,7 @@
 #define __SGCT__SETTINGS__H__
 
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -157,6 +158,19 @@ public:
     /// Returns the prefix that is used for all screenshots
     const std::string& prefixScreenshot() const;
 
+    /// Returns true if the screenshots written out should be limited based on the begin
+    /// and end ranges
+    bool hasScreenshotLimit() const;
+
+    /// The index of the first screenshot that will actually be rendered. If this value is
+    /// set, all previous screenshots will be ignored, but the counter will be increased
+    /// either way
+    int screenshotLimitBegin() const;
+
+    /// The index of the last screenshot that will not be rendered anymore. If this value
+    /// is set, all screenshots starting with this index will be ignored.
+    int screenshotLimitEnd() const;
+
     /// \return the drawBufferType
     DrawBufferType drawBufferType() const;
 
@@ -176,12 +190,20 @@ private:
     bool _captureBackBuffer = false;
     bool _exportWarpingMeshes = false;
     
-    struct {
+    struct Capture {
         std::string capturePath;
         std::string prefix;
         bool addNodeName = false;
         bool addWindowName = true;
-    } _screenshot;
+
+        struct Limits {
+            int begin;
+            int end;
+        };
+        std::optional<Limits> limits;
+
+    };
+    Capture _screenshot;
 
     BufferFloatPrecision _bufferFloatPrecision = BufferFloatPrecision::Float32Bit;
 };

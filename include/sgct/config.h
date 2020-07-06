@@ -35,8 +35,14 @@ void validateUser(const User& user);
 
 struct Capture {
     enum class Format { PNG, JPG, TGA };
+    struct ScreenShotRange {
+        int first = -1; // inclusive
+        int last = -1;  // exclusive
+    };
+
     std::optional<std::string> path;
     std::optional<Format> format;
+    std::optional<ScreenShotRange> range;
 };
 void validateCapture(const Capture& capture);
 

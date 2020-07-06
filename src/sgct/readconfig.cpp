@@ -772,6 +772,19 @@ namespace {
                 throw Err(6060, "Unknown capturing format");
             }(a);
         }
+        std::optional<int> rangeBeg = parseValue<int>(element, "range-begin");
+        std::optional<int> rangeEnd = parseValue<int>(element, "range-end");
+
+        if (rangeBeg || rangeEnd) {
+            res.range = sgct::config::Capture::ScreenShotRange();
+        }
+
+        if (rangeBeg) {
+            res.range->first = *rangeBeg;
+        }
+        if (rangeEnd) {
+            res.range->last = *rangeEnd;
+        }
         return res;
     }
 

@@ -129,7 +129,23 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped
 
-    std::string file = createFilename(Engine::instance().screenShotNumber());
+    unsigned int screenshotNumber = Engine::instance().screenShotNumber();
+    if (Settings::instance().hasScreenshotLimit()) {
+        int begin = Settings::instance().screenshotLimitBegin();
+        int end = Settings::instance().screenshotLimitEnd();
+        if (end == -1) {
+            end = std::numeric_limits<int>::max();
+        }
+
+        if (screenshotNumber < begin || screenshotNumber >= end) {
+            Log::Debug(
+                "Skipping screenshot %i outside range", screenshotNumber, begin, end
+            );
+            return;
+        }
+    }
+
+    std::string file = createFilename(screenshotNumber);
     checkImageBuffer(capSrc);
 
     int threadIndex = availableCaptureThread();
@@ -207,10 +223,10 @@ std::string ScreenCapture::createFilename(unsigned int frameNumber) {
 
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
-        case CaptureFormat::PNG: return "png";
-        case CaptureFormat::TGA: return "tga";
-        case CaptureFormat::JPEG: return "jpg";
-        default: throw std::logic_error("Unhandled case label");
+            case CaptureFormat::PNG: return "png";
+            case CaptureFormat::TGA: return "tga";
+            case CaptureFormat::JPEG: return "jpg";
+            default: throw std::logic_error("Unhandled case label");
         }
     }(_format);
 

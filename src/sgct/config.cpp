@@ -49,6 +49,12 @@ void validateCapture(const Capture& c) {
     if (c.path && c.path->empty()) {
         throw Error(1010, "Capture path must not be empty");
     }
+
+    if (c.range.has_value()) {
+        if (c.range->first >= c.range->last && c.range->last != -1) {
+            throw Error(1011, "Screenshot ranges beginning has to be before the end");
+        }
+    }
 }
 
 void validateScene(const Scene&) {}

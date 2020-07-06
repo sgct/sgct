@@ -76,6 +76,12 @@ void Settings::applyCapture(const config::Capture& capture) {
         }(*capture.format);
         setCaptureFormat(f);
     }
+
+    if (capture.range.has_value()) {
+        _screenshot.limits = Capture::Limits();
+        _screenshot.limits->begin = capture.range->first;
+        _screenshot.limits->end = capture.range->last;
+    }
 }
 
 void Settings::setSwapInterval(int val) {
@@ -200,7 +206,7 @@ bool Settings::captureFromBackBuffer() const {
 
 unsigned int Settings::bufferFloatPrecision() const {
     return
-        _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F :GL_RGB32F;
+        _bufferFloatPrecision == BufferFloatPrecision::Float16Bit ? GL_RGB16F : GL_RGB32F;
 }
 
 bool Settings::addNodeNameToScreenshot() const {
@@ -213,6 +219,18 @@ bool Settings::addWindowNameToScreenshot() const {
 
 const std::string& Settings::prefixScreenshot() const {
     return _screenshot.prefix;
+}
+
+bool Settings::hasScreenshotLimit() const {
+    return _screenshot.limits.has_value();
+}
+
+int Settings::screenshotLimitBegin() const {
+    return _screenshot.limits.has_value() ? _screenshot.limits->begin : -1;
+}
+
+int Settings::screenshotLimitEnd() const {
+    return _screenshot.limits.has_value() ? _screenshot.limits->end : -1;
 }
 
 } // namespace sgct

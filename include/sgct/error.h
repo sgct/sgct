@@ -21,6 +21,7 @@ namespace sgct {
  * 1002: User / Tracking tracker name must not be empty
  * 1003: User / Name 'default' is not permitted for a user
  * 1010: Capture / Capture path must not be empty
+ * 1011: Capture / Screenshot ranges beginning has to be before the end
  * 1020: Settings / Swap interval must not be negative
  * 1021: Settings / Refresh rate must not be negative
  * 1030: Device / Device name must not be empty

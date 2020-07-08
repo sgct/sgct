@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/glad_wgl.h>
+#ifdef WIN32
+  #include <glad/glad_wgl.h>
+#endif
 
 static void* get_proc(const char *namez);
 

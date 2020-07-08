@@ -31,8 +31,11 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
+#include <cmath>
 
-#include <glad/glad_wgl.h>
+#ifdef WIN32
+  #include <glad/glad_wgl.h>
+#endif
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

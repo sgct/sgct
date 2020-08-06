@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <functional>
+#include <iterator>
 #include <numeric>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)

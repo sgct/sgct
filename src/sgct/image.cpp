@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/log.h>
+#include <algorithm>
 #include <chrono>
 #include <png.h>
 #include <pngpriv.h>

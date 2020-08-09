@@ -11,12 +11,16 @@
 #include <sgct/sgct.h>
 #include <sgct/utils/dome.h>
 #include <sgct/utils/plane.h>
+#include <sgct/opengl.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <stdlib.h>
-#include <stdio.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <cstdlib>
+#include <cstdio>
 
 namespace {
     Capture capture;
@@ -186,7 +190,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glm::mat4 MVP = data.modelViewProjectionMatrix;
+    const glm::mat4 MVP = glm::make_mat4(data.modelViewProjectionMatrix.values);
 
     ShaderManager::instance().shaderProgram("xform").bind();
 
@@ -268,7 +272,7 @@ void draw2D(const RenderData& data) {
             text::Alignment::TopLeft,
             padding,
             static_cast<float>(data.window.framebufferResolution().y - size) - padding,
-            glm::vec4(1.f),
+            sgct::vec4{1.f, 1.f, 1.f, 1.f},
             "Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",
             capture.format().c_str(),
             capture.width(),
@@ -355,8 +359,7 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data) {
-    unsigned int pos = 0;
+void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, currTime);
     deserializeObject(data, pos, info);
     deserializeObject(data, pos, stats);
@@ -365,7 +368,7 @@ void decode(const std::vector<std::byte>& data) {
     deserializeObject(data, pos, domeCut);
 }
 
-void cleanUp() {
+void cleanup() {
     plane = nullptr;
     dome = nullptr;
 
@@ -416,7 +419,7 @@ int main(int argc, char** argv) {
     callbacks.draw2D = draw2D;
     callbacks.preSync = preSync;
     callbacks.postSyncPreDraw = postSyncPreDraw;
-    callbacks.cleanUp = cleanUp;
+    callbacks.cleanup = cleanup;
     callbacks.keyboard = keyCallback;
     callbacks.encode = encode;
     callbacks.decode = decode;

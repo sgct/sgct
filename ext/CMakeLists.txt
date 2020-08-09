@@ -19,6 +19,7 @@ if (SGCT_DEP_INCLUDE_FMT)
   set(FMT_TEST OFF CACHE BOOL "Generate the test target.")
   add_subdirectory(fmt)
   mark_as_advanced(FMT_DOC FMT_INSTALL FMT_PEDANTIC FMT_TEST FMT_WERROR)
+  sgct_register_package(fmt fmt::fmt)
 endif ()
 
 if (SGCT_DEP_INCLUDE_ZLIB)
@@ -85,7 +86,7 @@ if (SGCT_DEP_INCLUDE_OPENVR AND SGCT_OPENVR_SUPPORT)
   sgct_register_package(openvr openvr)
 endif ()
 
-if (NOT TARGET tracy)
+if (SGCT_DEP_INCLUDE_TRACY)
   add_library(tracy STATIC "${PROJECT_SOURCE_DIR}/ext/tracy/TracyClient.cpp")
   target_include_directories(tracy PUBLIC "tracy")
   set_property(TARGET tracy PROPERTY FOLDER "Dependencies")
@@ -95,4 +96,6 @@ if (NOT TARGET tracy)
     PRIVATE
       _CRT_SECURE_NO_WARNINGS
   )
+  add_library(unofficial::tracy::tracy ALIAS tracy)
+  sgct_register_package(unofficial-tracy tracy)
 endif ()

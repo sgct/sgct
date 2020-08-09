@@ -13,9 +13,9 @@
 #include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <png.h>
-#include <pngpriv.h>
 #include <algorithm>
 #include <chrono>
+#include <zlib.h>
 
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>

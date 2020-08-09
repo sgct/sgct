@@ -20,8 +20,13 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif // WIN32
 
+#if __has_include(<Tracy.hpp>)
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
+#else
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
+#endif
 
 #ifdef TRACY_ENABLE
 

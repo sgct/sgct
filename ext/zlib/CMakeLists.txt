@@ -7,11 +7,11 @@ project(zlib C)
 
 set(VERSION "1.2.8")
 
-set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
-set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
-set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man" CACHE PATH "Installation directory for manual pages")
-set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
+set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include")
+set(INSTALL_MAN_DIR "${CMAKE_INSTALL_PREFIX}/share/man")
+set(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/pkgconfig")
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -212,7 +212,7 @@ add_library(minizip::minizip ALIAS minizip)
 
 target_link_libraries(minizip PRIVATE ZLIB::ZLIB)
 target_compile_definitions(minizip PRIVATE -D_ZLIB_H)
-target_include_directories(minizip PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${MINIZIP_PATH})
+target_include_directories(minizip PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/contrib/)
 
 if(UNIX)
 	# On unix-like platforms the library is almost always called libz

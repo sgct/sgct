@@ -158,7 +158,7 @@ User& ClusterManager::defaultUser() {
     return *_users[0];
 }
 
-User* ClusterManager::user(const std::string& name) {
+User* ClusterManager::user(std::string_view name) {
     const auto it = std::find_if(
         _users.cbegin(),
         _users.cend(),

@@ -17,6 +17,7 @@
 #include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
+#include <string_view>
 
 #define Error(code, msg) Error(Error::Component::MPCDI, code, msg)
 
@@ -290,7 +291,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
             }
             std::string fileName(buf);
 
-            constexpr auto endsWith = [](const std::string& str, const std::string& ext) {
+            constexpr auto endsWith = [](std::string_view str, std::string_view ext) {
                 const size_t s = str.size();
                 const size_t e = ext.size();
                 return s >= e && str.compare(s - e, e, ext) == 0;

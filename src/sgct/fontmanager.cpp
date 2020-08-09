@@ -125,11 +125,11 @@ void FontManager::bindShader(const mat4& mvp, const vec4& color, int texture) co
     glUniformMatrix4fv(_mvpLocation, 1, GL_FALSE, mvp.values);
 }
 
-bool FontManager::addFont(const std::string& name, std::string file) {
+bool FontManager::addFont(std::string name, std::string file) {
     // Perform file exists check
     file = SystemFontPath + file;
 
-    const bool inserted = _fontPaths.insert({ name, std::move(file) }).second;
+    const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
     if (!inserted) {
         Log::Warning("Font with name '%s' already exists", name.c_str());
     }

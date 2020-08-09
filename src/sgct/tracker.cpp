@@ -44,7 +44,7 @@ const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {
     return _trackingDevices;
 }
 
-TrackingDevice* Tracker::device(const std::string& name) const {
+TrackingDevice* Tracker::device(std::string_view name) const {
     const auto it = std::find_if(
         _trackingDevices.cbegin(),
         _trackingDevices.cend(),

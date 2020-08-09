@@ -58,7 +58,7 @@ public:
      */
     bool isSyncComplete() const;
 
-    bool matchesAddress(const std::string& address) const;
+    bool matchesAddress(std::string_view address) const;
 
     /// Retrieve the node id if this node is part of the cluster configuration
     bool isComputerServer() const;
@@ -81,7 +81,7 @@ private:
         std::function<void(bool, int)> dataTransferStatus,
         std::function<void(int, int)> dataTransferAcknowledge);
 
-    void addConnection(int port, const std::string& address,
+    void addConnection(int port, std::string address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);
     void updateConnectionStatus(Network* connection);
     void setAllNodesConnected();

@@ -119,7 +119,7 @@ namespace {
         return fromGLM<glm::quat, sgct::quat>(quat);
     }
 
-    sgct::config::Window::StereoMode getStereoType(const std::string& t) {
+    sgct::config::Window::StereoMode getStereoType(std::string_view t) {
         using M = sgct::config::Window::StereoMode;
         if (t == "none" || t == "no_stereo") { return M::NoStereo; }
         if (t == "active" || t == "quadbuffer") { return M::Active; }
@@ -136,11 +136,10 @@ namespace {
         if (t == "top_bottom") { return M::TopBottom; }
         if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        sgct::Log::Error("Unknown stereo mode %s", t.c_str());
-        return M::NoStereo;
+        throw Err(6085, "Unkonwn stereo mode " + std::string(t));
     }
 
-    sgct::config::Window::ColorBitDepth getBufferColorBitDepth(const std::string& type) {
+    sgct::config::Window::ColorBitDepth getBufferColorBitDepth(std::string_view type) {
         if (type == "8") { return sgct::config::Window::ColorBitDepth::Depth8; }
         if (type == "16") { return sgct::config::Window::ColorBitDepth::Depth16; }
         if (type == "16f") { return sgct::config::Window::ColorBitDepth::Depth16Float; }
@@ -150,29 +149,20 @@ namespace {
         if (type == "16ui") { return sgct::config::Window::ColorBitDepth::Depth16UInt; }
         if (type == "32ui") { return sgct::config::Window::ColorBitDepth::Depth32UInt; }
 
-        sgct::Log::Error("Unknown color bit depth %s", type.c_str());
-        return sgct::config::Window::ColorBitDepth::Depth8;
+        throw Err(6086, "Unknown color bit depth " + std::string(type));
     }
 
-    int cubeMapResolutionForQuality(const std::string& quality) {
-        static const std::unordered_map<std::string, int> Map = {
-            { "low",     256 }, { "256",     256 },
-            { "medium",  512 }, { "512",     512 },
-            { "high",   1024 }, { "1k",     1024 }, { "1024",   1024 },
-            { "1.5k",   1536 }, { "1536",   1536 },
-            { "2k",     2048 }, { "2048",   2048 },
-            { "4k",     4096 }, { "4096",   4096 },
-            { "8k",     8192 }, { "8192",   8192 },
-            { "16k",   16384 }, { "16384", 16384 },
-        };
+    int cubeMapResolutionForQuality(std::string_view quality) {
+        if (quality == "low" || quality == "256") { return 256; }
+        if (quality == "medium" || quality == "512") { return 512; }
+        if (quality == "high" || quality == "1k" || quality == "1024") { return 1024; }
+        if (quality == "1.5k" || quality == "1536") { return 1536; }
+        if (quality == "2k" || quality == "2048") { return 2048; }
+        if (quality == "4k" || quality == "4096") { return 4096; }
+        if (quality == "8k" || quality == "8192") { return 8192; }
+        if (quality == "16k" || quality == "16384") { return 16384; }
 
-        const auto it = Map.find(quality);
-        if (it != Map.cend()) {
-            return it->second;
-        }
-        else {
-            throw Err(6085, "Unknown resolution " + quality + " for cube map");
-        }
+        throw Err(6087, "Unknown resolution " + std::string(quality) + " for cube map");
     }
 
     std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {

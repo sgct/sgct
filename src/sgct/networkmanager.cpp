@@ -153,7 +153,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         #else
             int result = getaddrinfo(tmpStr, "http", &hints, &info);
         #endif // __APPLE__
-	if (result != 0) {
+    if (result != 0) {
             std::string err = std::to_string(Network::lastError());
             throw Error(5028, "Failed to get address info: " + err);
         }
@@ -620,7 +620,7 @@ void NetworkManager::setAllNodesConnected() {
     }
 }
 
-void NetworkManager::addConnection(int port, const std::string& address,
+void NetworkManager::addConnection(int port, std::string address,
                                    Network::ConnectionType connectionType)
 {
     ZoneScoped
@@ -633,7 +633,12 @@ void NetworkManager::addConnection(int port, const std::string& address,
         throw Error(5026, "Empty address for connection to " + std::to_string(port));
     }
 
-    auto net = std::make_unique<Network>(port, address, _isServer, connectionType);
+    auto net = std::make_unique<Network>(
+        port,
+        std::move(address),
+        _isServer,
+        connectionType
+    );
     Log::Debug("Initiating connection %d at port %d", _networkConnections.size(), port);
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
@@ -663,7 +668,7 @@ void NetworkManager::addConnection(int port, const std::string& address,
     }
 }
 
-bool NetworkManager::matchesAddress(const std::string& address) const {
+bool NetworkManager::matchesAddress(std::string_view address) const {
     ZoneScoped
 
     const auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);

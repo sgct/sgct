@@ -239,7 +239,7 @@ const std::string& Window::name() const {
     return _name;
 }
 
-bool Window::hasTag(const std::string& tag) const {
+bool Window::hasTag(std::string_view tag) const {
     return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
 }
 

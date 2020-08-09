@@ -14,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct {
@@ -54,7 +55,7 @@ private:
 };
 
 template <typename T>
-void serializeObject(std::vector<std::byte>& buffer, const T& value) {
+void serializeObject(std::vector<std::byte>& buffer, T value) {
     static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
 
     buffer.insert(
@@ -79,6 +80,9 @@ void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value
         );
     }
 }
+
+template <>
+void serializeObject(std::vector<std::byte>& buffer, std::string_view value);
 
 template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::string& value);

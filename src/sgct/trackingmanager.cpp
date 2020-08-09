@@ -372,7 +372,7 @@ TrackingDevice* TrackingManager::headDevice() const {
     return _head;
 }
 
-Tracker* TrackingManager::tracker(const std::string& name) const {
+Tracker* TrackingManager::tracker(std::string_view name) const {
     const auto it = std::find_if(
         _trackers.cbegin(),
         _trackers.cend(),

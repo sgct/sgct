@@ -37,8 +37,8 @@ ShaderManager::~ShaderManager() {
     }
 }
 
-void ShaderManager::addShaderProgram(std::string name, const std::string& vertexSrc,
-                                     const std::string& fragmentSrc)
+void ShaderManager::addShaderProgram(std::string name, std::string vertexSrc,
+                                     std::string fragmentSrc)
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
@@ -47,8 +47,8 @@ void ShaderManager::addShaderProgram(std::string name, const std::string& vertex
 
     // If shader don't exist, create it and add to container
     ShaderProgram sp(std::move(name));
-    sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER);
-    sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER);
+    sp.addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
+    sp.addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
     sp.createAndLinkProgram();
     _shaderPrograms.push_back(std::move(sp));
 }
@@ -83,7 +83,7 @@ const ShaderProgram& ShaderManager::shaderProgram(const std::string& name) const
     return *shaderIt;
 }
 
-bool ShaderManager::shaderProgramExists(const std::string& name) const {
+bool ShaderManager::shaderProgramExists(std::string_view name) const {
     const auto exists = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),

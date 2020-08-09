@@ -198,7 +198,9 @@ namespace sgct {
  * 6082: XML Parsing / Error parsing XML file
  * 6083: XML Parsing / Cannot find 'Cluster' node
  * 6084: XML Parsing / Cannot find master address
- * 6085: XML Parsing / Unknown resolution %s for cube map
+ * 6085: XML Parsing / Unknown stereo mode %s
+ * 6086: XML Parsing / Unknown color bit depth %s
+ * 6087: XML Parsing / Unknown resolution %s for cube map
  * 6090: SpoutOutput / Unknown spout output mapping: %s
  * 6100: SphericalMirror / Missing geometry paths
 

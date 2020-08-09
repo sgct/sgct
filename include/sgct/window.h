@@ -12,6 +12,7 @@
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 struct GLFWmonitor;
@@ -260,7 +261,7 @@ public:
     const std::string& name() const;
 
     /// \return true if a specific tag exists
-    bool hasTag(const std::string& tag) const;
+    bool hasTag(std::string_view tag) const;
 
     /// \return this window's id
     int id() const;

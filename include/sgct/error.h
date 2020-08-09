@@ -83,9 +83,9 @@ namespace sgct {
  * 2030: OBJ / Failed to open warping mesh file
  * 2031: OBJ / Vertex count doesn't match number of texture coordinates
  * 2040: PaulBourke / Failed to open warping mesh file
- * 2041: PaulBourke / Error reading mapping type
- * 2042: PaulBourke / Invalid data
- * 2050: Pfm / Failed to open %s
+ * 2041: PaulBourke / Error reading mapping type in file '%s'
+ * 2042: PaulBourke / Invalid data in file '%s'
+ * 2050: Pfm / Failed to open '%s'
  * 2051: Pfm / Error reading from file
  * 2052: Pfm / Invalid header syntax
  * 2053: Pfm / Incorrect file type

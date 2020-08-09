@@ -24,9 +24,13 @@ public:
     static Log& instance();
     static void destroy();
 
+    static void Debug(std::string message);
     static void Debug(const char* fmt, ...);
+    static void Warning(std::string message);
     static void Warning(const char* fmt, ...);
+    static void Info(std::string message);
     static void Info(const char* fmt, ...);
+    static void Error(std::string message);
     static void Error(const char* fmt, ...);
 
     /// Set the notify level for displaying messages

@@ -23,7 +23,7 @@
 #include <cstdarg> // va_copy
 
 namespace {
-    const char* levelToString(sgct::Log::Level level) {
+    std::string_view levelToString(sgct::Log::Level level) {
         switch (level) {
             case sgct::Log::Level::Debug: return "Debug";
             case sgct::Log::Level::Info: return "Info";
@@ -124,6 +124,10 @@ void Log::printv(Level lvl, const char* fmt, va_list ap) {
     }
 }
 
+void Log::Debug(std::string message) {
+    Debug("%s", message.c_str());
+}
+
 void Log::Debug(const char* fmt, ...) {
     if (instance()._level <= Level::Debug) {
         va_list ap;
@@ -131,6 +135,10 @@ void Log::Debug(const char* fmt, ...) {
         instance().printv(Level::Debug, fmt, ap);
         va_end(ap);
     }
+}
+
+void Log::Info(std::string message) {
+    Info("%s", message.c_str());
 }
 
 void Log::Info(const char* fmt, ...) {
@@ -142,6 +150,10 @@ void Log::Info(const char* fmt, ...) {
     }
 }
 
+void Log::Warning(std::string message) {
+    Warning("%s", message.c_str());
+}
+
 void Log::Warning(const char* fmt, ...) {
     if (instance()._level <= Level::Warning) {
         va_list ap;
@@ -149,6 +161,10 @@ void Log::Warning(const char* fmt, ...) {
         instance().printv(Level::Warning, fmt, ap);
         va_end(ap);
     }
+}
+
+void Log::Error(std::string message) {
+    Error("%s", message.c_str());
 }
 
 void Log::Error(const char* fmt, ...) {

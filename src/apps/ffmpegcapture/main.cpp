@@ -190,7 +190,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    auto MVP = glm::make_mat4(data.modelViewProjectionMatrix.values);
+    const glm::mat4 MVP = glm::make_mat4(data.modelViewProjectionMatrix.values);
 
     ShaderManager::instance().shaderProgram("xform").bind();
 

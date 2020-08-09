@@ -153,11 +153,11 @@ add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
 target_include_directories(sgct 
-  PRIVATE 
-    ${CMAKE_CURRENT_BINARY_DIR}/include
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+  PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 target_include_directories(sgct SYSTEM PRIVATE 

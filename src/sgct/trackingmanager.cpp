@@ -272,7 +272,9 @@ void TrackingManager::addDeviceToCurrentTracker(std::string name) {
 #endif // SGCT_HAS_VRPN
 }
 
-void TrackingManager::addSensorToCurrentDevice([[maybe_unused]] std::string address, [[maybe_unused]] int id) {
+void TrackingManager::addSensorToCurrentDevice([[maybe_unused]] std::string address,
+                                               [[maybe_unused]] int id)
+{
 #ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
@@ -301,7 +303,9 @@ void TrackingManager::addSensorToCurrentDevice([[maybe_unused]] std::string addr
 #endif // SGCT_HAS_VRPN
 }
 
-void TrackingManager::addButtonsToCurrentDevice([[maybe_unused]] std::string address, [[maybe_unused]] int nButtons) {
+void TrackingManager::addButtonsToCurrentDevice([[maybe_unused]] std::string address,
+                                                [[maybe_unused]] int nButtons)
+{
 #ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
@@ -325,7 +329,9 @@ void TrackingManager::addButtonsToCurrentDevice([[maybe_unused]] std::string add
 #endif // SGCT_HAS_VRPN
 }
 
-void TrackingManager::addAnalogsToCurrentDevice([[maybe_unused]] std::string address, [[maybe_unused]] int nAxes) {
+void TrackingManager::addAnalogsToCurrentDevice([[maybe_unused]] std::string address,
+                                                [[maybe_unused]] int nAxes)
+{
 #ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;

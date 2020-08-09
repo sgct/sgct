@@ -15,6 +15,10 @@ endif ()
 if (POLICY CMP0066)
   cmake_policy(SET CMP0066 NEW)
 endif ()
+if (POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif ()
+
 
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
@@ -31,9 +35,10 @@ include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+
 list(APPEND CMAKE_MODULE_PATH 
   ${PROJECT_SOURCE_DIR}/support/cmake/modules 
-  ${PROJECT_BINARY_DIR}/pkg
 )
 
 if (APPLE)
@@ -61,8 +66,11 @@ option(SGCT_DEP_INCLUDE_GLAD "Include GLAD library" ON)
 option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
 option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
+option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
 
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
+
+option(SGCT_INSTALL "Install scgt library" OFF)
 
 add_subdirectory(ext)
 add_subdirectory(src/sgct)

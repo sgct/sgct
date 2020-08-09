@@ -54,7 +54,7 @@ public:
 private:
     static TrackingManager* _instance;
 
-    TrackingManager() = default;
+    TrackingManager();
     ~TrackingManager();
 
     Tracker* tracker(std::string_view name) const;

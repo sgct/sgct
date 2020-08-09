@@ -50,51 +50,51 @@ namespace {
         glm::quat quat = glm::quat(1.f, 0.f, 0.f, 0.f);
 
         float value;
-        if (element.QueryFloatAttribute("w", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("w", &value) == tinyxml2::XML_SUCCESS) {
             quat.w = value;
             quatMode = true;
         }
 
-        if (element.QueryFloatAttribute("y", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("y", &value) == tinyxml2::XML_SUCCESS) {
             y = value;
             eulerMode = true;
         }
 
-        if (element.QueryFloatAttribute("yaw", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("yaw", &value) == tinyxml2::XML_SUCCESS) {
             y = -value;
         }
 
-        if (element.QueryFloatAttribute("heading", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("heading", &value) == tinyxml2::XML_SUCCESS) {
             y = -value;
         }
 
-        if (element.QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_SUCCESS) {
             y = -value;
         }
 
-        if (element.QueryFloatAttribute("x", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("x", &value) == tinyxml2::XML_SUCCESS) {
             x = value;
             eulerMode = true;
         }
 
-        if (element.QueryFloatAttribute("pitch", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("pitch", &value) == tinyxml2::XML_SUCCESS) {
             x = value;
         }
 
-        if (element.QueryFloatAttribute("elevation", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("elevation", &value) == tinyxml2::XML_SUCCESS) {
             x = value;
         }
 
-        if (element.QueryFloatAttribute("z", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("z", &value) == tinyxml2::XML_SUCCESS) {
             z = value;
             eulerMode = true;
         }
 
-        if (element.QueryFloatAttribute("roll", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("roll", &value) == tinyxml2::XML_SUCCESS) {
             z = -value;
         }
 
-        if (element.QueryFloatAttribute("bank", &value) == tinyxml2::XML_NO_ERROR) {
+        if (element.QueryFloatAttribute("bank", &value) == tinyxml2::XML_SUCCESS) {
             z = -value;
         }
 
@@ -167,54 +167,54 @@ namespace {
 
     std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
         sgct::ivec2 value;
-        bool xe = e.QueryIntAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryIntAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
+        bool xe = e.QueryIntAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
+        bool ye = e.QueryIntAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
         return (xe && ye) ? std::optional(value) : std::nullopt;
     }
 
     std::optional<sgct::vec2> parseValueVec2(const tinyxml2::XMLElement& e) {
         sgct::vec2 value;
-        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
+        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
+        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
         return (xe && ye) ? std::optional(value) : std::nullopt;
     }
 
     std::optional<sgct::vec3> parseValueVec3(const tinyxml2::XMLElement& e) {
         sgct::vec3 value;
-        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_NO_ERROR;
-        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_NO_ERROR;
-        bool ze = e.QueryFloatAttribute("z", &value.z) == tinyxml2::XML_NO_ERROR;
+        bool xe = e.QueryFloatAttribute("x", &value.x) == tinyxml2::XML_SUCCESS;
+        bool ye = e.QueryFloatAttribute("y", &value.y) == tinyxml2::XML_SUCCESS;
+        bool ze = e.QueryFloatAttribute("z", &value.z) == tinyxml2::XML_SUCCESS;
         return (xe && ye && ze) ? std::optional(value) : std::nullopt;
     }
 
     std::optional<sgct::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
         sgct::vec4 value;
-        bool re = e.QueryFloatAttribute("r", &value.x) == tinyxml2::XML_NO_ERROR;
-        bool ge = e.QueryFloatAttribute("g", &value.y) == tinyxml2::XML_NO_ERROR;
-        bool be = e.QueryFloatAttribute("b", &value.z) == tinyxml2::XML_NO_ERROR;
-        bool ae = e.QueryFloatAttribute("a", &value.w) == tinyxml2::XML_NO_ERROR;
+        bool re = e.QueryFloatAttribute("r", &value.x) == tinyxml2::XML_SUCCESS;
+        bool ge = e.QueryFloatAttribute("g", &value.y) == tinyxml2::XML_SUCCESS;
+        bool be = e.QueryFloatAttribute("b", &value.z) == tinyxml2::XML_SUCCESS;
+        bool ae = e.QueryFloatAttribute("a", &value.w) == tinyxml2::XML_SUCCESS;
         return (re && ge && be && ae) ? std::optional(value) : std::nullopt;
     }
 
     std::optional<sgct::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
         sgct::mat4 r;
         bool err[16] = {
-            e.QueryFloatAttribute("x0", &r.values[0]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y0", &r.values[1]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z0", &r.values[2]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w0", &r.values[3]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x1", &r.values[4]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y1", &r.values[5]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z1", &r.values[6]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w1", &r.values[7]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x2", &r.values[8]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y2", &r.values[9]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z2", &r.values[10]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w2", &r.values[11]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("x3", &r.values[12]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("y3", &r.values[13]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("z3", &r.values[14]) == tinyxml2::XML_NO_ERROR,
-            e.QueryFloatAttribute("w3", &r.values[15]) == tinyxml2::XML_NO_ERROR
+            e.QueryFloatAttribute("x0", &r.values[0]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("y0", &r.values[1]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("z0", &r.values[2]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("w0", &r.values[3]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("x1", &r.values[4]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("y1", &r.values[5]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("z1", &r.values[6]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("w1", &r.values[7]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("x2", &r.values[8]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("y2", &r.values[9]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("z2", &r.values[10]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("w2", &r.values[11]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("x3", &r.values[12]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("y3", &r.values[13]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("z3", &r.values[14]) == tinyxml2::XML_SUCCESS,
+            e.QueryFloatAttribute("w3", &r.values[15]) == tinyxml2::XML_SUCCESS
         };
 
         bool suc = std::all_of(std::begin(err), std::end(err), [](bool v) { return v; });
@@ -246,7 +246,7 @@ namespace {
             err = e.QueryDoubleAttribute(name, &value);
         }
 
-        if (err == tinyxml2::XML_NO_ERROR) {
+        if (err == tinyxml2::XML_SUCCESS) {
             return value;
         }
         else {
@@ -876,16 +876,15 @@ namespace {
 
         tinyxml2::XMLDocument xmlDoc;
         tinyxml2::XMLError err = xmlDoc.LoadFile(filename.c_str());
-        const bool s = err == tinyxml2::XML_NO_ERROR;
+        const bool s = err == tinyxml2::XML_SUCCESS;
         if (!s) {
             if (err == tinyxml2::XML_ERROR_FILE_NOT_FOUND) {
                 throw Err(6081, "Could not find configuration file: " + filename);
             }
             else {
                 std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
-                std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
-                std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
-                std::string s4 = s1 + ' ' + s2 + ' ' + s3;
+                std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
+                std::string s4 = s1 + ' ' + s2;
                 throw Err(6082, "Error loading XML file '" + filename + "'. " + s4);
             }
         }

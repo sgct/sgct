@@ -15,7 +15,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
-#include <unzip.h>
+#include <minizip/unzip.h>
 #include <algorithm>
 #include <string_view>
 
@@ -43,16 +43,16 @@ namespace {
         }
 
         vec2 vpPosition;
-        if (elem.QueryFloatAttribute("x", &vpPosition.x) != tinyxml2::XML_NO_ERROR ||
-            elem.QueryFloatAttribute("y", &vpPosition.y) != tinyxml2::XML_NO_ERROR)
+        if (elem.QueryFloatAttribute("x", &vpPosition.x) != tinyxml2::XML_SUCCESS ||
+            elem.QueryFloatAttribute("y", &vpPosition.y) != tinyxml2::XML_SUCCESS)
         {
             throw Error(4000, "Failed to parse position from XML");
         }
         proj.position = vpPosition;
 
         vec2 vpSize;
-        if (elem.QueryFloatAttribute("xSize", &vpSize.x) != tinyxml2::XML_NO_ERROR ||
-            elem.QueryFloatAttribute("ySize", &vpSize.y) != tinyxml2::XML_NO_ERROR)
+        if (elem.QueryFloatAttribute("xSize", &vpSize.x) != tinyxml2::XML_SUCCESS ||
+            elem.QueryFloatAttribute("ySize", &vpSize.y) != tinyxml2::XML_SUCCESS)
         {
             throw Error(4001, "Failed to parse size from XML");
         }
@@ -353,11 +353,9 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
     tinyxml2::XMLDocument xmlDoc;
     tinyxml2::XMLError result = xmlDoc.Parse(xmlBuffer.data(), xmlBuffer.size());
 
-    if (result != tinyxml2::XML_NO_ERROR) {
+    if (result != tinyxml2::XML_SUCCESS) {
         std::string str = "Parsing failed after: ";
-        str += xmlDoc.GetErrorStr1();
-        str += ' ';
-        str += xmlDoc.GetErrorStr2();
+        str += xmlDoc.ErrorStr();
         throw Error(4027, "Error parsing file. " + str);
     }
 

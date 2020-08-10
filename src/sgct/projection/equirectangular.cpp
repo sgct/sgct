@@ -23,6 +23,26 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
+    constexpr const char* FragmentShader = R"(
+  #version 330 core
+
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
+
+  uniform samplerCube cubemap;
+
+  const float PI = 3.141592654;
+
+  void main() {
+    float phi = PI * (1.0 - tr_uv.t);
+    float theta = 2.0 * PI * (tr_uv.s - 0.5);
+    float x = sin(phi) * sin(theta);
+    float y = sin(phi) * cos(theta);
+    float z = cos(phi);
+    out_diffuse = texture(cubemap, vec3(x, y, z));
+  }
+)";
+
     struct Vertex {
         float x;
         float y;
@@ -114,7 +134,7 @@ void EquirectangularProjection::update(vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    const std::array<const float, 20> v = {
+    constexpr const std::array<float, 20> v = {
         -1.f, -1.f, -1.f, 0.f, 0.f,
         -1.f,  1.f, -1.f, 0.f, 1.f,
          1.f, -1.f, -1.f, 1.f, 0.f,
@@ -126,11 +146,9 @@ void EquirectangularProjection::update(vec2) {
 
 void EquirectangularProjection::initVBO() {
     glGenVertexArrays(1, &_vao);
-    Log::Debug("Generating VAO: %d", _vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
-    Log::Debug("Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
@@ -281,28 +299,8 @@ void EquirectangularProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
 
-    std::string fragmentShader = R"(
-  #version 330 core
-
-  in vec2 tr_uv;
-  out vec4 out_diffuse;
-
-  uniform samplerCube cubemap;
-
-  const float PI = 3.141592654;
-
-  void main() {
-    float phi = PI * (1.0 - tr_uv.t);
-    float theta = 2.0 * PI * (tr_uv.s - 0.5);
-    float x = sin(phi) * sin(theta);
-    float y = sin(phi) * cos(theta);
-    float z = cos(phi);
-    out_diffuse = texture(cubemap, vec3(x, y, z));
-  }
-)";
-
     _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, FragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 

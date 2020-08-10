@@ -25,13 +25,9 @@ public:
     static void destroy();
 
     static void Debug(std::string message);
-    static void Debug(const char* fmt, ...);
     static void Warning(std::string message);
-    static void Warning(const char* fmt, ...);
     static void Info(std::string message);
-    static void Info(const char* fmt, ...);
     static void Error(std::string message);
-    static void Error(const char* fmt, ...);
 
     /// Set the notify level for displaying messages
     void setNotifyLevel(Level nl);
@@ -52,7 +48,7 @@ public:
 private:
     Log();
 
-    void printv(Level level, const char* fmt, va_list ap);
+    void printv(Level level, std::string message);
 
     static Log* _instance;
 

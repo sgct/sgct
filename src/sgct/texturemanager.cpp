@@ -11,6 +11,7 @@
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 #include <algorithm>
 
 namespace {
@@ -31,10 +32,10 @@ namespace {
             }
         }(img.channels());
 
-        sgct::Log::Debug(
-            "Creating texture. Size: %dx%d, %d-channels, Type: %#04x, Format: %#04x",
+        sgct::Log::Debug(fmt::format(
+            "Creating texture. Size: {}x{}, {}-channels, Type: {#04x}, Format: {#04x}",
             img.size().x, img.size().y, img.channels(), type, internalFormat
-        );
+        ));
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -128,7 +129,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
-    Log::Debug("Texture created from '%s' [id=%d]", filename.c_str(), t);
+    Log::Debug(fmt::format("Texture created from '{}' [id={}]", filename, t));
     return t;
 }
 

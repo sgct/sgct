@@ -18,17 +18,18 @@
 #include <sgct/window.h>
 
 #include <algorithm>
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable : 4127)
-#endif // WIN32
+//#ifdef WIN32
+//#pragma warning(push)
+//#pragma warning(disable : 4127)
+//#endif // WIN32
 
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#ifdef WIN32
-#pragma warning(pop)
-#endif // WIN32
+//#ifdef WIN32
+//#pragma warning(pop)
+//#endif // WIN32
 
 namespace {
     constexpr const char* SphericalProjectionVert = R"(
@@ -210,10 +211,10 @@ void SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat, _texFormat, _texType);
-        Log::Debug(
-            "%dx%d cube face texture (id: %d) generated",
+        Log::Debug(fmt::format(
+            "{}x{} cube face texture (id: {}) generated",
             _cubemapResolution, _cubemapResolution, texture
-        );
+        ));
     };
 
     generate(_subViewports.right, _textures.cubeFaceRight);

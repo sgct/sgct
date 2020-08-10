@@ -182,6 +182,7 @@ target_link_libraries(sgct
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
+    fmt
     glm
     PNG::PNG
     tinyxml2::tinyxml2

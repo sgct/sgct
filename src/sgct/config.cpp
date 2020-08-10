@@ -350,7 +350,7 @@ void validateCluster(const Cluster& c) {
     if (!foundAllTrackers) {
         throw Error(
             1125,
-            "All trackers specified in the 'User's have to be valid tracker names"
+            "All trackers specified in the User's have to be valid tracker names"
         );
     }
 

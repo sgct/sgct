@@ -26,6 +26,7 @@
 #include <sgct/correction/simcad.h>
 #include <sgct/correction/skyskan.h>
 #include <sgct/projection/fisheye.h>
+#include <fmt/format.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -95,12 +96,18 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
 
 void exportMesh(GLenum type, const std::string& path, const correction::Buffer& buf) {
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
-        throw Error(2000, "Failed to export " + path + ". Geometry type not supported");
+        throw Error(
+            2000,
+            fmt::format("Failed to export '{}'. Geometry type not supported", path)
+        );
     }
 
     std::ofstream file(path, std::ios::out);
     if (!file.is_open()) {
-        throw Error(2001, "Failed to export " + path + ". Failed to open");
+        throw Error(
+            2001,
+            fmt::format("Failed to export '{}'. Failed to open", path)
+        );
     }
 
     file << std::fixed;
@@ -152,7 +159,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
         }
     }
 
-    Log::Info("Mesh '%s' exported successfully", path.c_str());
+    Log::Info(fmt::format("Mesh '{}' exported successfully", path));
 }
 
 } // namespace
@@ -259,10 +266,10 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
 
     createMesh(_warpGeometry, buf);
 
-    Log::Debug(
-        "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
-        static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
-    );
+    Log::Debug(fmt::format(
+        "CorrectionMesh read successfully. Vertices={}, Indices={}",
+        buf.vertices.size(), buf.indices.size()
+    ));
 
     if (Settings::instance().exportWarpingMeshes()) {
         const size_t found = path.find_last_of('.');

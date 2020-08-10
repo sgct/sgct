@@ -13,6 +13,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <tinyxml2.h>
 #include <sstream>
@@ -42,7 +43,7 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
 
     Buffer buf;
 
-    Log::Info("Reading simcad warp data from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {
@@ -50,18 +51,24 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
         std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
         std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
         std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-        throw Error(2080, "Error loading XML file '" + path + "'. " + s4);
+        throw Error(2080, fmt::format("Error loading file '{}'. {}", path, s4));
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
-        throw Error(2081, "Error reading file " + path + ". Missing GeometryFile");
+        throw Error(
+            2081,
+            fmt::format("Error reading file '{}'. Missing 'GeometryFile'", path)
+        );
     }
 
     using namespace tinyxml2;
     XMLElement* element = XMLroot->FirstChildElement("GeometryDefinition");
     if (element == nullptr) {
-        throw Error(2082, "Error reading file " + path + ". Missing GeometryDefinition");
+        throw Error(
+            2082,
+            fmt::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
+        );
     }
 
     std::vector<float> xcorrections, ycorrections;

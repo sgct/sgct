@@ -66,7 +66,9 @@ Buffer generateOBJMesh(const std::string& path) {
     if (counter != buffer.vertices.size() || buffer.vertices.empty()) {
         throw Error(
             Error::Component::OBJ, 2031,
-            "Vertex count doesn't match number of texture coordinates"
+            fmt::format(
+                "Vertex count doesn't match number of texture coordinates in '{}'", path
+            )
         );
     }
 

@@ -21,6 +21,7 @@
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
 #endif // SGCT_HAS_VRPN
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -222,9 +223,9 @@ void TrackingManager::startSampling() {
     }
 
     if (_head == nullptr && !trackerName.empty() && !deviceName.empty()) {
-        Log::Error(
-            "Failed to set head tracker to %s@%s", deviceName.c_str(), trackerName.c_str()
-        );
+        Log::Error(fmt::format(
+            "Failed to set head tracker to {}@{}", deviceName, trackerName
+        ));
         return;
     }
 
@@ -255,10 +256,10 @@ void TrackingManager::addTracker(std::string name) {
     if (!tracker(name)) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.emplace_back(std::vector<VRPNPointer>());
-        Log::Info("Tracker '%s' added successfully", name.c_str());
+        Log::Info(fmt::format("Tracker '{}' added successfully", name));
     }
     else {
-        Log::Warning("Tracker '%s' already exists", name.c_str());
+        Log::Warning(fmt::format("Tracker '{}' already exists", name));
     }
 #else
     Log::Warning("SGCT compiled without VRPN support");
@@ -289,7 +290,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         device->setSensorId(id);
 
         if (retVal.second && ptr.sensorDevice == nullptr) {
-            Log::Info("Connecting to sensor '%s'", address.c_str());
+            Log::Info(fmt::format("Connecting to sensor '{}'", address));
             ptr.sensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
             ptr.sensorDevice->register_change_handler(
                 _trackers.back().get(),
@@ -298,7 +299,7 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
         }
     }
     else {
-        Log::Error("Failed to connect to sensor '%s'", address.c_str());
+        Log::Error(fmt::format("Failed to connect to sensor '{}'", address));
     }
 #else
     (void)address;
@@ -317,16 +318,15 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     TrackingDevice* device = _trackers.back()->devices().back().get();
 
     if (ptr.buttonDevice == nullptr && device) {
-        Log::Info(
-            "Connecting to buttons '%s' on device %s",
-            address.c_str(), device->name().c_str()
-        );
+        Log::Info(fmt::format(
+            "Connecting to buttons '{}' on device {}", address, device->name()
+        ));
         ptr.buttonDevice = std::make_unique<vrpn_Button_Remote>(address.c_str());
         ptr.buttonDevice->register_change_handler(device, updateButton);
         device->setNumberOfButtons(nButtons);
     }
     else {
-        Log::Error("Failed to connect to buttons '%s'", address.c_str());
+        Log::Error(fmt::format("Failed to connect to buttons '{}'", address));
     }
 #else
     (void)address;
@@ -345,17 +345,16 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     TrackingDevice* device = _trackers.back()->devices().back().get();
 
     if (ptr.analogDevice == nullptr && device) {
-        Log::Info(
-            "Connecting to analogs '%s' on device %s",
-            address.c_str(), device->name().c_str()
-        );
+        Log::Info(fmt::format(
+            "Connecting to analog '{}' on device {}", address, device->name()
+        ));
 
         ptr.analogDevice = std::make_unique<vrpn_Analog_Remote>(address.c_str());
         ptr.analogDevice->register_change_handler(device, updateAnalog);
         device->setNumberOfAxes(nAxes);
     }
     else {
-        Log::Error("Failed to connect to analogs '%s'", address.c_str());
+        Log::Error(fmt::format("Failed to connect to analogs '{}'", address));
     }
 #else
     (void)address;

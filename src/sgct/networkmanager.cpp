@@ -23,6 +23,7 @@
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/shareddata.h>
+#include <fmt/format.h>
 #include <algorithm>
 #include <cstring>
 #include <numeric>
@@ -155,7 +156,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         #endif // __APPLE__
     if (result != 0) {
             std::string err = std::to_string(Network::lastError());
-            throw Error(5028, "Failed to get address info: " + err);
+            throw Error(5028, fmt::format("Failed to get address info: {}", err));
         }
     }
     std::vector<std::string> dnsNames;
@@ -274,8 +275,12 @@ void NetworkManager::initialize() {
                 port == cm.thisNode().dataTransferPort())
             {
                 const std::string p = std::to_string(cm.thisNode().syncPort());
-                throw Error(5023,
-                    "Port " + p + " is already used by connection " + std::to_string(i)
+                throw Error(
+                    5023,
+                    fmt::format(
+                        "Port {} is already used by connection {}",
+                        cm.thisNode().syncPort(), i
+                    )
                 );
             }
         }
@@ -325,7 +330,7 @@ void NetworkManager::initialize() {
                     [](const char* data, int length) {
                         std::vector<char> d(data, data + length);
                         d.push_back('\0');
-                        Log::Info("[client]: %s [end]", d.data());
+                        Log::Info(fmt::format("[client]: {} [end]", d.data()));
                     }
                 );
 
@@ -367,7 +372,9 @@ void NetworkManager::initialize() {
         }
     }
 
-    Log::Debug("Cluster sync: %s", cm.firmFrameLockSyncStatus() ? "firm" : "loose");
+    Log::Debug(
+        fmt::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
+    );
 }
 
 void NetworkManager::clearCallbacks() {
@@ -511,7 +518,7 @@ const Network& NetworkManager::syncConnection(int index) const {
 }
 
 void NetworkManager::updateConnectionStatus(Network* connection) {
-    Log::Debug("Updating status for connection %d", connection->id());
+    Log::Debug(fmt::format("Updating status for connection {}", connection->id()));
 
     int nConnections = 0;
     int nConnectedSync = 0;
@@ -536,14 +543,16 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
     }
 
-    Log::Info("Number of active connections %i of %i", nConnections, totalNConnections);
-    Log::Debug(
-        "Number of connected sync nodes %i of %i", nConnectedSync, totalNSyncConnections
-    );
-    Log::Debug(
-        "Number of connected data transfer nodes %i of %i",
+    Log::Info(fmt::format(
+        "Number of active connections {} of {}", nConnections, totalNConnections
+    ));
+    Log::Debug(fmt::format(
+        "Number of connected sync nodes {} of {}", nConnectedSync, totalNSyncConnections
+    ));
+    Log::Debug(fmt::format(
+        "Number of connected data transfer nodes {} of {}",
         nConnectedDataTransfer, totalNTransferConnections
-    );
+    ));
 
     mutex::DataSync.lock();
     _nActiveConnections = nConnections;
@@ -626,11 +635,11 @@ void NetworkManager::addConnection(int port, std::string address,
     ZoneScoped
 
     if (port == 0) {
-        throw Error(5025, "No port provided for connection to " + address);
+        throw Error(5025, fmt::format("No port provided for connection to {}", address));
     }
 
     if (address.empty()) {
-        throw Error(5026, "Empty address for connection to " + std::to_string(port));
+        throw Error(5026, fmt::format("Empty address for connection to {}", port));
     }
 
     auto net = std::make_unique<Network>(
@@ -639,7 +648,9 @@ void NetworkManager::addConnection(int port, std::string address,
         _isServer,
         connectionType
     );
-    Log::Debug("Initiating connection %d at port %d", _networkConnections.size(), port);
+    Log::Debug(fmt::format(
+        "Initiating connection {} at port {}", _networkConnections.size(), port
+    ));
     net->setUpdateFunction([this](Network* c) { updateConnectionStatus(c); });
     net->setConnectedFunction([this]() { setAllNodesConnected(); });
 

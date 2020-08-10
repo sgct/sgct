@@ -14,7 +14,7 @@
 #include <sgct/user.h>
 #include <stdexcept>
 #include <type_traits>
-
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -91,13 +91,15 @@ void BaseViewport::setUserName(std::string userName) {
 void BaseViewport::linkUserName() {
     ZoneScoped
 
-    User* user = ClusterManager::instance().user(_userName);
-    if (!_userName.empty() && user) {
-        // If the user name is not empty, the User better exists
-        _user = user;
-    }
-    else {
-        Log::Warning("Could not find user with name %s", _userName.c_str());
+    if (!_userName.empty()) {
+        User* user = ClusterManager::instance().user(_userName);
+        if (user) {
+            // If the user name is not empty, the User better exists
+            _user = user;
+        }
+        else {
+            Log::Warning(fmt::format("Could not find user with name '{}'", _userName));
+        }
     }
 }
 

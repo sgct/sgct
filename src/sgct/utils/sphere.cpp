@@ -56,7 +56,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
             const float x = r * static_cast<float>(cos(phi));
             const float z = r * static_cast<float>(sin(phi));
 
-            verts[1u + j * (hsegs + 1) + i] = {
+            verts[1 + j * (hsegs + 1) + i] = {
                 static_cast<float>(i) / static_cast<float>(hsegs), // s
                 1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), // t
                 x, y, z, // normals
@@ -69,9 +69,9 @@ Sphere::Sphere(float radius, unsigned int segments) {
     // The index array: triplets of integers, one for each triangle
     // Top cap
     for (unsigned int i = 0; i < hsegs; i++) {
-        indices[3u * i] = 0;
-        indices[3u * i + 2u] = 1 + i;
-        indices[3u * i + 1u] = 2 + i;
+        indices[3 * i] = 0;
+        indices[3 * i + 2] = 1 + i;
+        indices[3 * i + 1] = 2 + i;
     }
     // Middle part (possibly empty if vsegs=2)
     for (unsigned int j = 0; j < vsegs - 2; j++) {
@@ -79,19 +79,19 @@ Sphere::Sphere(float radius, unsigned int segments) {
             const unsigned int base = 3 * (hsegs + 2 * (j * hsegs + i));
             const unsigned int i0 = 1 + j * (hsegs + 1) + i;
             indices[base] = i0;
-            indices[base + 1u] = i0 + 1;
-            indices[base + 2u] = i0 + hsegs + 1;
-            indices[base + 3u] = i0 + hsegs + 1;
-            indices[base + 4u] = i0 + 1;
-            indices[base + 5u] = i0 + hsegs + 2;
+            indices[base + 1] = i0 + 1;
+            indices[base + 2] = i0 + hsegs + 1;
+            indices[base + 3] = i0 + hsegs + 1;
+            indices[base + 4] = i0 + 1;
+            indices[base + 5] = i0 + hsegs + 2;
         }
     }
     // Bottom cap
     for (unsigned int i = 0; i < hsegs; i++) {
         const unsigned int base = 3 * (hsegs + 2 * (vsegs - 2) * hsegs);
-        indices[base + 3u * i] = nVertices - 1;
-        indices[base + 3u * i + 2] = nVertices - 2 - i;
-        indices[base + 3u * i + 1] = nVertices - 3 - i;
+        indices[base + 3 * i] = nVertices - 1;
+        indices[base + 3 * i + 2] = nVertices - 2 - i;
+        indices[base + 3 * i + 1] = nVertices - 3 - i;
     }
 
     constexpr const GLsizei size = sizeof(VertexData);
@@ -119,7 +119,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        _nFaces * 3u * sizeof(unsigned int),
+        _nFaces * 3 * sizeof(unsigned int),
         indices.data(),
         GL_STATIC_DRAW
     );

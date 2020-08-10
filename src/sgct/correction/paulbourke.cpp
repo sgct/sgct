@@ -14,6 +14,7 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -25,11 +26,14 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
 
     Buffer buf;
 
-    Log::Info("Reading Paul Bourke spherical mirror mesh from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::PaulBourke, 2040, "Failed to open " + path);
+        throw Error(
+            Error::Component::PaulBourke, 2040,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     constexpr const int MaxLineLength = 1024;
@@ -40,7 +44,10 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     if (fgets(lineBuffer, MaxLineLength, meshFile)) {
         int r = sscanf(lineBuffer, "%d", &mappingType);
         if (r != 1) {
-            throw Error(Error::Component::PaulBourke, 2041, "Error reading mapping type");
+            throw Error(
+                Error::Component::PaulBourke, 2041,
+                fmt::format("Error reading mapping type in file '{}'", path)
+            );
         }
     }
 
@@ -54,7 +61,10 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
 
     // check if everyting useful is set
     if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        throw Error(Error::Component::PaulBourke, 2042, "Invalid data");
+        throw Error(
+            Error::Component::PaulBourke, 2042,
+            fmt::format("Invalid data in file '{}'", path)
+        );
     }
 
     // get all data

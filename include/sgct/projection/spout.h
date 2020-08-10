@@ -57,12 +57,14 @@ private:
     void attachTextures(int face);
 
     // shader locations
-    int _cubemapLoc = -1;
-    int _halfFovLoc = -1;
-    int _swapColorLoc = -1;
-    int _swapDepthLoc = -1;
-    int _swapNearLoc = -1;
-    int _swapFarLoc = -1;
+    struct {
+        int cubemap = -1;
+        int halfFov = -1;
+        int swapColor = -1;
+        int swapDepth = -1;
+        int swapNear = -1;
+        int swapFar = -1;
+    } _shaderLoc;
 
     std::unique_ptr<OffScreenBuffer> _spoutFBO;
 
@@ -84,8 +86,8 @@ private:
     ShaderProgram _shader;
     ShaderProgram _depthCorrectionShader;
 
-    int _mappingWidth;
-    int _mappingHeight;
+    int _mappingWidth = 0;
+    int _mappingHeight = 0;
 };
 
 } // namespace sgct

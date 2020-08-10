@@ -14,6 +14,7 @@
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
 #include <sgct/trackingmanager.h>
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -62,7 +63,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
     Tracker* parent = TrackingManager::instance().trackers()[_parentIndex].get();
 
     if (parent == nullptr) {
-        Log::Error("Error getting handle to tracker for device '%s'", _name.c_str());
+        Log::Error(fmt::format("Error getting handle to tracker for device '{}'", _name));
         return;
     }
 

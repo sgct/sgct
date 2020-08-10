@@ -14,6 +14,7 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -96,7 +97,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             std::unique_ptr<User> usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Log::Info("Adding user '%s'", u.name->c_str());
+            Log::Info(fmt::format("Adding user '{}'", *u.name));
         }
         else {
             name = "default";

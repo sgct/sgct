@@ -13,7 +13,7 @@
 #include <sgct/font.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -131,7 +131,7 @@ bool FontManager::addFont(std::string name, std::string file) {
 
     const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
     if (!inserted) {
-        Log::Warning("Font with name '%s' already exists", name.c_str());
+        Log::Warning(fmt::format("Font with name '{}' already exists", name));
     }
     return inserted;
 }
@@ -152,14 +152,14 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        Log::Error("No font file specified for font [%s]", name.c_str());
+        Log::Error(fmt::format("No font file specified for font [{}]", name));
         return nullptr;
     }
 
     if (_library == nullptr) {
-        Log::Error(
-            "Freetype library is not initialized, can't create font [%s]", name.c_str()
-        );
+        Log::Error(fmt::format(
+            "Freetype library is not initialized, can't create font [{}]", name
+        ));
         return nullptr;
     }
 
@@ -167,19 +167,19 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
-        Log::Error(
-            "Unsupperted file format [%s] for font [%s]", it->second.c_str(), name.c_str()
-        );
+        Log::Error(fmt::format(
+            "Unsupperted file format [{}] for font [{}]", it->second, name
+        ));
         return nullptr;
     }
     else if (error != 0 || face == nullptr) {
-        Log::Error("Font '%s' not found!", it->second.c_str());
+        Log::Error(fmt::format("Font '{}' not found", it->second));
         return nullptr;
     }
 
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        Log::Error("Could not set pixel size for font[%s]", name.c_str());
+        Log::Error(fmt::format("Could not set pixel size for font [{}]", name));
         return nullptr;
     }
 

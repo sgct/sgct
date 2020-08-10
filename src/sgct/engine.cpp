@@ -28,6 +28,7 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
+#include <fmt/format.h>
 #include <cassert>
 #include <iostream>
 #include <numeric>
@@ -393,7 +394,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     {
         ZoneScopedN("GLFW initialization")
         glfwSetErrorCallback([](int error, const char* desc) {
-            throw Err(3010, "GLFW error (" + std::to_string(error) + "): " + desc);
+            throw Err(3010, fmt::format("GLFW error ({}): {}", error, desc));
         });
         const int res = glfwInit();
         if (res == GLFW_FALSE) {
@@ -401,7 +402,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         }
     }
 
-    Log::Info("SGCT version: %s", Version);
+    Log::Info(fmt::format("SGCT version: {}", Version));
 
     Log::Debug("Validating cluster configuration");
     config::validateCluster(cluster);
@@ -427,7 +428,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         for (size_t i = 0; i < cluster.nodes.size(); ++i) {
             if (NetworkManager::instance().matchesAddress(cluster.nodes[i].address)) {
                 clusterId = static_cast<int>(i);
-                Log::Debug("Running in cluster mode as node %d", i);
+                Log::Debug(fmt::format("Running in cluster mode as node {}", i));
                 break;
             }
         }
@@ -441,7 +442,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
                 );
             }
             clusterId = *config.nodeId;
-            Log::Debug("Running locally as node %d", clusterId);
+            Log::Debug(fmt::format("Running locally as node {}", clusterId));
         }
         else {
             throw Err(3002, "When running locally, a node ID needs to be specified");
@@ -484,7 +485,7 @@ void Engine::initialize() {
         glfwDestroyWindow(offscreen);
         glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
     }
-    Log::Info("Detected OpenGL version: %i.%i", major, minor);
+    Log::Info(fmt::format("Detected OpenGL version: {}.{}", major, minor));
 
     initWindows(major, minor);
 
@@ -558,10 +559,10 @@ void Engine::initialize() {
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION)
     };
-    Log::Info("OpenGL version %d.%d.%d core profile", v[0], v[1], v[2]);
+    Log::Info(fmt::format("OpenGL version {}.{}.{} core profile", v[0], v[1], v[2]));
 
-    Log::Info("Vendor: %s", glGetString(GL_VENDOR));
-    Log::Info("Renderer: %s", glGetString(GL_RENDERER));
+    Log::Info(fmt::format("Vendor: {}", glGetString(GL_VENDOR)));
+    Log::Info(fmt::format("Renderer: {}", glGetString(GL_RENDERER)));
 
     Window::makeSharedContextCurrent();
 
@@ -760,7 +761,7 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     int ver[3];
     glfwGetVersion(&ver[0], &ver[1], &ver[2]);
-    Log::Info("Using GLFW version %d.%d.%d", ver[0], ver[1], ver[2]);
+    Log::Info(fmt::format("Using GLFW version {}.{}.{}", ver[0], ver[1], ver[2]));
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
@@ -840,19 +841,19 @@ void Engine::frameLockPreStage() {
         // more than a second
         const Network& c = nm.syncConnection(0);
         if (_printSyncMessage && !c.isUpdated()) {
-            Log::Info(
-                "Waiting for master. frame send %d != recv %d\n\tSwap groups: %s\n\t"
-                "Swap barrier: %s\n\tUniversal frame number: %u\n\tSGCT frame number: %u",
+            Log::Info(fmt::format(
+                "Waiting for master. frame send {} != recv {}\n\tSwap groups: {}\n\t"
+                "Swap barrier: {}\n\tUniversal frame number: {}\n\tSGCT frame number: {}",
                 c.sendFrameCurrent(), c.recvFramePrevious(),
                 Window::isUsingSwapGroups() ? "enabled" : "disabled",
                 Window::isBarrierActive() ? "enabled" : "disabled",
                 Window::swapGroupFrameNumber(), _frameCounter
-            );
+            ));
         }
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3004, "No sync signal from master after " + s + " s");
+            throw Err(3004, fmt::format("No sync signal from master after {} s", s));
         }
     }
 
@@ -884,21 +885,21 @@ void Engine::frameLockPostStage() {
         // more than a second
         for (int i = 0; i < nm.syncConnectionsCount(); ++i) {
             if (_printSyncMessage && !nm.connection(i).isUpdated()) {
-                Log::Info(
-                    "Waiting for IG%d: send frame %d != recv frame %d\n\tSwap groups: %s"
-                    "\n\tSwap barrier: %s\n\tUniversal frame number: %u\n\t"
-                    "SGCT frame number: %u", i, nm.connection(i).sendFrameCurrent(),
+                Log::Info(fmt::format(
+                    "Waiting for IG{}: send frame {} != recv frame {}\n\tSwap groups: {}"
+                    "\n\tSwap barrier: {}\n\tUniversal frame number: {}\n\t"
+                    "SGCT frame number: {}", i, nm.connection(i).sendFrameCurrent(),
                     nm.connection(i).recvFrameCurrent(),
                     Window::isUsingSwapGroups() ? "enabled" : "disabled",
                     Window::isBarrierActive() ? "enabled" : "disabled",
                     Window::swapGroupFrameNumber(), _frameCounter
-                );
+                ));
             }
         }
 
         if (glfwGetTime() - t0 > _syncTimeout) {
             const std::string s = std::to_string(_syncTimeout);
-            throw Err(3005, "No sync signal from clients after " + s + " s");
+            throw Err(3005, fmt::format("No sync signal from clients after {} s", s));
         }
     }
 

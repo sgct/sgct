@@ -12,6 +12,7 @@
 
 #include <sgct/log.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
 #include <array>
@@ -272,7 +273,7 @@ void Font::createCharacter(char c) {
         _fontFaceData[c] = std::move(*ffd);
     }
     else {
-        Log::Error("Error creating character %s", c);
+        Log::Error(fmt::format("Error creating character {}", c));
     }
 }
 

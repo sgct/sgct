@@ -45,7 +45,7 @@ public:
      * \param name Name of the shader program to remove
      * \return true if the shader program was removed correctly
      */
-    bool removeShaderProgram(const std::string& name);
+    bool removeShaderProgram(std::string_view name);
 
     /**
      * Check if a shader program exists in the manager.
@@ -61,7 +61,7 @@ public:
      * \return The specified shader program
      * \throws std::runtime_error If the shader program with the \p name was not found
      */
-    const ShaderProgram& shaderProgram(const std::string& name) const;
+    const ShaderProgram& shaderProgram(std::string_view name) const;
 
 private:
     static ShaderManager* _instance;

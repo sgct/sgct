@@ -11,6 +11,7 @@
 #include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -37,7 +38,7 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    Log::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
+    Log::Info(fmt::format("{}: Adding device '{}'", _name, name));
 }
 
 const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {

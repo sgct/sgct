@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <fmt/format.h>
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -23,7 +24,7 @@
 #include <cstdarg> // va_copy
 
 namespace {
-    const char* levelToString(sgct::Log::Level level) {
+    std::string_view levelToString(sgct::Log::Level level) {
         switch (level) {
             case sgct::Log::Level::Debug: return "Debug";
             case sgct::Log::Level::Info: return "Info";
@@ -54,34 +55,7 @@ Log::Log() {
     _parseBuffer.resize(128);
 }
 
-void Log::printv(Level lvl, const char* fmt, va_list ap) {
-    // prevent writing to console simultaneously
-    std::unique_lock lock(_mutex);
-
-#ifdef WIN32
-    const size_t size = _vscprintf(fmt, ap) + 1; // null-terminating char
-#else // WIN32
-    // Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
-    va_list argsCopy;
-    va_copy(argsCopy, ap);
-    const size_t size = static_cast<size_t>(vsnprintf(nullptr, 0, fmt, argsCopy));
-    va_end(argsCopy);
-#endif // WIN32
-
-    if (size > _parseBuffer.size()) {
-        _parseBuffer.resize(size);
-        std::fill(_parseBuffer.begin(), _parseBuffer.end(), char(0));
-    }
-
-    _parseBuffer[0] = '\0';
-
-    vsprintf(_parseBuffer.data(), fmt, ap);
-    va_end(ap); // Results Are Stored In Text
-
-    std::vector<char> buffer(size + 64);
-    std::fill(buffer.begin(), buffer.end(), char(0));
-
-    // print local
+void Log::printv(Level level, std::string message) {
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
@@ -90,72 +64,46 @@ void Log::printv(Level lvl, const char* fmt, va_list ap) {
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 
-        if (_showLevel) {
-            sprintf(
-                buffer.data(),
-                "%s | (%s) %s\n",
-                TimeBuffer,
-                levelToString(lvl),
-                _parseBuffer.data()
-            );
-        }
-        else {
-            sprintf(buffer.data(), "%s | %s\n", TimeBuffer, _parseBuffer.data());
-        }
+        message = fmt::format("{} | {}", TimeBuffer, message);
     }
-    else {
-        if (_showLevel) {
-            sprintf(buffer.data(), "(%s) %s\n", levelToString(lvl), _parseBuffer.data());
-        }
-        else {
-            sprintf(buffer.data(), "%s\n", _parseBuffer.data());
-        }
+    if (_showLevel) {
+        message = fmt::format("({}) {}", levelToString(level), message);
     }
 
     if (_logToConsole) {
-        std::cout << buffer.data();
+        std::cout << message;
 #ifdef WIN32
-        OutputDebugStringA(buffer.data());
+        OutputDebugStringA(message.c_str());
 #endif // WIN32
     }
 
     if (_messageCallback) {
-        _messageCallback(lvl, _parseBuffer.data());
+        _messageCallback(level, message.c_str());
     }
 }
 
-void Log::Debug(const char* fmt, ...) {
+void Log::Debug(std::string message) {
     if (instance()._level <= Level::Debug) {
-        va_list ap;
-        va_start(ap, fmt);
-        instance().printv(Level::Debug, fmt, ap);
-        va_end(ap);
+        instance().printv(Level::Debug, std::move(message));
     }
 }
 
-void Log::Info(const char* fmt, ...) {
+void Log::Info(std::string message) {
     if (instance()._level <= Level::Info) {
-        va_list ap;
-        va_start(ap, fmt);
-        instance().printv(Level::Info, fmt, ap);
-        va_end(ap);
+        instance().printv(Level::Info, std::move(message));
     }
 }
 
-void Log::Warning(const char* fmt, ...) {
+void Log::Warning(std::string message) {
     if (instance()._level <= Level::Warning) {
-        va_list ap;
-        va_start(ap, fmt);
-        instance().printv(Level::Warning, fmt, ap);
-        va_end(ap);
+        instance().printv(Level::Warning, std::move(message));
     }
 }
 
-void Log::Error(const char* fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    instance().printv(Level::Error, fmt, ap);
-    va_end(ap);
+void Log::Error(std::string message) {
+    if (instance()._level <= Level::Error) {
+        instance().printv(Level::Error, std::move(message));
+    }
 }
 
 void Log::setNotifyLevel(Level nl) {

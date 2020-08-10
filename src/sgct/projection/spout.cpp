@@ -18,6 +18,7 @@
 #include <sgct/settings.h>
 #include <sgct/window.h>
 #include <algorithm>
+#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -115,7 +116,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     glDisable(GL_SCISSOR_TEST);
 
     if (_mappingType != Mapping::Cubemap) {
-        GLint saveBuffer = {};
+        GLint saveBuffer = 0;
         glGetIntegerv(GL_DRAW_BUFFER0, &saveBuffer);
         GLint saveTexture = 0;
         glGetIntegerv(GL_TEXTURE_BINDING_2D, &saveTexture);
@@ -149,12 +150,12 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
-        glUniform1i(_cubemapLoc, 0);
+        glUniform1i(_shaderLoc.cubemap, 0);
         if (_mappingType == Mapping::Fisheye) {
-            glUniform1f(_halfFovLoc, glm::half_pi<float>());
+            glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
         }
         else if (_mappingType == Mapping::Equirectangular) {
-            glUniform1f(_halfFovLoc, glm::pi<float>());
+            glUniform1f(_shaderLoc.halfFov, glm::pi<float>());
         }
 
         glBindVertexArray(_vao);
@@ -290,10 +291,10 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             // bind shader
             _depthCorrectionShader.bind();
-            glUniform1i(_swapColorLoc, 0);
-            glUniform1i(_swapDepthLoc, 1);
-            glUniform1f(_swapNearLoc, Engine::instance().nearClipPlane());
-            glUniform1f(_swapFarLoc, Engine::instance().farClipPlane());
+            glUniform1i(_shaderLoc.swapColor, 0);
+            glUniform1i(_shaderLoc.swapDepth, 1);
+            glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
+            glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
 
             window.renderScreenQuad();
 
@@ -390,7 +391,7 @@ void SpoutOutputProjection::initTextures() {
 
             for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-                Log::Debug("SpoutOutputProjection initTextures %d", i);
+                Log::Debug(fmt::format("SpoutOutputProjection initTextures {}", i));
                 if (!_spout[i].enabled) {
                     continue;
                 }
@@ -494,11 +495,9 @@ void SpoutOutputProjection::initTextures() {
 
 void SpoutOutputProjection::initVBO() {
     glGenVertexArrays(1, &_vao);
-    Log::Debug("Generating VAO: %d", _vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
-    Log::Debug("Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
@@ -678,7 +677,7 @@ void SpoutOutputProjection::initShaders() {
         );
     }
 
-    const std::string name = [](Mapping mapping) {
+    std::string name = [](Mapping mapping) {
         switch (mapping) {
             case Mapping::Fisheye: return "FisheyeShader";
             case Mapping::Equirectangular: return "EquirectangularShader";
@@ -687,7 +686,7 @@ void SpoutOutputProjection::initShaders() {
         }
     }(_mappingType);
 
-    _shader = ShaderProgram(name);
+    _shader = ShaderProgram(std::move(name));
     _shader.addShaderSource(fisheyeVertShader, fisheyeFragShader);
 
     std::string samplerShaderCode = [](Mapping mappingType){
@@ -697,7 +696,7 @@ void SpoutOutputProjection::initShaders() {
             default: return shaders_fisheye::SampleFun;
         }
     }(_mappingType);
-    _shader.addShaderSource(samplerShaderCode, GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(std::move(samplerShaderCode), GL_FRAGMENT_SHADER);
     _shader.addShaderSource(shaders_fisheye::RotationFun, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
@@ -728,11 +727,11 @@ void SpoutOutputProjection::initShaders() {
         );
     }
 
-    _cubemapLoc = glGetUniformLocation(_shader.id(), "cubemap");
-    glUniform1i(_cubemapLoc, 0);
+    _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");
+    glUniform1i(_shaderLoc.cubemap, 0);
 
-    _halfFovLoc = glGetUniformLocation(_shader.id(), "halfFov");
-    glUniform1f(_halfFovLoc, glm::half_pi<float>());
+    _shaderLoc.halfFov = glGetUniformLocation(_shader.id(), "halfFov");
+    glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
 
     ShaderProgram::unbind();
 
@@ -741,12 +740,12 @@ void SpoutOutputProjection::initShaders() {
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();
 
-        _swapColorLoc = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
-        glUniform1i(_swapColorLoc, 0);
-        _swapDepthLoc = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
-        glUniform1i(_swapDepthLoc, 1);
-        _swapNearLoc = glGetUniformLocation(_depthCorrectionShader.id(), "near");
-        _swapFarLoc = glGetUniformLocation(_depthCorrectionShader.id(), "far");
+        _shaderLoc.swapColor = glGetUniformLocation(_depthCorrectionShader.id(), "cTex");
+        glUniform1i(_shaderLoc.swapColor, 0);
+        _shaderLoc.swapDepth = glGetUniformLocation(_depthCorrectionShader.id(), "dTex");
+        glUniform1i(_shaderLoc.swapDepth, 1);
+        _shaderLoc.swapNear = glGetUniformLocation(_depthCorrectionShader.id(), "near");
+        _shaderLoc.swapFar = glGetUniformLocation(_depthCorrectionShader.id(), "far");
 
         ShaderProgram::unbind();
     }

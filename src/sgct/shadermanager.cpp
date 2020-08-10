@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 #include <algorithm>
 
 #define Error(code, msg) Error(Error::Component::Shader, code, msg)
@@ -42,7 +43,10 @@ void ShaderManager::addShaderProgram(std::string name, std::string vertexSrc,
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
-        throw Error(7000, "Cannot add shader program [" + name + "]: Already exists");
+        throw Error(
+            7000,
+            fmt::format("Cannot add shader program [{}]: Already exists", name)
+        );
     }
 
     // If shader don't exist, create it and add to container
@@ -53,7 +57,7 @@ void ShaderManager::addShaderProgram(std::string name, std::string vertexSrc,
     _shaderPrograms.push_back(std::move(sp));
 }
 
-bool ShaderManager::removeShaderProgram(const std::string& name) {
+bool ShaderManager::removeShaderProgram(std::string_view name) {
     const auto shaderIt = std::find_if(
         _shaderPrograms.begin(),
         _shaderPrograms.end(),
@@ -61,7 +65,9 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     );
 
     if (shaderIt == _shaderPrograms.end()) {
-        Log::Warning("Unable to remove shader program [%s]: Not found", name.c_str());
+        Log::Warning(
+            fmt::format("Unable to remove shader program [{}]: Not found", name)
+        );
         return false;
     }
 
@@ -71,14 +77,14 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     return true;
 }
 
-const ShaderProgram& ShaderManager::shaderProgram(const std::string& name) const {
+const ShaderProgram& ShaderManager::shaderProgram(std::string_view name) const {
     const auto shaderIt = std::find_if(
         _shaderPrograms.cbegin(),
         _shaderPrograms.cend(),
         [name](const ShaderProgram& prg) { return prg.name() == name; }
     );
     if (shaderIt == _shaderPrograms.end()) {
-        throw Error(7001, "Could not find shader with name " + name);
+        throw Error(7001, fmt::format("Could not find shader with name {}", name));
     }
     return *shaderIt;
 }

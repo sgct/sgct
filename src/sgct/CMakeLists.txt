@@ -155,6 +155,7 @@ set_compile_options(sgct)
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -181,6 +182,7 @@ target_link_libraries(sgct
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
+    fmt
     glm
     PNG::PNG
     tinyxml2::tinyxml2

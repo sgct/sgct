@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
+#include <fmt/format.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tinyxml2.h>
@@ -136,7 +137,7 @@ namespace {
         if (t == "top_bottom") { return M::TopBottom; }
         if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        throw Err(6085, "Unkonwn stereo mode " + std::string(t));
+        throw Err(6085, fmt::format("Unkonwn stereo mode {}", t));
     }
 
     sgct::config::Window::ColorBitDepth getBufferColorBitDepth(std::string_view type) {
@@ -149,7 +150,7 @@ namespace {
         if (type == "16ui") { return sgct::config::Window::ColorBitDepth::Depth16UInt; }
         if (type == "32ui") { return sgct::config::Window::ColorBitDepth::Depth32UInt; }
 
-        throw Err(6086, "Unknown color bit depth " + std::string(type));
+        throw Err(6086, fmt::format("Unknown color bit depth {}", type));
     }
 
     int cubeMapResolutionForQuality(std::string_view quality) {
@@ -162,7 +163,7 @@ namespace {
         if (quality == "8k" || quality == "8192") { return 8192; }
         if (quality == "16k" || quality == "16384") { return 16384; }
 
-        throw Err(6087, "Unknown resolution " + std::string(quality) + " for cube map");
+        throw Err(6087, fmt::format("Unknown resolution {} for cube map", quality));
     }
 
     std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
@@ -250,7 +251,7 @@ namespace {
             return value;
         }
         else {
-            sgct::Log::Error("Error extracting value '%s'", name);
+            sgct::Log::Error(fmt::format("Error extracting value '{}'", name));
             return std::nullopt;
         }
     }
@@ -390,7 +391,7 @@ namespace {
                 proj.mapping = SpoutOutputProjection::Mapping::Cubemap;
             }
             else {
-                throw Err(6086, "Unknown spout output mapping: " + std::string(val));
+                throw Err(6086, fmt::format("Unknown spout output mapping: {}", val));
             }
         }
         if (const char* a = element.Attribute("mappingSpoutName"); a) {
@@ -731,7 +732,7 @@ namespace {
                 sgct::config::Settings::BufferFloatPrecision::Float32Bit;
         }
         else if (f) {
-            throw Err(6050, "Wrong buffer precision value " + std::to_string(*f));
+            throw Err(6050, fmt::format("Wrong buffer precision value {}", *f));
         }
         if (tinyxml2::XMLElement* e = elem.FirstChildElement("Display"); e) {
             sgct::config::Settings::Display display;
@@ -879,14 +880,22 @@ namespace {
         const bool s = err == tinyxml2::XML_NO_ERROR;
         if (!s) {
             if (err == tinyxml2::XML_ERROR_FILE_NOT_FOUND) {
-                throw Err(6081, "Could not find configuration file: " + filename);
+                throw Err(
+                    6081,
+                    fmt::format("Could not find configuration file: {}", filename)
+                );
             }
             else {
                 std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
                 std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
                 std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
                 std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-                throw Err(6082, "Error loading XML file '" + filename + "'. " + s4);
+                throw Err(
+                    6082,
+                    fmt::format(
+                        "Error loading XML file '{}'. {} {} {}", filename, s1, s2, s3
+                    )
+                );
             }
         }
 
@@ -946,7 +955,7 @@ namespace {
 namespace sgct {
 
 config::Cluster readConfig(const std::string& filename) {
-    Log::Debug("Parsing XML config '%s'", filename.c_str());
+    Log::Debug(fmt::format("Parsing XML config '{}'", filename));
 
     // First save the old current working directory, set the new one
     std::filesystem::path oldPwd = std::filesystem::current_path();
@@ -959,12 +968,14 @@ config::Cluster readConfig(const std::string& filename) {
     // and reset the current working directory to the old value
     std::filesystem::current_path(oldPwd);
 
-    Log::Debug("Config file '%s' read successfully", filename.c_str());
-    Log::Info("Number of nodes in cluster: %d", cluster.nodes.size());
+    Log::Debug(fmt::format("Config file '{}' read successfully", filename));
+    Log::Info(fmt::format("Number of nodes in cluster: {}", cluster.nodes.size()));
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
-        Log::Info("\tNode(%d) address: %s [%d]", i, node.address.c_str(), node.port);
+        Log::Info(fmt::format(
+            "\tNode({}) address: {} [{}]", i, node.address, node.port
+        ));
     }
 
     return cluster;

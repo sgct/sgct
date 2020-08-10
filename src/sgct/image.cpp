@@ -11,10 +11,11 @@
 #include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/log.h>
-#include <algorithm>
-#include <chrono>
+#include <fmt/format.h>
 #include <png.h>
 #include <pngpriv.h>
+#include <algorithm>
+#include <chrono>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -68,7 +69,9 @@ void Image::load(const std::string& filename) {
     stbi_set_flip_vertically_on_load(1);
     _data = stbi_load(filename.c_str(), &_size.x, &_size.y, &_nChannels, 0);
     if (_data == nullptr) {
-        throw Err(9001, "Could not open file '" + filename + "' for loading image");
+        throw Err(
+            9001, fmt::format("Could not open file '{}' for loading image", filename)
+        );
     }
     _bytesPerChannel = 1;
     _dataSize = _size.x * _size.y * _nChannels * _bytesPerChannel;
@@ -102,7 +105,7 @@ void Image::save(const std::string& file) {
 
     FormatType type = getFormatType(file);
     if (type == FormatType::Unknown) {
-        throw Err(9003, "Cannot save file " + file);
+        throw Err(9003, fmt::format("Cannot save file '{}'", file));
     }
     if (type == FormatType::PNG) {
         // We use libPNG instead of stb as libPNG is faster and we care about how fast
@@ -121,14 +124,14 @@ void Image::save(const std::string& file) {
     if (type == FormatType::JPEG) {
         int r = stbi_write_jpg(file.c_str(), _size.x, _size.y, _nChannels, _data, 100);
         if (r == 0) {
-            throw Err(9004, "Could not save file '" + file + "' as JPG");
+            throw Err(9004, fmt::format("Could not save file '{}' as JPG", file));
         }
         return;
     }
     if (type == FormatType::TGA) {
         int r = stbi_write_tga(file.c_str(), _size.x, _size.y, _nChannels, _data);
         if (r == 0) {
-            throw Err(9005, "Could not save file '" + file + "' as TGA");
+            throw Err(9005, fmt::format("Could not save file '{}' as TGA", file));
 
         }
         return;
@@ -143,14 +146,14 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        throw Err(9007, "Can't save " + std::to_string(_bytesPerChannel * 8) + " bit");
+        throw Err(9007, fmt::format("Can't save {} bit", _bytesPerChannel * 8));
     }
 
     double t0 = Engine::getTime();
 
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        throw Err(9008, "Can't create PNG file '" + filename + "'");
+        throw Err(9008, fmt::format("Can't create PNG file '{}'", filename));
     }
 
     // initialize stuff
@@ -231,7 +234,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     fclose(fp);
 
     const double time = (Engine::getTime() - t0) * 1000.0;
-    Log::Debug("'%s' was saved successfully (%.2f ms)", filename.c_str(), time);
+    Log::Debug(fmt::format("'{}' was saved successfully ({:.2f} ms)", filename, time));
 }
 
 unsigned char* Image::data() {
@@ -274,7 +277,7 @@ void Image::allocateOrResizeData() {
         std::string s =
             std::to_string(_size.x) + 'x' + std::to_string(_size.y) + ' ' +
             std::to_string(_nChannels);
-        throw Err(9012, "Invalid image size " + s + " channels");
+        throw Err(9012, fmt::format("Invalid image size {} channels", s));
     }
 
     if (_data && _dataSize != dataSize) {
@@ -288,10 +291,10 @@ void Image::allocateOrResizeData() {
         _data = new unsigned char[dataSize];
         _dataSize = dataSize;
 
-        Log::Debug(
-            "Allocated %d bytes for image data (%.2f ms)",
+        Log::Debug(fmt::format(
+            "Allocated {} bytes for image data ({:.2f} ms)",
             _dataSize, (Engine::getTime() - t0) * 1000.0
-        );
+        ));
     }
 }
 

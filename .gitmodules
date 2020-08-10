@@ -13,3 +13,6 @@
 [submodule "ext/tracy"]
 	path = ext/tracy
 	url = https://bitbucket.org/wolfpld/tracy.git
+[submodule "ext/fmt"]
+	path = ext/fmt
+	url = https://github.com/fmtlib/fmt.git

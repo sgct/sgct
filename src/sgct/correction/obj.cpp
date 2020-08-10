@@ -12,6 +12,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <fmt/format.h>
 
 namespace sgct::correction {
 
@@ -20,11 +21,14 @@ Buffer generateOBJMesh(const std::string& path) {
 
     Buffer buffer;
 
-    Log::Info("Reading Wavefront OBJ mesh data from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading Wavefront OBJ mesh data from '{}', path"));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::OBJ, 2030, "Failed to open " + path);
+        throw Error(
+            Error::Component::OBJ, 2030,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     unsigned int counter = 0;
@@ -62,7 +66,9 @@ Buffer generateOBJMesh(const std::string& path) {
     if (counter != buffer.vertices.size() || buffer.vertices.empty()) {
         throw Error(
             Error::Component::OBJ, 2031,
-            "Vertex count doesn't match number of texture coordinates"
+            fmt::format(
+                "Vertex count doesn't match number of texture coordinates in '{}'", path
+            )
         );
     }
 

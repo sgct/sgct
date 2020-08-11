@@ -82,6 +82,8 @@ if (SGCT_DEP_INCLUDE_TRACY)
   target_include_directories(tracy PUBLIC "tracy")
   set_property(TARGET tracy PROPERTY FOLDER "Dependencies")
   target_compile_definitions(tracy 
+    PUBLIC 
+      $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:TRACY_ENABLE>
     PRIVATE
       _CRT_SECURE_NO_WARNINGS
   )

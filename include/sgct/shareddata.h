@@ -84,13 +84,8 @@ void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value
 template <>
 void serializeObject(std::vector<std::byte>& buffer, std::string_view value);
 
-template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::string& value);
-
-
-template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value);
-
 
 template <typename T>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,

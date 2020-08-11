@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -58,9 +59,9 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(sender.data(), width, height);
     if (!initialized && creationSuccess) {
-        Log::Info(
-            "Spout: Initing %ux%u texture from '%s'", width, height, sender.c_str()
-        );
+        Log::Info(fmt::format(
+            "Spout: Initing {}x{} texture from '{}'", width, height, sender
+        ));
         initialized = true;
     }
 
@@ -210,7 +211,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error & e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

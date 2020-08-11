@@ -8,8 +8,8 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-
 #include <sgct/utils/box.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -70,25 +70,25 @@ void networkConnectionUpdated(Network* conn) {
 
     connected = conn->isConnected();
 
-    Log::Info(
-        "Network is %s", conn->isConnected() ? "connected" : "disconneced"
-    );
+    Log::Info(fmt::format(
+        "Network is {}", conn->isConnected() ? "connected" : "disconneced"
+    ));
 }
 
 void networkAck(int packageId, int) {
-    Log::Info("Network package %d is received", packageId);
+    Log::Info(fmt::format("Network package {} is received", packageId));
 
     if (timerData.second == packageId) {
-        Log::Info(
-            "Loop time: %lf ms", (Engine::getTime() - timerData.first) * 1000.0
-        );
+        Log::Info(fmt::format(
+            "Loop time: {} ms", (Engine::getTime() - timerData.first) * 1000.0
+        ));
     }
 }
 
 void networkDecode(void* receivedData, int receivedLength, int packageId, int) {
-    Log::Info("Network decoding package %d", packageId);
+    Log::Info(fmt::format("Network decoding package {}", packageId));
     std::string test(reinterpret_cast<char*>(receivedData), receivedLength);
-    Log::Info("Message: \"%s\"", test.c_str());
+    Log::Info(fmt::format("Message: \"{}\"", test));
 }
 
 void connect() {
@@ -111,7 +111,7 @@ void connect() {
 
     // init
     try {
-        Log::Debug("Initiating network connection at port %d", port);
+        Log::Debug(fmt::format("Initiating network connection at port {}", port));
 
         networkPtr->setUpdateFunction(networkConnectionUpdated);
         networkPtr->setPackageDecodeFunction(networkDecode);
@@ -119,7 +119,7 @@ void connect() {
         networkPtr->initialize();
     }
     catch (const std::runtime_error& err) {
-        Log::Error("Network error: %s", err.what());
+        Log::Error(fmt::format("Network error: {}", err.what()));
         networkPtr->initShutdown();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
@@ -282,11 +282,11 @@ int main(int argc, char** argv) {
         std::string_view v(argv[i]);
         if (v == "-port" && argc > (i + 1)) {
             port = std::stoi(argv[i + 1]);
-            Log::Info("Setting port to: %d", port);
+            Log::Info(fmt::format("Setting port to: {}", port));
         }
         else if (v == "-address" && argc > (i + 1)) {
             address = argv[i + 1];
-            Log::Info("Setting address to: %s", address.c_str());
+            Log::Info(fmt::format("Setting address to: {}", address));
         }
         else if (v == "--server") {
             isServer = true;
@@ -307,7 +307,7 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

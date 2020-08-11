@@ -175,6 +175,7 @@ target_link_libraries(sgct
   PUBLIC 
     glad::glad
     glfw
+    fmt
     tracy
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
@@ -182,7 +183,6 @@ target_link_libraries(sgct
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
-    fmt
     glm
     PNG::PNG
     tinyxml2::tinyxml2

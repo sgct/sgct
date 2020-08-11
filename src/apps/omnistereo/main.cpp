@@ -11,6 +11,7 @@
 #include <sgct/utils/box.h>
 #include <sgct/utils/domegrid.h>
 #include <sgct/user.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -156,9 +157,9 @@ void initOmniStereo(bool mask) {
         win.framebufferResolution().y / tileSize
     };
 
-    Log::Info(
-        "Allocating: %d MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
-    );
+    Log::Info(fmt::format(
+        "Allocating: {} MB data", (sizeof(OmniData) * res.x * res.y) / (1024 * 1024)
+    ));
     omniProjections.resize(res.x);
     for (int i = 0; i < res.x; i++) {
         omniProjections[i].resize(res.y);
@@ -339,10 +340,10 @@ void initOmniStereo(bool mask) {
     }
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
-    Log::Info(
-        "Time to init viewports: %f s\n%d %% will be rendered.",
+    Log::Info(fmt::format(
+        "Time to init viewports: {} s\n{} %% will be rendered.",
         Engine::instance().getTime() - t0, percentage
-    );
+    ));
     omniInited = true;
 }
 
@@ -411,7 +412,7 @@ void drawOmniStereo(const RenderData& renderData) {
     }
 
     const double t1 = Engine::instance().getTime();
-    Log::Info("Time to draw frame: %f s", t1 - t0);
+    Log::Info(fmt::format("Time to draw frame: {}s", t1 - t0));
 }
 
 void draw(const RenderData& data) {
@@ -538,13 +539,11 @@ int main(int argc, char** argv) {
 
         if (argument == "-turnmap" && argc > i + 1) {
             turnMapSrc = argv[i + 1];
-            Log::Info("Setting turn map path to %s", turnMapSrc.c_str());
+            Log::Info(fmt::format("Setting turn map path to {}", turnMapSrc));
         }
         if (argument == "-sepmap" && argc > i + 1) {
             sepMapSrc = argv[i + 1];
-            Log::Info(
-                "Setting separation map path to '%s'", sepMapSrc.c_str()
-            );
+            Log::Info(fmt::format("Setting separation map path to '{}'", sepMapSrc));
         }
     }
 
@@ -563,7 +562,7 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

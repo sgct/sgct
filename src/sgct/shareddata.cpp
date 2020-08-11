@@ -124,7 +124,6 @@ void serializeObject(std::vector<std::byte>& buffer, std::string_view value) {
     );
 }
 
-template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
     std::byte* p = reinterpret_cast<std::byte*>(&length);
@@ -137,7 +136,6 @@ void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
     );
 }
 
-template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
     std::byte* p = reinterpret_cast<std::byte*>(&length);

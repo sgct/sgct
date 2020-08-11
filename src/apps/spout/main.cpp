@@ -9,7 +9,7 @@
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
 #include <sgct/utils/box.h>
-
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -79,7 +79,9 @@ using namespace sgct;
 bool bindSpout() {
     const bool creationSuccess = receiver->CreateReceiver(senderName, width, height);
     if (!initialized && creationSuccess) {
-        Log::Info("Spout: Initing %ux%u texture from '%s'", width, height, senderName);
+        Log::Info(fmt::format(
+            "Spout: Initing {}x{} texture from '{}'", width, height, senderName
+        ));
         initialized = true;
     }
 
@@ -232,7 +234,7 @@ int main(int argc, char* argv[]) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error & e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

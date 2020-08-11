@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <numeric>
 
@@ -296,17 +297,17 @@ void initializeBox() {
     );
     glBindVertexArray(0);
 
-    Log::Info("Loading %s", "test-pattern-0.png");
+    Log::Info("Loading test-pattern-0.png");
     box.textureFront = TextureManager::instance().loadTexture("test-pattern-0.png", true);
-    Log::Info("Loading %s", "test-pattern-1.png");
+    Log::Info("Loading test-pattern-1.png");
     box.textureRight = TextureManager::instance().loadTexture("test-pattern-1.png", true);
-    Log::Info("Loading %s", "test-pattern-2.png");
+    Log::Info("Loading test-pattern-2.png");
     box.textureBack = TextureManager::instance().loadTexture("test-pattern-2.png", true);
-    Log::Info("Loading %s", "test-pattern-3.png");
+    Log::Info("Loading test-pattern-3.png");
     box.textureLeft = TextureManager::instance().loadTexture("test-pattern-3.png", true);
-    Log::Info("Loading %s", "test-pattern-4.png");
+    Log::Info("Loading test-pattern-4.png");
     box.textureTop = TextureManager::instance().loadTexture("test-pattern-4.png", true);
-    Log::Info("Loading %s", "test-pattern-5.png");
+    Log::Info("Loading test-pattern-5.png");
     box.textureBottom =
         TextureManager::instance().loadTexture("test-pattern-5.png", true);
 
@@ -421,7 +422,7 @@ void draw2D(const RenderData& data) {
 void postDraw() {
     if (runTests) {
         frameNumber++;
-        Log::Info("Frame: %i", frameNumber);
+        Log::Info(fmt::format("Frame: {}", frameNumber));
     }
 
     if (Engine::instance().isMaster() && runTests) {
@@ -579,7 +580,7 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

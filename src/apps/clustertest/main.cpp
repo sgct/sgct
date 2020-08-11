@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -23,7 +24,7 @@ namespace {
     GLint matrixLocation = -1;
 
     double currentTime = 0.0;
-    std::wstring sTimeOfDay;
+    std::string sTimeOfDay;
     bool extraPackages = false;
     bool barrier = false;
     bool stats = false;
@@ -296,9 +297,7 @@ void preSync() {
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 #endif
-        const std::string time = TimeBuffer;
-        const std::wstring wTime(time.begin(), time.end());
-        sTimeOfDay = wTime;
+        sTimeOfDay = std::string(TimeBuffer);
     }
 }
 
@@ -329,7 +328,7 @@ void initOGL(GLFWwindow*) {
         }
     }
 
-    Log::Info("Number of active viewports: %d", numberOfActiveViewports);
+    Log::Info(fmt::format("Number of active viewports: {}", numberOfActiveViewports));
 
     constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
 
@@ -542,7 +541,7 @@ int main(int argc, char** argv) {
         Engine::instance().setClearColor(vec4{ 0.f, 0.f, 0.f, 0.f });
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

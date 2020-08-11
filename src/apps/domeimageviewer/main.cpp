@@ -10,6 +10,7 @@
 #include <sgct/opengl.h>
 
 #include <sgct/utils/dome.h>
+#include <fmt/format.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <fstream>
@@ -80,7 +81,7 @@ void readImage(unsigned char* data, int len) {
         transImages.push_back(std::move(img));
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
     }
 }
 
@@ -181,11 +182,11 @@ void uploadTexture() {
         // unbind
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        Log::Info(
-            "Texture id %d loaded (%dx%dx%d)",
+        Log::Info(fmt::format(
+            "Texture id %d loaded ({}x{}x{})",
             tex, transImages[i]->size().x, transImages[i]->size().y,
             transImages[i]->channels()
-        );
+        ));
 
         texIds.push_back(tex);
         transImages[i] = nullptr;
@@ -377,10 +378,10 @@ void keyboard(Key key, Modifier, Action action, int) {
 void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
                          int clientIndex)
 {
-    Log::Info(
-        "Decoding %d bytes in transfer id: %d on node %d",
+    Log::Info(fmt::format(
+        "Decoding {} bytes in transfer id: {} on node {}",
         receivedLength, packageId, clientIndex
-    );
+    ));
 
     lastPackage = packageId;
 
@@ -390,15 +391,15 @@ void dataTransferDecoder(void* receivedData, int receivedLength, int packageId,
 }
 
 void dataTransferStatus(bool connected, int clientIndex) {
-    Log::Info(
-        "Transfer node %d is %s.", clientIndex, connected ? "connected" : "disconnected"
-    );
+    Log::Info(fmt::format(
+        "Transfer node {} is {}", clientIndex, connected ? "connected" : "disconnected"
+    ));
 }
 
 void dataTransferAcknowledge(int packageId, int clientIndex) {
-    Log::Info(
-        "Transfer id: %d is completed on node %d.", packageId, clientIndex
-    );
+    Log::Info(fmt::format(
+        "Transfer id: {} is completed on node {}", packageId, clientIndex
+    ));
 
     static int counter = 0;
     if (packageId == lastPackage) {
@@ -407,10 +408,10 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
             clientsUploadDone = true;
             counter = 0;
 
-            Log::Info(
-                "Time to distribute and upload textures on cluster: %f ms",
+            Log::Info(fmt::format(
+                "Time to distribute and upload textures on cluster: {} ms",
                 (Engine::getTime() - sendTimer) * 1000.0
-            );
+            ));
         }
     }
 }
@@ -483,7 +484,7 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

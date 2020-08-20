@@ -600,7 +600,7 @@ void Network::communicationHandler() {
     // listen for client if server
     if (_isServer) {
         Log::Info(
-            fmt::format("Waiting for client %d to connect on port {})", _id, port())
+            fmt::format("Waiting for client {} to connect on port {})", _id, port())
         );
 
         _socket = accept(_listenSocket, nullptr, nullptr);

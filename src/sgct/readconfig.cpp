@@ -974,7 +974,7 @@ config::Cluster readConfig(const std::string& filename) {
     for (size_t i = 0; i < cluster.nodes.size(); i++) {
         const config::Node& node = cluster.nodes[i];
         Log::Info(fmt::format(
-            "\tNode({}) address: {} [{}]", i, node.address, node.port
+            "\tNode ({}) address: {} [{}]", i, node.address, node.port
         ));
     }
 

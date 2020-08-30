@@ -55,7 +55,7 @@ Log::Log() {
     _parseBuffer.resize(128);
 }
 
-void Log::printv(Level level, std::string message) {
+void Log::printv(Level level, std::string_view message) {
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
@@ -73,34 +73,34 @@ void Log::printv(Level level, std::string message) {
     if (_logToConsole) {
         std::cout << message;
 #ifdef WIN32
-        OutputDebugStringA(message.c_str());
+        OutputDebugStringA(std::string(message).c_str());
 #endif // WIN32
     }
 
     if (_messageCallback) {
-        _messageCallback(level, message.c_str());
+        _messageCallback(level, message);
     }
 }
 
-void Log::Debug(std::string message) {
+void Log::Debug(std::string_view message) {
     if (instance()._level <= Level::Debug) {
         instance().printv(Level::Debug, std::move(message));
     }
 }
 
-void Log::Info(std::string message) {
+void Log::Info(std::string_view message) {
     if (instance()._level <= Level::Info) {
         instance().printv(Level::Info, std::move(message));
     }
 }
 
-void Log::Warning(std::string message) {
+void Log::Warning(std::string_view message) {
     if (instance()._level <= Level::Warning) {
         instance().printv(Level::Warning, std::move(message));
     }
 }
 
-void Log::Error(std::string message) {
+void Log::Error(std::string_view message) {
     if (instance()._level <= Level::Error) {
         instance().printv(Level::Error, std::move(message));
     }
@@ -122,7 +122,7 @@ void Log::setLogToConsole(bool state) {
     _logToConsole = state;
 }
 
-void Log::setLogCallback(std::function<void(Level, const char*)> fn) {
+void Log::setLogCallback(std::function<void(Level, std::string_view)> fn) {
     _messageCallback = std::move(fn);
 }
 

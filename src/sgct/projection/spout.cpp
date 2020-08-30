@@ -22,7 +22,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -218,136 +217,136 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     }
 }
 
+void SpoutOutputProjection::renderFace(const Window& window, BaseViewport& vp,
+                                       unsigned int idx, Frustum::Mode frustumMode)
+{
+    if (!_spout[idx].enabled || !vp.isEnabled()) {
+        return;
+    }
+
+    _cubeMapFbo->bind();
+    if (!_cubeMapFbo->isMultiSampled()) {
+        attachTextures(idx);
+    }
+
+    RenderData renderData(
+        window,
+        vp,
+        frustumMode,
+        ClusterManager::instance().sceneTransform(),
+        vp.projection(frustumMode).viewMatrix(),
+        vp.projection(frustumMode).projectionMatrix(),
+        vp.projection(frustumMode).viewProjectionMatrix() *
+            ClusterManager::instance().sceneTransform()
+    );
+    drawCubeFace(vp, renderData);
+
+    // blit MSAA fbo to texture
+    if (_cubeMapFbo->isMultiSampled()) {
+        blitCubeFace(idx);
+    }
+
+    // re-calculate depth values from a cube to spherical model
+    if (Settings::instance().useDepthTexture()) {
+        GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+        _cubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
+
+        _cubeMapFbo->attachCubeMapTexture(
+            _textures.cubeMapColor,
+            idx,
+            GL_COLOR_ATTACHMENT0
+        );
+        _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
+
+        glViewport(0, 0, _mappingWidth, _mappingHeight);
+        glScissor(0, 0, _mappingWidth, _mappingHeight);
+        glEnable(GL_SCISSOR_TEST);
+
+        const vec4 color = Engine::instance().clearColor();
+        const bool hasAlpha = window.hasAlpha();
+        glClearColor(color.x, color.y, color.z, hasAlpha ? 0.f : color.w);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glDisable(GL_CULL_FACE);
+        if (hasAlpha) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        else {
+            glDisable(GL_BLEND);
+        }
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_ALWAYS);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
+
+        // bind shader
+        _depthCorrectionShader.bind();
+        glUniform1i(_shaderLoc.swapColor, 0);
+        glUniform1i(_shaderLoc.swapDepth, 1);
+        glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
+        glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
+
+        window.renderScreenQuad();
+
+        ShaderProgram::unbind();
+
+        glDisable(GL_DEPTH_TEST);
+
+        if (hasAlpha) {
+            glDisable(GL_BLEND);
+        }
+
+        // restore depth func
+        glDepthFunc(GL_LESS);
+        glDisable(GL_SCISSOR_TEST);
+    }
+
+    if (_mappingType == Mapping::Cubemap) {
+        _cubeMapFbo->unbind();
+
+        if (_spout[idx].handle) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            // @TODO (abock, 2020-01-09) This function is only available in OpenGL 4.3
+            // but we never check whether we are running a 4.3 context or not, so we
+            // should replace this with a framebuffer-based blitting instead.
+            // Something along the lines of;
+            // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+            // glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            //   GL_TEXTURE_2D, tex1, 0);
+            // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+            //   GL_TEXTURE_2D, tex2, 0);
+            // glDrawBuffer(GL_COLOR_ATTACHMENT1);
+            // glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+            //   GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            glCopyImageSubData(
+                _textures.cubeMapColor,
+                GL_TEXTURE_CUBE_MAP,
+                0,
+                0,
+                0,
+                idx,
+                _spout[idx].texture,
+                GL_TEXTURE_2D,
+                0,
+                0,
+                0,
+                0,
+                _mappingWidth,
+                _mappingHeight,
+                1
+            );
+        }
+    }
+}
+
 void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
-
-    auto renderFace = [this](const Window& window, BaseViewport& vp, unsigned int idx,
-                             Frustum::Mode frustumMode)
-    {
-        if (!_spout[idx].enabled || !vp.isEnabled()) {
-            return;
-        }
-
-        _cubeMapFbo->bind();
-        if (!_cubeMapFbo->isMultiSampled()) {
-            attachTextures(idx);
-        }
-
-        RenderData renderData(
-            window,
-            vp,
-            frustumMode,
-            ClusterManager::instance().sceneTransform(),
-            vp.projection(frustumMode).viewMatrix(),
-            vp.projection(frustumMode).projectionMatrix(),
-            vp.projection(frustumMode).viewProjectionMatrix() *
-                ClusterManager::instance().sceneTransform()
-        );
-        drawCubeFace(vp, renderData);
-
-        // blit MSAA fbo to texture
-        if (_cubeMapFbo->isMultiSampled()) {
-            blitCubeFace(idx);
-        }
-
-        // re-calculate depth values from a cube to spherical model
-        if (Settings::instance().useDepthTexture()) {
-            GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            _cubeMapFbo->bind(false, 1, buffers); // obind no multi-sampled
-
-            _cubeMapFbo->attachCubeMapTexture(
-                _textures.cubeMapColor,
-                idx,
-                GL_COLOR_ATTACHMENT0
-            );
-            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
-
-            glViewport(0, 0, _mappingWidth, _mappingHeight);
-            glScissor(0, 0, _mappingWidth, _mappingHeight);
-            glEnable(GL_SCISSOR_TEST);
-
-            const vec4 color = Engine::instance().clearColor();
-            const bool hasAlpha = window.hasAlpha();
-            glClearColor(color.x, color.y, color.z, hasAlpha ? 0.f : color.w);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            glDisable(GL_CULL_FACE);
-            if (hasAlpha) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            else {
-                glDisable(GL_BLEND);
-            }
-
-            glEnable(GL_DEPTH_TEST);
-            glDepthFunc(GL_ALWAYS);
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _textures.colorSwap);
-
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _textures.depthSwap);
-
-            // bind shader
-            _depthCorrectionShader.bind();
-            glUniform1i(_shaderLoc.swapColor, 0);
-            glUniform1i(_shaderLoc.swapDepth, 1);
-            glUniform1f(_shaderLoc.swapNear, Engine::instance().nearClipPlane());
-            glUniform1f(_shaderLoc.swapFar, Engine::instance().farClipPlane());
-
-            window.renderScreenQuad();
-
-            ShaderProgram::unbind();
-
-            glDisable(GL_DEPTH_TEST);
-
-            if (hasAlpha) {
-                glDisable(GL_BLEND);
-            }
-
-            // restore depth func
-            glDepthFunc(GL_LESS);
-            glDisable(GL_SCISSOR_TEST);
-        }
-
-        if (_mappingType == Mapping::Cubemap) {
-            _cubeMapFbo->unbind();
-
-            if (_spout[idx].handle) {
-                glBindTexture(GL_TEXTURE_2D, 0);
-                // @TODO (abock, 2020-01-09) This function is only available in OpenGL 4.3
-                // but we never check whether we are running a 4.3 context or not, so we
-                // should replace this with a framebuffer-based blitting instead.
-                // Something along the lines of;
-                // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                // glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                //   GL_TEXTURE_2D, tex1, 0);
-                // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                //   GL_TEXTURE_2D, tex2, 0);
-                // glDrawBuffer(GL_COLOR_ATTACHMENT1);
-                // glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
-                //   GL_COLOR_BUFFER_BIT, GL_NEAREST);
-                glCopyImageSubData(
-                    _textures.cubeMapColor,
-                    GL_TEXTURE_CUBE_MAP,
-                    0,
-                    0,
-                    0,
-                    idx,
-                    _spout[idx].texture,
-                    GL_TEXTURE_2D,
-                    0,
-                    0,
-                    0,
-                    0,
-                    _mappingWidth,
-                    _mappingHeight,
-                    1
-                );
-            }
-        }
-    };
 
     renderFace(window, _subViewports.right, 0, frustumMode);
     renderFace(window, _subViewports.left, 1, frustumMode);
@@ -631,43 +630,37 @@ void SpoutOutputProjection::initShaders() {
     _shader.deleteProgram();
 
     std::string fisheyeVertShader = shaders_fisheye::BaseVert;
-    std::string fisheyeFragShader;
+    std::string fisheyeFragShader = []() {
+        if (Settings::instance().useDepthTexture()) {
+            switch (Settings::instance().drawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
+                    return shaders_fisheye::FisheyeFragDepth;
+                case Settings::DrawBufferType::DiffuseNormal:
+                    return shaders_fisheye::FisheyeFragDepthNormal;
+                case Settings::DrawBufferType::DiffusePosition:
+                    return shaders_fisheye::FisheyeFragDepthPosition;
+                case Settings::DrawBufferType::DiffuseNormalPosition:
+                    return shaders_fisheye::FisheyeFragDepthNormalPosition;
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }
+        else {
+            // no depth
+            switch (Settings::instance().drawBufferType()) {
+                case Settings::DrawBufferType::Diffuse:
+                    return shaders_fisheye::FisheyeFrag;
+                case Settings::DrawBufferType::DiffuseNormal:
+                    return shaders_fisheye::FisheyeFragNormal;
+                case Settings::DrawBufferType::DiffusePosition:
+                    return shaders_fisheye::FisheyeFragPosition;
+                case Settings::DrawBufferType::DiffuseNormalPosition:
+                    return shaders_fisheye::FisheyeFragNormalPosition;
+                default: throw std::logic_error("Unhandled case label");
+            }
+        }
+    }();
 
-    if (Settings::instance().useDepthTexture()) {
-        switch (Settings::instance().drawBufferType()) {
-            case Settings::DrawBufferType::Diffuse:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragDepth;
-                break;
-            case Settings::DrawBufferType::DiffuseNormal:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
-                break;
-            case Settings::DrawBufferType::DiffusePosition:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
-                break;
-            case Settings::DrawBufferType::DiffuseNormalPosition:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
-                break;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
-    else {
-        // no depth
-        switch (Settings::instance().drawBufferType()) {
-            case Settings::DrawBufferType::Diffuse:
-                fisheyeFragShader = shaders_fisheye::FisheyeFrag;
-                break;
-            case Settings::DrawBufferType::DiffuseNormal:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
-                break;
-            case Settings::DrawBufferType::DiffusePosition:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
-                break;
-            case Settings::DrawBufferType::DiffuseNormalPosition:
-                fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
-                break;
-            default: throw std::logic_error("Unhandled case label");
-        }
-    }
+
 
     // depth correction shader only
     if (Settings::instance().useDepthTexture()) {
@@ -679,10 +672,10 @@ void SpoutOutputProjection::initShaders() {
 
     std::string name = [](Mapping mapping) {
         switch (mapping) {
-            case Mapping::Fisheye: return "FisheyeShader";
+            case Mapping::Fisheye:         return "FisheyeShader";
             case Mapping::Equirectangular: return "EquirectangularShader";
-            case Mapping::Cubemap: return "None";
-            default: throw std::logic_error("Unhandled case label");
+            case Mapping::Cubemap:         return "None";
+            default:                       throw std::logic_error("Unhandled case label");
         }
     }(_mappingType);
 
@@ -691,9 +684,9 @@ void SpoutOutputProjection::initShaders() {
 
     std::string samplerShaderCode = [](Mapping mappingType){
         switch (mappingType) {
-            case Mapping::Fisheye: return shaders_fisheye::SampleFun;
+            case Mapping::Fisheye:         return shaders_fisheye::SampleFun;
             case Mapping::Equirectangular: return shaders_fisheye::SampleLatlonFun;
-            default: return shaders_fisheye::SampleFun;
+            default:                       return shaders_fisheye::SampleFun;
         }
     }(_mappingType);
     _shader.addShaderSource(std::move(samplerShaderCode), GL_FRAGMENT_SHADER);
@@ -719,12 +712,8 @@ void SpoutOutputProjection::initShaders() {
             glm::radians(_rigOrientation.z),
             glm::vec3(0.f, 0.f, 1.f)
         );
-        glUniformMatrix4fv(
-            glGetUniformLocation(_shader.id(), "rotMatrix"),
-            1,
-            GL_FALSE,
-            value_ptr(rollRot)
-        );
+        GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
+        glUniformMatrix4fv(rotMat, 1, GL_FALSE, value_ptr(rollRot));
     }
 
     _shaderLoc.cubemap = glGetUniformLocation(_shader.id(), "cubemap");

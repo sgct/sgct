@@ -185,16 +185,16 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
 {
     _rotation = std::move(rot);
 
-    _viewPlane.lowerLeft.x = dist * tan(glm::radians(left));
-    _viewPlane.lowerLeft.y = dist * tan(glm::radians(down));
+    _viewPlane.lowerLeft.x = dist * std::tan(glm::radians(left));
+    _viewPlane.lowerLeft.y = dist * std::tan(glm::radians(down));
     _viewPlane.lowerLeft.z = -dist;
 
-    _viewPlane.upperLeft.x = dist * tan(glm::radians(left));
-    _viewPlane.upperLeft.y = dist * tan(glm::radians(up));
+    _viewPlane.upperLeft.x = dist * std::tan(glm::radians(left));
+    _viewPlane.upperLeft.y = dist * std::tan(glm::radians(up));
     _viewPlane.upperLeft.z = -dist;
 
-    _viewPlane.upperRight.x = dist * tan(glm::radians(right));
-    _viewPlane.upperRight.y = dist * tan(glm::radians(up));
+    _viewPlane.upperRight.x = dist * std::tan(glm::radians(right));
+    _viewPlane.upperRight.y = dist * std::tan(glm::radians(up));
     _viewPlane.upperRight.z = -dist;
 
     _projPlane.setCoordinates(
@@ -220,7 +220,7 @@ float BaseViewport::horizontalFieldOfViewDegrees() const {
     const float xDist = (_projPlane.coordinateUpperRight().x -
         _projPlane.coordinateUpperLeft().x) / 2.f;
     const float zDist = _projPlane.coordinateUpperRight().z;
-    return (glm::degrees(atan(std::fabs(xDist / zDist)))) * 2.f;
+    return (glm::degrees(std::atan(std::fabs(xDist / zDist)))) * 2.f;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float hFov) {
@@ -229,10 +229,10 @@ void BaseViewport::setHorizontalFieldOfView(float hFov) {
     const vec3 upperRight = _projPlane.coordinateUpperRight();
 
     const float ratio = hFov / horizontalFieldOfViewDegrees();
-    const float up = glm::degrees(atan(ratio * upperLeft.y / -upperLeft.z));
-    const float down = glm::degrees(atan(ratio * lowerLeft.y / -lowerLeft.z));
-    const float left = glm::degrees(atan(ratio * upperLeft.x / -upperLeft.z));
-    const float right = glm::degrees(atan(ratio * upperRight.x / -upperRight.z));
+    const float up = glm::degrees(std::atan(ratio * upperLeft.y / -upperLeft.z));
+    const float down = glm::degrees(std::atan(ratio * lowerLeft.y / -lowerLeft.z));
+    const float left = glm::degrees(std::atan(ratio * upperLeft.x / -upperLeft.z));
+    const float right = glm::degrees(std::atan(ratio * upperRight.x / -upperRight.z));
 
     setViewPlaneCoordsUsingFOVs(up, down, left, right, _rotation, std::fabs(upperLeft.z));
 }

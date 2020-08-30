@@ -12,6 +12,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct {
@@ -24,10 +25,10 @@ public:
     static Log& instance();
     static void destroy();
 
-    static void Debug(std::string message);
-    static void Warning(std::string message);
-    static void Info(std::string message);
-    static void Error(std::string message);
+    static void Debug(std::string_view message);
+    static void Warning(std::string_view message);
+    static void Info(std::string_view message);
+    static void Error(std::string_view message);
 
     /// Set the notify level for displaying messages
     void setNotifyLevel(Level nl);
@@ -43,12 +44,12 @@ public:
 
     /// Set the callback that gets invoked for each log. If you want to disable logging to
     /// the callback, pass a null function as a parameter
-    void setLogCallback(std::function<void(Level, const char *)> fn);
+    void setLogCallback(std::function<void(Level, std::string_view)> fn);
 
 private:
     Log();
 
-    void printv(Level level, std::string message);
+    void printv(Level level, std::string_view message);
 
     static Log* _instance;
 
@@ -61,7 +62,7 @@ private:
 
     std::mutex _mutex;
 
-    std::function<void(Level, const char*)> _messageCallback;
+    std::function<void(Level, std::string_view)> _messageCallback;
 };
 
 } // namespace sgct

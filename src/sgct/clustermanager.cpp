@@ -172,7 +172,7 @@ User* ClusterManager::trackedUser() {
     const auto it = std::find_if(
         _users.cbegin(),
         _users.cend(),
-        [](const std::unique_ptr<User>& u) { return u->isTracked(); }
+        std::mem_fn(User::isTracked)
     );
     return it != _users.cend() ? it->get() : nullptr;
 }

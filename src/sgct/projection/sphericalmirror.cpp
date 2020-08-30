@@ -16,20 +16,10 @@
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
-
 #include <algorithm>
-//#ifdef WIN32
-//#pragma warning(push)
-//#pragma warning(disable : 4127)
-//#endif // WIN32
-
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-//#ifdef WIN32
-//#pragma warning(pop)
-//#endif // WIN32
 
 namespace {
     constexpr const char* SphericalProjectionVert = R"(
@@ -100,8 +90,8 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
-    float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
-    glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
+    const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
+    const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

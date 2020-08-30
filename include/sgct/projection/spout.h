@@ -53,6 +53,8 @@ private:
     void initFBO() override;
 
     void drawCubeFace(BaseViewport& viewport, RenderData renderData);
+    void renderFace(const Window& window, BaseViewport& vp, unsigned int idx,
+        Frustum::Mode frustumMode);
     void blitCubeFace(int face);
     void attachTextures(int face);
 

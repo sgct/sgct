@@ -81,26 +81,6 @@ namespace {
         }
     }
 
-    std::string getStereoString(Window::StereoMode stereoMode) {
-        switch (stereoMode) {
-            case Window::StereoMode::Active: return "active";
-            case Window::StereoMode::AnaglyphRedCyan: return "anaglyph_red_cyan";
-            case Window::StereoMode::AnaglyphAmberBlue: return "anaglyph_amber_blue";
-            case Window::StereoMode::AnaglyphRedCyanWimmer: return "anaglyph_wimmer";
-            case Window::StereoMode::Checkerboard: return "checkerboard";
-            case Window::StereoMode::CheckerboardInverted: return "checkerboard_inverted";
-            case Window::StereoMode::VerticalInterlaced: return "vertical_interlaced";
-            case Window::StereoMode::VerticalInterlacedInverted:
-                return "vertical_interlaced_inverted";
-            case Window::StereoMode::Dummy: return "dummy";
-            case Window::StereoMode::SideBySide: return "side_by_side";
-            case Window::StereoMode::SideBySideInverted: return "side_by_side_inverted";
-            case Window::StereoMode::TopBottom: return "top_bottom";
-            case Window::StereoMode::TopBottomInverted: return "top_bottom_inverted";
-            default: return "none";
-        }
-    }
-
     void addValue(std::array<double, Engine::Statistics::HistoryLength>& a, double v) {
         std::rotate(std::rbegin(a), std::rbegin(a) + 1, std::rend(a));
         a[0] = v;
@@ -214,8 +194,8 @@ double Engine::Statistics::dt() const {
 double Engine::Statistics::avgDt(unsigned int frameCounter) const {
     const double accFT = std::accumulate(frametimes.begin(), frametimes.end(), 0.0);
     const int nValues = static_cast<int>(std::count_if(
-        frametimes.begin(),
-        frametimes.end(),
+        frametimes.cbegin(),
+        frametimes.cend(),
         [](double d) { return d != 0.0; }
     ));
     // We must take the frame counter into account as the history might not be filled yet
@@ -245,7 +225,7 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
 {
     ZoneScoped
 
-    // abock (2019-12-02) Unfortunately I couldn't find a better why than using this two
+    // (2019-12-02, abock) Unfortunately I couldn't find a better why than using this two
     // phase initialization approach. There are a few callbacks in the second phase that
     // are calling out to client code that (rightly) assumes that the Engine has been
     // created and are calling Engine::instance from they registered callbacks. If this
@@ -349,7 +329,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Log::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
-        std::cout << helpMessage() << '\n';
+        std::cout << helpMessage() << std::endl;
         std::exit(0);
     }
     if (config.firmSync) {
@@ -381,7 +361,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     }
     if (config.omitWindowNameInScreenshot) {
         Settings::instance().setAddWindowNameToScreenshot(
-            !*config.omitWindowNameInScreenshot
+            !(*config.omitWindowNameInScreenshot)
         );
     }
     if (cluster.setThreadAffinity) {
@@ -493,7 +473,7 @@ void Engine::initialize() {
     // resolution, so it needs to apply it using the same routine as in the end of a frame
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& wins = thisNode.windows();
-    std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::updateResolutions));
+    std::for_each(wins.cbegin(), wins.cend(), std::mem_fn(&Window::updateResolutions));
 
     // if a single node, skip syncing
     if (ClusterManager::instance().numberOfNodes() == 1) {
@@ -625,7 +605,7 @@ void Engine::initialize() {
     for (const std::unique_ptr<Window>& win : wins) {
         win->initOGL();
         const std::vector<std::unique_ptr<Viewport>>& vps = win->viewports();
-        std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::linkUserName));
+        std::for_each(vps.cbegin(), vps.cend(), std::mem_fn(&Viewport::linkUserName));
     }
 
     updateFrustums();
@@ -641,7 +621,7 @@ void Engine::initialize() {
     text::FontManager::instance().addFont("SGCTFont", FontName);
 #endif // SGCT_HAS_TEXT
 
-    //init draw buffer resolution
+    // init draw buffer resolution
     waitForAllWindowsInSwapGroupToOpen();
     // init swap group if enabled
     if (thisNode.isUsingSwapGroups()) {
@@ -700,7 +680,7 @@ Engine::~Engine() {
     // There might not be any thisNode as its creation might have failed
     if (hasNode) {
         const std::vector<std::unique_ptr<Window>>& windows = cm.thisNode().windows();
-        std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::close));
+        std::for_each(windows.cbegin(), windows.cend(), std::mem_fn(&Window::close));
     }
 
     // close TCP connections
@@ -943,7 +923,7 @@ void Engine::render() {
         }
 
         frameLockPreStage();
-        std::for_each(windows.begin(), windows.end(), std::mem_fn(&Window::update));
+        std::for_each(windows.cbegin(), windows.cend(), std::mem_fn(&Window::update));
         Window::makeSharedContextCurrent();
 
         if (_postSyncPreDrawFn) {
@@ -1092,7 +1072,7 @@ void Engine::render() {
         FrameMark;
 
         std::for_each(
-            windows.begin(), windows.end(),
+            windows.cbegin(), windows.cend(),
             std::mem_fn(&Window::updateResolutions)
         );
 

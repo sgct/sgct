@@ -116,46 +116,46 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
     // export vertices
     for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
-        file << "v " << vertex.x << ' ' << vertex.y << " 0\n";
+        file << fmt::format("v {} {} 0\n", vertex.x, vertex.y);
     }
 
     // export texture coords
     for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
-        file << "vt " << vertex.s << ' ' << vertex.t << " 0\n";
+        file << fmt::format("vt {} {} 0\n", vertex.s, vertex.t);
     }
 
     // export generated normals
     file.write("vn 0 0 1\n", buf.vertices.size());
 
-    file << "# Number of faces: " << buf.indices.size() / 3 << '\n';
+    file << fmt::format("# Number of faces: {}\n", buf.indices.size() / 3);
 
     // export face indices
     if (type == GL_TRIANGLES) {
         for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i + 1u] + 1 << '/' << buf.indices[i + 1u] + 1 << '/'
-                 << buf.indices[i + 1u] + 1 << ' ';
-            file << buf.indices[i + 2u] + 1 << '/' << buf.indices[i + 2u] + 1 << '/'
-                 << buf.indices[i + 2u] + 1 << '\n';
+            file << fmt::format(
+                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
+                buf.indices[i] + 1, buf.indices[i] + 1, buf.indices[i] + 1,
+                buf.indices[i + 1] + 1, buf.indices[i + 1] + 1, buf.indices[i + 1] + 1,
+                buf.indices[i + 2] + 1, buf.indices[i + 2] + 1, buf.indices[i + 2] + 1
+            );
         }
     }
     else {
         // first base triangle
-        file << "f " << buf.indices[0] + 1 << '/' << buf.indices[0] + 1 << '/'
-             << buf.indices[0] + 1 << ' ';
-        file << buf.indices[1] + 1 << '/' << buf.indices[1] + 1 << '/'
-             << buf.indices[1] + 1 << ' ';
-        file << buf.indices[2] + 1 << '/' << buf.indices[2] + 1 << '/'
-             << buf.indices[2] + 1 << '\n';
+        file << fmt::format(
+            "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
+            buf.indices[0] + 1, buf.indices[0] + 1, buf.indices[0] + 1,
+            buf.indices[1] + 1, buf.indices[1] + 1, buf.indices[1] + 1,
+            buf.indices[2] + 1, buf.indices[2] + 1, buf.indices[2] + 1
+        );
 
         for (unsigned int i = 2; i < buf.indices.size(); i++) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i - 1] + 1 << '/' << buf.indices[i - 1] + 1 << '/'
-                 << buf.indices[i - 1] + 1 << ' ';
-            file << buf.indices[i - 2] + 1 << '/' << buf.indices[i - 2] + 1 << '/'
-                 << buf.indices[i - 2] + 1 << '\n';
+            file << fmt::format(
+                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
+                buf.indices[i], buf.indices[i], buf.indices[i],
+                buf.indices[i - 1] + 1, buf.indices[i - 1] + 1, buf.indices[i - 1] + 1,
+                buf.indices[i - 2] + 1, buf.indices[i - 2] + 1, buf.indices[i - 2] + 1
+            );
         }
     }
 
@@ -214,7 +214,6 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
     Buffer buf;
 
     std::string ext = path.substr(path.rfind('.') + 1);
-
     // find a suitable format
     if (ext == "sgc") {
         buf = generateScissMesh(path, parent);

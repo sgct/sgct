@@ -308,7 +308,7 @@ void validateCluster(const Cluster& c) {
     }
 
     const int nDefaultUsers = static_cast<int>(std::count_if(
-        c.users.begin(), c.users.end(),
+        c.users.cbegin(), c.users.cend(),
         [](const User& user) { return !user.name.has_value(); }
     ));
 
@@ -316,12 +316,12 @@ void validateCluster(const Cluster& c) {
         throw Error(1123, "More than one unnamed users specified");
     }
 
-    std::for_each(c.users.begin(), c.users.end(), validateUser);
+    std::for_each(c.users.cbegin(), c.users.cend(), validateUser);
     // Check for mutually exclusive user names
     std::vector<std::string> usernames;
     std::transform(
-        c.users.begin(),
-        c.users.end(),
+        c.users.cbegin(),
+        c.users.cend(),
         std::back_inserter(usernames),
         [](const User& user) { return user.name ? *user.name : ""; }
     );
@@ -330,21 +330,21 @@ void validateCluster(const Cluster& c) {
     }
 
 
-    std::for_each(c.trackers.begin(), c.trackers.end(), validateTracker);
+    std::for_each(c.trackers.cbegin(), c.trackers.cend(), validateTracker);
 
     // Check that all trackers specified in the users are valid tracker names
     const bool foundAllTrackers = std::all_of(
-        c.users.begin(),
-        c.users.end(),
+        c.users.cbegin(),
+        c.users.cend(),
         [ts = c.trackers](const User& user) {
             if (!user.tracking) {
                 return true;
             }
             return std::find_if(
-                ts.begin(),
-                ts.end(),
+                ts.cbegin(),
+                ts.cend(),
                 [t = *user.tracking](const Tracker& tr) { return tr.name == t.tracker; }
-            ) != ts.end();
+            ) != ts.cend();
         }
     );
     if (!foundAllTrackers) {
@@ -356,8 +356,8 @@ void validateCluster(const Cluster& c) {
 
     // Check that all devices specified in the users are valid device names
     const bool allDevicesValid = std::all_of(
-        c.users.begin(),
-        c.users.end(),
+        c.users.cbegin(),
+        c.users.cend(),
         [ts = c.trackers](const User& user) {
             if (!user.tracking) {
                 // If we don't have tracking configured, this user is perfectly valid
@@ -367,20 +367,20 @@ void validateCluster(const Cluster& c) {
             // exist as we checked the correct mapping between user and Tracker in the
             // previous step in this validation. A little assert doesn't hurt though
             const auto it = std::find_if(
-                ts.begin(),
-                ts.end(),
+                ts.cbegin(),
+                ts.cend(),
                 [t = *user.tracking](const Tracker& tr) { return tr.name == t.tracker; }
             );
-            assert(it != ts.end());
+            assert(it != ts.cend());
 
             const Tracker& tr = *it;
             // See if the device that was specified is acually part of the tracker that
             // was specified for the user
             return std::find_if(
-                tr.devices.begin(),
-                tr.devices.end(),
+                tr.devices.cbegin(),
+                tr.devices.cend(),
                 [t = *user.tracking](const Device& dev) { return dev.name == t.device; }
-            ) != tr.devices.end();
+            ) != tr.devices.cend();
         }
     );
     if (!allDevicesValid) {
@@ -390,14 +390,14 @@ void validateCluster(const Cluster& c) {
     if (c.nodes.empty()) {
         throw Error(1127, "Configuration must contain at least one node");
     }
-    std::for_each(c.nodes.begin(), c.nodes.end(), validateNode);
+    std::for_each(c.nodes.cbegin(), c.nodes.cend(), validateNode);
 
 
     // Check for mutually exclusive ports
     std::vector<int> ports;
     std::transform(
-        c.nodes.begin(),
-        c.nodes.end(),
+        c.nodes.cbegin(),
+        c.nodes.cend(),
         std::back_inserter(ports),
         [](const Node& node) { return node.port; }
     );

@@ -130,13 +130,10 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped
 
-    unsigned int number = Engine::instance().screenShotNumber();
+    uint64_t number = Engine::instance().screenShotNumber();
     if (Settings::instance().hasScreenshotLimit()) {
-        int begin = Settings::instance().screenshotLimitBegin();
-        int end = Settings::instance().screenshotLimitEnd();
-        if (end == -1) {
-            end = std::numeric_limits<int>::max();
-        }
+        uint64_t begin = Settings::instance().screenshotLimitBegin();
+        uint64_t end = Settings::instance().screenshotLimitEnd();
 
         if (number < begin || number >= end) {
             Log::Debug(fmt::format(
@@ -208,7 +205,7 @@ void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     Log::Debug(fmt::format("Number of screencapture threads is set to {}", _nThreads));
 }
 
-std::string ScreenCapture::createFilename(unsigned int frameNumber) {
+std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     const std::string eyeSuffix = [](EyeIndex eyeIndex) {
         switch (eyeIndex) {
             case EyeIndex::Mono:        return "";

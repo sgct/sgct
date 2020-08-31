@@ -91,7 +91,14 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
     const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable: 4127) // warning C4127: conditional expression is constant
+#endif // WIN32
     const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -202,8 +209,7 @@ void SphericalMirrorProjection::initTextures() {
         }
         generateMap(texture, _texInternalFormat, _texFormat, _texType);
         Log::Debug(fmt::format(
-            "{}x{} cube face texture (id: {}) generated",
-            _cubemapResolution, _cubemapResolution, texture
+            "{0}x{0} cube face texture (id: {1}) generated", _cubemapResolution, texture
         ));
     };
 

@@ -536,9 +536,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug(fmt::format(
-        "HFOV changed to {} for window {}", hFovDeg, _id
-    ));
+    Log::Debug(fmt::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 void Window::initWindowResolution(ivec2 resolution) {

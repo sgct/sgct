@@ -69,7 +69,7 @@ public:
         CaptureSource capSrc = CaptureSource::Texture);
 
 private:
-    std::string createFilename(unsigned int frameNumber);
+    std::string createFilename(uint64_t frameNumber);
     int availableCaptureThread();
     void checkImageBuffer(CaptureSource captureSource);
     Image* prepareImage(int index, std::string file);

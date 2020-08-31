@@ -225,12 +225,16 @@ bool Settings::hasScreenshotLimit() const {
     return _screenshot.limits.has_value();
 }
 
-int Settings::screenshotLimitBegin() const {
-    return _screenshot.limits.has_value() ? _screenshot.limits->begin : -1;
+uint64_t Settings::screenshotLimitBegin() const {
+    return _screenshot.limits.has_value() ?
+        _screenshot.limits->begin :
+        std::numeric_limits<uint64_t>::min();
 }
 
-int Settings::screenshotLimitEnd() const {
-    return _screenshot.limits.has_value() ? _screenshot.limits->end : -1;
+uint64_t Settings::screenshotLimitEnd() const {
+    return _screenshot.limits.has_value() ?
+        _screenshot.limits->end :
+        std::numeric_limits<uint64_t>::max();
 }
 
 } // namespace sgct

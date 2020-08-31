@@ -165,11 +165,11 @@ public:
     /// The index of the first screenshot that will actually be rendered. If this value is
     /// set, all previous screenshots will be ignored, but the counter will be increased
     /// either way
-    int screenshotLimitBegin() const;
+    uint64_t screenshotLimitBegin() const;
 
     /// The index of the last screenshot that will not be rendered anymore. If this value
     /// is set, all screenshots starting with this index will be ignored.
-    int screenshotLimitEnd() const;
+    uint64_t screenshotLimitEnd() const;
 
     /// \return the drawBufferType
     DrawBufferType drawBufferType() const;
@@ -197,8 +197,8 @@ private:
         bool addWindowName = true;
 
         struct Limits {
-            int begin;
-            int end;
+            uint64_t begin;
+            uint64_t end;
         };
         std::optional<Limits> limits;
 

@@ -133,8 +133,8 @@ ivec4 NonLinearProjection::viewportCoords() {
 void NonLinearProjection::initTextures() {
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
     Log::Debug(fmt::format(
-        "{}x{} color cube map texture (id: {}) generated",
-        _cubemapResolution, _cubemapResolution, _textures.cubeMapColor
+        "{0}x{0} color cube map texture (id: {1}) generated",
+        _cubemapResolution, _textures.cubeMapColor
     ));
 
     if (Settings::instance().useDepthTexture()) {
@@ -145,8 +145,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{}x{} depth cube map texture (id: {}) generated",
-            _cubemapResolution, _cubemapResolution, _textures.cubeMapDepth
+            "{0}x{0} depth cube map texture (id: {1}) generated",
+            _cubemapResolution, _textures.cubeMapDepth
         ));
 
         if (_useDepthTransformation) {
@@ -158,14 +158,14 @@ void NonLinearProjection::initTextures() {
                 GL_FLOAT
             );
             Log::Debug(fmt::format(
-                "{}x{} depth swap map texture (id: {}) generated",
-                _cubemapResolution, _cubemapResolution, _textures.depthSwap
+                "{0}x{0} depth swap map texture (id: {1}) generated",
+                _cubemapResolution, _textures.depthSwap
             ));
 
             generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
             Log::Debug(fmt::format(
-                "{}x{} color swap map texture (id: {}) generated",
-                _cubemapResolution, _cubemapResolution, _textures.colorSwap
+                "{0}x{0} color swap map texture (id: {1}) generated",
+                _cubemapResolution, _textures.colorSwap
             ));
         }
     }
@@ -178,8 +178,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{}x{} normal cube map texture (id: {}) generated",
-            _cubemapResolution, _cubemapResolution, _textures.cubeMapNormals
+            "{0}x{0} normal cube map texture (id: {1}) generated",
+            _cubemapResolution, _textures.cubeMapNormals
         ));
     }
 
@@ -191,8 +191,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{}x{} position cube map texture ({}) generated",
-            _cubemapResolution, _cubemapResolution, _textures.cubeMapPositions
+            "{0}x{0} position cube map texture ({1}) generated",
+            _cubemapResolution, _textures.cubeMapPositions
         ));
     }
 }

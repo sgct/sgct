@@ -133,28 +133,22 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
     if (type == GL_TRIANGLES) {
         for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
             file << fmt::format(
-                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
-                buf.indices[i] + 1, buf.indices[i] + 1, buf.indices[i] + 1,
-                buf.indices[i + 1] + 1, buf.indices[i + 1] + 1, buf.indices[i + 1] + 1,
-                buf.indices[i + 2] + 1, buf.indices[i + 2] + 1, buf.indices[i + 2] + 1
+                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+                buf.indices[i] + 1, buf.indices[i + 1] + 1, buf.indices[i + 2] + 1
             );
         }
     }
     else {
         // first base triangle
         file << fmt::format(
-            "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
-            buf.indices[0] + 1, buf.indices[0] + 1, buf.indices[0] + 1,
-            buf.indices[1] + 1, buf.indices[1] + 1, buf.indices[1] + 1,
-            buf.indices[2] + 1, buf.indices[2] + 1, buf.indices[2] + 1
+            "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+            buf.indices[0] + 1, buf.indices[1] + 1, buf.indices[2] + 1
         );
 
         for (unsigned int i = 2; i < buf.indices.size(); i++) {
             file << fmt::format(
-                "f {}/{}/{} {}/{}/{} {}/{}/{}\n",
-                buf.indices[i], buf.indices[i], buf.indices[i],
-                buf.indices[i - 1] + 1, buf.indices[i - 1] + 1, buf.indices[i - 1] + 1,
-                buf.indices[i - 2] + 1, buf.indices[i - 2] + 1, buf.indices[i - 2] + 1
+                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+                buf.indices[i], buf.indices[i - 1] + 1, buf.indices[i - 2] + 1
             );
         }
     }

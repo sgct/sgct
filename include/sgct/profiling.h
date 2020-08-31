@@ -14,7 +14,7 @@
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
-#pragma warning (disable : ALL_CODE_ANALYSIS_WARNINGS)
+#pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
 #endif // WIN32
 
 #include <Tracy.hpp>

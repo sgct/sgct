@@ -10,11 +10,11 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/window.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -52,15 +52,18 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     }
 
     // get the mesh dimensions
-    glm::ivec2 meshSize = glm::ivec2(-1, -1);
+    std::optional<glm::ivec2> meshSize;
     if (fgets(lineBuffer, MaxLineLength, meshFile)) {
-        if (sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
-            buf.vertices.reserve(meshSize.x * meshSize.y);
+        glm::ivec2 val;
+        if (sscanf(lineBuffer, "%d %d", &val[0], &val[1]) == 2) {
+            const size_t s = static_cast<size_t>(val.x) * static_cast<size_t>(val.y);
+            buf.vertices.reserve(s);
+            meshSize = std::move(val);
         }
     }
 
     // check if everyting useful is set
-    if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
+    if (mappingType == -1 || !meshSize.has_value()) {
         throw Error(
             Error::Component::PaulBourke, 2042,
             fmt::format("Invalid data in file '{}'", path)
@@ -89,12 +92,12 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     }
 
     // generate indices
-    for (int c = 0; c < (meshSize.x - 1); c++) {
-        for (int r = 0; r < (meshSize.y - 1); r++) {
-            const int i0 = r * meshSize.x + c;
-            const int i1 = r * meshSize.x + (c + 1);
-            const int i2 = (r + 1) * meshSize.x + (c + 1);
-            const int i3 = (r + 1) * meshSize.x + c;
+    for (int c = 0; c < (meshSize->x - 1); c++) {
+        for (int r = 0; r < (meshSize->y - 1); r++) {
+            const int i0 = r * meshSize->x + c;
+            const int i1 = r * meshSize->x + (c + 1);
+            const int i2 = (r + 1) * meshSize->x + (c + 1);
+            const int i3 = (r + 1) * meshSize->x + c;
 
             // triangle 1
             buf.indices.push_back(i0);

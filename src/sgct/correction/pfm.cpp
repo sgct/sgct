@@ -9,10 +9,10 @@
 #include <sgct/correction/pfm.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -110,7 +110,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
     // We assume we loaded side-by-side images, i.e. different warp per eye
-    for (int e = 0; e < 2; e++) {
+    for (size_t e = 0; e < 2; e++) {
         CorrectionMeshVertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -119,8 +119,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
 
         size_t i = 0;
 
-        for (unsigned int r = 0; r < nRows; r++) {
-            for (unsigned int c = 0; c < nCols; c++) {
+        for (size_t r = 0; r < nRows; r++) {
+            for (size_t c = 0; c < nCols; c++) {
                 // vertex-mapping
                 const float u =
                     (static_cast<float>(c) / (static_cast<float>(nCols + 1) - 1.f)) +

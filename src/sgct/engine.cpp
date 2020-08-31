@@ -10,6 +10,7 @@
 #include <sgct/clustermanager.h>
 #include <sgct/commandline.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/font.h>
 #include <sgct/fontmanager.h>
 #include <sgct/freetype.h>
@@ -28,7 +29,6 @@
 #include <sgct/user.h>
 #include <sgct/version.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <fmt/format.h>
 #include <cassert>
 #include <iostream>
 #include <numeric>

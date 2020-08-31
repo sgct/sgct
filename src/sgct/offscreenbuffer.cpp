@@ -8,10 +8,10 @@
 
 #include <sgct/offscreenbuffer.h>
 
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/settings.h>
-#include <fmt/format.h>
 #include <algorithm>
 
 // @TODO (abock, 2020-01-07) It would probably be better to only create a single offscreen

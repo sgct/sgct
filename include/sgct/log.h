@@ -49,7 +49,7 @@ public:
 private:
     Log();
 
-    void printv(Level level, std::string_view message);
+    void printv(Level level, std::string message);
 
     static Log* _instance;
 

@@ -11,6 +11,12 @@
 
 #include <sgct/opengl.h>
 
+#ifdef WIN32
+#include <CodeAnalysis/warnings.h>
+#pragma warning(push)
+#pragma warning (disable : ALL_CODE_ANALYSIS_WARNINGS)
+#endif // WIN32
+
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
 
@@ -20,5 +26,9 @@ void* operator new(size_t count);
 void operator delete(void* ptr) noexcept;
 
 #endif // TRACY_ENABLE
+
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
 
 #endif // __SGCT__PROFILING__H__

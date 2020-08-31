@@ -9,13 +9,13 @@
 #include <sgct/mpcdi.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
-#include <fmt/format.h>
+#include <sgct/tinyxml.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
 #include <string_view>

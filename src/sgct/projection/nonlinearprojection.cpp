@@ -11,12 +11,12 @@
 #include <sgct/callbackdata.h>
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
-#include <fmt/format.h>
 #include <algorithm>
 #include <array>
 #include <cmath>

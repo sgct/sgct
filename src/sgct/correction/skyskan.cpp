@@ -10,12 +10,12 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -85,7 +85,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks.y) == 1) {}
         else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
             areDimsSet = true;
-            buf.vertices.resize(sizeX * sizeY);
+            buf.vertices.resize(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
         }
         else if (areDimsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4) {
             if (uvTweaks.x > -1.f) {

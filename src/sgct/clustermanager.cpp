@@ -9,12 +9,12 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/user.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

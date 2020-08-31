@@ -18,12 +18,12 @@
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
 #include <sgct/shareddata.h>
-#include <fmt/format.h>
 #include <algorithm>
 #include <cstring>
 #include <numeric>

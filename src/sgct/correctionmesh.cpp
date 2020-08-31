@@ -9,6 +9,7 @@
 #include <sgct/correctionmesh.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/opengl.h>
@@ -26,7 +27,6 @@
 #include <sgct/correction/simcad.h>
 #include <sgct/correction/skyskan.h>
 #include <sgct/projection/fisheye.h>
-#include <fmt/format.h>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -131,7 +131,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
     // export face indices
     if (type == GL_TRIANGLES) {
-        for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
+        for (size_t i = 0; i < buf.indices.size(); i += 3) {
             file << fmt::format(
                 "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
                 buf.indices[i] + 1, buf.indices[i + 1] + 1, buf.indices[i + 2] + 1
@@ -145,7 +145,7 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
             buf.indices[0] + 1, buf.indices[1] + 1, buf.indices[2] + 1
         );
 
-        for (unsigned int i = 2; i < buf.indices.size(); i++) {
+        for (size_t i = 2; i < buf.indices.size(); i++) {
             file << fmt::format(
                 "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
                 buf.indices[i], buf.indices[i - 1] + 1, buf.indices[i - 2] + 1

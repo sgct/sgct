@@ -9,9 +9,9 @@
 #include <sgct/shaderprogram.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
 
 #define Err(code, msg) Error(Error::Component::Shader, code, msg)
 

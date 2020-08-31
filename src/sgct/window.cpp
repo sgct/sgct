@@ -11,6 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/mpcdi.h>
@@ -23,7 +24,6 @@
 #include <sgct/settings.h>
 #include <sgct/texturemanager.h>
 #include <sgct/projection/nonlinearprojection.h>
-#include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
@@ -49,6 +49,8 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
+    constexpr const unsigned int ColorFormat = GL_BGRA;
+
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
         width = std::max(width, 1);
         height = std::max(height, 1);
@@ -300,8 +302,6 @@ void Window::close() {
 void Window::initOGL() {
     ZoneScoped
 
-    _colorFormat = GL_BGRA;
-
     std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) =
         [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
     {
@@ -333,7 +333,7 @@ void Window::initOGL() {
             viewportSize,
             _stereoMode != StereoMode::NoStereo,
             _internalColorFormat,
-            _colorFormat,
+            ColorFormat,
             _colorDataType,
             _nAASamples
         );
@@ -591,7 +591,7 @@ void Window::update() {
                 _framebufferRes.x * vp->size().x,
                 _framebufferRes.y * vp->size().y
             };
-            vp->nonLinearProjection()->update(std::move(viewport));
+            vp->nonLinearProjection()->update(viewport);
         }
     }
 }
@@ -1042,7 +1042,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     {
         switch (t) {
             case TextureType::Color:
-                return { _internalColorFormat, _colorFormat, _colorDataType };
+                return { _internalColorFormat, ColorFormat, _colorDataType };
             case TextureType::Depth:
                 return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:

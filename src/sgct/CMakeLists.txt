@@ -16,6 +16,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
   ${PROJECT_SOURCE_DIR}/include/sgct/error.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/fmt.h
   ${PROJECT_SOURCE_DIR}/include/sgct/font.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
@@ -46,6 +47,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
   ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/tinyxml.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h

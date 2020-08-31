@@ -9,10 +9,10 @@
 #include <sgct/correction/scalable.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 
 namespace sgct::correction {
@@ -33,7 +33,7 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
     }
 
     unsigned int numOfVerticesRead = 0;
-    unsigned int numOfFacesRead = 0;
+    size_t numOfFacesRead = 0;
     unsigned int numberOfFaces = 0;
     unsigned int numberOfVertices = 0;
     unsigned int numberOfIndices = 0;
@@ -69,9 +69,9 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
             }
             else if (sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
                 if (!buf.indices.empty()) {
-                    buf.indices[numOfFacesRead * 3u] = a;
-                    buf.indices[numOfFacesRead * 3u + 1u] = b;
-                    buf.indices[numOfFacesRead * 3u + 2u] = c;
+                    buf.indices[numOfFacesRead * 3] = a;
+                    buf.indices[numOfFacesRead * 3 + 1] = b;
+                    buf.indices[numOfFacesRead * 3 + 2] = c;
                 }
 
                 numOfFacesRead++;

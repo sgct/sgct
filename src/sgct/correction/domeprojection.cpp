@@ -9,10 +9,10 @@
 #include <sgct/correction/domeprojection.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <algorithm>
 

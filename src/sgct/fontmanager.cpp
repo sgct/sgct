@@ -10,10 +10,10 @@
 
 #include <sgct/fontmanager.h>
 
+#include <sgct/fmt.h>
 #include <sgct/font.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>

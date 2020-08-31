@@ -30,7 +30,7 @@ DomeGrid::DomeGrid(float radius, float FOV, int segments, int rings, int resolut
         (_segments * ((_resolution / 4) + 1) + _rings * _resolution) * 6;
     std::vector<float> verts(numberOfVertices, 0.f);
 
-    unsigned int pos = 0;
+    size_t pos = 0;
 
     // create rings
     for (int r = 1; r <= _rings; r++) {

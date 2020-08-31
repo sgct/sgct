@@ -8,10 +8,10 @@
 
 #include <sgct/texturemanager.h>
 
+#include <sgct/fmt.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
 #include <algorithm>
 
 namespace {

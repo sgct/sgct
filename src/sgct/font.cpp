@@ -10,9 +10,9 @@
 
 #include <sgct/font.h>
 
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
-#include <fmt/format.h>
 #include <freetype/ftglyph.h>
 #include <freetype/ftstroke.h>
 #include <array>
@@ -20,19 +20,19 @@
 
 namespace {
     struct GlyphData {
-        FT_Glyph glyph;
-        FT_Glyph strokeGlyph;
-        FT_Stroker stroker;
-        FT_BitmapGlyph bitmapGlyph;
-        FT_BitmapGlyph bitmapStrokeGlyph;
-        FT_Bitmap* bitmap;
-        FT_Bitmap* strokeBitmap;
+        FT_Glyph glyph = nullptr;
+        FT_Glyph strokeGlyph = nullptr;
+        FT_Stroker stroker = nullptr;
+        FT_BitmapGlyph bitmapGlyph = nullptr;
+        FT_BitmapGlyph bitmapStrokeGlyph = nullptr;
+        FT_Bitmap* bitmap = nullptr;
+        FT_Bitmap* strokeBitmap = nullptr;
     };
 
     struct PixelDataResult {
         bool success = false;
-        int width;
-        int height;
+        int width = 0;
+        int height = 0;
         std::vector<unsigned char> pixels;
         GlyphData gd;
     };
@@ -79,7 +79,9 @@ namespace {
         res.height = res.gd.strokeBitmap->rows;
 
         // Allocate memory for the texture data
-        res.pixels.resize(2u * res.width * res.height);
+        res.pixels.resize(
+            2 * static_cast<size_t>(res.width) * static_cast<size_t>(res.height)
+        );
         std::fill(res.pixels.begin(), res.pixels.end(), static_cast<unsigned char>(0));
 
         // read alpha to one channel and stroke - alpha in the second channel. We use the
@@ -92,7 +94,11 @@ namespace {
                 const int k = i - offsetWidth;
                 const int l = j - offsetRows;
 
-                const int idx = 2 * (i + j * res.width);
+
+                const size_t idx = 2 * (
+                    static_cast<size_t>(i) + static_cast<size_t>(j) *
+                    static_cast<size_t>(res.width)
+                );
                 if (k >= static_cast<int>(res.gd.bitmap->width) ||
                     l >= static_cast<int>(res.gd.bitmap->rows) || k < 0 || l < 0)
                 {
@@ -108,7 +114,7 @@ namespace {
                 unsigned char stroke = strokeInRange ?
                     0 : res.gd.strokeBitmap->buffer[i + res.gd.strokeBitmap->width * j];
 
-                res.pixels[idx + 1u] = stroke < res.pixels[idx] ?
+                res.pixels[idx + 1] = stroke < res.pixels[idx] ?
                     res.pixels[idx] :
                     stroke;
             }

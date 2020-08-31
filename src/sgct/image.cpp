@@ -10,12 +10,18 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
-#include <fmt/format.h>
 #include <png.h>
 #include <pngpriv.h>
 #include <algorithm>
 #include <chrono>
+
+#ifdef WIN32
+#include <CodeAnalysis/warnings.h>
+#pragma warning(push)
+#pragma warning (disable : ALL_CODE_ANALYSIS_WARNINGS)
+#endif // WIN32
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -24,6 +30,7 @@
 #include <stb_image.h>
 
 #ifdef WIN32
+#pragma warning(pop)
 #pragma warning(push)
 #pragma warning(disable : 4611)
 #endif // WIN32
@@ -222,9 +229,9 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     std::vector<png_bytep> rowPtrs(_size.y);
-
     for (int y = 0; y < _size.y; y++) {
-        rowPtrs[(_size.y - 1u) - y] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
+        const size_t idx = static_cast<size_t>(_size.y) - 1 - static_cast<size_t>(y);
+        rowPtrs[idx] = &_data[y * _size.x * _nChannels * _bytesPerChannel];
     }
     png_write_image(png_ptr, rowPtrs.data());
     rowPtrs.clear();

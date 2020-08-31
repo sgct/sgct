@@ -9,13 +9,13 @@
 #include <sgct/correction/simcad.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <sgct/tinyxml.h>
 #include <sgct/viewport.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
-#include <tinyxml2.h>
 #include <sstream>
 
 #define Error(code, msg) Error(Error::Component::SimCAD, code, msg)
@@ -111,8 +111,8 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
         throw Error(2084, "Not a valid squared matrix read from SimCAD file");
     }
 
-    const unsigned int nCols = static_cast<unsigned int>(nColumnsf);
-    const unsigned int nRows = static_cast<unsigned int>(nRowsf);
+    const size_t nCols = static_cast<unsigned int>(nColumnsf);
+    const size_t nRows = static_cast<unsigned int>(nRowsf);
 
     // init to max intensity (opaque white)
     CorrectionMeshVertex vertex;
@@ -122,8 +122,8 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
     vertex.a = 1.f;
 
     size_t i = 0;
-    for (unsigned int r = 0; r < nRows; r++) {
-        for (unsigned int c = 0; c < nCols; c++) {
+    for (size_t r = 0; r < nRows; r++) {
+        for (size_t c = 0; c < nCols; c++) {
             // vertex-mapping
             const float u = (static_cast<float>(c) / (nCols - 1.f));
 
@@ -149,20 +149,20 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
     }
 
     // Make a triangle strip index list
-    buf.indices.reserve(4u * nRows * nCols);
-    for (unsigned int r = 0; r < nRows - 1; r++) {
+    buf.indices.reserve(4 * nRows * nCols);
+    for (size_t r = 0; r < nRows - 1; r++) {
         if ((r % 2) == 0) {
             // even rows
-            for (unsigned int c = 0; c < nCols; c++) {
-                buf.indices.push_back(c + r * nCols);
-                buf.indices.push_back(c + (r + 1) * nCols);
+            for (size_t c = 0; c < nCols; c++) {
+                buf.indices.push_back(static_cast<unsigned int>(c + r * nCols));
+                buf.indices.push_back(static_cast<unsigned int>(c + (r + 1) * nCols));
             }
         }
         else {
             // odd rows
-            for (unsigned int c = nCols - 1; c > 0; c--) {
-                buf.indices.push_back(c + (r + 1) * nCols);
-                buf.indices.push_back(c - 1 + r * nCols);
+            for (size_t c = nCols - 1; c > 0; c--) {
+                buf.indices.push_back(static_cast<unsigned int>(c + (r + 1) * nCols));
+                buf.indices.push_back(static_cast<unsigned int>(c - 1 + r * nCols));
             }
         }
     }

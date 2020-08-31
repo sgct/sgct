@@ -230,7 +230,7 @@ void StatisticsRenderer::update() {
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
                             const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
-        for (int i = 0; i < Histogram::Bins; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); ++i) {
             const int val = values[i];
 
             const float x0 = static_cast<float>(i) / Histogram::Bins;
@@ -238,14 +238,14 @@ void StatisticsRenderer::update() {
             const float y0 = 0.f;
             const float y1 = static_cast<float>(val) / maxBinVal;
 
-            const int idx = i * 6;
-            buffer[idx + 0u] = { x0, y0 };
-            buffer[idx + 1u] = { x1, y1 };
-            buffer[idx + 2u] = { x0, y1 };
+            const size_t idx = i * 6;
+            buffer[idx + 0] = { x0, y0 };
+            buffer[idx + 1] = { x1, y1 };
+            buffer[idx + 2] = { x0, y1 };
 
-            buffer[idx + 3u] = { x0, y0 };
-            buffer[idx + 4u] = { x1, y0 };
-            buffer[idx + 5u] = { x1, y1 };
+            buffer[idx + 3] = { x0, y0 };
+            buffer[idx + 4] = { x1, y0 };
+            buffer[idx + 5] = { x1, y1 };
         }
     };
 

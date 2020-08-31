@@ -10,13 +10,13 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
-#include <fmt/format.h>
 #include <cstring>
 #include <string>
 
@@ -215,9 +215,9 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         }
     }(_eyeIndex);
 
-    char Buffer[7];
-    std::fill(std::begin(Buffer), std::end(Buffer), '\0');
-    sprintf(Buffer, "%06d", frameNumber);
+    std::array<char, 7> Buffer;
+    std::fill(Buffer.begin(), Buffer.end(), '\0');
+    fmt::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
@@ -252,7 +252,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return file + std::string(Buffer)  + '.' + suffix;
+    return file + std::string(Buffer.begin(), Buffer.end())  + '.' + suffix;
 }
 
 int ScreenCapture::availableCaptureThread() {

@@ -11,6 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/profiling.h>
@@ -21,7 +22,6 @@
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
 #endif // SGCT_HAS_VRPN
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>

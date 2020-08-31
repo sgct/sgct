@@ -9,12 +9,12 @@
 #include <sgct/baseviewport.h>
 
 #include <sgct/clustermanager.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/profiling.h>
 #include <sgct/user.h>
 #include <stdexcept>
 #include <type_traits>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>

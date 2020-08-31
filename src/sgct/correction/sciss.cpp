@@ -10,12 +10,12 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/user.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/euler_angles.hpp>
 

@@ -452,7 +452,7 @@ void Engine::initialize() {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
-        glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_FALSE));
+        glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
         GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
         glfwMakeContextCurrent(offscreen);
         gladLoadGL();
@@ -463,7 +463,7 @@ void Engine::initialize() {
 
         // And get rid of the window again
         glfwDestroyWindow(offscreen);
-        glfwWindowHint(GLFW_VISIBLE, static_cast<int>(GL_TRUE));
+        glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
     }
     Log::Info(fmt::format("Detected OpenGL version: {}.{}", major, minor));
 

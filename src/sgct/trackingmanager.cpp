@@ -18,9 +18,18 @@
 #include <sgct/trackingdevice.h>
 #include <sgct/user.h>
 #ifdef SGCT_HAS_VRPN
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#endif // __GNUC__
 #include <vrpn_Tracker.h>
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif // __GNUC__
 #endif // SGCT_HAS_VRPN
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

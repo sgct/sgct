@@ -408,17 +408,17 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         ZoneScopedN("Histogram")
 
         auto renderHistogram = [&](int i, const vec4& color) {
-            const auto [pos, size] = [](int i) -> std::tuple<glm::vec2, glm::vec2> {
+            const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {
                 constexpr const glm::vec2 Pos(400.f, 10.f);
                 constexpr const glm::vec2 Size(425.f, 200.f);
 
-                if (i == 0) {
+                if (j == 0) {
                     // Full size
                     return { Pos, Size };
                 }
                 else {
                     // Half size in a grid
-                    const int idx = i - 1;
+                    const int idx = j - 1;
                     const glm::vec2 tSize = Size / 2.f;
                     const float iMod = static_cast<float>(idx % 2);
                     const float iDiv = static_cast<float>(idx / 2);

@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="localhost" externalControlPort="20600">
+	<Node address="localhost" port="20400" swapLock="false">
+		<Window fullScreen="false" msaa="4" border="true">
+			<Stereo type="none" />
+			<Size x="2048" y="810" />
+			<!--<Res x="12288" y="4320" />-->
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel1_warp_L.pfm">
+				<Pos x="0.0" y="0.6666" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 1 -->
+				<PlanarProjection>
+                    <FOV left="61.3407" right="61.4876" up="70.238" down="-7.701" />
+                    <Orientation heading="-45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel1_warp_R.pfm">
+				<Pos x="0.25" y="0.6666" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 1 -->
+				<PlanarProjection>
+                    <FOV left="61.2299" right="61.0821" up="70.238" down="-7.701" />
+                    <Orientation heading="-45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel2_warp_L.pfm">
+				<Pos x="0.5" y="0.6666" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 2 -->
+				<PlanarProjection>
+                    <FOV left="61.0821" right="61.2299" up="70.238" down="-7.701" />
+                    <Orientation heading="45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel2_warp_R.pfm">
+				<Pos x="0.75" y="0.6666" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 2 -->
+				<PlanarProjection>
+                    <FOV left="61.4876" right="61.3407" up="70.238" down="-7.701" />
+                    <Orientation heading="45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel3_warp_L.pfm">
+				<Pos x="0.0" y="0.3333" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 3 -->
+				<PlanarProjection>
+                    <FOV left="61.2299" right="61.0821" up="70.238" down="-7.701" />
+                    <Orientation heading="135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel3_warp_R.pfm">
+				<Pos x="0.25" y="0.3333" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 3 -->
+				<PlanarProjection>
+                    <FOV left="61.3407" right="61.4876" up="70.238" down="-7.701" />
+                    <Orientation heading="135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel4_warp_L.pfm">
+				<Pos x="0.5" y="0.3333" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 4 -->
+				<PlanarProjection>
+                    <FOV left="61.4876" right="61.3407" up="70.238" down="-7.701" />
+                    <Orientation heading="-135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel4_warp_R.pfm">
+				<Pos x="0.75" y="0.3333" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 4 -->
+				<PlanarProjection>
+                    <FOV left="61.0821" right="61.2299" up="70.238" down="-7.701" />
+                    <Orientation heading="-135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel5_warp_L.pfm">
+				<Pos x="0.0" y="0.0" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 5 -->
+				<PlanarProjection>
+                    <FOV left="62.1377" right="62.249" up="55.336" down="11.608" />
+                    <Orientation heading="57.0" pitch="48.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel5_warp_R.pfm">
+				<Pos x="0.25" y="0.0" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 5 -->
+				<PlanarProjection>
+                    <FOV left="62.4308" right="62.3199" up="55.336" down="11.608" />
+                    <Orientation heading="57.0" pitch="48.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel6_warp_L.pfm">
+				<Pos x="0.5" y="0.0" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 6 -->
+				<PlanarProjection>
+                    <FOV left="62.4307" right="62.3199" up="55.336" down="11.608" />
+                    <Orientation heading="-123.0" pitch="48.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport mesh="C:/SGCT/sgct/config/dome/pfm/channel6_warp_R.pfm">
+				<Pos x="0.75" y="0.0" />
+				<Size x="0.25" y="0.3333" />
+				<!-- Proj 6 -->
+				<PlanarProjection>
+                    <FOV left="62.1377" right="62.2491" up="55.336" down="11.608" />
+                    <Orientation heading="-123.0" pitch="48.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0" y="0.0" z="0" />
+	</User>
+</Cluster>

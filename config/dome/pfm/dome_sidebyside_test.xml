@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="localhost" externalControlPort="20600">
+	<Node address="localhost" port="20400" swapLock="false">
+		<Window fullScreen="false" msaa="4" border="true">
+			<Stereo type="none" />
+			<Size x="2048" y="512" />
+			<Res x="8192" y="2160" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="0.5" y="1.0" />
+				<!-- Proj 1 Left -->
+				<PlanarProjection>
+                    <FOV left="58.9772" right="59.1469" up="54.0443" down="8.62748" />
+                    <Orientation heading="-42.7217" pitch="22.5603" roll="0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.5" y="0.0" />
+				<Size x="0.5" y="1.0" />
+				<!-- Proj 1 Right -->
+				<PlanarProjection>
+                    <FOV left="58.8765" right="58.706" up="53.6901" down="8.71206" />
+                    <Orientation heading="-42.7217" pitch="22.5603" roll="0" />
+				</PlanarProjection>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0" y="0.0" z="0" />
+	</User>
+</Cluster>

@@ -34,6 +34,9 @@ GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
 std::vector<sgct_core::Image *> transImages;
 
+enum MappingMode { FISHEYE, LATLONG };
+sgct::SharedInt mappingMode = FISHEYE;
+
 //sync variables
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
@@ -53,9 +56,15 @@ sgct::SharedVector<std::pair<std::string, int>> imagePaths;
 sgct::SharedVector<GLuint> texIds;
 double sendTimer = 0.0;
 
+float step = 0.2f;
+sgct::SharedFloat rotateX(0.f);
+sgct::SharedFloat rotateY(0.f);
+sgct::SharedFloat rotateZ(0.f);
+
 enum imageType { IM_JPEG, IM_PNG };
 const int headerSize = 1;
 sgct_utils::SGCTDome * dome = NULL;
+sgct_utils::SGCTSphere* sphere = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
@@ -117,6 +126,9 @@ void myDrawFun()
         glEnable(GL_CULL_FACE);
 
         glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
+        MVP = glm::rotate(MVP, glm::radians(rotateX.getVal()), glm::vec3(1.0f, 0.0f, 0.0f));
+        MVP = glm::rotate(MVP, glm::radians(rotateY.getVal()), glm::vec3(0.0f, 1.0f, 0.0f));
+        MVP = glm::rotate(MVP, glm::radians(rotateZ.getVal()), glm::vec3(0.0f, 0.0f, 1.0f));
         
         glActiveTexture(GL_TEXTURE0);
 
@@ -131,8 +143,10 @@ void myDrawFun()
         sgct::ShaderManager::instance()->bindShaderProgram("xform");
         glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
-        //draw the box
-        dome->draw();
+        if (mappingMode.getVal() == LATLONG)
+            sphere->draw();
+        else
+            dome->draw();
 
         sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -171,6 +185,7 @@ void myPostSyncPreDrawFun()
 void myInitOGLFun()
 {
     dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
+    sphere = new sgct_utils::SGCTSphere(7.4f, 256);
 
     //Set up backface culling
     glCullFace(GL_BACK);
@@ -191,28 +206,39 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
+    sgct::SharedData::instance()->writeInt32(&mappingMode);
     sgct::SharedData::instance()->writeDouble(&curr_time);
     sgct::SharedData::instance()->writeBool(&info);
     sgct::SharedData::instance()->writeBool(&stats);
     sgct::SharedData::instance()->writeBool(&wireframe);
     sgct::SharedData::instance()->writeInt32(&texIndex);
     sgct::SharedData::instance()->writeInt32(&incrIndex);
+    sgct::SharedData::instance()->writeFloat(&rotateX);
+    sgct::SharedData::instance()->writeFloat(&rotateY);
+    sgct::SharedData::instance()->writeFloat(&rotateZ);
 }
 
 void myDecodeFun()
 {
+    sgct::SharedData::instance()->readInt32(&mappingMode);
     sgct::SharedData::instance()->readDouble(&curr_time);
     sgct::SharedData::instance()->readBool(&info);
     sgct::SharedData::instance()->readBool(&stats);
     sgct::SharedData::instance()->readBool(&wireframe);
     sgct::SharedData::instance()->readInt32(&texIndex);
     sgct::SharedData::instance()->readInt32(&incrIndex);
+    sgct::SharedData::instance()->readFloat(&rotateX);
+    sgct::SharedData::instance()->readFloat(&rotateY);
+    sgct::SharedData::instance()->readFloat(&rotateZ);
 }
 
 void myCleanUpFun()
 {
     if (dome != NULL)
         delete dome;
+
+    if (sphere != NULL)
+        delete sphere;
     
     for(std::size_t i=0; i < texIds.getSize(); i++)
     {
@@ -236,24 +262,49 @@ void keyCallback(int key, int action)
     {
         switch (key)
         {
-        case SGCT_KEY_S:
-            if (action == SGCT_PRESS)
-                stats.toggle();
-            break;
-
         case SGCT_KEY_I:
             if (action == SGCT_PRESS)
                 info.toggle();
             break;
-                
-        case SGCT_KEY_W:
+
+        case SGCT_KEY_L:
             if (action == SGCT_PRESS)
-                wireframe.toggle();
+                mappingMode.setVal(LATLONG);
             break;
 
         case SGCT_KEY_F:
             if (action == SGCT_PRESS)
-                wireframe.toggle();
+                mappingMode.setVal(FISHEYE);
+            break;
+                
+        case SGCT_KEY_W:
+            if (action == SGCT_REPEAT)
+                rotateX -= step;
+            break;
+
+        case SGCT_KEY_S:
+            if (action == SGCT_REPEAT)
+                rotateX += step;
+            break;
+
+        case SGCT_KEY_Q:
+            if (action == SGCT_REPEAT)
+                rotateY -= step;
+            break;
+
+        case SGCT_KEY_E:
+            if (action == SGCT_REPEAT)
+                rotateY += step;
+            break;
+
+        case SGCT_KEY_A:
+            if (action == SGCT_REPEAT)
+                rotateZ -= step;
+            break;
+
+        case SGCT_KEY_D:
+            if (action == SGCT_REPEAT)
+                rotateZ += step;
             break;
 
         case SGCT_KEY_1:

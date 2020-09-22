@@ -71,7 +71,11 @@ void Log::printv(Level level, std::string message) {
     }
 
     if (_logToConsole) {
-        std::cout << message << '\n';
+        // We need an endl here to make sure that any application listening to our log
+        // messages (looking at you C-Troll) is actually getting the messages immediately.
+        // If the `flush` doesn't happen here, all of the messages stack up in the buffer
+        // and are only sent once the application is finished, which is no bueno
+        std::cout << message << std::endl;
 #ifdef WIN32
         OutputDebugStringA((message + '\n').c_str());
 #endif // WIN32

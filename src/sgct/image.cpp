@@ -65,7 +65,9 @@ namespace {
 namespace sgct {
 
 Image::~Image() {
-    delete[] _data;
+    if (_data) {
+        stbi_image_free(_data);
+    }
 }
 
 void Image::load(const std::string& filename) {

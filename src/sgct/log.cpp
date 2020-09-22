@@ -71,9 +71,9 @@ void Log::printv(Level level, std::string message) {
     }
 
     if (_logToConsole) {
-        std::cout << message;
+        std::cout << message << '\n';
 #ifdef WIN32
-        OutputDebugStringA(std::string(message).c_str());
+        OutputDebugStringA((message + '\n').c_str());
 #endif // WIN32
     }
 

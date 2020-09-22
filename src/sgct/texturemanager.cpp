@@ -33,7 +33,7 @@ namespace {
         }(img.channels());
 
         sgct::Log::Debug(fmt::format(
-            "Creating texture. Size: {}x{}, {}-channels, Type: {#04x}, Format: {#04x}",
+            "Creating texture. Size: {}x{}, {}-channels, Type: {:#04x}, Format: {:#04x}",
             img.size().x, img.size().y, img.channels(), type, internalFormat
         ));
 

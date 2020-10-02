@@ -691,6 +691,11 @@ void SpoutOutputProjection::initShaders() {
     }(_mappingType);
     _shader.addShaderSource(std::move(samplerShaderCode), GL_FRAGMENT_SHADER);
     _shader.addShaderSource(shaders_fisheye::RotationFun, GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(
+        _interpolationMode == InterpolationMode::Cubic ?
+        shaders_fisheye::InterpolateCubicFun :
+        shaders_fisheye::InterpolateLinearFun, GL_FRAGMENT_SHADER
+    );
     _shader.createAndLinkProgram();
     _shader.bind();
 

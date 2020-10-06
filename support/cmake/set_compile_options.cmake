@@ -102,6 +102,7 @@ function (set_compile_options target)
       ${target}
       PRIVATE
       "-stdlib=libc++"
+      "-std=c++17"
       "-Wall"
       "-Wextra"
       "-Wabstract-vbase-init"
@@ -173,7 +174,7 @@ function (set_compile_options target)
     )
 
     target_link_libraries(${target} PRIVATE "c++" "c++abi")
-    
+
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(
       ${target}

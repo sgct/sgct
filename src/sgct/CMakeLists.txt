@@ -50,7 +50,6 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/tinyxml.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/user.h
   ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/window.h
@@ -109,7 +108,6 @@ set(SOURCE_FILES
   texturemanager.cpp
   tracker.cpp
   trackingdevice.cpp
-  trackingmanager.cpp
   user.cpp
   viewport.cpp
   window.cpp
@@ -135,6 +133,11 @@ set(SOURCE_FILES
   utils/plane.cpp
   utils/sphere.cpp
 )
+
+if (SGCT_VRPN_SUPPORT)
+  list(APPEND HEADER_FILES ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h)
+  list(APPEND SOURCE_FILES trackingmanager.cpp)
+endif ()
 
 if (SGCT_OPENVR_SUPPORT)
   list(APPEND HEADER_FILES ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h)

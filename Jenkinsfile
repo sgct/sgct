@@ -22,7 +22,7 @@ parallel tools: {
     }
     stage('tools/cppcheck/create') {
       createDirectory('build');
-      sh 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -support inclde src 2> build/cppcheck.xml';
+      sh 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -i support include src 2> build/cppcheck.xml';
     }
     // stage('tools/cloc/create') {
     //   createDirectory('build');

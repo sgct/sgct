@@ -397,11 +397,11 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         std::move(callbacks.dataTransferStatus),
         std::move(callbacks.dataTransferAcknowledge)
     );
-    #ifdef SGCT_HAS_VRPN
+#ifdef SGCT_HAS_VRPN
     for (const config::Tracker& tracker : cluster.trackers) {
         TrackingManager::instance().applyTracker(tracker);
     }
-    #endif
+#endif
     int clusterId = -1;
     // check in cluster configuration which it is
     if (netMode == NetworkManager::NetworkMode::Remote) {
@@ -448,12 +448,12 @@ void Engine::initialize() {
         ZoneScopedN("OpenGL Version")
 
         // Detect the available OpenGL version
-    #ifdef __APPLE__
+#ifdef __APPLE__
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #endif
+#endif
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
         GLFWwindow* offscreen = glfwCreateWindow(128, 128, "", nullptr, nullptr);
         glfwMakeContextCurrent(offscreen);
@@ -636,12 +636,12 @@ void Engine::initialize() {
 
     std::for_each(wins.begin(), wins.end(), std::mem_fn(&Window::initContextSpecificOGL));
 
-    #ifdef SGCT_HAS_VRPN
+#ifdef SGCT_HAS_VRPN
     // start sampling tracking data
     if (isMaster()) {
         TrackingManager::instance().startSampling();
     }
-    #endif
+#endif
 }
 
 Engine::~Engine() {
@@ -903,11 +903,11 @@ void Engine::render() {
     while (!(_shouldTerminate || thisNode.closeAllWindows() ||
            !NetworkManager::instance().isRunning()))
     {
-        #ifdef SGCT_HAS_VRPN
+#ifdef SGCT_HAS_VRPN
         if (isMaster()) {
             TrackingManager::instance().updateTrackingDevices();
         }
-        #endif
+#endif
         
         {
             ZoneScopedN("GLFW Poll Events")

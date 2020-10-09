@@ -194,7 +194,6 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
 }
 
 bool TrackingManager::isRunning() const {
-
     std::unique_lock lock(mutex::Tracking);
     return _isRunning;
 }

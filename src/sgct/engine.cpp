@@ -36,7 +36,7 @@
 #include <numeric>
 #include <cmath>
 
-#ifdef _WIN32
+#ifdef WIN32
 #include <glad/glad_wgl.h>
 #else
 #include <glad/glad.h>

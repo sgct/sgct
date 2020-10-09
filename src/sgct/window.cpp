@@ -28,16 +28,17 @@
 #include <algorithm>
 
 #ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <Windows.h>
+ #ifndef WIN32_LEAN_AND_MEAN
+  #define WIN32_LEAN_AND_MEAN
+ #endif
+ #ifndef NOMINMAX
+  #define NOMINMAX
+ #endif
+ #include <Windows.h>
+ #include <glad/glad_wgl.h>
 #endif // WIN32
 
-#ifdef _WIN32
+#ifdef WIN32
 #include <glad/glad_wgl.h>
 #else
 #include <glad/glad.h>

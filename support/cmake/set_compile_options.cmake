@@ -23,12 +23,11 @@ function (set_compile_options target)
       "/Zc:strictStrings-"    # Windows header don't adhere to this
       "/Zc:__cplusplus" # Correctly set the __cplusplus macro
     )
-  elseif (NOT LINUX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
       ${target}
       PRIVATE
       "-stdlib=libc++"
-      "-std=gnu++17"
       "-Wall"
       "-Wextra"
       "-Wabstract-vbase-init"
@@ -98,12 +97,12 @@ function (set_compile_options target)
       "-Wno-missing-braces"
       "-Wno-unused-function"
     )
-  elseif (LINUX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
       ${target}
       PRIVATE
-      "-stdlib=libstdc++"
-      "-std=gnu++17"
+      "-stdlib=libc++"
+      "-std=c++17"
       "-Wall"
       "-Wextra"
       "-Wabstract-vbase-init"
@@ -173,6 +172,9 @@ function (set_compile_options target)
       "-Wno-missing-braces"
       "-Wno-unused-function"
     )
+
+    target_link_libraries(${target} PRIVATE "c++" "c++abi")
+
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(
       ${target}

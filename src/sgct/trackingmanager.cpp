@@ -17,7 +17,6 @@
 #include <sgct/profiling.h>
 #include <sgct/trackingdevice.h>
 #include <sgct/user.h>
-#ifdef SGCT_HAS_VRPN
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -30,14 +29,12 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif // __GNUC__
-#endif // SGCT_HAS_VRPN
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <algorithm>
 
 namespace {
-#ifdef SGCT_HAS_VRPN
     struct VRPNPointer {
         std::unique_ptr<vrpn_Tracker_Remote> sensorDevice;
         std::unique_ptr<vrpn_Analog_Remote> analogDevice;
@@ -120,7 +117,6 @@ namespace {
             }
         }
     }
-#endif // SGCT_HAS_VRPN
 } // namespace
 
 namespace sgct {
@@ -140,7 +136,6 @@ void TrackingManager::destroy() {
 }
 
 TrackingManager::~TrackingManager() {
-#ifdef SGCT_HAS_VRPN
     Log::Info("Disconnecting VRPN");
 
     {
@@ -157,7 +152,6 @@ TrackingManager::~TrackingManager() {
     _trackers.clear();
     gTrackers.clear();
     Log::Debug("Done");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::applyDevice(const config::Device& device) {
@@ -200,17 +194,11 @@ void TrackingManager::applyTracker(const config::Tracker& tracker) {
 }
 
 bool TrackingManager::isRunning() const {
-#ifdef SGCT_HAS_VRPN
     std::unique_lock lock(mutex::Tracking);
     return _isRunning;
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-    return false;
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::startSampling() {
-#ifdef SGCT_HAS_VRPN
     if (_trackers.empty()) {
         return;
     }
@@ -239,13 +227,9 @@ void TrackingManager::startSampling() {
     }
 
     _samplingThread = std::make_unique<std::thread>(samplingLoop, this);
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::updateTrackingDevices() {
-#ifdef SGCT_HAS_VRPN
     ZoneScoped
 
     for (const std::unique_ptr<Tracker>& tracker : _trackers) {
@@ -255,13 +239,9 @@ void TrackingManager::updateTrackingDevices() {
             }
         }
     }
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::addTracker(std::string name) {
-#ifdef SGCT_HAS_VRPN
     if (!tracker(name)) {
         _trackers.push_back(std::make_unique<Tracker>(name));
         gTrackers.emplace_back(std::vector<VRPNPointer>());
@@ -270,22 +250,14 @@ void TrackingManager::addTracker(std::string name) {
     else {
         Log::Warning(fmt::format("Tracker '{}' already exists", name));
     }
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::addDeviceToCurrentTracker(std::string name) {
-#ifdef SGCT_HAS_VRPN
     _trackers.back()->addDevice(std::move(name), static_cast<int>(_trackers.size() - 1));
     gTrackers.back().emplace_back(VRPNPointer());
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
-#ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
@@ -310,15 +282,9 @@ void TrackingManager::addSensorToCurrentDevice(std::string address, int id) {
     else {
         Log::Error(fmt::format("Failed to connect to sensor '{}'", address));
     }
-#else
-    (void)address;
-    (void)id;
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButtons) {
-#ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
@@ -337,15 +303,9 @@ void TrackingManager::addButtonsToCurrentDevice(std::string address, int nButton
     else {
         Log::Error(fmt::format("Failed to connect to buttons '{}'", address));
     }
-#else
-    (void)address;
-    (void)nButtons;
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) {
-#ifdef SGCT_HAS_VRPN
     if (gTrackers.empty() || gTrackers.back().empty()) {
         return;
     }
@@ -365,11 +325,6 @@ void TrackingManager::addAnalogsToCurrentDevice(std::string address, int nAxes) 
     else {
         Log::Error(fmt::format("Failed to connect to analogs '{}'", address));
     }
-#else
-    (void)address;
-    (void)nAxes;
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 const std::vector<std::unique_ptr<Tracker>>& TrackingManager::trackers() const {
@@ -390,34 +345,19 @@ Tracker* TrackingManager::tracker(std::string_view name) const {
 }
 
 void TrackingManager::setEnabled(bool state) {
-#ifdef SGCT_HAS_VRPN
     for (std::unique_ptr<Tracker>& tracker : _trackers) {
         tracker->setEnabled(state);
     }
-#else
-    (void)state;
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 void TrackingManager::setSamplingTime(double t) {
-#ifdef SGCT_HAS_VRPN
     std::unique_lock lock(mutex::Tracking);
     _samplingTime = t;
-#else
-    (void)t;
-    Log::Warning("SGCT compiled without VRPN support");
-#endif // SGCT_HAS_VRPN
 }
 
 double TrackingManager::samplingTime() const {
-#ifdef SGCT_HAS_VRPN
     std::unique_lock lock(mutex::Tracking);
     return _samplingTime;
-#else
-    Log::Warning("SGCT compiled without VRPN support");
-    return 0.0;
-#endif // SGCT_HAS_VRPN
 }
 
 } // namespace sgct

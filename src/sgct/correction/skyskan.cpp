@@ -10,6 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -38,11 +39,11 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
 
     Buffer buf;
 
-    Log::Info("Reading SkySkan mesh data from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading SkySkan mesh data from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(2090, "Failed to open file " + path);
+        throw Error(2090, fmt::format("Failed to open file '{}'", path));
     }
 
     std::optional<float> azimuth;
@@ -84,7 +85,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks.y) == 1) {}
         else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
             areDimsSet = true;
-            buf.vertices.resize(sizeX * sizeY);
+            buf.vertices.resize(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
         }
         else if (areDimsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4) {
             if (uvTweaks.x > -1.f) {
@@ -113,7 +114,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        throw Error(2091, "Data reading error");
+        throw Error(2091, fmt::format("Data reading error in file '{}'", path));
     }
 
     // create frustums and projection matrices
@@ -124,7 +125,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         const float hh = (1200.f / 2048.f) * hw;
         vFov = 2.f * glm::degrees<float>(atan(hh));
 
-        Log::Info("HFOV: %f VFOV: %f", *hFov, *vFov);
+        Log::Info(fmt::format("HFOV: {} VFOV: {}", *hFov, *vFov));
     }
 
     if (fovTweaks.x > 0.f) {

@@ -40,6 +40,7 @@ list(APPEND CMAKE_MODULE_PATH
 )
 
 if (APPLE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
   set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "OSX Architectures" FORCE)
   mark_as_advanced(CMAKE_OSX_ARCHITECTURES)
 endif ()
@@ -48,17 +49,18 @@ option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 
 option(SGCT_FREETYPE_SUPPORT "Build SGCT with Freetype2" ON)
 option(SGCT_OPENVR_SUPPORT "SGCT OpenVR support" OFF)
-option(SGCT_VRPN_SUPPORT "SGCT VRPN support" ON)
+option(SGCT_VRPN_SUPPORT "SGCT VRPN support" OFF)
 if (WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
 endif ()
 
 # Exceptions for external libraries
+option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
 option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
 option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
 option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
 option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
-option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" ON)
+option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" OFF)
 option(SGCT_DEP_INCLUDE_GLAD "Include GLAD library" ON)
 option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)

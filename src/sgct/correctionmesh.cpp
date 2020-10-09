@@ -9,6 +9,7 @@
 #include <sgct/correctionmesh.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/opengl.h>
@@ -95,12 +96,18 @@ correction::Buffer setupSimpleMesh(const vec2& pos, const vec2& size) {
 
 void exportMesh(GLenum type, const std::string& path, const correction::Buffer& buf) {
     if (type != GL_TRIANGLES && type != GL_TRIANGLE_STRIP) {
-        throw Error(2000, "Failed to export " + path + ". Geometry type not supported");
+        throw Error(
+            2000,
+            fmt::format("Failed to export '{}'. Geometry type not supported", path)
+        );
     }
 
     std::ofstream file(path, std::ios::out);
     if (!file.is_open()) {
-        throw Error(2001, "Failed to export " + path + ". Failed to open");
+        throw Error(
+            2001,
+            fmt::format("Failed to export '{}'. Failed to open", path)
+        );
     }
 
     file << std::fixed;
@@ -109,50 +116,44 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
 
     // export vertices
     for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
-        file << "v " << vertex.x << ' ' << vertex.y << " 0\n";
+        file << fmt::format("v {} {} 0\n", vertex.x, vertex.y);
     }
 
     // export texture coords
     for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
-        file << "vt " << vertex.s << ' ' << vertex.t << " 0\n";
+        file << fmt::format("vt {} {} 0\n", vertex.s, vertex.t);
     }
 
     // export generated normals
     file.write("vn 0 0 1\n", buf.vertices.size());
 
-    file << "# Number of faces: " << buf.indices.size() / 3 << '\n';
+    file << fmt::format("# Number of faces: {}\n", buf.indices.size() / 3);
 
     // export face indices
     if (type == GL_TRIANGLES) {
-        for (unsigned int i = 0; i < buf.indices.size(); i += 3) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i + 1u] + 1 << '/' << buf.indices[i + 1u] + 1 << '/'
-                 << buf.indices[i + 1u] + 1 << ' ';
-            file << buf.indices[i + 2u] + 1 << '/' << buf.indices[i + 2u] + 1 << '/'
-                 << buf.indices[i + 2u] + 1 << '\n';
+        for (size_t i = 0; i < buf.indices.size(); i += 3) {
+            file << fmt::format(
+                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+                buf.indices[i] + 1, buf.indices[i + 1] + 1, buf.indices[i + 2] + 1
+            );
         }
     }
     else {
         // first base triangle
-        file << "f " << buf.indices[0] + 1 << '/' << buf.indices[0] + 1 << '/'
-             << buf.indices[0] + 1 << ' ';
-        file << buf.indices[1] + 1 << '/' << buf.indices[1] + 1 << '/'
-             << buf.indices[1] + 1 << ' ';
-        file << buf.indices[2] + 1 << '/' << buf.indices[2] + 1 << '/'
-             << buf.indices[2] + 1 << '\n';
+        file << fmt::format(
+            "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+            buf.indices[0] + 1, buf.indices[1] + 1, buf.indices[2] + 1
+        );
 
-        for (unsigned int i = 2; i < buf.indices.size(); i++) {
-            file << "f " << buf.indices[i] + 1 << '/' << buf.indices[i] + 1 << '/'
-                 << buf.indices[i] + 1 << ' ';
-            file << buf.indices[i - 1] + 1 << '/' << buf.indices[i - 1] + 1 << '/'
-                 << buf.indices[i - 1] + 1 << ' ';
-            file << buf.indices[i - 2] + 1 << '/' << buf.indices[i - 2] + 1 << '/'
-                 << buf.indices[i - 2] + 1 << '\n';
+        for (size_t i = 2; i < buf.indices.size(); i++) {
+            file << fmt::format(
+                "f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\n",
+                buf.indices[i], buf.indices[i - 1] + 1, buf.indices[i - 2] + 1
+            );
         }
     }
 
-    Log::Info("Mesh '%s' exported successfully", path.c_str());
+    Log::Info(fmt::format("Mesh '{}' exported successfully", path));
 }
 
 } // namespace
@@ -207,7 +208,6 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
     Buffer buf;
 
     std::string ext = path.substr(path.rfind('.') + 1);
-
     // find a suitable format
     if (ext == "sgc") {
         buf = generateScissMesh(path, parent);
@@ -259,10 +259,10 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
 
     createMesh(_warpGeometry, buf);
 
-    Log::Debug(
-        "CorrectionMesh read successfully. Vertices=%u, Indices=%u",
-        static_cast<int>(buf.vertices.size()), static_cast<int>(buf.indices.size())
-    );
+    Log::Debug(fmt::format(
+        "CorrectionMesh read successfully. Vertices={}, Indices={}",
+        buf.vertices.size(), buf.indices.size()
+    ));
 
     if (Settings::instance().exportWarpingMeshes()) {
         const size_t found = path.find_last_of('.');

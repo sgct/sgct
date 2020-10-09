@@ -8,6 +8,7 @@
 
 #include <sgct/offscreenbuffer.h>
 
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/settings.h>
@@ -77,7 +78,7 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
             samples = 0;
         }
 
-        Log::Debug("Max samples supported: %d", maxSamples);
+        Log::Debug(fmt::format("Max samples supported: {}", maxSamples));
 
         // generate the multisample buffer
         glGenFramebuffers(1, &_multiSampledFrameBuffer);
@@ -183,17 +184,17 @@ void OffScreenBuffer::createFBO(int width, int height, int samples, bool mirrore
     );
 
     if (_isMultiSampled) {
-        Log::Debug(
-            "Created %dx%d buffers: FBO id=%d  Multisample FBO id=%d"
-            "RBO depth buffer id=%d  RBO color buffer id=%d", width, height,
+        Log::Debug(fmt::format(
+            "Created {}x{} buffers: FBO id={}  Multisample FBO id={}"
+            "RBO depth buffer id={}  RBO color buffer id={}", width, height,
             _frameBuffer, _multiSampledFrameBuffer, _depthBuffer, _colorBuffer
-        );
+        ));
     }
     else {
-        Log::Debug(
-            "Created %dx%d buffers: FBO id=%d  RBO Depth buffer id=%d",
+        Log::Debug(fmt::format(
+            "Created {}x{} buffers: FBO id={}  RBO Depth buffer id={}",
             width, height, _frameBuffer, _depthBuffer
-        );
+        ));
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

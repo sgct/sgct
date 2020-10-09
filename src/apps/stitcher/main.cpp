@@ -11,6 +11,8 @@
 #include <sgct/projection/fisheye.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/user.h>
+#include <fmt/format.h>
+#include <cstring>
 
 namespace {
     enum class Rotation { Deg0 = 0, Deg90, Deg180, Deg270 };
@@ -468,16 +470,16 @@ int main(int argc, char** argv) {
             texturePaths[static_cast<int>(getSideIndex(numberOfTextures))] = tmpStr;
 
             numberOfTextures++;
-            Log::Info("Adding texture: %s", argv[i + 1]);
+            Log::Info(fmt::format("Adding texture: {}", argv[i + 1]));
         }
         else if (arg == "-seq" && argc > (i + 2)) {
             sequence = true;
             int startIndex = atoi(argv[i + 1]);
             stopIndex = atoi(argv[i + 2]);
             iterator = startIndex;
-            Log::Info(
-                "Loading sequence from %d to %d", startIndex, stopIndex
-            );
+            Log::Info(fmt::format(
+                "Loading sequence from {} to {}", startIndex, stopIndex
+            ));
         }
         else if (arg == "-rot" && argc > (i + 4)) {
             ivec4 rotations = ivec4{
@@ -486,10 +488,10 @@ int main(int argc, char** argv) {
                 atoi(argv[i + 3]),
                 atoi(argv[i + 4])
             };
-            Log::Info(
-                "Setting image rotations to L: %d, R: %d, T: %d, B: %d",
+            Log::Info(fmt::format(
+                "Setting image rotations to L: {}, R: {}, T: {}, B: {}",
                 rotations.x, rotations.y, rotations.z, rotations.w
-            );
+            ));
 
             auto convertRotations = [](int v) {
                 switch (v) {
@@ -511,61 +513,61 @@ int main(int argc, char** argv) {
         }
         else if (arg == "-start" && argc > (i + 1)) {
             startFrame = atoi(argv[i + 1]);
-            Log::Info("Start frame set to %d", startFrame);
+            Log::Info(fmt::format("Start frame set to {}", startFrame));
         }
         else if (arg == "-alpha" && argc > (i + 1)) {
             settings.alpha = std::string_view(argv[i + 1]) == "1";
-            Log::Info(
-                "Setting alpha to %s", settings.alpha ? "true" : "false"
-            );
+            Log::Info(fmt::format(
+                "Setting alpha to {}", settings.alpha ? "true" : "false"
+            ));
         }
         else if (arg == "-stereo" && argc > (i + 1)) {
             settings.stereo = std::string_view(argv[i + 1]) == "1";
-            Log::Info(
-                "Setting stereo to %s", settings.stereo ? "true" : "false"
-            );
+            Log::Info(fmt::format(
+                "Setting stereo to {}", settings.stereo ? "true" : "false"
+            ));
         }
         else if (arg == "-cubic" && argc > (i + 1)) {
             settings.cubic = std::string_view(argv[i + 1]) == "1";
-            Log::Info(
-                "Setting cubic interpolation to %s", settings.cubic ? "true" : "false"
-            );
+            Log::Info(fmt::format(
+                "Setting cubic interpolation to {}", settings.cubic ? "true" : "false"
+            ));
         }
         else if (arg == "-fxaa" && argc > (i + 1)) {
             settings.fxaa = std::string_view(argv[i + 1]) == "1";
-            Log::Info(
-                "Setting fxaa to %s", settings.fxaa ? "true" : "false"
-            );
+            Log::Info(fmt::format(
+                "Setting fxaa to {}", settings.fxaa ? "true" : "false"
+            ));
         }
         else if (arg == "-eyeSep" && argc > (i + 1)) {
             settings.eyeSeparation = static_cast<float>(atof(argv[i + 1]));
-            Log::Info(
-                "Setting eye separation to %f", settings.eyeSeparation
-            );
+            Log::Info(fmt::format(
+                "Setting eye separation to {}", settings.eyeSeparation
+            ));
         }
         else if (arg == "-diameter" && argc > (i + 1)) {
             settings.domeDiameter = static_cast<float>(atof(argv[i + 1]));
-            Log::Info(
-                "Setting dome diameter to %f", settings.domeDiameter
-            );
+            Log::Info(fmt::format(
+                "Setting dome diameter to {}", settings.domeDiameter
+            ));
         }
         else if (arg == "-msaa" && argc > (i + 1)) {
             settings.numberOfMSAASamples = atoi(argv[i + 1]);
-            Log::Info(
-                "Number of MSAA samples set to %d", settings.numberOfMSAASamples
-            );
+            Log::Info(fmt::format(
+                "Number of MSAA samples set to {}", settings.numberOfMSAASamples
+            ));
         }
         else if (arg == "-res" && argc > (i + 1)) {
             settings.resolution = atoi(argv[i + 1]);
-            Log::Info(
-                "Resolution set to %d", settings.resolution
-            );
+            Log::Info(fmt::format(
+                "Resolution set to {}", settings.resolution
+            ));
         }
         else if (arg == "-cubemap" && argc > (i + 1)) {
             settings.cubemapRes = atoi(argv[i + 1]);
-            Log::Info(
-                "Cubemap resolution set to %d", settings.cubemapRes
-            );
+            Log::Info(fmt::format(
+                "Cubemap resolution set to {}", settings.cubemapRes
+            ));
         }
         else if (arg == "-format" && argc > (i + 1)) {
             std::string_view arg2 = argv[i + 1];
@@ -585,11 +587,11 @@ int main(int argc, char** argv) {
                 }
             } (arg2);
             Settings::instance().setCaptureFormat(f);
-            Log::Info("Format set to %s", argv[i + 1]);
+            Log::Info(fmt::format("Format set to {}", argv[i + 1]));
         }
         else if (arg == "-path" && argc > (i + 1)) {
             Settings::instance().setCapturePath(argv[i + 1]);
-            Log::Info("Left path set to %s", argv[i + 1]);
+            Log::Info(fmt::format("Left path set to {}", argv[i + 1]));
         }
         else if (arg == "-leftPath" || arg == "-rightPath") {
             Log::Warning("-leftPath and -rightPath are no longer supported; use -path");
@@ -611,7 +613,7 @@ int main(int argc, char** argv) {
         Engine::instance().setClearColor(vec4{ 0.f, 0.f, 0.f, 1.f });
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

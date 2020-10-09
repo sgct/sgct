@@ -455,7 +455,7 @@ int main(int argc, char** argv) {
         Engine::instance().setClearColor(vec4{ 0.1f, 0.1f, 0.1f, 1.f });
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

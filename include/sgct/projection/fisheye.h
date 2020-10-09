@@ -16,12 +16,12 @@
 namespace sgct {
 
 /// This class manages and renders non linear fisheye projections
-class FisheyeProjection : public NonLinearProjection {
+class FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 
     FisheyeProjection(const Window* parent);
-    ~FisheyeProjection();
+    ~FisheyeProjection() final;
 
     /// Update projection when aspect ratio changes for the viewport.
     void update(vec2 size) override;

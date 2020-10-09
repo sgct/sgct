@@ -12,6 +12,7 @@
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 struct GLFWmonitor;
@@ -260,7 +261,7 @@ public:
     const std::string& name() const;
 
     /// \return true if a specific tag exists
-    bool hasTag(const std::string& tag) const;
+    bool hasTag(std::string_view tag) const;
 
     /// \return this window's id
     int id() const;
@@ -403,10 +404,9 @@ private:
     bool _useFXAA = false;
 
     ColorBitDepth _bufferColorBitDepth = ColorBitDepth::Depth8;
-    unsigned int _internalColorFormat;
-    unsigned int _colorFormat;
-    unsigned int _colorDataType;
-    int _bytesPerColor;
+    unsigned int _internalColorFormat = 0x8814; // = GL_RGBA32F
+    unsigned int _colorDataType = 0x1406; // = GL_FLOAT
+    int _bytesPerColor = 4;
 
     struct {
         unsigned int leftEye = 0;

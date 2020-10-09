@@ -12,6 +12,7 @@
 #include <sgct/math.h>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace sgct::config { struct Cluster; }
@@ -79,7 +80,7 @@ public:
      *
      * \return the pointer to a named user. nullptr is returned if no user is found.
      */
-    User* user(const std::string& name);
+    User* user(std::string_view name);
 
     /**
      * Get the tracked user. Please observe that the address of this object might change
@@ -98,7 +99,7 @@ public:
     /// \return the id to the node which runs this application
     int thisNodeId() const;
 
-    /// \return the dns, name or IP of the master in the cluster
+    /// \return the DNS name or IP of the master in the cluster
     const std::string& masterAddress() const;
 
     /// \return state of the firm frame lock lock sync

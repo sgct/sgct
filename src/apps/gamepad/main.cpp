@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 
+#include <fmt/format.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -68,14 +69,14 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }
 
     joyStick1Name = glfwGetJoystickName(static_cast<int>(Joystick::Joystick1));
     if (joyStick1Name) {
-        Log::Info("Joystick 1 '%s' is present", joyStick1Name);
+        Log::Info(fmt::format("Joystick 1 '{}' is present", joyStick1Name));
 
         int numberOfAxes = 0;
         glfwGetJoystickAxes(static_cast<int>(Joystick::Joystick1), &numberOfAxes);
@@ -83,9 +84,9 @@ int main(int argc, char** argv) {
         int numberOfButtons = 0;
         glfwGetJoystickButtons(static_cast<int>(Joystick::Joystick1), &numberOfButtons);
 
-        Log::Info(
-            "Number of axes %d\nNumber of buttons %d", numberOfAxes, numberOfButtons
-        );
+        Log::Info(fmt::format(
+            "Number of axes {}\nNumber of buttons {}", numberOfAxes, numberOfButtons
+        ));
     }
 
     Engine::instance().render();

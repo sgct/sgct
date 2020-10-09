@@ -9,6 +9,7 @@
 #include <sgct/shaderprogram.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 
@@ -26,17 +27,19 @@ namespace {
             std::vector<GLchar> log(logLength);
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
-            sgct::Log::Error("Shader [%s] linking error: %s", name.c_str(), log.data());
+            sgct::Log::Error(
+                fmt::format("Shader [{}] linking error: {}", name, log.data())
+            );
         }
         return linkStatus != 0;
     }
 
-    std::string getShaderTypeName(GLenum shaderType) {
+    std::string shaderTypeName(GLenum shaderType) {
         switch (shaderType) {
-            case GL_VERTEX_SHADER:          return "Vertex shader";
-            case GL_FRAGMENT_SHADER:        return "Fragment shader";
-            case GL_GEOMETRY_SHADER:        return "Geometry shader";
-            default:                       throw std::logic_error("Unhandled case label");
+            case GL_VERTEX_SHADER:   return "Vertex shader";
+            case GL_FRAGMENT_SHADER: return "Fragment shader";
+            case GL_GEOMETRY_SHADER: return "Geometry shader";
+            default:                 throw std::logic_error("Unhandled case label");
         };
     }
 
@@ -49,16 +52,16 @@ namespace {
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength == 0) {
-                sgct::Log::Error(
-                    "%s compile error: Unknown error", getShaderTypeName(type).c_str()
-                );
+                sgct::Log::Error(fmt::format(
+                    "{} compile error: Unknown error", shaderTypeName(type)
+                ));
             }
 
             std::vector<GLchar> log(logLength);
             glGetShaderInfoLog(id, logLength, nullptr, log.data());
-            sgct::Log::Error(
-                "%s compile error: %s", getShaderTypeName(type).c_str(), log.data()
-            );
+            sgct::Log::Error(fmt::format(
+                "{} compile error: {}", shaderTypeName(type), log.data()
+            ));
         }
     }
 } // namespace
@@ -164,7 +167,10 @@ int ShaderProgram::id() const {
 
 void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
-        throw Err(7010, "No shaders have been added to the program " + _name);
+        throw Err(
+            7010,
+            fmt::format("No shaders have been added to the program {}", _name)
+        );
     }
 
     // Create the program
@@ -179,18 +185,24 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     bool isLinked = checkLinkStatus(_programId, _name);
     if (!isLinked) {
-        throw Err(7011, "Error linking the program " + _name);
+        throw Err(7011, fmt::format("Error linking the program {}", _name));
     }
 }
 
 void ShaderProgram::createProgram() {
     if (_programId > 0) {
-        throw Err(7012, "Failed to create shader program " + _name + ": Already created");
+        throw Err(
+            7012,
+            fmt::format("Failed to create shader program {}: Already created", _name)
+        );
     }
 
     _programId = glCreateProgram();
     if (_programId == 0) {
-        throw Err(7013, "Failed to create shader program " + _name + ": Unknown error");
+        throw Err(
+            7013,
+            fmt::format("Failed to create shader program {}: Unknown error", _name)
+        );
     }
 }
 

@@ -9,6 +9,7 @@
 #include <sgct/tracker.h>
 
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,14 +38,14 @@ void Tracker::setEnabled(bool state) {
 
 void Tracker::addDevice(std::string name, int index) {
     _trackingDevices.push_back(std::make_unique<TrackingDevice>(index, name));
-    Log::Info("%s: Adding device '%s'", _name.c_str(), name.c_str());
+    Log::Info(fmt::format("{}: Adding device '{}'", _name, name));
 }
 
 const std::vector<std::unique_ptr<TrackingDevice>>& Tracker::devices() const {
     return _trackingDevices;
 }
 
-TrackingDevice* Tracker::device(const std::string& name) const {
+TrackingDevice* Tracker::device(std::string_view name) const {
     const auto it = std::find_if(
         _trackingDevices.cbegin(),
         _trackingDevices.cend(),

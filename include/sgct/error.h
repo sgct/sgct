@@ -21,6 +21,7 @@ namespace sgct {
  * 1002: User / Tracking tracker name must not be empty
  * 1003: User / Name 'default' is not permitted for a user
  * 1010: Capture / Capture path must not be empty
+ * 1011: Capture / Screenshot ranges beginning has to be before the end
  * 1020: Settings / Swap interval must not be negative
  * 1021: Settings / Refresh rate must not be negative
  * 1030: Device / Device name must not be empty
@@ -74,39 +75,39 @@ namespace sgct {
  * 2000s: Correction Meshes
  * 2000: CorrectionMesh / Failed to export. Geometry type is not supported"
  * 2001: CorrectionMesh / Failed to export " + exportPath + ". Failed to open"
- * 2010: DomeProjection / Could not determine format for warping mesh
+ * 2010: DomeProjection / Failed to open '%s'
  * 2020: MPCDIMesh / Configuration error. Trying load MPCDI to wrong viewport
  * 2021: MPCDIMesh / Error reading from file. Could not find lines
  * 2022: MPCDIMesh / Invalid header information in MPCDI mesh
  * 2023: MPCDIMesh / Incorrect file type. Unknown header type
- * 2030: OBJ / Failed to open warping mesh file
- * 2031: OBJ / Vertex count doesn't match number of texture coordinates
- * 2040: PaulBourke / Failed to open warping mesh file
- * 2041: PaulBourke / Error reading mapping type
- * 2042: PaulBourke / Invalid data
- * 2050: Pfm / Failed to open %s
- * 2051: Pfm / Error reading from file
- * 2052: Pfm / Invalid header syntax
- * 2053: Pfm / Incorrect file type
- * 2054: Pfm / Error reading correction values
- * 2060: Scalable / Failed to open warping mesh file
- * 2061: Scalable / Incorrect mesh data geometry
- * 2070: SCISS / Failed to open warping mesh file
- * 2071: SCISS / Incorrect file id
- * 2072: SCISS / Error parsing file version from file
- * 2073: SCISS / Error parsing type from file
- * 2074: SCISS / Error parsing view data from file
- * 2075: SCISS / Error parsing file
- * 2076: SCISS / Error parsing vertices from file
- * 2077: SCISS / Error parsing indices from file
- * 2078: SCISS / Error parsing faces from file
- * 2080: SimCAD / Error parsing XML file
- * 2081: SimCAD / Error reading XML file. Missing 'GeometryFile'
- * 2082: SimCAD / Error reading XML file. Missing 'GeometryDefinition'
+ * 2030: OBJ / Failed to open '%s'
+ * 2031: OBJ / Vertex count doesn't match number of texture coordinates in '%s'
+ * 2040: PaulBourke / Failed to open file '%s'
+ * 2041: PaulBourke / Error reading mapping type in file '%s'
+ * 2042: PaulBourke / Invalid data in file '%s'
+ * 2050: Pfm / Failed to open '%s'
+ * 2051: Pfm / Error reading from file '%s'
+ * 2052: Pfm / Invalid header syntax in file '%s'
+ * 2053: Pfm / Incorrect file type in file '%s'
+ * 2054: Pfm / Error reading correction values in file '%s'
+ * 2060: Scalable / Failed to open file '%s'
+ * 2061: Scalable / Incorrect mesh data geometry in file '%s'
+ * 2070: SCISS / Failed to open '%s'
+ * 2071: SCISS / Incorrect file id in file '%s'
+ * 2072: SCISS / Error parsing file version from file '%s'
+ * 2073: SCISS / Error parsing type from file '%s'
+ * 2074: SCISS / Error parsing view data from file '%s"
+ * 2075: SCISS / Error parsing file '%s'
+ * 2076: SCISS / Error parsing vertices from file '%s'
+ * 2077: SCISS / Error parsing indices from file '%s'
+ * 2078: SCISS / Error parsing faces from file '%s'
+ * 2080: SimCAD / Error parsing file '%s'. %s
+ * 2081: SimCAD / Error reading file '{}'. Missing 'GeometryFile'
+ * 2082: SimCAD / Error reading file '{}'. Missing 'GeometryDefinition'
  * 2083: SimCAD / Not the same x coords as y coords
  * 2084: SimCAD / Not a valid squared matrix read from SimCAD file
- * 2090: SkySkan / Not a valid squared matrix read from SimCAD file
- * 2091: SkySkan / Data reading error
+ * 2090: SkySkan / Failed to open file '%s'
+ * 2091: SkySkan / Data reading error in file '%s'
 
  * 3000s: Engine
  * 3000: Engine / Failed to initialize GLFW
@@ -197,7 +198,9 @@ namespace sgct {
  * 6082: XML Parsing / Error parsing XML file
  * 6083: XML Parsing / Cannot find 'Cluster' node
  * 6084: XML Parsing / Cannot find master address
- * 6085: XML Parsing / Unknown resolution %s for cube map
+ * 6085: XML Parsing / Unknown stereo mode %s
+ * 6086: XML Parsing / Unknown color bit depth %s
+ * 6087: XML Parsing / Unknown resolution %s for cube map
  * 6090: SpoutOutput / Unknown spout output mapping: %s
  * 6100: SphericalMirror / Missing geometry paths
 

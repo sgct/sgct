@@ -9,6 +9,7 @@
 #include <sgct/correction/domeprojection.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -22,12 +23,15 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
 {
     ZoneScoped
 
-    Log::Info("Reading DomeProjection mesh data from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading DomeProjection mesh data from '{}', path"));
 
     FILE* meshFile = fopen(path.c_str(), "r");
-    bool loadSuccess = meshFile != nullptr;
+    const bool loadSuccess = meshFile != nullptr;
     if (!loadSuccess) {
-        throw Error(Error::Component::DomeProjection, 2010, "Failed to open " + path);
+        throw Error(
+            Error::Component::DomeProjection, 2010,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     Buffer buf;

@@ -17,6 +17,7 @@
 #endif // SGCT_HAS_TEXT
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 
 namespace {
     // Line parameters
@@ -57,12 +58,12 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     ZoneScoped
 
     // Static background quad
-    struct Vertex {
-        Vertex(float x_, float y_) : x(x_), y(y_) {}
-        const float x = 0.f;
-        const float y = 0.f;
+    struct sVertex {
+        sVertex(float x_, float y_) : x(x_), y(y_) {}
+        float x = 0.f;
+        float y = 0.f;
     };
-    std::vector<Vertex> vs;
+    std::vector<sVertex> vs;
     vs.emplace_back(0.f, 0.f);
     vs.emplace_back(static_cast<float>(_statistics.HistoryLength), 0.f);
     vs.emplace_back(0.f, 1.f / 30.f);
@@ -100,7 +101,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glGenBuffers(1, &_lines.staticDraw.vbo);
     glBindVertexArray(_lines.staticDraw.vao);
     glBindBuffer(GL_ARRAY_BUFFER, _lines.staticDraw.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(Vertex), vs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vs.size() * sizeof(sVertex), vs.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
@@ -229,7 +230,7 @@ void StatisticsRenderer::update() {
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
                             const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
-        for (int i = 0; i < Histogram::Bins; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); ++i) {
             const int val = values[i];
 
             const float x0 = static_cast<float>(i) / Histogram::Bins;
@@ -237,14 +238,14 @@ void StatisticsRenderer::update() {
             const float y0 = 0.f;
             const float y1 = static_cast<float>(val) / maxBinVal;
 
-            const int idx = i * 6;
-            buffer[idx + 0u] = { x0, y0 };
-            buffer[idx + 1u] = { x1, y1 };
-            buffer[idx + 2u] = { x0, y1 };
+            const size_t idx = i * 6;
+            buffer[idx + 0] = { x0, y0 };
+            buffer[idx + 1] = { x1, y1 };
+            buffer[idx + 2] = { x0, y1 };
 
-            buffer[idx + 3u] = { x0, y0 };
-            buffer[idx + 4u] = { x1, y0 };
-            buffer[idx + 5u] = { x1, y1 };
+            buffer[idx + 3] = { x0, y0 };
+            buffer[idx + 4] = { x1, y0 };
+            buffer[idx + 5] = { x1, y1 };
         }
     };
 
@@ -407,26 +408,26 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         ZoneScopedN("Histogram")
 
         auto renderHistogram = [&](int i, const vec4& color) {
-            const auto [pos, size] = [](int i) -> std::tuple<glm::vec2, glm::vec2> {
+            const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {
                 constexpr const glm::vec2 Pos(400.f, 10.f);
                 constexpr const glm::vec2 Size(425.f, 200.f);
 
-                if (i == 0) {
+                if (j == 0) {
                     // Full size
                     return { Pos, Size };
                 }
                 else {
                     // Half size in a grid
-                    const int idx = i - 1;
-                    const glm::vec2 size = Size / 2.f;
+                    const int idx = j - 1;
+                    const glm::vec2 tSize = Size / 2.f;
                     const float iMod = static_cast<float>(idx % 2);
                     const float iDiv = static_cast<float>(idx / 2);
                     const glm::vec2 offset = glm::vec2(
-                        (size.x + 10.f) * iMod,
-                        (size.y + 10.f) * iDiv
+                        (tSize.x + 10.f) * iMod,
+                        (tSize.y + 10.f) * iDiv
                     );
                     const glm::vec2 p = Pos + offset;
-                    return { p + glm::vec2(Size.x + 10.f, 0.f), size };
+                    return { p + glm::vec2(Size.x + 10.f, 0.f), tSize };
                 }
             }(i);
 

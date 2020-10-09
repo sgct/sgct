@@ -60,9 +60,9 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
         throw Error(2023, "Incorrect file type. Unknown header type");
     }
-    const int nCorrectionValues = nCols * nRows;
+    const unsigned int nCorrectionValues = nCols * nRows;
     std::vector<vec2> corrGrid(nCorrectionValues);
-    for (int i = 0; i < nCorrectionValues; ++i) {
+    for (unsigned int i = 0; i < nCorrectionValues; ++i) {
         float x;
         std::memcpy(&x, &srcBuff[srcIdx], sizeof(float));
         srcIdx += sizeof(float);
@@ -79,7 +79,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
 
     std::vector<vec2> smoothPos(nCorrectionValues);
     std::vector<vec2> warpedPos(nCorrectionValues);
-    for (int i = 0; i < nCorrectionValues; ++i) {
+    for (unsigned int i = 0; i < nCorrectionValues; ++i) {
         const float gridIdxCol = static_cast<float>(i % nCols);
         const float gridIdxRow = static_cast<float>(i / nCols);
         // Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
@@ -95,7 +95,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     corrGrid.clear();
 
     buf.vertices.reserve(nCorrectionValues);
-    for (int i = 0; i < nCorrectionValues; ++i) {
+    for (unsigned int i = 0; i < nCorrectionValues; ++i) {
         CorrectionMeshVertex vertex;
         // init to max intensity (opaque white)
         vertex.r = 1.f;
@@ -114,7 +114,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     warpedPos.clear();
     smoothPos.clear();
 
-    buf.indices.reserve(6u * nCorrectionValues);
+    buf.indices.reserve(6 * static_cast<size_t>(nCorrectionValues));
     for (unsigned int c = 0; c < (nCols - 1); ++c) {
         for (unsigned int r = 0; r < (nRows - 1); ++r) {
             const unsigned int i0 = r * nCols + c;

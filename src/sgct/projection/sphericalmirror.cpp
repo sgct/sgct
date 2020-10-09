@@ -10,25 +10,16 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <sgct/viewport.h>
 #include <sgct/window.h>
-
 #include <algorithm>
-#ifdef WIN32
-#pragma warning(push)
-#pragma warning(disable : 4127)
-#endif // WIN32
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#ifdef WIN32
-#pragma warning(pop)
-#endif // WIN32
 
 namespace {
     constexpr const char* SphericalProjectionVert = R"(
@@ -99,8 +90,15 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
-    float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
-    glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
+    const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable: 4127) // warning C4127: conditional expression is constant
+#endif // WIN32
+    const glm::mat4 mvp = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
+#ifdef WIN32
+#pragma warning(pop)
+#endif // WIN32
 
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -210,10 +208,9 @@ void SphericalMirrorProjection::initTextures() {
             return;
         }
         generateMap(texture, _texInternalFormat, _texFormat, _texType);
-        Log::Debug(
-            "%dx%d cube face texture (id: %d) generated",
-            _cubemapResolution, _cubemapResolution, texture
-        );
+        Log::Debug(fmt::format(
+            "{0}x{0} cube face texture (id: {1}) generated", _cubemapResolution, texture
+        ));
     };
 
     generate(_subViewports.right, _textures.cubeFaceRight);

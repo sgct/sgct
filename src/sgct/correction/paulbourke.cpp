@@ -10,6 +10,7 @@
 
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -25,11 +26,14 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
 
     Buffer buf;
 
-    Log::Info("Reading Paul Bourke spherical mirror mesh from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading Paul Bourke spherical mirror mesh from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::PaulBourke, 2040, "Failed to open " + path);
+        throw Error(
+            Error::Component::PaulBourke, 2040,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     constexpr const int MaxLineLength = 1024;
@@ -40,21 +44,30 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     if (fgets(lineBuffer, MaxLineLength, meshFile)) {
         int r = sscanf(lineBuffer, "%d", &mappingType);
         if (r != 1) {
-            throw Error(Error::Component::PaulBourke, 2041, "Error reading mapping type");
+            throw Error(
+                Error::Component::PaulBourke, 2041,
+                fmt::format("Error reading mapping type in file '{}'", path)
+            );
         }
     }
 
     // get the mesh dimensions
-    glm::ivec2 meshSize = glm::ivec2(-1, -1);
+    std::optional<glm::ivec2> meshSize;
     if (fgets(lineBuffer, MaxLineLength, meshFile)) {
-        if (sscanf(lineBuffer, "%d %d", &meshSize[0], &meshSize[1]) == 2) {
-            buf.vertices.reserve(meshSize.x * meshSize.y);
+        glm::ivec2 val;
+        if (sscanf(lineBuffer, "%d %d", &val[0], &val[1]) == 2) {
+            const size_t s = static_cast<size_t>(val.x) * static_cast<size_t>(val.y);
+            buf.vertices.reserve(s);
+            meshSize = std::move(val);
         }
     }
 
     // check if everyting useful is set
-    if (mappingType == -1 || meshSize.x == -1 || meshSize.y == -1) {
-        throw Error(Error::Component::PaulBourke, 2042, "Invalid data");
+    if (mappingType == -1 || !meshSize.has_value()) {
+        throw Error(
+            Error::Component::PaulBourke, 2042,
+            fmt::format("Invalid data in file '{}'", path)
+        );
     }
 
     // get all data
@@ -79,12 +92,12 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     }
 
     // generate indices
-    for (int c = 0; c < (meshSize.x - 1); c++) {
-        for (int r = 0; r < (meshSize.y - 1); r++) {
-            const int i0 = r * meshSize.x + c;
-            const int i1 = r * meshSize.x + (c + 1);
-            const int i2 = (r + 1) * meshSize.x + (c + 1);
-            const int i3 = (r + 1) * meshSize.x + c;
+    for (int c = 0; c < (meshSize->x - 1); c++) {
+        for (int r = 0; r < (meshSize->y - 1); r++) {
+            const int i0 = r * meshSize->x + c;
+            const int i1 = r * meshSize->x + (c + 1);
+            const int i2 = (r + 1) * meshSize->x + (c + 1);
+            const int i3 = (r + 1) * meshSize->x + c;
 
             // triangle 1
             buf.indices.push_back(i0);

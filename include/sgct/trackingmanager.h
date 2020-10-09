@@ -12,6 +12,7 @@
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -56,7 +57,7 @@ private:
     TrackingManager() = default;
     ~TrackingManager();
 
-    Tracker* tracker(const std::string& name) const;
+    Tracker* tracker(std::string_view name) const;
 
     void addDeviceToCurrentTracker(std::string name);
     void addSensorToCurrentDevice(std::string address, int id);

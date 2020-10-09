@@ -66,21 +66,21 @@ private:
         static const int Bins = 128;
 
         struct Values {
-            std::array<int, Bins> frametimes;
-            std::array<int, Bins> drawTimes;
-            std::array<int, Bins> syncTimes;
-            std::array<int, Bins> loopTimeMin;
-            std::array<int, Bins> loopTimeMax;
+            std::array<int, Bins> frametimes = {};
+            std::array<int, Bins> drawTimes = {};
+            std::array<int, Bins> syncTimes = {};
+            std::array<int, Bins> loopTimeMin = {};
+            std::array<int, Bins> loopTimeMax = {};
         };
         Values values;
 
         struct Vertices {
             // The implementation requires frametimes to be the first element so beware
-            std::array<Vertex, 6 * Bins> frametimes;
-            std::array<Vertex, 6 * Bins> drawTimes;
-            std::array<Vertex, 6 * Bins> syncTimes;
-            std::array<Vertex, 6 * Bins> loopTimeMin;
-            std::array<Vertex, 6 * Bins> loopTimeMax;
+            std::array<Vertex, 6 * Bins> frametimes = {};
+            std::array<Vertex, 6 * Bins> drawTimes = {};
+            std::array<Vertex, 6 * Bins> syncTimes = {};
+            std::array<Vertex, 6 * Bins> loopTimeMin = {};
+            std::array<Vertex, 6 * Bins> loopTimeMax = {};
         };
         Vertices buffer;
 

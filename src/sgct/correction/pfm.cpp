@@ -9,6 +9,7 @@
 #include <sgct/correction/pfm.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -23,11 +24,14 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
 
     Buffer buf;
 
-    Log::Info("Reading 3D/stereo mesh data (in PFM image) from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "rb");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::Pfm, 2050, "Failed to open " + path);
+        throw Error(
+            Error::Component::Pfm, 2050,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     constexpr const int MaxLineLength = 1024;
@@ -40,7 +44,10 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
         size_t retval = fread(&headerChar, sizeof(char), 1, meshFile);
         if (retval != 1) {
             fclose(meshFile);
-            throw Error(Error::Component::Pfm, 2051, "Error reading from file");
+            throw Error(
+                Error::Component::Pfm, 2051,
+                fmt::format("Error reading from file '{}'", path)
+            );
         }
         headerBuffer[index++] = headerChar;
         if (headerChar == '\n') {
@@ -63,11 +70,17 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     );
     if (scanRes != 4) {
         fclose(meshFile);
-        throw Error(Error::Component::Pfm, 2052, "Invalid header syntax");
+        throw Error(
+            Error::Component::Pfm, 2052,
+            fmt::format("Invalid header syntax in file '{}'", path)
+        );
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
-        throw Error(Error::Component::Pfm, 2053, "Incorrect file type");
+        throw Error(
+            Error::Component::Pfm, 2053,
+            fmt::format("Incorrect file type in file '{}'", path)
+        );
     }
 
     const int numCorrectionValues = nCols * nRows;
@@ -82,7 +95,10 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
         size_t r2 = fread(&dumpValue, value32bit, 1, meshFile);
 
         if (r0 != 1 || r1 != 1 || r2 != 1) {
-            throw Error(Error::Component::Pfm, 2054, "Error reading correction values");
+            throw Error(
+                Error::Component::Pfm, 2054,
+                fmt::format("Error reading correction values in file '{}'")
+            );
         }
     }
 
@@ -94,7 +110,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
     // We assume we loaded side-by-side images, i.e. different warp per eye
-    for (int e = 0; e < 2; e++) {
+    for (size_t e = 0; e < 2; e++) {
         CorrectionMeshVertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -103,8 +119,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
 
         size_t i = 0;
 
-        for (unsigned int r = 0; r < nRows; r++) {
-            for (unsigned int c = 0; c < nCols; c++) {
+        for (size_t r = 0; r < nRows; r++) {
+            for (size_t c = 0; c < nCols; c++) {
                 // vertex-mapping
                 const float u =
                     (static_cast<float>(c) / (static_cast<float>(nCols + 1) - 1.f)) +

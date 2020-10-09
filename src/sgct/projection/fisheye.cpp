@@ -299,11 +299,9 @@ void FisheyeProjection::setKeepAspectRatio(bool state) {
 
 void FisheyeProjection::initVBO() {
     glGenVertexArrays(1, &_vao);
-    Log::Debug("Generating VAO: %d", _vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
-    Log::Debug("Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);

@@ -23,7 +23,7 @@ function (set_compile_options target)
       "/Zc:strictStrings-"    # Windows header don't adhere to this
       "/Zc:__cplusplus" # Correctly set the __cplusplus macro
     )
-  elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
       ${target}
       PRIVATE
@@ -97,6 +97,84 @@ function (set_compile_options target)
       "-Wno-missing-braces"
       "-Wno-unused-function"
     )
+  elseif (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(
+      ${target}
+      PRIVATE
+      "-stdlib=libc++"
+      "-std=c++17"
+      "-Wall"
+      "-Wextra"
+      "-Wabstract-vbase-init"
+      "-Warray-bounds-pointer-arithmetic"
+      "-Wassign-enum"
+      "-Wauto-import"
+      "-Wbad-function-cast"
+      "-Wbitfield-constant-conversion"
+      "-Wcast-calling-convention"
+      "-Wcast-qual"
+      "-Wcomma"
+      "-Wcomplex-component-init"
+      "-Wconditional-uninitialized"
+      "-Wdate-time"
+      "-Wdeprecated-implementations"
+      "-Wdollar-in-identifier-extension"
+      "-Wduplicate-enum"
+      "-Wduplicate-method-match"
+      "-Wempty-body"
+      "-Wformat-pedantic"
+      "-Wheader-hygiene"
+      "-Widiomatic-parentheses"
+      "-Wimplicit-fallthrough"
+      "-Wimport-preprocessor-directive-pedantic"
+      "-Winconsistent-missing-override"
+      "-Wkeyword-macro"
+      "-Wlanguage-extension-token"
+      "-Wloop-analysis"
+      "-Wmethod-signatures"
+      "-Wmicrosoft-end-of-file"
+      "-Wmicrosoft-enum-forward-reference"
+      "-Wmicrosoft-fixed-enum"
+      "-Wmicrosoft-flexible-array"
+      "-Wmissing-noreturn"
+      "-Wnewline-eof"
+      "-Wnon-virtual-dtor"
+      "-Wold-style-cast"
+      "-Wpessimizing-move"
+      "-Wpointer-arith"
+      "-Wpragmas"
+      "-Wredundant-move"
+      "-Wshadow-field-in-constructor"
+      "-Wshift-sign-overflow"
+      "-Wshorten-64-to-32"
+      "-Wstring-conversion"
+      "-Wtautological-compare"
+      "-Wthread-safety"
+      "-Wundefined-reinterpret-cast"
+      "-Wunneeded-internal-declaration"
+      "-Wunneeded-member-function"
+      "-Wunreachable-code-break"
+      "-Wunreachable-code-loop-increment"
+      "-Wunreachable-code-return"
+      "-Wunused-exception-parameter"
+      "-Wunused-label"
+      "-Wunused-local-typedef"
+      "-Wunused-macros"
+      "-Wunused-private-field"
+      "-Wunused-result"
+      "-Wunused-variable"
+      "-Wused-but-marked-unused"
+      "-Wvariadic-macros"
+      "-Wvla"
+      "-Wzero-length-array"
+
+      "-Wno-header-hygiene"
+      "-Wno-missing-braces"
+      "-Wno-unused-function"
+    )
+
+    target_link_libraries(${target} PRIVATE "c++" "c++abi")
+
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(
       ${target}

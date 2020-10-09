@@ -9,14 +9,16 @@
 #include <sgct/mpcdi.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/math.h>
+#include <sgct/tinyxml.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <tinyxml2.h>
 #include <unzip.h>
 #include <algorithm>
+#include <string_view>
 
 #define Error(code, msg) Error(Error::Component::MPCDI, code, msg)
 
@@ -257,7 +259,7 @@ namespace {
         // Check for unsupported features that we might want to warn about
         const tinyxml2::XMLElement* extSetElem = root.FirstChildElement("extensionSet");
         if (extSetElem) {
-            Log::Warning("Unsupported feature: %s", extSetElem->Value());
+            Log::Warning(fmt::format("Unsupported feature: {}", extSetElem->Value()));
         }
 
         return res;
@@ -267,14 +269,16 @@ namespace {
 ReturnValue parseMpcdiConfiguration(const std::string& filename) {
     unzFile zip = unzOpen(filename.c_str());
     if (zip == nullptr) {
-        throw Error(4019, "Unable to open zip archive file " + filename);
+        throw Error(4019, fmt::format("Unable to open zip archive file {}", filename));
     }
     // Get info about the zip file
     unz_global_info globalInfo;
     const int globalInfoRet = unzGetGlobalInfo(zip, &globalInfo);
     if (globalInfoRet != UNZ_OK) {
         unzClose(zip);
-        throw Error(4020, "Unable to get zip archive info from " + filename);
+        throw Error(
+            4020, fmt::format("Unable to get zip archive info from {}", filename)
+        );
     }
 
     // Search for required files inside mpcdi archive file
@@ -286,11 +290,11 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
             char buf[500];
             int r = unzGetCurrentFileInfo(zip, &info, buf, 500, nullptr, 0, nullptr, 0);
             if (r != UNZ_OK) {
-                throw Error(4021, "Unable to get info on file " + std::to_string(i));
+                throw Error(4021, fmt::format("Unable to get info on file {}", i));
             }
             std::string fileName(buf);
 
-            constexpr auto endsWith = [](const std::string& str, const std::string& ext) {
+            constexpr auto endsWith = [](std::string_view str, std::string_view ext) {
                 const size_t s = str.size();
                 const size_t e = ext.size();
                 return s >= e && str.compare(s - e, e, ext) == 0;
@@ -301,34 +305,36 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                 // Uncompress the XML file
                 const int openCurrentFile = unzOpenCurrentFile(zip);
                 if (openCurrentFile != UNZ_OK) {
-                    throw Error(4022, "Unable to open " + fileName);
+                    throw Error(4022, fmt::format("Unable to open {}", fileName));
                 }
                 xmlBuffer.resize(uncompSize);
                 const int size = unzReadCurrentFile(zip, xmlBuffer.data(), uncompSize);
                 if (size < 0) {
-                    throw Error(4023, "Read from " + fileName + " failed");
+                    throw Error(4023, fmt::format("Read from {} failed", fileName));
                 }
             }
             else if (endsWith(fileName, "pfm")) {
                 // Uncompress the PFM file
                 if (!pfmComponent.buffer.empty()) {
-                    Log::Warning("Duplicate file %s found in MPCDI", fileName.c_str());
+                    Log::Warning(
+                        fmt::format("Duplicate file {} found in MPCDI", fileName)
+                    );
                 }
 
                 const int openCurrentFile = unzOpenCurrentFile(zip);
                 if (openCurrentFile != UNZ_OK) {
-                    throw Error(4024, "Unable to open " + fileName);
+                    throw Error(4024, fmt::format("Unable to open {}", fileName));
                 }
                 std::vector<char> buffer(uncompSize);
                 const int size = unzReadCurrentFile(zip, buffer.data(), uncompSize);
                 if (size < 0) {
-                    throw Error(4025, "Read from " + fileName + " failed");
+                    throw Error(4025, fmt::format("Read from {} failed", fileName));
                 }
                 pfmComponent.fileName = fileName;
                 pfmComponent.buffer = std::move(buffer);
             }
             else {
-                Log::Warning("Ignoring extension %s", fileName.c_str());
+                Log::Warning(fmt::format("Ignoring extension {}", fileName));
             }
 
             if (i < globalInfo.number_entry - 1) {
@@ -346,18 +352,19 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
 
     unzClose(zip);
     if (xmlBuffer.empty() || pfmComponent.buffer.empty()) {
-        throw Error(4026, filename + " does not contain the XML and/or PFM file");
+        throw Error(
+            4026, fmt::format("{} does not contain the XML and/or PFM file", filename)
+        );
     }
 
     tinyxml2::XMLDocument xmlDoc;
     tinyxml2::XMLError result = xmlDoc.Parse(xmlBuffer.data(), xmlBuffer.size());
 
     if (result != tinyxml2::XML_NO_ERROR) {
-        std::string str = "Parsing failed after: ";
-        str += xmlDoc.GetErrorStr1();
-        str += ' ';
-        str += xmlDoc.GetErrorStr2();
-        throw Error(4027, "Error parsing file. " + str);
+        throw Error(4027, fmt::format(
+            "Error parsing file. Parsing failed after: {} {}",
+            xmlDoc.GetErrorStr1(), xmlDoc.GetErrorStr2()
+        ));
     }
 
     ReturnValue res = parseMpcdi(xmlDoc, pfmComponent);

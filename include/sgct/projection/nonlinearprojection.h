@@ -133,9 +133,9 @@ protected:
     ivec4 _vpCoords = ivec4{ 0, 0, 0, 0 };
     bool _useDepthTransformation = false;
     bool _isStereo = false;
-    unsigned int _texInternalFormat;
-    unsigned int _texFormat;
-    unsigned int _texType;
+    unsigned int _texInternalFormat = 0;
+    unsigned int _texFormat = 0;
+    unsigned int _texType = 0;
     int _samples = 1;
 
     std::unique_ptr<OffScreenBuffer> _cubeMapFbo;

@@ -8,6 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
+#include <fmt/format.h>
 
 namespace {
     double currentTime = 0.0;
@@ -74,7 +75,7 @@ void externalControlMessage(const char* receivedChars, int size) {
             sizeFactor = static_cast<float>(tmpVal) / 100.f;
         }
 
-        Log::Info("Message: '%s', size: %d", receivedChars, size);
+        Log::Info(fmt::format("Message: '{}', size: {}", receivedChars, size));
     }
 }
 
@@ -112,7 +113,7 @@ int main(int argc, char** argv) {
         Engine::create(cluster, callbacks, config);
     }
     catch (const std::runtime_error& e) {
-        Log::Error("%s", e.what());
+        Log::Error(e.what());
         Engine::destroy();
         return EXIT_FAILURE;
     }

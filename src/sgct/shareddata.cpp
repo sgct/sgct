@@ -112,6 +112,18 @@ int SharedData::bufferSize() {
 }
 
 template <>
+void serializeObject(std::vector<std::byte>& buffer, std::string_view value) {
+    uint32_t length = static_cast<uint32_t>(value.size());
+    std::byte* p = reinterpret_cast<std::byte*>(&length);
+
+    buffer.insert(buffer.end(), p, p + sizeof(uint32_t));
+    buffer.insert(
+        buffer.end(),
+        reinterpret_cast<const std::byte*>(value.data()),
+        reinterpret_cast<const std::byte*>(value.data() + length)
+    );
+}
+
 void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
     std::byte* p = reinterpret_cast<std::byte*>(&length);
@@ -124,7 +136,6 @@ void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
     );
 }
 
-template <>
 void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
     std::byte* p = reinterpret_cast<std::byte*>(&length);

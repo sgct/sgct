@@ -9,6 +9,7 @@
 #include <sgct/correction/scalable.h>
 
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
@@ -21,15 +22,18 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
 
     Buffer buf;
 
-    Log::Info("Reading scalable mesh data from '%s'", path.c_str());
+    Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {
-        throw Error(Error::Component::Scalable, 2060, "Failed to open " + path);
+        throw Error(
+            Error::Component::Scalable, 2060,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     unsigned int numOfVerticesRead = 0;
-    unsigned int numOfFacesRead = 0;
+    size_t numOfFacesRead = 0;
     unsigned int numberOfFaces = 0;
     unsigned int numberOfVertices = 0;
     unsigned int numberOfIndices = 0;
@@ -65,9 +69,9 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
             }
             else if (sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
                 if (!buf.indices.empty()) {
-                    buf.indices[numOfFacesRead * 3u] = a;
-                    buf.indices[numOfFacesRead * 3u + 1u] = b;
-                    buf.indices[numOfFacesRead * 3u + 2u] = c;
+                    buf.indices[numOfFacesRead * 3] = a;
+                    buf.indices[numOfFacesRead * 3 + 1] = b;
+                    buf.indices[numOfFacesRead * 3 + 2] = c;
                 }
 
                 numOfFacesRead++;
@@ -117,7 +121,10 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
     }
 
     if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
-        throw Error(Error::Component::Scalable, 2061, "Incorrect mesh data geometry");
+        throw Error(
+            Error::Component::Scalable, 2061,
+            fmt::format("Incorrect mesh data geometry in file '{}'", path)
+        );
     }
 
     // normalize

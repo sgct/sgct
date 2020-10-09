@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/offscreenbuffer.h>
@@ -17,12 +18,33 @@
 #include <sgct/profiling.h>
 #include <sgct/settings.h>
 #include <sgct/window.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
+    constexpr const char* FragmentShader = R"(
+  #version 330 core
+
+  in vec2 tr_uv;
+  out vec4 out_diffuse;
+
+  uniform samplerCube cubemap;
+  uniform float rotation;
+  uniform float heightOffset;
+
+  const float PI = 3.141592654;
+
+  void main() {
+    vec2 pixelNormalized = tr_uv;
+    float angle = 2.0 * PI * pixelNormalized.x;
+    vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
+
+    vec3 sample = (vec3(direction, pixelNormalized.y + heightOffset));
+    out_diffuse = texture(cubemap, sample);
+  }
+)";
+
     struct Vertex {
         float x;
         float y;
@@ -37,6 +59,7 @@ namespace {
         std::memcpy(&r, glm::value_ptr(v), sizeof(To));
         return r;
     }
+
 } // namespace
 
 namespace sgct {
@@ -116,7 +139,7 @@ void CylindricalProjection::update(vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    const std::array<const float, 20> v = {
+    constexpr const std::array<float, 20> v = {
         -1.f, -1.f, -1.f, 0.f, 0.f,
         -1.f,  1.f, -1.f, 0.f, 1.f,
          1.f, -1.f, -1.f, 1.f, 0.f,
@@ -128,11 +151,9 @@ void CylindricalProjection::update(vec2) {
 
 void CylindricalProjection::initVBO() {
     glGenVertexArrays(1, &_vao);
-    Log::Debug("Generating VAO: %d", _vao);
     glBindVertexArray(_vao);
 
     glGenBuffers(1, &_vbo);
-    Log::Debug("Generating VBO: %d", _vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
     glEnableVertexAttribArray(0);
@@ -276,30 +297,8 @@ void CylindricalProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
 
-    std::string fragmentShader = R"(
-  #version 330 core
-
-  in vec2 tr_uv;
-  out vec4 out_diffuse;
-
-  uniform samplerCube cubemap;
-  uniform float rotation;
-  uniform float heightOffset;
-
-  const float PI = 3.141592654;
-
-  void main() {
-    vec2 pixelNormalized = tr_uv;
-    float angle = 2.0 * PI * pixelNormalized.x;
-    vec2 direction = vec2(cos(-angle + rotation), sin(-angle + rotation));
-
-    vec3 sample = (vec3(direction, pixelNormalized.y + heightOffset));
-    out_diffuse = texture(cubemap, sample);
-  }
-)";
-
     _shader = ShaderProgram("CylindricalProjectionShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, FragmentShader);
     _shader.createAndLinkProgram();
     _shader.bind();
 
@@ -322,6 +321,5 @@ void CylindricalProjection::setHeightOffset(float heightOffset) {
 void CylindricalProjection::setRadius(float radius) {
     _radius = radius;
 }
-
 
 } // namespace sgct

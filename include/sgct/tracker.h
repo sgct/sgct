@@ -12,6 +12,7 @@
 #include <sgct/math.h>
 #include <sgct/trackingdevice.h>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 namespace sgct {
@@ -26,7 +27,7 @@ public:
 
     const std::vector<std::unique_ptr<TrackingDevice>>& devices() const;
 
-    TrackingDevice* device(const std::string& name) const;
+    TrackingDevice* device(std::string_view name) const;
     TrackingDevice* deviceBySensorId(int id) const;
 
     /// Set the orientation as quaternion

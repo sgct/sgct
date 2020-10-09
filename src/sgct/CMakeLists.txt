@@ -16,6 +16,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/correctionmesh.h
   ${PROJECT_SOURCE_DIR}/include/sgct/engine.h
   ${PROJECT_SOURCE_DIR}/include/sgct/error.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/fmt.h
   ${PROJECT_SOURCE_DIR}/include/sgct/font.h
   ${PROJECT_SOURCE_DIR}/include/sgct/fontmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/freetype.h
@@ -46,9 +47,9 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/shareddata.h
   ${PROJECT_SOURCE_DIR}/include/sgct/statisticsrenderer.h
   ${PROJECT_SOURCE_DIR}/include/sgct/texturemanager.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/tinyxml.h
   ${PROJECT_SOURCE_DIR}/include/sgct/tracker.h
   ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
-  ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h
   ${PROJECT_SOURCE_DIR}/include/sgct/user.h
   ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
   ${PROJECT_SOURCE_DIR}/include/sgct/window.h
@@ -107,7 +108,6 @@ set(SOURCE_FILES
   texturemanager.cpp
   tracker.cpp
   trackingdevice.cpp
-  trackingmanager.cpp
   user.cpp
   viewport.cpp
   window.cpp
@@ -134,6 +134,11 @@ set(SOURCE_FILES
   utils/sphere.cpp
 )
 
+if (SGCT_VRPN_SUPPORT)
+  list(APPEND HEADER_FILES ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h)
+  list(APPEND SOURCE_FILES trackingmanager.cpp)
+endif ()
+
 if (SGCT_OPENVR_SUPPORT)
   list(APPEND HEADER_FILES ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h)
   list(APPEND SOURCE_FILES openvr.cpp)
@@ -155,10 +160,11 @@ set_compile_options(sgct)
 target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyxml2 REQUIRED)
@@ -174,6 +180,7 @@ target_link_libraries(sgct
   PUBLIC 
     glad::glad
     glfw
+    fmt
     tracy
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>

@@ -9,6 +9,7 @@
 #include <sgct/clustermanager.h>
 
 #include <sgct/config.h>
+#include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/node.h>
 #include <sgct/profiling.h>
@@ -96,7 +97,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
             name = *u.name;
             std::unique_ptr<User> usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
-            Log::Info("Adding user '%s'", u.name->c_str());
+            Log::Info(fmt::format("Adding user '{}'", *u.name));
         }
         else {
             name = "default";
@@ -158,7 +159,7 @@ User& ClusterManager::defaultUser() {
     return *_users[0];
 }
 
-User* ClusterManager::user(const std::string& name) {
+User* ClusterManager::user(std::string_view name) {
     const auto it = std::find_if(
         _users.cbegin(),
         _users.cend(),
@@ -171,7 +172,7 @@ User* ClusterManager::trackedUser() {
     const auto it = std::find_if(
         _users.cbegin(),
         _users.cend(),
-        [](const std::unique_ptr<User>& u) { return u->isTracked(); }
+        std::mem_fn(&User::isTracked)
     );
     return it != _users.cend() ? it->get() : nullptr;
 }

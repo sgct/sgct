@@ -10,6 +10,7 @@
 
 #include <sgct/clustermanager.h>
 #include <sgct/engine.h>
+#include <sgct/fmt.h>
 #include <sgct/image.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
@@ -32,7 +33,7 @@ namespace {
             ptr->frameBufferImage->save(ptr->filename);
         }
         catch (const std::runtime_error& e) {
-            sgct::Log::Error("%s", e.what());
+            sgct::Log::Error(e.what());
         }
         ptr->isRunning = false;
     }
@@ -107,9 +108,9 @@ void ScreenCapture::initOrResize(ivec2 resolution, int channels, int bytesPerCol
     }
 
     glGenBuffers(1, &_pbo);
-    Log::Debug(
-        "Generating %dx%dx%d PBO: %u", _resolution.x, _resolution.y, _nChannels, _pbo
-    );
+    Log::Debug(fmt::format(
+        "Generating {}x{}x{} PBO: {}", _resolution.x, _resolution.y, _nChannels, _pbo
+    ));
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
     glBufferData(GL_PIXEL_PACK_BUFFER, _dataSize, nullptr, GL_STATIC_READ);
@@ -129,7 +130,20 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     ZoneScoped
 
-    std::string file = createFilename(Engine::instance().screenShotNumber());
+    uint64_t number = Engine::instance().screenShotNumber();
+    if (Settings::instance().hasScreenshotLimit()) {
+        uint64_t begin = Settings::instance().screenshotLimitBegin();
+        uint64_t end = Settings::instance().screenshotLimitEnd();
+
+        if (number < begin || number >= end) {
+            Log::Debug(fmt::format(
+                "Skipping screenshot {} outside range [{}, {}]", number, begin, end
+            ));
+            return;
+        }
+    }
+
+    std::string file = createFilename(number);
     checkImageBuffer(capSrc);
 
     int threadIndex = availableCaptureThread();
@@ -188,10 +202,10 @@ void ScreenCapture::initialize(int windowIndex, ScreenCapture::EyeIndex ei) {
     }
     _windowIndex = windowIndex;
 
-    Log::Debug("Number of screencapture threads is set to %d", _nThreads);
+    Log::Debug(fmt::format("Number of screencapture threads is set to {}", _nThreads));
 }
 
-std::string ScreenCapture::createFilename(unsigned int frameNumber) {
+std::string ScreenCapture::createFilename(uint64_t frameNumber) {
     const std::string eyeSuffix = [](EyeIndex eyeIndex) {
         switch (eyeIndex) {
             case EyeIndex::Mono:        return "";
@@ -201,16 +215,16 @@ std::string ScreenCapture::createFilename(unsigned int frameNumber) {
         }
     }(_eyeIndex);
 
-    char Buffer[7];
-    std::fill(std::begin(Buffer), std::end(Buffer), '\0');
-    sprintf(Buffer, "%06d", frameNumber);
+    std::array<char, 7> Buffer;
+    std::fill(Buffer.begin(), Buffer.end(), '\0');
+    fmt::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
-        case CaptureFormat::PNG: return "png";
-        case CaptureFormat::TGA: return "tga";
-        case CaptureFormat::JPEG: return "jpg";
-        default: throw std::logic_error("Unhandled case label");
+            case CaptureFormat::PNG: return "png";
+            case CaptureFormat::TGA: return "tga";
+            case CaptureFormat::JPEG: return "jpg";
+            default: throw std::logic_error("Unhandled case label");
         }
     }(_format);
 
@@ -238,7 +252,7 @@ std::string ScreenCapture::createFilename(unsigned int frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return file + std::string(Buffer)  + '.' + suffix;
+    return file + std::string(Buffer.begin(), Buffer.end())  + '.' + suffix;
 }
 
 int ScreenCapture::availableCaptureThread() {
@@ -283,7 +297,7 @@ void ScreenCapture::checkImageBuffer(CaptureSource captureSource) {
 }
 
 Image* ScreenCapture::prepareImage(int index, std::string file) {
-    Log::Debug("Starting thread for screenshot/capture [%d]", index);
+    Log::Debug(fmt::format("Starting thread for screenshot/capture [{}]", index));
 
     if (_captureInfos[index].frameBufferImage == nullptr) {
         _captureInfos[index].frameBufferImage = std::make_unique<Image>();

@@ -54,7 +54,7 @@ private:
         unsigned int ibo = 0;
         unsigned int nVertices = 0;
         unsigned int nIndices = 0;
-        unsigned int type = 0x0005; // GL_TRIANGLE_STRIP;
+        unsigned int type = 0x0005; // = GL_TRIANGLE_STRIP;
     };
 
     void createMesh(CorrectionMeshGeometry& geom, const correction::Buffer& buffer);

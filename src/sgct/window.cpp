@@ -11,6 +11,7 @@
 #include <sgct/config.h>
 #include <sgct/engine.h>
 #include <sgct/error.h>
+#include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
 #include <sgct/mpcdi.h>
@@ -37,12 +38,20 @@
  #include <glad/glad_wgl.h>
 #endif // WIN32
 
+#ifdef WIN32
+#include <glad/glad_wgl.h>
+#else
+#include <glad/glad.h>
+#endif
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
+    constexpr const unsigned int ColorFormat = GL_BGRA;
+
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
         width = std::max(width, 1);
         height = std::max(height, 1);
@@ -234,7 +243,7 @@ const std::string& Window::name() const {
     return _name;
 }
 
-bool Window::hasTag(const std::string& tag) const {
+bool Window::hasTag(std::string_view tag) const {
     return std::find(_tags.cbegin(), _tags.cend(), tag) != _tags.cend();
 }
 
@@ -251,22 +260,22 @@ void Window::close() {
 
     makeSharedContextCurrent();
 
-    Log::Info("Deleting screen capture data for window %d", _id);
+    Log::Info(fmt::format("Deleting screen capture data for window {}", _id));
     _screenCaptureLeftOrMono = nullptr;
     _screenCaptureRight = nullptr;
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info("Releasing OpenGL buffers for window %d", _id);
+        Log::Info(fmt::format("Releasing OpenGL buffers for window %d", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info("Deleting VBOs for window %d", _id);
+    Log::Info(fmt::format("Deleting VBOs for window %d", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info("Deleting VAOs for window %d", _id);
+    Log::Info(fmt::format("Deleting VAOs for window %d", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 
@@ -293,8 +302,6 @@ void Window::close() {
 
 void Window::initOGL() {
     ZoneScoped
-
-    _colorFormat = GL_BGRA;
 
     std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) =
         [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
@@ -327,7 +334,7 @@ void Window::initOGL() {
             viewportSize,
             _stereoMode != StereoMode::NoStereo,
             _internalColorFormat,
-            _colorFormat,
+            ColorFormat,
             _colorDataType,
             _nAASamples
         );
@@ -495,7 +502,9 @@ void Window::updateResolutions() {
         // adjusting only the horizontal (x) values
         for (const std::unique_ptr<Viewport>& vp : _viewports) {
             vp->updateFovToMatchAspectRatio(_aspectRatio, ratio);
-            Log::Debug("Update aspect ratio in viewport (%f -> %f)", _aspectRatio, ratio);
+            Log::Debug(fmt::format(
+                "Update aspect ratio in viewport ({} -> {})", _aspectRatio, ratio
+            ));
         }
         _aspectRatio = ratio;
 
@@ -504,19 +513,19 @@ void Window::updateResolutions() {
             glfwSetWindowSize(_windowHandle, _windowRes.x, _windowRes.y);
         }
 
-        Log::Debug(
-            "Resolution changed to %dx%d in window %d", _windowRes.x, _windowRes.y, _id
-        );
+        Log::Debug(fmt::format(
+            "Resolution changed to {}x{} in window {}", _windowRes.x, _windowRes.y, _id
+        ));
         _pendingWindowRes = std::nullopt;
     }
 
     if (_pendingFramebufferRes.has_value()) {
         _framebufferRes = *_pendingFramebufferRes;
 
-        Log::Debug(
-            "Framebuffer resolution changed to %dx%d for window %d",
+        Log::Debug(fmt::format(
+            "Framebuffer resolution changed to {}x{} for window {}",
             _framebufferRes.x, _framebufferRes.y, _id
-        );
+        ));
 
         _pendingFramebufferRes = std::nullopt;
     }
@@ -528,7 +537,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
     for (const std::unique_ptr<Viewport>& vp : _viewports) {
         vp->setHorizontalFieldOfView(hFovDeg);
     }
-    Log::Debug("HFOV changed to %f for window %d", hFovDeg, _viewports.size(), _id);
+    Log::Debug(fmt::format("HFOV changed to {} for window {}", hFovDeg, _id));
 }
 
 void Window::initWindowResolution(ivec2 resolution) {
@@ -583,7 +592,7 @@ void Window::update() {
                 _framebufferRes.x * vp->size().x,
                 _framebufferRes.y * vp->size().y
             };
-            vp->nonLinearProjection()->update(std::move(viewport));
+            vp->nonLinearProjection()->update(viewport);
         }
     }
 }
@@ -703,35 +712,37 @@ void Window::setFixResolution(bool state) {
 
 void Window::setUseFXAA(bool state) {
     _useFXAA = state;
-    Log::Debug("FXAA status: %s for window %d", state ? "enabled" : "disabled", _id);
+    Log::Debug(fmt::format(
+        "FXAA status: {} for window {}", state ? "enabled" : "disabled", _id
+    ));
 }
 
 void Window::setUseQuadbuffer(bool state) {
     _useQuadBuffer = state;
     if (_useQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GLFW_TRUE);
-        Log::Info("Window %d: Enabling quadbuffered rendering", _id);
+        Log::Info(fmt::format("Window {}: Enabling quadbuffered rendering", _id));
     }
 }
 
 void Window::setCallDraw2DFunction(bool state) {
     _hasCallDraw2DFunction = state;
     if (!_hasCallDraw2DFunction) {
-        Log::Info("Window %d: Draw 2D function disabled", _id);
+        Log::Info(fmt::format("Window {}: Draw 2D function disabled", _id));
     }
 }
 
 void Window::setCallDraw3DFunction(bool state) {
     _hasCallDraw3DFunction = state;
     if (!_hasCallDraw3DFunction) {
-        Log::Info("Window %d: Draw 3D function disabled", _id);
+        Log::Info(fmt::format("Window {}: Draw 3D function disabled", _id));
     }
 }
 
 void Window::setBlitPreviousWindow(bool state) {
     _shouldBitPreviousWindow = state;
     if (_shouldBitPreviousWindow) {
-        Log::Info("Window %d: BlitPreviousWindow enabled", _id);
+        Log::Info(fmt::format("Window {}: BlitPreviousWindow enabled", _id));
     }
 }
 
@@ -772,10 +783,10 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         else {
             mon = glfwGetPrimaryMonitor();
             if (_monitorIndex >= count) {
-                Log::Info(
-                    "Window(%d): Invalid monitor index (%d). Computer has %d monitors",
+                Log::Info(fmt::format(
+                    "Window({}): Invalid monitor index ({}). Computer has {} monitors",
                     _id, _monitorIndex, count
-                );
+                ));
             }
         }
 
@@ -886,14 +897,16 @@ void Window::initNvidiaSwapGroups() {
         if (res == GL_FALSE) {
             throw Err(3006, "Error requesting maximum number of swap groups");
         }
-        Log::Info(
-            "WGL_NV_swap_group extension is supported. Max number of groups: %d. "
-            "Max number of barriers: %d", maxGroup, maxBarrier
-        );
+        Log::Info(fmt::format(
+            "WGL_NV_swap_group extension is supported. Max number of groups: {}. "
+            "Max number of barriers: {}", maxGroup, maxBarrier
+        ));
 
         if (maxGroup > 0) {
             _useSwapGroups = wglJoinSwapGroupNV(hDC, 1) == GL_TRUE;
-            Log::Info("Joining swapgroup 1 [%s]", _useSwapGroups ? "ok" : "failed");
+            Log::Info(fmt::format(
+                "Joining swapgroup 1 [{}]", _useSwapGroups ? "ok" : "failed"
+            ));
         }
         else {
             Log::Error("No swap group found. This instance will not use swap groups");
@@ -988,7 +1001,9 @@ void Window::createTextures() {
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
-        Log::Error("Window %d: Requested framebuffer too big (Max: %d)", _id, max);
+        Log::Error(fmt::format(
+            "Window {}: Requested framebuffer too big (Max: {})", _id, max
+        ));
         return;
     }
 
@@ -1011,7 +1026,7 @@ void Window::createTextures() {
         generateTexture(_frameBufferTextures.positions, TextureType::Position);
     }
 
-    Log::Debug("Targets initialized successfully for window %d", _id);
+    Log::Debug(fmt::format("Targets initialized successfully for window {}", _id));
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
@@ -1028,7 +1043,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
     {
         switch (t) {
             case TextureType::Color:
-                return { _internalColorFormat, _colorFormat, _colorDataType };
+                return { _internalColorFormat, ColorFormat, _colorDataType };
             case TextureType::Depth:
                 return { GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT };
             case TextureType::Normal:
@@ -1050,7 +1065,7 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
         std::get<2>(formats),
         nullptr
     );
-    Log::Debug("%dx%d texture generated for window %d", res.x, res.y, id);
+    Log::Debug(fmt::format("{}x{} texture generated for window {}", res.x, res.y, id));
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1065,10 +1080,10 @@ void Window::createFBOs() {
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _mirror);
 
-    Log::Debug(
-        "Window %d: FBO initiated successfully. Number of samples: %d",
+    Log::Debug(fmt::format(
+        "Window {}: FBO initiated successfully. Number of samples: {}",
         _id, _finalFBO->isMultiSampled() ? _nAASamples : 1
-    );
+    ));
 }
 
 void Window::createVBOs() {
@@ -1084,10 +1099,7 @@ void Window::createVBOs() {
     };
 
     glGenVertexArrays(1, &_vao);
-    Log::Debug("Window: Generating VAO: %d", _vao);
-
     glGenBuffers(1, &_vbo);
-    Log::Debug("Window: Generating VBO: %d", _vbo);
 
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);

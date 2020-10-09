@@ -20,9 +20,12 @@ parallel tools: {
       deleteDir();
       checkoutGit();
     }
-    stage('tools/cppcheck/create') {
+    stage('tools/cppcheck') {
       createDirectory('build');
-      sh 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -i support include src 2> build/cppcheck.xml';
+      sh(
+        script: 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -i support include src 2> build/cppcheck.xml',
+        label: 'CPPCheck'
+      )
       recordIssues(
         id: 'tools-cppcheck',
         tool: cppCheck()

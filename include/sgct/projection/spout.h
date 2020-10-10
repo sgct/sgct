@@ -25,7 +25,7 @@ public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 
     SpoutOutputProjection(const Window* parent);
-    virtual ~SpoutOutputProjection();
+    ~SpoutOutputProjection() final;
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
         bool zRight);
@@ -52,15 +52,12 @@ private:
     void initShaders() override;
     void initFBO() override;
 
-    void drawCubeFace(BaseViewport& viewport, RenderData renderData);
-    void renderFace(const Window& window, BaseViewport& vp, unsigned int idx,
-        Frustum::Mode frustumMode);
-    void blitCubeFace(int face);
-    void attachTextures(int face);
-
     // shader locations
     struct {
         int cubemap = -1;
+        int depthCubemap = -1;
+        int normalCubemap = -1;
+        int positionCubemap = -1;
         int halfFov = -1;
         int swapColor = -1;
         int swapDepth = -1;

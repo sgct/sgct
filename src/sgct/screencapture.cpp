@@ -215,7 +215,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         }
     }(_eyeIndex);
 
-    std::array<char, 7> Buffer;
+    std::array<char, 6> Buffer;
     std::fill(Buffer.begin(), Buffer.end(), '\0');
     fmt::format_to_n(Buffer.data(), Buffer.size(), "{:06}", frameNumber);
 
@@ -252,7 +252,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
         file += eyeSuffix + '_';
     }
 
-    return file + std::string(Buffer.begin(), Buffer.end())  + '.' + suffix;
+    return file + std::string(Buffer.begin(), Buffer.end()) + '.' + suffix;
 }
 
 int ScreenCapture::availableCaptureThread() {

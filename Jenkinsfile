@@ -35,6 +35,7 @@ parallel tools: {
     //   createDirectory('build');
     //   sh 'cloc --by-file --exclude-dir=build,example,ext --xml --out=build/cloc.xml --quiet .';
     // }
+    cleanWs()
   } // node('tools')
 },
 linux_gcc: {
@@ -63,6 +64,7 @@ linux_gcc: {
         steps: [[ args: "-- -j4", withCmake: true ]]
       ])
     }
+    cleanWs()
   } // node('linux' && 'gcc')
 },
 linux_clang: {
@@ -91,6 +93,7 @@ linux_clang: {
         steps: [[ args: "-- -j4", withCmake: true ]]
       ])
     }
+    cleanWs()
   } // node('linux' && 'clang')
 },
 windows: {
@@ -123,6 +126,7 @@ windows: {
         label: 'Generate build-scripts with cmake and execute them'
       ) 
     }
+    cleanWs()
   } // node('windows')
 },
 macos: {
@@ -147,5 +151,6 @@ macos: {
         steps: [[ args: "-- -quiet -parallelizeTargets -jobs 4", withCmake: true ]]
       ])
     }
+    cleanWs()
   } // node('macos')
 }

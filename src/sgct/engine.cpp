@@ -1479,7 +1479,12 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
         if (_shouldTerminate || !NetworkManager::instance().isRunning() ||
             thisNode.closeAllWindows())
         {
-            exit(0);
+            // We can't just exit as the client application might need the OpenGL state
+            // for some cleanup.  Instead, we are calling the terminate function which
+            // will cause the first `render` call to be bypassed and the cleanup should
+            // work as expected
+            terminate();
+            break;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

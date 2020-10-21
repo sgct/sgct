@@ -116,11 +116,11 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // Get host info
     //
     // get name & local IPs. retrieves the standard host name for the local computer
-    char tmpStr[128];
+    std::array<char, 256> Buffer;
     {
         ZoneScopedN("gethostname")
-        const int res = gethostname(tmpStr, sizeof(tmpStr));
-        if (res == SOCKET_ERROR) {
+        const int res = gethostname(Buffer.data(), Buffer.size());
+        if (!res == SOCKET_ERROR) {
 #ifdef WIN32
             WSACleanup();
 #endif
@@ -128,7 +128,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         }
     }
 
-    std::string hostName = tmpStr;
+    std::string hostName = Buffer.data();
     // add hostname and adress in lower case
     std::transform(
         hostName.cbegin(),
@@ -152,7 +152,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
         #ifdef __APPLE__
             int result = getaddrinfo("localhost", "http", &hints, &info);
         #else
-            int result = getaddrinfo(tmpStr, "http", &hints, &info);
+            int result = getaddrinfo(Buffer.data(), "http", &hints, &info);
         #endif // __APPLE__
     if (result != 0) {
             std::string err = std::to_string(Network::lastError());
@@ -595,7 +595,9 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
         }
 
         // Check if any external connection
-        if (connection->type() == Network::ConnectionType::ExternalConnection) {
+        if (connection->type() == Network::ConnectionType::ExternalConnection &&
+            connection->isConnected())
+        {
             const bool status = connection->isConnected();
             const std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));

@@ -120,7 +120,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     {
         ZoneScopedN("gethostname")
         const int res = gethostname(Buffer.data(), Buffer.size());
-        if (!res == SOCKET_ERROR) {
+        if (res != SOCKET_ERROR) {
 #ifdef WIN32
             WSACleanup();
 #endif

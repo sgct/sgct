@@ -28,13 +28,6 @@
 #include <tracy/TracyOpenGL.hpp>
 #endif
 
-#ifdef TRACY_ENABLE
-
-void* operator new(size_t count);
-void operator delete(void* ptr) noexcept;
-
-#endif // TRACY_ENABLE
-
 #ifdef WIN32
 #pragma warning(pop)
 #elif defined(__GNUC__)

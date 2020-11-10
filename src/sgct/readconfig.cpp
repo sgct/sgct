@@ -960,7 +960,9 @@ config::Cluster readConfig(const std::string& filename) {
     // First save the old current working directory, set the new one
     std::filesystem::path oldPwd = std::filesystem::current_path();
     std::filesystem::path configFolder = std::filesystem::path(filename).parent_path();
-    std::filesystem::current_path(configFolder);
+    if (!configFolder.empty()) {
+        std::filesystem::current_path(configFolder);
+    }
 
     // Then load the cluster
     config::Cluster cluster = readXMLFile(filename);

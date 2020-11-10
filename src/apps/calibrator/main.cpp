@@ -585,6 +585,19 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    Log::Info("===========");
+    Log::Info("Keybindings");
+    Log::Info("SPACE: Toggle between grid and box");
+    Log::Info("Enter: Run Frontbuffer/Backbuffer tests");
+    Log::Info("ESC:   Terminate the program");
+    Log::Info("I:     Show node id and IP");
+    Log::Info("S:     Show statistics graphs");
+    Log::Info("P:     Take screenshot");
+    Log::Info("B:     Toggle capturing the back buffer");
+    Log::Info("===========");
+
+
+
     Engine::instance().render();
     Engine::destroy();
     exit(EXIT_SUCCESS);

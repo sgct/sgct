@@ -10,7 +10,11 @@
 #include <sgct/opengl.h>
 #include <fmt/format.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <numeric>
+
+#pragma optimize ("", off)
 
 namespace {
     struct {
@@ -19,14 +23,16 @@ namespace {
         GLuint iboLine = 0;
         int nVertLine = 0;
 
-        GLint matrixLocation = -1;
+        GLint mvpMatrixLocation = -1;
+        GLint cameraMatrixLocation = -1;
     } grid;
 
     struct {
         GLuint vao = 0;
         GLuint vbo = 0;
 
-        GLint matrixLocation = -1;
+        GLint mvpMatrixLocation = -1;
+        GLint cameraMatrixLocation = -1;
 
         GLuint textureFront = 0;
         GLuint textureRight = 0;
@@ -39,6 +45,9 @@ namespace {
     bool runTests = false;
     uint64_t frameNumber = 0;
 
+    float phi = glm::pi<float>();
+    float theta = 0.f;
+      
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
     bool renderGrid = true;
@@ -56,7 +65,8 @@ layout(location = 0) in vec2 in_position;
 out vec4 tr_color;
 
 uniform float radius;
-uniform mat4 matrix;
+uniform mat4 mvp;
+uniform mat4 camera;
 
 const float PI = 3.141592654;
 const float PI_HALF = PI / 2.0;
@@ -70,7 +80,7 @@ void main() {
     radius * sin(elevation),
     -radius * cos(elevation) * cos(azimuth)
   );
-  gl_Position = matrix * vec4(p, 1.0);
+  gl_Position = mvp * camera * vec4(p, 1.0);
   tr_color = vec4(p, 1.0);
 }
 )";
@@ -92,10 +102,11 @@ layout(location = 1) in vec2 in_uv;
 
 out vec2 tr_uv;
 
-uniform mat4 matrix;
+uniform mat4 mvp;
+uniform mat4 camera;
 
 void main() {
-    gl_Position = matrix * vec4(in_position, 1.0);
+    gl_Position = mvp * camera * vec4(in_position, 1.0);
     tr_uv = in_uv;
 }
 )";
@@ -203,7 +214,8 @@ void initializeGrid() {
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("grid");
     prog.bind();
-    grid.matrixLocation = glGetUniformLocation(prog.id(), "matrix");
+    grid.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
+    grid.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
     glUniform1f(glGetUniformLocation(prog.id(), "radius"), radius);
     prog.unbind();
 }
@@ -319,7 +331,8 @@ void initializeBox() {
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("box");
     prog.bind();
-    box.matrixLocation = glGetUniformLocation(prog.id(), "matrix");
+    box.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
+    box.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
     glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
     prog.unbind();
 }
@@ -341,9 +354,24 @@ void postSyncPreDraw() {
 
 void draw(const RenderData& data) {
     const mat4 mvp = data.modelViewProjectionMatrix;
+
+    glm::vec3 direction = {
+        std::cos(theta) * std::sin(phi),
+        std::sin(theta),
+        std::cos(theta) * std::cos(phi)
+    };
+    glm::vec3 right = {
+        std::sin(phi - glm::half_pi<float>()),
+        0.f,
+        std::cos(phi - glm::half_pi<float>())
+    };
+    glm::vec3 up = glm::cross(right, direction);
+    const glm::mat4 c = glm::lookAt(glm::vec3(0.f), direction, up);
+
     if (renderGrid) {
         ShaderManager::instance().shaderProgram("grid").bind();
-        glUniformMatrix4fv(grid.matrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(grid.mvpMatrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(grid.vao);
         glDrawElements(GL_LINE_STRIP, grid.nVertLine, GL_UNSIGNED_SHORT, nullptr);
         glBindVertexArray(0);
@@ -352,7 +380,8 @@ void draw(const RenderData& data) {
 
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
-        glUniformMatrix4fv(box.matrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values);
+        glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(box.vao);
 
         glActiveTexture(GL_TEXTURE0);
@@ -499,6 +528,8 @@ std::vector<std::byte> encode() {
     serializeObject(data, frameNumber);
     serializeObject(data, showId);
     serializeObject(data, showStats);
+    serializeObject(data, theta);
+    serializeObject(data, phi);
     return data;
 }
 
@@ -511,6 +542,8 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, frameNumber);
     deserializeObject(data, pos, showId);
     deserializeObject(data, pos, showStats);
+    deserializeObject(data, pos, theta);
+    deserializeObject(data, pos, phi);
 }
 
 void cleanup() {
@@ -556,6 +589,38 @@ void keyboard(Key key, Modifier, Action action, int) {
     if (key == Key::B && action == Action::Press) {
         captureBackbuffer = !captureBackbuffer;
     }
+
+    if (key == Key::Left && (action == Action::Press || action == Action::Repeat)) {
+        phi += 0.1f;
+        if (phi > glm::two_pi<float>()) {
+            phi -= glm::two_pi<float>();
+        }
+    }
+
+    if (key == Key::Right && (action == Action::Press || action == Action::Repeat)) {
+        phi -= 0.1f;
+        if (phi < -glm::two_pi<float>()) {
+            phi += glm::two_pi<float>();
+        }
+    }
+
+    if (key == Key::Down && (action == Action::Press || action == Action::Repeat)) {
+        theta -= 0.1f;
+        theta = std::clamp(
+            theta,
+            -glm::half_pi<float>() + 0.1f,
+            glm::half_pi<float>() - 0.1f
+        );
+    }
+
+    if (key == Key::Up && (action == Action::Press || action == Action::Repeat)) {
+        theta += 0.1f;
+        theta = std::clamp(
+            theta,
+            -glm::half_pi<float>() + 0.1f,
+            glm::half_pi<float>() - 0.1f
+        );
+    }
 }
 
 int main(int argc, char** argv) {
@@ -588,6 +653,10 @@ int main(int argc, char** argv) {
     Log::Info("===========");
     Log::Info("Keybindings");
     Log::Info("SPACE: Toggle between grid and box");
+    Log::Info("LEFT:  Move camera pointing to the left");
+    Log::Info("RIGHT: Move camera pointing to the right");
+    Log::Info("UP:    Move camera pointing to up");
+    Log::Info("DOWN:  Move camera pointing to down");
     Log::Info("Enter: Run Frontbuffer/Backbuffer tests");
     Log::Info("ESC:   Terminate the program");
     Log::Info("I:     Show node id and IP");

@@ -266,16 +266,16 @@ void Window::close() {
 
     // delete FBO stuff
     if (_finalFBO) {
-        Log::Info(fmt::format("Releasing OpenGL buffers for window %d", _id));
+        Log::Info(fmt::format("Releasing OpenGL buffers for window {}", _id));
         _finalFBO = nullptr;
         destroyFBOs();
     }
 
-    Log::Info(fmt::format("Deleting VBOs for window %d", _id));
+    Log::Info(fmt::format("Deleting VBOs for window {}", _id));
     glDeleteBuffers(1, &_vbo);
     _vbo = 0;
 
-    Log::Info(fmt::format("Deleting VAOs for window %d", _id));
+    Log::Info(fmt::format("Deleting VAOs for window {}", _id));
     glDeleteVertexArrays(1, &_vao);
     _vao = 0;
 

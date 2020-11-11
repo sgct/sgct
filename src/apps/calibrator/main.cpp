@@ -606,20 +606,12 @@ void keyboard(Key key, Modifier, Action action, int) {
 
     if (key == Key::Down && (action == Action::Press || action == Action::Repeat)) {
         theta -= 0.1f;
-        theta = std::clamp(
-            theta,
-            -glm::half_pi<float>() + 0.1f,
-            glm::half_pi<float>() - 0.1f
-        );
+        theta = std::clamp(theta, -glm::half_pi<float>(), glm::half_pi<float>());
     }
 
     if (key == Key::Up && (action == Action::Press || action == Action::Repeat)) {
         theta += 0.1f;
-        theta = std::clamp(
-            theta,
-            -glm::half_pi<float>() + 0.1f,
-            glm::half_pi<float>() - 0.1f
-        );
+        theta = std::clamp(theta, -glm::half_pi<float>(), glm::half_pi<float>());
     }
 }
 

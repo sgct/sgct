@@ -13,8 +13,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <numeric>
-
-#pragma optimize ("", off)
+#include <thread>
 
 namespace {
     struct {
@@ -309,20 +308,77 @@ void initializeBox() {
     );
     glBindVertexArray(0);
 
-    Log::Info("Loading test-pattern-0.png");
-    box.textureFront = TextureManager::instance().loadTexture("test-pattern-0.png", true);
-    Log::Info("Loading test-pattern-1.png");
-    box.textureRight = TextureManager::instance().loadTexture("test-pattern-1.png", true);
-    Log::Info("Loading test-pattern-2.png");
-    box.textureBack = TextureManager::instance().loadTexture("test-pattern-2.png", true);
-    Log::Info("Loading test-pattern-3.png");
-    box.textureLeft = TextureManager::instance().loadTexture("test-pattern-3.png", true);
-    Log::Info("Loading test-pattern-4.png");
-    box.textureTop = TextureManager::instance().loadTexture("test-pattern-4.png", true);
-    Log::Info("Loading test-pattern-5.png");
-    box.textureBottom =
-        TextureManager::instance().loadTexture("test-pattern-5.png", true);
 
+    struct ImageData {
+        std::string filename;
+        Image img;
+        std::atomic_bool imageDone = false;
+        std::atomic_bool uploadDone = false;
+        std::atomic_bool threadDone = false;
+    };
+    auto loadImage = [](ImageData& data) {
+        data.img.load(data.filename);
+        data.imageDone = true;
+        while (!data.uploadDone) {}
+        data.img = Image();
+        data.threadDone = true;
+    };
+
+    Log::Info("Loading test pattern images...");
+
+    ImageData front;
+    front.filename = "test-pattern-0.png";
+    std::thread t1(loadImage, std::ref(front));
+
+    ImageData right;
+    right.filename = "test-pattern-1.png";
+    std::thread t2(loadImage, std::ref(right));
+
+    ImageData back;
+    back.filename = "test-pattern-2.png";
+    std::thread t3(loadImage, std::ref(back));
+
+    ImageData left;
+    left.filename = "test-pattern-3.png";
+    std::thread t4(loadImage, std::ref(left));
+
+    ImageData top;
+    top.filename = "test-pattern-4.png";
+    std::thread t5(loadImage, std::ref(top));
+
+    ImageData bottom;
+    bottom.filename = "test-pattern-5.png";
+    std::thread t6(loadImage, std::ref(bottom));
+
+    while (!front.imageDone || !right.imageDone || !back.imageDone ||
+           !left.imageDone || !top.imageDone || !bottom.imageDone)
+    {}
+
+    box.textureFront = TextureManager::instance().loadTexture(std::move(front.img));
+    front.uploadDone = true;
+    box.textureRight = TextureManager::instance().loadTexture(std::move(right.img));
+    right.uploadDone = true;
+    box.textureBack = TextureManager::instance().loadTexture(std::move(back.img));
+    back.uploadDone = true;
+    box.textureLeft = TextureManager::instance().loadTexture(std::move(left.img));
+    left.uploadDone = true;
+    box.textureTop = TextureManager::instance().loadTexture(std::move(top.img));
+    top.uploadDone = true;
+    box.textureBottom = TextureManager::instance().loadTexture(std::move(bottom.img));
+    bottom.uploadDone = true;
+
+    while (!front.threadDone) {}
+    t1.join();
+    while (!right.threadDone) {}
+    t2.join();
+    while (!back.threadDone) {}
+    t3.join();
+    while (!left.threadDone) {}
+    t4.join();
+    while (!top.threadDone) {}
+    t5.join();
+    while (!bottom.threadDone) {}
+    t6.join();
 
     ShaderManager::instance().addShaderProgram(
         "box",

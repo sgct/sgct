@@ -126,10 +126,22 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
         return 0;
     }
 
+    unsigned int t = loadTexture(
+        std::move(img),
+        interpolate,
+        anisotropicFilterSize,
+        mipmapLevels
+    );
+    Log::Debug(fmt::format("Texture created from '{}' [id={}]", filename, t));
+    return t;
+}
+
+unsigned int TextureManager::loadTexture(Image img, bool interpolate,
+                                         float anisotropicFilterSize, int mipmapLevels)
+{
     GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);
     _textures.push_back(t);
 
-    Log::Debug(fmt::format("Texture created from '{}' [id={}]", filename, t));
     return t;
 }
 

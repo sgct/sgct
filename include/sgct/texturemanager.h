@@ -26,7 +26,7 @@ public:
     static void destroy();
 
     /**
-     * Load a texture to the TextureManager.
+     * Loads a texture to the TextureManager.
      *
      * \param filename the filename or path to the texture
      * \param interpolate set to true for using interpolation (bi-linear filtering)
@@ -36,7 +36,21 @@ public:
               this value to 1 or less disables mipmaps
      * \return The OpenGL name for the texture that was loaded
      */
-    unsigned int loadTexture(const std::string& filename, bool interpolate,
+    unsigned int loadTexture(const std::string& filename, bool interpolate = true,
+        float anisotropicFilterSize = 1.f, int mipmapLevels = 8);
+
+    /**
+     * Loads a texture to the TextureManager.
+     *
+     * \param img The image with the texture data
+     * \param interpolate set to true for using interpolation (bi-linear filtering)
+     * \param anisotropicFilterSize The filter size that is used for the anisotropic
+     *        filtering. If this value is 1.f, only bilinear filtering is used
+     * \param mipmapLevels is the number of mipmap levels that will be generated, setting
+              this value to 1 or less disables mipmaps
+     * \return The OpenGL name for the texture that was loaded
+     */
+    unsigned int loadTexture(Image img, bool interpolate = true,
         float anisotropicFilterSize = 1.f, int mipmapLevels = 8);
 
     /**

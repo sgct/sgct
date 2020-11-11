@@ -330,6 +330,8 @@ void validateNode(const Node& node);
 
 
 struct Cluster {
+    bool success = false;
+
     std::string masterAddress;
     std::optional<bool> debugLog;
     std::optional<int> setThreadAffinity;

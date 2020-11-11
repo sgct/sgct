@@ -948,6 +948,7 @@ namespace {
             nodeElem = nodeElem->NextSiblingElement("Node");
         }
 
+        cluster.success = true;
         return cluster;
     }
 } // namespace

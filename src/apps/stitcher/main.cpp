@@ -446,6 +446,9 @@ int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     Configuration config = parseArguments(arguments);
     config::Cluster cluster = loadCluster(config.configFilename);
+    if (!cluster.success) {
+        return -1;
+    }
 
     // parse arguments
     for (int i = 0; i < argc; i++) {

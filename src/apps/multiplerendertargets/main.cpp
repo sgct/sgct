@@ -179,6 +179,10 @@ int main(int argc, char** argv) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
+    if (!cluster.success) {
+        return -1;
+    }
+
     if (cluster.settings) {
         cluster.settings->useNormalTexture = true;
         cluster.settings->usePositionTexture = true;

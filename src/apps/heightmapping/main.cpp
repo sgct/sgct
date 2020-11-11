@@ -251,7 +251,9 @@ void preSync() {
 
 void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(stats);
+#ifdef SGCT_HAS_VRPN
     TrackingManager::instance().setEnabled(useTracking);
+#endif / SGCT_HAS_VRPN
 
     if (takeScreenshot) {
         Engine::instance().takeScreenshot();
@@ -400,6 +402,9 @@ int main(int argc, char** argv) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
+    if (!cluster.success) {
+        return -1;
+    }
 
     Engine::Callbacks callbacks;
     callbacks.initOpenGL = initOGL;

@@ -254,15 +254,17 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         catch (const std::runtime_error& e) {
             std::cout << e.what() << '\n';
             std::cout << helpMessage() << '\n';
-            throw;
+            return config::Cluster();
         }
         catch (...) {
             std::cout << helpMessage() << '\n';
-            throw;
+            return config::Cluster();
         }
     }
     else {
         config::Cluster cluster;
+        cluster.success = true;
+
         // Create a default configuration
         constexpr const float hFov = 90.f;
         constexpr const float vFov = hFov / (16.f / 9.f);

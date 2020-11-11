@@ -277,6 +277,9 @@ int main(int argc, char** argv) {
     std::vector<std::string> arg(argv + 1, argv + argc);
     Configuration config = parseArguments(arg);
     config::Cluster cluster = loadCluster(config.configFilename);
+    if (!cluster.success) {
+        return -1;
+    }
 
     for (int i = 0; i < argc; i++) {
         std::string_view v(argv[i]);

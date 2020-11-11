@@ -14,141 +14,400 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
+#include <fstream>
+#include <optional>
+
+namespace {
+    struct Data {
+        int nVertices = 0;
+        int nFaces = 0;
+
+        struct Vertex {
+            float x = 0.f;
+            float y = 0.f;
+            int intensity = 255;
+            float s = 0.f;
+            float t = 0.f;
+        };
+        std::vector<Vertex> vertices;
+
+        struct Face {
+            unsigned int f1 = 0;
+            unsigned int f2 = 0;
+            unsigned int f3 = 0;
+        };
+        std::vector<Face> faces;
+
+        struct {
+            float left = 0.f;
+            float right = 1.f;
+            float top = 1.f;
+            float bottom = 0.f;
+        } ortho;
+
+        struct {
+            // @TODO (abock, 2020-11-11)  We don't support perpective offsets for individual
+            //       viewports right now, so we can't really do anything with these values yet
+            struct {
+                float x = 0.f;
+                float y = 0.f;
+                float z = 0.f;
+            } offset;
+
+            struct {
+                float pitch = 0.f;
+                float yaw = 0.f;
+                float roll = 0.f;
+            } direction;
+
+            struct {
+                float left = 0.f;
+                float right = 0.f;
+                float top = 0.f;
+                float bottom = 0.f;
+            } fov;
+        } perspective;
+
+        struct {
+            bool useAngles = false;
+            float yaw = 0.f;
+            float pitch = 0.f;
+            float roll = 0.f;
+        } frustumEulerAngles;
+
+        struct {
+            int x = 0;
+            int y = 0;
+        } nativeResolution;
+
+        float gamma = 2.2f;
+        bool doNotWarp = false;
+        std::string label;
+
+        bool applyMask = false;
+        bool applyBlackLevel = false;
+        bool applyColor = false;
+    };
+} // namespace
 
 namespace sgct::correction {
 
 Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2& size) {
     ZoneScoped
 
-    Buffer buf;
+        Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
 
-    Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
-
-    FILE* meshFile = fopen(path.c_str(), "r");
-    if (meshFile == nullptr) {
+    std::ifstream file(path);
+    if (!file.good()) {
         throw Error(
-            Error::Component::Scalable, 2060,
-            fmt::format("Failed to open '{}'", path)
+            Error::Component::Scalable, 2060, fmt::format("Failed to open '{}'", path)
         );
     }
 
-    unsigned int numOfVerticesRead = 0;
-    size_t numOfFacesRead = 0;
-    unsigned int numberOfFaces = 0;
-    unsigned int numberOfVertices = 0;
-    unsigned int numberOfIndices = 0;
+    Data data;
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) {
+            continue;
+        }
 
-    double leftOrtho = 0.0;
-    double rightOrtho = 0.0;
-    double bottomOrtho = 0.0;
-    double topOrtho = 0.0;
-    glm::ivec2 res = glm::ivec2(0);
+        std::string_view v = line;
+        size_t separator = v.find(' ');
+        std::string_view first = v.substr(0, separator);
+        std::string_view rest = v.substr(separator + 1);
 
-    while (!feof(meshFile)) {
-        constexpr const int MaxLineLength = 1024;
-        char lineBuffer[MaxLineLength];
-
-        if (fgets(lineBuffer, MaxLineLength, meshFile)) {
-            float x, y, s, t;
-            unsigned int a, b, c;
-            unsigned int intensity;
-            if (sscanf(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5) {
-                if (!buf.vertices.empty() && res.x != 0 && res.y != 0) {
-                    CorrectionMeshVertex& vertex = buf.vertices[numOfVerticesRead];
-                    vertex.x = (x / static_cast<float>(res.x)) * size.x + pos.x;
-                    vertex.y = (y / static_cast<float>(res.y)) * size.y + pos.y;
-                    vertex.r = static_cast<float>(intensity) / 255.f;
-                    vertex.g = static_cast<float>(intensity) / 255.f;
-                    vertex.b = static_cast<float>(intensity) / 255.f;
-                    vertex.a = 1.f;
-                    vertex.s = (1.f - t) * size.x + pos.x;
-                    vertex.t = (1.f - s) * size.y + pos.y;
-
-                    numOfVerticesRead++;
-                }
+        if (first == "OPENMESH") {
+            if (rest != "Version 1.1") {
+                Log::Warning(fmt::format(
+                    "Found {} in mesh '{}' but expected Version 1.1 so the loading might "
+                    "misbehave", rest, path
+                ));
             }
-            else if (sscanf(lineBuffer, "[ %u %u %u ]", &a, &b, &c) == 3) {
-                if (!buf.indices.empty()) {
-                    buf.indices[numOfFacesRead * 3] = a;
-                    buf.indices[numOfFacesRead * 3 + 1] = b;
-                    buf.indices[numOfFacesRead * 3 + 2] = c;
-                }
-
-                numOfFacesRead++;
+        }
+        else if (first == "VERTICES") {
+            data.nVertices = std::stoi(std::string(rest));
+            data.vertices.reserve(data.nVertices);
+        }
+        else if (first == "FACES") {
+            data.nFaces = std::stoi(std::string(rest));
+            data.faces.reserve(data.nFaces);
+        }
+        else if (first == "MAPPING") {
+            if (rest != "NORMALIZED") {
+                Log::Warning(fmt::format(
+                    "Found mapping '{}' in mesh '{}' but only 'NORMALIZED' is supported",
+                    rest, path
+                ));
             }
-            else {
-                char tmpBuf[16];
-                tmpBuf[0] = '\0';
-                double tmpD = 0.0;
-                unsigned int tmpUI = 0;
-
-                if (sscanf(lineBuffer, "VERTICES %u", &numberOfVertices) == 1) {
-                    buf.vertices.resize(numberOfVertices);
-                    std::fill(
-                        buf.vertices.begin(),
-                        buf.vertices.end(),
-                        CorrectionMeshVertex()
-                    );
-                }
-                else if (sscanf(lineBuffer, "FACES %u", &numberOfFaces) == 1) {
-                    numberOfIndices = numberOfFaces * 3;
-                    buf.indices.resize(numberOfIndices);
-                    std::fill(buf.indices.begin(), buf.indices.end(), 0);
-                }
-                else if (sscanf(lineBuffer, "ORTHO_%s %lf", tmpBuf, &tmpD) == 2) {
-                    std::string_view tmp = tmpBuf;
-                    if (tmp == "LEFT") {
-                        leftOrtho = tmpD;
-                    }
-                    else if (tmp == "RIGHT") {
-                        rightOrtho = tmpD;
-                    }
-                    else if (tmp == "BOTTOM") {
-                        bottomOrtho = tmpD;
-                    }
-                    else if (tmp == "TOP") {
-                        topOrtho = tmpD;
-                    }
-                }
-                else if (sscanf(lineBuffer, "NATIVEXRES %u", &tmpUI) == 1) {
-                    res.x = tmpUI;
-                }
-                else if (sscanf(lineBuffer, "NATIVEYRES %u", &tmpUI) == 1) {
-                    res.y = tmpUI;
-                }
+        }
+        else if (first == "SAMPLING") {
+            if (rest != "LINEAR") {
+                Log::Warning(fmt::format(
+                    "Found sampling '{}' in mesh '{}' but only 'LINEAR' is supported",
+                    rest, path
+                ));
             }
+        }
+        else if (first == "PROJECTION") {
+            if (rest != "PERSPECTIVE") {
+                Log::Warning(fmt::format(
+                    "Found projection '{}' in mesh '{}' but only 'PERSPECTIVE' is "
+                    "supported", rest, path
+                ));
+            }
+        }
+        else if (first == "ORTHO_LEFT") {
+            data.ortho.left = std::stof(std::string(rest));
+        }
+        else if (first == "ORTHO_RIGHT") {
+            data.ortho.right = std::stof(std::string(rest));
+        }
+        else if (first == "ORTHO_TOP") {
+            data.ortho.top = std::stof(std::string(rest));
+        }
+        else if (first == "ORTHO_BOTTOM") {
+            data.ortho.bottom = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_XOFFSET") {
+            data.perspective.offset.x = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_YOFFSET") {
+            data.perspective.offset.y = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_ZOFFSET") {
+            data.perspective.offset.z = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_ROLL") {
+            data.perspective.direction.roll = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_PITCH") {
+            data.perspective.direction.pitch = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_YAW") {
+            data.perspective.direction.yaw = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_LEFT") {
+            data.perspective.fov.left = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_RIGHT") {
+            data.perspective.fov.right = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_TOP") {
+            data.perspective.fov.top = std::stof(std::string(rest));
+        }
+        else if (first == "PERSPECTIVE_BOTTOM") {
+            data.perspective.fov.bottom = std::stof(std::string(rest));
+        }
+        else if (first == "NATIVEXRES") {
+            data.nativeResolution.x = std::stoi(std::string(rest));
+        }
+        else if (first == "NATIVEYRES") {
+            data.nativeResolution.y = std::stoi(std::string(rest));
+        }
+        else if (first == "SUBVERSION") {
+            int version = std::stoi(std::string(rest));
+            if (version != 5) {
+                Log::Warning(fmt::format(
+                    "Found subversion {} in mesh '{}' but only version 5 is tested",
+                    version, path
+                ));
+            }
+        }
+        else if (first == "GAMMA") {
+            float gamma = std::stof(std::string(rest));
+            if (gamma != data.gamma) {
+                data.gamma = gamma;
+                Log::Warning(fmt::format(
+                    "Found GAMMA value of {} in mesh '{}' we don't not support "
+                    "per-viewport gamma values", data.gamma, path
+                ));
+            }
+        }
+        else if (first == "DO_NO_WARP") {
+            data.doNotWarp = std::stoi(std::string(rest)) != 0;
+        }
+        else if (first == "USE_SPHERE_SAMPLE_COORDINATE_SYSTEM") {
+            bool useSphereSampling = std::stoi(std::string(rest)) != 0;
+            if (useSphereSampling) {
+                Log::Warning(fmt::format(
+                    "Found request to use Sphere Sample Coordinate System in mesh '{}' "
+                    "but we don't support this", path
+                ));
+            }
+        }
+        else if (first == "FRUSTUM_EULER_ANGLES") {
+            data.frustumEulerAngles.useAngles = std::stoi(std::string(rest)) != 0;
+            if (data.frustumEulerAngles.useAngles) {
+                Log::Warning(fmt::format(
+                    "Enabled frustum euler angles in mesh '{}' but we don't know how "
+                    "these work, yet", path
+                ));
+            }
+        }
+        else if (first == "FRUSTUM_EULER_YAW") {
+            data.frustumEulerAngles.yaw = std::stof(std::string(rest));
+        }
+        else if (first == "FRUSTUM_EULER_PITCH") {
+            data.frustumEulerAngles.pitch = std::stof(std::string(rest));
+        }
+        else if (first == "FRUSTUM_EULER_ROLL") {
+            data.frustumEulerAngles.roll = std::stof(std::string(rest));
+        }
+        else if (first == "LABEL") {
+            data.label = std::string(rest);
+        }
+        else if (first == "APPLY_MASK") {
+            data.applyMask = std::stoi(std::string(rest));
+            if (data.applyMask) {
+                Log::Warning(fmt::format(
+                    "Mesh '{}' requested to apply a mask. Currently this is handled "
+                    "outside the mesh by specifying a 'mask' attribute on the 'Viewport' "
+                    "instead", path
+                ));
+            }
+        }
+        else if (first == "APPLY_BLACK_LEVEL") {
+            data.applyBlackLevel = std::stoi(std::string(rest));
+            if (data.applyBlackLevel) {
+                Log::Warning(fmt::format(
+                    "Mesh '{}' requested to apply a blacklevel image. Currently this is "
+                    "handled outside the mesh by specifying a 'BlackLevelMask' attribute "
+                    "on the 'Viewport' instead", path
+                ));
+            }
+        }
+        else if (first == "APPLY_COLOR") {
+            data.applyColor = std::stoi(std::string(rest));
+            if (data.applyBlackLevel) {
+                Log::Warning(fmt::format(
+                    "Mesh '{}' requested to apply an overlay image. Currently this is "
+                    "handled outside the mesh by specifying an 'overlay' attribute on "
+                    "the 'Viewport' instead", path
+                ));
+            }
+        }
+        else if (first == "[") {
+            // Face
+            size_t sep = rest.find(' ');
+            std::string_view f1 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view f2 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view f3 = rest.substr(0, sep);
+
+            Data::Face f;
+            f.f1 = std::stoi(std::string(f1));
+            f.f2 = std::stoi(std::string(f2));
+            f.f3 = std::stoi(std::string(f3));
+            data.faces.push_back(f);
+        }
+        else {
+            // Nothing matched previously, so it has to be a vertex or an unknown key now
+            try {
+                // We try to convert the first value into a float.  If it succeeds, we
+                // have reached the vertices.  Otherwise we have found an unknown key
+                std::stof(std::string(first));
+            }
+            catch (const std::invalid_argument&) {
+                Log::Warning(fmt::format(
+                    "Unknown key {} found in scalable mesh '{}'. Please report usage of "
+                    "this key, preferably with an example, to the SGCT developers",
+                    first, path
+                ));
+                continue;
+            }
+
+
+            std::string_view x = first;
+
+            size_t sep = rest.find(' ');
+            std::string_view y = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view intensity = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view s = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view t = rest.substr(0, sep);
+
+            Data::Vertex vertex;
+            vertex.x = std::stof(std::string(x));
+            vertex.y = std::stof(std::string(y));
+            vertex.intensity = std::stoi(std::string(intensity));
+            vertex.s = std::stof(std::string(s));
+            vertex.t = std::stof(std::string(t));
+            data.vertices.push_back(vertex);
         }
     }
 
-    if (numberOfVertices != numOfVerticesRead || numberOfFaces != numOfFacesRead) {
+    if (data.perspective.offset.x != 0.f || data.perspective.offset.y != 0.f ||
+        data.perspective.offset.z != 0.f)
+    {
+        Log::Warning(fmt::format(
+            "Perspective offset is set in mesh '{}', but we currently don't "
+            "support per-viewport offsets", path
+        ));
+    }
+
+    if (data.nVertices != data.vertices.size() || data.nFaces != data.faces.size()) {
         throw Error(
             Error::Component::Scalable, 2061,
             fmt::format("Incorrect mesh data geometry in file '{}'", path)
         );
     }
 
-    // normalize
-    for (unsigned int i = 0; i < numberOfVertices; i++) {
-        const float xMin = static_cast<float>(leftOrtho);
-        const float xMax = static_cast<float>(rightOrtho);
-        const float yMin = static_cast<float>(bottomOrtho);
-        const float yMax = static_cast<float>(topOrtho);
-
-        // normalize between 0.0 and 1.0
-        const float xVal = (buf.vertices[i].x - xMin) / (xMax - xMin);
-        const float yVal = (buf.vertices[i].y - yMin) / (yMax - yMin);
-
-        // normalize between -1.0 to 1.0
-        buf.vertices[i].x = xVal * 2.f - 1.f;
-        buf.vertices[i].y = yVal * 2.f - 1.f;
-    }
-
-    if (meshFile) {
-        fclose(meshFile);
-    }
-
+    Buffer buf;
     buf.geometryType = GL_TRIANGLES;
+    buf.vertices.reserve(data.vertices.size());
+    for (const Data::Vertex& vertex : data.vertices) {
+        CorrectionMeshVertex v;
+        float x = (vertex.x / data.nativeResolution.x) * size.x + pos.x;
+        float y = (vertex.y / data.nativeResolution.y) * size.y + pos.y;
+
+        // Normalize vertices between 0 and 1
+        float x2 = (x - data.ortho.left) / (data.ortho.right - data.ortho.left);
+        float y2 = (y - data.ortho.bottom) / (data.ortho.top - data.ortho.bottom);
+
+        // Normalize vertices to -1.0 to 1.0
+        v.x = x2 * 2.f - 1.f;
+        v.y = y2 * 2.f - 1.f;
+
+        v.r = vertex.intensity / 255.f;
+        v.g = vertex.intensity / 255.f;
+        v.b = vertex.intensity / 255.f;
+        v.a = 1.f;
+        //v.s = (1.f - vertex.s) * size.x + pos.x;
+        v.s = (1.f - vertex.t) * size.x + pos.x;
+        //v.t = (1.f - vertex.t) * size.x + pos.x;
+        v.t = (1.f - vertex.s) * size.x + pos.x;
+
+        buf.vertices.push_back(v);
+    }
+    buf.indices.reserve(data.faces.size() * 3);
+    for (const Data::Face& face : data.faces) {
+        buf.indices.push_back(face.f1);
+        buf.indices.push_back(face.f2);
+        buf.indices.push_back(face.f3);
+    }
+
     return buf;
 }
 
 } // namespace sgct::correction
+
+
+
+
+
+
+
+

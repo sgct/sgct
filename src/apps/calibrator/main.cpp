@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <filesystem>
 #include <numeric>
 #include <thread>
 
@@ -328,26 +329,50 @@ void initializeBox() {
 
     ImageData front;
     front.filename = "test-pattern-0.png";
+    if (!std::filesystem::exists(front.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", front.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t1(loadImage, std::ref(front));
 
     ImageData right;
     right.filename = "test-pattern-1.png";
+    if (!std::filesystem::exists(right.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", right.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t2(loadImage, std::ref(right));
 
     ImageData back;
     back.filename = "test-pattern-2.png";
+    if (!std::filesystem::exists(back.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", back.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t3(loadImage, std::ref(back));
 
     ImageData left;
     left.filename = "test-pattern-3.png";
+    if (!std::filesystem::exists(left.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", left.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t4(loadImage, std::ref(left));
 
     ImageData top;
     top.filename = "test-pattern-4.png";
+    if (!std::filesystem::exists(top.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", top.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t5(loadImage, std::ref(top));
 
     ImageData bottom;
     bottom.filename = "test-pattern-5.png";
+    if (!std::filesystem::exists(bottom.filename)) {
+        Log::Error(fmt::format("Could not find image '{}'", bottom.filename));
+        exit(EXIT_FAILURE);
+    }
     std::thread t6(loadImage, std::ref(bottom));
 
     while (!front.imageDone || !right.imageDone || !back.imageDone ||

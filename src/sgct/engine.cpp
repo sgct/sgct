@@ -281,6 +281,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         viewport.projection = proj;
 
         sgct::config::Window window;
+        window.id = 0;
         window.isFullScreen = false;
         window.size = ivec2{ 1280, 720 };
         window.viewports.push_back(viewport);
@@ -1264,15 +1265,16 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             }
 
             // check if we want to blit the previous window before we do anything else
-            if (win.shouldBlitPreviousWindow()) {
-                if (win.id() == 0) {
-                    Log::Error("Cannot blit into first window");
-                }
-                else {
-                    const int prevId = win.id() - 1;
-                    Window& prevWindow = *windows()[prevId];
-                    blitPreviousWindowViewport(prevWindow, win, *vp, frustum);
-                }
+            if (win.blitWindowId() >= 0) {
+                const std::vector<std::unique_ptr<Window>>& wins = windows();
+                auto it = std::find_if(
+                    wins.cbegin(), wins.cend(),
+                    [id = win.blitWindowId()](const std::unique_ptr<Window>& win) {
+                        return win->id() == id;
+                    }
+                );
+                assert(it != wins.cend());
+                blitWindowViewport(**it, win, *vp, frustum);
             }
 
             if (win.shouldCallDraw3DFunction()) {
@@ -1301,8 +1303,27 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    if (!win.shouldCallDraw3DFunction() && !win.shouldBlitPreviousWindow()) {
+    const bool no3D = !win.shouldCallDraw3DFunction();
+    const int blitId = win.blitWindowId();
+    if (!win.shouldCallDraw3DFunction() && blitId == -1) {
         setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+    }
+    else {
+        if (blitId != -1) {
+            const std::vector<std::unique_ptr<Window>>& wins = windows();
+            auto it = std::find_if(
+                wins.cbegin(), wins.cend(),
+                [id = win.blitWindowId()](const std::unique_ptr<Window>& win) {
+                return win->id() == id;
+            }
+            );
+            assert(it != wins.cend());
+            const Window& srcWin = **it;
+
+            if (!srcWin.isVisible() && !srcWin.isRenderingWhileHidden()) {
+                setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
+            }
+        }
     }
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1520,8 +1541,8 @@ void Engine::updateFrustums() {
     }
 }
 
-void Engine::blitPreviousWindowViewport(Window& prevWindow, Window& window,
-                                        const Viewport& viewport, Frustum::Mode mode)
+void Engine::blitWindowViewport(Window& prevWindow, Window& window,
+                                const Viewport& viewport, Frustum::Mode mode)
 {
     ZoneScoped
 

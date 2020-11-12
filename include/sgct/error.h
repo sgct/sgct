@@ -58,7 +58,10 @@ namespace sgct {
  * 1104: Window / MPCDI file must not be empty
  * 1105: Window / Window must contain at least one viewport
  * 1106: Window / Cannot use an MPCDI file and explicitly add viewports simultaneously
- * 1107: Window / First window cannot be blitted into as there is no source
+ * 1107: Window / Window id must be non-negative and unique [%i used multiple times]
+ * 1108: Window / Tried to configure window %i to be blitted from window %i, but no such
+                  window was specified
+ * 1109: Window / Window %i tried to blit from itself, which cannot work
  * 1110: Node / Node address must not be empty
  * 1111: Node / Node port must be non-negative
  * 1112: Node / Node data transfer port must be non-negative

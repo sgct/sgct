@@ -10,6 +10,7 @@
 
 #include <sgct/error.h>
 #include <sgct/profiling.h>
+#include <fmt/format.h>
 #include <algorithm>
 #include <assert.h>
 #include <functional>
@@ -234,7 +235,7 @@ void validateViewport(const Viewport& v, bool draw3D) {
     );
 }
 
-void validateWindow(const Window& w, bool isFirstWindow) {
+void validateWindow(const Window& w) {
     ZoneScoped
 
     if (w.name && w.name->empty()) {
@@ -262,9 +263,6 @@ void validateWindow(const Window& w, bool isFirstWindow) {
             "Cannot use an MPCDI file and explicitly add viewports simultaneously"
         );
     }
-    if (isFirstWindow && w.blitPreviousWindow && *w.blitPreviousWindow) {
-        throw Error(1107, "First window cannot be blitted into as there is no source");
-    }
 
     for (const Viewport& vp : w.viewports) {
         validateViewport(vp, *w.draw3D);
@@ -286,8 +284,49 @@ void validateNode(const Node& n) {
     if (n.windows.empty()) {
         throw Error(1113, "Every node must contain at least one window");
     }
+    std::vector<int> usedIds;
     for (size_t i = 0; i < n.windows.size(); ++i) {
-        validateWindow(n.windows[i], i == 0);
+        const Window& win = n.windows[i];
+        validateWindow(win);
+
+        if (win.id < 0) {
+            throw Error(1107, "Window id must be non-negative and unique");
+        }
+
+        if (std::find(usedIds.begin(), usedIds.end(), win.id) != usedIds.end()) {
+            throw Error(
+                1107,
+                fmt::format(
+                    "Window id must be non-negative and unique. {} used multiple times",
+                    win.id
+                )
+            );
+        }
+        usedIds.push_back(win.id);
+
+        if (win.blitWindowId.has_value()) {
+            auto it = std::find_if(
+                n.windows.cbegin(), n.windows.cend(),
+                [id = *win.blitWindowId](const Window& win) { return win.id == id; }
+            );
+            if (it == n.windows.cend()) {
+                throw Error(
+                    1108,
+                    fmt::format(
+                        "Tried to configure window {} to be blitted from window {}, but "
+                        "no such window was specified", win.id, *win.blitWindowId
+                    )
+                );
+            }
+            if (win.id == *win.blitWindowId) {
+                throw Error(
+                    1109,
+                    fmt::format(
+                        "Window {} tried to blit from itself, which cannot work", win.id
+                    )
+                );
+            }
+        }
     }
 }
 

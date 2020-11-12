@@ -579,9 +579,16 @@ namespace {
         return scene;
     }
 
-    sgct::config::Window parseWindow(tinyxml2::XMLElement& elem) {
+    sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
         sgct::config::Window window;
 
+        std::optional<int> id = parseValue<int>(elem, "id");
+        if (id.has_value()) {
+            window.id = *id;
+        }
+        else {
+            window.id = count;
+        }
         if (const char* a = elem.Attribute("name"); a) {
             window.name = a;
         }
@@ -608,7 +615,7 @@ namespace {
         window.isMirrored = parseValue<bool>(elem, "mirror");
         window.draw2D = parseValue<bool>(elem, "draw2D");
         window.draw3D = parseValue<bool>(elem, "draw3D");
-        window.blitPreviousWindow = parseValue<bool>(elem, "blitPreviousWindow");
+        window.blitWindowId = parseValue<int>(elem, "blitWindowId");
         window.monitor = parseValue<int>(elem, "monitor");
 
         if (const char* a = elem.Attribute("mpcdi"); a) {
@@ -670,10 +677,12 @@ namespace {
         node.swapLock = parseValue<bool>(elem, "swapLock");
 
         tinyxml2::XMLElement* wnd = elem.FirstChildElement("Window");
+        int count = 0;
         while (wnd) {
-            sgct::config::Window window = parseWindow(*wnd);
+            sgct::config::Window window = parseWindow(*wnd, count);
             node.windows.push_back(window);
             wnd = wnd->NextSiblingElement("Window");
+            ++count;
         }
 
         return node;

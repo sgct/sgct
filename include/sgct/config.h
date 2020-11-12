@@ -288,6 +288,7 @@ struct Window {
         TopBottomInverted
     };
 
+    int id;
     std::optional<std::string> name;
     std::vector<std::string> tags;
     std::optional<ColorBitDepth> bufferBitDepth;
@@ -304,7 +305,7 @@ struct Window {
     std::optional<bool> draw2D;
     std::optional<bool> draw3D;
     std::optional<bool> isMirrored;
-    std::optional<bool> blitPreviousWindow;
+    std::optional<int> blitWindowId;
     std::optional<int> monitor;
     std::optional<std::string> mpcdi;
     std::optional<StereoMode> stereo;

@@ -95,12 +95,13 @@ bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window(int id) : _id(id) {}
-
+Window::Window() {}
 Window::~Window() {}
 
 void Window::applyWindow(const config::Window& window) {
     ZoneScoped
+
+    _id = window.id;
 
     if (window.name) {
         setName(*window.name);
@@ -164,8 +165,8 @@ void Window::applyWindow(const config::Window& window) {
     if (window.draw3D) {
         setCallDraw3DFunction(*window.draw3D);
     }
-    if (window.blitPreviousWindow) {
-        setBlitPreviousWindow(*window.blitPreviousWindow);
+    if (window.blitWindowId) {
+        setBlitWindowId(*window.blitWindowId);
     }
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
@@ -739,10 +740,12 @@ void Window::setCallDraw3DFunction(bool state) {
     }
 }
 
-void Window::setBlitPreviousWindow(bool state) {
-    _shouldBitPreviousWindow = state;
-    if (_shouldBitPreviousWindow) {
-        Log::Info(fmt::format("Window {}: BlitPreviousWindow enabled", _id));
+void Window::setBlitWindowId(int id) {
+    _blitWindowId = id;
+    if (_blitWindowId >= 0) {
+        Log::Info(
+            fmt::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
+        );
     }
 }
 
@@ -1325,8 +1328,8 @@ bool Window::shouldCallDraw3DFunction() const {
     return _hasCallDraw3DFunction;
 }
 
-bool Window::shouldBlitPreviousWindow() const {
-    return _shouldBitPreviousWindow;
+int Window::blitWindowId() const {
+    return _blitWindowId;
 }
 
 } // namespace sgct

@@ -88,7 +88,7 @@ public:
 
     static void makeSharedContextCurrent();
 
-    explicit Window(int id);
+    Window();
     ~Window();
 
     void close();
@@ -209,8 +209,8 @@ public:
     /// Set if the specifed Draw3D function pointer should be called for this window.
     void setCallDraw3DFunction(bool state);
 
-    /// Set if the the contents of the previous window should be blitted to this window
-    void setBlitPreviousWindow(bool state);
+    /// Set the id of the window that should be blitted to this window
+    void setBlitWindowId(int id);
 
     /// Set the number of samples used in multisampled anti-aliasing
     void setNumberOfAASamples(int samples);
@@ -344,7 +344,7 @@ public:
 
     bool shouldCallDraw2DFunction() const;
     bool shouldCallDraw3DFunction() const;
-    bool shouldBlitPreviousWindow() const;
+    int blitWindowId() const;
 
 private:
     enum class TextureType { Color, Depth, Normal, Position };
@@ -379,7 +379,7 @@ private:
     bool _isWindowResolutionSet = false;
     bool _hasCallDraw2DFunction = true;
     bool _hasCallDraw3DFunction = true;
-    bool _shouldBitPreviousWindow = false;
+    int _blitWindowId = -1;
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
     bool _shouldAutoiconify = false;
@@ -423,7 +423,7 @@ private:
     StereoMode _stereoMode = StereoMode::NoStereo;
     int _nAASamples = 1;
     bool _mirror = false;
-    int _id;
+    int _id = -1;
 
     unsigned int _vao = 0;
     unsigned int _vbo = 0;

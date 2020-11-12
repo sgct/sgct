@@ -314,7 +314,7 @@ private:
      * This function copies/render the result from the previous window same viewport (if
      * it exists) into this window
      */
-    void blitPreviousWindowViewport(Window& prevWindow, Window& window,
+    void blitWindowViewport(Window& prevWindow, Window& window,
         const Viewport& viewport, Frustum::Mode mode);
 
     const std::function<void()> _preWindowFn;

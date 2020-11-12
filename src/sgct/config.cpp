@@ -217,10 +217,17 @@ void validateViewport(const Viewport& v, bool draw3D) {
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
 
         [v, draw3D](const NoProjection&) {
-            if (draw3D) {
-                // We only need a projection if we actually want to render a 3D scene
-                throw Error(1095, "No valid projection provided");
-            }
+            // This is currently commented out due to the fact that some of the meshes
+            // that we support can provide FOV information, too. Particularly the SCISS
+            // and the scalable meshes set a PlanarProjection as well and it would be
+            // weird to specify both at the moment. I think they should probably be
+            // handled differently to not hide the FOV setting in the `mesh` variable of
+            // the viewport
+
+            //if (draw3D) {
+            //    // We only need a projection if we actually want to render a 3D scene
+            //    throw Error(1095, "No valid projection provided");
+            //}
         }
         },
         v.projection

@@ -8,16 +8,27 @@
 
 #include <sgct/correction/scalable.h>
 
+#include <sgct/baseviewport.h>
+#include <sgct/engine.h>
 #include <sgct/error.h>
 #include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <sgct/user.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
-#include <optional>
 
 namespace {
+    template <typename From, typename To>
+    To fromGLM(From v) {
+        To r;
+        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
+        return r;
+    }
+
     struct Data {
         int nVertices = 0;
         int nFaces = 0;
@@ -46,13 +57,12 @@ namespace {
         } ortho;
 
         struct {
-            // @TODO (abock, 2020-11-11)  We don't support perpective offsets for individual
-            //       viewports right now, so we can't really do anything with these values yet
             struct {
                 float x = 0.f;
                 float y = 0.f;
                 float z = 0.f;
             } offset;
+            bool hasOffset = false;
 
             struct {
                 float pitch = 0.f;
@@ -66,6 +76,7 @@ namespace {
                 float top = 0.f;
                 float bottom = 0.f;
             } fov;
+            bool hasFov = false;
         } perspective;
 
         struct {
@@ -78,7 +89,7 @@ namespace {
         struct {
             int x = 0;
             int y = 0;
-        } nativeResolution;
+        } resolution;
 
         float gamma = 2.2f;
         bool doNotWarp = false;
@@ -92,10 +103,10 @@ namespace {
 
 namespace sgct::correction {
 
-Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2& size) {
+Buffer generateScalableMesh(const std::string& path, BaseViewport& parent) {
     ZoneScoped
 
-        Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
+    Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
 
     std::ifstream file(path);
     if (!file.good()) {
@@ -170,12 +181,15 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
         }
         else if (first == "PERSPECTIVE_XOFFSET") {
             data.perspective.offset.x = std::stof(std::string(rest));
+            data.perspective.hasOffset = true;
         }
         else if (first == "PERSPECTIVE_YOFFSET") {
             data.perspective.offset.y = std::stof(std::string(rest));
+            data.perspective.hasOffset = true;
         }
         else if (first == "PERSPECTIVE_ZOFFSET") {
             data.perspective.offset.z = std::stof(std::string(rest));
+            data.perspective.hasOffset = true;
         }
         else if (first == "PERSPECTIVE_ROLL") {
             data.perspective.direction.roll = std::stof(std::string(rest));
@@ -188,21 +202,25 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
         }
         else if (first == "PERSPECTIVE_LEFT") {
             data.perspective.fov.left = std::stof(std::string(rest));
+            data.perspective.hasFov = true;
         }
         else if (first == "PERSPECTIVE_RIGHT") {
             data.perspective.fov.right = std::stof(std::string(rest));
+            data.perspective.hasFov = true;
         }
         else if (first == "PERSPECTIVE_TOP") {
             data.perspective.fov.top = std::stof(std::string(rest));
+            data.perspective.hasFov = true;
         }
         else if (first == "PERSPECTIVE_BOTTOM") {
             data.perspective.fov.bottom = std::stof(std::string(rest));
+            data.perspective.hasFov = true;
         }
         else if (first == "NATIVEXRES") {
-            data.nativeResolution.x = std::stoi(std::string(rest));
+            data.resolution.x = std::stoi(std::string(rest));
         }
         else if (first == "NATIVEYRES") {
-            data.nativeResolution.y = std::stoi(std::string(rest));
+            data.resolution.y = std::stoi(std::string(rest));
         }
         else if (first == "SUBVERSION") {
             int version = std::stoi(std::string(rest));
@@ -349,15 +367,34 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
         }
     }
 
-    if (data.perspective.offset.x != 0.f || data.perspective.offset.y != 0.f ||
-        data.perspective.offset.z != 0.f)
-    {
-        Log::Warning(fmt::format(
-            "Perspective offset is set in mesh '{}', but we currently don't "
-            "support per-viewport offsets", path
-        ));
-    }
 
+    if (data.perspective.hasFov) {
+        // pitch, yaw, roll.  degrees -> radians
+        // if we don't have a direction, all these values will be 0 anyway
+        glm::quat q(glm::vec3(
+            glm::radians(data.perspective.direction.pitch),
+            glm::radians(data.perspective.direction.yaw),
+            glm::radians(data.perspective.direction.roll)
+        ));
+
+        parent.setViewPlaneCoordsUsingFOVs(
+            data.perspective.fov.top,
+            data.perspective.fov.bottom,
+            data.perspective.fov.left,
+            data.perspective.fov.right,
+            fromGLM<glm::quat, quat>(q)
+        );
+        Engine::instance().updateFrustums();
+    }
+    if (data.perspective.hasOffset) {
+        parent.projectionPlane().offset(
+            vec3{
+                data.perspective.offset.x,
+                data.perspective.offset.y,
+                data.perspective.offset.z
+            }
+        );
+    }
     if (data.nVertices != data.vertices.size() || data.nFaces != data.faces.size()) {
         throw Error(
             Error::Component::Scalable, 2061,
@@ -370,8 +407,8 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
     buf.vertices.reserve(data.vertices.size());
     for (const Data::Vertex& vertex : data.vertices) {
         CorrectionMeshVertex v;
-        float x = (vertex.x / data.nativeResolution.x) * size.x + pos.x;
-        float y = (vertex.y / data.nativeResolution.y) * size.y + pos.y;
+        float x = (vertex.x / data.resolution.x) * parent.size().x + parent.position().x;
+        float y = (vertex.y / data.resolution.y) * parent.size().y + parent.position().y;
 
         // Normalize vertices between 0 and 1
         float x2 = (x - data.ortho.left) / (data.ortho.right - data.ortho.left);
@@ -385,10 +422,10 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
         v.g = vertex.intensity / 255.f;
         v.b = vertex.intensity / 255.f;
         v.a = 1.f;
-        //v.s = (1.f - vertex.s) * size.x + pos.x;
-        v.s = (1.f - vertex.t) * size.x + pos.x;
-        //v.t = (1.f - vertex.t) * size.x + pos.x;
-        v.t = (1.f - vertex.s) * size.x + pos.x;
+        //v.s = (1.f - vertex.s) * parent.size().x + parent.position().x;
+        v.s = (1.f - vertex.t) * parent.size().x + parent.position().x;
+        //v.t = (1.f - vertex.t) * parent.size().x + parent.position().x;
+        v.t = (1.f - vertex.s) * parent.size().x + parent.position().x;
 
         buf.vertices.push_back(v);
     }

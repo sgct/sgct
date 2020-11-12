@@ -13,9 +13,11 @@
 #include <sgct/correction/buffer.h>
 #include <string>
 
+namespace sgct { class BaseViewport; }
+
 namespace sgct::correction {
 
-Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2& size);
+Buffer generateScalableMesh(const std::string& path, BaseViewport& parent);
 
 } // namespace sgct::correction
 

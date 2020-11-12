@@ -213,7 +213,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
         buf = generateScissMesh(path, parent);
     }
     else if (ext == "ol") {
-        buf = generateScalableMesh(path, parentPos, parentSize);
+        buf = generateScalableMesh(path, parent);
     }
     else if (ext == "skyskan") {
         buf = generateSkySkanMesh(path, parent);

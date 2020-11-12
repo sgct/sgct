@@ -397,7 +397,6 @@ unsigned int Window::frameBufferTexture(TextureIndex index) {
 }
 
 void Window::setVisible(bool state) {
-    _isVisible = state;
     if (state != _isVisible && _windowHandle) {
         if (state) {
             glfwShowWindow(_windowHandle);
@@ -406,6 +405,7 @@ void Window::setVisible(bool state) {
             glfwHideWindow(_windowHandle);
         }
     }
+    _isVisible = state;
 }
 
 void Window::setRenderWhileHidden(bool state) {

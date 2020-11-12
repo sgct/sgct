@@ -80,8 +80,8 @@ bool Node::closeAllWindows() {
     }
 
     const size_t counter = std::count_if(
-        _windows.begin(),
-        _windows.end(),
+        _windows.cbegin(),
+        _windows.cend(),
         [](const std::unique_ptr<Window>& window) {
             return !(window->isVisible() || window->isRenderingWhileHidden());
         }

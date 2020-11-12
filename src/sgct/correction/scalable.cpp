@@ -300,9 +300,9 @@ Buffer generateScalableMesh(const std::string& path, const vec2& pos, const vec2
             std::string_view f3 = rest.substr(0, sep);
 
             Data::Face f;
-            f.f1 = std::stoi(std::string(f1));
-            f.f2 = std::stoi(std::string(f2));
-            f.f3 = std::stoi(std::string(f3));
+            f.f1 = static_cast<unsigned int>(std::stoi(std::string(f1)));
+            f.f2 = static_cast<unsigned int>(std::stoi(std::string(f2)));
+            f.f3 = static_cast<unsigned int>(std::stoi(std::string(f3)));
             data.faces.push_back(f);
         }
         else {

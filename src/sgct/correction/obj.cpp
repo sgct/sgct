@@ -13,57 +13,190 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <fstream>
+
+namespace {
+    struct Position {
+        float x = 0.f;
+        float y = 0.f;
+    };
+    struct Texture {
+        float s = 0.f;
+        float t = 0.f;
+    };
+    struct Face {
+        unsigned int f1 = 0;
+        unsigned int f2 = 0;
+        unsigned int f3 = 0;
+    };
+} // namespace
 
 namespace sgct::correction {
 
 Buffer generateOBJMesh(const std::string& path) {
     ZoneScoped
 
-    Buffer buffer;
-
     Log::Info(fmt::format("Reading Wavefront OBJ mesh data from '{}'", path));
 
-    FILE* meshFile = fopen(path.c_str(), "r");
-    if (meshFile == nullptr) {
+    std::ifstream file(path);
+    if (!file.good()) {
         throw Error(
-            Error::Component::OBJ, 2030,
-            fmt::format("Failed to open '{}'", path)
+            Error::Component::OBJ, 2030, fmt::format("Failed to open '{}'", path)
         );
     }
 
-    unsigned int counter = 0;
-    while (!feof(meshFile)) {
-        constexpr const int MaxLineLength = 1024;
-        char buf[MaxLineLength];
-        if (fgets(buf, MaxLineLength, meshFile)) {
-            CorrectionMeshVertex tmpVert;
-            if (sscanf(buf, "v %f %f %*f", &tmpVert.x, &tmpVert.y) == 2) {
-                tmpVert.r = 1.f;
-                tmpVert.g = 1.f;
-                tmpVert.b = 1.f;
-                tmpVert.a = 1.f;
+    std::vector<Position> positions;
+    std::vector<Texture> texCoords;
+    std::vector<Face> faces;
 
-                buffer.vertices.push_back(tmpVert);
+    std::vector<std::string> reported;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
+        std::string_view v = line;
+        size_t separator = v.find(' ');
+        std::string_view first = v.substr(0, separator);
+        std::string_view rest = v.substr(separator + 1);
+
+        if (first == "v") {
+            size_t sep = rest.find(' ');
+            std::string_view v1 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view v2 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            std::string_view v3 = rest;
+            float z = std::stof(std::string(v3));
+            if (z != 0.f) {
+                Log::Warning(fmt::format(
+                    "Vertex in '{}' was using z coordinate which is not supported", path
+                ));
             }
-            if (sscanf(buf, "vt %f %f %*f", &tmpVert.s, &tmpVert.t) == 2) {
-                if (counter < buffer.vertices.size()) {
-                    buffer.vertices[counter].s = tmpVert.s;
-                    buffer.vertices[counter].t = tmpVert.t;
-                }
-                counter++;
+
+            Position p;
+            p.x = std::stof(std::string(v1));
+            p.y = std::stof(std::string(v2));
+            positions.push_back(p);
+        }
+        else if (first == "vt") {
+            size_t sep = rest.find(' ');
+            std::string_view v1 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view v2 = rest.substr(0, sep);
+
+            Texture t;
+            t.s = std::stof(std::string(v1));
+            t.t = std::stof(std::string(v2));
+            texCoords.push_back(t);
+        }
+        else if (first == "f") {
+            size_t sep = rest.find(' ');
+            std::string_view f1 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view f2 = rest.substr(0, sep);
+            rest = rest.substr(sep + 1);
+
+            sep = rest.find(' ');
+            std::string_view f3 = rest.substr(0, sep);
+
+            // The face description might just consist of a single value, in which case
+            // the f.find method will return npos, which tells substr to "extract" the
+            // entire string -> et voila; it still works
+            Face f;
+            f.f1 = static_cast<unsigned int>(
+                std::stoi(std::string(f1.substr(0, f1.find('/'))))
+            );
+            f.f2 = static_cast<unsigned int>(
+                std::stoi(std::string(f2.substr(0, f2.find('/'))))
+            );
+            f.f3 = static_cast<unsigned int>(
+                std::stoi(std::string(f3.substr(0, f3.find('/'))))
+            );
+            faces.push_back(f);
+        }
+        else if (first == "vn") {
+            if (std::find(reported.begin(), reported.end(), "vn") == reported.end()) {
+                Log::Warning(fmt::format("Ignoring normals in mesh '{}'", path));
+                reported.push_back("vn");
             }
-            int i0, i1, i2;
-            if (sscanf(buf, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &i0, &i1, &i2) == 3) {
-                // indexes starts at 1 in OBJ
-                buffer.indices.push_back(i0 - 1);
-                buffer.indices.push_back(i1 - 1);
-                buffer.indices.push_back(i2 - 1);
+        }
+        else if (first == "vp") {
+            if (std::find(reported.begin(), reported.end(), "vp") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring parameter space values in mesh '{}'", path)
+                );
+                reported.push_back("vp");
+            }
+        }
+        else if (first == "l") {
+            if (std::find(reported.begin(), reported.end(), "l") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring line elements in mesh '{}'", path)
+                );
+                reported.push_back("l");
+            }
+        }
+        else if (first == "mtllib") {
+            if (std::find(reported.begin(), reported.end(), "mtllib") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring material library in mesh '{}'", path)
+                );
+                reported.push_back("mtllib");
+            }
+        }
+        else if (first == "usemtl") {
+            if (std::find(reported.begin(), reported.end(), "usemtl") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring material specification in mesh '{}'", path)
+                );
+                reported.push_back("usemtl");
+            }
+        }
+        else if (first == "o") {
+            if (std::find(reported.begin(), reported.end(), "o") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring object specification in mesh '{}'", path)
+                );
+                reported.push_back("o");
+            }
+        }
+        else if (first == "g") {
+            if (std::find(reported.begin(), reported.end(), "g") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring object group specification in mesh '{}'", path)
+                );
+                reported.push_back("g");
+            }
+        }
+        else if (first == "s") {
+            if (std::find(reported.begin(), reported.end(), "s") == reported.end()) {
+                Log::Warning(
+                    fmt::format("Ignoring shading specification in mesh '{}'", path)
+                );
+                reported.push_back("s");
+            }
+        }
+        else {
+            if (std::find(reported.begin(), reported.end(), first) == reported.end()) {
+                Log::Warning(fmt::format(
+                    "Encounted unsupported value type '{}' in mesh '{}'", first, path
+                ));
+                reported.push_back(std::string(first));
             }
         }
     }
 
-    // sanity check
-    if (counter != buffer.vertices.size() || buffer.vertices.empty()) {
+    if (positions.size() != texCoords.size()) {
         throw Error(
             Error::Component::OBJ, 2031,
             fmt::format(
@@ -71,8 +204,56 @@ Buffer generateOBJMesh(const std::string& path) {
             )
         );
     }
+    for (const Face& f : faces) {
+        const unsigned int nPositions = positions.size();
+        // OBJ uses 1-based indices, so we need to allow for one bigger than the number
+        // of positions
+        bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
+        if (invalid) {
+            throw Error(
+                Error::Component::OBJ, 2032,
+                fmt::format(
+                    "Faces in mesh '{}' referenced vertices that were undefined", path
+                )
+            );
+        }
 
+        if (f.f1 < 0 || f.f2 < 0 || f.f3 < 0) {
+            throw Error(
+                Error::Component::OBJ, 2033,
+                fmt::format(
+                    "Faces in mesh '{}' are using relative index positions that "
+                    "are unsupported", path
+                )
+            );
+        }
+    }
+
+    Buffer buffer;
     buffer.geometryType = GL_TRIANGLES;
+    buffer.vertices.reserve(positions.size());
+    assert(positions.size() == texCoords.size());
+    for (size_t i = 0; i < positions.size(); ++i) {
+        CorrectionMeshVertex v;
+        v.x = positions[i].x;
+        v.y = positions[i].y;
+        v.r = 1.f;
+        v.g = 1.f;
+        v.b = 1.f;
+        v.a = 1.f;
+        v.s = texCoords[i].s;
+        v.t = texCoords[i].t;
+        buffer.vertices.push_back(v);
+
+    }
+    buffer.indices.reserve(faces.size() * 3);
+    for (const Face& f : faces) {
+        // 1-based indexing vs 0-based indexing
+        buffer.indices.push_back(f.f1 - 1);
+        buffer.indices.push_back(f.f2 - 1);
+        buffer.indices.push_back(f.f3 - 1);
+    }
+
     return buffer;
 }
 

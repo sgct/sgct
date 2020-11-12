@@ -82,6 +82,8 @@ namespace sgct {
  * 2023: MPCDIMesh / Incorrect file type. Unknown header type
  * 2030: OBJ / Failed to open '%s'
  * 2031: OBJ / Vertex count doesn't match number of texture coordinates in '%s'
+ * 2032: OBJ / Faces in mesh '%s' referenced vertices that were undefined
+ * 2033: OBJ / Faces in mesh '%s' are using relative index positions that are unsupported
  * 2040: PaulBourke / Failed to open file '%s'
  * 2041: PaulBourke / Error reading mapping type in file '%s'
  * 2042: PaulBourke / Invalid data in file '%s'

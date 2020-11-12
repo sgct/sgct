@@ -6,7 +6,7 @@
       <Viewport>
         <Pos x="0.0" y="0.0" />
         <Size x="1.0" y="1.0" />
-          <EquirectangularProjection quality="4k" />
+          <EquirectangularProjection quality="1k" />
       </Viewport>
     </Window>
   </Node>

@@ -7,7 +7,7 @@
       <Viewport name="fisheye">
         <Pos x="0.0" y="0.0" />
         <Size x="1.0" y="1.0" />
-        <FisheyeProjection fov="180" quality="medium" tilt="27.0">
+        <FisheyeProjection fov="180" quality="medium" tilt="0.0">
           <Background r="0.1" g="0.1" b="0.1" a="1.0" />
         </FisheyeProjection>
       </Viewport>

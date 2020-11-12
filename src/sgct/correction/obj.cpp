@@ -21,7 +21,7 @@ Buffer generateOBJMesh(const std::string& path) {
 
     Buffer buffer;
 
-    Log::Info(fmt::format("Reading Wavefront OBJ mesh data from '{}', path"));
+    Log::Info(fmt::format("Reading Wavefront OBJ mesh data from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (meshFile == nullptr) {

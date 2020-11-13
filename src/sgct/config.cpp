@@ -217,7 +217,7 @@ void validateViewport(const Viewport& v, bool draw3D) {
         },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
 
-        [v, draw3D](const NoProjection&) {
+        [v/*, draw3D*/](const NoProjection&) {
             // This is currently commented out due to the fact that some of the meshes
             // that we support can provide FOV information, too. Particularly the SCISS
             // and the scalable meshes set a PlanarProjection as well and it would be

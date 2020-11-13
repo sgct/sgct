@@ -1303,7 +1303,6 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     }
 
     // If we did not render anything, make sure we clear the screen at least
-    const bool no3D = !win.shouldCallDraw3DFunction();
     const int blitId = win.blitWindowId();
     if (!win.shouldCallDraw3DFunction() && blitId == -1) {
         setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);

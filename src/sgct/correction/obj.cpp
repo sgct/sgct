@@ -13,6 +13,7 @@
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
+#include <cassert>
 #include <fstream>
 
 namespace {
@@ -25,9 +26,9 @@ namespace {
         float t = 0.f;
     };
     struct Face {
-        unsigned int f1 = 0;
-        unsigned int f2 = 0;
-        unsigned int f3 = 0;
+        int f1 = 0;
+        int f2 = 0;
+        int f3 = 0;
     };
 } // namespace
 
@@ -113,15 +114,9 @@ Buffer generateOBJMesh(const std::string& path) {
             // the f.find method will return npos, which tells substr to "extract" the
             // entire string -> et voila; it still works
             Face f;
-            f.f1 = static_cast<unsigned int>(
-                std::stoi(std::string(f1.substr(0, f1.find('/'))))
-            );
-            f.f2 = static_cast<unsigned int>(
-                std::stoi(std::string(f2.substr(0, f2.find('/'))))
-            );
-            f.f3 = static_cast<unsigned int>(
-                std::stoi(std::string(f3.substr(0, f3.find('/'))))
-            );
+            f.f1 = std::stoi(std::string(f1.substr(0, f1.find('/'))));
+            f.f2 = std::stoi(std::string(f2.substr(0, f2.find('/'))));
+            f.f3 = std::stoi(std::string(f3.substr(0, f3.find('/'))));
             faces.push_back(f);
         }
         else if (first == "vn") {
@@ -205,7 +200,7 @@ Buffer generateOBJMesh(const std::string& path) {
         );
     }
     for (const Face& f : faces) {
-        const unsigned int nPositions = positions.size();
+        const unsigned int nPositions = static_cast<unsigned int>(positions.size());
         // OBJ uses 1-based indices, so we need to allow for one bigger than the number
         // of positions
         bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;
@@ -249,9 +244,9 @@ Buffer generateOBJMesh(const std::string& path) {
     buffer.indices.reserve(faces.size() * 3);
     for (const Face& f : faces) {
         // 1-based indexing vs 0-based indexing
-        buffer.indices.push_back(f.f1 - 1);
-        buffer.indices.push_back(f.f2 - 1);
-        buffer.indices.push_back(f.f3 - 1);
+        buffer.indices.push_back(static_cast<unsigned int>(f.f1 - 1));
+        buffer.indices.push_back(static_cast<unsigned int>(f.f2 - 1));
+        buffer.indices.push_back(static_cast<unsigned int>(f.f3 - 1));
     }
 
     return buffer;

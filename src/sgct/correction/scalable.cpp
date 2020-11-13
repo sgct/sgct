@@ -395,7 +395,9 @@ Buffer generateScalableMesh(const std::string& path, BaseViewport& parent) {
             }
         );
     }
-    if (data.nVertices != data.vertices.size() || data.nFaces != data.faces.size()) {
+    if (data.nVertices != static_cast<int>(data.vertices.size()) ||
+        data.nFaces != static_cast<int>(data.faces.size()))
+    {
         throw Error(
             Error::Component::Scalable, 2061,
             fmt::format("Incorrect mesh data geometry in file '{}'", path)

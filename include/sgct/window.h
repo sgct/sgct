@@ -422,7 +422,6 @@ private:
 
     StereoMode _stereoMode = StereoMode::NoStereo;
     int _nAASamples = 1;
-    bool _mirror = false;
     int _id = -1;
 
     unsigned int _vao = 0;

@@ -115,6 +115,7 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
         reinterpret_cast<const T*>(buffer.data() + pos),
         reinterpret_cast<const T*>(buffer.data() + pos + size * sizeof(T))
     );
+    pos += size * sizeof(T);
 }
 
 template <>

@@ -8,7 +8,7 @@
 <Cluster masterAddress="localhost">
   <Node address="localhost" port="20401">
     <!-- This window would render most content, but not text/GUI.  -->
-    <Window id="0" name="3D Rendering" fullScreen="false" msaa="1" draw2D="false">
+    <Window id="1" name="3D Rendering" fullScreen="false" msaa="1" draw2D="false">
       <Pos x="10" y="100" />
       <Size x="640" y="480" />
       <Viewport>
@@ -24,7 +24,7 @@
       This window copies the rendering from the previous window. As we have already drawn
       the 3D parts in the previous window, we don't want to do that again here
     -->
-    <Window id="1" name="2D Overlay" fullScreen="false" msaa="1" draw3D="false" blitWindowId="0">
+    <Window id="0" name="2D Overlay" fullScreen="false" msaa="1" draw3D="false" blitWindowId="1">
       <Pos x="640" y="100" />
       <Size x="640" y="480" />
       <Viewport>

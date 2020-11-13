@@ -600,7 +600,7 @@ void Network::communicationHandler() {
     // listen for client if server
     if (_isServer) {
         Log::Info(
-            fmt::format("Waiting for client {} to connect on port {})", _id, port())
+            fmt::format("Waiting for client {} to connect on port {}", _id, port())
         );
 
         _socket = accept(_listenSocket, nullptr, nullptr);
@@ -686,12 +686,12 @@ void Network::communicationHandler() {
         // handle failed receive
         if (iResult == 0) {
             setConnectedStatus(false);
-            throw Err(5013, fmt::format("TCP connection {} closed: {}", _id, SGCT_ERRNO));
+            Log::Info(fmt::format("TCP connection {} closed", _id));
         }
         else if (iResult < 0) {
             setConnectedStatus(false);
             throw Err(
-                5014,
+                5013,
                 fmt::format("TCP connection {} receive failed: {}", _id, SGCT_ERRNO)
             );
         }
@@ -818,7 +818,7 @@ void Network::sendData(const void* data, int length) {
             0
         );
         if (sentLen == SOCKET_ERROR) {
-            throw Err(5015, fmt::format("Send data failed: {}", SGCT_ERRNO));
+            throw Err(5014, fmt::format("Send data failed: {}", SGCT_ERRNO));
         }
         sendSize -= sentLen;
     }
@@ -856,10 +856,10 @@ void Network::initShutdown() {
     ZoneScoped
 
     if (_isConnected) {
-        constexpr const char gameOver[9] = {
+        constexpr const char GameOver[9] = {
             DisconnectId, 24, '\r', '\n', 27, '\r', '\n', '\0', DefaultId
         };
-        sendData(gameOver, HeaderSize);
+        sendData(GameOver, HeaderSize);
     }
 
     Log::Info(fmt::format("Closing connection {}", _id));

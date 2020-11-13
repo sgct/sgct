@@ -168,9 +168,8 @@ namespace sgct {
  * 5010: Network / Error in sync frame %i for connection %i
  * 5011: Network / Failed to uncompress data for connection %i: %s // Sync Connection
  * 5012: Network / Failed to uncompress data for connection %i: %s // Data Transfer
- * 5013: Network / TCP connection %i closed: %s
- * 5014: Network / TCP connection %i receive failed: %s
- * 5015: Network / Send data failed: %s
+ * 5013: Network / TCP connection %i receive failed: %s
+ * 5014: Network / Send data failed: %s
  * 5020: NetworkManager / Winsock 2.2 startup failed
  * 5021: NetworkManager / No address information for this node available
  * 5022: NetworkManager / No address information for master available

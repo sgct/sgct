@@ -208,10 +208,6 @@ NetworkManager::~NetworkManager() {
         ZoneScopedN("Sleeping")
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
-    // wait for threads to die
-    for (std::unique_ptr<Network>& connection : _networkConnections) {
-        connection->closeNetwork(false);
-    }
 
     _networkConnections.clear();
     _syncConnections.clear();

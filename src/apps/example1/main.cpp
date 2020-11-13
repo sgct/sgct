@@ -16,8 +16,7 @@ namespace {
     double currentTime = 0.0;
 
     GLuint vertexArray = 0;
-    GLuint vertexPositionBuffer = 0;
-    GLuint vertexColorBuffer = 0;
+    GLuint vertexBuffer = 0;
 
     GLint matrixLoc = -1;
 
@@ -49,36 +48,27 @@ using namespace sgct;
 
 void initOGL(GLFWwindow*) {
     const GLfloat positionData[] = {
-        -0.5f, -0.5f, 0.f,
-         0.f, 0.5f, 0.f,
-         0.5f, -0.5f, 0.f
-    };
-
-    const GLfloat colorData[] = {
-        1.f, 0.f, 0.f,
-        0.f, 1.f, 0.f,
-        0.f, 0.f, 1.f
+        // position           color
+        -0.5f, -0.5f, 0.f,   1.f, 0.f, 0.f,
+         0.f, 0.5f, 0.f,     0.f, 1.f, 0.f,
+         0.5f, -0.5f, 0.f,   0.f, 0.f, 1.f
     };
 
     // generate the VAO
     glGenVertexArrays(1, &vertexArray);
     glBindVertexArray(vertexArray);
 
-    // generate VBO for vertex positions
-    glGenBuffers(1, &vertexPositionBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
+    // generate VBO
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     // upload data to GPU
     glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-    // generate VBO for vertex colors
-    glGenBuffers(1, &vertexColorBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexColorBuffer);
-    // upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colorData), colorData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(
+        1, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<const void*>(3 * sizeof(GLfloat))
+    );
 
     glBindVertexArray(0);
 
@@ -92,8 +82,9 @@ void initOGL(GLFWwindow*) {
 void draw(const RenderData& data) {
     constexpr const float Speed = 0.8f;
 
-    glm::mat4 scene = glm::rotate(
-        glm::mat4(1.f),
+    glm::mat4 scene =
+        glm::rotate(
+        glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -4.f)),
         static_cast<float>(currentTime) * Speed,
         glm::vec3(0.f, 1.f, 0.f)
     );
@@ -125,8 +116,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
 }
 
 void cleanup() {
-    glDeleteBuffers(1, &vertexPositionBuffer);
-    glDeleteBuffers(1, &vertexColorBuffer);
+    glDeleteBuffers(1, &vertexBuffer);
     glDeleteVertexArrays(1, &vertexArray);
 }
 

@@ -26,10 +26,10 @@ parallel tools: {
         script: 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -i support include src 2> build/cppcheck.xml',
         label: 'CPPCheck'
       )
-      recordIssues(
-        id: 'tools-cppcheck',
-        tool: cppCheck()
-      )      
+      // recordIssues(
+      //   id: 'tools-cppcheck',
+      //   tool: cppCheck()
+      // )      
     }
     // stage('tools/cloc/create') {
     //   createDirectory('build');

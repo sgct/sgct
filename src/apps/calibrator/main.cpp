@@ -434,6 +434,8 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
+    Log::Info(std::to_string(Engine::instance().currentFrameNumber()));
+
     const mat4 mvp = data.modelViewProjectionMatrix;
 
     glm::vec3 direction = {
@@ -507,8 +509,7 @@ void draw2D(const RenderData& data) {
             offset,
             h / 2.f - s1,
             vec4{ 0.f, 0.f, 1.f, 1.f },
-            "%d",
-            ClusterManager::instance().thisNodeId()
+            std::to_string(ClusterManager::instance().thisNodeId())
         );
 
         const float s2 = h / 20.f;
@@ -522,8 +523,7 @@ void draw2D(const RenderData& data) {
             offset,
             h / 2.f - (s1 + s2) * 1.2f,
             vec4{ 0.f, 0.f, 1.f, 1.f },
-            "%s",
-            ClusterManager::instance().thisNode().address().c_str()
+            ClusterManager::instance().thisNode().address()
         );
     }
 #endif // SGCT_HAS_TEXT
@@ -611,20 +611,30 @@ std::vector<std::byte> encode() {
     serializeObject(data, showStats);
     serializeObject(data, theta);
     serializeObject(data, phi);
-    return data;
+
+    std::vector<std::byte> ddata;
+    serializeObject(ddata, data);
+    serializeObject(ddata, data);
+    return ddata;
 }
 
 void decode(const std::vector<std::byte>& data, unsigned int pos) {
-    deserializeObject(data, pos, takeScreenshot);
-    deserializeObject(data, pos, captureBackbuffer);
-    deserializeObject(data, pos, renderGrid);
-    deserializeObject(data, pos, renderBox);
-    deserializeObject(data, pos, runTests);
-    deserializeObject(data, pos, frameNumber);
-    deserializeObject(data, pos, showId);
-    deserializeObject(data, pos, showStats);
-    deserializeObject(data, pos, theta);
-    deserializeObject(data, pos, phi);
+    std::vector<std::byte> ddata;
+    deserializeObject(data, pos, ddata);
+    std::vector<std::byte> edata;
+    deserializeObject(data, pos, edata);
+
+    unsigned ppos = 0;
+    deserializeObject(ddata, ppos, takeScreenshot);
+    deserializeObject(ddata, ppos, captureBackbuffer);
+    deserializeObject(ddata, ppos, renderGrid);
+    deserializeObject(ddata, ppos, renderBox);
+    deserializeObject(ddata, ppos, runTests);
+    deserializeObject(ddata, ppos, frameNumber);
+    deserializeObject(ddata, ppos, showId);
+    deserializeObject(ddata, ppos, showStats);
+    deserializeObject(ddata, ppos, theta);
+    deserializeObject(ddata, ppos, phi);
 }
 
 void cleanup() {

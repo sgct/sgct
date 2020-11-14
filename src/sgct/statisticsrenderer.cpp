@@ -350,7 +350,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 7 * Offset,
             vec4{ 1.f, 0.8f, 0.8f, 1.f },
-            "Frame number: %i", Engine::instance().currentFrameNumber()
+            fmt::format("Frame number: {}", Engine::instance().currentFrameNumber())
         );
         text::print(
             window,
@@ -359,7 +359,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 4 * Offset,
             ColorFrameTime,
-            "Frame time: %f ms", _statistics.frametimes[0] * 1000.0
+            fmt::format("Frame time: {} ms", _statistics.frametimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -368,7 +368,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 3 * Offset,
             ColorDrawTime,
-            "Draw time: %f ms", _statistics.drawTimes[0] * 1000.0
+            fmt::format("Draw time: {} ms", _statistics.drawTimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -377,7 +377,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 2 * Offset,
             ColorSyncTime,
-            "Sync time: %f ms", _statistics.syncTimes[0] * 1000.0
+            fmt::format("Sync time: {} ms", _statistics.syncTimes[0] * 1000.0)
         );
         text::print(
             window,
@@ -386,7 +386,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + Offset,
             ColorLoopTimeMin,
-            "Min Loop time: %f ms", _statistics.loopTimeMin[0] * 1000.0
+            fmt::format("Min Loop time: {} ms", _statistics.loopTimeMin[0] * 1000.0)
         );
         text::print(
             window,
@@ -395,7 +395,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y,
             ColorLoopTimeMax,
-            "Max Loop time: %f ms", _statistics.loopTimeMax[0] * 1000.0
+            fmt::format("Max Loop time: {} ms", _statistics.loopTimeMax[0] * 1000.0)
         );
 #endif // SGCT_HAS_TEXT
     }
@@ -464,7 +464,10 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            "Histogram Scale (frametime, drawtime): %.0f ms", HistogramScaleFrame * 1000.0
+            fmt::format(
+                "Histogram Scale (frametime, drawtime): {:.0f} ms",
+                HistogramScaleFrame * 1000.0
+            )
         );
         text::print(
             window,
@@ -473,7 +476,10 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             mode,
             Pos.x, Pos.y + 12.f,
             vec4{ 0.8f, 0.8f, 0.8f, 1.f },
-            "Histogram Scale (sync time): %.0f ms", HistogramScaleSync * 1000.0
+            fmt::format(
+                "Histogram Scale (sync time): {:.0f} ms",
+                HistogramScaleSync * 1000.0
+            )
         );
 #endif // SGCT_HAS_TEXT
     }

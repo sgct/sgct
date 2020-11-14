@@ -64,7 +64,7 @@ void draw2D(const RenderData& data) {
         100,
         500,
         vec4{ 0.f, 1.f, 0.f, 1.f },
-        "Time: %ls", sTimeOfDay.c_str()
+        fmt::format("Time: {}", sTimeOfDay)
     );
     if (extraPackages && extraData.size() == ExtendedSize) {
         float xp = data.window.framebufferResolution().x / 2.f - 150.f;
@@ -76,8 +76,9 @@ void draw2D(const RenderData& data) {
             xp,
             150.f,
             vec4{ 0.f, 1.f, 0.5f, 1.f },
-            "Vector val: %f, size: %u",
-            extraData[ExtendedSize / 2], extraData.size()
+            fmt::format(
+                "Vector val: {}, size: {}",extraData[ExtendedSize / 2], extraData.size()
+            )
         );
     }
 #endif // SGCT_HAS_TEXT
@@ -251,7 +252,7 @@ void draw(const RenderData& data) {
             pos - pos / 2.f,
             300,
             vec4{ 1.f, 1.f, 1.f, 1.f },
-            "Nvidia frame counter: %u", data.window.swapGroupFrameNumber()
+            fmt::format("Nvidia frame counter: {}", data.window.swapGroupFrameNumber())
         );
         text::print(
             data.window,
@@ -261,7 +262,7 @@ void draw(const RenderData& data) {
             pos - pos / 2.f,
             250,
             vec4{ 1.f, 1.f, 1.f, 1.f },
-            "Framerate: %.3lf", 1.0 / Engine::instance().statistics().dt()
+            fmt::format("Framerate: {.3f}", 1.0 / Engine::instance().statistics().dt())
         );
     }
     else {
@@ -313,11 +314,6 @@ void postSyncPreDraw() {
 }
 
 void initOGL(GLFWwindow*) {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_NORMALIZE);
-    glDisable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
-
     size_t numberOfActiveViewports = 0;
     const Node& thisNode = ClusterManager::instance().thisNode();
     for (const std::unique_ptr<Window>& window : thisNode.windows()) {

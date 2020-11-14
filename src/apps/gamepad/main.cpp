@@ -51,7 +51,7 @@ void draw2D(const RenderData& data) {
             18,
             32,
             vec4{ 1.f, 0.5f, 0.f, 1.f },
-            "%s", joystickInfoStr.c_str()
+            joystickInfoStr
         );
     }
 #endif // SGCT_HAS_TEXT

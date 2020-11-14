@@ -76,30 +76,13 @@ namespace {
 namespace sgct::text {
 
 void print(const Window& window, const BaseViewport& viewport, Font& font, Alignment mode,
-           float x, float y, const vec4& color, const char* format, ...)
+           float x, float y, const vec4& color, std::string text)
 {
-    va_list args;
-    va_start(args, format);
-
-#ifdef WIN32
-    const int size = _vscprintf(format, args) + 1; // null-terminating char
-#else // WIN32
-    // Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
-    va_list argsCopy;
-    va_copy(argsCopy, args);
-    const int size = vsnprintf(nullptr, 0, format, argsCopy);
-    va_end(argsCopy);
-#endif // WIN32
-
-    std::vector<char> buf(size, 0);
-    vsprintf(buf.data(), format, args);
-    va_end(args);
-
-    if (buf.empty()) {
+    if (text.empty()) {
         return;
     }
 
-    std::vector<std::string> lines = split(std::string(buf.data()), '\n');
+    std::vector<std::string> lines = split(text, '\n');
     glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
 
     const float h = font.height() * 1.59f;

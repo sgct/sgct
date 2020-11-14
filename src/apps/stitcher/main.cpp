@@ -133,8 +133,6 @@ void draw(const RenderData&) {
         return;
     }
 
-    glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
-    glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
 
     glActiveTexture(GL_TEXTURE0);
@@ -154,8 +152,6 @@ void draw(const RenderData&) {
         // button
         drawFace(sideRotations[3]);
     }
-
-    glPopAttrib();
 }
 
 void preSync() {
@@ -286,8 +282,6 @@ void initOGL(GLFWwindow*) {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

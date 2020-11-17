@@ -434,7 +434,7 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    Log::Info(std::to_string(Engine::instance().currentFrameNumber()));
+    //Log::Info(std::to_string(Engine::instance().currentFrameNumber()));
 
     const mat4 mvp = data.modelViewProjectionMatrix;
 

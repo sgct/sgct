@@ -87,6 +87,8 @@ private:
 
     int _mappingWidth = 0;
     int _mappingHeight = 0;
+
+    unsigned int _blitFbo = 0;
 };
 
 } // namespace sgct

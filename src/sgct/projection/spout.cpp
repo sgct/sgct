@@ -88,6 +88,8 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     glDeleteVertexArrays(1, &_vao);
     _shader.deleteProgram();
     _depthCorrectionShader.deleteProgram();
+
+    glDeleteFramebuffers(1, &_blitFbo);
 }
 
 void SpoutOutputProjection::update(vec2) {
@@ -310,34 +312,34 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             if (_spout[idx].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
-                // @TODO (abock, 2020-01-09) This function is only available in OpenGL 4.3
-                // but we never check whether we are running a 4.3 context or not, so we
-                // should replace this with a framebuffer-based blitting instead.
-                // Something along the lines of;
-                // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-                // glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                //   GL_TEXTURE_2D, tex1, 0);
-                // glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                //   GL_TEXTURE_2D, tex2, 0);
-                // glDrawBuffer(GL_COLOR_ATTACHMENT1);
-                // glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
-                //   GL_COLOR_BUFFER_BIT, GL_NEAREST);
-                glCopyImageSubData(
+                
+                glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
+                glFramebufferTexture2D(
+                    GL_READ_FRAMEBUFFER,
+                    GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx,
                     _textures.cubeMapColor,
-                    GL_TEXTURE_CUBE_MAP,
-                    0,
-                    0,
-                    0,
-                    idx,
-                    _spout[idx].texture,
+                    idx
+                );
+                glFramebufferTexture2D(
+                    GL_DRAW_FRAMEBUFFER,
+                    GL_COLOR_ATTACHMENT1,
                     GL_TEXTURE_2D,
-                    0,
-                    0,
+                    _spout[idx].texture,
+                    0
+                );
+                glDrawBuffer(GL_COLOR_ATTACHMENT1);
+                glBlitFramebuffer(
                     0,
                     0,
                     _mappingWidth,
                     _mappingHeight,
-                    1
+                    0,
+                    0,
+                    _mappingWidth,
+                    _mappingHeight,
+                    GL_COLOR_BUFFER_BIT,
+                    GL_NEAREST
                 );
             }
         }
@@ -775,6 +777,7 @@ void SpoutOutputProjection::initFBO() {
     _spoutFBO = std::make_unique<OffScreenBuffer>();
     _spoutFBO->setInternalColorFormat(_texInternalFormat);
     _spoutFBO->createFBO(_mappingWidth, _mappingHeight, 1);
+    glGenFramebuffers(1, &_blitFbo);
 }
 
 } // namespace sgct

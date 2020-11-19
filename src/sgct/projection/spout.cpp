@@ -223,12 +223,17 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
                 continue;
             }
             glBindTexture(GL_TEXTURE_2D, _spout[i].texture);
-            reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
+            const bool s = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->SendTexture(
                 _spout[i].texture,
                 static_cast<GLuint>(GL_TEXTURE_2D),
                 _mappingWidth,
                 _mappingHeight
             );
+            if (!s) {
+                Log::Error(fmt::format(
+                    "Error sending texture '{}' for face {}", _spout[i].texture, i
+                ));
+            }
         }
 #endif
 
@@ -319,7 +324,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
                     GL_COLOR_ATTACHMENT0,
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx,
                     _textures.cubeMapColor,
-                    idx
+                    0
                 );
                 glFramebufferTexture2D(
                     GL_DRAW_FRAMEBUFFER,
@@ -341,6 +346,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
                     GL_COLOR_BUFFER_BIT,
                     GL_NEAREST
                 );
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
         }
     };
@@ -394,7 +400,16 @@ void SpoutOutputProjection::initTextures() {
             _spout[i].handle = GetSpout();
             if (_spout[i].handle) {
                 SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_spout[i].handle);
-                h->CreateSender(CubeMapFaceName[i], _mappingWidth, _mappingHeight);
+                bool success = h->CreateSender(
+                    CubeMapFaceName[i],
+                    _mappingWidth,
+                    _mappingHeight
+                );
+                if (!success) {
+                    Log::Error(fmt::format(
+                        "Error creating SPOUT handle for {}", CubeMapFaceName[i]
+                    ));
+                }
             }
 #endif
             glGenTextures(1, &_spout[i].texture);
@@ -428,7 +443,16 @@ void SpoutOutputProjection::initTextures() {
         _mappingHandle = GetSpout();
         if (_mappingHandle) {
             SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
-            h->CreateSender(_mappingName.c_str(), _mappingWidth, _mappingHeight);
+            const bool success = h->CreateSender(
+                _mappingName.c_str(),
+                _mappingWidth,
+                _mappingHeight
+            );
+            if (!success) {
+                Log::Error(fmt::format(
+                    "Error creating SPOUT sender for '{}'", _mappingName
+                ));
+            }
         }
 #endif
         glGenTextures(1, &_mappingTexture);
@@ -461,7 +485,16 @@ void SpoutOutputProjection::initTextures() {
         _mappingHandle = GetSpout();
         if (_mappingHandle) {
             SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
-            h->CreateSender(_mappingName.c_str(), _mappingWidth, _mappingHeight);
+            const bool success = h->CreateSender(
+                _mappingName.c_str(),
+                _mappingWidth,
+                _mappingHeight
+            );
+            if (!success) {
+                Log::Error(fmt::format(
+                    "Error creating SPOUT handle for '{}'", _mappingName
+                ));
+            }
         }
 #endif
         glGenTextures(1, &_mappingTexture);

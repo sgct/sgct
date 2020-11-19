@@ -308,12 +308,12 @@ void Window::initOGL() {
         [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
     {
         switch (bd) {
-            case ColorBitDepth::Depth8: return { GL_RGBA8, GL_UNSIGNED_BYTE, 1 };
-            case ColorBitDepth::Depth16: return { GL_RGBA16, GL_UNSIGNED_SHORT, 2 };
+            case ColorBitDepth::Depth8:      return { GL_RGBA8, GL_UNSIGNED_BYTE, 1 };
+            case ColorBitDepth::Depth16:     return { GL_RGBA16, GL_UNSIGNED_SHORT, 2 };
             case ColorBitDepth::Depth16Float: return { GL_RGBA16F, GL_HALF_FLOAT, 2};
             case ColorBitDepth::Depth32Float: return { GL_RGBA32F, GL_FLOAT, 4 };
-            case ColorBitDepth::Depth16Int: return { GL_RGBA16I, GL_SHORT, 2 };
-            case ColorBitDepth::Depth32Int: return { GL_RGBA32I, GL_INT, 2 };
+            case ColorBitDepth::Depth16Int:  return { GL_RGBA16I, GL_SHORT, 2 };
+            case ColorBitDepth::Depth32Int:  return { GL_RGBA32I, GL_INT, 2 };
             case ColorBitDepth::Depth16UInt: return { GL_RGBA16UI, GL_UNSIGNED_SHORT, 2 };
             case ColorBitDepth::Depth32UInt: return { GL_RGBA32UI, GL_UNSIGNED_INT, 4 };
             default: throw std::logic_error("Unhandled case label");

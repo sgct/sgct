@@ -967,20 +967,22 @@ namespace sgct {
 config::Cluster readConfig(const std::string& filename) {
     Log::Debug(fmt::format("Parsing XML config '{}'", filename));
 
+    std::string name = std::filesystem::absolute(filename).string();
+
     // First save the old current working directory, set the new one
     std::filesystem::path oldPwd = std::filesystem::current_path();
-    std::filesystem::path configFolder = std::filesystem::path(filename).parent_path();
+    std::filesystem::path configFolder = std::filesystem::path(name).parent_path();
     if (!configFolder.empty()) {
         std::filesystem::current_path(configFolder);
     }
 
     // Then load the cluster
-    config::Cluster cluster = readXMLFile(filename);
+    config::Cluster cluster = readXMLFile(name);
 
     // and reset the current working directory to the old value
     std::filesystem::current_path(oldPwd);
 
-    Log::Debug(fmt::format("Config file '{}' read successfully", filename));
+    Log::Debug(fmt::format("Config file '{}' read successfully", name));
     Log::Info(fmt::format("Number of nodes in cluster: {}", cluster.nodes.size()));
 
     for (size_t i = 0; i < cluster.nodes.size(); i++) {

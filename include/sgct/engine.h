@@ -29,6 +29,7 @@ struct Configuration;
 class Node;
 class StatisticsRenderer;
 
+// The `path` should be an absolute path or relative to the current working directory
 config::Cluster loadCluster(std::optional<std::string> path);
 
 /**

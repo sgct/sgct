@@ -99,8 +99,10 @@ void main() { color = tr_color; }
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec2 in_uv;
+layout(location = 2) in int in_textureId;
 
 out vec2 tr_uv;
+flat out int tr_textureId;
 
 uniform mat4 mvp;
 uniform mat4 camera;
@@ -108,6 +110,7 @@ uniform mat4 camera;
 void main() {
     gl_Position = mvp * camera * vec4(in_position, 1.0);
     tr_uv = in_uv;
+    tr_textureId = in_textureId;
 }
 )";
 
@@ -115,11 +118,38 @@ void main() {
 #version 330 core
 
 in vec2 tr_uv;
+flat in int tr_textureId;
 out vec4 color;
 
-uniform sampler2D tex;
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform sampler2D tex3;
+uniform sampler2D tex4;
+uniform sampler2D tex5;
 
-void main() { color = texture(tex, tr_uv); }
+void main() {
+    switch (tr_textureId) {
+        case 0:
+            color = texture(tex0, tr_uv);
+            break;
+        case 1:
+            color = texture(tex1, tr_uv);
+            break;
+        case 2:
+            color = texture(tex2, tr_uv);
+            break;
+        case 3:
+            color = texture(tex3, tr_uv);
+            break;
+        case 4:
+            color = texture(tex4, tr_uv);
+            break;
+        case 5:
+            color = texture(tex5, tr_uv);
+            break;
+    }
+}
 )";
 
 } // namespace
@@ -232,68 +262,70 @@ void initializeBox() {
 
         float s;
         float t;
+
+        uint8_t textureId;
     };
 
-    std::array<Vertex, 2 * 3 * 6> vertices = {
+    constexpr const std::array<Vertex, 2 * 3 * 6> Vertices = {
         // Front
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f },  // ---
-        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f },  // ++-
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 1.f },  // -+-
+        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
+        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
+        Vertex{ -10.f,  10.f, -10.f, 0.f, 1.f, 0 },  // -+-
 
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f },  // ---
-        Vertex{  10.f, -10.f, -10.f, 1.f, 0.f },  // +--
-        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f },  // ++-
+        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
+        Vertex{  10.f, -10.f, -10.f, 1.f, 0.f, 0 },  // +--
+        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
 
         // Right
-        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f },  // +--
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f },  // +++
-        Vertex{  10.f,  10.f, -10.f, 0.f, 1.f },  // ++-
+        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
+        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
+        Vertex{  10.f,  10.f, -10.f, 0.f, 1.f, 1 },  // ++-
 
-        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f },  // +--
-        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f },  // +-+
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f },  // +++
+        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
+        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f, 1 },  // +-+
+        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
 
         // Back
-        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f },  // +-+
-        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f },  // -++
-        Vertex{  10.f,  10.f,  10.f, 0.f, 1.f },  // +++
+        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
+        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
+        Vertex{  10.f,  10.f,  10.f, 0.f, 1.f, 2 },  // +++
 
-        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f },  // +-+
-        Vertex{ -10.f, -10.f,  10.f, 1.f, 0.f },  // --+
-        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f },  // -++
+        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
+        Vertex{ -10.f, -10.f,  10.f, 1.f, 0.f, 2 },  // --+
+        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
 
         // Left
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f },  // --+
-        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f },  // -+-
-        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f },  // -++
+        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
+        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
+        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 3 },  // -++
 
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f },  // --+
-        Vertex{ -10.f, -10.f, -10.f, 1.f, 0.f },  // ---
-        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f },  // -+-
+        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
+        Vertex{ -10.f, -10.f, -10.f, 1.f, 0.f, 3 },  // ---
+        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
 
         // Top
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f },  // -+-
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f },  // +++
-        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f },  // -++
+        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
+        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
+        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 4 },  // -++
 
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f },  // -+-
-        Vertex{  10.f,  10.f, -10.f, 1.f, 0.f },  // ++-
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f },  // +++
+        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
+        Vertex{  10.f,  10.f, -10.f, 1.f, 0.f, 4 },  // ++-
+        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
 
         // Bottom
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f },  // --+
-        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f },  // +--
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 1.f },  // ---
+        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
+        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
+        Vertex{ -10.f, -10.f, -10.f, 0.f, 1.f, 5 },  // ---
 
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f },  // --+
-        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f },  // +-+
-        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f },  // +--
+        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
+        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f, 5 },  // +-+
+        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
     };
     glBindBuffer(GL_ARRAY_BUFFER, box.vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        vertices.size() * sizeof(Vertex),
-        vertices.data(),
+        Vertices.size() * sizeof(Vertex),
+        Vertices.data(),
         GL_STATIC_DRAW
     );
     glEnableVertexAttribArray(0);
@@ -305,8 +337,17 @@ void initializeBox() {
         GL_FLOAT,
         GL_FALSE,
         sizeof(Vertex),
-        reinterpret_cast<void*>(3 * sizeof(float))
+        reinterpret_cast<void*>(offsetof(Vertex, s))
     );
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(
+        2,
+        1,
+        GL_UNSIGNED_BYTE,
+        sizeof(Vertex),
+        reinterpret_cast<void*>(offsetof(Vertex, textureId))
+    );
+
     glBindVertexArray(0);
 
 
@@ -414,7 +455,12 @@ void initializeBox() {
     prog.bind();
     box.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
     box.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
-    glUniform1i(glGetUniformLocation(prog.id(), "tex"), 0);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex0"), 0);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex1"), 1);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex2"), 2);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex3"), 3);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex4"), 4);
+    glUniform1i(glGetUniformLocation(prog.id(), "tex5"), 5);
     prog.unbind();
 }
 
@@ -434,8 +480,6 @@ void postSyncPreDraw() {
 }
 
 void draw(const RenderData& data) {
-    //Log::Info(std::to_string(Engine::instance().currentFrameNumber()));
-
     const mat4 mvp = data.modelViewProjectionMatrix;
 
     glm::vec3 direction = {
@@ -468,20 +512,19 @@ void draw(const RenderData& data) {
         glBindVertexArray(box.vao);
 
         glActiveTexture(GL_TEXTURE0);
-
         glBindTexture(GL_TEXTURE_2D, box.textureFront);
-        glDrawArrays(GL_TRIANGLES,  0, 6);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, box.textureRight);
-        glDrawArrays(GL_TRIANGLES,  6, 6);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, box.textureBack);
-        glDrawArrays(GL_TRIANGLES, 12, 6);
+        glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, box.textureLeft);
-        glDrawArrays(GL_TRIANGLES, 18, 6);
+        glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, box.textureTop);
-        glDrawArrays(GL_TRIANGLES, 24, 6);
+        glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, box.textureBottom);
-        glDrawArrays(GL_TRIANGLES, 30, 6);
 
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         ShaderManager::instance().shaderProgram("grid").unbind();
     }

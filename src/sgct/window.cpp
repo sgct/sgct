@@ -132,6 +132,9 @@ void Window::applyWindow(const config::Window& window) {
     if (window.shouldAutoiconify) {
         setAutoiconify(*window.shouldAutoiconify);
     }
+    if (window.hideMouseCursor) {
+        _hideMouseCursor = *window.hideMouseCursor;
+    }
     if (window.isFloating) {
         setFloating(*window.isFloating);
     }
@@ -851,7 +854,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     glfwSwapInterval(isLastWindow ? Settings::instance().swapInterval() : 0);
 
     // if client, disable mouse pointer
-    if (!Engine::instance().isMaster()) {
+    if (_hideMouseCursor || !Engine::instance().isMaster()) {
         glfwSetInputMode(_windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 

@@ -601,6 +601,7 @@ namespace {
 
         window.isFullScreen = parseValue<bool>(elem, "fullscreen");
         window.shouldAutoiconify = parseValue<bool>(elem, "autoiconify");
+        window.hideMouseCursor = parseValue<bool>(elem, "hideMouseCursor");
         window.isFloating = parseValue<bool>(elem, "floating");
         window.alwaysRender = parseValue<bool>(elem, "alwaysRender");
         window.isHidden = parseValue<bool>(elem, "hidden");

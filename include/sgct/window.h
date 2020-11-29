@@ -383,6 +383,7 @@ private:
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
     bool _shouldAutoiconify = false;
+    bool _hideMouseCursor = false;
     bool _isFloating = false;
     bool _isDoubleBuffered = true;
     bool _setWindowPos = false;

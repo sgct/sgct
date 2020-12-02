@@ -119,7 +119,11 @@ NetworkManager::NetworkManager(NetworkMode nm,
     std::array<char, 256> Buffer;
     {
         ZoneScopedN("gethostname")
+#ifdef WIN32
         const int res = gethostname(Buffer.data(), Buffer.size());
+#else // WIN32
+        const size_t res = gethostname(Buffer.data(), Buffer.size());
+#endif // WIN32
         if (res != 0) {
 #ifdef WIN32
             WSACleanup();

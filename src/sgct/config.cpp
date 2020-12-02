@@ -187,7 +187,7 @@ void validateProjectionPlane(const ProjectionPlane&) {}
 
 void validateMpcdiProjection(const MpcdiProjection&) {}
 
-void validateViewport(const Viewport& v, bool draw3D) {
+void validateViewport(const Viewport& v, bool /*draw3D*/) {
     ZoneScoped
 
     if (v.user && v.user->empty()) {
@@ -307,7 +307,7 @@ void validateNode(const Node& n) {
         if (win.blitWindowId.has_value()) {
             auto it = std::find_if(
                 n.windows.cbegin(), n.windows.cend(),
-                [id = *win.blitWindowId](const Window& win) { return win.id == id; }
+                [id = *win.blitWindowId](const Window& w) { return w.id == id; }
             );
             if (it == n.windows.cend()) {
                 throw Error(

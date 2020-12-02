@@ -18,7 +18,7 @@ namespace sgct::utils {
 
 Sphere::Sphere(float radius, unsigned int segments) {
     const size_t vsegs = std::max<size_t>(segments, 2);
-    const size_t hsegs = static_cast<size_t>(vsegs * 2);
+    const size_t hsegs = vsegs * 2;
     const size_t nVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
     _nFaces = static_cast<unsigned int>(
         hsegs + (vsegs - 2) * hsegs * 2 + hsegs
@@ -46,7 +46,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
     // All other vertices:
     // vsegs-1 latitude rings of hsegs+1 vertices each
     // (duplicates at texture seam s=0 / s=1)
-    for (size_t j = 0; j < static_cast<size_t>(vsegs - 1); j++) {
+    for (size_t j = 0; j < vsegs - 1; j++) {
         // vsegs-1 latitude rings of vertices
         const double theta = (static_cast<double>(j + 1) / vsegs ) * glm::pi<double>();
         const float y = static_cast<float>(cos(theta));
@@ -70,14 +70,14 @@ Sphere::Sphere(float radius, unsigned int segments) {
     std::vector<unsigned int> indices(static_cast<size_t>(_nFaces) * 3, 0);
     // The index array: triplets of integers, one for each triangle
     // Top cap
-    for (size_t i = 0; i < static_cast<size_t>(hsegs); i++) {
+    for (size_t i = 0; i < hsegs; i++) {
         indices[3 * i] = static_cast<unsigned int>(0);
         indices[3 * i + 2] = static_cast<unsigned int>(1 + i);
         indices[3 * i + 1] = static_cast<unsigned int>(2 + i);
     }
     // Middle part (possibly empty if vsegs=2)
-    for (size_t j = 0; j < static_cast<size_t>(vsegs - 2); j++) {
-        for (size_t i = 0; i < static_cast<size_t>(hsegs); i++) {
+    for (size_t j = 0; j < vsegs - 2; j++) {
+        for (size_t i = 0; i < hsegs; i++) {
             const size_t base = 3 * (hsegs + 2 * (j * hsegs + i));
             const size_t i0 = 1 + j * (hsegs + 1) + i;
             indices[base] = static_cast<unsigned int>(i0);

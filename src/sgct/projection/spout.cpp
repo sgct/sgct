@@ -660,7 +660,6 @@ void SpoutOutputProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    const bool useDepth = Settings::instance().useDepthTexture();
     std::string fragmentShader = [](bool useDepth,
         Settings::DrawBufferType t) {
         // It would be nice to do a multidimensional switch statement -.-
@@ -699,7 +698,7 @@ void SpoutOutputProjection::initShaders() {
             default:
                 throw std::logic_error("Unhandled case label");
         }
-    }(useDepth, Settings::instance().drawBufferType());
+    }(Settings::instance().useDepthTexture(), Settings::instance().drawBufferType());
 
 
     std::string name = [](Mapping mapping) {

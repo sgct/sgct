@@ -200,7 +200,7 @@ Buffer generateOBJMesh(const std::string& path) {
         );
     }
     for (const Face& f : faces) {
-        const unsigned int nPositions = static_cast<unsigned int>(positions.size());
+        const int nPositions = static_cast<int>(positions.size());
         // OBJ uses 1-based indices, so we need to allow for one bigger than the number
         // of positions
         bool invalid = f.f1 > nPositions || f.f2 > nPositions || f.f3 > nPositions;

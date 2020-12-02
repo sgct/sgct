@@ -569,7 +569,6 @@ void FisheyeProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    const bool useDepth = Settings::instance().useDepthTexture();
     std::string fragmentShader = [](bool isOffAxis, bool useDepth,
                                     Settings::DrawBufferType t)
     {
@@ -631,7 +630,11 @@ void FisheyeProjection::initShaders() {
             default:
                 throw std::logic_error("Unhandled case label");
         }
-    }(_isOffAxis, useDepth, Settings::instance().drawBufferType());
+    }(
+        _isOffAxis,
+        Settings::instance().useDepthTexture(),
+        Settings::instance().drawBufferType()
+    );
 
     std::string samplerShader =
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;

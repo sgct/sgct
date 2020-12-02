@@ -23,7 +23,7 @@ parallel tools: {
     stage('tools/cppcheck') {
       createDirectory('build');
       sh(
-        script: 'cppcheck --enable=all --xml --xml-version=2 -i config -i ext -i support include src 2> build/cppcheck.xml',
+        script: 'cppcheck --enable=all --xml --xml-version=2 --suppressions-list=support/cppcheck/suppressions.txt -i config -i ext -i support include src 2> build/cppcheck.xml',
         label: 'CPPCheck'
       )
       recordIssues(

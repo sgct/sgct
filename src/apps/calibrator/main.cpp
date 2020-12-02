@@ -171,18 +171,18 @@ void initializeGrid() {
     constexpr const int ElevationSteps = 40;
     constexpr const int AzimuthSteps = 160;
 
-    struct Vertex {
-        float elevation,
-            azimuth;
+    struct GridVertex {
+        float elevation;
+        float azimuth;
     };
-    std::vector<Vertex> vertices;
+    std::vector<GridVertex> vertices;
     // (abock, 2019-10-09) We generate the vertices ring-wise;  first iterating over the
     // elevation and then the azimuth will lead to the bottom most ring be filled first,
     // before going to the upper rings.  That also means that two vertices on top of each
     // other should be separated in the vertices list by 'AzimuthSteps' positions
     for (int e = 0; e <= ElevationSteps; ++e) {
         for (int a = 0; a < AzimuthSteps; ++a) {
-            Vertex vertex;
+            GridVertex vertex;
             float ev = static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
             float av = static_cast<float>(a) / static_cast<float>(AzimuthSteps - 1);
             vertex.elevation = glm::radians(ev * 90.f);
@@ -192,10 +192,10 @@ void initializeGrid() {
     }
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GridVertex), nullptr);
     glBufferData(
         GL_ARRAY_BUFFER,
-        vertices.size() * sizeof(Vertex),
+        vertices.size() * sizeof(GridVertex),
         vertices.data(),
         GL_STATIC_DRAW
     );
@@ -255,7 +255,7 @@ void initializeBox() {
     glGenBuffers(1, &box.vbo);
     glBindVertexArray(box.vao);
 
-    struct Vertex {
+    struct BoxVertex {
         float x;
         float y;
         float z;
@@ -266,86 +266,86 @@ void initializeBox() {
         uint8_t textureId;
     };
 
-    constexpr const std::array<Vertex, 2 * 3 * 6> Vertices = {
+    constexpr const std::array<BoxVertex, 2 * 3 * 6> Vertices = {
         // Front
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
-        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 1.f, 0 },  // -+-
+        BoxVertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
+        BoxVertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
+        BoxVertex{ -10.f,  10.f, -10.f, 0.f, 1.f, 0 },  // -+-
 
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
-        Vertex{  10.f, -10.f, -10.f, 1.f, 0.f, 0 },  // +--
-        Vertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
+        BoxVertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
+        BoxVertex{  10.f, -10.f, -10.f, 1.f, 0.f, 0 },  // +--
+        BoxVertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
 
         // Right
-        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
-        Vertex{  10.f,  10.f, -10.f, 0.f, 1.f, 1 },  // ++-
+        BoxVertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
+        BoxVertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
+        BoxVertex{  10.f,  10.f, -10.f, 0.f, 1.f, 1 },  // ++-
 
-        Vertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
-        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f, 1 },  // +-+
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
+        BoxVertex{  10.f, -10.f, -10.f, 0.f, 0.f, 1 },  // +--
+        BoxVertex{  10.f, -10.f,  10.f, 1.f, 0.f, 1 },  // +-+
+        BoxVertex{  10.f,  10.f,  10.f, 1.f, 1.f, 1 },  // +++
 
         // Back
-        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
-        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
-        Vertex{  10.f,  10.f,  10.f, 0.f, 1.f, 2 },  // +++
+        BoxVertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
+        BoxVertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
+        BoxVertex{  10.f,  10.f,  10.f, 0.f, 1.f, 2 },  // +++
 
-        Vertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
-        Vertex{ -10.f, -10.f,  10.f, 1.f, 0.f, 2 },  // --+
-        Vertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
+        BoxVertex{  10.f, -10.f,  10.f, 0.f, 0.f, 2 },  // +-+
+        BoxVertex{ -10.f, -10.f,  10.f, 1.f, 0.f, 2 },  // --+
+        BoxVertex{ -10.f,  10.f,  10.f, 1.f, 1.f, 2 },  // -++
 
         // Left
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
-        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
-        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 3 },  // -++
+        BoxVertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
+        BoxVertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
+        BoxVertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 3 },  // -++
 
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
-        Vertex{ -10.f, -10.f, -10.f, 1.f, 0.f, 3 },  // ---
-        Vertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
+        BoxVertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 3 },  // --+
+        BoxVertex{ -10.f, -10.f, -10.f, 1.f, 0.f, 3 },  // ---
+        BoxVertex{ -10.f,  10.f, -10.f, 1.f, 1.f, 3 },  // -+-
 
         // Top
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
-        Vertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 4 },  // -++
+        BoxVertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
+        BoxVertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
+        BoxVertex{ -10.f,  10.f,  10.f, 0.f, 1.f, 4 },  // -++
 
-        Vertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
-        Vertex{  10.f,  10.f, -10.f, 1.f, 0.f, 4 },  // ++-
-        Vertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
+        BoxVertex{ -10.f,  10.f, -10.f, 0.f, 0.f, 4 },  // -+-
+        BoxVertex{  10.f,  10.f, -10.f, 1.f, 0.f, 4 },  // ++-
+        BoxVertex{  10.f,  10.f,  10.f, 1.f, 1.f, 4 },  // +++
 
         // Bottom
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
-        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
-        Vertex{ -10.f, -10.f, -10.f, 0.f, 1.f, 5 },  // ---
+        BoxVertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
+        BoxVertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
+        BoxVertex{ -10.f, -10.f, -10.f, 0.f, 1.f, 5 },  // ---
 
-        Vertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
-        Vertex{  10.f, -10.f,  10.f, 1.f, 0.f, 5 },  // +-+
-        Vertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
+        BoxVertex{ -10.f, -10.f,  10.f, 0.f, 0.f, 5 },  // --+
+        BoxVertex{  10.f, -10.f,  10.f, 1.f, 0.f, 5 },  // +-+
+        BoxVertex{  10.f, -10.f, -10.f, 1.f, 1.f, 5 },  // +--
     };
     glBindBuffer(GL_ARRAY_BUFFER, box.vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        Vertices.size() * sizeof(Vertex),
+        Vertices.size() * sizeof(BoxVertex),
         Vertices.data(),
         GL_STATIC_DRAW
     );
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BoxVertex), nullptr);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(
         1,
         2,
         GL_FLOAT,
         GL_FALSE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, s))
+        sizeof(BoxVertex),
+        reinterpret_cast<void*>(offsetof(BoxVertex, s))
     );
     glEnableVertexAttribArray(2);
     glVertexAttribIPointer(
         2,
         1,
         GL_UNSIGNED_BYTE,
-        sizeof(Vertex),
-        reinterpret_cast<void*>(offsetof(Vertex, textureId))
+        sizeof(BoxVertex),
+        reinterpret_cast<void*>(offsetof(BoxVertex, textureId))
     );
 
     glBindVertexArray(0);

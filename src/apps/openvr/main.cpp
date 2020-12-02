@@ -6,10 +6,11 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct.h>
+#include <sgct/sgct.h>
 #include <sgct/openvr.h>
 #include <sgct/user.h>
 #include <sgct/window.h>
+#include <sgct/opengl.h>
 #include <stdio.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

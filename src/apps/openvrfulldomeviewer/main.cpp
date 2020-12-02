@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <algorithm> //used for transform string to lowercase
-#include <sgct.h>
+#include <sgct/sgct.h>
 #include <sgct/window.h>
 #include <sgct/openvr.h>
 #include <sgct/image.h>

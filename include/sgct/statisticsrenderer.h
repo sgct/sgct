@@ -63,7 +63,7 @@ private:
 
     struct Histogram {
         // Each bin covers 1ms
-        static const int Bins = 128;
+        static const int Bins = Engine::Statistics::HistoryLength;
 
         struct Values {
             std::array<int, Bins> frametimes = {};

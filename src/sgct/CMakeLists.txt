@@ -157,18 +157,32 @@ add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
-target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include)
+target_include_directories(sgct 
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+)
 
+target_include_directories(sgct SYSTEM PRIVATE 
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ext/stb>
+)
+
+find_package(fmt REQUIRED)
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(glm REQUIRED)
+find_package(minizip REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyxml2 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(unofficial-tracy REQUIRED)
+
+if (SGCT_FREETYPE_SUPPORT)
+    find_package(freetype REQUIRED)
+endif ()
 if (SGCT_VRPN_SUPPORT)
   find_package(vrpn REQUIRED)
 endif ()
@@ -180,8 +194,8 @@ target_link_libraries(sgct
   PUBLIC 
     glad::glad
     glfw
-    fmt
-    tracy
+    fmt::fmt
+    unofficial::tracy::tracy
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
@@ -196,6 +210,7 @@ target_link_libraries(sgct
 
 target_compile_definitions(sgct 
   PUBLIC 
+    $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:TRACY_ENABLE>
     $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:SGCT_HAS_TRACY>
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
@@ -236,4 +251,29 @@ else () # Linux
     ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
   )
+endif ()
+
+if (SGCT_INSTALL)
+  include(GNUInstallDirs)
+  install(TARGETS sgct EXPORT sgctTargets 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+  )
+  install(
+    EXPORT sgctTargets 
+    FILE sgctTargets.cmake
+    NAMESPACE sgct:: 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+  install(
+      FILES ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+
 endif ()

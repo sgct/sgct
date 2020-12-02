@@ -13,7 +13,8 @@ function (set_compile_options target)
     target_compile_options(
       ${target}
       PRIVATE
-      "/ZI"       # Edit and continue support
+      #"/Zi"      # Edit and continue support // This does not work with TRACY >= 0.7.1 
+                  # makes __LINE__ a non constant
       "/MP"       # Multi-threading support
       "/W4"       # Highest warning level
       "/wd4201"   # nonstandard extension used : nameless struct/union

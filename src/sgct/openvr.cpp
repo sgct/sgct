@@ -219,7 +219,7 @@ void copyWindowToHMD(Window* win) {
         renderWidth,
         0,
         windowWidth,
-        renderHeight,
+        windowHeight,
         0,
         0,
         renderWidth,

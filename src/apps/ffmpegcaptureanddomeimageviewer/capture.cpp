@@ -112,10 +112,6 @@ std::string Capture::format() const {
     return _videoStrFormat;
 }
 
-int Capture::numberOfDecodedFrames() const {
-    return static_cast<int>(_decodedVideoFrames);
-}
-
 void Capture::setVideoHost(std::string hostAdress) {
     _videoHost = std::move(hostAdress);
 }
@@ -169,8 +165,6 @@ bool Capture::initVideoStream() {
     if (res >= 0) {
         _videoStream = _fmtContext->streams[_videoStreamIdx];
         _videoCodecContext = _videoStream->codec;
-
-        AVCodecID codecId = _videoCodecContext->codec_id;
 
         _width = _videoCodecContext->width;
         _height = _videoCodecContext->height;

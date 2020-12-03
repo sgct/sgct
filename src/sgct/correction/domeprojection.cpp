@@ -26,9 +26,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
     Log::Info(fmt::format("Reading DomeProjection mesh data from '{}', path"));
 
     FILE* meshFile = fopen(path.c_str(), "r");
-    const bool loadSuccess = meshFile != nullptr;
-    if (!loadSuccess) {
-        fclose(meshFile);
+    if (!meshFile) {
         throw Error(
             Error::Component::DomeProjection, 2010,
             fmt::format("Failed to open '{}'", path)

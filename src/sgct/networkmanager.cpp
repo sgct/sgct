@@ -196,7 +196,6 @@ NetworkManager::~NetworkManager() {
     ZoneScoped
 
     _isRunning = false;
-
     cond.notify_all();
 
     // signal to terminate

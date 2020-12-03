@@ -44,6 +44,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
     if (fgets(lineBuffer, MaxLineLength, meshFile)) {
         int r = sscanf(lineBuffer, "%d", &mappingType);
         if (r != 1) {
+            fclose(meshFile);
             throw Error(
                 Error::Component::PaulBourke, 2041,
                 fmt::format("Error reading mapping type in file '{}'", path)
@@ -64,6 +65,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
 
     // check if everyting useful is set
     if (mappingType == -1 || !meshSize.has_value()) {
+        fclose(meshFile);
         throw Error(
             Error::Component::PaulBourke, 2042,
             fmt::format("Invalid data in file '{}'", path)

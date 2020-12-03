@@ -25,8 +25,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#pragma optimize ("", off)
-
 namespace {
     GLuint vao = 0;
     GLuint vbo = 0;
@@ -176,9 +174,7 @@ void draw(const RenderData& data) {
 
     prog.unbind();
 
-    if (spoutStatus) {
-        receiver->UnBindSharedTexture();
-    }
+    receiver->UnBindSharedTexture();
 }
 
 void draw2D(const RenderData& data) {

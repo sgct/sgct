@@ -56,8 +56,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     } while (nNewlines < read3lines);
 
     char fileFormatHeader[2];
-    unsigned int nCols = 0;
-    unsigned int nRows = 0;
+    int nCols = 0;
+    int nRows = 0;
     float endiannessIndicator = 0;
 
     const int scanRes = sscanf(
@@ -105,7 +105,6 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     fclose(meshFile);
 
     nCols /= 2;
-    std::string fileNameAdd[3] = { "_L", "_R", "" };
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
@@ -119,8 +118,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
 
         size_t i = 0;
 
-        for (size_t r = 0; r < nRows; r++) {
-            for (size_t c = 0; c < nCols; c++) {
+        for (int r = 0; r < nRows; r++) {
+            for (int c = 0; c < nCols; c++) {
                 // vertex-mapping
                 const float u =
                     (static_cast<float>(c) / (static_cast<float>(nCols + 1) - 1.f)) +

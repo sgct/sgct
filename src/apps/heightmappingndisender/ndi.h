@@ -13,12 +13,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define NUMBER_OF_NDI_BUFFERS 2
 
-class NDISender
-{
+class NDISender {
 public:
 	enum PixelFMT { BGRA, UYVY };
 
-	NDISender();
+	NDISender() = default;
 	~NDISender();
 	bool init(int width, int height, const std::string & name, PixelFMT format = UYVY);
 	void submitFrame(unsigned char * frame, int channels);
@@ -28,14 +27,14 @@ private:
 	static void workerBGRA(unsigned char * src, unsigned char * dst, int start, int strideSize, int height, int count);
 	static void workerUYVY(unsigned char * src, unsigned char * dst, int start, int strideSize, int height, int count);
 
-	int mWidth;
-	int mHeight;
-	int mStrideSize;
-	int mFrameSize;
-	int mIndex;
-	bool mValid;
-	PixelFMT mPixFMT;
-	NDIlib_send_instance_t mNDI_send;
+	int mWidth = 0;
+	int mHeight = 0;
+	int mStrideSize = 0;
+	int mFrameSize = 0;
+	int mIndex = 0;
+	bool mValid = false;
+	PixelFMT mPixFMT = PixelFMT::BGRA;
+	NDIlib_send_instance_t mNDI_send = nullptr;
 	NDIlib_video_frame_t mNDI_video_frame[NUMBER_OF_NDI_BUFFERS];
 };
 

@@ -831,8 +831,8 @@ void dataTransferStatus(bool connected, int clientIndex) {
 void dataTransferAcknowledge(int packageId, int clientIndex) {
     Log::Info("Transfer id: %d is completed on node %d", packageId, clientIndex);
 
-    static int counter = 0;
     if (packageId == lastPackage) {
+        static int counter = 0;
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;

@@ -657,13 +657,13 @@ void Network::communicationHandler() {
             updateBuffer(_recvBuffer, _requestedSize, _bufferSize);
         }
         int32_t packageId = -1;
-        int32_t syncFrameNumber = -1;
         uint32_t dataSize = 0;
         uint32_t uncompressedDataSize = 0;
 
         _headerId = DefaultId;
 
         if (type() == ConnectionType::SyncConnection) {
+            int32_t syncFrameNumber = -1;
             iResult = readSyncMessage(
                 RecvHeader,
                 syncFrameNumber,

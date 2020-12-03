@@ -33,7 +33,6 @@ public:
     int width() const;
     int height() const;
     std::string format() const;
-    int numberOfDecodedFrames() const;
 
 private:
     bool initVideoStream();

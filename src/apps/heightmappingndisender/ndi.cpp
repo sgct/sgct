@@ -10,22 +10,11 @@
 #include "ndi.h"
 #include <future>
 
-NDISender::NDISender() {
-    mWidth = 0;
-    mHeight = 0;
-    mStrideSize = 0;
-    mFrameSize = 0;
-    mIndex = 0;
-    mValid = false;
-    mNDI_send = NULL;
-}
-
 NDISender::~NDISender() {
     //sync
     NDIlib_send_send_video_async(mNDI_send, NULL); // Sync here
 
-    for (unsigned int i = 0; i < NUMBER_OF_NDI_BUFFERS; ++i)
-    {
+    for (unsigned int i = 0; i < NUMBER_OF_NDI_BUFFERS; ++i) {
         delete[] mNDI_video_frame[i].p_data;
     }
 
@@ -175,7 +164,8 @@ void NDISender::workerBGRA(unsigned char * src, unsigned char * dst, int start, 
     }
 }
 
-void NDISender::workerUYVY(unsigned char * src, unsigned char * dst, int start, int strideSize, int height, int count)
+void NDISender::workerUYVY(unsigned char* src, unsigned char * dst, int start,
+                           int strideSize, int height, int count)
 {
     //flip & convert
     unsigned int dst_index = 0;

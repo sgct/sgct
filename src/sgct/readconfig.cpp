@@ -899,7 +899,6 @@ namespace {
                 std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
                 std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
                 std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
-                std::string s4 = s1 + ' ' + s2 + ' ' + s3;
                 throw Err(
                     6082,
                     fmt::format(

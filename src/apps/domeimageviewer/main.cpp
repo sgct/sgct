@@ -401,8 +401,8 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
         "Transfer id: {} is completed on node {}", packageId, clientIndex
     ));
 
-    static int counter = 0;
     if (packageId == lastPackage) {
+        static int counter = 0;
         counter++;
         if (counter == (ClusterManager::instance().numberOfNodes() - 1)) {
             clientsUploadDone = true;

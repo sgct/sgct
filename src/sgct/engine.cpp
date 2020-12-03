@@ -1471,15 +1471,16 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     // check if swapgroups are supported
 #ifdef WIN32
     const bool hasSwapGroup = glfwExtensionSupported("WGL_NV_swap_group");
-#else
-    const bool hasSwapGroup = false;
-#endif
     if (hasSwapGroup) {
         Log::Info("Swap groups are supported by hardware");
-    }
+}
     else {
         Log::Info("Swap groups are not supported by hardware");
     }
+#else
+    Log::Info("Swap groups are not supported by hardware");
+#endif
+
     Log::Info("Waiting for all nodes to connect");
 
     while (!NetworkManager::instance().areAllNodesConnected()) {

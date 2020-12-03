@@ -37,7 +37,6 @@
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <unistd.h>
-    #define SOCKET_ERROR (-1)
 #endif
 
 #define Error(code, msg) Error(Error::Component::Network, code, msg)

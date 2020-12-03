@@ -1269,8 +1269,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                 const std::vector<std::unique_ptr<Window>>& wins = windows();
                 auto it = std::find_if(
                     wins.cbegin(), wins.cend(),
-                    [id = win.blitWindowId()](const std::unique_ptr<Window>& win) {
-                        return win->id() == id;
+                    [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                        return w->id() == id;
                     }
                 );
                 assert(it != wins.cend());
@@ -1312,9 +1312,9 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             const std::vector<std::unique_ptr<Window>>& wins = windows();
             auto it = std::find_if(
                 wins.cbegin(), wins.cend(),
-                [id = win.blitWindowId()](const std::unique_ptr<Window>& win) {
-                return win->id() == id;
-            }
+                [id = win.blitWindowId()](const std::unique_ptr<Window>& w) {
+                    return w->id() == id;
+                }
             );
             assert(it != wins.cend());
             const Window& srcWin = **it;

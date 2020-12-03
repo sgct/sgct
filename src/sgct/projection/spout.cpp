@@ -660,8 +660,7 @@ void SpoutOutputProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    std::string fragmentShader = [](bool useDepth,
-        Settings::DrawBufferType t) {
+    std::string fragmentShader = [](bool useDepth, Settings::DrawBufferType type) {
         // It would be nice to do a multidimensional switch statement -.-
 
         constexpr auto tuple = [](bool useDepth,
@@ -676,7 +675,7 @@ void SpoutOutputProjection::initShaders() {
         };
 
         using DrawBufferType = Settings::DrawBufferType;
-        switch (tuple(useDepth, t)) {
+        switch (tuple(useDepth, type)) {
             case tuple(true, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragDepth;
             case tuple(true, DrawBufferType::DiffuseNormal):

@@ -570,7 +570,7 @@ void FisheyeProjection::initShaders() {
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
     std::string fragmentShader = [](bool isOffAxis, bool useDepth,
-                                    Settings::DrawBufferType t)
+                                    Settings::DrawBufferType type)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
@@ -590,7 +590,7 @@ void FisheyeProjection::initShaders() {
         };
 
         using DrawBufferType = Settings::DrawBufferType;
-        switch (tuple(isOffAxis, useDepth, t)) {
+        switch (tuple(isOffAxis, useDepth, type)) {
             case tuple(true, true, DrawBufferType::Diffuse):
                 return shaders_fisheye::FisheyeFragOffAxisDepth;
             case tuple(true, true, DrawBufferType::DiffuseNormal):

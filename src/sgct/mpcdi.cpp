@@ -308,7 +308,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                     throw Error(4022, fmt::format("Unable to open {}", fileName));
                 }
                 xmlBuffer.resize(uncompSize);
-                const int size = unzReadCurrentFile(zip, xmlBuffer.data(), uncompSize);
+                const auto size = unzReadCurrentFile(zip, xmlBuffer.data(), uncompSize);
                 if (size < 0) {
                     throw Error(4023, fmt::format("Read from {} failed", fileName));
                 }
@@ -326,7 +326,7 @@ ReturnValue parseMpcdiConfiguration(const std::string& filename) {
                     throw Error(4024, fmt::format("Unable to open {}", fileName));
                 }
                 std::vector<char> buffer(uncompSize);
-                const int size = unzReadCurrentFile(zip, buffer.data(), uncompSize);
+                const auto size = unzReadCurrentFile(zip, buffer.data(), uncompSize);
                 if (size < 0) {
                     throw Error(4025, fmt::format("Read from {} failed", fileName));
                 }

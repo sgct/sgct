@@ -46,12 +46,10 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
     Log::Info(fmt::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
-    if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_NO_ERROR) {
+    if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) {
         std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
-        std::string s2 = xmlDoc.GetErrorStr1() ? xmlDoc.GetErrorStr1() : "";
-        std::string s3 = xmlDoc.GetErrorStr2() ? xmlDoc.GetErrorStr2() : "";
-        std::string s4 = s1 + ' ' + s2 + ' ' + s3;
-        throw Error(2080, fmt::format("Error loading file '{}'. {}", path, s4));
+        std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
+        throw Error(2080, fmt::format("Error loading file '{}'. {} {}", path, s1, s2));
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
@@ -78,7 +76,7 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
 
         if (childVal == "X-FlatParameters") {
             float xrange = 1.f;
-            if (child->QueryFloatAttribute("range", &xrange) == XML_NO_ERROR) {
+            if (child->QueryFloatAttribute("range", &xrange) == XML_SUCCESS) {
                 std::string xcoordstr(child->GetText());
                 std::vector<std::string> xcoords = split(xcoordstr, ' ');
                 for (const std::string& x : xcoords) {
@@ -88,7 +86,7 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
         }
         else if (childVal == "Y-FlatParameters") {
             float yrange = 1.f;
-            if (child->QueryFloatAttribute("range", &yrange) == XML_NO_ERROR) {
+            if (child->QueryFloatAttribute("range", &yrange) == XML_SUCCESS) {
                 std::string ycoordstr(child->GetText());
                 std::vector<std::string> ycoords = split(ycoordstr, ' ');
                 for (const std::string& y : ycoords) {

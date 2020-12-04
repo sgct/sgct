@@ -57,9 +57,10 @@ if (SGCT_DEP_INCLUDE_GLM)
 endif ()
 
 if (SGCT_DEP_INCLUDE_TINYXML)
-  add_subdirectory(tinyxml2)
+  add_subdirectory(tinyxml)
   set_target_properties(tinyxml2 PROPERTIES FOLDER "Dependencies")
   disable_external_warnings(tinyxml2)
+  add_library(tinyxml2::tinyxml2 ALIAS tinyxml2)
   sgct_register_package(tinyxml2 tinyxml2::tinyxml2)
 endif ()
 

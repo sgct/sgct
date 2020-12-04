@@ -119,7 +119,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     {
         ZoneScopedN("gethostname")
 #ifdef WIN32
-        const int res = gethostname(Buffer.data(), Buffer.size());
+        const int res = gethostname(Buffer.data(), static_cast<int>(Buffer.size()));
 #else // WIN32
         const size_t res = gethostname(Buffer.data(), Buffer.size());
 #endif // WIN32

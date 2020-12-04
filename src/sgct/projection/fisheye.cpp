@@ -574,13 +574,13 @@ void FisheyeProjection::initShaders() {
     {
         // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool isOffAxis, bool depth,
+        constexpr auto tuple = [](bool offAxis, bool depth,
                                   Settings::DrawBufferType t) -> uint16_t
         {
             // Injective mapping from <bool, bool, bool, DrawBufferType> to uint16_t
             uint16_t res = 0;
             res += static_cast<uint8_t>(t);
-            if (isOffAxis) {
+            if (offAxis) {
                 res += 1 << 11;
             }
             if (depth) {

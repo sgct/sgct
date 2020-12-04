@@ -663,12 +663,11 @@ void SpoutOutputProjection::initShaders() {
     std::string fragmentShader = [](bool useDepth, Settings::DrawBufferType type) {
         // It would be nice to do a multidimensional switch statement -.-
 
-        constexpr auto tuple = [](bool useDepth,
-            Settings::DrawBufferType t) -> uint16_t {
+        constexpr auto tuple = [](bool depth, Settings::DrawBufferType t) -> uint16_t {
             // Injective mapping from <bool, DrawBufferType> to uint16_t
             uint16_t res = 0;
             res += static_cast<uint8_t>(t);
-            if (useDepth) {
+            if (depth) {
                 res += 1 << 11;
             }
             return res;

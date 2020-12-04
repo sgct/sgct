@@ -26,7 +26,7 @@
     #include <netdb.h>
     #include <unistd.h>
     #define SOCKET_ERROR (-1)
-    #define INVALID_SOCKET static_cast<SGCT_SOCKET>(~0)
+    #define INVALID_SOCKET (~0)
     #define NO_ERROR 0L
     #define SGCT_ERRNO errno
 #endif
@@ -812,7 +812,7 @@ void Network::sendData(const void* data, int length) {
     long sendSize = length;
 
     while (sendSize > 0) {
-        int offset = length - sendSize;
+        int offset = static_cast<int>(length - sendSize);
         const long sentLen = send(
             _socket,
             reinterpret_cast<const char*>(data) + offset,

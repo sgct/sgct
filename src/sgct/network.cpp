@@ -458,11 +458,11 @@ int Network::lastError() {
 }
 
 int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
-    int iResult = 0;
+    long iResult = 0;
     int attempts = 1;
 
     while (iResult < length) {
-        int tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
+        long tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
         if (tmpRes > 0) {
             iResult += tmpRes;
         }
@@ -483,7 +483,9 @@ int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int fla
         }
     }
 
-    return iResult;
+    // POXIX requires `recv` to return ssize_t which is -> long. We are not going to get
+    // enough data to fill this, so we should be fine
+    return static_cast<int>(iResult);
 }
 
 void Network::updateBuffer(std::vector<char>& buf, uint32_t reqSize, uint32_t& curSize) {
@@ -573,7 +575,7 @@ int Network::readDataTransferMessage(char* header, int32_t& packageId, uint32_t&
 }
 
 int Network::readExternalMessage() {
-    int iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
+    long iResult = recv(_socket, _recvBuffer.data(), _bufferSize, 0);
 
     // if read fails try for x attempts
     int attempts = 1;
@@ -589,7 +591,7 @@ int Network::readExternalMessage() {
         attempts++;
     }
 
-    return iResult;
+    return static_cast<int>(iResult);
 }
 
 void Network::communicationHandler() {
@@ -807,11 +809,11 @@ void Network::communicationHandler() {
 void Network::sendData(const void* data, int length) {
     ZoneScoped
 
-    int sendSize = length;
+    long sendSize = length;
 
     while (sendSize > 0) {
         int offset = length - sendSize;
-        const int sentLen = send(
+        const long sentLen = send(
             _socket,
             reinterpret_cast<const char*>(data) + offset,
             sendSize,

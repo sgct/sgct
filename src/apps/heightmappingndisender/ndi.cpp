@@ -152,26 +152,19 @@ void NDISender::submitFrame(unsigned char* frame, int channels) {
     }
 }
 
-void NDISender::workerBGRA(unsigned char * src, unsigned char * dst, int start, int strideSize, int height, int count)
+void NDISender::workerBGRA(unsigned char* src, unsigned char* dst, int start,
+                           int strideSize, int height, int count)
 {
-    //copy data and flip vertically
-    int offset_src, offset_dst;
-
     for (int row = start; row < (start + count); ++row) {
-        offset_src = (height - row - 1) * strideSize;
-        offset_dst = row * strideSize;
-        memcpy(dst + offset_dst, src + offset_src, strideSize);
+        int offset_src = (height - row - 1) * strideSize;
+        int offset_dst = row * strideSize;
+        std::memcpy(dst + offset_dst, src + offset_src, strideSize);
     }
 }
 
-void NDISender::workerUYVY(unsigned char* src, unsigned char * dst, int start,
+void NDISender::workerUYVY(unsigned char* src, unsigned char* dst, int start,
                            int strideSize, int height, int count)
 {
-    //flip & convert
-    unsigned int dst_index = 0;
-    unsigned int src_index = 0;
-    unsigned int inverted_row = 0;
-
     //constants
     //----------------------
     //ITU-R BT.601 (SD)
@@ -190,27 +183,26 @@ void NDISender::workerUYVY(unsigned char* src, unsigned char * dst, int start,
     const float KbMult = (1.0f - Kb)*2.0f;
     const float KrMult = (1.0f - Kr)*2.0f;
 
-    float y1, y2, u, v, r1, g1, b1, r2, g2, b2;
-    int w = strideSize / 2;
+    const int w = strideSize / 2;
 
     for (int row = start; row < (start + count); ++row) {
-        inverted_row = height - (row + 1);
+        unsigned int inverted_row = height - (row + 1);
         for (int col = 0; col < w; col += 2) {
             src_index = (w * inverted_row + col) * 3;
             dst_index = (w * row + col) * 2;
 
-            b1 = static_cast<float>(src[src_index]);
-            g1 = static_cast<float>(src[src_index + 1]);
-            r1 = static_cast<float>(src[src_index + 2]);
+            const float b1 = static_cast<float>(src[src_index]);
+            const float g1 = static_cast<float>(src[src_index + 1]);
+            const float r1 = static_cast<float>(src[src_index + 2]);
 
-            b2 = static_cast<float>(src[src_index + 3]);
-            g2 = static_cast<float>(src[src_index + 4]);
-            r2 = static_cast<float>(src[src_index + 5]);
+            const float b2 = static_cast<float>(src[src_index + 3]);
+            const float g2 = static_cast<float>(src[src_index + 4]);
+            const float r2 = static_cast<float>(src[src_index + 5]);
 
-            y1 = r1 * Kr + g1 * Kg + b1 * Kb;
-            y2 = r2 * Kr + g2 * Kg + b2 * Kb;
-            u = (b1 - y1) / KbMult + 128.0f;
-            v = (r1 - y1) / KrMult + 128.0f;
+            const float y1 = r1 * Kr + g1 * Kg + b1 * Kb;
+            const float y2 = r2 * Kr + g2 * Kg + b2 * Kb;
+            const float u = (b1 - y1) / KbMult + 128.0f;
+            const float v = (r1 - y1) / KrMult + 128.0f;
 
             dst[dst_index] = static_cast<BYTE>(u);
             dst[dst_index + 1] = static_cast<BYTE>(y1);

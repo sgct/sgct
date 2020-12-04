@@ -56,13 +56,13 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
     } while (nNewlines < read3lines);
 
     char fileFormatHeader[2];
-    int nCols = 0;
-    int nRows = 0;
+    unsigned int nCols = 0;
+    unsigned int nRows = 0;
     float endiannessIndicator = 0;
 
     const int scanRes = sscanf(
         headerBuffer,
-        "%2c %d %d %f",
+        "%2c %u %u %f",
         fileFormatHeader,
         &nCols,
         &nRows,

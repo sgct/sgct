@@ -7,7 +7,7 @@
 # and license in png.h
 
 cmake_minimum_required(VERSION 3.10.0)
-cmake_policy(SET CMP0026 OLD)
+# cmake_policy(SET CMP0026 OLD)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")

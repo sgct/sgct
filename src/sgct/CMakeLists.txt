@@ -157,10 +157,14 @@ add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
-target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(sgct PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include)
+target_include_directories(sgct
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
+  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include
+)
+target_include_directories(sgct SYSTEM
+  PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb
+  PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include
+)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -226,9 +230,7 @@ elseif (APPLE)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)
   find_library(IOKIT_LIBRARY IOKit REQUIRED)
   find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
-  target_link_libraries(sgct PRIVATE
-    ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY}
-  )
+  target_link_libraries(sgct PRIVATE ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
 else () # Linux
   find_package(X11 REQUIRED)
   find_package(Threads REQUIRED)

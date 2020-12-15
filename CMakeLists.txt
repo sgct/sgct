@@ -6,18 +6,11 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 project(sgct)
 
-if (POLICY CMP0056)
-  cmake_policy(SET CMP0056 NEW)
-endif ()
-if (POLICY CMP0066)
-  cmake_policy(SET CMP0066 NEW)
-endif ()
-if (POLICY CMP0072)
-  cmake_policy(SET CMP0072 NEW)
-endif ()
+cmake_policy(SET CMP0063 NEW)
+cmake_policy(SET CMP0072 NEW)
 
 set(SGCT_VERSION_MAJOR "3")
 set(SGCT_VERSION_MINOR "0")
@@ -68,13 +61,18 @@ option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
 
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 
-add_subdirectory(ext)
-add_subdirectory(src/sgct)
-
+# Example applications
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)
   option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
   option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
   option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
+endif ()
+
+
+add_subdirectory(ext)
+add_subdirectory(src/sgct)
+
+if (SGCT_EXAMPLES)
   add_subdirectory(src/apps)
 endif ()

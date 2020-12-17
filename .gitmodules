@@ -1,6 +1,6 @@
 [submodule "ext/glfw"]
     path = ext/glfw
-    url=https://github.com/glfw/glfw
+    url = https://github.com/glfw/glfw.git
 [submodule "ext/openvr"]
     path = ext/openvr
     url = https://github.com/ValveSoftware/openvr.git

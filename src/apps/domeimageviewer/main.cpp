@@ -164,8 +164,8 @@ void uploadTexture() {
 
         GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-        const GLsizei width = static_cast<GLsizei>(transImages[i]->size().x);
-        const GLsizei height = static_cast<GLsizei>(transImages[i]->size().y);
+        const GLsizei width = transImages[i]->size().x;
+        const GLsizei height = transImages[i]->size().y;
         unsigned char* data = transImages[i]->data();
         glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, width, height);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, type, format, data);

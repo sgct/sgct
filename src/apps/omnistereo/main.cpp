@@ -273,9 +273,9 @@ void initOmniStereo(bool mask) {
                         const float ss = ((x + tc.x) / xResf - 0.5f) * 2.f;
                         const float tt = ((y + tc.y) / yResf - 0.5f) * 2.f;
 
-                        const float r2 = ss * ss + tt * tt;
+                        const float rr2 = ss * ss + tt * tt;
                         // zenith - elevation (0 degrees in zenith, 90 degrees at the rim)
-                        const float phi2 = sqrt(r2) * halfFov;
+                        const float phi2 = sqrt(rr2) * halfFov;
                         // azimuth (0 degrees at back of dome and 180 degrees at front)
                         const float theta2 = atan2(ss, tt);
 

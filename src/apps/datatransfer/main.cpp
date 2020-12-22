@@ -80,9 +80,9 @@ void readImage(unsigned char* data, int len) {
     transImg = std::make_unique<Image>();
 
     try {
-        transImg->load(reinterpret_cast<unsigned char*>(data), len);
+        transImg->load(data, len);
     }
-    catch (const std::runtime_error & e) {
+    catch (const std::runtime_error& e) {
         Log::Error(e.what());
         transImg = nullptr;
     }
@@ -169,16 +169,16 @@ void uploadTexture() {
         GL_TEXTURE_2D,
         mipMapLevels,
         internalformat,
-        static_cast<GLsizei>(transImg->size().x),
-        static_cast<GLsizei>(transImg->size().y)
+        transImg->size().x,
+        transImg->size().y
     );
     glTexSubImage2D(
         GL_TEXTURE_2D,
         0,
         0,
         0,
-        static_cast<GLsizei>(transImg->size().x),
-        static_cast<GLsizei>(transImg->size().y),
+        transImg->size().x,
+        transImg->size().y,
         type,
         format,
         transImg->data()
@@ -411,7 +411,7 @@ void drop(int, const char** paths) {
         tmpStr.begin(),
         tmpStr.end(),
         tmpStr.begin(),
-        [](char c) { return static_cast<char>(c); }
+        [](char c) { return static_cast<char>(::tolower(c)); }
     );
 
     const bool foundJpg = tmpStr.find(".jpg") != std::string::npos;

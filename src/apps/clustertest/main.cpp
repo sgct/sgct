@@ -287,7 +287,7 @@ void preSync() {
         time_t now = time(nullptr);
         constexpr const int TimeBufferSize = 256;
         char TimeBuffer[TimeBufferSize];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#ifdef _MSC_VER
         tm timeInfo;
         errno_t err = localtime_s(&timeInfo, &now);
         if (err == 0) {

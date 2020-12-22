@@ -17,6 +17,7 @@ def createDirectory(dir) {
 parallel tools: {
   node('tools') {
     stage('tools/scm') {
+      deleteDir();
       checkoutGit();
     }
     stage('tools/cppcheck') {
@@ -41,6 +42,7 @@ linux_gcc_make: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux' && 'gcc') {
       stage('linux-gcc-make/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('linux-gcc-make/build') {
@@ -64,6 +66,7 @@ linux_gcc_ninja: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux' && 'gcc') {
       stage('linux-gcc-ninja/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('linux-gcc-ninja/build') {
@@ -83,6 +86,7 @@ linux_clang_make: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux' && 'clang') {
       stage('linux-clang-make/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('linux-clang-make/build(make)') {
@@ -106,6 +110,7 @@ linux_clang_ninja: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
     node('linux' && 'clang') {
       stage('linux-clang-ninja/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('linux-clang-ninja/build(ninja)') {
@@ -125,6 +130,7 @@ windows_msvc: {
   if (env.USE_BUILD_OS_WINDOWS == 'true') {
     node('windows') {
       stage('windows-msvc/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('windows-msvc/build') {
@@ -148,6 +154,7 @@ windows_ninja: {
   if (env.USE_BUILD_OS_WINDOWS == 'true') {
     node('windows') {
       stage('windows-ninja/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('windows-ninja/build') {
@@ -170,6 +177,7 @@ macos_make: {
   if (env.USE_BUILD_OS_MACOS == 'true') {
     node('macos') {
       stage('macos-make/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('macos-make/build') {
@@ -189,6 +197,7 @@ macos_ninja: {
   if (env.USE_BUILD_OS_MACOS == 'true') {
     node('macos') {
       stage('macos-xcode/scm') {
+        deleteDir();
         checkoutGit();
       }
       stage('macos-xcode/build') {

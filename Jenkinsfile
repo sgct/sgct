@@ -48,6 +48,7 @@ linux_gcc_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
         recordIssues(
@@ -70,6 +71,7 @@ linux_gcc_ninja: {
           buildDir: 'build-ninja',
           generator: 'Ninja',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -88,6 +90,7 @@ linux_clang_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
         recordIssues(
@@ -110,6 +113,7 @@ linux_clang_ninja: {
           buildDir: 'build-ninja',
           generator: 'Ninja',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -128,6 +132,7 @@ windows_msvc: {
           buildDir: 'build-msvc',
           generator: 'Visual Studio 16 2019',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- /nologo /verbosity:minimal /m:4", withCmake: true ]]
         ])
         recordIssues(
@@ -152,7 +157,7 @@ windows_ninja: {
           if not exist build-ninja mkdir build-ninja
           cd build-ninja
           cmake -G Ninja ..
-          cmake --build . -- -j 4 all
+          cmake --build -DSGCT_EXAMPLES=ON . -- -j 4 all
           """,
           label: 'Generate build-scripts with cmake and execute them'
         ) 
@@ -172,6 +177,7 @@ macos_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -190,6 +196,7 @@ macos_ninja: {
           buildDir: 'build-xcode',
           generator: 'Xcode',
           installation: "InSearchPath",
+          cmakeArgs: "-DSGCT_EXAMPLES=ON",
           steps: [[ args: "-- -quiet -parallelizeTargets -jobs 4", withCmake: true ]]
         ])
       }

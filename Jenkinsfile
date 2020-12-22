@@ -164,7 +164,7 @@ windows_ninja: {
           if not exist build-ninja mkdir build-ninja
           cd build-ninja
           cmake -G Ninja ..
-          cmake --build -DSGCT_EXAMPLES=ON . -- -j 4 all
+          cmake --build . -DSGCT_EXAMPLES=ON -- -j 4 all
           """,
           label: 'Generate build-scripts with cmake and execute them'
         ) 

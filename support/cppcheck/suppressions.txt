@@ -1,3 +1,9 @@
-missingInclude
-noExplicitConstructor
+// missingInclude
+// noExplicitConstructor
 useStlAlgorithm
+AssignmentAddressToInteger:src/apps/clustertest/main.cpp:292
+unreadVariable:src/sgct/clustermanager.cpp:66
+multiCondition:src/sgct/readconfig.cpp:243
+syntaxError:src/sgct/config.cpp:24
+syntaxError:src/sgct/viewport.cpp:31
+unreadVariable:src/sgct/networkmanager.cpp:197

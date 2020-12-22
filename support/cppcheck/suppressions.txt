@@ -1,6 +1,5 @@
-// missingInclude
-// noExplicitConstructor
 useStlAlgorithm
+
 AssignmentAddressToInteger:src/apps/clustertest/main.cpp:294
 unreadVariable:src/sgct/clustermanager.cpp:66
 multiCondition:src/sgct/readconfig.cpp:243

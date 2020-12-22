@@ -13,9 +13,12 @@
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
 #pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
+#elif defined(__clang__)
+// nothing to do here, but __GNUC__ somehow also fires on clang
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma GCC diagnostic ignored "-Wsuggest-override"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif // WIN32
 
@@ -23,6 +26,8 @@
 
 #ifdef WIN32
 #pragma warning(pop)
+#elif defined(__clang__)
+// nothing to do here, but __GNUC__ somehow also fires on clang
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif // WIN32

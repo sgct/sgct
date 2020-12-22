@@ -163,8 +163,8 @@ windows_ninja: {
           call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
           if not exist build-ninja mkdir build-ninja
           cd build-ninja
-          cmake -G Ninja ..
-          cmake --build . -DSGCT_EXAMPLES=ON -- -j 4 all
+          cmake -G Ninja -D SGCT_EXAMPLES=ON ..
+          cmake --build .  -- -j 4 all
           """,
           label: 'Generate build-scripts with cmake and execute them'
         ) 

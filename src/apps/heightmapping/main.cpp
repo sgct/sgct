@@ -253,7 +253,7 @@ void postSyncPreDraw() {
     Engine::instance().setStatsGraphVisibility(stats);
 #ifdef SGCT_HAS_VRPN
     TrackingManager::instance().setEnabled(useTracking);
-#endif / SGCT_HAS_VRPN
+#endif // SGCT_HAS_VRPN
 
     if (takeScreenshot) {
         Engine::instance().takeScreenshot();

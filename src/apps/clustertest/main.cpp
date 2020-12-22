@@ -286,19 +286,21 @@ void preSync() {
 
         time_t now = time(nullptr);
         constexpr const int TimeBufferSize = 256;
-        char TimeBuffer[TimeBufferSize];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+        std::array<char, TimeBufferSize> TimeBuffer;
+        std::fill(TimeBuffer.begin(), TimeBuffer.end(), '\0');
+
+#ifdef _MSC_VER
         tm timeInfo;
         errno_t err = localtime_s(&timeInfo, &now);
         if (err == 0) {
-            strftime(TimeBuffer, TimeBufferSize, "%X", &timeInfo);
+            strftime(TimeBuffer.data(), TimeBuffer.size(), "%X", &timeInfo);
         }
 #else
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
-        strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
+        strftime(TimeBuffer.data(), TimeBuffer.size(), "%X", timeInfoPtr);
 #endif
-        sTimeOfDay = std::string(TimeBuffer);
+        sTimeOfDay = std::string(TimeBuffer.data());
     }
 }
 

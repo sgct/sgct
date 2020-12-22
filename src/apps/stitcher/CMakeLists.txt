@@ -34,4 +34,4 @@ if (MSVC)
     ${PROJECT_SOURCE_DIR}/src/apps/stitcher/Stitcher_GUI/Stitcher_GUI/Stitcher_GUI.csproj
   )
   set_target_properties(Stitcher_GUI PROPERTIES FOLDER "Examples")
-endif()
+endif ()

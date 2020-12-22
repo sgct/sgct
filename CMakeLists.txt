@@ -63,12 +63,17 @@ option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 
 # Example applications
 if (SGCT_EXAMPLES)
-  option(SGCT_EXAMPLE_FFMPEG "Build FFMPEG examples" OFF)
+  option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
   option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
   option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
   option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
+  option(SGCT_EXAMPLES_STITCHER "Build Stitcher examples" OFF)
 endif ()
 
+if (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++ -lc++abi")
+endif ()
 
 add_subdirectory(ext)
 add_subdirectory(src/sgct)

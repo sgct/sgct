@@ -14,6 +14,10 @@ def createDirectory(dir) {
   cmake([installation: 'InSearchPath', arguments: "-E make_directory ${dir}"])
 }
 
+def cmakeOptions() {
+  return "-DSGCT_EXAMPLES=ON";
+}
+
 parallel tools: {
   node('tools') {
     stage('tools/scm') {
@@ -50,6 +54,7 @@ linux_gcc_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
         recordIssues(
@@ -73,6 +78,7 @@ linux_gcc_ninja: {
           buildDir: 'build-ninja',
           generator: 'Ninja',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -92,6 +98,7 @@ linux_clang_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
         recordIssues(
@@ -115,6 +122,7 @@ linux_clang_ninja: {
           buildDir: 'build-ninja',
           generator: 'Ninja',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -134,6 +142,7 @@ windows_msvc: {
           buildDir: 'build-msvc',
           generator: 'Visual Studio 16 2019',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- /nologo /verbosity:minimal /m:4", withCmake: true ]]
         ])
         recordIssues(
@@ -158,8 +167,8 @@ windows_ninja: {
           call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
           if not exist build-ninja mkdir build-ninja
           cd build-ninja
-          cmake -G Ninja ..
-          cmake --build . -- -j 4 all
+          cmake -G Ninja ${cmakeOptions()} ..
+          cmake --build .  -- -j 4 all
           """,
           label: 'Generate build-scripts with cmake and execute them'
         ) 
@@ -180,6 +189,7 @@ macos_make: {
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
@@ -199,6 +209,7 @@ macos_ninja: {
           buildDir: 'build-xcode',
           generator: 'Xcode',
           installation: "InSearchPath",
+          cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -quiet -parallelizeTargets -jobs 4", withCmake: true ]]
         ])
       }

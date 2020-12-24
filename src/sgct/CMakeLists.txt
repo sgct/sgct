@@ -158,12 +158,11 @@ add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
 target_include_directories(sgct
-  PUBLIC ${PROJECT_SOURCE_DIR}/include
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include
-)
-target_include_directories(sgct SYSTEM
-  PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb
-  PUBLIC ${PROJECT_SOURCE_DIR}/ext/fmt/include
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/ext/stb
+  PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 find_package(glad REQUIRED)
@@ -210,7 +209,7 @@ target_compile_definitions(sgct
 )
 
 if (WIN32 AND SGCT_SPOUT_SUPPORT)
-  target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout)
+  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout)
   target_link_libraries(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
 
   get_target_property(tmp sgct DYNAMIC_LIBS)

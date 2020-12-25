@@ -28,7 +28,9 @@
 #pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined __GNUC__
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif // __clang__
 

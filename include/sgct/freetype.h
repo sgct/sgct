@@ -9,8 +9,8 @@
 #ifndef __SGCT__FREETYPE__H__
 #define __SGCT__FREETYPE__H__
 
+#include <sgct/fmt.h>
 #include <sgct/math.h>
-#include <fmt/format.h>
 
 namespace sgct {
     class BaseViewport;

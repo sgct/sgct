@@ -8,9 +8,7 @@
 
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
-
 #include <sgct/utils/dome.h>
-#include <fmt/format.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <fstream>

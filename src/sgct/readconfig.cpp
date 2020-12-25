@@ -454,8 +454,11 @@ namespace {
         // There should be exactly three positions in this child
         tinyxml2::XMLElement* c1 = elem;
         tinyxml2::XMLElement* c2 = elem->NextSiblingElement();
+        if (!c1 || !c2) {
+            throw Err(6010, "Failed parsing coordinates. Missing XML children");
+        }
         tinyxml2::XMLElement* c3 = c2->NextSiblingElement();
-        if (!(c1 && c2 && c3)) {
+        if (!c3) {
             throw Err(6010, "Failed parsing coordinates. Missing XML children");
         }
         std::optional<sgct::vec3> p1 = parseValueVec3(*c1);

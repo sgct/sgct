@@ -79,9 +79,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
         }
     }
 
-    if (meshFile) {
-        fclose(meshFile);
-    }
+    fclose(meshFile);
 
     nCols++;
     nRows++;

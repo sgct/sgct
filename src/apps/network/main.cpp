@@ -9,7 +9,6 @@
 #include <sgct/sgct.h>
 #include <sgct/opengl.h>
 #include <sgct/utils/box.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

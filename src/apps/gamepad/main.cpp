@@ -8,7 +8,6 @@
 
 #include <sgct/sgct.h>
 
-#include <fmt/format.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 

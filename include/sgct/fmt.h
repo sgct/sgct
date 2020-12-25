@@ -15,7 +15,21 @@
 #pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
 #endif // WIN32
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#elif defined __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#endif // __clang__
+
 #include <fmt/format.h>
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#elif __GNUC__
+#pragma GCC diagnostic pop
+#endif // __clang__
 
 #ifdef WIN32
 #pragma warning(pop)

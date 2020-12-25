@@ -29,7 +29,19 @@
 #include <Windows.h>
 #endif // WIN32
 
+#ifdef __clang__
+#elif defined __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif // __clang__
+
 #include <freetype/ftglyph.h>
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#elif __GNUC__
+#pragma GCC diagnostic pop
+#endif // __clang__
 
 namespace {
     std::string SystemFontPath;

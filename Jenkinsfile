@@ -93,7 +93,7 @@ linux_clang_make: {
         deleteDir();
         checkoutGit();
       }
-      stage('linux-clang-make/build(make)') {
+      stage('linux-clang-make/build') {
         cmakeBuild([
           buildDir: 'build-make',
           generator: 'Unix Makefiles',
@@ -117,7 +117,7 @@ linux_clang_ninja: {
         deleteDir();
         checkoutGit();
       }
-      stage('linux-clang-ninja/build(ninja)') {
+      stage('linux-clang-ninja/build') {
         cmakeBuild([
           buildDir: 'build-ninja',
           generator: 'Ninja',

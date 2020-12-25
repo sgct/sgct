@@ -29,6 +29,7 @@
 #elif defined __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif // __clang__
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION

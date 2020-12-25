@@ -8,9 +8,9 @@
 
 #include <sgct/config.h>
 
+#include <sgct/fmt.h>
 #include <sgct/error.h>
 #include <sgct/profiling.h>
-#include <fmt/format.h>
 #include <algorithm>
 #include <assert.h>
 #include <functional>

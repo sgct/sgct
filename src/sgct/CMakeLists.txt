@@ -144,10 +144,7 @@ if (SGCT_OPENVR_SUPPORT)
   list(APPEND SOURCE_FILES openvr.cpp)
 endif ()
 
-configure_file(
-  ${PROJECT_SOURCE_DIR}/src/version.h.in
-  include/sgct/version.h @ONLY
-)
+configure_file(${PROJECT_SOURCE_DIR}/src/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY)
 list(APPEND ${HEADER_FILES} ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h)
 
 source_group(TREE ${PROJECT_SOURCE_DIR}/include/sgct PREFIX "Header Files" FILES ${HEADER_FILES})
@@ -156,6 +153,16 @@ source_group(TREE ${PROJECT_SOURCE_DIR}/src/sgct PREFIX "Source Files" FILES ${S
 add_library(sgct STATIC ${SOURCE_FILES} ${HEADER_FILES})
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
+
+target_precompile_headers(sgct PRIVATE
+  <algorithm>
+  <array>
+  <map>
+  <memory>
+  <string>
+  <utility>
+  <vector>
+)
 
 target_include_directories(sgct
   PUBLIC

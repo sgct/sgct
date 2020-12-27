@@ -7,15 +7,11 @@
 ##########################################################################################
 
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
-project(sgct)
-
+cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0063 NEW)
 cmake_policy(SET CMP0072 NEW)
 
-set(SGCT_VERSION_MAJOR "3")
-set(SGCT_VERSION_MINOR "0")
-set(SGCT_VERSION_REVISION "0")
-set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
+project(sgct VERSION 3.0.0)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

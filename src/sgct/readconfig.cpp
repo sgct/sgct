@@ -162,6 +162,8 @@ namespace {
         if (quality == "4k" || quality == "4096") { return 4096; }
         if (quality == "8k" || quality == "8192") { return 8192; }
         if (quality == "16k" || quality == "16384") { return 16384; }
+        if (quality == "32k" || quality == "32768") { return 32768; }
+        if (quality == "64k" || quality == "65536") { return 65536; }
 
         throw Err(6087, fmt::format("Unknown resolution {} for cube map", quality));
     }

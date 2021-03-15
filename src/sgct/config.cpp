@@ -265,7 +265,8 @@ void validateWindow(const Window& w) {
     }
 
     for (const Viewport& vp : w.viewports) {
-        validateViewport(vp, *w.draw3D);
+        const bool draw3D = w.draw3D.value_or(true);
+        validateViewport(vp, draw3D);
     }
 }
 

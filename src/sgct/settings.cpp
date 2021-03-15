@@ -9,6 +9,7 @@
 #include <sgct/settings.h>
 
 #include <sgct/config.h>
+#include <sgct/engine.h>
 #include <sgct/log.h>
 #include <sgct/opengl.h>
 
@@ -161,6 +162,10 @@ Settings::DrawBufferType Settings::drawBufferType() const {
 }
 
 void Settings::setCapturePath(std::string path) {
+    if (path != _screenshot.capturePath) {
+        // If we set a new path, we want to start counting from 0 again
+        Engine::instance().setScreenShotNumber(0);
+    }
     _screenshot.capturePath = std::move(path);
 }
 

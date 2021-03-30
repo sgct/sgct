@@ -272,7 +272,6 @@ void NetworkManager::initialize() {
             if (port == cm.thisNode().syncPort() || port == cm.externalControlPort() ||
                 port == cm.thisNode().dataTransferPort())
             {
-                const std::string p = std::to_string(cm.thisNode().syncPort());
                 throw Error(
                     5023,
                     fmt::format(

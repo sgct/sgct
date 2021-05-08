@@ -917,6 +917,8 @@ void Engine::render() {
             glfwPollEvents();
         }
 
+        Window::makeSharedContextCurrent();
+
         if (_preSyncFn) {
             ZoneScopedN("[SGCT] PreSync");
             _preSyncFn();

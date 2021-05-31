@@ -1247,7 +1247,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
             }
 
             if (win.shouldCallDraw3DFunction()) {
-                vp->nonLinearProjection()->render(win, *vp, frustum);
+                vp->nonLinearProjection()->render(win, *vp);
             }
         }
         else {

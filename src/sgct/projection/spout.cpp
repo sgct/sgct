@@ -106,9 +106,7 @@ void SpoutOutputProjection::update(vec2) {
     glBindVertexArray(0);
 }
 
-void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
-                                   Frustum::Mode)
-{
+void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport) {
     ZoneScoped
 
     glEnable(GL_SCISSOR_TEST);

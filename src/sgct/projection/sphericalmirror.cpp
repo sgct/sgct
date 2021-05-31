@@ -83,8 +83,7 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
 
 void SphericalMirrorProjection::update(vec2) {}
 
-void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode)
+void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport)
 {
     ZoneScoped
 

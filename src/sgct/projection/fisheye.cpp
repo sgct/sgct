@@ -86,13 +86,11 @@ void FisheyeProjection::update(vec2 size) {
     glBindVertexArray(0);
 }
 
-void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
-                               Frustum::Mode frustumMode)
-{
+void FisheyeProjection::render(const Window& window, const BaseViewport& viewport) {
     ZoneScoped
 
     glEnable(GL_SCISSOR_TEST);
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    Engine::instance().setupViewport(window, viewport);
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);

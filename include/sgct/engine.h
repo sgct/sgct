@@ -258,8 +258,7 @@ public:
      * in OpenGL. This is a function that is called by internal classes of SGCT and in
      * general does not have to be called by any external application using this library.
      */
-    void setupViewport(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustum);
+    void setupViewport(const Window& window, const BaseViewport& viewport);
 
 private:
     static Engine* _instance;
@@ -286,8 +285,8 @@ private:
      */
     void frameLockPostStage();
 
-    /// Draw viewport overlays if there are any.
-    void drawOverlays(const Window& window, Frustum::Mode frustum);
+    /// Draw viewport overlays if there are any
+    void drawOverlays(const Window& window);
 
     /**
      * Draw geometry and bind FBO as texture in screenspace (ortho mode). The geometry can

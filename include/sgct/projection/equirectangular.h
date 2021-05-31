@@ -22,8 +22,7 @@ public:
     EquirectangularProjection(const Window* parent);
     ~EquirectangularProjection() final;
 
-    void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode) override;
+    void render(const Window& window, const BaseViewport& viewport) override;
 
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 

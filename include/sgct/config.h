@@ -281,11 +281,7 @@ struct Window {
         CheckerboardInverted,
         VerticalInterlaced,
         VerticalInterlacedInverted,
-        Dummy,
-        SideBySide,
-        SideBySideInverted,
-        TopBottom,
-        TopBottomInverted
+        Dummy
     };
 
     int id;

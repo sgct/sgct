@@ -1017,21 +1017,11 @@ void Engine::render() {
             }
 
             // Render right regular viewports to FBO
-            // use a single texture for side-by-side and top-bottom stereo modes
-            if (sm >= Window::StereoMode::SideBySide) {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::StereoRightEye,
-                    Window::TextureIndex::LeftEye
-                );
-            }
-            else {
-                renderViewports(
-                    *win,
-                    Frustum::Mode::StereoRightEye,
-                    Window::TextureIndex::RightEye
-                );
-            }
+            renderViewports(
+                *win,
+                Frustum::Mode::StereoRightEye,
+                Window::TextureIndex::RightEye
+            );
         }
 
         // Render to screen
@@ -1100,7 +1090,7 @@ void Engine::render() {
     glDeleteQueries(1, &timeQueryEnd);
 }
 
-void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
+void Engine::drawOverlays(const Window& window) {
     ZoneScoped
 
     for (const std::unique_ptr<Viewport>& vp : window.viewports()) {
@@ -1109,7 +1099,7 @@ void Engine::drawOverlays(const Window& window, Frustum::Mode frustum) {
             continue;
         }
 
-        setupViewport(window, *vp, frustum);
+        setupViewport(window, *vp);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, vp->overlayTextureIndex());
@@ -1143,7 +1133,7 @@ void Engine::renderFBOTexture(Window& window) {
     Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
-    if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
+    if (sm > Window::StereoMode::Active) {
         window.bindStereoShaderProgram(
             window.frameBufferTexture(Window::TextureIndex::LeftEye),
             window.frameBufferTexture(Window::TextureIndex::RightEye)
@@ -1281,7 +1271,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 
             if (win.shouldCallDraw3DFunction()) {
                 // run scissor test to prevent clearing of entire buffer
-                setupViewport(win, *vp, frustum);
+                setupViewport(win, *vp);
                 glEnable(GL_SCISSOR_TEST);
                 setAndClearBuffer(win, BufferMode::RenderToTexture, frustum);
                 glDisable(GL_SCISSOR_TEST);
@@ -1332,23 +1322,14 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-    // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
-    const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
-        ZoneScopedN("PostFX/Blit")
+    ZoneScopedN("PostFX/Blit")
 
-        updateRenderingTargets(win, ti);
-        if (win.useFXAA()) {
-            renderFXAA(win, ti);
-        }
-
-        render2D(win, frustum);
-        if (isSplitScreen) {
-            // render left eye info and graph to render 2D items after post fx
-            render2D(win, Frustum::Mode::StereoLeftEye);
-        }
+    updateRenderingTargets(win, ti);
+    if (win.useFXAA()) {
+        renderFXAA(win, ti);
     }
 
+    render2D(win, frustum);
     glDisable(GL_BLEND);
 }
 
@@ -1356,7 +1337,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
     ZoneScoped
 
     // draw viewport overlays if any
-    drawOverlays(win, frustum);
+    drawOverlays(win);
 
     // draw info & stats
     // the cubemap viewports are all the same so it makes no sense to render everything
@@ -1369,7 +1350,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         if (!vp->isEnabled()) {
             continue;
         }
-        setupViewport(win, *vp, frustum);
+        setupViewport(win, *vp);
 
         if (_statisticsRenderer) {
             _statisticsRenderer->render(win, *vp);
@@ -1550,7 +1531,7 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(window, viewport, mode);
+    setupViewport(window, viewport);
     setAndClearBuffer(window, BufferMode::RenderToTexture, mode);
     glDisable(GL_SCISSOR_TEST);
 
@@ -1574,9 +1555,7 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
     ShaderProgram::unbind();
 }
 
-void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
-                           Frustum::Mode frustum)
-{
+void Engine::setupViewport(const Window& window, const BaseViewport& viewport) {
     ZoneScoped
 
     const ivec2 res = window.framebufferResolution();
@@ -1586,52 +1565,6 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
         static_cast<int>(viewport.size().x * res.x),
         static_cast<int>(viewport.size().y * res.y)
     };
-
-    Window::StereoMode sm = window.stereoMode();
-    if (frustum == Frustum::Mode::StereoLeftEye) {
-        switch (sm) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z = vpCoordinates.z / 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
-    else {
-        switch (sm) {
-            case Window::StereoMode::SideBySide:
-                vpCoordinates.x = (vpCoordinates.x / 2) + (vpCoordinates.z / 2);
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::SideBySideInverted:
-                vpCoordinates.x /= 2;
-                vpCoordinates.z /= 2;
-                break;
-            case Window::StereoMode::TopBottom:
-                vpCoordinates.y /= 2;
-                vpCoordinates.w /= 2;
-                break;
-            case Window::StereoMode::TopBottomInverted:
-                vpCoordinates.y = (vpCoordinates.y / 2) + (vpCoordinates.w / 2);
-                vpCoordinates.w /= 2;
-                break;
-            default:
-                break;
-        }
-    }
 
     glViewport(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);

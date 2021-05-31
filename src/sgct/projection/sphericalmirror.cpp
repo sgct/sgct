@@ -84,11 +84,11 @@ SphericalMirrorProjection::~SphericalMirrorProjection() {
 void SphericalMirrorProjection::update(vec2) {}
 
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
-                                       Frustum::Mode frustumMode)
+                                       Frustum::Mode)
 {
     ZoneScoped
 
-    Engine::instance().setupViewport(window, viewport, frustumMode);
+    Engine::instance().setupViewport(window, viewport);
 
     const float aspect = window.aspectRatio() * viewport.size().x / viewport.size().y;
 #ifdef WIN32

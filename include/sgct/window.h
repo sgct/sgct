@@ -40,11 +40,7 @@ public:
         CheckerboardInverted,
         VerticalInterlaced,
         VerticalInterlacedInverted,
-        Dummy,
-        SideBySide,
-        SideBySideInverted,
-        TopBottom,
-        TopBottomInverted
+        Dummy
     };
 
     enum class ColorBitDepth {

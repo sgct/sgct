@@ -132,10 +132,6 @@ namespace {
         if (t == "vertical_interlaced") { return M::VerticalInterlaced; }
         if (t == "vertical_interlaced_inverted") { return M::VerticalInterlacedInverted; }
         if (t == "test" || t == "dummy") { return M::Dummy; }
-        if (t == "side_by_side") { return M::SideBySide; }
-        if (t == "side_by_side_inverted") { return M::SideBySideInverted; }
-        if (t == "top_bottom") { return M::TopBottom; }
-        if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
         throw Err(6085, fmt::format("Unkonwn stereo mode {}", t));
     }

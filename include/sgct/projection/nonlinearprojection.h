@@ -35,8 +35,7 @@ public:
     void initialize(unsigned int internalFormat, unsigned int format, unsigned int type,
         int samples);
 
-    virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode) = 0;
+    virtual void render(const Window& window, const BaseViewport& viewport) = 0;
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
     virtual void update(vec2 size) = 0;
 

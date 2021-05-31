@@ -206,10 +206,6 @@ void Window::applyWindow(const config::Window& window) {
                 case SM::VerticalInterlacedInverted:
                     return StereoMode::VerticalInterlacedInverted;
                 case SM::Dummy: return StereoMode::Dummy;
-                case SM::SideBySide: return StereoMode::SideBySide;
-                case SM::SideBySideInverted: return StereoMode::SideBySideInverted;
-                case SM::TopBottom: return StereoMode::TopBottom;
-                case SM::TopBottomInverted: return StereoMode::TopBottomInverted;
                 default: throw std::logic_error("Unhandled case label");
             }
         }(*window.stereo);
@@ -474,9 +470,7 @@ void Window::swap(bool takeScreenshot) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(_frameBufferTextures.leftEye);
             }
-            if (_screenCaptureRight && _stereoMode > StereoMode::NoStereo &&
-                _stereoMode < Window::StereoMode::SideBySide)
-            {
+            if (_screenCaptureRight && _stereoMode != StereoMode::NoStereo) {
                 _screenCaptureRight->saveScreenCapture(_frameBufferTextures.rightEye);
             }
         }
@@ -1141,7 +1135,8 @@ void Window::loadShaders() {
     ZoneScoped
     TracyGpuZone("Load Shaders")
 
-    if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
+    if (_stereoMode == StereoMode::NoStereo || _stereoMode == StereoMode::Active) {
+        // These stereo modes don't need any additional shaders
         return;
     }
 
@@ -1263,7 +1258,7 @@ ScreenCapture* Window::screenCapturePointer(Eye eye) const {
 }
 
 bool Window::useRightEyeTexture() const {
-    return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
+    return _stereoMode != StereoMode::NoStereo;
 }
 
 void Window::setAlpha(bool state) {

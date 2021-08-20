@@ -103,7 +103,6 @@ function (set_compile_options target)
     "-Wduplicated-cond"
     "-Wlogical-op"
     "-Wno-long-long"
-    "-Wno-suggest-attribute=const"
     "-Wno-write-strings"
     "-Wnon-virtual-dtor"
     "-Wold-style-cast"

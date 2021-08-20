@@ -109,8 +109,6 @@ function (set_compile_options target)
     "-Wold-style-cast"
     "-Woverloaded-virtual"
     "-Wshadow"
-    "-Wsuggest-final-types"
-    "-Wsuggest-final-methods"
     "-Wsuggest-override"
     "-Wundef"
     "-Wuseless-cast"

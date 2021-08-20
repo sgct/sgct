@@ -109,7 +109,6 @@ function (set_compile_options target)
     "-Wold-style-cast"
     "-Woverloaded-virtual"
     "-Wshadow"
-    "-Wsuggest-attribute=const"
     "-Wsuggest-final-types"
     "-Wsuggest-final-methods"
     "-Wsuggest-override"

@@ -15,7 +15,6 @@ function (set_compile_options target)
     "/W4"                 # Baseline reasonable warnings
     "/wd4201"             # nonstandard extension used : nameless struct/union
     "/wd4505"             # unreferenced local function has been removed
-    "/permissive-"
     "/Zc:strictStrings-"  # Windows header don't adhere to this
     "/Zc:__cplusplus"     # Correctly set the __cplusplus macro
   )

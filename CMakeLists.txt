@@ -71,6 +71,10 @@ if (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++ -lc++abi")
 endif ()
 
+if (UNIX)
+  option(SGCT_ENABLE_STATIC_ANALYZER "Enable Static analyzer" OFF)
+endif ()
+
 add_subdirectory(ext)
 add_subdirectory(src/sgct)
 

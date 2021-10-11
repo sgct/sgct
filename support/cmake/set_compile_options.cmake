@@ -102,14 +102,14 @@ function (set_compile_options target)
     "-Wdate-time"
     "-Wduplicated-cond"
     "-Wlogical-op"
-    "-Wno-long-long"
-    "-Wno-write-strings"
     "-Wnon-virtual-dtor"
     "-Wold-style-cast"
     "-Woverloaded-virtual"
     "-Wshadow"
     "-Wsuggest-override"
     "-Wundef"
+    "-Wuninitialized"
+    "-Wunknown-pragmas"
     "-Wuseless-cast"
     "-Wzero-as-null-pointer-constant"
   )
@@ -123,5 +123,8 @@ function (set_compile_options target)
     target_link_libraries(${target} PRIVATE "c++" "c++abi")
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(${target} PRIVATE ${GCC_WARNINGS})
+    if (SGCT_ENABLE_STATIC_ANALYZER)
+      target_compile_options(${target} PRIVATE "-fanalyzer")
+    endif ()
   endif ()
 endfunction ()

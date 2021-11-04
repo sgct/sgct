@@ -11,13 +11,16 @@ function (set_compile_options target)
 
   set(MSVC_WARNINGS
     "/MP"                 # Multi-threading support
-    "/ZI"                 # Edit and continue support
     "/W4"                 # Baseline reasonable warnings
     "/wd4201"             # nonstandard extension used : nameless struct/union
     "/wd4505"             # unreferenced local function has been removed
     "/Zc:strictStrings-"  # Windows header don't adhere to this
     "/Zc:__cplusplus"     # Correctly set the __cplusplus macro
   )
+  if (SGCT_ENABLE_EDIT_CONTINUE)
+    # Edit and continue support
+    set(MSVC_WARNINGS "${MSVC_WARNINGS} /ZI")
+  endif ()
 
   set(CLANG_WARNINGS
     "-stdlib=libc++"

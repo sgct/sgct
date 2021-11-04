@@ -16,6 +16,7 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
+#include <Tracy.hpp>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 

@@ -202,6 +202,7 @@ target_link_libraries(sgct
     PNG::PNG
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
+    json
 )
 
 target_compile_definitions(sgct 

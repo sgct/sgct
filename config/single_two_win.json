@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "masterAddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "msaa": 1,
+          "border": true,
+          "fullscreen": false,
+          "pos": { "x": 10, "y": 100 },
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": {
+                  "hFov": 80.0,
+                  "vFov": 50.534015846724
+                },
+                "orientation": { "heading": -20.0, "pitch": 0.0, "roll": 0.0 }
+              }
+            }
+          ]
+        },
+        {
+          "msaa": 1,
+          "border": false,
+          "fullscreen": false,
+          "pos": { "x": 640, "y": 100 },
+          "size": { "x": 640, "y": 480 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": {
+                  "hFov": 80.0,
+                  "vFov": 50.534015846724
+                },
+                "orientation": { "heading": 20.0, "pitch": 0.0, "roll": 0.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeSeparation": 0.06,
+      "pos": { "x": 0.0, "y": 0.0, "z": 4.0 }
+    }
+  ]
+}

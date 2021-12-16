@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "masterAddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "fullscreen": false,
+          "size": { "x": 1280, "y": 720 },
+          "viewports": [
+            {
+              "pos": { "x": 0, "y": 0 },
+              "size": { "x": 1, "y": 1 },
+              "projection": {
+                "type": "PlanarProjection",
+                "fov": {
+                  "hFov": 80,
+                  "vFov": 50.534015846724
+                },
+                "orientation": { "heading": 0, "pitch": 0, "roll": 0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeSeparation": 0.06,
+      "pos": { "x": 0, "y": 0, "z": 4 }
+    }
+  ]
+}

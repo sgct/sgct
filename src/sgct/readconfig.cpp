@@ -475,7 +475,6 @@ sgct::config::EquirectangularProjection parseEquirectangularProjection(
     return proj;
 }
 
-
 sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement& element) {
     tinyxml2::XMLElement* elem = element.FirstChildElement();
     // There should be exactly three positions in this child
@@ -950,34 +949,44 @@ sgct::config::Cluster readXMLFile(const std::filesystem::path& path) {
 namespace sgct {
 
 void from_json(const nlohmann::json& j, sgct::ivec2& v) {
-    std::array<int, 2> vs = j.get<std::array<int, 2>>();
-
-    v.x = vs[0];
-    v.y = vs[1];
+    j.at("x").get_to(v.x);
+    j.at("y").get_to(v.y);
 }
 
 void from_json(const nlohmann::json& j, sgct::vec2& v) {
-    std::array<double, 2> vs = j.get<std::array<double, 2>>();
-
-    v.x = static_cast<float>(vs[0]);
-    v.y = static_cast<float>(vs[1]);
+    j.at("x").get_to(v.x);
+    j.at("y").get_to(v.y);
 }
 
 void from_json(const nlohmann::json& j, sgct::vec3& v) {
-    std::array<double, 3> vs = j.get<std::array<double, 3>>();
-
-    v.x = static_cast<float>(vs[0]);
-    v.y = static_cast<float>(vs[1]);
-    v.z = static_cast<float>(vs[2]);
+    j.at("x").get_to(v.x);
+    j.at("y").get_to(v.y);
+    j.at("z").get_to(v.z);
 }
 
 void from_json(const nlohmann::json& j, sgct::vec4& v) {
-    std::array<double, 4> vs = j.get<std::array<double, 4>>();
+    auto itX = j.find("x");
+    auto itY = j.find("y");
+    auto itZ = j.find("z");
+    auto itW = j.find("w");
 
-    v.x = static_cast<float>(vs[0]);
-    v.y = static_cast<float>(vs[1]);
-    v.z = static_cast<float>(vs[2]);
-    v.w = static_cast<float>(vs[3]);
+    if (itX != j.end() && itY != j.end() && itZ != j.end() && itW != j.end()) {
+        itX->get_to(v.x);
+        itY->get_to(v.y);
+        itZ->get_to(v.z);
+        itW->get_to(v.w);
+    }
+
+    auto itR = j.find("r");
+    auto itG = j.find("g");
+    auto itB = j.find("b");
+    auto itA = j.find("a");
+    if (itR != j.end() && itG != j.end() && itB != j.end() && itA != j.end()) {
+        itR->get_to(v.x);
+        itG->get_to(v.y);
+        itB->get_to(v.z);
+        itA->get_to(v.w);
+    }
 }
 
 void from_json(const nlohmann::json& j, sgct::mat4& m) {
@@ -988,84 +997,31 @@ void from_json(const nlohmann::json& j, sgct::mat4& m) {
 }
 
 void from_json(const nlohmann::json& j, sgct::quat& q) {
-    double x = 0.f;
-    double y = 0.f;
-    double z = 0.f;
+    auto itPitch = j.find("pitch");
+    auto itYaw = j.find("yaw");
+    auto itRoll = j.find("roll");
+    if (itPitch != j.end() && itYaw != j.end() && itRoll != j.end()) {
+        double x = itPitch->get<double>();;
+        double y = -itYaw->get<double>();
+        double z= -itRoll->get<double>();
 
-    bool eulerMode = false;
-    bool quatMode = false;
-
-    glm::dquat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
-    if (auto it = j.find("x");  it != j.end()) {
-        x = it->get<double>();
-        eulerMode = true;
-        quatMode = true;
+        glm::dquat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
+        quat = glm::rotate(quat, glm::radians(y), glm::dvec3(0.0, 1.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(x), glm::dvec3(1.0, 0.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(z), glm::dvec3(0.0, 0.0, 1.0));
+        q = fromGLM<glm::quat, sgct::quat>(quat);
     }
 
-    if (auto it = j.find("y");  it != j.end()) {
-        y = it->get<double>();
-        eulerMode = true;
-        quatMode = true;
+    auto itX = j.find("x");
+    auto itY = j.find("y");
+    auto itZ = j.find("z");
+    auto itW = j.find("w");
+    if (itX != j.end() && itY != j.end() && itZ != j.end() && itW != j.end()) {
+        itX->get_to(q.x);
+        itY->get_to(q.y);
+        itZ->get_to(q.z);
+        itW->get_to(q.w);
     }
-
-    if (auto it = j.find("z");  it != j.end()) {
-        z = it->get<double>();
-        eulerMode = true;
-        quatMode = true;
-    }
-
-    if (auto it = j.find("w");  it != j.end()) {
-        quat.w = it->get<double>();
-        quatMode = true;
-    }
-
-    if (auto it = j.find("pitch");  it != j.end()) {
-        x = it->get<double>();
-    }
-
-    if (auto it = j.find("elevation");  it != j.end()) {
-        x = it->get<double>();
-    }
-
-    if (auto it = j.find("yaw");  it != j.end()) {
-        y = -it->get<double>();
-    }
-
-    if (auto it = j.find("heading");  it != j.end()) {
-        y = -it->get<double>();
-    }
-
-    if (auto it = j.find("azimuth");  it != j.end()) {
-        y = -it->get<double>();
-    }
-
-    if (auto it = j.find("roll");  it != j.end()) {
-        z = -it->get<double>();
-    }
-
-    if (auto it = j.find("bank");  it != j.end()) {
-        z = -it->get<double>();
-    }
-
-    if (quatMode) {
-        quat.x = x;
-        quat.y = y;
-        quat.z = z;
-    }
-    else {
-        if (eulerMode) {
-            quat = glm::rotate(quat, glm::radians(x), glm::dvec3(1.0, 0.0, 0.0));
-            quat = glm::rotate(quat, glm::radians(y), glm::dvec3(0.0, 1.0, 0.0));
-            quat = glm::rotate(quat, glm::radians(z), glm::dvec3(0.0, 0.0, 1.0));
-        }
-        else {
-            quat = glm::rotate(quat, glm::radians(y), glm::dvec3(0.0, 1.0, 0.0));
-            quat = glm::rotate(quat, glm::radians(x), glm::dvec3(1.0, 0.0, 0.0));
-            quat = glm::rotate(quat, glm::radians(z), glm::dvec3(0.0, 0.0, 1.0));
-        }
-    }
-
-    q = fromGLM<glm::quat, sgct::quat>(quat);
 }
 
 } // namespace sgct
@@ -1076,6 +1032,9 @@ constexpr const int InvalidWindowIndex = -128;
 
 template <typename T> struct is_optional : std::false_type {};
 template <typename T> struct is_optional<std::optional<T>> : std::true_type {};
+
+template <typename T> struct is_vector : std::false_type {};
+template <typename T> struct is_vector<std::vector<T>> : std::true_type {};
 
 template <typename T>
 void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
@@ -1091,6 +1050,9 @@ void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
     else {
         if constexpr (is_optional<T>::value) {
             res = std::nullopt;
+        }
+        else if constexpr (is_vector<T>::value) {
+            res = T();
         }
         else {
             throw "Didn't find X";
@@ -1207,16 +1169,50 @@ void from_json(const nlohmann::json& j, Tracker& t) {
     parseValue(j, "name", t.name);
     parseValue(j, "devices", t.devices);
     parseValue(j, "offset", t.offset);
+    
+    if (auto it = j.find("orientation");  it != j.end()) {
+        quat q = it->get<quat>();
+        t.transformation = fromGLM<glm::mat4, mat4>(glm::mat4_cast(glm::make_quat(&q.x)));
+    }
+    parseValue(j, "scale", t.scale);
     parseValue(j, "matrix", t.transformation);
 }
 
-void from_json(const nlohmann::json& j, PlanarProjection& p) {
-    nlohmann::json fov = j.at("FOV");
+void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
+    // First we extract the potentially existing hFov and vFov values and **then** the
+    // more specific left/right/up/down ones which would overwrite the first set
 
-    fov.at("down").get_to(p.fov.down);
-    fov.at("left").get_to(p.fov.left);
-    fov.at("right").get_to(p.fov.right);
-    fov.at("up").get_to(p.fov.up);
+    if (auto itHFov = j.find("hFov");  itHFov != j.end()) {
+        float hFov = itHFov->get<float>();
+        f.left = hFov / 2.f;
+        f.right = hFov / 2.f;
+    }
+
+    if (auto itVFov = j.find("vFov");  itVFov != j.end()) {
+        float vFov = itVFov->get<float>();
+        f.down = vFov / 2.f;
+        f.up = vFov / 2.f;
+    }
+
+    if (auto itDown = j.find("down");  itDown != j.end()) {
+        itDown->get_to(f.down);
+    }
+
+    if (auto itLeft = j.find("left");  itLeft != j.end()) {
+        itLeft->get_to(f.left);
+    }
+
+    if (auto itRight = j.find("right");  itRight != j.end()) {
+        itRight->get_to(f.right);
+    }
+
+    if (auto itUp = j.find("up");  itUp != j.end()) {
+        itUp->get_to(f.up);
+    }
+}
+
+void from_json(const nlohmann::json& j, PlanarProjection& p) {
+    parseValue(j, "fov", p.fov);
 
     // The negative signs here were lifted up from the viewport class. I think it is nicer
     // to store them in negative values and consider the fact that the down and left fovs
@@ -1319,20 +1315,20 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
 
     if (auto it = j.find("channels");  it != j.end()) {
         SpoutOutputProjection::Channels c;
-        parseValue(j, "right", c.right);
-        parseValue(j, "zleft", c.zLeft);
-        parseValue(j, "bottom", c.bottom);
-        parseValue(j, "top", c.top);
-        parseValue(j, "left", c.left);
-        parseValue(j, "zright", c.zRight);
+        parseValue(*it, "right", c.right);
+        parseValue(*it, "zleft", c.zLeft);
+        parseValue(*it, "bottom", c.bottom);
+        parseValue(*it, "top", c.top);
+        parseValue(*it, "left", c.left);
+        parseValue(*it, "zright", c.zRight);
         p.channels = c;
     }
 
     if (auto it = j.find("orientation");  it != j.end()) {
         sgct::vec3 orientation;
-        parseValue(j, "pitch", orientation.x);
-        parseValue(j, "yaw", orientation.y);
-        parseValue(j, "roll", orientation.z);
+        parseValue(*it, "pitch", orientation.x);
+        parseValue(*it, "yaw", orientation.y);
+        parseValue(*it, "roll", orientation.z);
         p.orientation = orientation;
     }
 }
@@ -1358,7 +1354,7 @@ void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
 void from_json(const nlohmann::json& j, ProjectionPlane& p) {
     j.at("lowerleft").get_to(p.lowerLeft);
     j.at("upperleft").get_to(p.upperLeft);
-    j.at("upperRight").get_to(p.upperRight);
+    j.at("upperright").get_to(p.upperRight);
 }
 
 void from_json(const nlohmann::json& j, Viewport& v) {
@@ -1411,7 +1407,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
         else if (type == "EquirectangularProjection") {
             v.projection = it->get<EquirectangularProjection>();
         }
-        else if (type == "Projectionplane") {
+        else if (type == "ProjectionPlane") {
             v.projection = it->get<ProjectionPlane>();
         }
         else {
@@ -1422,7 +1418,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
 
 void from_json(const nlohmann::json& j, Window& w) {
     std::optional<int> id;
-    parseValue(j, "id", w.id);
+    parseValue(j, "id", id);
     w.id = id.value_or(InvalidWindowIndex);
 
     parseValue(j, "name", w.name);
@@ -1439,7 +1435,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "floating", w.isFloating);
     parseValue(j, "alwaysRender", w.alwaysRender);
     parseValue(j, "hidden", w.isHidden);
-    parseValue(j, "dbuffered", w.doubleBuffered);
+    parseValue(j, "doublebuffered", w.doubleBuffered);
 
     parseValue(j, "msaa", w.msaa);
     parseValue(j, "alpha", w.hasAlpha);
@@ -1464,7 +1460,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "size", w.size);
     parseValue(j, "res", w.resolution);
 
-    parseValue(j, "viewport", w.viewports);
+    parseValue(j, "viewports", w.viewports);
 }
 
 void from_json(const nlohmann::json& j, Node& n) {
@@ -1505,6 +1501,7 @@ sgct::config::Cluster readJsonFile(const std::filesystem::path& path) {
     parseValue(j, "users", cluster.users);
     parseValue(j, "settings", cluster.settings);
     parseValue(j, "capture", cluster.capture);
+
     parseValue(j, "trackers", cluster.trackers);
     parseValue(j, "nodes", cluster.nodes);
 
@@ -1521,7 +1518,12 @@ config::Cluster readFile(const std::filesystem::path& path) {
         return xmlconfig::readXMLFile(path);
     }
     else if (path.extension() == ".json") {
-        return jsonconfig::readJsonFile(path);
+        try {
+            return jsonconfig::readJsonFile(path);
+        }
+        catch (const nlohmann::json::exception& e) {
+            throw std::runtime_error(e.what());
+        }
     }
 
     throw "Wrong extension";

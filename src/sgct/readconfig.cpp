@@ -32,16 +32,6 @@ namespace {
         return r;
     }
 
-    std::vector<std::string> split(std::string str, char delimiter) {
-        std::vector<std::string> res;
-        std::stringstream ss(std::move(str));
-        std::string part;
-        while (std::getline(ss, part, delimiter)) {
-            res.push_back(part);
-        }
-        return res;
-    }
-
     sgct::config::Window::StereoMode parseStereoType(std::string_view t) {
         using M = sgct::config::Window::StereoMode;
         if (t == "none" || t == "no_stereo") { return M::NoStereo; }
@@ -91,23 +81,40 @@ namespace {
     }
 
     sgct::config::Capture::Format parseImageFormat(std::string_view format) {
-        if (format == "png" || format == "PNG") {
-            return sgct::config::Capture::Format::PNG;
-        }
-        if (format == "tga" || format == "TGA") {
-            return sgct::config::Capture::Format::TGA;
-        }
-        if (format == "jpg" || format == "JPG") {
-            return sgct::config::Capture::Format::JPG;
-        }
+        using namespace sgct::config;
+
+        if (format == "png" || format == "PNG") { return Capture::Format::PNG; }
+        if (format == "tga" || format == "TGA") { return Capture::Format::TGA; }
+        if (format == "jpg" || format == "JPG") { return Capture::Format::JPG; }
         throw Err(6060, "Unknown capturing format");
     }
 
     sgct::config::Viewport::Eye parseEye(std::string_view eye) {
-        if (eye == "center")     { return sgct::config::Viewport::Eye::Mono; }
-        else if (eye == "left")  { return sgct::config::Viewport::Eye::StereoLeft; }
-        else if (eye == "right") { return sgct::config::Viewport::Eye::StereoRight; }
-        else                     { throw Err(6020, "Unrecognized eye position"); }
+        if (eye == "center") { return sgct::config::Viewport::Eye::Mono; }
+        if (eye == "left")   { return sgct::config::Viewport::Eye::StereoLeft; }
+        if (eye == "right")  { return sgct::config::Viewport::Eye::StereoRight; }
+        
+        throw Err(6020, "Unrecognized eye position");
+    }
+
+    sgct::config::FisheyeProjection::Interpolation parseInterpolation(std::string_view i)
+    {
+        using namespace sgct::config;
+        if (i == "cubic") { return FisheyeProjection::Interpolation::Cubic; }
+        if (i == "linear") { return FisheyeProjection::Interpolation::Linear; }
+
+        throw Err(6023, "Unregnozed interpolation");
+    }
+
+    sgct::config::SpoutOutputProjection::Mapping parseMapping(std::string_view mapping) {
+        using namespace sgct::config;
+        if (mapping == "fisheye") { return SpoutOutputProjection::Mapping::Fisheye; }
+        if (mapping == "equirectangular") {
+            return SpoutOutputProjection::Mapping::Equirectangular;
+        }
+        if (mapping == "cubemap") { return SpoutOutputProjection::Mapping::Cubemap; }
+
+        throw Err(6086, fmt::format("Unknown spout output mapping: {}", mapping));
     }
 } // namespace
 
@@ -327,9 +334,7 @@ sgct::config::FisheyeProjection parseFisheyeProjection(tinyxml2::XMLElement& ele
         proj.quality = cubeMapResolutionForQuality(a);
     }
     if (const char* a = elem.Attribute("interpolation"); a) {
-        proj.interpolation = std::string_view(a) == "cubic" ?
-            sgct::config::FisheyeProjection::Interpolation::Cubic :
-            sgct::config::FisheyeProjection::Interpolation::Linear;
+        proj.interpolation = parseInterpolation(a);
     }
     proj.diameter = parseValue<float>(elem, "diameter");
     proj.tilt = parseValue<float>(elem, "tilt");
@@ -406,20 +411,7 @@ sgct::config::SpoutOutputProjection parseSpoutOutputProjection(
         proj.quality = cubeMapResolutionForQuality(a);
     }
     if (const char* a = element.Attribute("mapping"); a) {
-        using namespace sgct::config;
-        std::string_view val = a;
-        if (val == "fisheye") {
-            proj.mapping = SpoutOutputProjection::Mapping::Fisheye;
-        }
-        else if (val == "equirectangular") {
-            proj.mapping = SpoutOutputProjection::Mapping::Equirectangular;
-        }
-        else if (val == "cubemap") {
-            proj.mapping = SpoutOutputProjection::Mapping::Cubemap;
-        }
-        else {
-            throw Err(6086, fmt::format("Unknown spout output mapping: {}", val));
-        }
+        proj.mapping = parseMapping(a);
     }
     if (const char* a = element.Attribute("mappingSpoutName"); a) {
         proj.mappingSpoutName = a;
@@ -601,7 +593,12 @@ sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
         window.name = a;
     }
     if (const char* a = elem.Attribute("tags"); a) {
-        window.tags = split(a, ',');
+        std::string tags = a;
+        std::stringstream ss(tags);
+        std::string part;
+        while (std::getline(ss, part, ',')) {
+            window.tags.push_back(part);
+        }
     }
     if (const char* a = elem.Attribute("bufferBitDepth"); a) {
         window.bufferBitDepth = parseBufferColorBitDepth(a);
@@ -1234,9 +1231,8 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
     }
 
     if (auto it = j.find("interpolation");  it != j.end()) {
-        p.interpolation = it->get<std::string>() == "cubic" ?
-            FisheyeProjection::Interpolation::Cubic :
-            FisheyeProjection::Interpolation::Linear;
+        std::string interpolation = it->get<std::string>();
+        p.interpolation = parseInterpolation(interpolation);
     }
     parseValue(j, "diameter", p.diameter);
     parseValue(j, "tilt", p.tilt);
@@ -1289,18 +1285,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
 
     if (auto it = j.find("mapping");  it != j.end()) {
         std::string mapping = it->get<std::string>();
-        if (mapping == "fisheye") {
-            p.mapping = SpoutOutputProjection::Mapping::Fisheye;
-        }
-        else if (mapping == "equirectangular") {
-            p.mapping = SpoutOutputProjection::Mapping::Equirectangular;
-        }
-        else if (mapping == "cubemap") {
-            p.mapping = SpoutOutputProjection::Mapping::Cubemap;
-        }
-        else {
-            throw Err(6086, fmt::format("Unknown spout output mapping: {}", mapping));
-        }
+        p.mapping = parseMapping(mapping);
     }
 
     parseValue(j, "mappingSpoutName", p.mappingSpoutName);

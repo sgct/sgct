@@ -188,6 +188,7 @@ namespace sgct {
  * 6020: Viewport / Unrecognized eye position
  * 6021: Viewport / Failed to parse position. Type error
  * 6022: Viewport / Failed to parse size. Type error
+ * 6023: Viewport / Unrecognized interpolation
  * 6030: Window / Could not parse window position. Type error
  * 6031: Window / Could not parse window size. Type error
  * 6032: Window / Could not parse window resolution. Type error

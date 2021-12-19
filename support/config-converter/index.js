@@ -1,148 +1,156 @@
 const fs = require('fs');
 const xml = require('xml2js');
 
+// Converts the object from its current version to the newest available data version
 function convert(obj) {
+  // The current data version
   const CurrentVersion = 1;
 
-  function rename(obj, old_key, new_key) {
-    if (old_key in obj) {
-      Object.defineProperty(obj, new_key, Object.getOwnPropertyDescriptor(obj, old_key));
-      delete obj[old_key];
-    }
+  if ("version" in obj && obj.version == CurrentVersion) {
+    // We are at the most recent version already
+    return false;
   }
 
-  function toString(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = String(obj[key][0]);
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toNumber(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = Number(obj[key][0]);
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toBoolean(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = (obj[key][0] === "true");
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toVec2(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = {
-        x: Number(obj[key][0]["x"]),
-        y: Number(obj[key][0]["y"])
-      }
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toVec3(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = {
-        x: Number(obj[key][0]["x"]),
-        y: Number(obj[key][0]["y"]),
-        z: Number(obj[key][0]["z"])
-      }
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toMat4(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-
-      let values = [];
-      toBoolean(obj, "transpose");
-      if ("transpose" in obj) {
-        values.push(Number(obj[key][0].x0));
-        values.push(Number(obj[key][0].x1));
-        values.push(Number(obj[key][0].x2));
-        values.push(Number(obj[key][0].x3));
-        values.push(Number(obj[key][0].y0));
-        values.push(Number(obj[key][0].y1));
-        values.push(Number(obj[key][0].y2));
-        values.push(Number(obj[key][0].y3));
-        values.push(Number(obj[key][0].z0));
-        values.push(Number(obj[key][0].z1));
-        values.push(Number(obj[key][0].z2));
-        values.push(Number(obj[key][0].z3));
-        values.push(Number(obj[key][0].w0));
-        values.push(Number(obj[key][0].w1));
-        values.push(Number(obj[key][0].w2));
-        values.push(Number(obj[key][0].w3));
-      }
-      else {
-        values.push(Number(obj[key][0].x0));
-        values.push(Number(obj[key][0].y0));
-        values.push(Number(obj[key][0].z0));
-        values.push(Number(obj[key][0].w0));
-        values.push(Number(obj[key][0].x1));
-        values.push(Number(obj[key][0].y1));
-        values.push(Number(obj[key][0].z1));
-        values.push(Number(obj[key][0].w1));
-        values.push(Number(obj[key][0].x2));
-        values.push(Number(obj[key][0].y2));
-        values.push(Number(obj[key][0].z2));
-        values.push(Number(obj[key][0].w2));
-        values.push(Number(obj[key][0].x3));
-        values.push(Number(obj[key][0].y3));
-        values.push(Number(obj[key][0].z3));
-        values.push(Number(obj[key][0].w3));
-      }
-      obj[key] = values;
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  function toObject(obj, key, maybe_new_key) {
-    if (key in obj) {
-      if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
-      if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
-      obj[key] = obj[key][0];
-    }
-
-    if (typeof(maybe_new_key) !== "undefined") {
-      rename(obj, key, maybe_new_key);
-    }
-  }
-
-  // If the version key doesn't exist, we assume that we were handed a JSON file
+  // If the version key doesn't exist, we assume that we were handed an XML file that
+  // didn't have the version information in it
   if (!("version" in obj)) {
+    function rename(obj, old_key, new_key) {
+      if (old_key in obj) {
+        Object.defineProperty(obj, new_key, Object.getOwnPropertyDescriptor(obj, old_key));
+        delete obj[old_key];
+      }
+    }
+  
+    function toString(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = String(obj[key][0]);
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toNumber(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = Number(obj[key][0]);
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toBoolean(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = (obj[key][0] === "true");
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toVec2(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = {
+          x: Number(obj[key][0]["x"]),
+          y: Number(obj[key][0]["y"])
+        }
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toVec3(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = {
+          x: Number(obj[key][0]["x"]),
+          y: Number(obj[key][0]["y"]),
+          z: Number(obj[key][0]["z"])
+        }
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toMat4(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+  
+        let values = [];
+        toBoolean(obj, "transpose");
+        if ("transpose" in obj) {
+          values.push(Number(obj[key][0].x0));
+          values.push(Number(obj[key][0].x1));
+          values.push(Number(obj[key][0].x2));
+          values.push(Number(obj[key][0].x3));
+          values.push(Number(obj[key][0].y0));
+          values.push(Number(obj[key][0].y1));
+          values.push(Number(obj[key][0].y2));
+          values.push(Number(obj[key][0].y3));
+          values.push(Number(obj[key][0].z0));
+          values.push(Number(obj[key][0].z1));
+          values.push(Number(obj[key][0].z2));
+          values.push(Number(obj[key][0].z3));
+          values.push(Number(obj[key][0].w0));
+          values.push(Number(obj[key][0].w1));
+          values.push(Number(obj[key][0].w2));
+          values.push(Number(obj[key][0].w3));
+        }
+        else {
+          values.push(Number(obj[key][0].x0));
+          values.push(Number(obj[key][0].y0));
+          values.push(Number(obj[key][0].z0));
+          values.push(Number(obj[key][0].w0));
+          values.push(Number(obj[key][0].x1));
+          values.push(Number(obj[key][0].y1));
+          values.push(Number(obj[key][0].z1));
+          values.push(Number(obj[key][0].w1));
+          values.push(Number(obj[key][0].x2));
+          values.push(Number(obj[key][0].y2));
+          values.push(Number(obj[key][0].z2));
+          values.push(Number(obj[key][0].w2));
+          values.push(Number(obj[key][0].x3));
+          values.push(Number(obj[key][0].y3));
+          values.push(Number(obj[key][0].z3));
+          values.push(Number(obj[key][0].w3));
+        }
+        obj[key] = values;
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+  
+    function toObject(obj, key, maybe_new_key) {
+      if (key in obj) {
+        if (typeof(obj[key]) !== "object")  throw `Wrong type for key ${key}`;
+        if (obj[key].length !== 1)  throw `Wrong length for key ${key}`;
+        obj[key] = obj[key][0];
+      }
+  
+      if (typeof(maybe_new_key) !== "undefined") {
+        rename(obj, key, maybe_new_key);
+      }
+    }
+
     obj.version = CurrentVersion;
 
     toString(obj, "masterAddress");
@@ -328,6 +336,8 @@ function convert(obj) {
         toNumber(window, "monitor");
         toString(window, "mpcdi");
 
+        // The stereo value was stored as the "type" parameter before, but we can compress
+        // that value down
         rename(window, "Stereo", "stereo");
         if ("stereo" in window) {
           window.stereo = window.stereo[0].type;
@@ -351,6 +361,8 @@ function convert(obj) {
           toVec2(viewport, "Pos", "pos");
           toVec2(viewport, "Size", "size");
 
+          // This value used to be supported, but is not even support in XML anymore, so
+          // we can just remove it altogether
           if ("name" in viewport) {
             delete viewport.name;
           }
@@ -367,14 +379,16 @@ function convert(obj) {
               });
 
               if (viewport.projection.fov.left === viewport.projection.fov.right) {
-                viewport.projection.fov.hFov = viewport.projection.fov.left + viewport.projection.fov.right;
+                viewport.projection.fov.hFov =
+                  viewport.projection.fov.left + viewport.projection.fov.right;
 
                 delete viewport.projection.fov.left;
                 delete viewport.projection.fov.right;
               }
 
               if (viewport.projection.fov.down === viewport.projection.fov.up) {
-                viewport.projection.fov.vFov = viewport.projection.fov.down + viewport.projection.fov.up;
+                viewport.projection.fov.vFov =
+                  viewport.projection.fov.down + viewport.projection.fov.up;
 
                 delete viewport.projection.fov.down;
                 delete viewport.projection.fov.up;
@@ -533,17 +547,14 @@ function convert(obj) {
         });
       });
     });
-
   }
-  else if (obj.version === 1) {
+  
+  if (obj.version === 1) {
     // Nothing to do here since we are at the most recent version
 
   }
-}
 
-if (process.argv.length === 2) {
-  process.argv.push('../../config/single_fisheye.xml');
-  // process.argv.push('2020-02-07-with-bezel.xml');
+  return true;
 }
 
 if (process.argv.length !== 3) {
@@ -569,12 +580,23 @@ if (extension == "xml") {
     explicitArray: true,
     mergeAttrs: true
   });
-  fs.readFile(input, function(err, data) {
-    parser.parseString(data, function (err, result) {
+  fs.readFile(input, (err, data) => {
+    parser.parseString(data, (err, result) => {
       convert(result);
 
       console.log(`Writing ${output}`);
       fs.writeFileSync(output, JSON.stringify(result, null, 2));
     });
+  });
+}
+else if (extension == "json") {
+  fs.readFile(input, (err, data) => {
+    let d = JSON.parse(data);
+    let has_changed = convert(d);
+
+    if (has_changed) {
+      console.log(`Writing ${output}`);
+      fs.writeFileSync(output, JSON.stringify(d, null, 2));
+    }
   });
 }

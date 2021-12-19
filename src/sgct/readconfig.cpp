@@ -11,6 +11,7 @@
 #include <sgct/error.h>
 #include <sgct/log.h>
 #include <sgct/fmt.h>
+#include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/tinyxml.h>
 #include <nlohmann/json.hpp>
@@ -875,6 +876,12 @@ sgct::config::Tracker parseTracker(tinyxml2::XMLElement& element) {
 }
 
 sgct::config::Cluster readXMLFile(const std::filesystem::path& path) {
+    sgct::Log::Warning(
+        "Loading XML files is deprecated and will be removed in a future version of "
+        "SGCT. You can use the NodeJS script in support/config-converter to convert "
+        "existing XML configuration files"
+    );
+
     tinyxml2::XMLDocument xmlDoc;
     tinyxml2::XMLError err = xmlDoc.LoadFile(path.string().c_str());
     if (err != tinyxml2::XML_SUCCESS) {
@@ -1163,7 +1170,12 @@ void from_json(const nlohmann::json& j, Device& d) {
 }
 
 void from_json(const nlohmann::json& j, Tracker& t) {
-    parseValue(j, "name", t.name);
+    if (auto it = j.find("name");  it != j.end()) {
+        it->get_to(t.name);
+    }
+    else {
+        throw Err(6070, "Tracker is missing 'name'");
+    }
     parseValue(j, "devices", t.devices);
     parseValue(j, "offset", t.offset);
     
@@ -1176,39 +1188,56 @@ void from_json(const nlohmann::json& j, Tracker& t) {
 }
 
 void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
+    auto itHFov = j.find("hFov");
+    auto itVFov = j.find("vFov");
+
+    auto itDown = j.find("down");
+    auto itLeft = j.find("left");
+    auto itRight = j.find("right");
+    auto itUp = j.find("up");
+
+    bool hasHorizontal = itHFov != j.end() || (itLeft != j.end() && itRight != j.end());
+    bool hasVertical = itVFov != j.end() || (itDown != j.end() && itUp != j.end());
+    if (!hasHorizontal || !hasVertical) {
+        throw Err(6000, "Missing specification of field-of-view values");
+    }
+    
     // First we extract the potentially existing hFov and vFov values and **then** the
     // more specific left/right/up/down ones which would overwrite the first set
-
-    if (auto itHFov = j.find("hFov");  itHFov != j.end()) {
+    if (itHFov != j.end()) {
         float hFov = itHFov->get<float>();
         f.left = hFov / 2.f;
         f.right = hFov / 2.f;
     }
 
-    if (auto itVFov = j.find("vFov");  itVFov != j.end()) {
+    if (itVFov != j.end()) {
         float vFov = itVFov->get<float>();
         f.down = vFov / 2.f;
         f.up = vFov / 2.f;
     }
 
-    if (auto itDown = j.find("down");  itDown != j.end()) {
+    if (itDown != j.end()) {
         itDown->get_to(f.down);
     }
 
-    if (auto itLeft = j.find("left");  itLeft != j.end()) {
+    if (itLeft != j.end()) {
         itLeft->get_to(f.left);
     }
 
-    if (auto itRight = j.find("right");  itRight != j.end()) {
+    if (itRight != j.end()) {
         itRight->get_to(f.right);
     }
 
-    if (auto itUp = j.find("up");  itUp != j.end()) {
+    if (itUp != j.end()) {
         itUp->get_to(f.up);
     }
 }
 
 void from_json(const nlohmann::json& j, PlanarProjection& p) {
+    if (auto it = j.find("fov");  it == j.end()) {
+        throw Err(6000, "Missing specification of field-of-view values");
+    }
+
     parseValue(j, "fov", p.fov);
 
     // The negative signs here were lifted up from the viewport class. I think it is nicer
@@ -1275,6 +1304,9 @@ void from_json(const nlohmann::json& j, SphericalMirrorProjection& p) {
         it->at("top").get_to(mesh.top);
         p.mesh = mesh;
     }
+    else {
+        throw Err(6100, "Missing geometry paths");
+    }
 }
 
 void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
@@ -1337,6 +1369,14 @@ void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
 }
 
 void from_json(const nlohmann::json& j, ProjectionPlane& p) {
+    auto itLl = j.find("lowerleft");
+    auto itUl = j.find("upperleft");
+    auto itUr = j.find("upperright");
+
+    if (itLl != j.end() || itUl != j.end() || itUr != j.end()) {
+        throw Err(6010, "Failed parsing coordinates. Missing elements");
+    }
+
     j.at("lowerleft").get_to(p.lowerLeft);
     j.at("upperleft").get_to(p.upperLeft);
     j.at("upperright").get_to(p.upperRight);
@@ -1449,6 +1489,20 @@ void from_json(const nlohmann::json& j, Window& w) {
 }
 
 void from_json(const nlohmann::json& j, Node& n) {
+    if (auto it = j.find("address");  it != j.end()) {
+        it->get_to(n.address);
+    }
+    else {
+        throw Err(6040, "Missing field address in node");
+    }
+
+    if (auto it = j.find("port");  it != j.end()) {
+        it->get_to(n.port);
+    }
+    else {
+        throw Err(6041, "Missing field port in node");
+    }
+
     parseValue(j, "address", n.address);
     parseValue(j, "port", n.port);
     parseValue(j, "dataTransferPort", n.dataTransferPort);
@@ -1476,7 +1530,14 @@ sgct::config::Cluster readJsonFile(const std::filesystem::path& path) {
     j.get<sgct::config::Settings>();
 
     sgct::config::Cluster cluster;
-    parseValue(j, "masterAddress", cluster.masterAddress);
+
+    if (auto it = j.find("masterAddress");  it != j.end()) {
+        it->get_to(cluster.masterAddress);
+    }
+    else {
+        throw Err(6084, "Cannot find master address");
+    }
+
     parseValue(j, "setThreadAffinity", cluster.setThreadAffinity);
     parseValue(j, "debugLog", cluster.debugLog);
     parseValue(j, "externalControlPort", cluster.externalControlPort);

@@ -1044,8 +1044,7 @@ template <typename T>
 void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
     if (auto it = j.find(key);  it != j.end()) {
         if constexpr (is_optional<T>::value) {
-            using Value = T::value_type;
-            res = it->get<Value>();
+            res = it->get<typename T::value_type>();
         }
         else {
             it->get_to(res);

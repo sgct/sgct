@@ -200,7 +200,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
     if (v.blendMaskTexture && v.blendMaskTexture->empty()) {
         throw Error(1092, "Blendmask texture path must not be empty");
     }
-    if (v.blendLevelMaskTexture && v.blendLevelMaskTexture->empty()) {
+    if (v.blackLevelMaskTexture && v.blackLevelMaskTexture->empty()) {
         throw Error(1093, "Blendmask level texture path must not be empty");
     }
     if (v.correctionMeshTexture && v.correctionMeshTexture->empty()) {

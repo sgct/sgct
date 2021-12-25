@@ -352,9 +352,9 @@ function convert(obj) {
         window.viewports.forEach((viewport, _) => {
           toString(viewport, "user");
           toString(viewport, "overlay");
-          toString(viewport, "mask");
+          rename(viewport, "mask", "blendMask")
           toString(viewport, "BlendMask", "blendMask");
-          toString(viewport, "BlackLevelMasl", "blackLevelMask");
+          toString(viewport, "BlackLevelMask", "blackLevelMask");
           toString(viewport, "mesh");
           toBoolean(viewport, "tracked");
           toString(viewport, "eye");

@@ -243,7 +243,7 @@ struct Viewport {
     std::optional<std::string> user;
     std::optional<std::string> overlayTexture;
     std::optional<std::string> blendMaskTexture;
-    std::optional<std::string> blendLevelMaskTexture;
+    std::optional<std::string> blackLevelMaskTexture;
     std::optional<std::string> correctionMeshTexture;
     std::optional<bool> isTracked;
     std::optional<Eye> eye;

@@ -1076,7 +1076,23 @@ void Engine::render() {
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : windows) {
-            window->swap(_takeScreenshot);
+            bool shouldTakeScreenshot = _takeScreenshot;
+
+            // If we don't want to take any screenshots anyway, there is no need for any
+            // extra work. Same thing if we want to take a screenshot of all windows,
+            // meaning that the _takeScreenshotIds list is empty
+            if (_takeScreenshot && !_takeScreenshotIds.empty()) {
+                auto it = std::find(
+                    _takeScreenshotIds.begin(),
+                    _takeScreenshotIds.end(),
+                    window->id()
+                );
+                // If the window id is in the list of ids, then we want to take a
+                // screenshot. We already checked that `shouldTakeScreenshot` is true in
+                // the if statement above
+                shouldTakeScreenshot = (it != _takeScreenshotIds.end());
+            }
+            window->swap(shouldTakeScreenshot);
         }
 
         TracyGpuCollect;
@@ -1691,8 +1707,9 @@ void Engine::setStatsGraphVisibility(bool state) {
     }
 }
 
-void Engine::takeScreenshot() {
+void Engine::takeScreenshot(std::vector<int> windowIds) {
     _takeScreenshot = true;
+    _takeScreenshotIds = std::move(windowIds);
 }
 
 const std::function<void(const RenderData&)>& Engine::drawFunction() const {

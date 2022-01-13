@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "masterAddress": "localhost",
+
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "fullscreen": false,
+          "size": { "x": 1280, "y": 720 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "CylindricalProjection",
+                "quality": "4k"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeSeparation": 0.06,
+      "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    }
+  ]
+}

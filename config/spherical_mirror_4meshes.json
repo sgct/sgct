@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "masterAddress": "localhost",
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "fullscreen": false,
+          "fxaa": false,
+          "msaa": 1,
+          "name": "Spherical Projection (4 Meshes)",
+          "stereo": "none",
+          "pos": { "x": 0, "y": 100 },
+          "size": { "x": 1280, "y": 720 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "SphericalMirrorProjection",
+                "quality": "2k",
+                "tilt": 0.0,
+                "background": { "r": 1.0, "g": 0.1, "b": 0.1, "a": 1.0 },
+                "geometry": {
+                  "bottom": "mesh/bottom_warp2.obj",
+                  "left": "mesh/left_warp2.obj",
+                  "right": "mesh/right_warp2.obj",
+                  "top": "mesh/top_warp2.obj"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeSeparation": 0.06,
+      "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    }
+  ]
+}

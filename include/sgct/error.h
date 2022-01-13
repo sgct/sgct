@@ -188,6 +188,7 @@ namespace sgct {
  * 6020: Viewport / Unrecognized eye position
  * 6021: Viewport / Failed to parse position. Type error
  * 6022: Viewport / Failed to parse size. Type error
+ * 6023: Viewport / Unrecognized interpolation
  * 6030: Window / Could not parse window position. Type error
  * 6031: Window / Could not parse window size. Type error
  * 6032: Window / Could not parse window resolution. Type error
@@ -197,14 +198,15 @@ namespace sgct {
  * 6051: Settings / Wrong buffer precision value type
  * 6060: Capture / Unknown capturing format. Needs to be png, tga, jpg
  * 6070: Tracker / Tracker is missing 'name'
- * 6080: XML Parsing / No XML file provided
- * 6081: XML Parsing / Could not find configureation file: %s
- * 6082: XML Parsing / Error parsing XML file
- * 6083: XML Parsing / Cannot find 'Cluster' node
- * 6084: XML Parsing / Cannot find master address
- * 6085: XML Parsing / Unknown stereo mode %s
- * 6086: XML Parsing / Unknown color bit depth %s
- * 6087: XML Parsing / Unknown resolution %s for cube map
+ * 6080: Parsing / No file provided
+ * 6081: Parsing / Could not find configureation file: %s
+ * 6082: Parsing / Error parsing file
+ * 6083: Parsing / Cannot find 'Cluster' node
+ * 6084: Parsing / Cannot find master address
+ * 6085: Parsing / Unknown stereo mode %s
+ * 6086: Parsing / Unknown color bit depth %s
+ * 6087: Parsing / Unknown resolution %s for cube map
+ * 6088: Parsing / Unsupported file extension %s
  * 6090: SpoutOutput / Unknown spout output mapping: %s
  * 6100: SphericalMirror / Missing geometry paths
 

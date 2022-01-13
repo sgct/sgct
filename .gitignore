@@ -5,3 +5,4 @@ include/sgct/version.h
 obj
 Doxyfile
 build-vs2017/
+support/config-converter/node_modules

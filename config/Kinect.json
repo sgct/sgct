@@ -1,0 +1,186 @@
+{
+  "version": 1,
+  "masterAddress": "localhost",
+  "trackers": [
+    {
+      "name": "Kinect0",
+      "devices": [
+        {
+          "name": "Head",
+          "sensors": [
+            { "id": 0, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Neck",
+          "sensors": [
+            { "id": 1, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Torso",
+          "sensors": [
+            { "id": 2, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Waist",
+          "sensors": [
+            { "id": 3, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Collar",
+          "sensors": [
+            { "id": 4, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Shoulder",
+          "sensors": [
+            { "id": 5, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Elbow",
+          "sensors": [
+            { "id": 6, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Wrist",
+          "sensors": [
+            { "id": 7, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Hand",
+          "sensors": [
+            { "id": 8, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Fingertip",
+          "sensors": [
+            { "id": 9, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Collar",
+          "sensors": [
+            { "id": 10, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Shoulder",
+          "sensors": [
+            { "id": 11, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Elbow",
+          "sensors": [
+            { "id": 12, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Wrist",
+          "sensors": [
+            { "id": 13, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Hand",
+          "sensors": [
+            { "id": 14, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Fingertip",
+          "sensors": [
+            { "id": 15, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Hip",
+          "sensors": [
+            { "id": 16, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Knee",
+          "sensors": [
+            { "id": 17, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Ankle",
+          "sensors": [
+            { "id": 18, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Left Foot",
+          "sensors": [
+            { "id": 19, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Hip",
+          "sensors": [
+            { "id": 20, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Knee",
+          "sensors": [
+            { "id": 21, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Ankle",
+          "sensors": [
+            { "id": 22, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        },
+        {
+          "name": "Right Foot",
+          "sensors": [
+            { "id": 23, "vrpnAddress": "Tracker0@localhost" }
+          ]
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "address": "localhost",
+      "port": 20401,
+      "windows": [
+        {
+          "msaa": 4,
+          "fullscreen": false,
+          "size": { "x": 960, "y": 540 },
+          "viewports": [
+            {
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
+              "projection": {
+                "type": "Projectionplane",
+                "lowerleft": { "x": -1.778, "y": -1.0, "z": 0.0 },
+                "upperleft": { "x": -1.778, "y": 1.0, "z": 0.0 },
+                "upperright": { "x": 1.778, "y": 1.0, "z": 0.0 }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "eyeSeparation": 0.06,
+      "pos": { "x": 0.0, "y": 0.0, "z": 1.5 }
+    }
+  ]
+}

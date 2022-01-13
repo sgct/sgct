@@ -96,3 +96,11 @@ if (NOT TARGET tracy)
       _CRT_SECURE_NO_WARNINGS
   )
 endif ()
+
+#
+# nlohmann::json
+#
+# if (NOT TARGET json)
+  add_library(json INTERFACE)
+  target_include_directories(json INTERFACE "json/single_include")
+# endif ()

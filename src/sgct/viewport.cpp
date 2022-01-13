@@ -58,8 +58,8 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     if (viewport.blendMaskTexture) {
         _blendMaskFilename = *viewport.blendMaskTexture;
     }
-    if (viewport.blendLevelMaskTexture) {
-        _blackLevelMaskFilename = *viewport.blendLevelMaskTexture;
+    if (viewport.blackLevelMaskTexture) {
+        _blackLevelMaskFilename = *viewport.blackLevelMaskTexture;
     }
     if (viewport.correctionMeshTexture) {
         _meshFilename = *viewport.correctionMeshTexture;

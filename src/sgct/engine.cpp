@@ -254,11 +254,11 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         catch (const std::runtime_error& e) {
             std::cout << e.what() << '\n';
             std::cout << helpMessage() << '\n';
-            return config::Cluster();
+            throw;
         }
         catch (...) {
             std::cout << helpMessage() << '\n';
-            return config::Cluster();
+            throw;
         }
     }
     else {

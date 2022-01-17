@@ -1777,7 +1777,7 @@ void from_json(const nlohmann::json& j, ProjectionPlane& p) {
     auto itUl = j.find("upperleft");
     auto itUr = j.find("upperright");
 
-    if (itLl != j.end() || itUl != j.end() || itUr != j.end()) {
+    if (itLl == j.end() || itUl == j.end() || itUr == j.end()) {
         throw Err(6010, "Failed parsing coordinates. Missing elements");
     }
 

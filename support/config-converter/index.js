@@ -153,11 +153,11 @@ function convert(obj) {
 
     obj.version = CurrentVersion;
 
-    toString(obj, "masterAddress");
-    toNumber(obj, "setThreadAffinity");
-    toBoolean(obj, "debugLog");
-    toNumber(obj, "externalControlPort");
-    toBoolean(obj, "firmSync");
+    toString(obj, "masterAddress", "masteraddress");
+    toNumber(obj, "setThreadAffinity", "threadaffinity");
+    toBoolean(obj, "debugLog", "debuglog");
+    toNumber(obj, "externalControlPort", "externalcontrolport");
+    toBoolean(obj, "firmSync", "firmsync");
 
     toObject(obj, "Scene", "scene");
     if ("scene" in obj) {
@@ -182,7 +182,7 @@ function convert(obj) {
     if ("users" in obj) {
       obj.users.forEach((user, _) => {
         toString(user, "name");
-        toNumber(user, "eyeSeparation");
+        toNumber(user, "eyeSeparation", "eyeseparation");
         
         toVec3(user, "Pos", "pos");
 
@@ -206,15 +206,15 @@ function convert(obj) {
 
     toObject(obj, "Settings", "settings");
     if ("settings" in obj) {
-      toBoolean(obj.settings, "DepthBufferTexture", "depthBufferTexture");
-      toBoolean(obj.settings, "NormalTexture", "normalTexture");
-      toBoolean(obj.settings, "PositionTexture", "positionTexture");
+      toBoolean(obj.settings, "DepthBufferTexture", "depthbuffertexture");
+      toBoolean(obj.settings, "NormalTexture", "normaltexture");
+      toBoolean(obj.settings, "PositionTexture", "positiontexture");
       toNumber(obj.settings, "Precision", "precision");
 
       toObject(obj.settings, "Display", "display");
       if ("display" in obj.settings) {
-        toNumber(obj.settings.display, "swapInterval");
-        toNumber(obj.settings.display, "refreshRate");
+        toNumber(obj.settings.display, "swapInterval", "swapinterval");
+        toNumber(obj.settings.display, "refreshRate", "refreshrate");
       }
     }
 
@@ -223,8 +223,8 @@ function convert(obj) {
     if ("capture" in obj) {
       toString(obj.capture, "path");
       toString(obj.capture, "format");
-      toNumber(obj.capture, "range-begin", "rangeBegin");
-      toNumber(obj.capture, "range-end", "rangeEnd");
+      toNumber(obj.capture, "range-begin", "rangebegin");
+      toNumber(obj.capture, "range-end", "rangeend");
     }
 
     rename(obj, "Tracker", "trackers");
@@ -240,7 +240,7 @@ function convert(obj) {
             rename(device, "Sensor", "sensors");
             if ("sensors" in device) {
               device.sensors.forEach((sensor, _) => {
-                toString(sensor, "vrpnAddress");
+                toString(sensor, "vrpnAddress", "vrpnaddress");
                 toNumber(sensor, "id");
               });
             }
@@ -248,7 +248,7 @@ function convert(obj) {
             rename(device, "Buttons", "buttons");
             if ("buttons" in device) {
               device.buttons.forEach((button, _) => {
-                toString(button, "vrpnAddress");
+                toString(button, "vrpnAddress", "vrpnaddress");
                 toNumber(button, "count");
               });
             }
@@ -256,7 +256,7 @@ function convert(obj) {
             rename(device, "Axes", "axes");
             if ("axes" in device) {
               devices.axes.forEach((axis, _) => {
-                toString(axis, "vrpnAddress");
+                toString(axis, "vrpnAddress", "vrpnaddress");
                 toNumber(axis, "count");
               });
             }
@@ -293,8 +293,8 @@ function convert(obj) {
     obj.nodes.forEach((node, _) => {
       toString(node, "address");
       toNumber(node, "port");
-      toNumber(node, "dataTransferPort");
-      toBoolean(node, "swapLock");
+      toNumber(node, "dataTransferPort", "datatransferport");
+      toBoolean(node, "swapLock", "swaplock");
 
       rename(node, "Window", "windows");
       node.windows.forEach((window, _) => {
@@ -307,13 +307,13 @@ function convert(obj) {
           window.tags = window.tags.split(",");
         }
 
-        toString(window, "bufferBitDepth");
+        toString(window, "bufferBitDepth", "bufferbitdepth");
         rename(window, "fullScreen", "fullscreen");
         toBoolean(window, "fullscreen");
         toBoolean(window, "autoiconify");
-        toBoolean(window, "hideMouseCursor");
+        toBoolean(window, "hideMouseCursor", "hidemousecursor");
         toBoolean(window, "floating");
-        toBoolean(window, "alwaysRender");
+        toBoolean(window, "alwaysRender", "alwaysrender");
         toBoolean(window, "hidden");
         toBoolean(window, "dbuffered", "doublebuffered");
 
@@ -327,12 +327,12 @@ function convert(obj) {
 
         toBoolean(window, "mirror");
         
-        rename(window, "draw2d", "draw2D");
-        toBoolean(window, "draw2D");
+        rename(window, "draw2D", "draw2d");
+        toBoolean(window, "draw2d");
         
-        rename(window, "draw3d", "draw3D");
-        toBoolean(window, "draw3D");
-        toNumber(window, "blitWindowId");
+        rename(window, "draw3D", "draw3d");
+        toBoolean(window, "draw3d");
+        toNumber(window, "blitWindowId", "blitwindowid");
         toNumber(window, "monitor");
         toString(window, "mpcdi");
 
@@ -352,9 +352,9 @@ function convert(obj) {
         window.viewports.forEach((viewport, _) => {
           toString(viewport, "user");
           toString(viewport, "overlay");
-          rename(viewport, "mask", "blendMask")
-          toString(viewport, "BlendMask", "blendMask");
-          toString(viewport, "BlackLevelMask", "blackLevelMask");
+          rename(viewport, "mask", "blendmask")
+          toString(viewport, "BlendMask", "blendmask");
+          toString(viewport, "BlackLevelMask", "blacklevelmask");
           toString(viewport, "mesh");
           toBoolean(viewport, "tracked");
           toString(viewport, "eye");
@@ -379,7 +379,7 @@ function convert(obj) {
               });
 
               if (viewport.projection.fov.left === viewport.projection.fov.right) {
-                viewport.projection.fov.hFov =
+                viewport.projection.fov.hfov =
                   viewport.projection.fov.left + viewport.projection.fov.right;
 
                 delete viewport.projection.fov.left;
@@ -387,7 +387,7 @@ function convert(obj) {
               }
 
               if (viewport.projection.fov.down === viewport.projection.fov.up) {
-                viewport.projection.fov.vFov =
+                viewport.projection.fov.vfov =
                   viewport.projection.fov.down + viewport.projection.fov.up;
 
                 delete viewport.projection.fov.down;
@@ -429,7 +429,7 @@ function convert(obj) {
               });
             }
 
-            toBoolean(viewport.projection, "keepAspectRatio");
+            toBoolean(viewport.projection, "keepAspectRatio", "keepaspectratio");
 
             // Offset -> offset
             toVec3(viewport.projection, "Offset", "offset");
@@ -472,7 +472,7 @@ function convert(obj) {
             toString(viewport.projection, "quality");
             toNumber(viewport.projection, "tilt");
             toString(viewport.projection, "mapping");
-            toString(viewport.projection, "mappingSpoutName");
+            toString(viewport.projection, "mappingSpoutName", "mappingspoutname");
 
             // Background -> background
             toObject(viewport.projection, "Background", "background");
@@ -509,7 +509,7 @@ function convert(obj) {
             toNumber(viewport.projection, "tilt");
 
             toNumber(viewport.projection, "rotation");
-            toNumber(viewport.projection, "heightOffset");
+            toNumber(viewport.projection, "heightOffset", "heightoffset");
             toNumber(viewport.projection, "radius");
           }
           else if ("EquirectangularProjection" in viewport) {

@@ -564,9 +564,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "[ReadConfig] (6100): Missing geometry paths"
-        )
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
@@ -603,9 +601,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Bottom", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "[ReadConfig] (6100): Missing geometry paths"
-        )
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
@@ -642,9 +638,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Left", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "[ReadConfig] (6100): Missing geometry paths"
-        )
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
@@ -681,9 +675,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Right", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "[ReadConfig] (6100): Missing geometry paths"
-        )
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
@@ -720,9 +712,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "[ReadConfig] (6100): Missing geometry paths"
-        )
+        Catch::Matchers::Message("[ReadConfig] (6100): Missing geometry paths")
     );
 }
 
@@ -754,8 +744,66 @@ TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
     CHECK_THROWS_MATCHES(
         sgct::readJsonConfig(Sources),
         std::runtime_error,
-        Catch::Matchers::Message(
-            "Could not find required key 'mappingspoutname'"
-        )
+        Catch::Matchers::Message("Could not find required key 'mappingspoutname'")
+    );
+}
+
+TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
+    constexpr const char Sources[] = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "tracking": {
+        "device": "abc"
+      }
+    }
+  ]
+}
+)";
+    CHECK_THROWS_MATCHES(
+        sgct::readJsonConfig(Sources),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'tracker' in User")
+    );
+}
+
+TEST_CASE("Parse Required: User/Tracking/Device", "[parse]") {
+    constexpr const char Sources[] = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "users": [
+    {
+      "tracking": {
+        "tracker": "abc"
+      }
+    }
+  ]
+}
+)";
+    CHECK_THROWS_MATCHES(
+        sgct::readJsonConfig(Sources),
+        std::runtime_error,
+        Catch::Matchers::Message("Missing key 'device' in User")
+    );
+}
+
+TEST_CASE("Parse Required: Tracker/Name", "[parse]") {
+    constexpr const char Sources[] = R"(
+{
+  "version": 1,
+  "masteraddress": "localhost",
+  "trackers": [
+    {
+    }
+  ]
+}
+)";
+    CHECK_THROWS_MATCHES(
+        sgct::readJsonConfig(Sources),
+        std::runtime_error,
+        Catch::Matchers::Message("[ReadConfig] (6070): Tracker is missing 'name'")
     );
 }

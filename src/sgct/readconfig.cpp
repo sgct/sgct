@@ -1184,8 +1184,19 @@ void from_json(const nlohmann::json& j, User& u) {
 
     if (auto it = j.find("tracking");  it != j.end()) {
         User::Tracking tracking;
-        it->at("tracker").get_to(tracking.tracker);
-        it->at("device").get_to(tracking.device);
+        
+        auto trackerIt = it->find("tracker");
+        if (trackerIt == it->end()) {
+            throw std::runtime_error("Missing key 'tracker' in User");
+        }
+
+        auto deviceIt = it->find("device");
+        if (deviceIt == it->end()) {
+            throw std::runtime_error("Missing key 'device' in User");
+        }
+
+        trackerIt->get_to(tracking.tracker);
+        deviceIt->get_to(tracking.device);
         u.tracking = tracking;
     }
 }

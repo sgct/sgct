@@ -12,7 +12,6 @@
       "port": 20401,
       "windows": [
         {
-          "name": "OpenSpace",
           "fullscreen": false,
           "stereo": "none",
           "msaa": 4,

@@ -12,13 +12,14 @@
           "size": { "x": 512, "y": 512 },
           "viewports": [
             {
+              "type": "FisheyeProjection",
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
+                "type": "FisheyeProjection",
                 "fov": 180.0,
                 "quality": "medium",
                 "tilt": 0.0,
-                "type": "FisheyeProjection",
                 "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 }
               }
             }

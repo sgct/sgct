@@ -8,7 +8,7 @@
   },
   "settings": {
     "display": {
-      "swapInterval": 0
+      "swapinterval": 0
     }
   },
   "nodes": [
@@ -17,10 +17,9 @@
       "port": 20401,
       "windows": [
         {
-          "name": "OpenSpace",
           "fullscreen": false,
           "stereo": "none",
-          "mssa": 4,
+          "msaa": 4,
           "size": { "x": 1024, "y": 1024 },
           "viewports": [
             {

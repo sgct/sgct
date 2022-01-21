@@ -1139,7 +1139,9 @@ void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
             res = T();
         }
         else {
-            throw "Didn't find X";
+            throw std::runtime_error(fmt::format(
+                "Could not find required key '{}'", key)
+            );
         }
     }
 }
@@ -1551,9 +1553,24 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
 
     if (auto it = j.find("crop");  it != j.end()) {
         FisheyeProjection::Crop crop;
+        if (auto jt = it->find("left");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'left' in FisheyeProjection/Crop");
+        }
         crop.left = it->value("left", crop.left);
+
+        if (auto jt = it->find("right");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'right' in FisheyeProjection/Crop");
+        }
         crop.right = it->value("right", crop.right);
+
+        if (auto jt = it->find("bottom");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'bottom' in FisheyeProjection/Crop");
+        }
         crop.bottom = it->value("bottom", crop.bottom);
+
+        if (auto jt = it->find("top");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'top' in FisheyeProjection/Crop");
+        }
         crop.top = it->value("top", crop.top);
         p.crop = crop;
     }
@@ -2337,6 +2354,11 @@ config::Cluster readConfig(const std::string& filename) {
 sgct::config::Cluster readJsonConfig(const std::string& configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
 
+    auto it = j.find("version");
+    if (it == j.end()) {
+        throw std::runtime_error("Missing 'version' information");
+    }
+
     sgct::config::Cluster cluster;
     from_json(j, cluster);
     cluster.success = true;
@@ -2345,6 +2367,7 @@ sgct::config::Cluster readJsonConfig(const std::string& configuration) {
 
 std::string serializeConfig(const config::Cluster& cluster) {
     nlohmann::json res;
+    res["version"] = 1;
     to_json(res, cluster);
     return res.dump(2);
 }

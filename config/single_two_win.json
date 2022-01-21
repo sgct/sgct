@@ -22,7 +22,7 @@
                   "hfov": 80.0,
                   "vfov": 50.534015846724
                 },
-                "orientation": { "heading": -20.0, "pitch": 0.0, "roll": 0.0 }
+                "orientation": { "yaw": -20.0, "pitch": 0.0, "roll": 0.0 }
               }
             }
           ]
@@ -43,7 +43,7 @@
                   "hfov": 80.0,
                   "vfov": 50.534015846724
                 },
-                "orientation": { "heading": 20.0, "pitch": 0.0, "roll": 0.0 }
+                "orientation": { "yaw": 20.0, "pitch": 0.0, "roll": 0.0 }
               }
             }
           ]

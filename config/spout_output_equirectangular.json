@@ -1,22 +1,14 @@
 {
-  "masterAddress": "localhost",
   "version": 1,
+  "masteraddress": "localhost",
   "scene": {
-    "offset": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "orientation": {
-      "yaw": 0.0,
-      "pitch": -90.0,
-      "roll": 0.0
-    },
+    "offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "orientation": { "yaw": 0.0, "pitch": -90.0, "roll": 0.0 },
     "scale": 1.0
   },
   "settings": {
     "display": {
-      "swapInterval": 0
+      "swapinterval": 0
     }
   },
   "nodes": [
@@ -25,10 +17,9 @@
       "port": 20401,
       "windows": [
         {
-          "name": "OpenSpace",
           "fullscreen": false,
           "stereo": "none",
-          "mssa": 4,
+          "msaa": 4,
           "size": { "x": 1024, "y": 1024 },
           "viewports": [
             {
@@ -38,7 +29,7 @@
                 "type": "SpoutOutputProjection",
                 "quality": "1k",
                 "mapping": "equirectangular",
-                "mappingSpoutName": "OS_EQUIRECTANGULAR",
+                "mappingspoutname": "OS_EQUIRECTANGULAR",
                 "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
                 "channels": {
                   "right": true,
@@ -58,7 +49,7 @@
   ],
   "users": [
     {
-      "eyeSeparation": 0.06,
+      "eyeseparation": 0.06,
       "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
     }
   ]

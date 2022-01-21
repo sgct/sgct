@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "masterAddress": "localhost",
+  "masteraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -11,15 +11,15 @@
           "size": { "x": 1280, "y": 720 },
           "viewports": [
             {
-              "pos": { "x": 0, "y": 0 },
-              "size": { "x": 1, "y": 1 },
+              "pos": { "x": 0.0, "y": 0.0 },
+              "size": { "x": 1.0, "y": 1.0 },
               "projection": {
                 "type": "PlanarProjection",
                 "fov": {
-                  "hFov": 80,
-                  "vFov": 50.534015846724
+                  "hfov": 80,
+                  "vfov": 50.534015846724
                 },
-                "orientation": { "heading": 0, "pitch": 0, "roll": 0 }
+                "orientation": { "yaw": 0.0, "pitch": 0.0, "roll": 0.0 }
               }
             }
           ]
@@ -29,8 +29,8 @@
   ],
   "users": [
     {
-      "eyeSeparation": 0.06,
-      "pos": { "x": 0, "y": 0, "z": 4 }
+      "eyeseparation": 0.06,
+      "pos": { "x": 0, "y": 0, "z": 4.0 }
     }
   ]
 }

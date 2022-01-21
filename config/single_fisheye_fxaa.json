@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "masterAddress": "localhost",
+  "masteraddress": "localhost",
   "nodes": [
     {
       "address": "localhost",
@@ -16,10 +16,10 @@
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
+                "type": "FisheyeProjection",
                 "fov": 180,
                 "quality": "medium",
                 "tilt": 0,
-                "type": "FisheyeProjection",
                 "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 }
               }
             }
@@ -30,7 +30,7 @@
   ],
   "users": [
     {
-      "eyeSeparation": 0.06,
+      "eyeseparation": 0.06,
       "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
     }
   ]

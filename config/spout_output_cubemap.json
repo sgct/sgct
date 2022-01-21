@@ -1,6 +1,6 @@
 {
-  "masterAddress": "localhost",
   "version": 1,
+  "masteraddress": "localhost",
   "scene": {
     "offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
     "orientation": { "yaw": 0.0, "pitch": -90.0, "roll": 0.0 },
@@ -12,10 +12,9 @@
       "port": 20401,
       "windows": [
         {
-          "msaa": 4,
-          "name": "OpenSpace",
           "fullscreen": false,
           "stereo": "none",
+          "msaa": 4,
           "size": { "x": 1024, "y": 1024 },
           "viewports": [
             {
@@ -25,7 +24,7 @@
                 "type": "SpoutOutputProjection",
                 "quality": "1k",
                 "mapping": "cubemap",
-                "mappingSpoutName": "OS_CUBEMAP",
+                "mappingspoutname": "OS_CUBEMAP",
                 "background": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0 },
                 "channels": {
                   "right": true,
@@ -45,7 +44,7 @@
   ],
   "users": [
     {
-      "eyeSeparation": 0.06,
+      "eyeseparation": 0.06,
       "pos": { "x": 0.0, "y": 0.0, "z": 0.0 }
     }
   ]

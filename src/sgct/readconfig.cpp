@@ -56,6 +56,41 @@ namespace {
         throw Err(6085, fmt::format("Unkonwn stereo mode {}", t));
     }
 
+    std::string_view toString(sgct::config::Window::StereoMode mode) {
+        switch (mode) {
+            case sgct::config::Window::StereoMode::NoStereo:
+                return "none";
+            case sgct::config::Window::StereoMode::Active:
+                return "active";
+            case sgct::config::Window::StereoMode::Checkerboard:
+                return "checkerboard";
+            case sgct::config::Window::StereoMode::CheckerboardInverted:
+                return "checkerboard_inverted";
+            case sgct::config::Window::StereoMode::AnaglyphRedCyan:
+                return "anaglyph_red_cyan";
+            case sgct::config::Window::StereoMode::AnaglyphAmberBlue:
+                return "anaglyph_amber_blue";
+            case sgct::config::Window::StereoMode::AnaglyphRedCyanWimmer:
+                return "anaglyph_wimmer";
+            case sgct::config::Window::StereoMode::VerticalInterlaced:
+                return "vertical_interlaced";
+            case sgct::config::Window::StereoMode::VerticalInterlacedInverted:
+                return "vertical_interlaced_inverted";
+            case sgct::config::Window::StereoMode::Dummy:
+                return "dummy";
+            case sgct::config::Window::StereoMode::SideBySide:
+                return "side_by_side";
+            case sgct::config::Window::StereoMode::SideBySideInverted:
+                return "side_by_side_inverted";
+            case sgct::config::Window::StereoMode::TopBottom:
+                return "top_bottom";
+            case sgct::config::Window::StereoMode::TopBottomInverted:
+                return "top_bottom_inverted";
+            default:
+                throw std::logic_error("Missing case exception");
+        }
+    }
+
     sgct::config::Window::ColorBitDepth parseBufferColorBitDepth(std::string_view type) {
         if (type == "8") { return sgct::config::Window::ColorBitDepth::Depth8; }
         if (type == "16") { return sgct::config::Window::ColorBitDepth::Depth16; }
@@ -1104,7 +1139,9 @@ void parseValue(const nlohmann::json& j, std::string_view key, T& res) {
             res = T();
         }
         else {
-            throw "Didn't find X";
+            throw std::runtime_error(fmt::format(
+                "Could not find required key '{}'", key)
+            );
         }
     }
 }
@@ -1129,13 +1166,13 @@ void to_json(nlohmann::json& j, const Scene& s) {
         j["orientation"] = *s.orientation;
     }
     if (s.scale.has_value()) {
-        j["scene"] = *s.scale;
+        j["scale"] = *s.scale;
     }
 }
 
 void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
-    parseValue(j, "eyeSeparation", u.eyeSeparation);
+    parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
     
     parseValue(j, "matrix", u.transformation);
@@ -1147,8 +1184,19 @@ void from_json(const nlohmann::json& j, User& u) {
 
     if (auto it = j.find("tracking");  it != j.end()) {
         User::Tracking tracking;
-        it->at("tracker").get_to(tracking.tracker);
-        it->at("device").get_to(tracking.device);
+        
+        auto trackerIt = it->find("tracker");
+        if (trackerIt == it->end()) {
+            throw std::runtime_error("Missing key 'tracker' in User");
+        }
+
+        auto deviceIt = it->find("device");
+        if (deviceIt == it->end()) {
+            throw std::runtime_error("Missing key 'device' in User");
+        }
+
+        trackerIt->get_to(tracking.tracker);
+        deviceIt->get_to(tracking.device);
         u.tracking = tracking;
     }
 }
@@ -1161,7 +1209,7 @@ void to_json(nlohmann::json& j, const User& u) {
     }
 
     if (u.eyeSeparation.has_value()) {
-        j["eyeSeperation"] = *u.eyeSeparation;
+        j["eyeseparation"] = *u.eyeSeparation;
     }
 
     if (u.position.has_value()) {
@@ -1181,9 +1229,9 @@ void to_json(nlohmann::json& j, const User& u) {
 }
 
 void from_json(const nlohmann::json& j, Settings& s) {
-    parseValue(j, "depthBufferTexture", s.useDepthTexture);
-    parseValue(j, "normalTexture", s.useNormalTexture);
-    parseValue(j, "positionTexture", s.usePositionTexture);
+    parseValue(j, "depthbuffertexture", s.useDepthTexture);
+    parseValue(j, "normaltexture", s.useNormalTexture);
+    parseValue(j, "positiontexture", s.usePositionTexture);
 
     if (auto it = j.find("precision");  it != j.end()) {
         float precision = it->get<float>();
@@ -1200,8 +1248,8 @@ void from_json(const nlohmann::json& j, Settings& s) {
 
     if (auto it = j.find("display");  it != j.end()) {
         Settings::Display display;
-        parseValue(j, "swapInterval", display.swapInterval);
-        parseValue(j, "refreshRate", display.refreshRate);
+        parseValue(*it, "swapinterval", display.swapInterval);
+        parseValue(*it, "refreshrate", display.refreshRate);
         s.display = display;
     }
 }
@@ -1210,15 +1258,15 @@ void to_json(nlohmann::json& j, const Settings& s) {
     j = nlohmann::json::object();
     
     if (s.useDepthTexture.has_value()) {
-        j["depthBufferTexture"] = *s.useDepthTexture;
+        j["depthbuffertexture"] = *s.useDepthTexture;
     }
 
     if (s.useNormalTexture.has_value()) {
-        j["normalTexture"] = *s.useNormalTexture;
+        j["normaltexture"] = *s.useNormalTexture;
     }
 
     if (s.usePositionTexture.has_value()) {
-        j["positionTexture"] = *s.usePositionTexture;
+        j["positiontexture"] = *s.usePositionTexture;
     }
 
     if (s.bufferFloatPrecision.has_value()) {
@@ -1235,10 +1283,10 @@ void to_json(nlohmann::json& j, const Settings& s) {
     if (s.display.has_value()) {
         nlohmann::json display = nlohmann::json::object();
         if (s.display->swapInterval.has_value()) {
-            display["swapInterval"] = *s.display->swapInterval;
+            display["swapinterval"] = *s.display->swapInterval;
         }
         if (s.display->refreshRate.has_value()) {
-            display["refreshRate"] = *s.display->refreshRate;
+            display["refreshrate"] = *s.display->refreshRate;
         }
         j["display"] = display;
     }
@@ -1252,9 +1300,9 @@ void from_json(const nlohmann::json& j, Capture& c) {
     }
 
     std::optional<int> rangeBeg;
-    parseValue(j, "rangeBegin", rangeBeg);
+    parseValue(j, "rangebegin", rangeBeg);
     std::optional<int> rangeEnd;
-    parseValue(j, "rangeEnd", rangeEnd);
+    parseValue(j, "rangeend", rangeEnd);
 
     if (rangeBeg || rangeEnd) {
         c.range = Capture::ScreenShotRange();
@@ -1290,44 +1338,44 @@ void to_json(nlohmann::json& j, const Capture& c) {
     }
 
     if (c.range.has_value()) {
-        j["rangeBegin"] = c.range->first;
-        j["rangeEnd"] = c.range->last;
+        j["rangebegin"] = c.range->first;
+        j["rangeend"] = c.range->last;
     }
 }
 
 void from_json(const nlohmann::json& j, Device::Sensors& s) {
-    j.at("vrpnAddress").get_to(s.vrpnAddress);
+    j.at("vrpnaddress").get_to(s.vrpnAddress);
     j.at("id").get_to(s.identifier);
 }
 
 void to_json(nlohmann::json& j, const Device::Sensors& s) {
     j = nlohmann::json::object();
 
-    j["vrpnAddress"] = s.vrpnAddress;
+    j["vrpnaddress"] = s.vrpnAddress;
     j["id"] = s.identifier;
 }
 
 void from_json(const nlohmann::json& j, Device::Buttons& b) {
-    j.at("vrpnAddress").get_to(b.vrpnAddress);
+    j.at("vrpnaddress").get_to(b.vrpnAddress);
     j.at("count").get_to(b.count);
 }
 
 void to_json(nlohmann::json& j, const Device::Buttons& b) {
     j = nlohmann::json::object();
 
-    j["vrpnAddress"] = b.vrpnAddress;
+    j["vrpnaddress"] = b.vrpnAddress;
     j["count"] = b.count;
 }
 
 void from_json(const nlohmann::json& j, Device::Axes& a) {
-    j.at("vrpnAddress").get_to(a.vrpnAddress);
+    j.at("vrpnaddress").get_to(a.vrpnAddress);
     j.at("count").get_to(a.count);
 }
 
 void to_json(nlohmann::json& j, const Device::Axes& a) {
     j = nlohmann::json::object();
 
-    j["vrpnAddress"] = a.vrpnAddress;
+    j["vrpnaddress"] = a.vrpnAddress;
     j["count"] = a.count;
 }
 
@@ -1395,8 +1443,8 @@ void to_json(nlohmann::json& j, const Tracker& t) {
 }
 
 void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
-    auto itHFov = j.find("hFov");
-    auto itVFov = j.find("vFov");
+    auto itHFov = j.find("hfov");
+    auto itVFov = j.find("vfov");
 
     auto itDown = j.find("down");
     auto itLeft = j.find("left");
@@ -1453,7 +1501,7 @@ void to_json(nlohmann::json& j, const PlanarProjection::FOV& f) {
     j = nlohmann::json::object();
 
     if (f.left == f.right) {
-        j["hFov"] = -f.left + f.right;
+        j["hfov"] = -f.left + f.right;
     }
     else {
         j["left"] = -f.left;
@@ -1461,7 +1509,7 @@ void to_json(nlohmann::json& j, const PlanarProjection::FOV& f) {
     }
 
     if (f.down == f.up) {
-        j["vFov"] = -f.down + f.up;
+        j["vfov"] = -f.down + f.up;
     }
     else {
         j["down"] = -f.down;
@@ -1516,14 +1564,29 @@ void from_json(const nlohmann::json& j, FisheyeProjection& p) {
 
     if (auto it = j.find("crop");  it != j.end()) {
         FisheyeProjection::Crop crop;
+        if (auto jt = it->find("left");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'left' in FisheyeProjection/Crop");
+        }
         crop.left = it->value("left", crop.left);
+
+        if (auto jt = it->find("right");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'right' in FisheyeProjection/Crop");
+        }
         crop.right = it->value("right", crop.right);
+
+        if (auto jt = it->find("bottom");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'bottom' in FisheyeProjection/Crop");
+        }
         crop.bottom = it->value("bottom", crop.bottom);
+
+        if (auto jt = it->find("top");  jt == it->end()) {
+            throw std::runtime_error("Missing key 'top' in FisheyeProjection/Crop");
+        }
         crop.top = it->value("top", crop.top);
         p.crop = crop;
     }
 
-    parseValue(j, "keepAspectRatio", p.keepAspectRatio);
+    parseValue(j, "keepaspectratio", p.keepAspectRatio);
     parseValue(j, "offset", p.offset);
     parseValue(j, "background", p.background);
 }
@@ -1536,7 +1599,7 @@ void to_json(nlohmann::json& j, const FisheyeProjection& p) {
     }
 
     if (p.quality.has_value()) {
-        j["quality"] = *p.quality;
+        j["quality"] = std::to_string(*p.quality);
     }
 
     if (p.interpolation.has_value()) {
@@ -1568,7 +1631,7 @@ void to_json(nlohmann::json& j, const FisheyeProjection& p) {
     }
 
     if (p.keepAspectRatio.has_value()) {
-        j["keepAspectRatio"] = *p.keepAspectRatio;
+        j["keepaspectratio"] = *p.keepAspectRatio;
     }
 
     if (p.offset.has_value()) {
@@ -1618,7 +1681,7 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
-        j["quality"] = *p.quality;
+        j["quality"] = std::to_string(*p.quality);
     }
 
     if (p.tilt.has_value()) {
@@ -1633,6 +1696,13 @@ void to_json(nlohmann::json& j, const SphericalMirrorProjection& p) {
         background["a"] = p.background->w;
         j["background"] = background;
     }
+
+    nlohmann::json mesh = nlohmann::json::object();
+    mesh["bottom"] = p.mesh.bottom;
+    mesh["left"] = p.mesh.left;
+    mesh["right"] = p.mesh.right;
+    mesh["top"] = p.mesh.top;
+    j["geometry"] = mesh;
 }
 
 void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
@@ -1646,7 +1716,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
         p.mapping = parseMapping(mapping);
     }
 
-    parseValue(j, "mappingSpoutName", p.mappingSpoutName);
+    parseValue(j, "mappingspoutname", p.mappingSpoutName);
     if (auto it = j.find("background");  it != j.end()) {
         sgct::vec4 background;
         it->at("r").get_to(background.x);
@@ -1680,7 +1750,7 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
     j = nlohmann::json::object();
     
     if (p.quality.has_value()) {
-        j["quality"] = *p.quality;
+        j["quality"] = std::to_string(*p.quality);
     }
 
     if (p.mapping.has_value()) {
@@ -1697,7 +1767,7 @@ void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
         }
     }
 
-    j["mappingSpoutName"] = p.mappingSpoutName;
+    j["mappingspoutname"] = p.mappingSpoutName;
 
     if (p.background.has_value()) {
         nlohmann::json background = nlohmann::json::object();
@@ -1735,7 +1805,7 @@ void from_json(const nlohmann::json& j, CylindricalProjection& p) {
     }
 
     parseValue(j, "rotation", p.rotation);
-    parseValue(j, "heightOffset", p.heightOffset);
+    parseValue(j, "heightoffset", p.heightOffset);
     parseValue(j, "radius", p.radius);
 }
 
@@ -1743,7 +1813,7 @@ void to_json(nlohmann::json& j, const CylindricalProjection& p) {
     j = nlohmann::json::object();
 
     if (p.quality.has_value()) {
-        j["quality"] = *p.quality;
+        j["quality"] = std::to_string(*p.quality);
     }
 
     if (p.rotation.has_value()) {
@@ -1751,7 +1821,7 @@ void to_json(nlohmann::json& j, const CylindricalProjection& p) {
     }
 
     if (p.heightOffset.has_value()) {
-        j["heightOffset"] = *p.heightOffset;
+        j["heightoffset"] = *p.heightOffset;
     }
 
     if (p.radius.has_value()) {
@@ -1768,7 +1838,7 @@ void from_json(const nlohmann::json& j, EquirectangularProjection& p) {
 
 void to_json(nlohmann::json& j, const EquirectangularProjection& p) {
     if (p.quality.has_value()) {
-        j["quality"] = *p.quality;
+        j["quality"] = std::to_string(*p.quality);
     }
 }
 
@@ -1797,10 +1867,10 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     if (auto it = j.find("overlay");  it != j.end()) {
         v.overlayTexture = std::filesystem::absolute(it->get<std::string>()).string();
     }
-    if (auto it = j.find("blendMask");  it != j.end()) {
+    if (auto it = j.find("blendmask");  it != j.end()) {
         v.blendMaskTexture = std::filesystem::absolute(it->get<std::string>()).string();
     }
-    if (auto it = j.find("blackLevelMask");  it != j.end()) {
+    if (auto it = j.find("blacklevelmask");  it != j.end()) {
         v.blackLevelMaskTexture =
             std::filesystem::absolute(it->get<std::string>()).string();
     }
@@ -1820,30 +1890,35 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "size", v.size);
 
     if (auto it = j.find("projection");  it != j.end()) {
-        std::string type = it->at("type").get<std::string>();
-        if (type == "PlanarProjection") {
-            v.projection = it->get<PlanarProjection>();
-        }
-        else if (type == "FisheyeProjection") {
-            v.projection = it->get<FisheyeProjection>();
-        }
-        else if (type == "SphericalMirrorProjection") {
-            v.projection = it->get<SphericalMirrorProjection>();
-        }
-        else if (type == "SpoutOutputProjection") {
-            v.projection = it->get<SpoutOutputProjection>();
-        }
-        else if (type == "CylindricalProjection") {
-            v.projection = it->get<CylindricalProjection>();
-        }
-        else if (type == "EquirectangularProjection") {
-            v.projection = it->get<EquirectangularProjection>();
-        }
-        else if (type == "ProjectionPlane") {
-            v.projection = it->get<ProjectionPlane>();
+        if (it->is_null()) {
+            v.projection = sgct::config::NoProjection();
         }
         else {
-            throw "Unknown type";
+            std::string type = it->at("type").get<std::string>();
+            if (type == "PlanarProjection") {
+                v.projection = it->get<PlanarProjection>();
+            }
+            else if (type == "FisheyeProjection") {
+                v.projection = it->get<FisheyeProjection>();
+            }
+            else if (type == "SphericalMirrorProjection") {
+                v.projection = it->get<SphericalMirrorProjection>();
+            }
+            else if (type == "SpoutOutputProjection") {
+                v.projection = it->get<SpoutOutputProjection>();
+            }
+            else if (type == "CylindricalProjection") {
+                v.projection = it->get<CylindricalProjection>();
+            }
+            else if (type == "EquirectangularProjection") {
+                v.projection = it->get<EquirectangularProjection>();
+            }
+            else if (type == "ProjectionPlane") {
+                v.projection = it->get<ProjectionPlane>();
+            }
+            else {
+                throw "Unknown type";
+            }
         }
     }
 }
@@ -1858,11 +1933,11 @@ void to_json(nlohmann::json& j, const Viewport& v) {
     }
 
     if (v.blendMaskTexture.has_value()) {
-        j["blendMask"] = *v.blendMaskTexture;
+        j["blendmask"] = *v.blendMaskTexture;
     }
 
     if (v.blackLevelMaskTexture.has_value()) {
-        j["blackLevelMask"] = *v.blackLevelMaskTexture;
+        j["blacklevelmask"] = *v.blackLevelMaskTexture;
     }
 
     if (v.correctionMeshTexture.has_value()) {
@@ -1945,16 +2020,16 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "name", w.name);
     parseValue(j, "tags", w.tags);
 
-    if (auto it = j.find("bufferBitDepth");  it != j.end()) {
+    if (auto it = j.find("bufferbitdepth");  it != j.end()) {
         std::string bbd = it->get<std::string>();
         w.bufferBitDepth = parseBufferColorBitDepth(bbd);
     }
 
     parseValue(j, "fullscreen", w.isFullScreen);
     parseValue(j, "autoiconify", w.shouldAutoiconify);
-    parseValue(j, "hideMouseCursor", w.hideMouseCursor);
+    parseValue(j, "hidemousecursor", w.hideMouseCursor);
     parseValue(j, "floating", w.isFloating);
-    parseValue(j, "alwaysRender", w.alwaysRender);
+    parseValue(j, "alwaysrender", w.alwaysRender);
     parseValue(j, "hidden", w.isHidden);
     parseValue(j, "doublebuffered", w.doubleBuffered);
 
@@ -1964,9 +2039,9 @@ void from_json(const nlohmann::json& j, Window& w) {
 
     parseValue(j, "border", w.isDecorated);
     parseValue(j, "mirror", w.isMirrored);
-    parseValue(j, "draw2D", w.draw2D);
-    parseValue(j, "draw3D", w.draw3D);
-    parseValue(j, "blitWindowId", w.blitWindowId);
+    parseValue(j, "draw2d", w.draw2D);
+    parseValue(j, "draw3d", w.draw3D);
+    parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "monitor", w.monitor);
 
     if (auto it = j.find("mpcdi");  it != j.end()) {
@@ -1998,28 +2073,28 @@ void to_json(nlohmann::json& j, const Window& w) {
     if (w.bufferBitDepth.has_value()) {
         switch (*w.bufferBitDepth) {
             case Window::ColorBitDepth::Depth8:
-                j["bufferBitDepth"] = "8";
+                j["bufferbitdepth"] = "8";
                 break;
             case Window::ColorBitDepth::Depth16:
-                j["bufferBitDepth"] = "16";
+                j["bufferbitdepth"] = "16";
                 break;
             case Window::ColorBitDepth::Depth16Float:
-                j["bufferBitDepth"] = "16f";
+                j["bufferbitdepth"] = "16f";
                 break;
             case Window::ColorBitDepth::Depth32Float:
-                j["bufferBitDepth"] = "32f";
+                j["bufferbitdepth"] = "32f";
                 break;
             case Window::ColorBitDepth::Depth16Int:
-                j["bufferBitDepth"] = "16i";
+                j["bufferbitdepth"] = "16i";
                 break;
             case Window::ColorBitDepth::Depth32Int:
-                j["bufferBitDepth"] = "32i";
+                j["bufferbitdepth"] = "32i";
                 break;
             case Window::ColorBitDepth::Depth16UInt:
-                j["bufferBitDepth"] = "16ui";
+                j["bufferbitdepth"] = "16ui";
                 break;
             case Window::ColorBitDepth::Depth32UInt:
-                j["bufferBitDepth"] = "32ui";
+                j["bufferbitdepth"] = "32ui";
                 break;
         }
     }
@@ -2033,7 +2108,7 @@ void to_json(nlohmann::json& j, const Window& w) {
     }
 
     if (w.hideMouseCursor.has_value()) {
-        j["hideMouseCursor"] = *w.hideMouseCursor;
+        j["hidemousecursor"] = *w.hideMouseCursor;
     }
 
     if (w.isFloating.has_value()) {
@@ -2041,7 +2116,7 @@ void to_json(nlohmann::json& j, const Window& w) {
     }
 
     if (w.alwaysRender.has_value()) {
-        j["alwaysRender"] = *w.alwaysRender;
+        j["alwaysrender"] = *w.alwaysRender;
     }
 
     if (w.isHidden.has_value()) {
@@ -2073,15 +2148,15 @@ void to_json(nlohmann::json& j, const Window& w) {
     }
 
     if (w.draw2D.has_value()) {
-        j["draw2D"] = *w.draw2D;
+        j["draw2d"] = *w.draw2D;
     }
 
     if (w.draw3D.has_value()) {
-        j["draw3D"] = *w.draw3D;
+        j["draw3d"] = *w.draw3D;
     }
 
     if (w.blitWindowId.has_value()) {
-        j["blitWindowId"] = *w.blitWindowId;
+        j["blitwindowid"] = *w.blitWindowId;
     }
 
     if (w.monitor.has_value()) {
@@ -2093,7 +2168,7 @@ void to_json(nlohmann::json& j, const Window& w) {
     }
 
     if (w.stereo.has_value()) {
-        j["stereo"] = *w.stereo;
+        j["stereo"] = toString(*w.stereo);
     }
 
     if (w.pos.has_value()) {
@@ -2126,8 +2201,8 @@ void from_json(const nlohmann::json& j, Node& n) {
         throw Err(6041, "Missing field port in node");
     }
 
-    parseValue(j, "dataTransferPort", n.dataTransferPort);
-    parseValue(j, "swapLock", n.swapLock);
+    parseValue(j, "datatransferport", n.dataTransferPort);
+    parseValue(j, "swaplock", n.swapLock);
 
     parseValue(j, "windows", n.windows);
     for (size_t i = 0; i < n.windows.size(); i += 1) {
@@ -2142,11 +2217,11 @@ void to_json(nlohmann::json& j, const Node& n) {
     j["port"] = n.port;
 
     if (n.dataTransferPort.has_value()) {
-        j["dataTransferPort"] = *n.dataTransferPort;
+        j["datatransferport"] = *n.dataTransferPort;
     }
 
     if (n.swapLock.has_value()) {
-        j["swapLock"] = *n.swapLock;
+        j["swaplock"] = *n.swapLock;
     }
 
     if (!n.windows.empty()) {
@@ -2154,64 +2229,75 @@ void to_json(nlohmann::json& j, const Node& n) {
     }
 }
 
-} // namespace sgct::config
-
-namespace jsonconfig {
-
-sgct::config::Cluster readJsonFile(const std::filesystem::path& path) {
-    nlohmann::json j;
-    {
-        std::ifstream f(path);
-        j = nlohmann::json::parse(f);
-    }
-
-    j.get<sgct::config::Settings>();
-
-    sgct::config::Cluster cluster;
-
-    if (auto it = j.find("masterAddress");  it != j.end()) {
-        it->get_to(cluster.masterAddress);
+void from_json(const nlohmann::json& j, Cluster& c) {
+    if (auto it = j.find("masteraddress");  it != j.end()) {
+        it->get_to(c.masterAddress);
     }
     else {
         throw Err(6084, "Cannot find master address");
     }
 
-    parseValue(j, "setThreadAffinity", cluster.setThreadAffinity);
-    parseValue(j, "debugLog", cluster.debugLog);
-    parseValue(j, "externalControlPort", cluster.externalControlPort);
-    parseValue(j, "firmSync", cluster.firmSync);
+    parseValue(j, "threadaffinity", c.setThreadAffinity);
+    parseValue(j, "debuglog", c.debugLog);
+    parseValue(j, "externalcontrolport", c.externalControlPort);
+    parseValue(j, "firmsync", c.firmSync);
 
-    parseValue(j, "scene", cluster.scene);
-    parseValue(j, "users", cluster.users);
-    parseValue(j, "settings", cluster.settings);
-    parseValue(j, "capture", cluster.capture);
+    parseValue(j, "scene", c.scene);
+    parseValue(j, "users", c.users);
+    parseValue(j, "settings", c.settings);
+    parseValue(j, "capture", c.capture);
 
-    parseValue(j, "trackers", cluster.trackers);
-    parseValue(j, "nodes", cluster.nodes);
-
-    cluster.success = true;
-    return cluster;
+    parseValue(j, "trackers", c.trackers);
+    parseValue(j, "nodes", c.nodes);
 }
 
-} // namespace jsonconfig
+void to_json(nlohmann::json& j, const Cluster& c) {
+    j["masteraddress"] = c.masterAddress;
+    
+    if (c.setThreadAffinity.has_value()) {
+        j["threadaffinity"] = *c.setThreadAffinity;
+    }
+
+    if (c.debugLog.has_value()) {
+        j["debuglog"] = *c.debugLog;
+    }
+
+    if (c.externalControlPort.has_value()) {
+        j["externalcontrolport"] = *c.externalControlPort;
+    }
+
+    if (c.firmSync.has_value()) {
+        j["firmsync"] = *c.firmSync;
+    }
+
+    if (c.scene.has_value()) {
+        j["scene"] = *c.scene;
+    }
+
+    if (!c.users.empty()) {
+        j["users"] = c.users;
+    }
+
+    if (c.settings.has_value()) {
+        j["settings"] = *c.settings;
+    }
+
+    if (c.capture.has_value()) {
+        j["capture"] = *c.capture;
+    }
+
+    if (!c.trackers.empty()) {
+        j["trackers"] = c.trackers;
+    }
+
+    if (!c.nodes.empty()) {
+        j["nodes"] = c.nodes;
+    }
+}
+
+} // namespace sgct::config
 
 namespace sgct {
-
-config::Cluster readFile(const std::filesystem::path& path) {
-    if (path.extension() == ".xml") {
-        return xmlconfig::readXMLFile(path);
-    }
-    else if (path.extension() == ".json") {
-        try {
-            return jsonconfig::readJsonFile(path);
-        }
-        catch (const nlohmann::json::exception& e) {
-            throw std::runtime_error(e.what());
-        }
-    }
-
-    throw "Wrong extension";
-}
 
 config::Cluster readConfig(const std::string& filename) {
     Log::Debug(fmt::format("Parsing XML config '{}'", filename));
@@ -2241,7 +2327,12 @@ config::Cluster readConfig(const std::string& filename) {
         }
         else if (path.extension() == ".json") {
             try {
-                return jsonconfig::readJsonFile(path);
+                std::ifstream f(path);
+                std::string contents = std::string(
+                    (std::istreambuf_iterator<char>(f)),
+                    std::istreambuf_iterator<char>()
+                );
+                return readJsonConfig(contents);
             }
             catch (const nlohmann::json::exception& e) {
                 throw Err(6082, e.what());
@@ -2270,5 +2361,27 @@ config::Cluster readConfig(const std::string& filename) {
 
     return cluster;
 }
+
+sgct::config::Cluster readJsonConfig(const std::string& configuration) {
+    nlohmann::json j = nlohmann::json::parse(configuration);
+
+    auto it = j.find("version");
+    if (it == j.end()) {
+        throw std::runtime_error("Missing 'version' information");
+    }
+
+    sgct::config::Cluster cluster;
+    from_json(j, cluster);
+    cluster.success = true;
+    return cluster;
+}
+
+std::string serializeConfig(const config::Cluster& cluster) {
+    nlohmann::json res;
+    res["version"] = 1;
+    to_json(res, cluster);
+    return res.dump(2);
+}
+
 
 } // namespace sgct

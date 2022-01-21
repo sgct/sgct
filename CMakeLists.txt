@@ -86,6 +86,8 @@ endif ()
 add_subdirectory(ext)
 add_subdirectory(src/sgct)
 
+add_subdirectory(tests)
+
 if (SGCT_EXAMPLES)
   add_subdirectory(src/apps)
 endif ()

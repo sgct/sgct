@@ -198,7 +198,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     }
 
     // Create the font when all error tests are done
-    std::unique_ptr<Font> font = std::make_unique<Font>(_library, face, height);
+    auto font = std::make_unique<Font>(_library, face, height);
 
     static bool isShaderCreated = false;
     if (!isShaderCreated) {

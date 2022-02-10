@@ -42,7 +42,7 @@ void Node::applyNode(const config::Node& node, bool initializeWindows) {
 
     if (initializeWindows) {
         for (const config::Window& window : node.windows) {
-            std::unique_ptr<Window> win = std::make_unique<Window>();
+            auto win = std::make_unique<Window>();
             win->applyWindow(window);
             addWindow(std::move(win));
         }

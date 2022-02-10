@@ -95,7 +95,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         std::string name;
         if (u.name) {
             name = *u.name;
-            std::unique_ptr<User> usr = std::make_unique<User>(*u.name);
+            auto usr = std::make_unique<User>(*u.name);
             addUser(std::move(usr));
             Log::Info(fmt::format("Adding user '{}'", *u.name));
         }
@@ -121,7 +121,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     for (size_t i = 0; i < cluster.nodes.size(); ++i) {
         ZoneScopedN("Create Node")
 
-        std::unique_ptr<Node> n = std::make_unique<Node>();
+        auto n = std::make_unique<Node>();
         n->applyNode(cluster.nodes[i], static_cast<int>(i) == _thisNodeId);
         addNode(std::move(n));
     }

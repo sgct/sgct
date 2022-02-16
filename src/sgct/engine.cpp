@@ -546,8 +546,10 @@ void Engine::initialize() {
     };
     Log::Info(fmt::format("OpenGL version {}.{}.{} core profile", v[0], v[1], v[2]));
 
-    Log::Info(fmt::format("Vendor: {}", glGetString(GL_VENDOR)));
-    Log::Info(fmt::format("Renderer: {}", glGetString(GL_RENDERER)));
+    std::string vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    Log::Info(fmt::format("Vendor: {}", vendor));
+    std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    Log::Info(fmt::format("Renderer: {}", renderer));
 
     Window::makeSharedContextCurrent();
 

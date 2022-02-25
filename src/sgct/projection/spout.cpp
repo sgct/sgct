@@ -363,10 +363,10 @@ void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom
                                              bool top, bool left, bool zRight)
 {
     _spout[0].enabled = right;
-    _spout[1].enabled = zLeft;
+    _spout[1].enabled = left;
     _spout[2].enabled = bottom;
     _spout[3].enabled = top;
-    _spout[4].enabled = left;
+    _spout[4].enabled = zLeft;
     _spout[5].enabled = zRight;
 }
 

@@ -211,7 +211,7 @@ windows_ninja: {
         ) 
       }
       stage('windows-ninja/test') {
-        runUnitTests('build-ninja\\tests\\Debug\\SGCTTest')
+        runUnitTests('build-ninja\\tests\\SGCTTest')
       }
       cleanWs()
     } // node('windows')

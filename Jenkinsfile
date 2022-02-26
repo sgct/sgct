@@ -18,6 +18,32 @@ def cmakeOptions() {
   return "-DSGCT_EXAMPLES=ON";
 }
 
+def runUnitTests(bin) {
+  if (isUnix()) {
+    sh(
+      script: "${bin}",
+      label: 'Run unit test to console'
+    )
+
+    sh(
+      script: "${bin} --reporter junit --out test_results.xml",
+      label: 'Run unit test to reporter'
+    )
+  }
+  else {
+    bat(
+      script: "${bin}",
+      label: 'Run unit test to console'
+    )
+
+    bat(
+      script: "${bin} --reporter junit --out test_results.xml",
+      label: 'Run unit test reporter'
+    )
+  }
+  junit([testResults: 'test_results.xml'])
+}
+
 parallel tools: {
   node('tools') {
     stage('tools/scm') {
@@ -33,12 +59,8 @@ parallel tools: {
       recordIssues(
         id: 'tools-cppcheck',
         tool: cppCheck(pattern: 'build/cppcheck.xml')
-      )      
+      )
     }
-    // stage('tools/cloc/create') {
-    //   createDirectory('build');
-    //   sh 'cloc --by-file --exclude-dir=build,example,ext --xml --out=build/cloc.xml --quiet .';
-    // }
     cleanWs()
   } // node('tools')
 },
@@ -62,6 +84,9 @@ linux_gcc_make: {
           tool: gcc()
         )
       }
+      stage('linux-gcc-make/test') {
+        runUnitTests('build-make/tests/SGCTTest')
+      }
       cleanWs()
     } // node('linux' && 'gcc')
   }
@@ -81,6 +106,9 @@ linux_gcc_ninja: {
           cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
+      }
+      stage('linux-gcc-ninja/test') {
+        runUnitTests('build-ninja/tests/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'gcc')
@@ -106,6 +134,9 @@ linux_clang_make: {
           tool: clang()
         )
       }
+      stage('linux-clang-make/test') {
+        runUnitTests('build-make/tests/SGCTTest')
+      }
       cleanWs()
     } // node('linux' && 'clang')
   }
@@ -125,6 +156,9 @@ linux_clang_ninja: {
           cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
+      }
+      stage('linux-clang-ninja/test') {
+        runUnitTests('build-ninja/tests/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'clang')
@@ -150,6 +184,9 @@ windows_msvc: {
           tool: msBuild()
         )
       }
+      stage('windows-msvc/test') {
+        runUnitTests('build-msvc\\tests\\Debug\\SGCTTest')
+      }
       cleanWs()
     } // node('windows')
   }
@@ -173,6 +210,9 @@ windows_ninja: {
           label: 'Generate build-scripts with cmake and execute them'
         ) 
       }
+      stage('windows-ninja/test') {
+        runUnitTests('build-ninja\\tests\\Debug\\SGCTTest')
+      }
       cleanWs()
     } // node('windows')
   }
@@ -193,6 +233,9 @@ macos_make: {
           steps: [[ args: "-- -j4", withCmake: true ]]
         ])
       }
+      stage('macos-make/test') {
+        runUnitTests('build-make/tests/SGCTTest')
+      }
       cleanWs()
     } // node('macos')
   }
@@ -212,6 +255,9 @@ macos_ninja: {
           cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- -quiet -parallelizeTargets -jobs 4", withCmake: true ]]
         ])
+      }
+      stage('macos-xcode/test') {
+        runUnitTests('build-xcode/tests/SGCTTest')
       }
       cleanWs()
     } // node('macos')

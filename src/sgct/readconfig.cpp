@@ -1862,7 +1862,7 @@ void from_json(const nlohmann::json& j, SpoutFlatProjection& p) {
         p.background = background;
     }
 
-    if (auto it = j.find("PlanarProjection");  it != j.end()) {
+    if (auto it = j.find("planarprojection");  it != j.end()) {
         it->get_to(p.proj);
     }
 }

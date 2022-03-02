@@ -91,6 +91,8 @@ void NonLinearProjection::updateFrustums(Frustum::Mode mode, float nearClip,
 
 void NonLinearProjection::setCubemapResolution(int resolution) {
     _cubemapResolution = resolution;
+    _cubemapResolutionVec.x = resolution;
+    _cubemapResolutionVec.y = resolution;
 }
 
 void NonLinearProjection::setInterpolationMode(InterpolationMode im) {
@@ -122,8 +124,8 @@ void NonLinearProjection::setUser(User* user) {
     _subViewports.back.setUser(user);
 }
 
-int NonLinearProjection::cubemapResolution() const {
-    return _cubemapResolution;
+ivec2 NonLinearProjection::cubemapResolution() const {
+    return _cubemapResolutionVec;
 }
 
 ivec4 NonLinearProjection::viewportCoords() {

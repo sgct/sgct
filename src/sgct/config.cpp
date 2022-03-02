@@ -169,13 +169,31 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1081, "Quality value must be positive");
     }
-    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
-        throw Error(1082, "Quality setting only allows powers of two");
-    }
     if (p.background) {
         vec4 b = *p.background;
         if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
             throw Error(1083, "All background color components have to be positive");
+        }
+    }
+}
+
+void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
+    ZoneScoped
+
+    validatePlanarProjection(p.proj);
+    if (p.mappingSpoutName.empty()) {
+        throw Error(1084, "Spout Mapping name must not be empty");
+    }
+    if (p.width && *p.width <= 0) {
+        throw Error(1085, "Width value must be positive");
+    }
+    if (p.height && *p.height <= 0) {
+        throw Error(1086, "Height value must be positive");
+    }
+    if (p.background) {
+        vec4 b = *p.background;
+        if (b.x < 0.f || b.y < 0.f || b.z < 0.f || b.w < 0.f) {
+            throw Error(1088, "All background color components have to be positive");
         }
     }
 }
@@ -212,6 +230,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
         [](const FisheyeProjection& p) { validateFisheyeProjection(p); },
         [](const SphericalMirrorProjection& p) { validateSphericalMirrorProjection(p); },
         [](const SpoutOutputProjection& p) { validateSpoutOutputProjection(p); },
+        [](const SpoutFlatProjection& p) { validateSpoutFlatProjection(p); },
         [](const CylindricalProjection& p) { validateCylindricalProjection(p); },
         [](const EquirectangularProjection& p) {
             validateEquirectangularProjection(p);

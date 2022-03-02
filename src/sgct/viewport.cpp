@@ -21,6 +21,7 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/sphericalmirror.h>
 #include <sgct/projection/spout.h>
+#include <sgct/projection/spoutflat.h>
 #include <algorithm>
 #include <array>
 #include <optional>
@@ -95,6 +96,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
             applySphericalMirrorProjection(p);
         },
         [this](const config::SpoutOutputProjection& p) { applySpoutOutputProjection(p); },
+        [this](const config::SpoutFlatProjection& p) { applySpoutFlatProjection(p); },
         [this](const config::CylindricalProjection& p) { applyCylindricalProjection(p); },
         [this](const config::EquirectangularProjection& p) {
             applyEquirectangularProjection(p);
@@ -230,6 +232,46 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
     if (p.orientation) {
         proj->setSpoutRigOrientation(*p.orientation);
     }
+    if (p.drawMain) {
+        proj->setSpoutDrawMain(*p.drawMain);
+    }
+
+    _nonLinearProjection = std::move(proj);
+#else
+    (void)p;
+    Log::Warning("Spout library not added to SGCT");
+#endif
+}
+
+void Viewport::applySpoutFlatProjection(const config::SpoutFlatProjection& p) {
+#ifdef SGCT_HAS_SPOUT
+    ZoneScoped
+
+    auto proj = std::make_unique<SpoutFlatProjection>(_parent);
+    proj->setUser(_user);
+    if (p.width) {
+        proj->setResolutionWidth(*p.width);
+    }
+    if (p.height) {
+        proj->setResolutionHeight(*p.height);
+    }
+    proj->setSpoutMappingName(p.mappingSpoutName);
+    if (p.background) {
+        proj->setClearColor(*p.background);
+    }
+    if (p.drawMain) {
+        proj->setSpoutDrawMain(*p.drawMain);
+    }
+
+    if (p.proj.offset) {
+        proj->setSpoutOffset(*p.proj.offset);
+    }
+    proj->setSpoutFov(p.proj.fov.up,
+        p.proj.fov.down,
+        p.proj.fov.left,
+        p.proj.fov.right,
+        p.proj.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
+        p.proj.fov.distance.value_or(10.f));
 
     _nonLinearProjection = std::move(proj);
 #else

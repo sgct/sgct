@@ -70,6 +70,7 @@ set(HEADER_FILES
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/projectionplane.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/sphericalmirror.h
   ${PROJECT_SOURCE_DIR}/include/sgct/projection/spout.h
+  ${PROJECT_SOURCE_DIR}/include/sgct/projection/spoutflat.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/box.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/dome.h
   ${PROJECT_SOURCE_DIR}/include/sgct/utils/domegrid.h
@@ -127,6 +128,7 @@ set(SOURCE_FILES
   projection/projectionplane.cpp
   projection/sphericalmirror.cpp
   projection/spout.cpp
+  projection/spoutflat.cpp
   utils/box.cpp
   utils/dome.cpp
   utils/domegrid.cpp

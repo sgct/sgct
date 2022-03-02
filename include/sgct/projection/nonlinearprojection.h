@@ -40,7 +40,7 @@ public:
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) = 0;
     virtual void update(vec2 size) = 0;
 
-    void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
+    virtual void updateFrustums(Frustum::Mode mode, float nearClip, float farClip);
 
     /**
      * Set the resolution of the cubemap faces.
@@ -76,10 +76,10 @@ public:
      */
     void setAlpha(float alpha);
 
-    void setUser(User* user);
+    virtual void setUser(User* user);
 
     /// \return the resolution of the cubemap
-    int cubemapResolution() const;
+    ivec2 cubemapResolution() const;
 
     ivec4 viewportCoords();
 
@@ -128,7 +128,9 @@ protected:
     InterpolationMode _interpolationMode = InterpolationMode::Linear;
     Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
+    // @TODO Replace with a single member variable
     int _cubemapResolution = 512;
+    ivec2 _cubemapResolutionVec = { _cubemapResolution, _cubemapResolution };
     vec4 _clearColor = vec4{ 0.3f, 0.3f, 0.3f, 1.f };
     ivec4 _vpCoords = ivec4{ 0, 0, 0, 0 };
     bool _useDepthTransformation = false;

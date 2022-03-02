@@ -393,7 +393,7 @@
         "background": {
           "$ref": "#/$defs/color",
           "title": "Background",
-          "description": "This value determines the color that is used for the parts of the image that are not covered by the spherical mirror image. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)."
+          "description": "This value determines the color that is used for the parts of the image that are not covered. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)."
         },
         "channels": {
           "type": "object",
@@ -446,6 +446,46 @@
       "required": [ "type" ],
       "additionalProperties": false,
       "description": "Provides the ability to share individual cube map faces or a fully reprojected image using the Spout library. This library only supports the Windows operating system, so this projection will only work on Windows machines. Spout's functionality is the abilty to shared textures between different applications on the same machine, making it possible to render images using SGCT and making them available to other real-time applications on the same machine for further processing. Spout uses a textual name for accessing which texture should be used for sharing. The SpoutOutputProjection has three different output types, outputting each cube map face, sharing a fisheye image, or sharing an equirectangular projection, as determined by the mapping attribute."
+    },
+
+    "spoutflatprojection": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "SpoutFlatProjection",
+          "default": "SpoutFlatProjection",
+          "readOnly": true
+        },
+        "width": {
+          "type": "integer",
+          "title": "Width",
+          "description": "The width of the individual spout faces being shared in pixels"
+        },
+        "height": {
+          "type": "integer",
+          "title": "Height",
+          "description": "The height of the individual spout faces being shared in pixels"
+        },
+        "mappingSpoutName": {
+          "type": "string",
+          "title": "Mapping Spout Name",
+          "description": "Sets the base name of the texture."
+        },
+        "background": {
+          "$ref": "#/$defs/color",
+          "title": "Background",
+          "description": "This value determines the color that is used for the parts of the image that are not covered. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)."
+        },
+        "planarprojection": {
+          "$ref": "#/$def/planarprojection",
+          "title": "Planarprojection",
+          "description": "The planar projection that is used for the forward facing standard rendering"
+        }
+      },
+      "required": [ "type" ],
+      "additionalProperties": false,
+      "description": "Provides the ability to share individual cube map faces or a fully reprojected image using the Spout library and also share a planar projection using a seventh spout name simultaneously. This library only supports the Windows operating system, so this projection will only work on Windows machines. Spout's functionality is the abilty to shared textures between different applications on the same machine, making it possible to render images using SGCT and making them available to other real-time applications on the same machine for further processing. Spout uses a textual name for accessing which texture should be used for sharing. The SpoutOutputProjection has three different output types, outputting each cube map face, sharing a fisheye image, or sharing an equirectangular projection, as determined by the mapping attribute."
     },
 
     "cylindricalprojection": {

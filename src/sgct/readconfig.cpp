@@ -450,7 +450,7 @@ sgct::config::SpoutOutputProjection parseSpoutOutputProjection(
         try {
             proj.quality = cubeMapResolutionForQuality(a);
         }
-        catch (const sgct::Error& e) {
+        catch (const sgct::Error&) {
             proj.quality = element.IntAttribute("quality");
         }
     }

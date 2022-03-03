@@ -199,8 +199,8 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             );
             _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
 
-            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
-            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
+            glViewport(0, 0, _cubemapResolution.x, _cubemapResolution.y);
+            glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
             glEnable(GL_SCISSOR_TEST);
 
             const vec4 color = Engine::instance().clearColor();
@@ -671,7 +671,7 @@ void FisheyeProjection::initShaders() {
     if (isCubic) {
         glUniform1f(
             glGetUniformLocation(_shader.id(), "size"),
-            static_cast<float>(_cubemapResolution)
+            static_cast<float>(_cubemapResolution.x)
         );
     }
 

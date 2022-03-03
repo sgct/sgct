@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2020                                                               *
+ * Copyright (c) 2012-2022                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -27,12 +27,12 @@
 #ifdef SGCT_HAS_SPOUT
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
+#endif // WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX
 #define NOMINMAX
-#endif
+#endif // NOMINMAX
 #include <SpoutLibrary.h>
-#endif
+#endif // SGCT_HAS_SPOUT
 
 namespace sgct {
 
@@ -63,13 +63,13 @@ SpoutFlatProjection::SpoutFlatProjection(const Window* parent)
 SpoutFlatProjection::~SpoutFlatProjection() {
 #ifdef SGCT_HAS_SPOUT
     if (_mappingHandle) {
-        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->ReleaseSender();
-        reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->Release();
+        _mappingHandle->ReleaseSender();
+        _mappingHandle->Release();
     }
-#else
+#else // SGCT_HAS_SPOUT
     // Prevent an unused variable warning
     (void)_mappingHandle;
-#endif
+#endif // SGCT_HAS_SPOUT
 
     glDeleteTextures(1, &_textures.spoutColor);
     glDeleteTextures(1, &_textures.spoutDepth);
@@ -83,12 +83,12 @@ SpoutFlatProjection::~SpoutFlatProjection() {
 
 void SpoutFlatProjection::setResolutionWidth(int resolutionX) {
     _resolutionX = resolutionX;
-    _cubemapResolutionVec.x = resolutionX;
+    _cubemapResolution.x = resolutionX;
 }
 
 void SpoutFlatProjection::setResolutionHeight(int resolutionY) {
     _resolutionY = resolutionY;
-    _cubemapResolutionVec.y = resolutionY;
+    _cubemapResolution.y = resolutionY;
 }
 
 void SpoutFlatProjection::setSpoutMappingName(std::string name) {
@@ -185,19 +185,16 @@ void SpoutFlatProjection::initTextures() {
     Log::Debug(fmt::format("SpoutFlat initTextures"));
     _mappingHandle = GetSpout();
     if (_mappingHandle) {
-        SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(_mappingHandle);
-        bool success = h->CreateSender(
+        bool success = _mappingHandle->CreateSender(
             _mappingName.c_str(),
             _resolutionX,
             _resolutionY
         );
         if (!success) {
-            Log::Error(fmt::format(
-                "Error creating SPOUT handle for {}", _mappingName
-            ));
+            Log::Error(fmt::format("Error creating SPOUT handle for {}", _mappingName));
         }
     }
-#endif
+#endif // SGCT_HAS_SPOUT
 }
 
 void SpoutFlatProjection::initFBO() {
@@ -207,14 +204,11 @@ void SpoutFlatProjection::initFBO() {
 }
 
 void SpoutFlatProjection::setupViewport(BaseViewport& vp) {
-    const float cmResX = static_cast<float>(_resolutionX);
-    const float cmResY = static_cast<float>(_resolutionY);
-
     _vpCoords = ivec4{
-        static_cast<int>(floor(vp.position().x * cmResX + 0.5f)),
-        static_cast<int>(floor(vp.position().y * cmResY + 0.5f)),
-        static_cast<int>(floor(vp.size().x * cmResX + 0.5f)),
-        static_cast<int>(floor(vp.size().y * cmResY + 0.5f))
+        static_cast<int>(floor(vp.position().x * _resolutionX + 0.5f)),
+        static_cast<int>(floor(vp.position().y * _resolutionY + 0.5f)),
+        static_cast<int>(floor(vp.size().x * _resolutionX + 0.5f)),
+        static_cast<int>(floor(vp.size().y * _resolutionY + 0.5f))
     };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -267,24 +261,15 @@ void SpoutFlatProjection::attachTextures(int) {
         _spoutFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
     }
     else {
-        _spoutFbo->attachColorTexture(
-            _textures.spoutColor,
-            GL_COLOR_ATTACHMENT0
-        );
+        _spoutFbo->attachColorTexture(_textures.spoutColor, GL_COLOR_ATTACHMENT0);
     }
 
     if (Settings::instance().useNormalTexture()) {
-        _spoutFbo->attachColorTexture(
-            _textures.spoutNormals,
-            GL_COLOR_ATTACHMENT1
-        );
+        _spoutFbo->attachColorTexture(_textures.spoutNormals, GL_COLOR_ATTACHMENT1);
     }
 
     if (Settings::instance().usePositionTexture()) {
-        _spoutFbo->attachColorTexture(
-            _textures.spoutPositions,
-            GL_COLOR_ATTACHMENT2
-        );
+        _spoutFbo->attachColorTexture(_textures.spoutPositions, GL_COLOR_ATTACHMENT2);
     }
 }
 
@@ -322,16 +307,14 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
 
 #ifdef SGCT_HAS_SPOUT
     glBindTexture(GL_TEXTURE_2D, _textures.spoutColor);
-    const bool s = reinterpret_cast<SPOUTHANDLE>(_mappingHandle)->SendTexture(
+    const bool s = _mappingHandle->SendTexture(
         _textures.spoutColor,
         static_cast<GLuint>(GL_TEXTURE_2D),
         _resolutionX,
         _resolutionY
     );
     if (!s) {
-        Log::Error(fmt::format(
-            "Error sending texture '{}'", _textures.spoutColor
-        ));
+        Log::Error(fmt::format("Error sending texture '{}'", _textures.spoutColor));
     }
 #endif
 
@@ -352,8 +335,6 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     glViewport(vec[0], vec[1], vec[2], vec[3]);
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
-
-
 
 void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
     ZoneScoped
@@ -410,7 +391,6 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
     glScissor(vec[0], vec[1], vec[2], vec[3]);
 }
 
-
 void SpoutFlatProjection::update(vec2) {}
 
 void SpoutFlatProjection::initVBO() {}
@@ -428,7 +408,7 @@ void SpoutFlatProjection::initViewports() {
 
 void SpoutFlatProjection::initShaders() {
     _shader.deleteProgram();
-    _shader = ShaderProgram(std::move("SpoutShader"));
+    _shader = ShaderProgram("SpoutShader");
     _shader.addShaderSource(sgct::shaders::BaseVert, sgct::shaders::BaseFrag);
     _shader.createAndLinkProgram();
     _shader.bind();

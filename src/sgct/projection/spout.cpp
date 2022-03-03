@@ -278,8 +278,8 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             );
             _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, safeIdx);
 
-            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
-            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
+            glViewport(0, 0, _cubemapResolution.x, _cubemapResolution.y);
+            glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
             glEnable(GL_SCISSOR_TEST);
 
             const vec4 color = Engine::instance().clearColor();
@@ -405,8 +405,8 @@ void SpoutOutputProjection::initTextures() {
 
     switch (_mappingType) {
     case Mapping::Cubemap:
-        _mappingWidth = _cubemapResolution;
-        _mappingHeight = _cubemapResolution;
+        _mappingWidth = _cubemapResolution.x;
+        _mappingHeight = _cubemapResolution.y;
 
         for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
@@ -453,8 +453,8 @@ void SpoutOutputProjection::initTextures() {
         }
         break;
     case Mapping::Equirectangular:
-        _mappingWidth = _cubemapResolution * 4;
-        _mappingHeight = _cubemapResolution * 2;
+        _mappingWidth = _cubemapResolution.x * 4;
+        _mappingHeight = _cubemapResolution.y * 2;
 #ifdef SGCT_HAS_SPOUT
         Log::Debug("Spout Projection initTextures Equirectangular");
         _mappingHandle = GetSpout();
@@ -495,8 +495,8 @@ void SpoutOutputProjection::initTextures() {
         );
         break;
     case Mapping::Fisheye:
-        _mappingWidth = _cubemapResolution * 2;
-        _mappingHeight = _cubemapResolution * 2;
+        _mappingWidth = _cubemapResolution.x * 2;
+        _mappingHeight = _cubemapResolution.y * 2;
 #ifdef SGCT_HAS_SPOUT
         Log::Debug("SpoutOutputProjection initTextures Fisheye");
         _mappingHandle = GetSpout();
@@ -555,8 +555,8 @@ void SpoutOutputProjection::initTextures() {
                 GL_TEXTURE_2D,
                 0,
                 _texInternalFormat,
-                _cubemapResolution,
-                _cubemapResolution,
+                _cubemapResolution.x,
+                _cubemapResolution.y,
                 0,
                 _texFormat,
                 _texType,
@@ -617,7 +617,7 @@ void SpoutOutputProjection::initViewports() {
 
     // main
     {
-        float angleCorrection = _mappingType == Mapping::Fisheye ? 0.0f : -90.0f;
+        float angleCorrection = _mappingType == Mapping::Fisheye ? 0.f : -90.f;
         _mainViewport.setPos(vec2{ 0.f, 0.f });
         _mainViewport.setSize(vec2{ 1.f, 1.f });
 
@@ -721,7 +721,7 @@ void SpoutOutputProjection::initViewports() {
 }
 
 void SpoutOutputProjection::updateFrustums(Frustum::Mode mode, float nearClip,
-    float farClip)
+                                           float farClip)
 {
     if (_mainViewport.isEnabled()) {
         _mainViewport.calculateNonLinearFrustum(mode, nearClip, farClip);
@@ -809,7 +809,6 @@ void SpoutOutputProjection::initShaders() {
     _shader.bind();
 
 
-
     {
         const glm::mat4 pitchRot = glm::rotate(
             glm::mat4(1.f),
@@ -827,14 +826,14 @@ void SpoutOutputProjection::initShaders() {
             glm::vec3(0.f, 0.f, 1.f)
         );
         GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
-        glUniformMatrix4fv(rotMat, 1, GL_FALSE, value_ptr(rollRot));
+        glUniformMatrix4fv(rotMat, 1, GL_FALSE, glm::value_ptr(rollRot));
     }
 
     glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
     if (isCubic) {
         glUniform1f(
             glGetUniformLocation(_shader.id(), "size"),
-            static_cast<float>(_cubemapResolution)
+            static_cast<float>(_cubemapResolution.x)
         );
     }
 
@@ -863,7 +862,7 @@ void SpoutOutputProjection::initShaders() {
 
     _flatShader.deleteProgram();
     _flatShader = ShaderProgram("SpoutShader");
-    _flatShader.addShaderSource(sgct::shaders::BaseVert, sgct::shaders::BaseFrag);
+    _flatShader.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
     _flatShader.createAndLinkProgram();
     _flatShader.bind();
     glUniform1i(glGetUniformLocation(_flatShader.id(), "tex"), 0);

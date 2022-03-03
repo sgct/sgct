@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2020                                                               *
+ * Copyright (c) 2012-2022                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -12,6 +12,9 @@
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/projectionplane.h>
 #include <sgct/callbackdata.h>
+
+struct SPOUTLIBRARY;
+typedef SPOUTLIBRARY* SPOUTHANDLE;
 
 namespace sgct {
 
@@ -59,7 +62,7 @@ protected:
     } _textures;
 
     std::string _mappingName = "SPOUT_OS_MAPPING";
-    void* _mappingHandle = nullptr;
+    SPOUTHANDLE _mappingHandle = nullptr;
     int _resolutionX = 1024;
     int _resolutionY = 768;
     ShaderProgram _shader;

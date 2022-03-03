@@ -187,8 +187,21 @@ struct SpoutOutputProjection {
     std::optional<vec4> background;
     std::optional<Channels> channels;
     std::optional<vec3> orientation;
+    std::optional<bool> drawMain;
 };
 void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
+
+
+
+struct SpoutFlatProjection {
+    PlanarProjection proj;
+    std::optional<int> width;
+    std::optional<int> height;
+    std::string mappingSpoutName;
+    std::optional<vec4> background;
+    std::optional<bool> drawMain;
+};
+void validateSpoutFlatProjection(const SpoutFlatProjection& proj);
 
 
 
@@ -252,7 +265,7 @@ struct Viewport {
 
     std::variant<NoProjection, CylindricalProjection, EquirectangularProjection,
         FisheyeProjection, PlanarProjection, ProjectionPlane, SphericalMirrorProjection,
-        SpoutOutputProjection
+        SpoutOutputProjection, SpoutFlatProjection
     > projection;
 };
 void validateViewport(const Viewport& viewport, bool draw3D);

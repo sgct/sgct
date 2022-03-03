@@ -90,7 +90,8 @@ void NonLinearProjection::updateFrustums(Frustum::Mode mode, float nearClip,
 }
 
 void NonLinearProjection::setCubemapResolution(int resolution) {
-    _cubemapResolution = resolution;
+    _cubemapResolution.x = resolution;
+    _cubemapResolution.y = resolution;
 }
 
 void NonLinearProjection::setInterpolationMode(InterpolationMode im) {
@@ -122,7 +123,7 @@ void NonLinearProjection::setUser(User* user) {
     _subViewports.back.setUser(user);
 }
 
-int NonLinearProjection::cubemapResolution() const {
+ivec2 NonLinearProjection::cubemapResolution() const {
     return _cubemapResolution;
 }
 
@@ -133,8 +134,8 @@ ivec4 NonLinearProjection::viewportCoords() {
 void NonLinearProjection::initTextures() {
     generateCubeMap(_textures.cubeMapColor, _texInternalFormat, _texFormat, _texType);
     Log::Debug(fmt::format(
-        "{0}x{0} color cube map texture (id: {1}) generated",
-        _cubemapResolution, _textures.cubeMapColor
+        "{}x{} color cube map texture (id: {}) generated",
+        _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapColor
     ));
 
     if (Settings::instance().useDepthTexture()) {
@@ -145,8 +146,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{0}x{0} depth cube map texture (id: {1}) generated",
-            _cubemapResolution, _textures.cubeMapDepth
+            "{}x{} depth cube map texture (id: {}) generated",
+            _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapDepth
         ));
 
         if (_useDepthTransformation) {
@@ -158,14 +159,14 @@ void NonLinearProjection::initTextures() {
                 GL_FLOAT
             );
             Log::Debug(fmt::format(
-                "{0}x{0} depth swap map texture (id: {1}) generated",
-                _cubemapResolution, _textures.depthSwap
+                "{}x{} depth swap map texture (id: {}) generated",
+                _cubemapResolution.x, _cubemapResolution.y, _textures.depthSwap
             ));
 
             generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
             Log::Debug(fmt::format(
-                "{0}x{0} color swap map texture (id: {1}) generated",
-                _cubemapResolution, _textures.colorSwap
+                "{}x{} color swap map texture (id: {}) generated",
+                _cubemapResolution.x, _cubemapResolution.y, _textures.colorSwap
             ));
         }
     }
@@ -178,8 +179,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{0}x{0} normal cube map texture (id: {1}) generated",
-            _cubemapResolution, _textures.cubeMapNormals
+            "{}x{} normal cube map texture (id: {}) generated",
+            _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapNormals
         ));
     }
 
@@ -191,8 +192,8 @@ void NonLinearProjection::initTextures() {
             GL_FLOAT
         );
         Log::Debug(fmt::format(
-            "{0}x{0} position cube map texture ({1}) generated",
-            _cubemapResolution, _textures.cubeMapPositions
+            "{}x{} position cube map texture ({}) generated",
+            _cubemapResolution.x, _cubemapResolution.y, _textures.cubeMapPositions
         ));
     }
 }
@@ -200,17 +201,15 @@ void NonLinearProjection::initTextures() {
 void NonLinearProjection::initFBO() {
     _cubeMapFbo = std::make_unique<OffScreenBuffer>();
     _cubeMapFbo->setInternalColorFormat(_texInternalFormat);
-    _cubeMapFbo->createFBO(_cubemapResolution, _cubemapResolution, _samples);
+    _cubeMapFbo->createFBO(_cubemapResolution.x, _cubemapResolution.y, _samples);
 }
 
 void NonLinearProjection::setupViewport(BaseViewport& vp) {
-    const float cmRes = static_cast<float>(_cubemapResolution);
-
     _vpCoords = ivec4{
-        static_cast<int>(floor(vp.position().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.position().y * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.size().x * cmRes + 0.5f)),
-        static_cast<int>(floor(vp.size().y * cmRes + 0.5f))
+        static_cast<int>(floor(vp.position().x * _cubemapResolution.x + 0.5f)),
+        static_cast<int>(floor(vp.position().y * _cubemapResolution.y + 0.5f)),
+        static_cast<int>(floor(vp.size().x * _cubemapResolution.x + 0.5f)),
+        static_cast<int>(floor(vp.size().y * _cubemapResolution.y + 0.5f))
     };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -224,11 +223,17 @@ void NonLinearProjection::generateMap(unsigned int& texture, unsigned int intern
 
     GLint maxMapRes;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
-    if (_cubemapResolution > maxMapRes) {
+    if (_cubemapResolution.x > maxMapRes) {
         Log::Error(fmt::format(
-            "Requested size is too big ({} > {})", _cubemapResolution, maxMapRes
+            "Requested size is too big ({} > {})", _cubemapResolution.x, maxMapRes
         ));
     }
+    if (_cubemapResolution.y > maxMapRes) {
+        Log::Error(fmt::format(
+            "Requested size is too big ({} > {})", _cubemapResolution.y, maxMapRes
+        ));
+    }
+
 
     // set up texture target
     glGenTextures(1, &texture);
@@ -242,8 +247,8 @@ void NonLinearProjection::generateMap(unsigned int& texture, unsigned int intern
         GL_TEXTURE_2D,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -266,10 +271,15 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
 
     GLint maxCubeMapRes;
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapRes);
-    if (_cubemapResolution > maxCubeMapRes) {
-        _cubemapResolution = maxCubeMapRes;
+    if (_cubemapResolution.x > maxCubeMapRes) {
+        _cubemapResolution.x = maxCubeMapRes;
         Log::Debug(fmt::format("Cubemap size set to max size: {}", maxCubeMapRes));
     }
+    if (_cubemapResolution.y > maxCubeMapRes) {
+        _cubemapResolution.y = maxCubeMapRes;
+        Log::Debug(fmt::format("Cubemap size set to max size: {}", maxCubeMapRes));
+    }
+
 
     // set up texture target
     glGenTextures(1, &texture);
@@ -283,8 +293,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_POSITIVE_X,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -294,8 +304,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -305,8 +315,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -316,8 +326,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -327,8 +337,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,
@@ -338,8 +348,8 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
         GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
         0,
         internalFormat,
-        _cubemapResolution,
-        _cubemapResolution,
+        _cubemapResolution.x,
+        _cubemapResolution.y,
         0,
         format,
         type,

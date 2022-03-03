@@ -62,14 +62,16 @@ namespace sgct {
 
 SpoutOutputProjection::SpoutOutputProjection(const Window* parent)
     : NonLinearProjection(parent)
+    , _mainViewport(parent)
 {}
 
 SpoutOutputProjection::~SpoutOutputProjection() {
 #ifdef SGCT_HAS_SPOUT
-    for (int i = 0; i < NFaces; i++) {
+    for (int i = 0; i < NTextures; i++) {
         if (_spout[i].handle) {
             reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->ReleaseSender();
             reinterpret_cast<SPOUTHANDLE>(_spout[i].handle)->Release();
+            glDeleteTextures(1, &_spout[i].texture);
         }
     }
 
@@ -116,6 +118,14 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
     glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
+
+    if (_spout[6].enabled) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _spout[6].texture);
+        _flatShader.bind();
+        window.renderScreenQuad();
+        ShaderProgram::unbind();
+    }
 
     if (_mappingType != Mapping::Cubemap) {
         GLint saveBuffer = 0;
@@ -210,6 +220,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         glDrawBuffers(1, buffers);
         glBindTexture(GL_TEXTURE_2D, saveTexture);
         glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
+        glDrawBuffers(1, buffers);
     }
     else {
         GLint saveTexture = 0;
@@ -251,7 +262,8 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             return;
         }
 
-        renderCubeFace(win, vp, idx, mode);
+        int safeIdx = idx % 6;
+        renderCubeFace(win, vp, safeIdx, mode);
 
 
         // re-calculate depth values from a cube to spherical model
@@ -261,13 +273,13 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             _cubeMapFbo->attachCubeMapTexture(
                 _textures.cubeMapColor,
-                idx,
+                safeIdx,
                 GL_COLOR_ATTACHMENT0
             );
-            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, idx);
+            _cubeMapFbo->attachCubeMapDepthTexture(_textures.cubeMapDepth, safeIdx);
 
-            glViewport(0, 0, _cubemapResolution, _cubemapResolution);
-            glScissor(0, 0, _cubemapResolution, _cubemapResolution);
+            glViewport(0, 0, _cubemapResolution.x, _cubemapResolution.y);
+            glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
             glEnable(GL_SCISSOR_TEST);
 
             const vec4 color = Engine::instance().clearColor();
@@ -312,7 +324,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             glDisable(GL_SCISSOR_TEST);
         }
 
-        if (_mappingType == Mapping::Cubemap) {
+        if (_mappingType == Mapping::Cubemap || idx == 6) {
             _cubeMapFbo->unbind();
 
             if (_spout[idx].handle) {
@@ -322,7 +334,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
                 glFramebufferTexture2D(
                     GL_READ_FRAMEBUFFER,
                     GL_COLOR_ATTACHMENT0,
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx,
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + safeIdx,
                     _textures.cubeMapColor,
                     0
                 );
@@ -351,6 +363,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         }
     };
 
+    render(window, _mainViewport, 6, frustumMode);
     render(window, _subViewports.right, 0, frustumMode);
     render(window, _subViewports.left, 1, frustumMode);
     render(window, _subViewports.bottom, 2, frustumMode);
@@ -368,6 +381,10 @@ void SpoutOutputProjection::setSpoutChannels(bool right, bool zLeft, bool bottom
     _spout[3].enabled = top;
     _spout[4].enabled = zLeft;
     _spout[5].enabled = zRight;
+}
+
+void SpoutOutputProjection::setSpoutDrawMain(bool drawMain) {
+    _spout[6].enabled = drawMain;
 }
 
 void SpoutOutputProjection::setSpoutMappingName(std::string name) {
@@ -388,8 +405,8 @@ void SpoutOutputProjection::initTextures() {
 
     switch (_mappingType) {
     case Mapping::Cubemap:
-        _mappingWidth = _cubemapResolution;
-        _mappingHeight = _cubemapResolution;
+        _mappingWidth = _cubemapResolution.x;
+        _mappingHeight = _cubemapResolution.y;
 
         for (int i = 0; i < NFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
@@ -436,8 +453,8 @@ void SpoutOutputProjection::initTextures() {
         }
         break;
     case Mapping::Equirectangular:
-        _mappingWidth = _cubemapResolution * 4;
-        _mappingHeight = _cubemapResolution * 2;
+        _mappingWidth = _cubemapResolution.x * 4;
+        _mappingHeight = _cubemapResolution.y * 2;
 #ifdef SGCT_HAS_SPOUT
         Log::Debug("Spout Projection initTextures Equirectangular");
         _mappingHandle = GetSpout();
@@ -478,8 +495,8 @@ void SpoutOutputProjection::initTextures() {
         );
         break;
     case Mapping::Fisheye:
-        _mappingWidth = _cubemapResolution * 2;
-        _mappingHeight = _cubemapResolution * 2;
+        _mappingWidth = _cubemapResolution.x * 2;
+        _mappingHeight = _cubemapResolution.y * 2;
 #ifdef SGCT_HAS_SPOUT
         Log::Debug("SpoutOutputProjection initTextures Fisheye");
         _mappingHandle = GetSpout();
@@ -519,6 +536,33 @@ void SpoutOutputProjection::initTextures() {
             nullptr
         );
         break;
+    }
+
+    if (_spout[6].enabled) {
+        _spout[6].handle = GetSpout();
+        if (_spout[6].handle) {
+            glGenTextures(1, &_spout[6].texture);
+            glBindTexture(GL_TEXTURE_2D, _spout[6].texture);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                _texInternalFormat,
+                _cubemapResolution.x,
+                _cubemapResolution.y,
+                0,
+                _texFormat,
+                _texType,
+                nullptr
+            );
+        }
     }
 }
 
@@ -570,6 +614,27 @@ void SpoutOutputProjection::initViewports() {
         glm::radians(-_rigOrientation.z),
         glm::vec3(0.f, 0.f, 1.f)
     );
+
+    // main
+    {
+        float angleCorrection = _mappingType == Mapping::Fisheye ? 0.f : -90.f;
+        _mainViewport.setPos(vec2{ 0.f, 0.f });
+        _mainViewport.setSize(vec2{ 1.f, 1.f });
+
+        glm::vec4 lowerLeft = lowerLeftBase;
+        lowerLeft.y = -Distance;
+
+        glm::mat4 r = glm::rotate(
+            glm::mat4(1.f),
+            glm::radians(angleCorrection),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        _mainViewport.projectionPlane().setCoordinates(
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
+            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
+        );
+    }
 
     // right
     {
@@ -655,6 +720,21 @@ void SpoutOutputProjection::initViewports() {
     }
 }
 
+void SpoutOutputProjection::updateFrustums(Frustum::Mode mode, float nearClip,
+                                           float farClip)
+{
+    if (_mainViewport.isEnabled()) {
+        _mainViewport.calculateNonLinearFrustum(mode, nearClip, farClip);
+    }
+
+    NonLinearProjection::updateFrustums(mode, nearClip, farClip);
+}
+
+void SpoutOutputProjection::setUser(User* user) {
+    _mainViewport.setUser(user);
+    NonLinearProjection::setUser(user);
+}
+
 void SpoutOutputProjection::initShaders() {
     // reload shader program if it exists
     _shader.deleteProgram();
@@ -729,7 +809,6 @@ void SpoutOutputProjection::initShaders() {
     _shader.bind();
 
 
-
     {
         const glm::mat4 pitchRot = glm::rotate(
             glm::mat4(1.f),
@@ -747,14 +826,14 @@ void SpoutOutputProjection::initShaders() {
             glm::vec3(0.f, 0.f, 1.f)
         );
         GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
-        glUniformMatrix4fv(rotMat, 1, GL_FALSE, value_ptr(rollRot));
+        glUniformMatrix4fv(rotMat, 1, GL_FALSE, glm::value_ptr(rollRot));
     }
 
     glUniform4fv(glGetUniformLocation(_shader.id(), "bgColor"), 1, &_clearColor.x);
     if (isCubic) {
         glUniform1f(
             glGetUniformLocation(_shader.id(), "size"),
-            static_cast<float>(_cubemapResolution)
+            static_cast<float>(_cubemapResolution.x)
         );
     }
 
@@ -778,6 +857,15 @@ void SpoutOutputProjection::initShaders() {
 
     _shaderLoc.halfFov = glGetUniformLocation(_shader.id(), "halfFov");
     glUniform1f(_shaderLoc.halfFov, glm::half_pi<float>());
+
+    ShaderProgram::unbind();
+
+    _flatShader.deleteProgram();
+    _flatShader = ShaderProgram("SpoutShader");
+    _flatShader.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
+    _flatShader.createAndLinkProgram();
+    _flatShader.bind();
+    glUniform1i(glGetUniformLocation(_flatShader.id(), "tex"), 0);
 
     ShaderProgram::unbind();
 

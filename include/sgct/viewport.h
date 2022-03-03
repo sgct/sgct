@@ -24,6 +24,7 @@ namespace sgct::config {
     struct PlanarProjection;
     struct SphericalMirrorProjection;
     struct SpoutOutputProjection;
+    struct SpoutFlatProjection;
     struct Viewport;
 } // namespace sgct::config
 
@@ -68,6 +69,7 @@ private:
     void applyPlanarProjection(const config::PlanarProjection& proj);
     void applyFisheyeProjection(const config::FisheyeProjection& proj);
     void applySpoutOutputProjection(const config::SpoutOutputProjection& proj);
+    void applySpoutFlatProjection(const config::SpoutFlatProjection& proj);
     void applyCylindricalProjection(const config::CylindricalProjection& proj);
     void applyEquirectangularProjection(const config::EquirectangularProjection& proj);
     void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);

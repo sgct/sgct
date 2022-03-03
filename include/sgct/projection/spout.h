@@ -29,6 +29,7 @@ public:
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
         bool zRight);
+    void setSpoutDrawMain(bool drawMain);
     void setSpoutMappingName(std::string name);
     void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(vec3 orientation);
@@ -43,7 +44,11 @@ public:
     /// Render the enabled faces of the cubemap
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
+    void updateFrustums(Frustum::Mode mode, float nearClip, float farClip) override;
+    void setUser(User* user) override;
+
 private:
+    static const int NTextures = 7;
     static const int NFaces = 6;
 
     void initTextures() override;
@@ -72,7 +77,7 @@ private:
         void* handle = nullptr;
         unsigned int texture = 0;
     };
-    std::array<SpoutInfo, NFaces> _spout;
+    std::array<SpoutInfo, NTextures> _spout;
 
     void* _mappingHandle = nullptr;
     unsigned int _mappingTexture = 0;
@@ -80,9 +85,12 @@ private:
     std::string _mappingName = "SPOUT_OS_MAPPING";
     vec3 _rigOrientation = vec3{ 0.f, 0.f, 0.f };
 
+    BaseViewport _mainViewport;
+
     unsigned int _vao = 0;
     unsigned int _vbo = 0;
     ShaderProgram _shader;
+    ShaderProgram _flatShader;
     ShaderProgram _depthCorrectionShader;
 
     int _mappingWidth = 0;

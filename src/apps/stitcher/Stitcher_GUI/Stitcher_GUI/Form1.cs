@@ -29,6 +29,7 @@ namespace Stitcher_GUI
         {
             //set all comboboxes
             MSAA_ComboBox.SelectedIndex = 2;
+            CT_ComboBox.SelectedIndex = 2;
             left_transform_comboBox.SelectedIndex = 0;
             right_transform_comboBox.SelectedIndex = 0;
             top_transform_comboBox.SelectedIndex = 0;
@@ -445,7 +446,10 @@ namespace Stitcher_GUI
             }
 
             arguments += " -start " + start_index_textBox.Text;
+            arguments += " -steps " + input_steps_textBox.Text;
             arguments += " -seq " + input_startindex_textBox.Text + " " + input_stopindex_textBox.Text;
+            arguments += " -loadTextureAttemptsMax " + input_loadAttempts_textBox.Text;
+            arguments += " -loadTextureAttemptsSleep " + input_attemptSleep_textBox.Text;
             arguments += " -rot " + left_transform_comboBox.Items[left_transform_comboBox.SelectedIndex].ToString();
             arguments += " " + right_transform_comboBox.Items[right_transform_comboBox.SelectedIndex].ToString();
             arguments += " " + top_transform_comboBox.Items[top_transform_comboBox.SelectedIndex].ToString();
@@ -483,6 +487,7 @@ namespace Stitcher_GUI
 
             arguments += " -format " + format_comboBox.Items[format_comboBox.SelectedIndex].ToString();
             arguments += " -compression " + compressionTrackBar.Value.ToString();
+            arguments += " -captureThreads " + CT_ComboBox.Items[CT_ComboBox.SelectedIndex].ToString();
 
             //MessageBox.Show(arguments);
 

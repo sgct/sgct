@@ -32,11 +32,14 @@ int startIndex;
 int stopIndex;
 int numberOfDigits = 0;
 int iterator;
+int steps = 1;
 bool sequence = false;
 bool cubic = true;
 
 int counter = 0;
 int startFrame = 0;
+int maxLoadAttempts = 5;
+int sleepSecondsBetweenLoads = 1;
 bool alpha = false;
 bool stereo = false;
 bool fxaa = false;
@@ -134,6 +137,21 @@ int main( int argc, char* argv[] )
             startFrame = atoi( argv[i+1] );
             sgct::MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
         }
+        else if (strcmp(argv[i], "-steps") == 0 && argc > (i + 1))
+        {
+            steps = atoi(argv[i + 1]);
+            sgct::MessageHandler::instance()->print("Steps per frame set to %d\n", steps);
+        }
+        else if (strcmp(argv[i], "-loadTextureAttemptsMax") == 0 && argc > (i + 1))
+        {
+            maxLoadAttempts = atoi(argv[i + 1]);
+            sgct::MessageHandler::instance()->print("Max tetxture load attempts set to %d\n", maxLoadAttempts);
+        }
+        else if (strcmp(argv[i], "-loadTextureAttemptsSleep") == 0 && argc > (i + 1))
+        {
+            sleepSecondsBetweenLoads = atoi(argv[i + 1]);
+            sgct::MessageHandler::instance()->print("Sleep between load texture attempts set to %d\n", sleepSecondsBetweenLoads);
+        }
         else if (strcmp(argv[i], "-alpha") == 0 && argc > (i + 1))
         {
             alpha = (strcmp(argv[i + 1], "1") == 0);
@@ -204,7 +222,13 @@ int main( int argc, char* argv[] )
 
             sgct::MessageHandler::instance()->print("Compression set to %d\n", tmpi);
         }
+        else if (strcmp(argv[i], "-captureThreads") == 0 && argc > (i + 1))
+        {
+            int tmpi = atoi(argv[i + 1]);
+            sgct::SGCTSettings::instance()->setNumberOfCaptureThreads(tmpi);
 
+            sgct::MessageHandler::instance()->print("Number of capture threads set to %d\n", tmpi);
+        }
     }
 
     gEngine->setInitOGLFunction( myInitOGLFun );
@@ -283,6 +307,7 @@ void myDrawFun()
         //            " index: " << index << " counter: " << counter << std::endl;
     }
 
+    gEngine->getCurrentWindowPtr()->setFixResolution(true);
     counter++;
 }
 
@@ -349,18 +374,30 @@ void myPreSyncFun()
         //    fprintf(stderr, "Handle: %u, index: %u\n", textureHandles[i], sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]));
 
         takeScreenshot.setVal( true );
-        iterator++;
+        gEngine->setScreenShotNumber(iterator);
+        iterator += steps;
     }
     else if(sequence && iterator <= stopIndex && numberOfDigits == 0 )
     {
         for (size_t i = 0; i < numberOfTextures; i++)
         {
-            if( sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1) )
-                textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+            int loadTextureAttempts = 0;
+            while (loadTextureAttempts < maxLoadAttempts)
+            {
+                if (sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1)) {
+                    textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+                    loadTextureAttempts = maxLoadAttempts;
+                    break;
+                }
+
+                loadTextureAttempts++;
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepSecondsBetweenLoads*1000));
+            }
         }
 
         takeScreenshot.setVal( true );
-        iterator++;
+        gEngine->setScreenShotNumber(iterator);
+        iterator += steps;
     }
 
     counter = 0;

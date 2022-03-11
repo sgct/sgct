@@ -419,7 +419,7 @@ namespace Stitcher_GUI
         private void start_button_Click(object sender, EventArgs e)
         {
             string processName = "stitcher.exe";
-            string arguments = "-config fisheye.xml";
+            string arguments = "-config fisheye.xml -logPath logs";
 
             if( stereo_checkBox.Checked )
             {

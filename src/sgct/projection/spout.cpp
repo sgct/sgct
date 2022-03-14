@@ -539,7 +539,9 @@ void SpoutOutputProjection::initTextures() {
     }
 
     if (_spout[6].enabled) {
+#ifdef SGCT_HAS_SPOUT
         _spout[6].handle = GetSpout();
+#endif // SGCT_HAS_SPOUT
         if (_spout[6].handle) {
             glGenTextures(1, &_spout[6].texture);
             glBindTexture(GL_TEXTURE_2D, _spout[6].texture);

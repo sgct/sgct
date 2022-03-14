@@ -6,7 +6,7 @@
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
-#include <sgct/projection/spoutFlat.h>
+#include <sgct/projection/spoutflat.h>
 
 #include <sgct/callbackdata.h>
 #include <sgct/clustermanager.h>

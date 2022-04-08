@@ -1190,7 +1190,7 @@
       "type": "object",
       "properties": {
         "name": { "type": "string" },
-		"major": { "type": "integer" },
+        "major": { "type": "integer" },
         "minor": { "type": "integer" }
       },
       "required": [ "name", "major", "minor" ]

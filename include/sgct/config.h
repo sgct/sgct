@@ -362,7 +362,7 @@ struct Cluster {
 void validateCluster(const Cluster& cluster);
 
 struct GeneratorVersion {
-    std::string generatorName;
+    std::string name;
     int major;
     int minor;
 };

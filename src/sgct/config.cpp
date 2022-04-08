@@ -473,4 +473,6 @@ void validateCluster(const Cluster& c) {
     }
 }
 
+void validateGeneratorVersion(const GeneratorVersion& gVersion) {}
+
 } // namespace sgct::config

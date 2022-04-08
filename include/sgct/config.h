@@ -361,6 +361,13 @@ struct Cluster {
 };
 void validateCluster(const Cluster& cluster);
 
+struct GeneratorVersion {
+    std::string name;
+    int major;
+    int minor;
+};
+void validateGeneratorVersion(const GeneratorVersion& gVersion);
+
 } // namespace sgct::config
 
 #endif // __SGCT__CONFIG__H__

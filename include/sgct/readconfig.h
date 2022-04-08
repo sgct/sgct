@@ -18,7 +18,8 @@ namespace sgct {
 
 [[nodiscard]] config::Cluster readJsonConfig(const std::string& configuration);
 
-[[nodiscard]] std::string serializeConfig(const config::Cluster& cluster);
+[[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
+    std::optional<config::GeneratorVersion> genVersion = std::nullopt);
 
 } // namespace sgct
 

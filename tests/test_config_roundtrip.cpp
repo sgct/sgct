@@ -11,6 +11,7 @@
 #include "equality.h"
 #include <sgct/readconfig.h>
 #include <nlohmann/json.hpp>
+#include <filesystem>
 
 TEST_CASE("Default constructed", "[roundtrip]") {
     sgct::config::Cluster input;

@@ -2401,6 +2401,18 @@ void to_json(nlohmann::json& j, const Cluster& c) {
     }
 }
 
+void from_json(const nlohmann::json& j, GeneratorVersion& v) {
+    j.at("name").get_to(v.generatorName);
+    j.at("major").get_to(v.major);
+    j.at("minor").get_to(v.minor);
+}
+
+void to_json(nlohmann::json& j, const GeneratorVersion& v) {
+    j["name"] = v.generatorName;
+    j["major"] = v.major;
+    j["minor"] = v.minor;
+}
+
 } // namespace sgct::config
 
 namespace sgct {
@@ -2489,5 +2501,14 @@ std::string serializeConfig(const config::Cluster& cluster) {
     return res.dump(2);
 }
 
+std::string serializeConfig(const config::Cluster& cluster,
+                            const config::GeneratorVersion& genVersion)
+{
+    nlohmann::json res;
+    res["version"] = 1;
+    res["generator"] = genVersion;
+    to_json(res, cluster);
+    return res.dump(2);
+}
 
 } // namespace sgct

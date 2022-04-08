@@ -1185,6 +1185,15 @@
       "type": "array",
       "items": { "$ref": "#/$defs/user" },
       "title": "Users"
+    },
+	"generator": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+		"major": { "type": "integer" },
+        "minor": { "type": "integer" }
+      },
+      "required": [ "name", "major", "minor" ]
     }
   },
   "required": [

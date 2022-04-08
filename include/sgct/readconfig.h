@@ -20,6 +20,9 @@ namespace sgct {
 
 [[nodiscard]] std::string serializeConfig(const config::Cluster& cluster);
 
+[[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
+    const config::GeneratorVersion& genVersion);
+
 } // namespace sgct
 
 #endif // __SGCT__READCONFIG__H__

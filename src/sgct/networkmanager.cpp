@@ -576,15 +576,15 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
                 if (!syncConnection->isConnected()) {
                     continue;
                 }
-                char data[Network::HeaderSize];
-                std::fill(std::begin(data), std::end(data), Network::DefaultId);
+                std::array<char, Network::HeaderSize> data;
+                std::fill(data.begin(), data.end(), Network::DefaultId);
                 data[0] = Network::ConnectedId;
                 syncConnection->sendData(&data, Network::HeaderSize);
             }
             for (Network* dataConnection : _dataTransferConnections) {
                 if (dataConnection->isConnected()) {
-                    char data[Network::HeaderSize];
-                    std::fill(std::begin(data), std::end(data), Network::DefaultId);
+                    std::array<char, Network::HeaderSize> data;
+                    std::fill(data.begin(), data.end(), Network::DefaultId);
                     data[0] = Network::ConnectedId;
                     dataConnection->sendData(&data, Network::HeaderSize);
                 }

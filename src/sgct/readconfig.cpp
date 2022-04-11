@@ -272,7 +272,7 @@ std::optional<sgct::vec4> parseValueColor(const tinyxml2::XMLElement& e) {
 
 std::optional<sgct::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
     sgct::mat4 r;
-    bool err[16] = {
+    std::array<bool, 16> err = {
         e.QueryFloatAttribute("x0", &r.values[0]) == tinyxml2::XML_SUCCESS,
         e.QueryFloatAttribute("y0", &r.values[1]) == tinyxml2::XML_SUCCESS,
         e.QueryFloatAttribute("z0", &r.values[2]) == tinyxml2::XML_SUCCESS,
@@ -291,7 +291,7 @@ std::optional<sgct::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
         e.QueryFloatAttribute("w3", &r.values[15]) == tinyxml2::XML_SUCCESS
     };
 
-    bool suc = std::all_of(std::begin(err), std::end(err), [](bool v) { return v; });
+    bool suc = std::all_of(err.begin(), err.end(), [](bool v) { return v; });
     return suc ? std::optional(r) : std::nullopt;
 }
 

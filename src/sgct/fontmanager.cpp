@@ -143,7 +143,7 @@ bool FontManager::addFont(std::string name, std::string file) {
     // Perform file exists check
     file = SystemFontPath + file;
 
-    const bool inserted = _fontPaths.insert({ std::move(name), std::move(file) }).second;
+    const bool inserted = _fontPaths.insert({ name, std::move(file) }).second;
     if (!inserted) {
         Log::Warning(fmt::format("Font with name '{}' already exists", name));
     }

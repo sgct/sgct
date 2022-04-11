@@ -301,7 +301,7 @@ struct Window {
         TopBottomInverted
     };
 
-    int id;
+    int id = 0;
     std::optional<std::string> name;
     std::vector<std::string> tags;
     std::optional<ColorBitDepth> bufferBitDepth;

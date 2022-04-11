@@ -381,7 +381,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
         if (_spoutFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
-        _spoutFbo->unbind();
+        OffScreenBuffer::unbind();
     };
 
     int vec[4];

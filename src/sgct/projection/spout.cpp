@@ -203,7 +203,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         // restore depth func
         glDepthFunc(GL_LESS);
 
-        _spoutFBO->unbind();
+        OffScreenBuffer::unbind();
 
         glBindTexture(GL_TEXTURE_2D, _mappingTexture);
 #ifdef SGCT_HAS_SPOUT
@@ -325,7 +325,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
         }
 
         if (_mappingType == Mapping::Cubemap || idx == 6) {
-            _cubeMapFbo->unbind();
+            OffScreenBuffer::unbind();
 
             if (_spout[idx].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);

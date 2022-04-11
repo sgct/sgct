@@ -1210,7 +1210,7 @@ void Window::resizeFBOs() {
     if (!_finalFBO->isMultiSampled()) {
         _finalFBO->bind();
         _finalFBO->attachColorTexture(_frameBufferTextures.leftEye, GL_COLOR_ATTACHMENT0);
-        _finalFBO->unbind();
+        OffScreenBuffer::unbind();
     }
 }
 

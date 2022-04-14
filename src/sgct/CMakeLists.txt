@@ -177,7 +177,7 @@ target_include_directories(
   PUBLIC
     ${PROJECT_SOURCE_DIR}/ext/stb
     ${PROJECT_SOURCE_DIR}/ext/tinyxml2
-)
+) 
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)

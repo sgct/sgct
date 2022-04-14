@@ -130,16 +130,8 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
 
                 // @TODO (abock, 2020-01-10) Not sure about this one; it will always be
                 // true for the loop but it looks like a fork for the e==0 and e==1 paths
-                float x;
-                float y;
-                if (e < 2) {
-                    x = xcorrections[i + (e * nCols)];
-                    y = ycorrections[i + (e * nCols)];
-                }
-                else {
-                    x = u;
-                    y = v;
-                }
+                float x = xcorrections[i + (e * nCols)];
+                float y = ycorrections[i + (e * nCols)];
 
                 // convert to [-1, 1]
                 vertex.x = 2.f * (x * size.x + pos.x) - 1.f;

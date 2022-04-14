@@ -143,7 +143,7 @@ void allocateTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-void uploadData(uint8_t** data, int w, int h) {
+void uploadData(const uint8_t** data, int w, int h) {
     // At least two textures and GLSync objects should be used to control that the
     // uploaded texture is the same for all viewports to prevent any tearing and maintain
     // frame sync

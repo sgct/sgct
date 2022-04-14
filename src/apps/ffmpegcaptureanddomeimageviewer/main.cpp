@@ -430,7 +430,7 @@ void threadWorker() {
     }
 }
 
-void uploadData(uint8_t** data, int width, int height) {
+void uploadData(const uint8_t** data, int width, int height) {
     // At least two textures and GLSync objects
     // should be used to control that the uploaded texture is the same
     // for all viewports to prevent any tearing and maintain frame sync

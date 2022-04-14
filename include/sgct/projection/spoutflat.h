@@ -26,9 +26,9 @@ public:
     virtual ~SpoutFlatProjection();
 
     virtual void render(const Window& window, const BaseViewport& viewport,
-        Frustum::Mode frustumMode);
-    virtual void renderCubemap(Window& window, Frustum::Mode frustumMode);
-    virtual void update(vec2 size);
+        Frustum::Mode frustumMode) override;
+    virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
+    virtual void update(vec2 size) override;
 
     void setSpoutMappingName(std::string name); 
     void setResolutionWidth(int resolutionX);
@@ -39,11 +39,11 @@ public:
     void setSpoutDrawMain(bool drawMain);
 
 protected:
-    virtual void initTextures();
-    virtual void initFBO();
-    virtual void initVBO();
-    virtual void initViewports();
-    virtual void initShaders();
+    virtual void initTextures() override;
+    virtual void initFBO() override;
+    virtual void initVBO() override;
+    virtual void initViewports() override;
+    virtual void initShaders() override;
 
     void setupViewport(BaseViewport& vp);
     void generateMap(unsigned int& texture, unsigned int internalFormat,

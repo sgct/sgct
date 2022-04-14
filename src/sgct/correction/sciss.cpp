@@ -219,11 +219,7 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     if (fileVersion == '2' && size[0] == 4) {
         buf.geometryType = GL_TRIANGLES;
     }
-    else if (fileVersion == '2' && size[0] == 5) {
-        buf.geometryType = GL_TRIANGLE_STRIP;
-    }
     else {
-        // assuming v1
         buf.geometryType = GL_TRIANGLE_STRIP;
     }
 

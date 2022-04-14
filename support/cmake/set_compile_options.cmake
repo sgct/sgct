@@ -104,7 +104,6 @@ function (set_compile_options target)
   "-Wused-but-marked-unused"
   "-Wvariadic-macros"
   "-Wvla"
-  "-Wzero-as-null-pointer-constant"
   
   "-Wno-missing-braces"
   )
@@ -138,7 +137,6 @@ function (set_compile_options target)
   "-Wunused"
   "-Wuninitialized"
   "-Wvla"
-  "-Wzero-as-null-pointer-constant"
   )
 
   if (MSVC)

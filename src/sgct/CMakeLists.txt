@@ -176,7 +176,6 @@ target_include_directories(
   sgct SYSTEM
   PUBLIC
     ${PROJECT_SOURCE_DIR}/ext/stb
-    ${PROJECT_SOURCE_DIR}/ext/tinyxml2
 ) 
 
 find_package(glad REQUIRED)

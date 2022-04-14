@@ -169,7 +169,7 @@ target_precompile_headers(sgct PRIVATE
 target_include_directories(sgct
   PUBLIC
     ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/ext/stb
+    SYSTEM ${PROJECT_SOURCE_DIR}/ext/stb
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )

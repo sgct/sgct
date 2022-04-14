@@ -54,7 +54,6 @@ function (set_compile_options target)
   "-Wduplicate-method-arg"
   "-Wduplicate-method-match"
   "-Wextra-semi"
-  "-Wfloat-equal"
   "-Wfloat-overflow-conversion"
   "-Wfloat-zero-conversion"
   "-Wformat"

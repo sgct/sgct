@@ -169,10 +169,10 @@ target_precompile_headers(sgct PRIVATE
 target_include_directories(sgct
   PUBLIC
     ${PROJECT_SOURCE_DIR}/include
-    SYSTEM ${PROJECT_SOURCE_DIR}/ext/stb
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
+target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)

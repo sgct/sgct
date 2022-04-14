@@ -1,4 +1,5 @@
 ctuOneDefinitionRuleViolation
+missingInclude
 preprocessorErrorDirective
 unknownMacro
 unusedFunction

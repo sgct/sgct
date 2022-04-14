@@ -1,2 +1,6 @@
-useStlAlgorithm
+ctuOneDefinitionRuleViolation
+preprocessorErrorDirective
+unknownMacro
 unusedFunction
+unusedStructMember
+useStlAlgorithm

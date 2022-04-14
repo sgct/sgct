@@ -172,7 +172,12 @@ target_include_directories(sgct
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
-target_include_directories(sgct SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/ext/stb)
+target_include_directories(
+  sgct SYSTEM
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/ext/stb
+    ${PROJECT_SOURCE_DIR}/ext/tinyxml2
+)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)

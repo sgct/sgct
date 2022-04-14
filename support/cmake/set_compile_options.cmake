@@ -44,7 +44,6 @@ function (set_compile_options target)
   "-Wcomma"
   "-Wconditional-uninitialized"
   "-Wdate-time"
-  "-Wdeprecated-copy-dtor"
   "-Wdeprecated-dynamic-exception-spec"
   "-Wdeprecated-this-capture"
   "-Wdivision-by-zero"

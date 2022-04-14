@@ -71,12 +71,12 @@ SpoutFlatProjection::~SpoutFlatProjection() {
     (void)_mappingHandle;
 #endif // SGCT_HAS_SPOUT
 
-    glDeleteTextures(1, &_textures.spoutColor);
-    glDeleteTextures(1, &_textures.spoutDepth);
-    glDeleteTextures(1, &_textures.spoutNormals);
-    glDeleteTextures(1, &_textures.spoutPositions);
-    glDeleteTextures(1, &_textures.colorSwap);
-    glDeleteTextures(1, &_textures.depthSwap);
+    glDeleteTextures(1, &_textureIdentifiers.spoutColor);
+    glDeleteTextures(1, &_textureIdentifiers.spoutDepth);
+    glDeleteTextures(1, &_textureIdentifiers.spoutNormals);
+    glDeleteTextures(1, &_textureIdentifiers.spoutPositions);
+    glDeleteTextures(1, &_textureIdentifiers.colorSwap);
+    glDeleteTextures(1, &_textureIdentifiers.depthSwap);
 
     _shader.deleteProgram();
 }
@@ -115,68 +115,73 @@ void SpoutFlatProjection::setSpoutDrawMain(bool drawMain) {
 }
 
 void SpoutFlatProjection::initTextures() {
-    generateMap(_textures.spoutColor, _texInternalFormat, _texFormat, _texType);
+    generateMap(_textureIdentifiers.spoutColor, _texInternalFormat, _texFormat, _texType);
     Log::Debug(fmt::format(
         "{0}x{1} color spout texture (id: {2}) generated",
-        _resolutionX, _resolutionY, _textures.spoutColor
+        _resolutionX, _resolutionY, _textureIdentifiers.spoutColor
     ));
 
     if (Settings::instance().useDepthTexture()) {
         generateMap(
-            _textures.spoutDepth,
+            _textureIdentifiers.spoutDepth,
             GL_DEPTH_COMPONENT32,
             GL_DEPTH_COMPONENT,
             GL_FLOAT
         );
         Log::Debug(fmt::format(
             "{0}x{1} depth spout texture (id: {2}) generated",
-            _resolutionX, _resolutionY, _textures.spoutDepth
+            _resolutionX, _resolutionY, _textureIdentifiers.spoutDepth
         ));
 
         if (_useDepthTransformation) {
             // generate swap textures
             generateMap(
-                _textures.depthSwap,
+                _textureIdentifiers.depthSwap,
                 GL_DEPTH_COMPONENT32,
                 GL_DEPTH_COMPONENT,
                 GL_FLOAT
             );
             Log::Debug(fmt::format(
                 "{0}x{1} depth swap map texture (id: 2}) generated",
-                _resolutionX, _resolutionY, _textures.depthSwap
+                _resolutionX, _resolutionY, _textureIdentifiers.depthSwap
             ));
 
-            generateMap(_textures.colorSwap, _texInternalFormat, _texFormat, _texType);
+            generateMap(
+                _textureIdentifiers.colorSwap,
+                _texInternalFormat,
+                _texFormat,
+                _texType
+            );
             Log::Debug(fmt::format(
                 "{0}x{1} color swap map texture (id: {2}) generated",
-                _resolutionX, _resolutionY, _textures.colorSwap
+                _resolutionX, _resolutionY, _textureIdentifiers.colorSwap
             ));
         }
     }
 
     if (Settings::instance().useNormalTexture()) {
         generateMap(
-            _textures.spoutNormals,
+            _textureIdentifiers.spoutNormals,
             Settings::instance().bufferFloatPrecision(),
             GL_RGB,
             GL_FLOAT
         );
         Log::Debug(fmt::format(
             "{0}x{1} normal spout texture (id: {2}) generated",
-            _resolutionX, _resolutionY, _textures.spoutNormals
+            _resolutionX, _resolutionY, _textureIdentifiers.spoutNormals
         ));
     }
 
     if (Settings::instance().usePositionTexture()) {
         generateMap(
-            _textures.spoutPositions,
+            _textureIdentifiers.spoutPositions,
             Settings::instance().bufferFloatPrecision(),
             GL_RGB,
             GL_FLOAT
         );
         Log::Debug(fmt::format(
             "{0}x{1} position spout texture ({2}) generated",
-            _resolutionX, _resolutionY, _textures.spoutPositions
+            _resolutionX, _resolutionY, _textureIdentifiers.spoutPositions
         ));
     }
 
@@ -257,19 +262,31 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 
 void SpoutFlatProjection::attachTextures(int) {
     if (Settings::instance().useDepthTexture()) {
-        _spoutFbo->attachDepthTexture(_textures.depthSwap);
-        _spoutFbo->attachColorTexture(_textures.colorSwap, GL_COLOR_ATTACHMENT0);
+        _spoutFbo->attachDepthTexture(_textureIdentifiers.depthSwap);
+        _spoutFbo->attachColorTexture(
+            _textureIdentifiers.colorSwap,
+            GL_COLOR_ATTACHMENT0
+        );
     }
     else {
-        _spoutFbo->attachColorTexture(_textures.spoutColor, GL_COLOR_ATTACHMENT0);
+        _spoutFbo->attachColorTexture(
+            _textureIdentifiers.spoutColor,
+            GL_COLOR_ATTACHMENT0
+        );
     }
 
     if (Settings::instance().useNormalTexture()) {
-        _spoutFbo->attachColorTexture(_textures.spoutNormals, GL_COLOR_ATTACHMENT1);
+        _spoutFbo->attachColorTexture(
+            _textureIdentifiers.spoutNormals,
+            GL_COLOR_ATTACHMENT1
+        );
     }
 
     if (Settings::instance().usePositionTexture()) {
-        _spoutFbo->attachColorTexture(_textures.spoutPositions, GL_COLOR_ATTACHMENT2);
+        _spoutFbo->attachColorTexture(
+            _textureIdentifiers.spoutPositions,
+            GL_COLOR_ATTACHMENT2
+        );
     }
 }
 
@@ -306,15 +323,17 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     }
 
 #ifdef SGCT_HAS_SPOUT
-    glBindTexture(GL_TEXTURE_2D, _textures.spoutColor);
+    glBindTexture(GL_TEXTURE_2D, _textureIdentifiers.spoutColor);
     const bool s = _mappingHandle->SendTexture(
-        _textures.spoutColor,
+        _textureIdentifiers.spoutColor,
         static_cast<GLuint>(GL_TEXTURE_2D),
         _resolutionX,
         _resolutionY
     );
     if (!s) {
-        Log::Error(fmt::format("Error sending texture '{}'", _textures.spoutColor));
+        Log::Error(fmt::format(
+            "Error sending texture '{}'", _textureIdentifiers.spoutColor
+        ));
     }
 #endif
 
@@ -323,7 +342,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     if (_spoutDrawMain) {
         Engine::instance().setupViewport(window, viewport, frustumMode);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _textures.spoutColor);
+        glBindTexture(GL_TEXTURE_2D, _textureIdentifiers.spoutColor);
         _shader.bind();
         window.renderScreenQuad();
         ShaderProgram::unbind();

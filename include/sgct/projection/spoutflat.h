@@ -59,7 +59,7 @@ protected:
         unsigned int spoutPositions = 0;
         unsigned int colorSwap = 0;
         unsigned int depthSwap = 0;
-    } _textures;
+    } _textureIdentifiers;
 
     std::string _mappingName = "SPOUT_OS_MAPPING";
     SPOUTHANDLE _mappingHandle = nullptr;

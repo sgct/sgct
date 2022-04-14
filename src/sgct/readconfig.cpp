@@ -546,7 +546,7 @@ sgct::config::ProjectionPlane parseProjectionPlane(tinyxml2::XMLElement& element
     // There should be exactly three positions in this child
     tinyxml2::XMLElement* c1 = elem;
     tinyxml2::XMLElement* c2 = elem->NextSiblingElement();
-    if (!c1 || !c2) {
+    if (!c2) {
         throw Err(6010, "Failed parsing coordinates. Missing XML children");
     }
     tinyxml2::XMLElement* c3 = c2->NextSiblingElement();

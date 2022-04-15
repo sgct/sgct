@@ -1,3 +1,4 @@
+AssignmentAddressToInteger
 ctuOneDefinitionRuleViolation
 missingInclude
 preprocessorErrorDirective

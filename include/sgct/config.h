@@ -250,6 +250,12 @@ void validateMpcdiProjection(const MpcdiProjection& proj);
 
 
 
+using Projections = std::variant<NoProjection, CylindricalProjection,
+    EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
+    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection>;
+
+
+
 struct Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
@@ -263,10 +269,7 @@ struct Viewport {
     std::optional<vec2> position;
     std::optional<vec2> size;
 
-    std::variant<NoProjection, CylindricalProjection, EquirectangularProjection,
-        FisheyeProjection, PlanarProjection, ProjectionPlane, SphericalMirrorProjection,
-        SpoutOutputProjection, SpoutFlatProjection
-    > projection;
+    Projections projection;
 };
 void validateViewport(const Viewport& viewport, bool draw3D);
 

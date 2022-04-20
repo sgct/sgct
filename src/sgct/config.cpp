@@ -129,8 +129,8 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
     if (p.quality && *p.quality <= 0) {
         throw Error(1063, "Quality value must be positive");
     }
-    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0)) {
-        throw Error(1064, "Quality setting only allows powers of two");
+    if (p.quality && ((*p.quality & (*p.quality - 1)) != 0 && *p.quality != 1536)) {
+        throw Error(1064, "Quality setting only allows powers of two and 1536");
     }
     if (p.diameter && *p.diameter <= 0.f) {
         throw Error(1065, "Diameter must be positive");

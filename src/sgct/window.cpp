@@ -159,6 +159,9 @@ void Window::applyWindow(const config::Window& window) {
     if (window.isDecorated) {
         setWindowDecoration(*window.isDecorated);
     }
+    if (window.isResizable) {
+        setWindowResizable(*window.isResizable);
+    }
     if (window.isMirrored) {
         _isMirrored = *window.isMirrored;
     }
@@ -696,6 +699,10 @@ void Window::setWindowDecoration(bool state) {
     _isDecorated = state;
 }
 
+void Window::setWindowResizable(bool state) {
+    _isResizable = state;
+}
+
 void Window::setFullScreenMonitorIndex(int index) {
     _monitorIndex = index;
 }
@@ -759,6 +766,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         ZoneScopedN("Set GLFW settings")
         glfwWindowHint(GLFW_DEPTH_BITS, 32);
         glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, _isResizable ? GLFW_TRUE : GLFW_FALSE);
 
         const int antiAliasingSamples = numberOfAASamples();
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);

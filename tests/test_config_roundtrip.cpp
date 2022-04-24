@@ -1276,6 +1276,62 @@ TEST_CASE("Window/IsDecorated", "[roundtrip]") {
     }
 }
 
+TEST_CASE("Window/IsResizable", "[roundtrip]") {
+    {
+        sgct::config::Cluster input;
+        input.success = true;
+
+        sgct::config::Node node;
+        node.address = "abc";
+        node.port = 1;
+
+        sgct::config::Window window;
+        window.isResizable = std::nullopt;
+        node.windows.push_back(window);
+        input.nodes.push_back(node);
+
+        std::string str = sgct::serializeConfig(input);
+        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        REQUIRE(input == output);
+    }
+
+    {
+        sgct::config::Cluster input;
+        input.success = true;
+
+        sgct::config::Node node;
+        node.address = "abc";
+        node.port = 1;
+
+        sgct::config::Window window;
+        window.isResizable = false;
+        node.windows.push_back(window);
+        input.nodes.push_back(node);
+
+        std::string str = sgct::serializeConfig(input);
+        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        REQUIRE(input == output);
+    }
+
+    {
+        sgct::config::Cluster input;
+        input.success = true;
+
+        sgct::config::Node node;
+        node.address = "abc";
+        node.port = 1;
+
+        sgct::config::Window window;
+        window.isResizable = true;
+        node.windows.push_back(window);
+        input.nodes.push_back(node);
+
+        std::string str = sgct::serializeConfig(input);
+        sgct::config::Cluster output = sgct::readJsonConfig(str);
+        REQUIRE(input == output);
+    }
+}
+
 TEST_CASE("Window/Draw2D", "[roundtrip]") {
     {
         sgct::config::Cluster input;

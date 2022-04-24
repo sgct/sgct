@@ -186,6 +186,9 @@ public:
     /// Set if window borders should be visible
     void setWindowDecoration(bool state);
 
+    /// Set if the window should be resizable
+    void setWindowResizable(bool state);
+
     /// Set which monitor that should be used for fullscreen mode
     void setFullScreenMonitorIndex(int index);
 
@@ -388,6 +391,7 @@ private:
     bool _isDoubleBuffered = true;
     bool _setWindowPos = false;
     bool _isDecorated = true;
+    bool _isResizable = true;
     bool _isMirrored = false;
     bool _hasAlpha = false;
     ivec2 _framebufferRes = ivec2{ 512, 256 };

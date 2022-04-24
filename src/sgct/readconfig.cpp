@@ -695,6 +695,7 @@ sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
 
     window.isDecorated = parseValue<bool>(elem, "decorated");
     window.isDecorated = parseValue<bool>(elem, "border");
+    window.isResizable = parseValue<bool>(elem, "resizable");
     window.isMirrored = parseValue<bool>(elem, "mirror");
     window.draw2D = parseValue<bool>(elem, "draw2D");
     window.draw3D = parseValue<bool>(elem, "draw3D");
@@ -2144,6 +2145,7 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "fxaa", w.useFxaa);
 
     parseValue(j, "border", w.isDecorated);
+    parseValue(j, "resizable", w.isResizable);
     parseValue(j, "mirror", w.isMirrored);
     parseValue(j, "draw2d", w.draw2D);
     parseValue(j, "draw3d", w.draw3D);
@@ -2247,6 +2249,10 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.isDecorated.has_value()) {
         j["border"] = *w.isDecorated;
+    }
+
+    if (w.isResizable.has_value()) {
+        j["resizable"] = *w.isResizable;
     }
 
     if (w.isMirrored.has_value()) {

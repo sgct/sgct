@@ -746,6 +746,11 @@
           "title": "Border",
           "description": "Enables or disables the window decorations. Window decorations are the title bar that contains the name of the window and buttons to close, maximize or minimize a window. On some operating systems, the window decorations also include a border around a window and potentially shadow effects, all of which can be disabled with this attribute. The default is true."
         },
+        "resizable": {
+          "type": "boolean",
+          "title": "Border",
+          "description": "Enables or disables the ability of the user to change the size of the window. The default is true."
+        },
         "mirror": {
           "type": "boolean",
           "title": "Mirror",

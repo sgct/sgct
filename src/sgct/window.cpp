@@ -142,7 +142,7 @@ void Window::applyWindow(const config::Window& window) {
         setRenderWhileHidden(*window.alwaysRender);
     }
     if (window.isHidden) {
-        setVisible(*window.isHidden);
+        setVisible(!*window.isHidden);
     }
     if (window.doubleBuffered) {
         setDoubleBuffered(*window.doubleBuffered);

@@ -217,7 +217,6 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         glBindTexture(GL_TEXTURE_2D, 0);
 
         buffers[0] = saveBuffer;
-        glDrawBuffers(1, buffers);
         glBindTexture(GL_TEXTURE_2D, saveTexture);
         glBindFramebuffer(GL_FRAMEBUFFER, saveFrameBuffer);
         glDrawBuffers(1, buffers);

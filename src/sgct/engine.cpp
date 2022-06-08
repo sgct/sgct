@@ -64,8 +64,8 @@ namespace {
     // Callback wrappers for GLFW
     std::function<void(Key, Modifier, Action, int)> gKeyboardCallback = nullptr;
     std::function<void(unsigned int, int)> gCharCallback = nullptr;
-    std::function<void(MouseButton, Modifier, Action)> gMouseButtonCallback = nullptr;
-    std::function<void(double, double)> gMousePosCallback = nullptr;
+    std::function<void(MouseButton, Modifier, Action, Window*)> gMouseButtonCallback = nullptr;
+    std::function<void(double, double, Window*)> gMousePosCallback = nullptr;
     std::function<void(double, double)> gMouseScrollCallback = nullptr;
     std::function<void(int, const char**)> gDropCallback = nullptr;
 
@@ -498,16 +498,23 @@ void Engine::initialize() {
         if (gMouseButtonCallback) {
             glfwSetMouseButtonCallback(
                 win,
-                [](GLFWwindow*, int b, int a, int m) {
-                    gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
+                [](GLFWwindow* w, int b, int a, int m) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gMouseButtonCallback(
+                        MouseButton(b),
+                        Modifier(m),
+                        Action(a),
+                        reinterpret_cast<Window*>(sgctWindow)
+                    );
                 }
             );
         }
         if (gMousePosCallback) {
             glfwSetCursorPosCallback(
                 win,
-                [](GLFWwindow*, double xPos, double yPos) {
-                    gMousePosCallback(xPos, yPos);
+                [](GLFWwindow* w, double xPos, double yPos) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gMousePosCallback(xPos, yPos, reinterpret_cast<Window*>(sgctWindow));
                 }
             );
         }

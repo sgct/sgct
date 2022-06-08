@@ -125,10 +125,10 @@ public:
         std::function<void(unsigned int, int)> character;
 
         /// This function sets the mouse button callback (GLFW wrapper) for all windows
-        std::function<void(MouseButton, Modifier, Action)> mouseButton;
+        std::function<void(MouseButton, Modifier, Action, Window*)> mouseButton;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double)> mousePos;
+        std::function<void(double, double, Window*)> mousePos;
 
         /// All windows are connected to this callback.
         std::function<void(double, double)> mouseScroll;

@@ -43,6 +43,10 @@ if (WIN32)
   option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
 endif ()
 
+if (WIN32)
+  option(SGCT_GSTREAMER_SUPPORT "SGCT GStreamer support" OFF)
+endif ()
+
 # Exceptions for external libraries
 option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
 option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)

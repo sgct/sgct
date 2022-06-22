@@ -39,7 +39,6 @@ function (set_compile_options target)
   "-Wbitfield-constant-conversion"
   "-Wbool-conversions"
   "-Wcast-align"
-  "-Wcast-function-type"
   "-Wcast-qual"
   "-Wcomma"
   "-Wconditional-uninitialized"

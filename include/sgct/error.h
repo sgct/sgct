@@ -87,6 +87,9 @@ namespace sgct {
  * 2031: OBJ / Vertex count doesn't match number of texture coordinates in '%s'
  * 2032: OBJ / Faces in mesh '%s' referenced vertices that were undefined
  * 2033: OBJ / Faces in mesh '%s' are using relative index positions that are unsupported
+ * 2034: OBJ / Illegal vertex format in OBJ file '%s' in line '%s'
+ * 2035: OBJ / Illegal face format in OBJ file '%s' in line '%s'
+ * 2036: OBJ / Illegal vertex format in OBJ file '%s' in line '%s'
  * 2040: PaulBourke / Failed to open file '%s'
  * 2041: PaulBourke / Error reading mapping type in file '%s'
  * 2042: PaulBourke / Invalid data in file '%s'
@@ -97,6 +100,7 @@ namespace sgct {
  * 2054: Pfm / Error reading correction values in file '%s'
  * 2060: Scalable / Failed to open file '%s'
  * 2061: Scalable / Incorrect mesh data geometry in file '%s'
+ * 2062: Scalable / Illegal formatting of face in file '%s' in line '%s'
  * 2070: SCISS / Failed to open '%s'
  * 2071: SCISS / Incorrect file id in file '%s'
  * 2072: SCISS / Error parsing file version from file '%s'

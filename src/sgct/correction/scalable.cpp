@@ -307,14 +307,41 @@ Buffer generateScalableMesh(const std::string& path, BaseViewport& parent) {
         else if (first == "[") {
             // Face
             size_t sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2035,
+                    fmt::format(
+                        "Illegal formatting of face in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view f1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2035,
+                    fmt::format(
+                        "Illegal formatting of face in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view f2 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2035,
+                    fmt::format(
+                        "Illegal formatting of face in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view f3 = rest.substr(0, sep);
 
             Data::Face f;
@@ -343,18 +370,54 @@ Buffer generateScalableMesh(const std::string& path, BaseViewport& parent) {
             std::string_view x = first;
 
             size_t sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2036,
+                    fmt::format(
+                        "Illegal formatting of vertex in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view y = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2036,
+                    fmt::format(
+                        "Illegal formatting of vertex in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view intensity = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2036,
+                    fmt::format(
+                        "Illegal formatting of vertex in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view s = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::Scalable, 2036,
+                    fmt::format(
+                        "Illegal formatting of vertex in file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view t = rest.substr(0, sep);
 
             Data::Vertex vertex;

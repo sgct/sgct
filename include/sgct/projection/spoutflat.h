@@ -23,7 +23,7 @@ class SpoutFlatProjection : public NonLinearProjection {
 public:
     SpoutFlatProjection(const Window* parent);
 
-    virtual ~SpoutFlatProjection();
+    virtual ~SpoutFlatProjection() override;
 
     virtual void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) override;

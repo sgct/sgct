@@ -65,10 +65,28 @@ Buffer generateOBJMesh(const std::string& path) {
 
         if (first == "v") {
             size_t sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::OBJ, 2034,
+                    fmt::format(
+                        "Illegal vertex format in OBJ file {} in line {}",
+                        path, line
+                    )
+                );
+            }
             std::string_view v1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::OBJ, 2034,
+                    fmt::format(
+                        "Illegal vertex format in OBJ file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view v2 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
@@ -100,14 +118,41 @@ Buffer generateOBJMesh(const std::string& path) {
         }
         else if (first == "f") {
             size_t sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::OBJ, 2035,
+                    fmt::format(
+                        "Illegal face format in OBJ file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view f1 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::OBJ, 2035,
+                    fmt::format(
+                        "Illegal face format in OBJ file '{}' in line '{}'",
+                        path, line
+                    )
+                );
+            }
             std::string_view f2 = rest.substr(0, sep);
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
+            if (sep == std::string_view::npos) {
+                throw Error(
+                    Error::Component::OBJ, 2035,
+                    fmt::format(
+                        "Illegal face format in OBJ file {} in line {}",
+                        path, line
+                    )
+                );
+            }
             std::string_view f3 = rest.substr(0, sep);
 
             // The face description might just consist of a single value, in which case

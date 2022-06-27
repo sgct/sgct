@@ -25,7 +25,7 @@ public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 
     SpoutOutputProjection(const Window* parent);
-    ~SpoutOutputProjection();
+    virtual ~SpoutOutputProjection() override;
 
     void setSpoutChannels(bool right, bool zLeft, bool bottom, bool top, bool left,
         bool zRight);

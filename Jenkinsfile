@@ -174,7 +174,7 @@ windows_msvc: {
       stage('windows-msvc/build') {
         cmakeBuild([
           buildDir: 'build-msvc',
-          generator: 'Visual Studio 16 2019',
+          generator: 'Visual Studio 17 2022',
           installation: "InSearchPath",
           cmakeArgs: cmakeOptions(),
           steps: [[ args: "-- /nologo /verbosity:minimal /m:4", withCmake: true ]]
@@ -201,7 +201,7 @@ windows_ninja: {
       stage('windows-ninja/build') {
         bat(
           script: """
-          call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
+          call "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
           if not exist build-ninja mkdir build-ninja
           cd build-ninja
           cmake -G Ninja ${cmakeOptions()} ..

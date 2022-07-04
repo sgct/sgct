@@ -68,7 +68,6 @@ endif ()
 # Example applications
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
-  option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
   option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
   option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
   option(SGCT_EXAMPLES_STITCHER "Build Stitcher examples" OFF)

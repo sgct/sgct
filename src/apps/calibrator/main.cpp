@@ -46,7 +46,7 @@ namespace {
 
     float phi = glm::pi<float>();
     float theta = 0.f;
-      
+
     bool takeScreenshot = false;
     bool captureBackbuffer = false;
     bool renderGrid = true;

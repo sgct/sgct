@@ -47,7 +47,7 @@ namespace {
   out vec2 uv;
 
   uniform ivec2 texSize;
-  uniform ivec2 windowSize;  
+  uniform ivec2 windowSize;
 
   void main() {
     gl_Position = vec4(in_position, 0.0, 1.0);

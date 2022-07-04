@@ -305,7 +305,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
     if (!_mappingHandle) {
         return;
     }
-    
+
     int vec[4];
     glGetIntegerv(GL_VIEWPORT, vec);
     GLint saveTexture = 0;

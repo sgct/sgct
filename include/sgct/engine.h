@@ -207,7 +207,7 @@ public:
      *
      * To record frames for a movie simply call this function every frame you wish to
      * record. The read to disk is multi-threaded.
-     * 
+     *
      * \param windowIds If the vector is empty, screenshots of all windows will be taken,
      *        otherwise, only the window ids that appear in the vector will be used for
      *        screenshots and window ids that do not appear in the list are ignored

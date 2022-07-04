@@ -260,7 +260,7 @@ void OffScreenBuffer::blit() {
     ivec2 src1 = ivec2{ _size.x, _size.y };
     ivec2 dst0 = ivec2{ 0, 0 };
     ivec2 dst1 = ivec2{ _size.x, _size.y };
-    
+
     if (_mirror) {
         dst0.x = _size.x;
         dst1.x = 0;

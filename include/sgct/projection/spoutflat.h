@@ -30,7 +30,7 @@ public:
     virtual void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
     virtual void update(vec2 size) override;
 
-    void setSpoutMappingName(std::string name); 
+    void setSpoutMappingName(std::string name);
     void setResolutionWidth(int resolutionX);
     void setResolutionHeight(int resolutionY);
     void setSpoutFov(float up, float down, float left, float right, quat orientation,
@@ -84,4 +84,4 @@ protected:
 
 } // namespace sgct
 
-#endif // __SGCT__NONLINEARPROJECTION__H__
+#endif // __SGCT__SPOUTFLAT__H__

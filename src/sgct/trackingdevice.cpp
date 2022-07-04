@@ -88,7 +88,7 @@ void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
 
         _worldTransformPrevious = std::move(_worldTransform);
         _worldTransform = fromGLM<glm::mat4, mat4>(
-            parentTrans * sensorTransMat * sensorRotMat * 
+            parentTrans * sensorTransMat * sensorRotMat *
             glm::make_mat4(_deviceTransform.values)
         );
     }

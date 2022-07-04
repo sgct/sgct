@@ -132,7 +132,7 @@ namespace {
         if (eye == "center") { return sgct::config::Viewport::Eye::Mono; }
         if (eye == "left")   { return sgct::config::Viewport::Eye::StereoLeft; }
         if (eye == "right")  { return sgct::config::Viewport::Eye::StereoRight; }
-        
+
         throw Err(6020, "Unrecognized eye position");
     }
 
@@ -665,7 +665,7 @@ sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
 
     std::optional<int> id = parseValue<int>(elem, "id");
     window.id = id.value_or(count);
-    
+
     if (const char* a = elem.Attribute("name"); a) {
         window.name = a;
     }
@@ -1213,7 +1213,7 @@ void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
     parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
-    
+
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
@@ -1223,7 +1223,7 @@ void from_json(const nlohmann::json& j, User& u) {
 
     if (auto it = j.find("tracking");  it != j.end()) {
         User::Tracking tracking;
-        
+
         auto trackerIt = it->find("tracker");
         if (trackerIt == it->end()) {
             throw std::runtime_error("Missing key 'tracker' in User");
@@ -1295,7 +1295,7 @@ void from_json(const nlohmann::json& j, Settings& s) {
 
 void to_json(nlohmann::json& j, const Settings& s) {
     j = nlohmann::json::object();
-    
+
     if (s.useDepthTexture.has_value()) {
         j["depthbuffertexture"] = *s.useDepthTexture;
     }
@@ -1453,7 +1453,7 @@ void from_json(const nlohmann::json& j, Tracker& t) {
     }
     parseValue(j, "devices", t.devices);
     parseValue(j, "offset", t.offset);
-    
+
     if (auto it = j.find("orientation");  it != j.end()) {
         quat q = it->get<quat>();
         t.transformation = fromGLM<glm::mat4, mat4>(glm::mat4_cast(glm::make_quat(&q.x)));
@@ -1495,7 +1495,7 @@ void from_json(const nlohmann::json& j, PlanarProjection::FOV& f) {
     if (!hasHorizontal || !hasVertical) {
         throw Err(6000, "Missing specification of field-of-view values");
     }
-    
+
     // First we extract the potentially existing hFov and vFov values and **then** the
     // more specific left/right/up/down ones which would overwrite the first set
     if (itHFov != j.end()) {
@@ -1791,7 +1791,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
 
 void to_json(nlohmann::json& j, const SpoutOutputProjection& p) {
     j = nlohmann::json::object();
-    
+
     if (p.quality.has_value()) {
         j["quality"] = std::to_string(*p.quality);
     }
@@ -2365,7 +2365,7 @@ void from_json(const nlohmann::json& j, Cluster& c) {
 
 void to_json(nlohmann::json& j, const Cluster& c) {
     j["masteraddress"] = c.masterAddress;
-    
+
     if (c.setThreadAffinity.has_value()) {
         j["threadaffinity"] = *c.setThreadAffinity;
     }

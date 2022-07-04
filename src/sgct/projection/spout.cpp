@@ -328,7 +328,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
 
             if (_spout[idx].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
-                
+
                 glBindFramebuffer(GL_FRAMEBUFFER, _blitFbo);
                 glFramebufferTexture2D(
                     GL_READ_FRAMEBUFFER,

@@ -189,7 +189,7 @@ private:
     bool _usePositionTexture = false;
     bool _captureBackBuffer = false;
     bool _exportWarpingMeshes = false;
-    
+
     struct Capture {
         std::string capturePath;
         std::string prefix;

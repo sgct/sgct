@@ -913,7 +913,7 @@ void Engine::render() {
             TrackingManager::instance().updateTrackingDevices();
         }
 #endif
-        
+
         {
             ZoneScopedN("GLFW Poll Events")
             glfwPollEvents();
@@ -1199,7 +1199,6 @@ void Engine::renderFBOTexture(Window& window) {
                 window.frameBufferTexture(Window::TextureIndex::RightEye)
             );
             std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-            //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
         }
     }
 

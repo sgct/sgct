@@ -770,7 +770,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
         const int antiAliasingSamples = numberOfAASamples();
         glfwWindowHint(GLFW_SAMPLES, antiAliasingSamples > 1 ? antiAliasingSamples : 0);
-        
+
         glfwWindowHint(GLFW_AUTO_ICONIFY, _shouldAutoiconify ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_FLOATING, _isFloating ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_DOUBLEBUFFER, _isDoubleBuffered ? GLFW_TRUE : GLFW_FALSE);

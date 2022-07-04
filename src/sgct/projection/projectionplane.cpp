@@ -23,7 +23,7 @@ void ProjectionPlane::offset(const vec3& p) {
     _upperLeft.x += p.x;
     _upperLeft.y += p.y;
     _upperLeft.z += p.z;
-    
+
     _upperRight.x += p.x;
     _upperRight.y += p.y;
     _upperRight.z += p.z;

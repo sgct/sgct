@@ -180,7 +180,6 @@ target_include_directories(
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyxml2 REQUIRED)

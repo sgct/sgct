@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 2.4.4)
+# (abock, 2022-07-04) Modified the required version to suppress CMake deprecation warning
+cmake_minimum_required(VERSION 2.9.0)
+
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
-project(zlib C)
-
-set(VERSION "1.2.8")
+# (aobkc, 2022-07-04) Added the project version to suppress policy CMP0048 warning
+cmake_policy(SET CMP0048 NEW)
+project(zlib LANGUAGES C VERSION 1.2.8)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")

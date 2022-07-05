@@ -15,10 +15,10 @@
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
 #pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
-#elif defined(__GNUC__)
+#endif // WIN32
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif // WIN32
 
 #include <Tracy.hpp>
 #include <TracyOpenGL.hpp>
@@ -32,8 +32,8 @@ void operator delete(void* ptr) noexcept;
 
 #ifdef WIN32
 #pragma warning(pop)
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
 #endif // WIN32
+
+#pragma GCC diagnostic pop
 
 #endif // __SGCT__PROFILING__H__

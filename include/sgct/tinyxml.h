@@ -13,7 +13,7 @@
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
 #pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
-#elif defined(__clang__) && !defined(__GNUC__)
+#elif defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsuggest-destructor-override"
 #pragma clang diagnostic ignored "-Wsuggest-override"
@@ -28,12 +28,10 @@
 
 #ifdef WIN32
 #pragma warning(pop)
-#elif defined(__clang__) && !defined(__GNUC__)
+#elif defined(__clang__)
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif // WIN32
-
-
 
 #endif // __SGCT__TINYXML__H__

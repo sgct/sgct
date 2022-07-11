@@ -12,8 +12,8 @@ function (set_compile_options target)
   set(MSVC_WARNINGS
     "/MP"                 # Multi-threading support
     "/W4"                 # Baseline reasonable warnings
-    "/wd4068"             # unknown pragma
     "/wd4201"       # nonstandard extension used : nameless struct/union  [raised by: GLM]
+    "/wd4068"             # unknown pragma
     "/Zc:strictStrings-"  # Windows header don't adhere to this
     "/Zc:__cplusplus"     # Correctly set the __cplusplus macro
   )

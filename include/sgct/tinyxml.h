@@ -13,24 +13,27 @@
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
 #pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
-#endif // WIN32
-
+#elif defined(__clang__) && !defined(__GNUC__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsuggest-destructor-override"
 #pragma clang diagnostic ignored "-Wsuggest-override"
-
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif // WIN32
 
 #include <tinyxml2.h>
 
 #ifdef WIN32
 #pragma warning(pop)
+#elif defined(__clang__) && !defined(__GNUC__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif // WIN32
 
-#pragma clang diagnostic pop
-#pragma GCC diagnostic pop
+
 
 #endif // __SGCT__TINYXML__H__

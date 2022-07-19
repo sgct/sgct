@@ -23,7 +23,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
 {
     ZoneScoped
 
-    Log::Info(fmt::format("Reading DomeProjection mesh data from '{}', path"));
+    Log::Info(fmt::format("Reading DomeProjection mesh data from '{}'", path));
 
     FILE* meshFile = fopen(path.c_str(), "r");
     if (!meshFile) {

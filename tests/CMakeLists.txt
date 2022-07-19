@@ -16,7 +16,7 @@ add_executable(
   test_config_roundtrip.cpp
 )
 
-target_compile_features(SGCTTest PRIVATE cxx_std_17)
+target_compile_features(SGCTTest PRIVATE cxx_std_20)
 
 target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
 

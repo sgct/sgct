@@ -7,7 +7,7 @@
 ##########################################################################################
 
 function (set_compile_options target)
-  target_compile_features(${target} PRIVATE cxx_std_17)
+  target_compile_features(${target} PRIVATE cxx_std_20)
 
   set(MSVC_WARNINGS
     "/MP"                 # Multi-threading support

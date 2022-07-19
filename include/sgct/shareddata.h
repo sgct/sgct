@@ -91,7 +91,10 @@ template <typename T>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        T& value)
 {
-    static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
+    static_assert(
+        std::is_standard_layout_v<T> && std::is_trivial_v<T>,
+        "Type has to be a plain-old data type"
+    );
 
     value = *reinterpret_cast<const T*>(&buffer[pos]);
     pos += sizeof(T);

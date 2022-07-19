@@ -142,7 +142,7 @@ void SpoutFlatProjection::initTextures() {
                 GL_FLOAT
             );
             Log::Debug(fmt::format(
-                "{0}x{1} depth swap map texture (id: 2}) generated",
+                "{0}x{1} depth swap map texture (id: {2}) generated",
                 _resolutionX, _resolutionY, _textureIdentifiers.depthSwap
             ));
 

@@ -97,7 +97,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
         if (r0 != 1 || r1 != 1 || r2 != 1) {
             throw Error(
                 Error::Component::Pfm, 2054,
-                fmt::format("Error reading correction values in file '{}'")
+                fmt::format("Error reading correction values in file '{}'", path)
             );
         }
     }

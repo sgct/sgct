@@ -198,7 +198,7 @@ void draw2D(const RenderData& data) {
             xPos, yPos,
             vec4{ 0.9f, 0.9f, 0.9f, 1.f },
             fmt::format(
-                i == currentSender ? FormatSelected : Format,
+                fmt::runtime(i == currentSender ? FormatSelected : Format),
                 i, sender.name, sender.width, sender.height)
         );
         yPos += 20.f;

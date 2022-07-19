@@ -261,7 +261,7 @@ void draw(const RenderData& data) {
             pos - pos / 2.f,
             250,
             vec4{ 1.f, 1.f, 1.f, 1.f },
-            fmt::format("Framerate: {.3f}", 1.0 / Engine::instance().statistics().dt())
+            fmt::format("Framerate: {:.3f}", 1.0 / Engine::instance().statistics().dt())
         );
     }
     else {

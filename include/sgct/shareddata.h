@@ -56,7 +56,10 @@ private:
 
 template <typename T>
 void serializeObject(std::vector<std::byte>& buffer, T value) {
-    static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
+    static_assert(
+        std::is_standard_layout_v<T> && std::is_trivial_v<T>,
+        "Type has to be a plain-old data type"
+    );
 
     buffer.insert(
         buffer.end(),
@@ -67,7 +70,10 @@ void serializeObject(std::vector<std::byte>& buffer, T value) {
 
 template <typename T>
 void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value) {
-    static_assert(std::is_pod_v<T>, "Type has to be a plain-old data type");
+    static_assert(
+        std::is_standard_layout_v<T> && std::is_trivial_v<T>,
+        "Type has to be a plain-old data type"
+    );
 
     const uint32_t size = static_cast<uint32_t>(value.size());
     serializeObject(buffer, size);

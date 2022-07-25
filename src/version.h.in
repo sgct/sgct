@@ -11,12 +11,14 @@
 #ifndef __SGCT__VERSION__H__
 #define __SGCT__VERSION__H__
 
+#include <string_view>
+
 namespace sgct {
     constexpr int VersionMajor = @PROJECT_VERSION_MAJOR@;
     constexpr int VersionMinor = @PROJECT_VERSION_MINOR@;
     constexpr int VersionRevision = @PROJECT_VERSION_PATCH@;
 
-    constexpr const char Version[] = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@";
+    constexpr std::string_view Version = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@";
 } // namespace
 
 #endif // __SGCT__VERSION__H__

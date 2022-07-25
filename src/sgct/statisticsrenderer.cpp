@@ -31,14 +31,14 @@ namespace {
     constexpr sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
     constexpr sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
 
-    constexpr const char* StatsVertShader = R"(
+    constexpr std::string_view StatsVertShader = R"(
 #version 330 core
 layout (location = 0) in vec2 in_vertPosition;
 uniform mat4 mvp;
 void main() { gl_Position = mvp * vec4(in_vertPosition, 0.0, 1.0); }
 )";
 
-    constexpr const char* StatsFragShader = R"(
+    constexpr std::string_view StatsFragShader = R"(
 #version 330 core
 uniform vec4 col;
 out vec4 out_color;
@@ -89,7 +89,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
-    _shader.addShaderSource(StatsVertShader, StatsFragShader);
+    _shader.addShaderSource(StatsVertShader, GL_VERTEX_SHADER);
+    _shader.addShaderSource(StatsFragShader, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
@@ -452,8 +453,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         renderHistogram(4, ColorLoopTimeMax);
 
 #ifdef SGCT_HAS_TEXT
-        constexpr const glm::vec2 Pos = glm::vec2(15.f, 10.f);
-        constexpr const text::Alignment mode = text::Alignment::TopLeft;
+        constexpr glm::vec2 Pos = glm::vec2(15.f, 10.f);
+        constexpr text::Alignment mode = text::Alignment::TopLeft;
 
         text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
         text::print(

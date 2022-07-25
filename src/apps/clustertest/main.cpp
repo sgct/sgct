@@ -33,7 +33,7 @@ namespace {
     float speed = 5.f;
     std::vector<float> extraData;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view vertexShader = R"(
 #version 330 core
 
 layout (location = 0) in vec3 vertPosition;
@@ -42,7 +42,7 @@ uniform mat4 matrix;
 void main() { gl_Position = matrix * vec4(vertPosition, 1.0); }
 )";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view fragmentShader = R"(
 #version 330 core
 
 out vec4 color;

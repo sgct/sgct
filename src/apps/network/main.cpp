@@ -31,7 +31,7 @@ namespace {
 
     std::pair<double, int> timerData;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -46,7 +46,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -220,11 +220,7 @@ void initOGL(GLFWwindow*) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance().addShaderProgram(
-        "xform",
-        vertexShader,
-        fragmentShader
-    );
+    ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");

@@ -23,7 +23,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const char* FragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -298,7 +298,8 @@ void CylindricalProjection::initShaders() {
     _shader.deleteProgram();
 
     _shader = ShaderProgram("CylindricalProjectionShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, FragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
 

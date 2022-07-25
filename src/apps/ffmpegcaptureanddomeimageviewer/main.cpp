@@ -81,7 +81,7 @@ namespace {
     bool captureRunning = true;
     bool isRunning = true;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -96,7 +96,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -109,7 +109,7 @@ namespace {
   void main() { color = texture(tex, (uv * scaleUV) + offsetUV); }
 )";
 
-    constexpr const char* fragmentChromaKey = R"(
+    constexpr std::string_view FragmentChromaKey = R"(
   #version 330 core
 
   uniform sampler2D tex;

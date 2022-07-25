@@ -1156,8 +1156,8 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string stereoVertShader = shaders::BaseVert;
-    std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
+    std::string_view stereoVertShader = shaders::BaseVert;
+    std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {
             case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
@@ -1174,7 +1174,8 @@ void Window::loadShaders() {
     }(_stereoMode);
 
     _stereo.shader = ShaderProgram("StereoShader");
-    _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
+    _stereo.shader.addShaderSource(stereoVertShader, GL_VERTEX_SHADER);
+    _stereo.shader.addShaderSource(stereoFragShader, GL_FRAGMENT_SHADER);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();
     _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.id(), "leftTex");

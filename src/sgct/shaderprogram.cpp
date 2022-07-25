@@ -68,11 +68,12 @@ namespace {
 
 namespace sgct {
 
-ShaderProgram::Shader::Shader(GLenum shaderType, const std::string& sourceString)
+ShaderProgram::Shader::Shader(GLenum shaderType, std::string_view sourceString)
     : _shaderType(shaderType)
 {
     // Prepare source code for shader
-    const char* shaderSrc[] = { sourceString.c_str() };
+    constexpr char Null = '\0';
+    const char* shaderSrc[] = { sourceString.data(), &Null};
 
     _shaderId = glCreateShader(_shaderType);
     glShaderSource(_shaderId, 1, shaderSrc, nullptr);
@@ -147,15 +148,15 @@ void ShaderProgram::deleteProgram() {
     _programId = 0;
 }
 
-void ShaderProgram::addShaderSource(std::string src, GLenum type) {
-    Shader v(type, std::move(src));
+void ShaderProgram::addShaderSource(std::string_view src, GLenum type) {
+    Shader v(type, src);
     _shaders.push_back(std::move(v));
 }
 
-void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
-    addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
-    addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
-}
+//void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
+//    addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
+//    addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
+//}
 
 std::string ShaderProgram::name() const {
     return _name;

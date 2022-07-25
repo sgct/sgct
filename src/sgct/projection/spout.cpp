@@ -741,7 +741,7 @@ void SpoutOutputProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    std::string fragmentShader = [](bool useDepth, Settings::DrawBufferType type) {
+    std::string_view fragmentShader = [](bool useDepth, Settings::DrawBufferType type) {
         // It would be nice to do a multidimensional switch statement -.-
 
         constexpr auto tuple = [](bool depth, Settings::DrawBufferType t) -> uint16_t {
@@ -790,9 +790,10 @@ void SpoutOutputProjection::initShaders() {
     }(_mappingType);
 
     _shader = ShaderProgram(std::move(name));
-    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(fragmentShader, GL_FRAGMENT_SHADER);
 
-    std::string samplerShaderCode = [](Mapping mappingType) {
+    std::string_view samplerShaderCode = [](Mapping mappingType) {
         switch (mappingType) {
             case Mapping::Fisheye:         return shaders_fisheye::SampleFun;
             case Mapping::Equirectangular: return shaders_fisheye::SampleLatlonFun;
@@ -863,7 +864,8 @@ void SpoutOutputProjection::initShaders() {
 
     _flatShader.deleteProgram();
     _flatShader = ShaderProgram("SpoutShader");
-    _flatShader.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
+    _flatShader.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+    _flatShader.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
     _flatShader.createAndLinkProgram();
     _flatShader.bind();
     glUniform1i(glGetUniformLocation(_flatShader.id(), "tex"), 0);
@@ -874,7 +876,11 @@ void SpoutOutputProjection::initShaders() {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
-            shaders_fisheye::FisheyeDepthCorrectionFrag
+            GL_VERTEX_SHADER
+        );
+        _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::FisheyeDepthCorrectionFrag,
+            GL_FRAGMENT_SHADER
         );
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();

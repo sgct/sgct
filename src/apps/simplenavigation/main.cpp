@@ -65,7 +65,7 @@ namespace {
         float mZ = 0.f;
     };
 
-    constexpr const char* gridVertexShader = R"(
+    constexpr std::string_view GridVertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec3 vertPosition;
@@ -77,13 +77,13 @@ namespace {
     gl_Position =  mvp * vec4(vertPosition, 1.0);
   })";
 
-    constexpr const char* gridFragmentShader = R"(
+    constexpr std::string_view GridFragmentShader = R"(
   #version 330 core
   out vec4 color;
   void main() { color = vec4(1.0, 1.0, 1.0, 0.8); }
 )";
 
-    constexpr const char* pyramidVertexShader = R"(
+    constexpr std::string_view PyramidVertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec3 vertPosition;
@@ -95,7 +95,7 @@ namespace {
     gl_Position =  mvp * vec4(vertPosition, 1.0);
   })";
 
-    constexpr const char* pyramidFragmentShader = R"(
+    constexpr std::string_view PyramidFragmentShader = R"(
   #version 330 core
   uniform float alpha;
   out vec4 color;
@@ -283,8 +283,8 @@ void initOGL(GLFWwindow*) {
 
     ShaderManager::instance().addShaderProgram(
         "gridShader",
-        gridVertexShader,
-        gridFragmentShader
+        GridVertexShader,
+        GridFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("gridShader");
     prog.bind();
@@ -293,8 +293,8 @@ void initOGL(GLFWwindow*) {
 
     ShaderManager::instance().addShaderProgram(
         "pyramidShader",
-        pyramidVertexShader,
-        pyramidFragmentShader
+        PyramidVertexShader,
+        PyramidFragmentShader
     );
     const ShaderProgram& pyramidProg =
         ShaderManager::instance().shaderProgram("pyramidShader");

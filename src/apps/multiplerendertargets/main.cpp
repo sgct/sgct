@@ -29,7 +29,7 @@ namespace {
 
     unsigned int textureId = 0;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -53,7 +53,7 @@ namespace {
     p  = gl_Position;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec2 uv;
@@ -131,7 +131,7 @@ void postSyncPreDraw() {
 }
 
 void initOGL(GLFWwindow*) {
-    ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("MRT", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
     prg.bind();
     textureLoc = glGetUniformLocation(prg.id(), "tDiffuse");

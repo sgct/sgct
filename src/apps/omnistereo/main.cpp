@@ -44,7 +44,7 @@ namespace {
     std::string turnMapSrc;
     std::string sepMapSrc;
 
-    constexpr const char* baseVertexShader = R"(
+    constexpr std::string_view BaseVertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -60,7 +60,7 @@ namespace {
     uv = texCoords;
   })";
 
-   constexpr const char* baseFragmentShader = R"(
+   constexpr std::string_view BaseFragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -71,7 +71,7 @@ namespace {
   void main() { color = texture(tex, uv); }
 )";
 
-   constexpr const char* gridVertexShader = R"(
+   constexpr std::string_view GridVertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec3 vertPositions;
@@ -83,7 +83,7 @@ namespace {
     gl_Position =  mvp * vec4(vertPositions, 1.0);
   })";
 
-   constexpr const char* gridFragmentShader = R"(
+   constexpr std::string_view GridFragmentShader = R"(
   #version 330 core
 
   out vec4 color;
@@ -468,13 +468,13 @@ void initOGL(GLFWwindow*) {
     glFrontFace(GL_CCW);
 
     ShaderManager& sm = ShaderManager::instance();
-    sm.addShaderProgram("grid", gridVertexShader, gridFragmentShader);
+    sm.addShaderProgram("grid", GridVertexShader, GridFragmentShader);
     const ShaderProgram& gridProg = sm.shaderProgram("grid");
     gridProg.bind();
     gridMatrixLoc = glGetUniformLocation(gridProg.id(), "mvp");
     gridProg.unbind();
 
-    sm.addShaderProgram("xform", baseVertexShader, baseFragmentShader);
+    sm.addShaderProgram("xform", BaseVertexShader, BaseFragmentShader);
     const ShaderProgram& xformProg = sm.shaderProgram("xform");
     xformProg.bind();
     matrixLoc = glGetUniformLocation(xformProg.id(), "mvp");

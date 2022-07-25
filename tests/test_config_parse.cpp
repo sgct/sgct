@@ -31,7 +31,7 @@ namespace {
 //
 
 TEST_CASE("Parse/SGCT: 3DTV", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -120,7 +120,7 @@ TEST_CASE("Parse/SGCT: 3DTV", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Kinect", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -559,7 +559,7 @@ TEST_CASE("Parse/SGCT: Kinect", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Multi Window", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -864,7 +864,7 @@ TEST_CASE("Parse/SGCT: Multi Window", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Cylindrical", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -941,7 +941,7 @@ TEST_CASE("Parse/SGCT: Single Cylindrical", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Equirectangular", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1019,7 +1019,7 @@ TEST_CASE("Parse/SGCT: Single Equirectangular", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Fisheye FXAA", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1112,7 +1112,7 @@ TEST_CASE("Parse/SGCT: Single Fisheye FXAA", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Fisheye", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1203,7 +1203,7 @@ TEST_CASE("Parse/SGCT: Single Fisheye", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single SBS Stereo", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1297,7 +1297,7 @@ TEST_CASE("Parse/SGCT: Single SBS Stereo", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Two Win 3D", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1466,7 +1466,7 @@ TEST_CASE("Parse/SGCT: Single Two Win 3D", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single Two Win", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1626,7 +1626,7 @@ TEST_CASE("Parse/SGCT: Single Two Win", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Single", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1716,7 +1716,7 @@ TEST_CASE("Parse/SGCT: Single", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Spherical Mirror 4 Meshes", "[parse]") {
-    constexpr const char Source[] = R"a(
+    constexpr std::string_view Source = R"a(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1829,7 +1829,7 @@ TEST_CASE("Parse/SGCT: Spherical Mirror 4 Meshes", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Spherical Mirror", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -1944,7 +1944,7 @@ TEST_CASE("Parse/SGCT: Spherical Mirror", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Spout Output Cubemap", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2077,7 +2077,7 @@ TEST_CASE("Parse/SGCT: Spout Output Cubemap", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Spout Output Equirectangular", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2220,7 +2220,7 @@ TEST_CASE("Parse/SGCT: Spout Output Equirectangular", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Spout Output Fisheye", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2353,7 +2353,7 @@ TEST_CASE("Parse/SGCT: Spout Output Fisheye", "[parse]") {
 }
 
 TEST_CASE("Parse/SGCT: Two Nodes", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "127.0.0.1",
@@ -2517,7 +2517,7 @@ TEST_CASE("Parse/SGCT: Two Nodes", "[parse]") {
 //
 
 TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2670,7 +2670,7 @@ TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2789,7 +2789,7 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -2960,7 +2960,7 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single Fisheye GUI", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3123,7 +3123,7 @@ TEST_CASE("Parse/OpenSpace: Single Fisheye GUI", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single Fisheye", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3218,7 +3218,7 @@ TEST_CASE("Parse/OpenSpace: Single Fisheye", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3401,7 +3401,7 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3516,7 +3516,7 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single Two Win", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "127.0.0.1",
@@ -3671,7 +3671,7 @@ TEST_CASE("Parse/OpenSpace: Single Two Win", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -3784,7 +3784,7 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Spherical Mirror GUI", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "127.0.0.1",
@@ -3965,7 +3965,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror GUI", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Spherical Mirror", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "127.0.0.1",
@@ -4074,7 +4074,7 @@ TEST_CASE("Parse/OpenSpace: Spherical Mirror", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Spout Output", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -4165,7 +4165,7 @@ TEST_CASE("Parse/OpenSpace: Spout Output", "[parse]") {
 }
 
 TEST_CASE("Parse/OpenSpace: Two Nodes", "[parse]") {
-    constexpr const char Source[] = R"(
+    constexpr std::string_view Source = R"(
 {
   "version": 1,
   "masteraddress": "127.0.0.1",

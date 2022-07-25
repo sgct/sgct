@@ -41,7 +41,7 @@ namespace {
     // variables to share across cluster
     double currentTime = 0.0;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -65,7 +65,7 @@ namespace {
     }
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
   uniform sampler2D tex;
   in vec2 uv;
@@ -179,7 +179,7 @@ void initOGL(GLFWwindow*) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 

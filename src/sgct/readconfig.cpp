@@ -2486,7 +2486,7 @@ config::Cluster readConfig(const std::string& filename) {
     return cluster;
 }
 
-sgct::config::Cluster readJsonConfig(const std::string& configuration) {
+sgct::config::Cluster readJsonConfig(std::string_view configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
 
     auto it = j.find("version");

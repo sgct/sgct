@@ -569,8 +569,8 @@ void FisheyeProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    std::string fragmentShader = [](bool isOffAxis, bool useDepth,
-                                    Settings::DrawBufferType type)
+    std::string_view fragmentShader = [](bool isOffAxis, bool useDepth,
+                                         Settings::DrawBufferType type)
     {
         // It would be nice to do a multidimensional switch statement -.-
 
@@ -636,11 +636,11 @@ void FisheyeProjection::initShaders() {
         Settings::instance().drawBufferType()
     );
 
-    std::string samplerShader =
+    std::string_view samplerShader =
         _isOffAxis ? shaders_fisheye::SampleOffsetFun : shaders_fisheye::SampleFun;
 
     _shader = ShaderProgram("FisheyeShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, fragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
     _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
     _shader.addShaderSource(
         isCubic ?
@@ -707,7 +707,11 @@ void FisheyeProjection::initShaders() {
         _depthCorrectionShader = ShaderProgram("FisheyeDepthCorrectionShader");
         _depthCorrectionShader.addShaderSource(
             shaders_fisheye::BaseVert,
-            shaders_fisheye::FisheyeDepthCorrectionFrag
+            GL_VERTEX_SHADER
+        );
+        _depthCorrectionShader.addShaderSource(
+            shaders_fisheye::FisheyeDepthCorrectionFrag,
+            GL_FRAGMENT_SHADER
         );
         _depthCorrectionShader.createAndLinkProgram();
         _depthCorrectionShader.bind();

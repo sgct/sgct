@@ -56,7 +56,7 @@ namespace {
 
     float radius = 7.4f;
 
-    constexpr const char* gridVertexShader = R"(
+    constexpr std::string_view gridVertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec2 in_position;
@@ -84,7 +84,7 @@ void main() {
 }
 )";
 
-    constexpr const char* gridFragmentShader = R"(
+    constexpr std::string_view gridFragmentShader = R"(
 #version 330 core
 
 in vec4 tr_color;
@@ -93,7 +93,7 @@ out vec4 color;
 void main() { color = tr_color; }
 )";
 
-    constexpr const char* boxVertexShader = R"(
+    constexpr std::string_view boxVertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec3 in_position;
@@ -113,7 +113,7 @@ void main() {
 }
 )";
 
-    constexpr const char* boxFragmentShader = R"(
+    constexpr std::string_view boxFragmentShader = R"(
 #version 330 core
 
 in vec2 tr_uv;

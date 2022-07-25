@@ -19,7 +19,7 @@ namespace {
 
     GLint matrixLoc = -1;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec3 vertPosition;
@@ -33,7 +33,7 @@ namespace {
     fragColor = vertColor;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec3 fragColor;
@@ -46,7 +46,7 @@ namespace {
 using namespace sgct;
 
 void initOGL(GLFWwindow*) {
-    const GLfloat positionData[] = {
+    constexpr GLfloat PositionData[] = {
         // position           color
         -0.5f, -0.5f, 0.f,   1.f, 0.f, 0.f,
          0.f, 0.5f, 0.f,     0.f, 1.f, 0.f,
@@ -61,7 +61,7 @@ void initOGL(GLFWwindow*) {
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     // upload data to GPU
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PositionData), PositionData, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(1);
@@ -71,7 +71,7 @@ void initOGL(GLFWwindow*) {
 
     glBindVertexArray(0);
 
-    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");

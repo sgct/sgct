@@ -38,8 +38,8 @@ ShaderManager::~ShaderManager() {
     }
 }
 
-void ShaderManager::addShaderProgram(std::string name, std::string vertexSrc,
-                                     std::string fragmentSrc)
+void ShaderManager::addShaderProgram(std::string name, std::string_view vertexSrc,
+                                     std::string_view fragmentSrc)
 {
     // Check if shader already exists
     if (shaderProgramExists(name)) {
@@ -51,8 +51,8 @@ void ShaderManager::addShaderProgram(std::string name, std::string vertexSrc,
 
     // If shader don't exist, create it and add to container
     ShaderProgram sp(std::move(name));
-    sp.addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
-    sp.addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
+    sp.addShaderSource(vertexSrc, GL_VERTEX_SHADER);
+    sp.addShaderSource(fragmentSrc, GL_FRAGMENT_SHADER);
     sp.createAndLinkProgram();
     _shaderPrograms.push_back(std::move(sp));
 }

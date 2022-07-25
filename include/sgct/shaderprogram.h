@@ -52,16 +52,7 @@ public:
      *             GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
      * \throws std::runtime_error If the adding of the shaders failed
      */
-    void addShaderSource(std::string src, unsigned int type);
-
-    /**
-     * Creates and adds a vertex and fragment shader and adds them to the shader program.
-     *
-     * \param vertexSrc Source text for the vertex program
-     * \param fragmentSrc Source text for the fragment program
-     * \throws std::runtime_error If the adding of the shaders failed
-     */
-    void addShaderSource(std::string vertexSrc, std::string fragmentSrc);
+    void addShaderSource(std::string_view src, unsigned int type);
 
     /**
      * Will create the program and link the shaders. The shader sources must have been set
@@ -100,7 +91,7 @@ private:
          *        or GL_FRAGMENT_SHADER
          * \param sourceString String with shader source code
          */
-        Shader(unsigned int shaderType, const std::string& sourceString);
+        Shader(unsigned int shaderType, std::string_view sourceString);
 
         Shader(const Shader& rhs);
         Shader(Shader&& rhs) noexcept;

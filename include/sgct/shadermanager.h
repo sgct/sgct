@@ -35,8 +35,8 @@ public:
      * \param fragmentSrc The fragment shader source code
      * \throws std::runtime_error If there was an error creating the shader program
      */
-    void addShaderProgram(std::string name, std::string vertexSrc,
-        std::string fragmentSrc);
+    void addShaderProgram(std::string name, std::string_view vertexSrc,
+        std::string_view fragmentSrc);
 
     /**
      * Removes a shader program from the manager. All resources allocated for the program

@@ -11,7 +11,7 @@
 
 namespace sgct::shaders {
 
-constexpr const char* BaseVert = R"(
+constexpr std::string_view BaseVert = R"(
   #version 330 core
 
   layout (location = 0) in vec2 in_position;
@@ -27,7 +27,7 @@ constexpr const char* BaseVert = R"(
   }
 )";
 
-constexpr const char* BaseFrag = R"(
+constexpr std::string_view BaseFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -41,7 +41,7 @@ constexpr const char* BaseFrag = R"(
   }
 )";
 
-constexpr const char* OverlayFrag = R"(
+constexpr std::string_view OverlayFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -55,7 +55,7 @@ constexpr const char* OverlayFrag = R"(
   }
 )";
 
-constexpr const char* AnaglyphRedCyanFrag = R"(
+constexpr std::string_view AnaglyphRedCyanFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -75,7 +75,7 @@ constexpr const char* AnaglyphRedCyanFrag = R"(
   }
 )";
 
-constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
+constexpr std::string_view AnaglyphRedCyanWimmerFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -93,7 +93,7 @@ constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
   }
 )";
 
-constexpr const char* AnaglyphAmberBlueFrag = R"(
+constexpr std::string_view AnaglyphAmberBlueFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -112,7 +112,7 @@ constexpr const char* AnaglyphAmberBlueFrag = R"(
   }
 )";
 
-constexpr const char* CheckerBoardFrag = R"(
+constexpr std::string_view CheckerBoardFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -128,7 +128,7 @@ constexpr const char* CheckerBoardFrag = R"(
   }
 )";
 
-constexpr const char* CheckerBoardInvertedFrag = R"(
+constexpr std::string_view CheckerBoardInvertedFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -144,7 +144,7 @@ constexpr const char* CheckerBoardInvertedFrag = R"(
   }
 )";
 
-constexpr const char* VerticalInterlacedFrag = R"(
+constexpr std::string_view VerticalInterlacedFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -160,7 +160,7 @@ constexpr const char* VerticalInterlacedFrag = R"(
   }
 )";
 
-constexpr const char* VerticalInterlacedInvertedFrag = R"(
+constexpr std::string_view VerticalInterlacedInvertedFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -176,7 +176,7 @@ constexpr const char* VerticalInterlacedInvertedFrag = R"(
   }
 )";
 
-constexpr const char* SBSFrag = R"(
+constexpr std::string_view SBSFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -198,7 +198,7 @@ constexpr const char* SBSFrag = R"(
   }
 )";
 
-constexpr const char* SBSInvertedFrag = R"(
+constexpr std::string_view SBSInvertedFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -217,7 +217,7 @@ constexpr const char* SBSInvertedFrag = R"(
   }
 )";
 
-constexpr const char* TBFrag = R"(
+constexpr std::string_view TBFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -236,7 +236,7 @@ constexpr const char* TBFrag = R"(
   }
 )";
 
-constexpr const char* TBInvertedFrag = R"(
+constexpr std::string_view TBInvertedFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -255,7 +255,7 @@ constexpr const char* TBInvertedFrag = R"(
   }
 )";
 
-constexpr const char* DummyStereoFrag = R"(
+constexpr std::string_view DummyStereoFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -270,7 +270,7 @@ constexpr const char* DummyStereoFrag = R"(
   }
 )";
 
-constexpr const char* FXAAVert = R"(
+constexpr std::string_view FXAAVert = R"(
   #version 330 core
 
   layout (location = 0) in vec3 in_position;
@@ -293,7 +293,7 @@ constexpr const char* FXAAVert = R"(
   }
 )";
 
-constexpr const char* FXAAFrag = R"(
+constexpr std::string_view FXAAFrag = R"(
   #version 330 core
 
   // FXAA_EDGE_THRESHOLD: The minimum amount of local contrast required to apply algorithm
@@ -390,7 +390,7 @@ constexpr const char* FXAAFrag = R"(
 
 namespace sgct::shaders_fisheye {
 
-constexpr const char* RotationFourFaceCubeFun = R"(
+constexpr std::string_view RotationFourFaceCubeFun = R"(
   #version 330 core
 
   vec3 rotate(vec3 dir) {
@@ -403,7 +403,7 @@ constexpr const char* RotationFourFaceCubeFun = R"(
   }
 )";
 
-constexpr const char* RotationFiveSixFaceCubeFun = R"(
+constexpr std::string_view RotationFiveSixFaceCubeFun = R"(
   #version 330 core
 
   vec3 rotate(vec3 dir) {
@@ -415,7 +415,7 @@ constexpr const char* RotationFiveSixFaceCubeFun = R"(
   }
 )";
 
-constexpr const char* RotationFun = R"(
+constexpr std::string_view RotationFun = R"(
   #version 330 core
 
   uniform mat4 rotMatrix;
@@ -425,7 +425,7 @@ constexpr const char* RotationFun = R"(
   }
 )";
 
-constexpr const char* SampleFun = R"(
+constexpr std::string_view SampleFun = R"(
   #version 330 core
 
   uniform float halfFov;
@@ -448,7 +448,7 @@ constexpr const char* SampleFun = R"(
   }
 )";
 
-constexpr const char* SampleLatlonFun = R"(
+constexpr std::string_view SampleLatlonFun = R"(
   #version 330 core
 
   vec3 rotate(vec3 dir);
@@ -461,7 +461,7 @@ constexpr const char* SampleLatlonFun = R"(
   }
 )";
 
-constexpr const char* SampleOffsetFun = R"(
+constexpr std::string_view SampleOffsetFun = R"(
   #version 330 core
 
   uniform float halfFov;
@@ -488,7 +488,7 @@ constexpr const char* SampleOffsetFun = R"(
   }
 )";
 
-constexpr const char* InterpolateLinearFun = R"(
+constexpr std::string_view InterpolateLinearFun = R"(
   #version 330 core
 
   vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg);
@@ -498,7 +498,7 @@ constexpr const char* InterpolateLinearFun = R"(
   }
 )";
 
-constexpr const char* InterpolateCubicFun = R"(
+constexpr std::string_view InterpolateCubicFun = R"(
   #version 330 core
 
   uniform float size;
@@ -542,7 +542,7 @@ constexpr const char* InterpolateCubicFun = R"(
   }
 )";
 
-constexpr const char* BaseVert = R"(
+constexpr std::string_view BaseVert = R"(
   #version 330 core
 
   layout (location = 0) in vec3 in_position;
@@ -555,7 +555,7 @@ constexpr const char* BaseVert = R"(
   }
 )";
 
-constexpr const char* FisheyeFrag = R"(
+constexpr std::string_view FisheyeFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -571,7 +571,7 @@ constexpr const char* FisheyeFrag = R"(
   }
 )";
 
-constexpr const char* FisheyeFragNormal = R"(
+constexpr std::string_view FisheyeFragNormal = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -590,7 +590,7 @@ constexpr const char* FisheyeFragNormal = R"(
   }
 )";
 
-constexpr const char* FisheyeFragPosition = R"(
+constexpr std::string_view FisheyeFragPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -609,7 +609,7 @@ constexpr const char* FisheyeFragPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragNormalPosition = R"(
+constexpr std::string_view FisheyeFragNormalPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -631,7 +631,7 @@ constexpr const char* FisheyeFragNormalPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragDepth = R"(
+constexpr std::string_view FisheyeFragDepth = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -649,7 +649,7 @@ constexpr const char* FisheyeFragDepth = R"(
   }
 )";
 
-constexpr const char* FisheyeFragDepthNormal = R"(
+constexpr std::string_view FisheyeFragDepthNormal = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -670,7 +670,7 @@ constexpr const char* FisheyeFragDepthNormal = R"(
   }
 )";
 
-constexpr const char* FisheyeFragDepthPosition = R"(
+constexpr std::string_view FisheyeFragDepthPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -691,7 +691,7 @@ constexpr const char* FisheyeFragDepthPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragDepthNormalPosition = R"(
+constexpr std::string_view FisheyeFragDepthNormalPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -715,7 +715,7 @@ constexpr const char* FisheyeFragDepthNormalPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxis = R"(
+constexpr std::string_view FisheyeFragOffAxis = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -731,7 +731,7 @@ constexpr const char* FisheyeFragOffAxis = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisNormal = R"(
+constexpr std::string_view FisheyeFragOffAxisNormal = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -750,7 +750,7 @@ constexpr const char* FisheyeFragOffAxisNormal = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisPosition = R"(
+constexpr std::string_view FisheyeFragOffAxisPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -769,7 +769,7 @@ constexpr const char* FisheyeFragOffAxisPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
+constexpr std::string_view FisheyeFragOffAxisNormalPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -791,7 +791,7 @@ constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisDepth = R"(
+constexpr std::string_view FisheyeFragOffAxisDepth = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -809,7 +809,7 @@ constexpr const char* FisheyeFragOffAxisDepth = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
+constexpr std::string_view FisheyeFragOffAxisDepthNormal = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -830,7 +830,7 @@ constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
+constexpr std::string_view FisheyeFragOffAxisDepthPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -851,7 +851,7 @@ constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
+constexpr std::string_view FisheyeFragOffAxisDepthNormalPosition = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -875,7 +875,7 @@ constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
   }
 )";
 
-constexpr const char* FisheyeDepthCorrectionFrag = R"(
+constexpr std::string_view FisheyeDepthCorrectionFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;

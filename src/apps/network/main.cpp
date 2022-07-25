@@ -224,7 +224,7 @@ void initOGL(GLFWwindow*) {
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("xform");
     prg.bind();
     matrixLoc = glGetUniformLocation(prg.id(), "mvp");
-    glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0 );
+    glUniform1i(glGetUniformLocation(prg.id(), "tex"), 0);
     prg.unbind();
 
     for (const std::unique_ptr<Window>& win : Engine::instance().windows()) {

@@ -44,8 +44,8 @@ class Font;
  *
  * \code{.cpp}
  * //Add Verdana size 14 to the FontManager using the system font path
- * if (!sgct::text::FontManager::instance().addFont( "Verdana", "verdana.ttf"))
- *    sgct::text::FontManager::instance().getFont( "Verdana", 14 );
+ * if (!sgct::text::FontManager::instance().addFont("Verdana", "verdana.ttf"))
+ *    sgct::text::FontManager::instance().getFont("Verdana", 14);
  *
  * //Add Special font from local path
  * if (!sgct::text::FontManager::instance().addFont(

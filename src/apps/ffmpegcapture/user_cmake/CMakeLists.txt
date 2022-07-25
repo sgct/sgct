@@ -30,50 +30,50 @@ set_target_properties(${APP_NAME} PROPERTIES
 	
 if (MSVC)
 	option(USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
-endif()
+endif ()
 
-if( APPLE )
+if (APPLE)
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
-	if(CMAKE_GENERATOR STREQUAL Xcode)
+	if (CMAKE_GENERATOR STREQUAL Xcode)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
-	endif()
-endif()
+	endif ()
+endif ()
 	
-if(NOT DEFINED SGCT_RELEASE_LIBRARY)
-	if(SGCT_CPP11)	
+if (NOT DEFINED SGCT_RELEASE_LIBRARY)
+	if (SGCT_CPP11)	
 		find_library(SGCT_RELEASE_LIBRARY
 			NAMES sgct_cpp11 libsgct_cpp11 REQUIRED)
-	else()
+	else ()
 		find_library(SGCT_RELEASE_LIBRARY
 			NAMES sgct libsgct REQUIRED)
-	endif()
-endif()
+	endif ()
+endif ()
 		
-if(NOT DEFINED SGCT_DEBUG_LIBRARY)		
-	if(SGCT_CPP11)	
+if (NOT DEFINED SGCT_DEBUG_LIBRARY)		
+	if (SGCT_CPP11)	
 		find_library(SGCT_DEBUG_LIBRARY 
 			NAMES sgct_cpp11d libsgct_cpp11d REQUIRED)
-	else()
+	else ()
 		find_library(SGCT_DEBUG_LIBRARY 
 			NAMES sgctd libsgctd REQUIRED)
-	endif()
-endif()
+	endif ()
+endif ()
 
-if(NOT DEFINED SGCT_INCLUDE_DIRECTORY)
-	if( WIN32 )
+if (NOT DEFINED SGCT_INCLUDE_DIRECTORY)
+	if (WIN32)
 		find_path(SGCT_INCLUDE_DIRECTORY 
 			NAMES sgct
 			PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
 			REQUIRED)
-	else()
+	else ()
 		find_path(SGCT_INCLUDE_DIRECTORY 
 			NAMES sgct
 			PATH_SUFFIXES sgct
 			PATHS $ENV{SGCT_ROOT_DIR}/include
 			REQUIRED)
-	endif()
-endif()
+	endif ()
+endif ()
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
@@ -93,21 +93,21 @@ set(FFMPEG_LIBS
 	${FFMPEG_LIBSWSCALE_LIBRARIES}
 	${FFMPEG_LIBAVRESAMPLE_LIBRARIES})
 
-if( MSVC )
+if (MSVC)
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
 		ws2_32
 		${FFMPEG_LIBS}
 	)
-elseif( WIN32 ) #MINGW or similar
+elseif (WIN32) #MINGW or similar
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
 		ws2_32
 		${FFMPEG_LIBS}
 	)
-elseif( APPLE )
+elseif (APPLE)
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
 	find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
@@ -120,7 +120,7 @@ elseif( APPLE )
 		${COREVIDEO_LIBRARY}
 		${FFMPEG_LIBS}
 	)
-else() #linux
+else () #linux
 	find_package(X11 REQUIRED)
 	find_package(Threads REQUIRED)
 
@@ -136,73 +136,70 @@ else() #linux
 		${CMAKE_THREAD_LIBS_INIT}
 		${FFMPEG_LIBS}		
 	)
-endif()
+endif ()
 
-if( MSVC )
-	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
-	
-		
+if (MSVC)
 	if (NOT USE_MSVC_RUNTIMES)
 		foreach (flag ${CompilerFlags})
 			if (${flag} MATCHES "/MD")
 				string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-			endif()
+			endif ()
 			if (${flag} MATCHES "/MDd")
 				string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
-			endif()
+			endif ()
 
 		endforeach()
 
-	endif()
+	endif ()
 
-	if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+	if ("${MSVC_VERSION}" LESS 1600) # less than visual studio 2010
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
-		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
+		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}")
 		
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
-		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
-	else()
+		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}")
+	else ()
 		STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
-		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
+		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}")
 		
 		STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
-		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
-	endif()
+		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}")
+	endif ()
 	
 	#MESSAGE(STATUS "flags: ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
-endif()
+endif ()
 	
-if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
-	add_definitions( "/MP" )
-endif()
+if (MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
+	add_definitions("/MP")
+endif ()
 
-if( WIN32 )
+if (WIN32)
 	add_definitions(-D__WIN32__)
-	if( MINGW )
+	if (MINGW)
 		set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-	endif()
-elseif( APPLE  )
+	endif ()
+elseif (APPLE)
 	add_definitions(-D__APPLE__)
-	if(SGCT_CPP11)
+	if (SGCT_CPP11)
 		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
 		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
 		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libc++")
-	else()
+	else ()
 		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
 		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libstdc++")
-	endif()
-else()
+	endif ()
+else ()
 	add_definitions(-D__LINUX__)
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-endif()
+endif ()
 	
-#if( CMAKE_COMPILER_IS_GNUCXX )
+#if (CMAKE_COMPILER_IS_GNUCXX)
 #	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
-#endif()
+#endif ()
 
 target_link_libraries(${APP_NAME} ${LIBS})

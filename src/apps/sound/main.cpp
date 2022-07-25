@@ -100,7 +100,7 @@ void myInitOGLFun() {
 }
 
 void myPostSyncPreDrawFun() {
-    float angle = glm::radians(static_cast<float>( curr_time.getVal()) * speed);
+    float angle = glm::radians(static_cast<float>(curr_time.getVal()) * speed);
     glm::vec4 p;
     p.x = objectRadius * std::sin(angle);
     p.z = objectRadius * std::cos(angle);

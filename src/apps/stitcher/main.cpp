@@ -211,7 +211,7 @@ void preSync() {
         takeScreenshot = true;
         iterator++;
     }
-    else if (sequence && iterator <= stopIndex && numberOfDigits == 0 ) {
+    else if (sequence && iterator <= stopIndex && numberOfDigits == 0) {
         for (size_t i = 0; i < numberOfTextures; i++) {
             textureIndices[i] = TextureManager::instance().loadTexture(
                 texturePaths[i],

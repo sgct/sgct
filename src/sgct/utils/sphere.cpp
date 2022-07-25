@@ -48,7 +48,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
     // (duplicates at texture seam s=0 / s=1)
     for (size_t j = 0; j < vsegs - 1; j++) {
         // vsegs-1 latitude rings of vertices
-        const double theta = (static_cast<double>(j + 1) / vsegs ) * glm::pi<double>();
+        const double theta = (static_cast<double>(j + 1) / vsegs) * glm::pi<double>();
         const float y = static_cast<float>(cos(theta));
         const float r = static_cast<float>(sin(theta));
 

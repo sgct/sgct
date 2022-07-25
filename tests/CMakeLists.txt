@@ -23,7 +23,7 @@ target_compile_definitions(SGCTTest PUBLIC BASE_PATH="${PROJECT_SOURCE_DIR}")
 if (MSVC)
   target_compile_options(SGCTTest PRIVATE "-Od" "/bigobj")
 else ()
-  target_compile_options(SGCTTest PRIVATE "-O0" )
+  target_compile_options(SGCTTest PRIVATE "-O0")
 endif ()
 
 target_include_directories(SGCTTest PRIVATE "${PROJECT_SOURCE_DIR}/ext/catch2/single_include")

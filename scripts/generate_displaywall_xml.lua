@@ -34,7 +34,7 @@ end
 
 --Reference a lua configuration file here with display wall dimensions & setup
 configFileInput = arg[1]
-if (configFileInput == nil ) then
+if (configFileInput == nil) then
     print("Error: A .lua file is required for display wall configuration as arg 1")
     os.exit(-1)
 end
@@ -47,7 +47,7 @@ end
 local cfg = require(sansExtension)
 
 outputFile = arg[2]
-if (outputFile == nil ) then
+if (outputFile == nil) then
     print("Error: An output .xml filename is required as arg 2")
     os.exit(-1)
 end

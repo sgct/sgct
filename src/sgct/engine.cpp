@@ -50,11 +50,11 @@
 namespace sgct {
 
 namespace {
-    constexpr const bool RunFrameLockCheckThread = true;
-    constexpr const std::chrono::milliseconds FrameLockTimeout(100);
+    constexpr bool RunFrameLockCheckThread = true;
+    constexpr std::chrono::milliseconds FrameLockTimeout(100);
 
-    constexpr const float FxaaSubPixTrim = 1.f / 4.f;
-    constexpr const float FxaaSubPixOffset = 1.f / 2.f;
+    constexpr float FxaaSubPixTrim = 1.f / 4.f;
+    constexpr float FxaaSubPixOffset = 1.f / 2.f;
 
     enum class BufferMode { BackBufferBlack, RenderToTexture };
 
@@ -266,8 +266,8 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         cluster.success = true;
 
         // Create a default configuration
-        constexpr const float hFov = 90.f;
-        constexpr const float vFov = hFov / (16.f / 9.f);
+        constexpr float hFov = 90.f;
+        constexpr float vFov = hFov / (16.f / 9.f);
 
         sgct::config::PlanarProjection proj;
         sgct::config::PlanarProjection::FOV fov;
@@ -561,7 +561,8 @@ void Engine::initialize() {
 
         _fxaa = FXAAShader();
         _fxaa->shader = ShaderProgram("FXAAShader");
-        _fxaa->shader.addShaderSource(shaders::FXAAVert, shaders::FXAAFrag);
+        _fxaa->shader.addShaderSource(shaders::FXAAVert, GL_VERTEX_SHADER);
+        _fxaa->shader.addShaderSource(shaders::FXAAFrag, GL_FRAGMENT_SHADER);
         _fxaa->shader.createAndLinkProgram();
         _fxaa->shader.bind();
 
@@ -588,14 +589,16 @@ void Engine::initialize() {
 
         // Used for overlays & mono.
         _fboQuad = ShaderProgram("FBOQuadShader");
-        _fboQuad.addShaderSource(shaders::BaseVert, shaders::BaseFrag);
+        _fboQuad.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+        _fboQuad.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
         _fboQuad.createAndLinkProgram();
         _fboQuad.bind();
         glUniform1i(glGetUniformLocation(_fboQuad.id(), "tex"), 0);
         ShaderProgram::unbind();
 
         _overlay = ShaderProgram("OverlayShader");
-        _overlay.addShaderSource(shaders::BaseVert, shaders::OverlayFrag);
+        _overlay.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+        _overlay.addShaderSource(shaders::OverlayFrag, GL_FRAGMENT_SHADER);
         _overlay.createAndLinkProgram();
         _overlay.bind();
         glUniform1i(glGetUniformLocation(_overlay.id(), "tex"), 0);
@@ -619,13 +622,13 @@ void Engine::initialize() {
 
 #ifdef SGCT_HAS_TEXT
 #ifdef WIN32
-    constexpr const char* FontName = "verdanab.ttf";
+    constexpr std::string_view FontName = "verdanab.ttf";
 #elif defined(__APPLE__)
-    constexpr const char* FontName = "HelveticaNeue.ttc";
+    constexpr std::string_view FontName = "HelveticaNeue.ttc";
 #else
-    constexpr const char* FontName = "FreeSansBold.ttf";
+    constexpr std::string_view FontName = "FreeSansBold.ttf";
 #endif
-    text::FontManager::instance().addFont("SGCTFont", FontName);
+    text::FontManager::instance().addFont("SGCTFont", std::string(FontName));
 #endif // SGCT_HAS_TEXT
 
     // init draw buffer resolution

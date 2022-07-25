@@ -48,7 +48,7 @@
 namespace {
     std::string SystemFontPath;
 
-    constexpr const char* FontVertShader = R"(
+    constexpr std::string_view FontVertShader = R"(
 #version 330 core
 layout (location = 0) in vec2 in_texCoord;
 layout (location = 1) in vec2 in_position;
@@ -61,7 +61,7 @@ void main() {
     tr_uv = in_texCoord;
 })";
 
-    constexpr const char* FontFragShader = R"(
+    constexpr std::string_view FontFragShader = R"(
 #version 330 core
 in vec2 tr_uv;
 out vec4 out_color;
@@ -104,7 +104,7 @@ FontManager::FontManager() {
 
     // Set default font path
 #ifdef WIN32
-    constexpr const int BufferSize = 256;
+    constexpr int BufferSize = 256;
     char FontDir[BufferSize];
     const UINT success = GetWindowsDirectory(FontDir, 256);
     if (success > 0) {
@@ -203,7 +203,8 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     static bool isShaderCreated = false;
     if (!isShaderCreated) {
         _shader = ShaderProgram("FontShader");
-        _shader.addShaderSource(FontVertShader, FontFragShader);
+        _shader.addShaderSource(FontVertShader, GL_VERTEX_SHADER);
+        _shader.addShaderSource(FontFragShader, GL_FRAGMENT_SHADER);
         _shader.createAndLinkProgram();
         _shader.bind();
 

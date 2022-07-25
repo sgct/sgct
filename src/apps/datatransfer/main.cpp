@@ -44,7 +44,7 @@ namespace {
     // variables to share across cluster
     double currentTime(0.0);
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view vertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -59,7 +59,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view fragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -231,7 +231,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    constexpr const double Speed = 0.44;
+    constexpr double Speed = 0.44;
 
     // create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));

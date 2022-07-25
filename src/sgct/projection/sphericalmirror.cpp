@@ -22,7 +22,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const char* SphericalProjectionVert = R"(
+    constexpr std::string_view SphericalProjectionVert = R"(
   #version 330 core
 
   layout (location = 0) in vec2 in_position;
@@ -40,7 +40,7 @@ namespace {
   }
 )";
 
-    constexpr const char* SphericalProjectionFrag = R"(
+    constexpr std::string_view SphericalProjectionFrag = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -302,7 +302,8 @@ void SphericalMirrorProjection::initShaders() {
     _shader.deleteProgram();
 
     _shader = ShaderProgram("SphericalMirrorShader");
-    _shader.addShaderSource(SphericalProjectionVert, SphericalProjectionFrag);
+    _shader.addShaderSource(SphericalProjectionVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(SphericalProjectionFrag, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
 

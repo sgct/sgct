@@ -30,11 +30,11 @@ namespace sgct {
 class Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
-    static constexpr const char DefaultId = 0;
-    static constexpr const char Ack = 6;
-    static constexpr const char DataId = 17;
-    static constexpr const char ConnectedId = 18;
-    static constexpr const char DisconnectId = 19;
+    static constexpr char DefaultId = 0;
+    static constexpr char Ack = 6;
+    static constexpr char DataId = 17;
+    static constexpr char ConnectedId = 18;
+    static constexpr char DisconnectId = 19;
 
     enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 

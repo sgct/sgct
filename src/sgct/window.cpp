@@ -50,7 +50,7 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
-    constexpr const unsigned int ColorFormat = GL_BGRA;
+    constexpr unsigned int ColorFormat = GL_BGRA;
 
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
         width = std::max(width, 1);
@@ -1104,7 +1104,7 @@ void Window::createVBOs() {
     ZoneScoped
     TracyGpuZone("Create VBOs")
 
-    constexpr const std::array<const float, 36> QuadVerts = {
+    constexpr std::array<const float, 36> QuadVerts = {
     //     x     y     z      u    v      r    g    b    a
         -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f,
          1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f,
@@ -1156,8 +1156,8 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string stereoVertShader = shaders::BaseVert;
-    std::string stereoFragShader = [](sgct::Window::StereoMode mode) {
+    std::string_view stereoVertShader = shaders::BaseVert;
+    std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {
             case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;
@@ -1174,7 +1174,8 @@ void Window::loadShaders() {
     }(_stereoMode);
 
     _stereo.shader = ShaderProgram("StereoShader");
-    _stereo.shader.addShaderSource(stereoVertShader, stereoFragShader);
+    _stereo.shader.addShaderSource(stereoVertShader, GL_VERTEX_SHADER);
+    _stereo.shader.addShaderSource(stereoFragShader, GL_FRAGMENT_SHADER);
     _stereo.shader.createAndLinkProgram();
     _stereo.shader.bind();
     _stereo.leftTexLoc = glGetUniformLocation(_stereo.shader.id(), "leftTex");

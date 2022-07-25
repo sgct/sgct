@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const int ExtendedSize = 10000;
+    constexpr int ExtendedSize = 10000;
 
     struct {
         GLuint vao;
@@ -33,7 +33,7 @@ namespace {
     float speed = 5.f;
     std::vector<float> extraData;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view vertexShader = R"(
 #version 330 core
 
 layout (location = 0) in vec3 vertPosition;
@@ -42,7 +42,7 @@ uniform mat4 matrix;
 void main() { gl_Position = matrix * vec4(vertPosition, 1.0); }
 )";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view fragmentShader = R"(
 #version 330 core
 
 out vec4 color;
@@ -284,7 +284,7 @@ void preSync() {
         currentTime = Engine::instance().getTime();
 
         time_t now = time(nullptr);
-        constexpr const int TimeBufferSize = 256;
+        constexpr int TimeBufferSize = 256;
         std::array<char, TimeBufferSize> TimeBuffer;
         std::fill(TimeBuffer.begin(), TimeBuffer.end(), '\0');
 
@@ -327,7 +327,7 @@ void initOGL(GLFWwindow*) {
 
     Log::Info(fmt::format("Number of active viewports: {}", numberOfActiveViewports));
 
-    constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
+    constexpr uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
 
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);

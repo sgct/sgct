@@ -29,7 +29,7 @@ namespace {
 
     unsigned int textureId = 0;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -53,7 +53,7 @@ namespace {
     p  = gl_Position;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec2 uv;
@@ -80,7 +80,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    constexpr const double Speed = 0.44;
+    constexpr double Speed = 0.44;
 
     // create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));
@@ -131,7 +131,7 @@ void postSyncPreDraw() {
 }
 
 void initOGL(GLFWwindow*) {
-    ShaderManager::instance().addShaderProgram("MRT", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("MRT", VertexShader, FragmentShader);
     const ShaderProgram& prg = ShaderManager::instance().shaderProgram("MRT");
     prg.bind();
     textureLoc = glGetUniformLocation(prg.id(), "tDiffuse");

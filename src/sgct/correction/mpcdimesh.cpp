@@ -29,7 +29,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
     const char* srcBuff = mpcdiMesh.data();
     size_t srcSizeBytes = mpcdiMesh.size();
 
-    constexpr const int MaxHeaderLineLength = 100;
+    constexpr int MaxHeaderLineLength = 100;
     char headerBuffer[MaxHeaderLineLength];
     unsigned int srcIdx = 0;
     int index = 0;

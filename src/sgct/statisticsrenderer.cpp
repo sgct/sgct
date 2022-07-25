@@ -21,24 +21,24 @@
 
 namespace {
     // Line parameters
-    constexpr const sgct::vec4 ColorStaticGrid = sgct::vec4{ 1.f, 1.f, 1.f, 0.2f };
-    constexpr const sgct::vec4 ColorStaticFrequency = sgct::vec4{ 1.f, 0.f, 0.f, 1.f };
-    constexpr const sgct::vec4 ColorStaticBackground = sgct::vec4{ 0.f, 0.f, 0.f, 0.5f };
+    constexpr sgct::vec4 ColorStaticGrid = sgct::vec4{ 1.f, 1.f, 1.f, 0.2f };
+    constexpr sgct::vec4 ColorStaticFrequency = sgct::vec4{ 1.f, 0.f, 0.f, 1.f };
+    constexpr sgct::vec4 ColorStaticBackground = sgct::vec4{ 0.f, 0.f, 0.f, 0.5f };
 
-    constexpr const sgct::vec4 ColorFrameTime = sgct::vec4{ 1.f, 1.f, 0.f, 0.8f };
-    constexpr const sgct::vec4 ColorDrawTime = sgct::vec4{ 1.f, 0.1f, 1.1f, 0.8f };
-    constexpr const sgct::vec4 ColorSyncTime = sgct::vec4{ 0.1f, 1.f, 1.f, 0.8f };
-    constexpr const sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
-    constexpr const sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
+    constexpr sgct::vec4 ColorFrameTime = sgct::vec4{ 1.f, 1.f, 0.f, 0.8f };
+    constexpr sgct::vec4 ColorDrawTime = sgct::vec4{ 1.f, 0.1f, 1.1f, 0.8f };
+    constexpr sgct::vec4 ColorSyncTime = sgct::vec4{ 0.1f, 1.f, 1.f, 0.8f };
+    constexpr sgct::vec4 ColorLoopTimeMin = sgct::vec4{ 0.4f, 0.4f, 1.f, 0.8f };
+    constexpr sgct::vec4 ColorLoopTimeMax = sgct::vec4{ 0.15f, 0.15f, 0.8f, 0.8f };
 
-    constexpr const char* StatsVertShader = R"(
+    constexpr std::string_view StatsVertShader = R"(
 #version 330 core
 layout (location = 0) in vec2 in_vertPosition;
 uniform mat4 mvp;
 void main() { gl_Position = mvp * vec4(in_vertPosition, 0.0, 1.0); }
 )";
 
-    constexpr const char* StatsFragShader = R"(
+    constexpr std::string_view StatsFragShader = R"(
 #version 330 core
 uniform vec4 col;
 out vec4 out_color;
@@ -46,8 +46,8 @@ void main() { out_color = col; }
 )";
 
     // Histogram parameters
-    constexpr const double HistogramScaleFrame = 35.0 / 1000.0; // 35ms
-    constexpr const double HistogramScaleSync = 1.0 / 1000.0; // 1ms
+    constexpr double HistogramScaleFrame = 35.0 / 1000.0; // 35ms
+    constexpr double HistogramScaleSync = 1.0 / 1000.0; // 1ms
 } // namespace
 
 namespace sgct {
@@ -89,7 +89,8 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 
     // Setup shaders
     _shader = ShaderProgram("General Statistics Shader");
-    _shader.addShaderSource(StatsVertShader, StatsFragShader);
+    _shader.addShaderSource(StatsVertShader, GL_VERTEX_SHADER);
+    _shader.addShaderSource(StatsFragShader, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
     _mvpLoc = glGetUniformLocation(_shader.id(), "mvp");
@@ -119,7 +120,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     glGenBuffers(1, &_histogram.staticDraw.vbo);
     glBindVertexArray(_histogram.staticDraw.vao);
     glBindBuffer(GL_ARRAY_BUFFER, _histogram.staticDraw.vbo);
-    constexpr const std::array<float, 8> HistogramAxisVertices = {
+    constexpr std::array<float, 8> HistogramAxisVertices = {
         0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f
     };
     glBufferData(
@@ -312,7 +313,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         glBindVertexArray(_lines.dynamicDraw.vao);
 
         // frametime
-        constexpr const int StatsLength = Engine::Statistics::HistoryLength;
+        constexpr int StatsLength = Engine::Statistics::HistoryLength;
         glUniform4fv(_colorLoc, 1, &ColorFrameTime.x);
         glDrawArrays(GL_LINE_STRIP, 0 * StatsLength, StatsLength);
 
@@ -336,9 +337,9 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         _shader.unbind();
 
 #ifdef SGCT_HAS_TEXT
-        constexpr const glm::vec2 Pos = glm::vec2(15.f, 50.f);
-        constexpr const float Offset = 20.f;
-        constexpr const text::Alignment mode = text::Alignment::TopLeft;
+        constexpr glm::vec2 Pos = glm::vec2(15.f, 50.f);
+        constexpr float Offset = 20.f;
+        constexpr text::Alignment mode = text::Alignment::TopLeft;
 
         text::Font& f1 = *text::FontManager::instance().font("SGCTFont", 20);
         text::Font& f2 = *text::FontManager::instance().font("SGCTFont", 12);
@@ -409,8 +410,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
 
         auto renderHistogram = [&](int i, const vec4& color) {
             const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {
-                constexpr const glm::vec2 Pos(400.f, 10.f);
-                constexpr const glm::vec2 Size(425.f, 200.f);
+                constexpr glm::vec2 Pos(400.f, 10.f);
+                constexpr glm::vec2 Size(425.f, 200.f);
 
                 if (j == 0) {
                     // Full size
@@ -440,9 +441,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
             glDrawArrays(GL_LINES, 0, 4);
 
             glBindVertexArray(_histogram.dynamicDraw.vao);
-            constexpr const int nSize = 6 * Histogram::Bins;
             glUniform4fv(_colorLoc, 1, &color.x);
-            glDrawArrays(GL_TRIANGLES, i * nSize, nSize);
+            glDrawArrays(GL_TRIANGLES, i * 6 * Histogram::Bins, 6 * Histogram::Bins);
         };
 
         _shader.bind();
@@ -453,8 +453,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         renderHistogram(4, ColorLoopTimeMax);
 
 #ifdef SGCT_HAS_TEXT
-        constexpr const glm::vec2 Pos = glm::vec2(15.f, 10.f);
-        constexpr const text::Alignment mode = text::Alignment::TopLeft;
+        constexpr glm::vec2 Pos = glm::vec2(15.f, 10.f);
+        constexpr text::Alignment mode = text::Alignment::TopLeft;
 
         text::Font& f = *text::FontManager::instance().font("SGCTFont", 8);
         text::print(

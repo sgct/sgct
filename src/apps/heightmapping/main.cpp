@@ -16,7 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const int GridSize = 256;
+    constexpr int GridSize = 256;
 
     // shader data
     GLint currTimeLoc = -1;
@@ -46,7 +46,7 @@ namespace {
     };
     using Geometry = std::vector<Vertex>;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec3 vertPositions;
@@ -80,7 +80,7 @@ namespace {
     gl_Position =  mvp * transformedVertex;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec2 uv;
@@ -268,7 +268,7 @@ void initOGL(GLFWwindow*) {
     normalTextureId = TextureManager::instance().loadTexture("normalmap.png", true, 0);
 
     // setup shader
-    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
 
     prog.bind();

@@ -41,7 +41,7 @@ namespace {
 
     double currentTime(0.0);
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view vertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -56,7 +56,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view fragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;

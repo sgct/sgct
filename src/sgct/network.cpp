@@ -46,11 +46,11 @@
 #define Err(code, msg) Error(Error::Component::Network, code, msg)
 
 namespace {
-    constexpr const int MaxNumberOfAttempts = 10;
+    constexpr int MaxNumberOfAttempts = 10;
     // Ethernet's MTU is 1500, so let's get close to that
-    constexpr const int SocketBufferSize = 1408; // 1024 + 256 + 128
+    constexpr int SocketBufferSize = 1408; // 1024 + 256 + 128
 
-    constexpr const int MaxNetworkSyncFrameNumber = 10000;
+    constexpr int MaxNetworkSyncFrameNumber = 10000;
 
     std::string getTypeStr(sgct::Network::ConnectionType ct) {
         using N = sgct::Network;

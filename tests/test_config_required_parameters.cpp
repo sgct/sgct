@@ -12,7 +12,7 @@
 
 
 TEST_CASE("Parse Required: Version", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {}
 )";
     CHECK_THROWS_MATCHES(
@@ -23,7 +23,7 @@ TEST_CASE("Parse Required: Version", "[parse]") {
 }
 
 TEST_CASE("Parse Required: Cluster/Master Address", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1
 }
@@ -36,7 +36,7 @@ TEST_CASE("Parse Required: Cluster/Master Address", "[parse]") {
 }
 
 TEST_CASE("Parse Required: Node/Address", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -55,7 +55,7 @@ TEST_CASE("Parse Required: Node/Address", "[parse]") {
 }
 
 TEST_CASE("Parse Required: Node/Port", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -74,7 +74,7 @@ TEST_CASE("Parse Required: Node/Port", "[parse]") {
 }
 
 TEST_CASE("Parse Required: Window/Size", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -98,7 +98,7 @@ TEST_CASE("Parse Required: Window/Size", "[parse]") {
 }
 
 TEST_CASE("Parse Required: FisheyeProjection/Crop/Left", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -135,7 +135,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Left", "[parse]") {
 }
 
 TEST_CASE("Parse Required: FisheyeProjection/Crop/Right", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -172,7 +172,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Right", "[parse]") {
 }
 
 TEST_CASE("Parse Required: FisheyeProjection/Crop/Bottom", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -209,7 +209,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Bottom", "[parse]") {
 }
 
 TEST_CASE("Parse Required: FisheyeProjection/Crop/Top", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -246,7 +246,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Top", "[parse]") {
 }
 
 TEST_CASE("Parse Required: PlanarProjection/FOV", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -278,7 +278,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV", "[parse]") {
 }
 
 TEST_CASE("Parse Required: PlanarProjection/FOV/Down", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -315,7 +315,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Down", "[parse]") {
 }
 
 TEST_CASE("Parse Required: PlanarProjection/FOV/Left", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -353,7 +353,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Left", "[parse]") {
 
 
 TEST_CASE("Parse Required: PlanarProjection/FOV/Right", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -390,7 +390,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Right", "[parse]") {
 }
 
 TEST_CASE("Parse Required: PlanarProjection/FOV/Up", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -429,7 +429,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Up", "[parse]") {
 }
 
 TEST_CASE("Parse Required: ProjectionPlane/LowerLeft", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -465,7 +465,7 @@ TEST_CASE("Parse Required: ProjectionPlane/LowerLeft", "[parse]") {
 }
 
 TEST_CASE("Parse Required: ProjectionPlane/UpperLeft", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -501,7 +501,7 @@ TEST_CASE("Parse Required: ProjectionPlane/UpperLeft", "[parse]") {
 }
 
 TEST_CASE("Parse Required: ProjectionPlane/UpperRight", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -537,7 +537,7 @@ TEST_CASE("Parse Required: ProjectionPlane/UpperRight", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SphericalMirror/Mesh", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -569,7 +569,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SphericalMirror/Mesh/Bottom", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -606,7 +606,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Bottom", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SphericalMirror/Mesh/Left", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -643,7 +643,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Left", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SphericalMirror/Mesh/Right", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -680,7 +680,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Right", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -717,7 +717,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
 }
 
 TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -749,7 +749,7 @@ TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
 }
 
 TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -770,7 +770,7 @@ TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
 }
 
 TEST_CASE("Parse Required: User/Tracking/Device", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",
@@ -791,7 +791,7 @@ TEST_CASE("Parse Required: User/Tracking/Device", "[parse]") {
 }
 
 TEST_CASE("Parse Required: Tracker/Name", "[parse]") {
-    constexpr const char Sources[] = R"(
+    constexpr std::string_view Sources = R"(
 {
   "version": 1,
   "masteraddress": "localhost",

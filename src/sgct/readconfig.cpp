@@ -1152,7 +1152,7 @@ void to_json(nlohmann::json& j, const sgct::quat& q) {
 
 namespace {
 
-constexpr const int InvalidWindowIndex = -128;
+constexpr int InvalidWindowIndex = -128;
 
 template <typename T> struct is_optional : std::false_type {};
 template <typename T> struct is_optional<std::optional<T>> : std::true_type {};
@@ -2486,7 +2486,7 @@ config::Cluster readConfig(const std::string& filename) {
     return cluster;
 }
 
-sgct::config::Cluster readJsonConfig(const std::string& configuration) {
+sgct::config::Cluster readJsonConfig(std::string_view configuration) {
     nlohmann::json j = nlohmann::json::parse(configuration);
 
     auto it = j.find("version");

@@ -50,7 +50,7 @@ namespace {
     int32_t domeCut = 2;
 
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -67,7 +67,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;

@@ -59,7 +59,7 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     unsigned int counter = 0;
 
     while (!feof(meshFile)) {
-        constexpr const int MaxLineLength = 1024;
+        constexpr int MaxLineLength = 1024;
         char lineBuffer[MaxLineLength];
         char* res = fgets(lineBuffer, MaxLineLength, meshFile);
         if (res == nullptr) {

@@ -96,7 +96,7 @@ Sphere::Sphere(float radius, unsigned int segments) {
         indices[base + 3 * i + 1] = static_cast<unsigned int>(nVertices - 3 - i);
     }
 
-    constexpr const GLsizei size = sizeof(VertexData);
+    constexpr GLsizei size = sizeof(VertexData);
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);

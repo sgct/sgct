@@ -41,7 +41,7 @@ namespace {
     SPOUTHANDLE receiver = nullptr;
     bool isInitialized = false;
 
-    constexpr const char vertexShader[] = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
   layout(location = 0) in vec2 in_position;
   out vec2 uv;
@@ -67,7 +67,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char fragmentShader[] = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
   uniform sampler2D tex;
   in vec2 uv;
@@ -179,8 +179,8 @@ void draw(const RenderData& data) {
 
 void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
-    constexpr const char Format[] = "{}:  {} ({} x {})";
-    constexpr const char FormatSelected[] = "{}:  {} ({} x {})   <<---";
+    constexpr std::string_view Format = "{}:  {} ({} x {})";
+    constexpr std::string_view FormatSelected = "{}:  {} ({} x {})   <<---";
 
     if (senders.empty()) {
         return;
@@ -216,7 +216,7 @@ void initOGL(GLFWwindow*) {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    constexpr const std::array<float, 6 * 2> Vertices = {
+    constexpr std::array<float, 6 * 2> Vertices = {
         -1.f, -1.f,   1.f, -1.f,   1.f, 1.f,  // bottom right triangle
         -1.f, -1.f,   1.f,  1.f,  -1.f, 1.f   // top left triangle
     };
@@ -230,7 +230,7 @@ void initOGL(GLFWwindow*) {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
     glBindVertexArray(0);
 
-    ShaderManager::instance().addShaderProgram("xform", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("xform", VertexShader, FragmentShader);
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("xform");
     prog.bind();
 

@@ -306,7 +306,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
 
     glGenBuffers(1, &geom.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, geom.vbo);
-    constexpr const int s = sizeof(correction::CorrectionMeshVertex);
+    constexpr int s = sizeof(correction::CorrectionMeshVertex);
     glBufferData(
         GL_ARRAY_BUFFER,
         buffer.vertices.size() * s,

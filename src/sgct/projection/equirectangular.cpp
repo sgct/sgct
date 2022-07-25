@@ -23,7 +23,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const char* FragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   in vec2 tr_uv;
@@ -134,7 +134,7 @@ void EquirectangularProjection::update(vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    constexpr const std::array<float, 20> v = {
+    constexpr std::array<float, 20> v = {
         -1.f, -1.f, -1.f, 0.f, 0.f,
         -1.f,  1.f, -1.f, 0.f, 1.f,
          1.f, -1.f, -1.f, 1.f, 0.f,
@@ -300,7 +300,8 @@ void EquirectangularProjection::initShaders() {
     _shader.deleteProgram();
 
     _shader = ShaderProgram("CylindricalProjectinoShader");
-    _shader.addShaderSource(shaders_fisheye::BaseVert, FragmentShader);
+    _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(FragmentShader, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
 

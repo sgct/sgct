@@ -428,7 +428,8 @@ void SpoutFlatProjection::initViewports() {
 void SpoutFlatProjection::initShaders() {
     _shader.deleteProgram();
     _shader = ShaderProgram("SpoutShader");
-    _shader.addShaderSource(sgct::shaders::BaseVert, sgct::shaders::BaseFrag);
+    _shader.addShaderSource(shaders::BaseVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(shaders::BaseFrag, GL_FRAGMENT_SHADER);
     _shader.createAndLinkProgram();
     _shader.bind();
     glUniform1i(glGetUniformLocation(_shader.id(), "tex"), 0);

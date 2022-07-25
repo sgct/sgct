@@ -23,7 +23,7 @@
 namespace {
     enum class ImageType { JPEG, PNG };
 
-    constexpr const int HeaderSize = 1;
+    constexpr int HeaderSize = 1;
 
     Capture capture;
 
@@ -81,7 +81,7 @@ namespace {
     bool captureRunning = true;
     bool isRunning = true;
 
-    constexpr const char* vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
   #version 330 core
 
   layout(location = 0) in vec2 texCoords;
@@ -96,7 +96,7 @@ namespace {
     uv = texCoords;
   })";
 
-    constexpr const char* fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -109,7 +109,7 @@ namespace {
   void main() { color = texture(tex, (uv * scaleUV) + offsetUV); }
 )";
 
-    constexpr const char* fragmentChromaKey = R"(
+    constexpr std::string_view FragmentChromaKey = R"(
   #version 330 core
 
   uniform sampler2D tex;
@@ -593,7 +593,7 @@ void draw2DFun(const RenderData& data) {
     if (info) {
         unsigned int fontSize = static_cast<unsigned int>(9.f * data.window.scale().x);
         text::Font* font = text::FontManager::instance().font("SGCTFont", fontSize);
-        constexpr const float Padding = 10.f;
+        constexpr float Padding = 10.f;
 
         const float resY = static_cast<float>(data.window.framebufferResolution().y);
         text::print(
@@ -671,7 +671,7 @@ void initOGLFun(GLFWwindow* win) {
     chromaKeyColors.push_back(glm::vec3(0.f, 177.f / 255.f, 64.f / 255.f));
 
     // create plane
-    constexpr const float PlaneWidth = 8.f;
+    constexpr float PlaneWidth = 8.f;
     const float h = static_cast<float>(capture.height());
     const float w = static_cast<float>(capture.width());
     float planeHeight = PlaneWidth * h / w;

@@ -36,7 +36,7 @@ Buffer generatePaulBourkeMesh(const std::string& path, const vec2& pos, const ve
         );
     }
 
-    constexpr const int MaxLineLength = 1024;
+    constexpr int MaxLineLength = 1024;
     char lineBuffer[MaxLineLength];
 
     // get the fist line containing the mapping type _id

@@ -38,7 +38,7 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
     unsigned int nCols = 0;
     unsigned int nRows = 0;
     while (!feof(meshFile)) {
-        constexpr const int MaxLineLength = 1024;
+        constexpr int MaxLineLength = 1024;
         char lineBuf[MaxLineLength];
         if (fgets(lineBuf, MaxLineLength, meshFile)) {
             float x;

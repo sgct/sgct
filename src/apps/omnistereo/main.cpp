@@ -16,8 +16,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const float Diameter = 14.8f;
-    constexpr const float Tilt = glm::radians(30.f);
+    constexpr float Diameter = 14.8f;
+    constexpr float Tilt = glm::radians(30.f);
 
     std::unique_ptr<sgct::utils::Box> box;
     std::unique_ptr<sgct::utils::DomeGrid> grid;
@@ -197,8 +197,8 @@ void initOmniStereo(bool mask) {
                 const float t = ((static_cast<float>(y) + 0.5f) / yResf - 0.5f) * 2.f;
                 const float r2 = s * s + t * t;
 
-                constexpr const float fovInDegrees = 180.f;
-                constexpr const float halfFov = glm::radians(fovInDegrees / 2.f);
+                constexpr float fovInDegrees = 180.f;
+                constexpr float halfFov = glm::radians(fovInDegrees / 2.f);
 
                 const float phi = sqrt(r2) * halfFov;
                 const float theta = atan2(s, -t);
@@ -278,7 +278,7 @@ void initOmniStereo(bool mask) {
                         // azimuth (0 degrees at back of dome and 180 degrees at front)
                         const float theta2 = atan2(ss, tt);
 
-                        constexpr const float radius = Diameter / 2.f;
+                        constexpr float radius = Diameter / 2.f;
                         glm::vec3 p = {
                             radius * sin(phi2) * sin(theta2),
                             radius * -sin(phi2) * cos(theta2),

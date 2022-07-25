@@ -12,9 +12,9 @@
 #define __SGCT__VERSION__H__
 
 namespace sgct {
-    constexpr const int VersionMajor = @PROJECT_VERSION_MAJOR@;
-    constexpr const int VersionMinor = @PROJECT_VERSION_MINOR@;
-    constexpr const int VersionRevision = @PROJECT_VERSION_PATCH@;
+    constexpr int VersionMajor = @PROJECT_VERSION_MAJOR@;
+    constexpr int VersionMinor = @PROJECT_VERSION_MINOR@;
+    constexpr int VersionRevision = @PROJECT_VERSION_PATCH@;
 
     constexpr const char Version[] = "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@";
 } // namespace

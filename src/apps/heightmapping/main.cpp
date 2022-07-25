@@ -16,7 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const int GridSize = 256;
+    constexpr int GridSize = 256;
 
     // shader data
     GLint currTimeLoc = -1;

@@ -229,7 +229,7 @@ Font::Font(FT_Library lib, FT_Face face, unsigned int height)
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
 
-    constexpr const std::array<float, 16> c = {
+    constexpr std::array<float, 16> c = {
         // x y s t
         0.f, 1.f, 0.f, 0.f,
         1.f, 1.f, 1.f, 0.f,
@@ -241,7 +241,7 @@ Font::Font(FT_Library lib, FT_Face face, unsigned int height)
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, c.size() * sizeof(float), c.data(), GL_STATIC_DRAW);
 
-    constexpr const int s = 4 * sizeof(float);
+    constexpr int s = 4 * sizeof(float);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, s, nullptr);
     glEnableVertexAttribArray(1);

@@ -50,7 +50,7 @@
 #define Err(code, msg) Error(Error::Component::Window, code, msg)
 
 namespace {
-    constexpr const unsigned int ColorFormat = GL_BGRA;
+    constexpr unsigned int ColorFormat = GL_BGRA;
 
     void windowResizeCallback(GLFWwindow* window, int width, int height) {
         width = std::max(width, 1);
@@ -1104,7 +1104,7 @@ void Window::createVBOs() {
     ZoneScoped
     TracyGpuZone("Create VBOs")
 
-    constexpr const std::array<const float, 36> QuadVerts = {
+    constexpr std::array<const float, 36> QuadVerts = {
     //     x     y     z      u    v      r    g    b    a
         -1.f, -1.f, -1.f,   0.f, 0.f,   1.f, 1.f, 1.f, 1.f,
          1.f, -1.f, -1.f,   1.f, 0.f,   1.f, 1.f, 1.f, 1.f,

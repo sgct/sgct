@@ -31,7 +31,7 @@ void SharedData::destroy() {
 }
 
 SharedData::SharedData() {
-    constexpr const int DefaultSize = 1024;
+    constexpr int DefaultSize = 1024;
 
     _dataBlock.reserve(DefaultSize);
 

@@ -80,7 +80,7 @@ void draw(const RenderData& data) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    constexpr const double Speed = 0.44;
+    constexpr double Speed = 0.44;
 
     // create scene transform (animation)
     glm::mat4 scene = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -3.f));

@@ -34,8 +34,8 @@
 
 #ifdef SGCT_HAS_SPOUT
 namespace {
-    constexpr const int NFaces = 6;
-    constexpr const std::array<const char*, NFaces> CubeMapFaceName = {
+    constexpr int NFaces = 6;
+    constexpr std::array<const char*, NFaces> CubeMapFaceName = {
         "Right", "zLeft", "Bottom", "Top", "Left", "zRight"
     };
 } // namespace
@@ -592,7 +592,7 @@ void SpoutOutputProjection::initVBO() {
 
 void SpoutOutputProjection::initViewports() {
     // distance is needed to calculate the distance to all view planes
-    constexpr const float Distance = 1.f;
+    constexpr float Distance = 1.f;
 
     // setup base viewport that will be rotated to create the other cubemap views
     // +Z face

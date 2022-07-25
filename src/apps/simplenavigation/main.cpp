@@ -16,11 +16,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const float RotationSpeed = 0.0017f;
-    constexpr const float WalkingSpeed = 2.5f;
+    constexpr float RotationSpeed = 0.0017f;
+    constexpr float WalkingSpeed = 2.5f;
 
-    constexpr const int LandscapeSize = 50;
-    constexpr const int NumberOfPyramids = 150;
+    constexpr int LandscapeSize = 50;
+    constexpr int NumberOfPyramids = 150;
 
     bool buttonForward = false;
     bool buttonBackward = false;

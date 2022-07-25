@@ -34,11 +34,11 @@ Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
         );
     }
 
-    constexpr const int MaxLineLength = 1024;
+    constexpr int MaxLineLength = 1024;
     char headerBuffer[MaxLineLength];
     int index = 0;
     int nNewlines = 0;
-    constexpr const int read3lines = 3;
+    constexpr int read3lines = 3;
     do {
         char headerChar;
         size_t retval = fread(&headerChar, sizeof(char), 1, meshFile);

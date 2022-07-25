@@ -104,7 +104,7 @@ FontManager::FontManager() {
 
     // Set default font path
 #ifdef WIN32
-    constexpr const int BufferSize = 256;
+    constexpr int BufferSize = 256;
     char FontDir[BufferSize];
     const UINT success = GetWindowsDirectory(FontDir, 256);
     if (success > 0) {

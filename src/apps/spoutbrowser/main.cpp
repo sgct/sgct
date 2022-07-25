@@ -216,7 +216,7 @@ void initOGL(GLFWwindow*) {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    constexpr const std::array<float, 6 * 2> Vertices = {
+    constexpr std::array<float, 6 * 2> Vertices = {
         -1.f, -1.f,   1.f, -1.f,   1.f, 1.f,  // bottom right triangle
         -1.f, -1.f,   1.f,  1.f,  -1.f, 1.f   // top left triangle
     };

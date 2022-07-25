@@ -50,11 +50,11 @@
 namespace sgct {
 
 namespace {
-    constexpr const bool RunFrameLockCheckThread = true;
-    constexpr const std::chrono::milliseconds FrameLockTimeout(100);
+    constexpr bool RunFrameLockCheckThread = true;
+    constexpr std::chrono::milliseconds FrameLockTimeout(100);
 
-    constexpr const float FxaaSubPixTrim = 1.f / 4.f;
-    constexpr const float FxaaSubPixOffset = 1.f / 2.f;
+    constexpr float FxaaSubPixTrim = 1.f / 4.f;
+    constexpr float FxaaSubPixOffset = 1.f / 2.f;
 
     enum class BufferMode { BackBufferBlack, RenderToTexture };
 
@@ -266,8 +266,8 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         cluster.success = true;
 
         // Create a default configuration
-        constexpr const float hFov = 90.f;
-        constexpr const float vFov = hFov / (16.f / 9.f);
+        constexpr float hFov = 90.f;
+        constexpr float vFov = hFov / (16.f / 9.f);
 
         sgct::config::PlanarProjection proj;
         sgct::config::PlanarProjection::FOV fov;

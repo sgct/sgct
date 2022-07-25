@@ -139,7 +139,7 @@ void CylindricalProjection::update(vec2) {
     glBindVertexArray(_vao);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 
-    constexpr const std::array<float, 20> v = {
+    constexpr std::array<float, 20> v = {
         -1.f, -1.f, -1.f, 0.f, 0.f,
         -1.f,  1.f, -1.f, 0.f, 1.f,
          1.f, -1.f, -1.f, 1.f, 0.f,

@@ -156,7 +156,7 @@ void main() {
 using namespace sgct;
 
 void initializeGrid() {
-    constexpr const uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
+    constexpr uint16_t RestartIndex = std::numeric_limits<uint16_t>::max();
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);
 
@@ -167,8 +167,8 @@ void initializeGrid() {
     glBindVertexArray(grid.vao);
     glBindBuffer(GL_ARRAY_BUFFER, grid.vbo);
 
-    constexpr const int ElevationSteps = 40;
-    constexpr const int AzimuthSteps = 160;
+    constexpr int ElevationSteps = 40;
+    constexpr int AzimuthSteps = 160;
 
     struct GridVertex {
         float elevation;
@@ -265,7 +265,7 @@ void initializeBox() {
         uint8_t textureId;
     };
 
-    constexpr const std::array<BoxVertex, 2 * 3 * 6> Vertices = {
+    constexpr std::array<BoxVertex, 2 * 3 * 6> Vertices = {
         // Front
         BoxVertex{ -10.f, -10.f, -10.f, 0.f, 0.f, 0 },  // ---
         BoxVertex{  10.f,  10.f, -10.f, 1.f, 1.f, 0 },  // ++-
@@ -578,14 +578,14 @@ void postDraw() {
     }
 
     if (Engine::instance().isMaster() && runTests) {
-        constexpr const int FrameGridFirstScreenshot = 5;
-        constexpr const int FrameGridSettingBackBuffer = 10;
-        constexpr const int FrameGridSecondScreenshot = 15;
-        constexpr const int ChangeToBox = 20;
-        constexpr const int FrameBoxFirstScreenshot = 25;
-        constexpr const int FrameBoxSettingBackBuffer = 30;
-        constexpr const int FrameBoxSecondScreenshot = 35;
-        constexpr const int FrameTerminate = 40;
+        constexpr int FrameGridFirstScreenshot = 5;
+        constexpr int FrameGridSettingBackBuffer = 10;
+        constexpr int FrameGridSecondScreenshot = 15;
+        constexpr int ChangeToBox = 20;
+        constexpr int FrameBoxFirstScreenshot = 25;
+        constexpr int FrameBoxSettingBackBuffer = 30;
+        constexpr int FrameBoxSecondScreenshot = 35;
+        constexpr int FrameTerminate = 40;
 
         switch (frameNumber) {
             case FrameGridFirstScreenshot:

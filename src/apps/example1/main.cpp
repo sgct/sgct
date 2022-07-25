@@ -79,7 +79,7 @@ void initOGL(GLFWwindow*) {
 }
 
 void draw(const RenderData& data) {
-    constexpr const float Speed = 0.8f;
+    constexpr float Speed = 0.8f;
 
     glm::mat4 scene =
         glm::rotate(

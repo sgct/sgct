@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace {
-    constexpr const int ExtendedSize = 10000;
+    constexpr int ExtendedSize = 10000;
 
     struct {
         GLuint vao;
@@ -284,7 +284,7 @@ void preSync() {
         currentTime = Engine::instance().getTime();
 
         time_t now = time(nullptr);
-        constexpr const int TimeBufferSize = 256;
+        constexpr int TimeBufferSize = 256;
         std::array<char, TimeBufferSize> TimeBuffer;
         std::fill(TimeBuffer.begin(), TimeBuffer.end(), '\0');
 
@@ -327,7 +327,7 @@ void initOGL(GLFWwindow*) {
 
     Log::Info(fmt::format("Number of active viewports: {}", numberOfActiveViewports));
 
-    constexpr const uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
+    constexpr uint8_t RestartIndex = std::numeric_limits<uint8_t>::max();
 
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(RestartIndex);

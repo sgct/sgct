@@ -182,7 +182,7 @@ Box::Box(float size, TextureMappingMode mode) {
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    constexpr const int s = sizeof(VertexData);
+    constexpr int s = sizeof(VertexData);
     glBufferData(GL_ARRAY_BUFFER, v.size() * s, v.data(), GL_STATIC_DRAW);
 
     // texcoords

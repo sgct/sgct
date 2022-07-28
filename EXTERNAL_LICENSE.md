@@ -208,7 +208,7 @@ Copyright © 2002-2006 Marcus Geelnard
 
 Copyright © 2006-2019 Camilla Löwy
 
-This software is provided ‘as-is’, without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
 
 Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
 

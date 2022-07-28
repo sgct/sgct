@@ -195,7 +195,7 @@ void uploadTexture() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     Log::Info(fmt::format(
-        "Texture id {} loaded ({}x{}x{}).",
+        "Texture id {} loaded ({}x{}x{})",
         tex, transImg->size().x, transImg->size().y, transImg->channels()
     ));
 

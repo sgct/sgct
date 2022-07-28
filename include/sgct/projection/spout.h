@@ -48,8 +48,8 @@ public:
     void setUser(User* user) override;
 
 private:
-    static const int NTextures = 7;
-    static const int NFaces = 6;
+    static constexpr int NTextures = 7;
+    static constexpr int NFaces = 6;
 
     void initTextures() override;
     void initVBO() override;

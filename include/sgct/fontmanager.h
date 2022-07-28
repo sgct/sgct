@@ -65,7 +65,7 @@ class Font;
  *     sgct::text::TopLeft,
  *     50,
  *     50,
- *     "Hello World!"
+ *     "Hello World"
  * );
  * \endcode
  *
@@ -76,7 +76,7 @@ class Font;
  *     sgct::text::TopLeft,
  *     50,
  *     50,
- *     "Hello World!"
+ *     "Hello World"
  * );
  *\endcode
  *
@@ -87,7 +87,7 @@ class Font;
  *     sgct::text::TopLeft,
  *     50,
  *     50,
- *     L"Hallå Världen!"
+ *     L"Hallå Världen"
  * );
  * \endcode
  */

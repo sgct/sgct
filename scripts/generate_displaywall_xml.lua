@@ -55,7 +55,7 @@ if (string.sub(outputFile, -4) ~= ".xml") then
     outputFile = outputFile .. ".xml"
 end
 if (doesFileExist(outputFile)) then
-    print("Error: An .xml configuration file of the same name already exists.")
+    print("Error: An .xml configuration file of the same name already exists")
     os.exit(-1)
 end
 
@@ -117,13 +117,13 @@ function generateXmlForMonitorCorner(row, column, cornerName)
     local xy = computeWindowCoordinates(row, column, cornerName)
     resString = "<Pos x=\""
     if xy[1] >= 0.0 then
-        resString = resString.." "
+        resString = resString .. " "
     end
-    resString = resString..""..string.format("%.4f", xy[1]).."\" y=\""
+    resString = resString .. "" .. string.format("%.4f", xy[1]) .. "\" y=\""
     if xy[2] >= 0.0 then
-        resString = resString.." "
+        resString = resString .. " "
     end
-    resString = resString..""..string.format("%.4f", xy[2]).."\" z=\"0.0\" />"
+    resString = resString .. ""..string.format("%.4f", xy[2]) .. "\" z=\"0.0\" />"
     return resString
 end
 
@@ -132,7 +132,7 @@ function indent(level)
     spaces = 4
     for l = 1, level do
         for s=1,spaces do
-            line = line.." "
+            line = line .. " "
         end
     end
     return line
@@ -140,62 +140,62 @@ end
 
 function wall_generateViewplane(row, column, lines, indentLevel)
     table.insert(lines,
-                 indent(indentLevel).."<Viewplane>")
+                 indent(indentLevel) .. "<Viewplane>")
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(row, column, "LL"))
+                 .. generateXmlForMonitorCorner(row, column, "LL"))
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(row, column, "UL"))
+                 .. generateXmlForMonitorCorner(row, column, "UL"))
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(row, column, "UR"))
-    table.insert(lines, indent(indentLevel).."</Viewplane>")
+                 .. generateXmlForMonitorCorner(row, column, "UR"))
+    table.insert(lines, indent(indentLevel) .. "</Viewplane>")
 end
 
 function wall_generateViewport(row, column, lines, indentLevel)
-    table.insert(lines, indent(indentLevel).."<Viewport>")
-    table.insert(lines, indent(indentLevel + 1).."<Pos  x=\"0.0\" y=\"0.0\" />")
-    table.insert(lines, indent(indentLevel + 1).."<Size x=\"1.0\" y=\"1.0\" />")
+    table.insert(lines, indent(indentLevel) .. "<Viewport>")
+    table.insert(lines, indent(indentLevel + 1) .. "<Pos  x=\"0.0\" y=\"0.0\" />")
+    table.insert(lines, indent(indentLevel + 1) .. "<Size x=\"1.0\" y=\"1.0\" />")
     wall_generateViewplane(row, column, lines, indentLevel + 1)
-    table.insert(lines, indent(indentLevel).."</Viewport>")
+    table.insert(lines, indent(indentLevel) .. "</Viewport>")
 end
 
 function wall_generateWindow(row, column, lines, indentLevel)
     table.insert(lines, indent(indentLevel)
-                 .."<Window fullScreen=\"false\" border=\"false\">")
+                 .. "<Window fullScreen=\"false\" border=\"false\">")
     table.insert(lines, indent(indentLevel + 1)
-                 .."<Pos  x=\"0\" y=\""..cfg.monitorWallResolution[2]*(row - 1).."\" />")
-    table.insert(lines, indent(indentLevel + 1).."<Size x=\""
-                 ..cfg.monitorWallResolution[1]
-                 .."\" y=\""..cfg.monitorWallResolution[2].."\" />")
+                 .. "<Pos  x=\"0\" y=\""..cfg.monitorWallResolution[2]*(row - 1) .. "\" />")
+    table.insert(lines, indent(indentLevel + 1) .. "<Size x=\""
+                 .. cfg.monitorWallResolution[1]
+                 .. "\" y=\""..cfg.monitorWallResolution[2] .. "\" />")
     wall_generateViewport(row, column, lines, indentLevel + 1)
-    table.insert(lines, indent(indentLevel).."</Window>")
+    table.insert(lines, indent(indentLevel) .. "</Window>")
 end
 
 function master_generateViewplane(lines, indentLevel)
-    table.insert(lines, indent(indentLevel).."<Viewplane>")
+    table.insert(lines, indent(indentLevel) .. "<Viewplane>")
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(cfg.displayWall_nRows, 1, "LL"))
+                 .. generateXmlForMonitorCorner(cfg.displayWall_nRows, 1, "LL"))
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(1, 1, "UL"))
+                 .. generateXmlForMonitorCorner(1, 1, "UL"))
     table.insert(lines, indent(indentLevel + 1)
-                 ..generateXmlForMonitorCorner(1, cfg.displayWall_nColumns, "UR"))
-    table.insert(lines, indent(indentLevel).."</Viewplane>")
+                 .. generateXmlForMonitorCorner(1, cfg.displayWall_nColumns, "UR"))
+    table.insert(lines, indent(indentLevel) .. "</Viewplane>")
 end
 
 function master_generateViewport(lines, indentLevel)
-    table.insert(lines, indent(indentLevel).."<Viewport>")
-    table.insert(lines, indent(indentLevel + 1).."<Pos  x=\"0.0\" y=\"0.0\" />")
-    table.insert(lines, indent(indentLevel + 1).."<Size x=\"1.0\" y=\"1.0\" />")
+    table.insert(lines, indent(indentLevel) .. "<Viewport>")
+    table.insert(lines, indent(indentLevel + 1) .. "<Pos  x=\"0.0\" y=\"0.0\" />")
+    table.insert(lines, indent(indentLevel + 1) .. "<Size x=\"1.0\" y=\"1.0\" />")
     master_generateViewplane(lines, indentLevel + 1)
-    table.insert(lines, indent(indentLevel).."</Viewport>")
+    table.insert(lines, indent(indentLevel) .. "</Viewport>")
 end
 
 function master_generateWindow(lines, indentLevel)
-    table.insert(lines, indent(indentLevel).."<Window fullScreen=\"true\">")
-    table.insert(lines, indent(indentLevel + 1).."<Pos  x=\"0.0\" y=\"0.0\" />")
-    table.insert(lines, indent(indentLevel + 1).."<Size x=\""..cfg.masterResolution[1]
-                 .."\" y=\""..cfg.masterResolution[2].."\" />")
+    table.insert(lines, indent(indentLevel) .. "<Window fullScreen=\"true\">")
+    table.insert(lines, indent(indentLevel + 1) .. "<Pos  x=\"0.0\" y=\"0.0\" />")
+    table.insert(lines, indent(indentLevel + 1) .. "<Size x=\""..cfg.masterResolution[1]
+                 .. "\" y=\""..cfg.masterResolution[2] .. "\" />")
     master_generateViewport(lines, indentLevel + 1)
-    table.insert(lines, indent(indentLevel).."</Window>")
+    table.insert(lines, indent(indentLevel) .. "</Window>")
 end
 
 function round(num, places)
@@ -206,44 +206,44 @@ computeBorderLines()
 
 local f = io.open(outputFile, "w")
 f:write("<?xml version=\"1.0\" ?>\n")
-f:write("<Cluster masterAddress=\""..cfg.masterHostname.."\" firmSync=\"true\">\n")
-f:write(indent(1).."<Settings>\n")
-f:write(indent(2).."<Display swapInterval=\"0\" />\n")
-f:write(indent(1).."</Settings>\n")
+f:write("<Cluster masterAddress=\""..cfg.masterHostname .. "\" firmSync=\"true\">\n")
+f:write(indent(1) .. "<Settings>\n")
+f:write(indent(2) .. "<Display swapInterval=\"0\" />\n")
+f:write(indent(1) .. "</Settings>\n")
 portNum = 20401
-f:write(indent(1).."<Node address=\""..cfg.masterHostname.."\" port=\""..portNum
-      .."\" swapLock=\"false\">\n")
+f:write(indent(1) .. "<Node address=\""..cfg.masterHostname .. "\" port=\""..portNum
+      .. "\" swapLock=\"false\">\n")
 masterChunk = {}
 master_generateWindow(masterChunk, 2)
 for _,l in ipairs(masterChunk) do
-    f:write(l.."\n")
+    f:write(l .. "\n")
 end
 f:write(indent(1).."</Node>\n")
 portNum = portNum + 1
 for c = 1, cfg.displayWall_nColumns do
-    f:write(indent(1).."<!-- Node for column "..c.." -->\n")
-    f:write(indent(1).."<Node address=\""..cfg.nodeHostnames[c].."\" port=\""
-          ..portNum.."\" swapLock=\"false\">\n")
+    f:write(indent(1) .. "<!-- Node for column " .. c .. " -->\n")
+    f:write(indent(1) .. "<Node address=\""..cfg.nodeHostnames[c] .. "\" port=\""
+          .. portNum .. "\" swapLock=\"false\">\n")
     for r = 1, cfg.displayWall_nRows do
         chunk = {}
         wall_generateWindow(r, c, chunk, 2)
-        rowHeader = "<!-- Window/Viewport/Viewplane for row "..r.." "
+        rowHeader = "<!-- Window/Viewport/Viewplane for row " .. r .. " "
         if r == 1 then
-            rowHeader = rowHeader.."(top)"
+            rowHeader = rowHeader .. "(top)"
         elseif r == cfg.displayWall_nRows then
-            rowHeader = rowHeader.."(bottom)"
+            rowHeader = rowHeader .. "(bottom)"
         end
-        rowHeader = rowHeader.." -->"
-        f:write(indent(2)..rowHeader.."\n")
+        rowHeader = rowHeader .. " -->"
+        f:write(indent(2)..rowHeader .. "\n")
         for _,n in ipairs(chunk) do
-            f:write(n.."\n")
+            f:write(n .. "\n")
         end
     end
-    f:write(indent(1).."</Node>\n")
+    f:write(indent(1) .. "</Node>\n")
     portNum = portNum + 1
 end
-f:write(indent(1).."<User eyeSeparation=\"0.065\">\n")
-f:write(indent(2).."<Pos x=\"0.0\" y=\"0.0\" z=\"3.5\" />\n")
-f:write(indent(1).."</User>\n")
+f:write(indent(1) .. "<User eyeSeparation=\"0.065\">\n")
+f:write(indent(2) .. "<Pos x=\"0.0\" y=\"0.0\" z=\"3.5\" />\n")
+f:write(indent(1) .. "</User>\n")
 f:write("</Cluster>\n")
 f:close()

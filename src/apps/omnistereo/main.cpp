@@ -340,7 +340,7 @@ void initOmniStereo(bool mask) {
 
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
     Log::Info(fmt::format(
-        "Time to init viewports: {} s\n{} %% will be rendered.",
+        "Time to init viewports: {} s\n{} %% will be rendered",
         Engine::instance().getTime() - t0, percentage
     ));
     omniInited = true;

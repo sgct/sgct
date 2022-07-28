@@ -39,7 +39,7 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
 
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only
-    // contains zero’s when no warp is applied.
+    // contains zero's when no warp is applied.
 
     Buffer buf;
 

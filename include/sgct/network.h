@@ -38,7 +38,7 @@ public:
 
     enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
 
-    static const size_t HeaderSize = 13;
+    static constexpr size_t HeaderSize = 13;
 
     /**
      * \param port is the network port (TCP)

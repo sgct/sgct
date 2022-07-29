@@ -10,11 +10,11 @@
 #define __SGCT__CORRECTION_OBJ__H__
 
 #include <sgct/correction/buffer.h>
-#include <string>
+#include <filesystem>
 
 namespace sgct::correction {
 
-Buffer generateOBJMesh(const std::string& path);
+Buffer generateOBJMesh(const std::filesystem::path& path);
 
 } // namespace sgct::correction
 

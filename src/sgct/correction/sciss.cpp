@@ -18,6 +18,7 @@
 #include <sgct/user.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <fstream>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SCISS, code, msg)
 
@@ -52,43 +53,41 @@ namespace {
 
 namespace sgct::correction {
 
-Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
+Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent) {
     ZoneScoped
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading SCISS mesh data from '{}'", path));
+    Log::Info(fmt::format("Reading SCISS mesh data from {}", path));
 
-    FILE* file = fopen(path.c_str(), "rb");
-    if (file == nullptr) {
-        throw Error(2070, fmt::format("Failed to open '{}'", path));
+    
+    std::ifstream file(path, std::ifstream::binary);
+    if (!file.good()) {
+        throw Error(2070, fmt::format("Failed to open {}", path));
     }
 
     char fileID[3];
-    const size_t retHeader = fread(fileID, sizeof(char), 3, file);
+    file.read(fileID, 3 * sizeof(char));
 
     // check fileID
-    if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || retHeader != 3) {
-        fclose(file);
-        throw Error(2071, fmt::format("Incorrect file id in file '{}'", path));
+    if (!file.good() || fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C') {
+        throw Error(2071, fmt::format("Incorrect file id in file {}", path));
     }
 
     // read file version
     uint8_t fileVersion;
-    const size_t retVer = fread(&fileVersion, sizeof(uint8_t), 1, file);
-    if (retVer != 1) {
-        fclose(file);
-        throw Error(2072, fmt::format("Error parsing file version from file '{}'", path));
+    file.read(reinterpret_cast<char*>(&fileVersion), sizeof(uint8_t));
+    if (!file.good()) {
+        throw Error(2072, fmt::format("Error parsing file version from file {}", path));
     }
 
     Log::Debug(fmt::format("SCISS file version {}", fileVersion));
 
     // read mapping type
     unsigned int type;
-    const size_t retType = fread(&type, sizeof(unsigned int), 1, file);
-    if (retType != 1) {
-        fclose(file);
-        throw Error(2073, fmt::format("Error parsing type from file '{}'", path));
+    file.read(reinterpret_cast<char*>(&type), sizeof(unsigned int));
+    if (!file.good()) {
+        throw Error(2073, fmt::format("Error parsing type from file {}", path));
     }
 
     Log::Debug(fmt::format(
@@ -97,10 +96,9 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
 
     // read viewdata
     SCISSViewData viewData;
-    const size_t retData = fread(&viewData, sizeof(SCISSViewData), 1, file);
-    if (retData != 1) {
-        fclose(file);
-        throw Error(2074, fmt::format("Error parsing view data from file '{}'", path));
+    file.read(reinterpret_cast<char*>(&viewData), sizeof(SCISSViewData));
+    if (!file.good()) {
+        throw Error(2074, fmt::format("Error parsing view data from file {}", path));
     }
 
     const double x = static_cast<double>(viewData.qx);
@@ -129,10 +127,9 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
 
     // read number of vertices
     unsigned int size[2];
-    const size_t retSize = fread(size, sizeof(unsigned int), 2, file);
-    if (retSize != 2) {
-        fclose(file);
-        throw Error(2075, fmt::format("Error parsing file '{}'", path));
+    file.read(reinterpret_cast<char*>(size), 2 * sizeof(unsigned int));
+    if (!file.good()) {
+        throw Error(2075, fmt::format("Error parsing file {}", path));
     }
 
     unsigned int nVertices = 0;
@@ -148,37 +145,33 @@ Buffer generateScissMesh(const std::string& path, BaseViewport& parent) {
     }
     // read vertices
     std::vector<SCISSTexturedVertex> texturedVertexList(nVertices);
-    const size_t retVertices = fread(
-        texturedVertexList.data(),
-        sizeof(SCISSTexturedVertex),
-        nVertices,
-        file
+    file.read(
+        reinterpret_cast<char*>(texturedVertexList.data()),
+        nVertices * sizeof(SCISSTexturedVertex)
     );
-    if (retVertices != nVertices) {
-        fclose(file);
-        throw Error(2076, fmt::format("Error parsing vertices from file '{}'", path));
+    if (!file.good()) {
+        throw Error(2076, fmt::format("Error parsing vertices from file {}", path));
     }
 
     // read number of indices
     unsigned int nIndices = 0;
-    const size_t retIndices = fread(&nIndices, sizeof(unsigned int), 1, file);
-    if (retIndices != 1) {
-        fclose(file);
-        throw Error(2077, fmt::format("Error parsing indices from file '{}'", path));
+    file.read(reinterpret_cast<char*>(&nIndices), sizeof(unsigned int));
+    if (!file.good()) {
+        throw Error(2077, fmt::format("Error parsing indices from file {}", path));
     }
     Log::Debug(fmt::format("Number of indices: {}", nIndices));
 
     // read faces
     if (nIndices > 0) {
         buf.indices.resize(nIndices);
-        const size_t r = fread(buf.indices.data(), sizeof(unsigned int), nIndices, file);
-        if (r != nIndices) {
-            fclose(file);
-            throw Error(2078, fmt::format("Error parsing faces from file '{}'", path));
+        file.read(
+            reinterpret_cast<char*>(buf.indices.data()),
+            nIndices * sizeof(unsigned int)
+        );
+        if (!file.good()) {
+            throw Error(2078, fmt::format("Error parsing faces from file {}", path));
         }
     }
-
-    fclose(file);
 
     parent.user().setPos(vec3{ viewData.x, viewData.y, viewData.z });
     parent.setViewPlaneCoordsUsingFOVs(

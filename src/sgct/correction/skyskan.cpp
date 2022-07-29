@@ -19,6 +19,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <scn/scn.h>
+#include <fstream>
 #include <optional>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
@@ -34,16 +36,16 @@ namespace {
 
 namespace sgct::correction {
 
-Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
+Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& parent) {
     ZoneScoped
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading SkySkan mesh data from '{}'", path));
+    Log::Info(fmt::format("Reading SkySkan mesh data from {}", path));
 
-    FILE* meshFile = fopen(path.c_str(), "r");
-    if (meshFile == nullptr) {
-        throw Error(2090, fmt::format("Failed to open file '{}'", path));
+    std::ifstream meshFile(path);
+    if (!meshFile.good()) {
+        throw Error(2090, fmt::format("Failed to open file {}", path));
     }
 
     std::optional<float> azimuth;
@@ -58,36 +60,41 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
     unsigned int sizeY = 0;
     unsigned int counter = 0;
 
-    while (!feof(meshFile)) {
-        constexpr int MaxLineLength = 1024;
-        char lineBuffer[MaxLineLength];
-        char* res = fgets(lineBuffer, MaxLineLength, meshFile);
-        if (res == nullptr) {
-            continue;
-        }
-
-        float x, y, u, v;
-        if (sscanf(lineBuffer, "Dome Azimuth=%f", &v) == 1) {
+    std::string line;
+    while (std::getline(meshFile, line)) {
+        float x;
+        float y;
+        float u;
+        float v;
+        if (scn::scan(line, "Dome Azimuth={}", v)) {
             azimuth = v;
         }
-        else if (sscanf(lineBuffer, "Dome Elevation=%f", &v) == 1) {
+        else if (scn::scan(line, "Dome Elevation={}", v)) {
             elevation = v;
         }
-        else if (sscanf(lineBuffer, "Horizontal FOV=%f", &v) == 1) {
+        else if (scn::scan(line, "Horizontal FOV={}", v)) {
             hFov = v;
         }
-        else if (sscanf(lineBuffer, "Vertical FOV=%f", &v) == 1) {
+        else if (scn::scan(line, "Vertical FOV={}", v)) {
             vFov = v;
         }
-        else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks.x) == 1) {}
-        else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks.y) == 1) {}
-        else if (sscanf(lineBuffer, "U Tweak=%f", &uvTweaks.x) == 1) {}
-        else if (sscanf(lineBuffer, "V Tweak=%f", &uvTweaks.y) == 1) {}
-        else if (!areDimsSet && sscanf(lineBuffer, "%u %u", &sizeX, &sizeY) == 2) {
+        else if (scn::scan(line, "Horizontal Tweak={}", v)) {
+            fovTweaks.x = v;
+        }
+        else if (scn::scan(line, "Vertical Tweak={}", v)) {
+            fovTweaks.y = v;
+        }
+        else if (scn::scan(line, "U Tweak={}", v)) {
+            uvTweaks.x = v;
+        }
+        else if (scn::scan(line, "V Tweak={}", v)) {
+            uvTweaks.y = v;
+        }
+        else if (!areDimsSet && scn::scan_default(line, sizeX, sizeY)) {
             areDimsSet = true;
             buf.vertices.resize(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
         }
-        else if (areDimsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4) {
+        else if (areDimsSet && scn::scan_default(line, x, y, u , v)) {
             if (uvTweaks.x > -1.f) {
                 u *= uvTweaks.x;
             }
@@ -109,12 +116,10 @@ Buffer generateSkySkanMesh(const std::string& path, BaseViewport& parent) {
         }
     }
 
-    fclose(meshFile);
-
     if (!areDimsSet || !azimuth.has_value() || !elevation.has_value() ||
         !hFov.has_value() || *hFov <= 0.f)
     {
-        throw Error(2091, fmt::format("Data reading error in file '{}'", path));
+        throw Error(2091, fmt::format("Data reading error in file {}", path));
     }
 
     // create frustums and projection matrices

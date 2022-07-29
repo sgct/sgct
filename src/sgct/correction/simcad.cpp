@@ -34,7 +34,9 @@ namespace {
 
 namespace sgct::correction {
 
-Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& size) {
+Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
+                          const vec2& size)
+{
     ZoneScoped
 
     // During projector alignment of 33x33 matrix is used to define geometry correction.
@@ -46,17 +48,18 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
     Log::Info(fmt::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
-    if (xmlDoc.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) {
+    std::string p = path.string();
+    if (xmlDoc.LoadFile(p.c_str()) != tinyxml2::XML_SUCCESS) {
         std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
         std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
-        throw Error(2080, fmt::format("Error loading file '{}'. {} {}", path, s1, s2));
+        throw Error(2080, fmt::format("Error loading file {}. {} {}", path, s1, s2));
     }
 
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
     if (XMLroot == nullptr) {
         throw Error(
             2081,
-            fmt::format("Error reading file '{}'. Missing 'GeometryFile'", path)
+            fmt::format("Error reading file {}. Missing 'GeometryFile'", path)
         );
     }
 
@@ -65,7 +68,7 @@ Buffer generateSimCADMesh(const std::string& path, const vec2& pos, const vec2& 
     if (element == nullptr) {
         throw Error(
             2082,
-            fmt::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
+            fmt::format("Error reading file {}. Missing 'GeometryDefinition'", path)
         );
     }
 

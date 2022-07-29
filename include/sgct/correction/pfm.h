@@ -11,11 +11,11 @@
 
 #include <sgct/math.h>
 #include <sgct/correction/buffer.h>
-#include <string>
+#include <filesystem>
 
 namespace sgct::correction {
 
-Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
+Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
     const vec2& size);
 
 } // namespace sgct::correction

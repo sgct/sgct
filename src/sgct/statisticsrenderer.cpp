@@ -278,6 +278,8 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         static_cast<float>(res.y)
     );
 
+    glLineWidth(1.f);
+
     {
         //
         // Render lines

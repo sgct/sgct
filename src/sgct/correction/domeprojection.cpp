@@ -48,7 +48,7 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
         unsigned int col;
         unsigned int row;
 
-        auto r = scn::scan("{};{};{};{};{};{}", x, y, y, v, col, row);
+        auto r = scn::scan(line, "{};{};{};{};{};{}", x, y, u, v, col, row);
         if (r) {
             // init to max intensity (opaque white)
             CorrectionMeshVertex vertex;

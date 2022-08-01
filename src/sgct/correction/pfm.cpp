@@ -14,95 +14,74 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
+#include <scn/scn.h>
+#include <fstream>
 
 namespace sgct::correction {
 
-Buffer generatePerEyeMeshFromPFMImage(const std::string& path, const vec2& pos,
+Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
                                       const vec2& size)
 {
     ZoneScoped
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
+    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from {}", path));
 
-    FILE* meshFile = fopen(path.c_str(), "rb");
-    if (meshFile == nullptr) {
-        throw Error(
-            Error::Component::Pfm, 2050,
-            fmt::format("Failed to open '{}'", path)
-        );
+    std::ifstream meshFile(path, std::ifstream::binary);
+    if (!meshFile.good()) {
+        throw Error(Error::Component::Pfm, 2050, fmt::format("Failed to open {}", path));
     }
 
-    constexpr int MaxLineLength = 1024;
-    char headerBuffer[MaxLineLength];
-    int index = 0;
-    int nNewlines = 0;
-    constexpr int read3lines = 3;
-    do {
-        char headerChar;
-        size_t retval = fread(&headerChar, sizeof(char), 1, meshFile);
-        if (retval != 1) {
-            fclose(meshFile);
-            throw Error(
-                Error::Component::Pfm, 2051,
-                fmt::format("Error reading from file '{}'", path)
-            );
-        }
-        headerBuffer[index++] = headerChar;
-        if (headerChar == '\n') {
-            nNewlines++;
-        }
-    } while (nNewlines < read3lines);
+    // Read the first three lines
+    std::string header;
+    std::string dummy;
+    std::getline(meshFile, header);
+    std::getline(meshFile, dummy);
+    std::getline(meshFile, dummy);
 
-    char fileFormatHeader[2];
+    std::string fileFormatHeader;
     unsigned int nCols = 0;
     unsigned int nRows = 0;
     float endiannessIndicator = 0;
-
-    const int scanRes = sscanf(
-        headerBuffer,
-        "%2c %u %u %f",
-        fileFormatHeader,
-        &nCols,
-        &nRows,
-        &endiannessIndicator
+    auto result = scn::scan(
+        header,
+        "{} {} {} {}", fileFormatHeader, nCols, nRows, endiannessIndicator
     );
-    if (scanRes != 4) {
-        fclose(meshFile);
+    if (!result || fileFormatHeader.size() == 2) {
         throw Error(
             Error::Component::Pfm, 2052,
-            fmt::format("Invalid header syntax in file '{}'", path)
+            fmt::format("Invalid header syntax in file {}", path)
         );
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         throw Error(
             Error::Component::Pfm, 2053,
-            fmt::format("Incorrect file type in file '{}'", path)
+            fmt::format("Incorrect file type in file {}", path)
         );
     }
 
     const int numCorrectionValues = nCols * nRows;
-    float* xcorrections = new float[numCorrectionValues];
-    float* ycorrections = new float[numCorrectionValues];
+    std::vector<float> xcorrections;
+    xcorrections.resize(numCorrectionValues);
+    std::vector<float> ycorrections;
+    ycorrections.resize(numCorrectionValues);
     const int value32bit = 4;
 
     for (int i = 0; i < numCorrectionValues; ++i) {
-        size_t r0 = fread(xcorrections + i, value32bit, 1, meshFile);
-        size_t r1 = fread(ycorrections + i, value32bit, 1, meshFile);
+        meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
+        meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
         float dumpValue;
-        size_t r2 = fread(&dumpValue, value32bit, 1, meshFile);
+        meshFile.read(reinterpret_cast<char*>(&dumpValue), sizeof(float));
 
-        if (r0 != 1 || r1 != 1 || r2 != 1) {
+        if (!meshFile.good()) {
             throw Error(
                 Error::Component::Pfm, 2054,
-                fmt::format("Error reading correction values in file '{}'", path)
+                fmt::format("Error reading correction values in file {}", path)
             );
         }
     }
-
-    fclose(meshFile);
 
     nCols /= 2;
 

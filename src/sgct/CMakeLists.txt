@@ -205,6 +205,7 @@ target_link_libraries(sgct
     minizip::minizip
     glm
     PNG::PNG
+    scn
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     json

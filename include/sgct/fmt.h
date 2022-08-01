@@ -9,6 +9,8 @@
 #ifndef __SGCT__FMT__H__
 #define __SGCT__FMT__H__
 
+#include <filesystem>
+
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
@@ -35,5 +37,14 @@
 #ifdef WIN32
 #pragma warning(pop)
 #endif // WIN32
+
+template <>
+struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string_view> {
+    template <typename FormatContext>
+    auto format(const std::filesystem::path& path, FormatContext& ctx)
+    {
+        return formatter<std::string_view>::format(path.string(), ctx);
+    }
+};
 
 #endif // __SGCT__FMT__H__

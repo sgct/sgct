@@ -10,13 +10,13 @@
 #define __SGCT__CORRECTION_SCISS__H__
 
 #include <sgct/correction/buffer.h>
-#include <string>
+#include <filesystem>
 
 namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
 
-Buffer generateScissMesh(const std::string& path, BaseViewport& parent);
+Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent);
 
 } // namespace sgct::correction
 

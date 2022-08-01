@@ -641,6 +641,7 @@ void FisheyeProjection::initShaders() {
 
     _shader = ShaderProgram("FisheyeShader");
     _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
+    _shader.addShaderSource(fragmentShader, GL_FRAGMENT_SHADER);
     _shader.addShaderSource(samplerShader, GL_FRAGMENT_SHADER);
     _shader.addShaderSource(
         isCubic ?

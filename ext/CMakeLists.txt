@@ -21,6 +21,12 @@ if (SGCT_DEP_INCLUDE_FMT)
   mark_as_advanced(FMT_DOC FMT_INSTALL FMT_PEDANTIC FMT_TEST FMT_WERROR)
 endif ()
 
+if (SGCT_DEP_INCLUDE_SCN)
+  add_subdirectory(scnlib)
+  disable_external_warnings(scn)
+  sgct_register_package(scn)
+endif ()
+
 if (SGCT_DEP_INCLUDE_ZLIB)
   add_subdirectory(zlib)
   set_property(TARGET zlib1 PROPERTY FOLDER "Dependencies")

@@ -45,6 +45,7 @@ endif ()
 
 # Exceptions for external libraries
 option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
+option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
 option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
 option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
 option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)

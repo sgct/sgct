@@ -14,22 +14,24 @@
 #include <sgct/opengl.h>
 #include <sgct/profiling.h>
 #include <glm/glm.hpp>
+#include <scn/scn.h>
 #include <algorithm>
+#include <fstream>
 
 namespace sgct::correction {
 
-Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
+Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2& pos,
                                   const vec2& size)
 {
     ZoneScoped
 
     Log::Info(fmt::format("Reading DomeProjection mesh data from '{}'", path));
 
-    FILE* meshFile = fopen(path.c_str(), "r");
-    if (!meshFile) {
+    std::ifstream meshFile(path);
+    if (!meshFile.good()) {
         throw Error(
             Error::Component::DomeProjection, 2010,
-            fmt::format("Failed to open '{}'", path)
+            fmt::format("Failed to open {}", path)
         );
     }
 
@@ -37,45 +39,43 @@ Buffer generateDomeProjectionMesh(const std::string& path, const vec2& pos,
 
     unsigned int nCols = 0;
     unsigned int nRows = 0;
-    while (!feof(meshFile)) {
-        constexpr int MaxLineLength = 1024;
-        char lineBuf[MaxLineLength];
-        if (fgets(lineBuf, MaxLineLength, meshFile)) {
-            float x;
-            float y;
-            float u;
-            float v;
-            unsigned int col;
-            unsigned int row;
+    std::string line;
+    while (std::getline(meshFile, line)) {
+        float x;
+        float y;
+        float u;
+        float v;
+        unsigned int col;
+        unsigned int row;
 
-            if (sscanf(lineBuf, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6) {
-                // init to max intensity (opaque white)
-                CorrectionMeshVertex vertex;
-                vertex.r = 1.f;
-                vertex.g = 1.f;
-                vertex.b = 1.f;
-                vertex.a = 1.f;
+        auto r = scn::scan("{};{};{};{};{};{}", x, y, y, v, col, row);
+        if (r) {
+            // init to max intensity (opaque white)
+            CorrectionMeshVertex vertex;
+            vertex.r = 1.f;
+            vertex.g = 1.f;
+            vertex.b = 1.f;
+            vertex.a = 1.f;
 
-                // find dimensions of meshdata
-                nCols = std::max(nCols, col);
-                nRows = std::max(nRows, row);
+            // find dimensions of meshdata
+            nCols = std::max(nCols, col);
+            nRows = std::max(nRows, row);
 
-                x = std::clamp(x, 0.f, 1.f);
-                y = std::clamp(y, 0.f, 1.f);
+            x = std::clamp(x, 0.f, 1.f);
+            y = std::clamp(y, 0.f, 1.f);
 
-                // convert to [-1, 1]
-                vertex.x = 2.f * (pos.x + x * size.x) - 1.f;
+            // convert to [-1, 1]
+            vertex.x = 2.f * (pos.x + x * size.x) - 1.f;
 
-                // (abock, 2019-08-30); I'm not sure why the y inversion happens
-                // here. It seems like a mistake, but who knows
-                vertex.y = 2.f * (pos.y + (1.f - y) * size.y) - 1.f;
+            // (abock, 2019-08-30); I'm not sure why the y inversion happens
+            // here. It seems like a mistake, but who knows
+            vertex.y = 2.f * (pos.y + (1.f - y) * size.y) - 1.f;
 
-                // scale to viewport coordinates
-                vertex.s = pos.x + u * size.x;
-                vertex.t = pos.y + (1.f - v) * size.y;
+            // scale to viewport coordinates
+            vertex.s = pos.x + u * size.x;
+            vertex.t = pos.y + (1.f - v) * size.y;
 
-                buf.vertices.push_back(std::move(vertex));
-            }
+            buf.vertices.push_back(std::move(vertex));
         }
     }
 

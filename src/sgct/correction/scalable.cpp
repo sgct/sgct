@@ -236,8 +236,8 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             if (gamma != data.gamma) {
                 data.gamma = gamma;
                 Log::Warning(fmt::format(
-                    "Found GAMMA value of {} in mesh {} we don't not support "
-                    "per-viewport gamma values", data.gamma, path
+                    "Found GAMMA value of {} in mesh {} we do not support per-viewport "
+                    "gamma values", data.gamma, path
                 ));
             }
         }
@@ -249,7 +249,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             if (useSphereSampling) {
                 Log::Warning(fmt::format(
                     "Found request to use Sphere Sample Coordinate System in mesh {} "
-                    "but we don't support this", path
+                    "but we do not support this", path
                 ));
             }
         }
@@ -257,7 +257,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.frustumEulerAngles.useAngles = std::stoi(std::string(rest)) != 0;
             if (data.frustumEulerAngles.useAngles) {
                 Log::Warning(fmt::format(
-                    "Enabled frustum euler angles in mesh {} but we don't know how "
+                    "Enabled frustum euler angles in mesh {} but we do not know how "
                     "these work, yet", path
                 ));
             }

@@ -119,19 +119,19 @@ public:
         std::function<void(int, int)> dataTransferAcknowledge;
 
         /// This function sets the keyboard callback (GLFW wrapper) for all windows
-        std::function<void(Key, Modifier, Action, int)> keyboard;
+        std::function<void(Key, Modifier, Action, int, Window*)> keyboard;
 
         /// All windows are connected to this callback.
-        std::function<void(unsigned int, int)> character;
+        std::function<void(unsigned int, int, Window*)> character;
 
         /// This function sets the mouse button callback (GLFW wrapper) for all windows
-        std::function<void(MouseButton, Modifier, Action)> mouseButton;
+        std::function<void(MouseButton, Modifier, Action, Window*)> mouseButton;
+
+        /// All windows are connected to this callback
+        std::function<void(double, double, Window*)> mousePos;
 
         /// All windows are connected to this callback.
-        std::function<void(double, double)> mousePos;
-
-        /// All windows are connected to this callback.
-        std::function<void(double, double)> mouseScroll;
+        std::function<void(double, double, Window*)> mouseScroll;
 
         /// Drop files to any window. All windows are connected to this callback.
         std::function<void(int, const char**)> drop;

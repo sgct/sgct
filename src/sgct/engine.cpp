@@ -62,11 +62,11 @@ namespace {
     std::mutex FrameSync;
 
     // Callback wrappers for GLFW
-    std::function<void(Key, Modifier, Action, int)> gKeyboardCallback = nullptr;
-    std::function<void(unsigned int, int)> gCharCallback = nullptr;
-    std::function<void(MouseButton, Modifier, Action)> gMouseButtonCallback = nullptr;
-    std::function<void(double, double)> gMousePosCallback = nullptr;
-    std::function<void(double, double)> gMouseScrollCallback = nullptr;
+    std::function<void(Key, Modifier, Action, int, Window*)> gKeyboardCallback = nullptr;
+    std::function<void(unsigned int, int, Window*)> gCharCallback = nullptr;
+    std::function<void(MouseButton, Modifier, Action, Window*)> gMouseButtonCallback = nullptr;
+    std::function<void(double, double, Window*)> gMousePosCallback = nullptr;
+    std::function<void(double, double, Window*)> gMouseScrollCallback = nullptr;
     std::function<void(int, const char**)> gDropCallback = nullptr;
 
     // For feedback: breaks a frame lock wait condition every time interval
@@ -490,40 +490,60 @@ void Engine::initialize() {
         if (gKeyboardCallback) {
             glfwSetKeyCallback(
                 win,
-                [](GLFWwindow*, int key, int scancode, int a, int m) {
-                    gKeyboardCallback(Key(key), Modifier(m), Action(a), scancode);
+                [](GLFWwindow* w, int key, int scancode, int a, int m) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gKeyboardCallback(
+                        Key(key),
+                        Modifier(m),
+                        Action(a),
+                        scancode,
+                        reinterpret_cast<Window*>(sgctWindow)
+                    );
                 }
             );
         }
         if (gMouseButtonCallback) {
             glfwSetMouseButtonCallback(
                 win,
-                [](GLFWwindow*, int b, int a, int m) {
-                    gMouseButtonCallback(MouseButton(b), Modifier(m), Action(a));
+                [](GLFWwindow* w, int b, int a, int m) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gMouseButtonCallback(
+                        MouseButton(b),
+                        Modifier(m),
+                        Action(a),
+                        reinterpret_cast<Window*>(sgctWindow)
+                    );
                 }
             );
         }
         if (gMousePosCallback) {
             glfwSetCursorPosCallback(
                 win,
-                [](GLFWwindow*, double xPos, double yPos) {
-                    gMousePosCallback(xPos, yPos);
+                [](GLFWwindow* w, double xPos, double yPos) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gMousePosCallback(xPos, yPos, reinterpret_cast<Window*>(sgctWindow));
                 }
             );
         }
         if (gCharCallback) {
             glfwSetCharModsCallback(
                 win,
-                [](GLFWwindow*, unsigned int ch, int mod) {
-                    gCharCallback(ch, mod);
+                [](GLFWwindow* w, unsigned int ch, int mod) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gCharCallback(ch, mod, reinterpret_cast<Window*>(sgctWindow));
                 }
             );
         }
         if (gMouseScrollCallback) {
             glfwSetScrollCallback(
                 win,
-                [](GLFWwindow*, double xOffset, double yOffset) {
-                    gMouseScrollCallback(xOffset, yOffset);
+                [](GLFWwindow* w, double xOffset, double yOffset) {
+                    void* sgctWindow = glfwGetWindowUserPointer(w);
+                    gMouseScrollCallback(
+                        xOffset,
+                        yOffset,
+                        reinterpret_cast<Window*>(sgctWindow)
+                    );
                 }
             );
         }

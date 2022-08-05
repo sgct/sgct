@@ -823,6 +823,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     {
         ZoneScopedN("glfwCreateWindow")
         _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", mon, share);
+        glfwSetWindowUserPointer(_windowHandle, this);
         if (_windowHandle == nullptr) {
             throw Err(8000, "Error opening GLFW window");
         }

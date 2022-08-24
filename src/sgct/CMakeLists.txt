@@ -157,12 +157,21 @@ add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
 
 target_precompile_headers(sgct PRIVATE
+  <sgct/fmt.h>
+  <sgct/opengl.h>
+  <glm/glm.hpp>
+
   <algorithm>
   <array>
+  <chrono>
+  <filesystem>
+  <functional>
   <map>
   <memory>
   <string>
+  <string_view>
   <utility>
+  <variant>
   <vector>
 )
 

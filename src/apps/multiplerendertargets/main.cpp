@@ -164,7 +164,7 @@ void cleanup() {
     box = nullptr;
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (Engine::instance().isMaster() && (action == Action::Press)) {
         if (key == Key::Esc) {
             Engine::instance().terminate();

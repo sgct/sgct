@@ -251,7 +251,7 @@ void cleanup() {
     vao = 0;
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }

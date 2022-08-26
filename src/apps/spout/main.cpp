@@ -210,7 +210,7 @@ void cleanup() {
     }
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (key == Key::Esc && action == Action::Press) {
         Engine::instance().terminate();
     }

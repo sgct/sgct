@@ -457,7 +457,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     }
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:

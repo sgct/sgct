@@ -398,7 +398,7 @@ void decode(const std::vector<std::byte>& data, unsigned int startPos) {
     deserializeObject(data, startPos, xform);
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (Engine::instance().isMaster()) {
         switch (key) {
             case Key::Esc:
@@ -426,7 +426,7 @@ void keyboard(Key key, Modifier, Action action, int) {
     }
 }
 
-void mouseButton(MouseButton button, Modifier, Action action) {
+void mouseButton(MouseButton button, Modifier, Action action, Window*) {
     const Window* wnd = Engine::instance().focusedWindow();
     if (Engine::instance().isMaster() && button == MouseButton::ButtonLeft && wnd) {
         mouseLeftButton = (action == Action::Press);

@@ -159,7 +159,7 @@ void cleanup() {
     }
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (action == Action::Press) {
         switch (key) {
             case Key::Esc:

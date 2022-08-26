@@ -692,7 +692,7 @@ void cleanup() {
     TextureManager::instance().removeTexture(box.textureBottom);
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (key == Key::Space && action == Action::Press) {
         renderGrid = !renderGrid;
         renderBox = !renderBox;

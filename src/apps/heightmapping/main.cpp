@@ -346,7 +346,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, stereoMode);
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
             case Key::Esc:

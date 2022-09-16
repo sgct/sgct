@@ -24,10 +24,12 @@
 #include <TracyOpenGL.hpp>
 
 #ifdef TRACY_ENABLE
+#ifndef SGCT_DONT_OVERRIDE_NEW_AND_DELETE
 
 void* operator new(size_t count);
 void operator delete(void* ptr) noexcept;
 
+#endif // SGCT_DONT_OVERRIDE_NEW_AND_DELETE
 #endif // TRACY_ENABLE
 
 #ifdef WIN32

@@ -1,0 +1,22 @@
+{
+    "name": "sgct",
+    "version-string" : "3.0.0",
+    "homepage" : "https://github.com/sgct/sgct/",
+    "license": "BSD-3-Clause",
+    "dependencies" : 
+    [
+        "fmt",
+        "freetype",
+        "glfw3",
+        "glm",
+        "libpng",
+        "nlohmann-json",
+        "minizip",
+        "openvr",
+        "scnlib",
+        "stb",
+        "tinyxml2",
+        "tracy",
+        "zlib"
+    ]
+}

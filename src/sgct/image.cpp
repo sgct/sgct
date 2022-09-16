@@ -13,7 +13,7 @@
 #include <sgct/fmt.h>
 #include <sgct/log.h>
 #include <png.h>
-#include <pngpriv.h>
+#include <zlib.h>
 #include <algorithm>
 #include <chrono>
 

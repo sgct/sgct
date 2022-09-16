@@ -65,7 +65,7 @@ namespace {
         float s, t;
     };
 
-    constexpr std::string_view VertexShader = R"(
+    constexpr std::string_view vertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec2 vertPosition;
@@ -79,7 +79,7 @@ void main() {
 }
 )";
 
-    constexpr std::string_view FragmentShader = R"(
+    constexpr std::string_view fragmentShader = R"(
 #version 330 core
 
 uniform sampler2D tex;
@@ -397,7 +397,7 @@ void decode(const std::vector<std::byte>& data, unsigned int pos) {
     deserializeObject(data, pos, takeScreenshot);
 }
 
-void keyboard(Key key, Modifier, Action action, int) {
+void keyboard(Key key, Modifier, Action action, int, Window*) {
     if (Engine::instance().isMaster() && action == Action::Press) {
         switch (key) {
             case Key::Esc:

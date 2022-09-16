@@ -192,36 +192,49 @@ target_include_directories(
 ) 
 
 find_package(glad REQUIRED)
-find_package(ZLIB REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(tinyxml2 REQUIRED)
+find_package(fmt REQUIRED)
+find_package(Threads REQUIRED) # Needed by Tracy
+find_package(Tracy REQUIRED)
 find_package(OpenGL REQUIRED)
+if (SGCT_FREETYPE_SUPPORT)
+  find_package(freetype REQUIRED)
+endif()
 if (SGCT_VRPN_SUPPORT)
   find_package(vrpn REQUIRED)
 endif ()
 if (SGCT_OPENVR_SUPPORT)
   find_package(openvr REQUIRED)
 endif ()
+find_package(ZLIB REQUIRED)
+find_package(minizip REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(PNG REQUIRED)
+find_package(scn CONFIG REQUIRED)
+find_package(tinyxml2 REQUIRED)
+if (SGCT_VRPN_SUPPORT)
+  find_package(vrpn REQUIRED)
+endif ()
+find_package(nlohmann_json REQUIRED)
 
 target_link_libraries(sgct 
   PUBLIC 
     glad::glad
     glfw
-    fmt
-    tracy
+    fmt::fmt
+    Tracy::TracyClient
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
-    glm
+    glm::glm
     PNG::PNG
-    scn
+    scn::scn
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
-    json
+    nlohmann_json::nlohmann_json
 )
 
 target_compile_definitions(sgct 

@@ -16,7 +16,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <unzip.h>
+#include <minizip/unzip.h>
 #include <algorithm>
 #include <string_view>
 

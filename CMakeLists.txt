@@ -88,6 +88,7 @@ if (UNIX)
 endif ()
 
 option(SGCT_INSTALL "Install SGCT library" OFF)
+option(SGCT_BUILD_TESTS "Build SGCT tests" ON)
 
 #  add dummy uninstall target to avoid it beeing added by dependencies
 if (NOT TARGET uninstall)
@@ -96,7 +97,9 @@ endif()
 
 add_subdirectory(ext)
 add_subdirectory(src/sgct)
-add_subdirectory(tests)
+if (SGCT_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
 if (SGCT_EXAMPLES)
   add_subdirectory(src/apps)
 endif ()

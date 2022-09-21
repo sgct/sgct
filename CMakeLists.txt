@@ -15,7 +15,6 @@ project(sgct VERSION 3.0.0)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 include(support/cmake/copy_files.cmake)
 include(support/cmake/copy_sgct_dynamic_libraries.cmake)
@@ -23,10 +22,11 @@ include(support/cmake/set_compile_options.cmake)
 include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
-file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pkg)
 list(APPEND CMAKE_MODULE_PATH 
   ${PROJECT_SOURCE_DIR}/support/cmake/modules 
-  ${PROJECT_BINARY_DIR}/pkg
+  ${CMAKE_BINARY_DIR}/pkg
 )
 
 if (APPLE)
@@ -45,19 +45,20 @@ if (WIN32)
 endif ()
 
 # Exceptions for external libraries
-option(SGCT_DEP_INCLUDE_FMT      "Include FMT      library" ON)
+option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
 option(SGCT_DEP_INCLUDE_FREETYPE "Include FreeType library" ON)
-option(SGCT_DEP_INCLUDE_GLAD     "Include GLAD     library" ON)
-option(SGCT_DEP_INCLUDE_GLFW     "Include GLFW     library" ON)
-option(SGCT_DEP_INCLUDE_GLM      "Include GLM      library" ON)
-option(SGCT_DEP_INCLUDE_JSON     "Include JSON     library" ON)
-option(SGCT_DEP_INCLUDE_LIBPNG   "Include LibPNG   library" ON)
-option(SGCT_DEP_INCLUDE_OPENVR   "Include OpenVR   library" ON)
-option(SGCT_DEP_INCLUDE_SCN      "Include SCN      library" ON)
-option(SGCT_DEP_INCLUDE_TINYXML  "Include TinyXML  library" ON)
-option(SGCT_DEP_INCLUDE_TRACY    "Include Tracy    library" ON)
-option(SGCT_DEP_INCLUDE_VRPN     "Include VRPN     library" OFF)
-option(SGCT_DEP_INCLUDE_ZLIB     "Include ZLIB     library" ON)
+option(SGCT_DEP_INCLUDE_GLAD "Include GLAD library" ON)
+option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)
+option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
+option(SGCT_DEP_INCLUDE_JSON "Include JSON library" ON)
+option(SGCT_DEP_INCLUDE_LIBPNG "Include LibPNG library" ON)
+option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
+option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
+option(SGCT_DEP_INCLUDE_STB "Include STB library" ON)
+option(SGCT_DEP_INCLUDE_TINYXML "Include TinyXML library" ON)
+option(SGCT_DEP_INCLUDE_TRACY "Include Tracy library" ON)
+option(SGCT_DEP_INCLUDE_VRPN "Include VRPN library" OFF)
+option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 
 option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 if (WIN32)
@@ -68,7 +69,7 @@ if (WIN32)
     set(SGCT_ENABLE_EDIT_CONTINUE OFF CACHE BOOL "" FORCE)
   endif ()
 endif ()
-
+  
 # Example applications
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
@@ -86,8 +87,10 @@ if (UNIX)
   option(SGCT_ENABLE_STATIC_ANALYZER "Enable Static analyzer" OFF)
 endif ()
 
+option(SGCT_INSTALL "Install SGCT library" OFF)
+
 #  add dummy uninstall target to avoid it beeing added by dependencies
-if(NOT TARGET uninstall)
+if (NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 

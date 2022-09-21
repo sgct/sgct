@@ -9,7 +9,7 @@
 add_executable(spoutsender main.cpp)
 set_compile_options(spoutsender)
 find_package(GLM REQUIRED)
-target_link_libraries(spoutsender PRIVATE sgct glm)
+target_link_libraries(spoutsender PRIVATE sgct::sgct glm::glm)
 
 set(files "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png")
 copy_files(spoutsender ${files})

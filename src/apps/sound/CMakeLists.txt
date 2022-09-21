@@ -8,7 +8,7 @@
 
 add_executable(sound main.cpp)
 set_compile_options(sound)
-target_link_libraries(sound PRIVATE sgct)
+target_link_libraries(sound PRIVATE sgct::sgct)
 
 find_library(ALUT_DEBUG_LIBRARY NAMES alutd libalutd libalut_cpp11d REQUIRED)
 find_library(ALUT_RELEASE_LIBRARY NAMES alut libalut libalut_cpp11 REQUIRED)

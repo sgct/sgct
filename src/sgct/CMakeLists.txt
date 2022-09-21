@@ -179,18 +179,6 @@ target_precompile_headers(sgct PRIVATE
   <vector>
 )
 
-target_include_directories(sgct
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-  PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/include
-)
-target_include_directories(
-  sgct SYSTEM
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/ext/stb
-) 
-
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(fmt REQUIRED)
@@ -211,11 +199,19 @@ find_package(minizip REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(scn CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 find_package(tinyxml2 REQUIRED)
-if (SGCT_VRPN_SUPPORT)
-  find_package(vrpn REQUIRED)
-endif ()
 find_package(nlohmann_json REQUIRED)
+
+
+target_include_directories(sgct 
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${Stb_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:include>
+  PRIVATE 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+)
 
 target_link_libraries(sgct 
   PUBLIC 
@@ -277,4 +273,30 @@ else () # Linux
     ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
   )
+endif ()
+
+
+if (SGCT_INSTALL)
+  include(GNUInstallDirs)
+  install(TARGETS sgct EXPORT sgctTargets 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+  )
+  install(
+    EXPORT sgctTargets 
+    FILE sgctTargets.cmake
+    NAMESPACE sgct:: 
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+  install(
+      FILES ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sgct
+  )
+
 endif ()

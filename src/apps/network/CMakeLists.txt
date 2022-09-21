@@ -9,7 +9,7 @@
 add_executable(network main.cpp)
 set_compile_options(network)
 find_package(glm REQUIRED)
-target_link_libraries(network PRIVATE sgct glm)
+target_link_libraries(network PRIVATE sgct::sgct glm::glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"

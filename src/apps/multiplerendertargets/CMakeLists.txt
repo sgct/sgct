@@ -9,7 +9,7 @@
 add_executable(multiplerendertargets main.cpp)
 set_compile_options(multiplerendertargets)
 find_package(glm REQUIRED)
-target_link_libraries(multiplerendertargets PRIVATE sgct glm)
+target_link_libraries(multiplerendertargets PRIVATE sgct::sgct glm::glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"

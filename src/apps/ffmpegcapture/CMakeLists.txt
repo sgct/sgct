@@ -8,7 +8,7 @@
 
 add_executable(ffmpegcapture main.cpp capture.h capture.cpp)
 set_compile_options(ffmpegcapture)
-target_link_libraries(ffmpegcapture PRIVATE sgct)
+target_link_libraries(ffmpegcapture PRIVATE sgct::sgct)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/user_cmake/Modules)
 
 find_package(FFmpeg REQUIRED)

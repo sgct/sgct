@@ -17,18 +17,19 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE" : "${sourceParentDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "IVW_CFG_VCPKG_OVERLAYS": "${sourceDir}/tools/vcpkg", 
-        "SGCT_DEP_INCLUDE_GLAD":     { "type": "BOOL", "value": "ON"},
         "SGCT_DEP_INCLUDE_FMT":      { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_SCN":      { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_ZLIB":     { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_GLFW":     { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_LIBPNG":   { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_GLM":      { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_TINYXML":  { "type": "BOOL", "value": "OFF"},
         "SGCT_DEP_INCLUDE_FREETYPE": { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_GLAD":     { "type": "BOOL", "value": "Off"},
+        "SGCT_DEP_INCLUDE_GLFW":     { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_GLM":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_JSON":     { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_LIBPNG":   { "type": "BOOL", "value": "OFF"},
         "SGCT_DEP_INCLUDE_OPENVR":   { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_SCN":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_STB":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_TINYXML":  { "type": "BOOL", "value": "OFF"},
         "SGCT_DEP_INCLUDE_TRACY":    { "type": "BOOL", "value": "OFF"},
-        "SGCT_DEP_INCLUDE_JSON":     { "type": "BOOL", "value": "OFF"}
+        "SGCT_DEP_INCLUDE_ZLIB":     { "type": "BOOL", "value": "OFF"}
       }
     },
     {

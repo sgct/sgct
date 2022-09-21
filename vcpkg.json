@@ -17,6 +17,10 @@
         "stb",
         "tinyxml2",
         "tracy",
-        "zlib"
+        "zlib",
+        {
+             "name": "glad",
+             "features" : ["wgl", "loader", "extensions"]
+        }
     ]
 }

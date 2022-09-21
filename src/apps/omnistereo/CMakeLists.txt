@@ -9,7 +9,7 @@
 add_executable(omnistereo main.cpp)
 set_compile_options(omnistereo)
 find_package(glm REQUIRED)
-target_link_libraries(omnistereo PRIVATE sgct glm)
+target_link_libraries(omnistereo PRIVATE sgct::sgct glm::glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"

@@ -9,7 +9,7 @@
 add_executable(heightmapping main.cpp)
 set_compile_options(heightmapping)
 find_package(glm REQUIRED)
-target_link_libraries(heightmapping PRIVATE sgct glm)
+target_link_libraries(heightmapping PRIVATE sgct::sgct glm::glm)
 
 set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"

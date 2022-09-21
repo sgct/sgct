@@ -65,7 +65,7 @@ namespace {
         float s, t;
     };
 
-    constexpr std::string_view vertexShader = R"(
+    constexpr std::string_view VertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec2 vertPosition;
@@ -79,7 +79,7 @@ void main() {
 }
 )";
 
-    constexpr std::string_view fragmentShader = R"(
+    constexpr std::string_view FragmentShader = R"(
 #version 330 core
 
 uniform sampler2D tex;
@@ -384,7 +384,7 @@ void initOGL(GLFWwindow*) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    ShaderManager::instance().addShaderProgram("simple", vertexShader, fragmentShader);
+    ShaderManager::instance().addShaderProgram("simple", VertexShader, FragmentShader);
 }
 
 std::vector<std::byte> encode() {

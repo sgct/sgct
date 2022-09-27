@@ -64,12 +64,12 @@ option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 if (WIN32)
   option(SGCT_ENABLE_EDIT_CONTINUE "Enable Edit&Continue" ON)
 
-  if (SGCT_DEP_ENABLE_TRACY)
+  if (SGCT_DEP_ENABLE_TRACY AND SGCT_ENABLE_EDIT_CONTINUE)
     message(WARNING "Tracy does not support compiling with Edit&Continue, so we have to disable that feature")
     set(SGCT_ENABLE_EDIT_CONTINUE OFF CACHE BOOL "" FORCE)
   endif ()
 endif ()
-  
+
 # Example applications
 if (SGCT_EXAMPLES)
   option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
@@ -90,7 +90,7 @@ endif ()
 option(SGCT_INSTALL "Install SGCT library" OFF)
 option(SGCT_BUILD_TESTS "Build SGCT tests" ON)
 
-#  add dummy uninstall target to avoid it beeing added by dependencies
+# add dummy uninstall target to avoid it beeing added by dependencies
 if (NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()

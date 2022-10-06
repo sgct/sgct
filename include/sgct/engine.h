@@ -265,6 +265,21 @@ public:
     void setupViewport(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustum);
 
+    void setCallbackPreWindow(std::function<void()> func);
+    void setCallbackInitOpenGL(std::function<void(GLFWwindow*)> func);
+    void setCallbackPreSync(std::function<void()> func);
+    void setCallbackPostSyncPreDraw(std::function<void()> func);
+    void setCallbackDraw(std::function<void(const RenderData&)> func);
+    void setCallbackDraw2D(std::function<void(const RenderData&)> func);
+    void setCallbackPostDraw(std::function<void()> func);
+    void setCallbackCleanup(std::function<void()> func);
+    void setCallbackKeyboard(
+        std::function<void(Key, Modifier, Action, int, Window*)> func);
+    void setCallbackCharacter(std::function<void(unsigned int, int, Window*)> func);
+    void setCallbackMousePosition(std::function<void(double, double, Window*)> func);
+    void setCallbackMouseScroll(std::function<void(double, double, Window*)> func);
+    void setCallbackDrop(std::function<void(int, const char**)> func);
+
 private:
     static Engine* _instance;
 
@@ -322,14 +337,14 @@ private:
     void blitWindowViewport(Window& prevWindow, Window& window,
         const Viewport& viewport, Frustum::Mode mode);
 
-    const std::function<void()> _preWindowFn;
-    const std::function<void(GLFWwindow*)> _initOpenGLFn;
-    const std::function<void()> _preSyncFn;
-    const std::function<void()> _postSyncPreDrawFn;
-    const std::function<void(const RenderData&)> _drawFn;
-    const std::function<void(const RenderData&)> _draw2DFn;
-    const std::function<void()> _postDrawFn;
-    const std::function<void()> _cleanupFn;
+    std::function<void()> _preWindowFn;
+    std::function<void(GLFWwindow*)> _initOpenGLFn;
+    std::function<void()> _preSyncFn;
+    std::function<void()> _postSyncPreDrawFn;
+    std::function<void(const RenderData&)> _drawFn;
+    std::function<void(const RenderData&)> _draw2DFn;
+    std::function<void()> _postDrawFn;
+    std::function<void()> _cleanupFn;
 
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;

@@ -29,7 +29,14 @@ struct Configuration;
 class Node;
 class StatisticsRenderer;
 
-// The `path` should be an absolute path or relative to the current working directory
+/**
+ * Loads the cluster information from the provided \p path.  The \p path is a
+ * configuration file and should be an absolute path or relative to the current working
+ * directory.  If no path is provided, a default setup is loaded instead.
+ *
+ * \param path The path to the configuration that should be loaded.
+ * \return The loaded Cluster object that contains all of the information from the file
+ */
 config::Cluster loadCluster(std::optional<std::string> path);
 
 /**

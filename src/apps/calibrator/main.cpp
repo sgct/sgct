@@ -56,7 +56,7 @@ namespace {
 
     float radius = 7.4f;
 
-    constexpr std::string_view gridVertexShader = R"(
+    constexpr std::string_view GridVertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec2 in_position;
@@ -84,7 +84,7 @@ void main() {
 }
 )";
 
-    constexpr std::string_view gridFragmentShader = R"(
+    constexpr std::string_view GridFragmentShader = R"(
 #version 330 core
 
 in vec4 tr_color;
@@ -93,7 +93,7 @@ out vec4 color;
 void main() { color = tr_color; }
 )";
 
-    constexpr std::string_view boxVertexShader = R"(
+    constexpr std::string_view BoxVertexShader = R"(
 #version 330 core
 
 layout(location = 0) in vec3 in_position;
@@ -113,41 +113,17 @@ void main() {
 }
 )";
 
-    constexpr std::string_view boxFragmentShader = R"(
+    constexpr std::string_view BoxFragmentShader = R"(
 #version 330 core
 
 in vec2 tr_uv;
 flat in int tr_textureId;
 out vec4 color;
 
-uniform sampler2D tex0;
-uniform sampler2D tex1;
-uniform sampler2D tex2;
-uniform sampler2D tex3;
-uniform sampler2D tex4;
-uniform sampler2D tex5;
+uniform sampler2D tex[6];
 
 void main() {
-    switch (tr_textureId) {
-        case 0:
-            color = texture(tex0, tr_uv);
-            break;
-        case 1:
-            color = texture(tex1, tr_uv);
-            break;
-        case 2:
-            color = texture(tex2, tr_uv);
-            break;
-        case 3:
-            color = texture(tex3, tr_uv);
-            break;
-        case 4:
-            color = texture(tex4, tr_uv);
-            break;
-        case 5:
-            color = texture(tex5, tr_uv);
-            break;
-    }
+    color = texture(tex[tr_textureId], tr_uv);
 }
 )";
 
@@ -181,9 +157,10 @@ void initializeGrid() {
     // other should be separated in the vertices list by 'AzimuthSteps' positions
     for (int e = 0; e <= ElevationSteps; ++e) {
         for (int a = 0; a < AzimuthSteps; ++a) {
-            GridVertex vertex;
             float ev = static_cast<float>(e) / static_cast<float>(ElevationSteps - 1);
             float av = static_cast<float>(a) / static_cast<float>(AzimuthSteps - 1);
+            
+            GridVertex vertex;
             vertex.elevation = glm::radians(ev * 90.f);
             vertex.azimuth = glm::radians(av * 360.f);
             vertices.push_back(vertex);
@@ -238,14 +215,18 @@ void initializeGrid() {
 
     ShaderManager::instance().addShaderProgram(
         "grid",
-        gridVertexShader,
-        gridFragmentShader
+        GridVertexShader,
+        GridFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("grid");
     prog.bind();
     grid.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
+    assert(grid.mvpMatrixLocation != -1);
     grid.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
-    glUniform1f(glGetUniformLocation(prog.id(), "radius"), radius);
+    assert(grid.cameraMatrixLocation != -1);
+    GLuint radiusLocation = glGetUniformLocation(prog.id(), "radius");
+    assert(radiusLocation != -1);
+    glUniform1f(radiusLocation, radius);
     prog.unbind();
 }
 
@@ -447,19 +428,20 @@ void initializeBox() {
 
     ShaderManager::instance().addShaderProgram(
         "box",
-        boxVertexShader,
-        boxFragmentShader
+        BoxVertexShader,
+        BoxFragmentShader
     );
     const ShaderProgram& prog = ShaderManager::instance().shaderProgram("box");
     prog.bind();
     box.mvpMatrixLocation = glGetUniformLocation(prog.id(), "mvp");
+    assert(box.mvpMatrixLocation != -1);
     box.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
-    glUniform1i(glGetUniformLocation(prog.id(), "tex0"), 0);
-    glUniform1i(glGetUniformLocation(prog.id(), "tex1"), 1);
-    glUniform1i(glGetUniformLocation(prog.id(), "tex2"), 2);
-    glUniform1i(glGetUniformLocation(prog.id(), "tex3"), 3);
-    glUniform1i(glGetUniformLocation(prog.id(), "tex4"), 4);
-    glUniform1i(glGetUniformLocation(prog.id(), "tex5"), 5);
+    assert(box.cameraMatrixLocation != -1);
+
+    GLuint texLoc = glGetUniformLocation(prog.id(), "tex");
+    assert(texLoc != -1);
+    constexpr std::array<int, 6> Indices = { 0, 1, 2, 3, 4, 5 };
+    glUniform1iv(texLoc, 6, Indices.data());
     prog.unbind();
 }
 
@@ -507,7 +489,7 @@ void draw(const RenderData& data) {
     if (renderBox) {
         ShaderManager::instance().shaderProgram("box").bind();
         glUniformMatrix4fv(box.mvpMatrixLocation, 1, GL_FALSE, mvp.values);
-        glUniformMatrix4fv(grid.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
+        glUniformMatrix4fv(box.cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(c));
         glBindVertexArray(box.vao);
 
         glActiveTexture(GL_TEXTURE0);
@@ -533,9 +515,9 @@ void draw2D(const RenderData& data) {
 #ifdef SGCT_HAS_TEXT
     if (showId) {
         const float w =
-            static_cast<float>(data.window.resolution().x)* data.viewport.size().x;
+            static_cast<float>(data.window.resolution().x) * data.viewport.size().x;
         const float h =
-            static_cast<float>(data.window.resolution().y)* data.viewport.size().y;
+            static_cast<float>(data.window.resolution().y) * data.viewport.size().y;
 
         const float offset = w / 2.f - w / 7.f;
 
@@ -653,30 +635,21 @@ std::vector<std::byte> encode() {
     serializeObject(data, showStats);
     serializeObject(data, theta);
     serializeObject(data, phi);
-
-    std::vector<std::byte> ddata;
-    serializeObject(ddata, data);
-    serializeObject(ddata, data);
-    return ddata;
+    return data;
 }
 
 void decode(const std::vector<std::byte>& data, unsigned int pos) {
-    std::vector<std::byte> ddata;
-    deserializeObject(data, pos, ddata);
-    std::vector<std::byte> edata;
-    deserializeObject(data, pos, edata);
-
     unsigned ppos = 0;
-    deserializeObject(ddata, ppos, takeScreenshot);
-    deserializeObject(ddata, ppos, captureBackbuffer);
-    deserializeObject(ddata, ppos, renderGrid);
-    deserializeObject(ddata, ppos, renderBox);
-    deserializeObject(ddata, ppos, runTests);
-    deserializeObject(ddata, ppos, frameNumber);
-    deserializeObject(ddata, ppos, showId);
-    deserializeObject(ddata, ppos, showStats);
-    deserializeObject(ddata, ppos, theta);
-    deserializeObject(ddata, ppos, phi);
+    deserializeObject(data, ppos, takeScreenshot);
+    deserializeObject(data, ppos, captureBackbuffer);
+    deserializeObject(data, ppos, renderGrid);
+    deserializeObject(data, ppos, renderBox);
+    deserializeObject(data, ppos, runTests);
+    deserializeObject(data, ppos, frameNumber);
+    deserializeObject(data, ppos, showId);
+    deserializeObject(data, ppos, showStats);
+    deserializeObject(data, ppos, theta);
+    deserializeObject(data, ppos, phi);
 }
 
 void cleanup() {
@@ -792,7 +765,6 @@ int main(int argc, char** argv) {
     Log::Info("P:     Take screenshot");
     Log::Info("B:     Toggle capturing the back buffer");
     Log::Info("===========");
-
 
 
     Engine::instance().render();

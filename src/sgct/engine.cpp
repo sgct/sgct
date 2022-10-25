@@ -1677,6 +1677,60 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
 }
 
+void Engine::setCallbackPreWindow(std::function<void()> func) {
+    _preWindowFn = std::move(func);
+}
+
+void Engine::setCallbackInitOpenGL(std::function<void(GLFWwindow*)> func) {
+    _initOpenGLFn = std::move(func);
+}
+
+void Engine::setCallbackPreSync(std::function<void()> func) {
+    _preSyncFn = std::move(func);
+}
+
+void Engine::setCallbackPostSyncPreDraw(std::function<void()> func) {
+    _postSyncPreDrawFn = std::move(func);
+}
+
+void Engine::setCallbackDraw(std::function<void(const RenderData&)> func) {
+    _drawFn = std::move(func);
+}
+
+void Engine::setCallbackDraw2D(std::function<void(const RenderData&)> func) {
+    _draw2DFn = std::move(func);
+}
+
+void Engine::setCallbackPostDraw(std::function<void()> func) {
+    _postDrawFn = std::move(func);
+}
+
+void Engine::setCallbackCleanup(std::function<void()> func) {
+    _cleanupFn = std::move(func);
+}
+
+void Engine::setCallbackKeyboard(
+                            std::function<void(Key, Modifier, Action, int, Window*)> func)
+{
+    gKeyboardCallback = std::move(func);
+}
+
+void Engine::setCallbackCharacter(std::function<void(unsigned int, int, Window*)> func) {
+    gCharCallback = std::move(func);
+}
+
+void Engine::setCallbackMousePosition(std::function<void(double, double, Window*)> func) {
+    gMousePosCallback = std::move(func);
+}
+
+void Engine::setCallbackMouseScroll(std::function<void(double, double, Window*)> func) {
+    gMouseScrollCallback = std::move(func);
+}
+
+void Engine::setCallbackDrop(std::function<void(int, const char**)> func) {
+    gDropCallback = std::move(func);
+}
+
 const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }

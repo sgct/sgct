@@ -14,7 +14,6 @@
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/tinyxml.h>
-#include <nlohmann/json.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -2510,6 +2509,114 @@ std::string serializeConfig(const config::Cluster& cluster,
     }
     to_json(res, cluster);
     return res.dump(2);
+}
+
+void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
+                                 const json &instance,
+                                 const std::string &message)
+{
+    nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
+    mErrMessage = fmt::format("Validation of config file failed against schema:\n"
+        "'{message}'\n"
+        "at entry in json file:\n"
+        "{instance}"
+    );
+}
+
+bool custom_error_handler::validationSucceeded() {
+    return mErrMessage.empty();
+}
+
+std::string& custom_error_handler::message() {
+    return mErrMessage;
+}
+
+std::string stringifyJsonFile(const std::string& filename) {
+    std::ifstream myfile;
+    myfile.open(filename);
+    if (myfile.fail()) {
+        throw Err(6082, fmt::format("Failed to open '{}'.", filename));
+    }
+    std::stringstream buffer;
+    buffer << myfile.rdbuf();
+    return buffer.str();
+}
+
+void validateConfigAgainstSchema(const std::string& config, const std::string& schema) {
+    Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
+    if (config.empty()) {
+        throw Err(6080, "No configuration file provided");
+    }
+    if (schema.empty()) {
+        throw Err(6080, "No schema file provided");
+    }
+
+    std::string configName = std::filesystem::absolute(config).string();
+    if (!std::filesystem::exists(configName)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find configuration file: {}", configName)
+        );
+    }
+    std::string schemaName = std::filesystem::absolute(schema).string();
+    if (!std::filesystem::exists(schemaName)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find schema file: {}", schemaName)
+        );
+    }
+    std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
+
+    try {
+        // The schema is defined based upon string from file
+        std::string schemaString = stringifyJsonFile(schema);
+        Log::Debug(fmt::format("Parsing schema from '{}'", schema));
+        json schemaInput = nlohmann::json::parse(schema);
+        Log::Debug("Configurintg validator");
+        json_validator validator(
+            schemaInput,
+            [&schemaDir] (const nlohmann::json_uri& id, json& value) {
+                std::string loadPath = schemaDir + "/" + id.to_string();
+                size_t lbIndex = loadPath.find("#");
+                if (lbIndex != std::string::npos) {
+                    loadPath = loadPath.substr(0, lbIndex);
+                }
+                //Remove trailing spaces
+                if(loadPath.length() > 0 ) {
+                    const size_t strEnd = loadPath.find_last_not_of(" #\t\r\n\0");
+                    loadPath = loadPath.substr(0, strEnd + 1);
+                }
+                if (std::filesystem::exists(loadPath)) {
+                    Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
+                    std::string newSchema = stringifyJsonFile(loadPath);
+                    value = nlohmann::json::parse(newSchema);
+                }
+                else {
+                    throw Err(
+                        6081,
+                        fmt::format("Could not find schema file: {}", loadPath)
+                    );
+                }
+            }
+        );
+        //validator.set_root_schema(person_schema, &mySchemaLoader); // insert root-schema
+        std::string cfgString = stringifyJsonFile(std::string(config));
+        json sgct_cfg = nlohmann::json::parse(cfgString);
+        custom_error_handler err;
+        validator.validate(sgct_cfg, err);
+        if (!err.validationSucceeded()) {
+            //Log::Debug(err.message());
+            throw Err(6089, err.message());
+        }
+    } catch (const nlohmann::json::parse_error& pe) {
+        throw Err(
+            6089,
+            fmt::format("Parsing of schema file '{}' failed with syntax error: {}",
+                schema, pe.what())
+        );
+    } catch (const std::exception &e) {
+        throw Err(6089, "General failure of schema validation.");
+    }
 }
 
 } // namespace sgct

@@ -26,7 +26,7 @@ namespace sgct {
 class custom_error_handler : public nlohmann::json_schema::basic_error_handler
 {
 public:
-    void error(const nlohmann::json::json_pointer &ptr, const json &instance,
+    void error(const nlohmann::json::json_pointer &ptr, const nlohmann::json &instance,
                const std::string &message) override;
     bool validationSucceeded();
     std::string& message();

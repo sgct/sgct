@@ -2512,15 +2512,12 @@ std::string serializeConfig(const config::Cluster& cluster,
 }
 
 void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
-                                 const json &instance,
+                                 const nlohmann::json &instance,
                                  const std::string &message)
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-    mErrMessage = fmt::format("Validation of config file failed against schema:\n"
-        "'{message}'\n"
-        "at entry in json file:\n"
-        "{instance}"
-    );
+    mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
+        "at entry in json file: {}", message, instance);
 }
 
 bool custom_error_handler::validationSucceeded() {
@@ -2571,12 +2568,13 @@ void validateConfigAgainstSchema(const std::string& config, const std::string& s
         // The schema is defined based upon string from file
         std::string schemaString = stringifyJsonFile(schema);
         Log::Debug(fmt::format("Parsing schema from '{}'", schema));
-        json schemaInput = nlohmann::json::parse(schema);
-        Log::Debug("Configurintg validator");
-        json_validator validator(
+        nlohmann::json schemaInput = nlohmann::json::parse(schema);
+        Log::Debug("Configuring validator");
+        nlohmann::json_schema::json_validator validator(
             schemaInput,
-            [&schemaDir] (const nlohmann::json_uri& id, json& value) {
-                std::string loadPath = schemaDir + "/" + id.to_string();
+            [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
+                std::string loadPath = schemaDir.string() + std::string("/") +
+                    id.to_string();
                 size_t lbIndex = loadPath.find("#");
                 if (lbIndex != std::string::npos) {
                     loadPath = loadPath.substr(0, lbIndex);
@@ -2599,9 +2597,9 @@ void validateConfigAgainstSchema(const std::string& config, const std::string& s
                 }
             }
         );
-        //validator.set_root_schema(person_schema, &mySchemaLoader); // insert root-schema
+        //validator.set_root_schema(person_schema, &mySchemaLoader); //insert root schema
         std::string cfgString = stringifyJsonFile(std::string(config));
-        json sgct_cfg = nlohmann::json::parse(cfgString);
+        nlohmann::json sgct_cfg = nlohmann::json::parse(cfgString);
         custom_error_handler err;
         validator.validate(sgct_cfg, err);
         if (!err.validationSucceeded()) {

@@ -369,7 +369,20 @@ struct GeneratorVersion {
     std::string name;
     int major;
     int minor;
+
+    bool versionCheck(GeneratorVersion check) {
+        if (check.name != name) {
+            return false;
+        }
+        else if (check.major > major) {
+            return true;
+        }
+        else {
+            return ((check.major == major) && (check.minor >= minor));
+        }
+    }
 };
+
 void validateGeneratorVersion(const GeneratorVersion& gVersion);
 
 } // namespace sgct::config

@@ -16,6 +16,8 @@
 #include <sgct/tinyxml.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <nlohmann/json.hpp>
+#include <nlohmann/json-schema.hpp>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -2511,6 +2513,17 @@ std::string serializeConfig(const config::Cluster& cluster,
     return res.dump(2);
 }
 
+class custom_error_handler : public nlohmann::json_schema::basic_error_handler
+{
+public:
+    void error(const nlohmann::json::json_pointer &ptr, const nlohmann::json &instance,
+               const std::string &message) override;
+    bool validationSucceeded();
+    std::string& message();
+private:
+    std::string mErrMessage;
+};
+
 void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
                                  const nlohmann::json &instance,
                                  const std::string &message)
@@ -2616,5 +2629,57 @@ void validateConfigAgainstSchema(const std::string& config, const std::string& s
         throw Err(6089, "General failure of schema validation.");
     }
 }
+
+sgct::config::GeneratorVersion readJsonGeneratorVersion(std::string_view configuration) {
+    nlohmann::json j = nlohmann::json::parse(configuration);
+
+    auto it = j.find("version");
+    if (it == j.end()) {
+        throw std::runtime_error("Missing 'version' information");
+    }
+
+    sgct::config::GeneratorVersion genVersion;
+    from_json(j, genVersion);
+    return genVersion;
+}
+
+sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) {
+    std::string name = std::filesystem::absolute(filename).string();
+    if (!std::filesystem::exists(name)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find configuration file: {}", name)
+        );
+    }
+
+    config::GeneratorVersion genVersion = [](std::filesystem::path path) {
+        if (path.extension() == ".json") {
+            try {
+                std::ifstream f(path);
+                std::string contents = std::string(
+                    (std::istreambuf_iterator<char>(f)),
+                    std::istreambuf_iterator<char>()
+                );
+                return readJsonGeneratorVersion(contents);
+            }
+            catch (const nlohmann::json::exception& e) {
+                throw Err(6082, e.what());
+            }
+        }
+        else {
+            throw Err(
+                6088,
+                fmt::format("Unsupported file extension {}", path.extension().string())
+            );
+        }
+    }(name);
+
+    Log::Debug(fmt::format("Config file '{}' read for generator version:"
+                           "'{}' version {}.{}", name, genVersion.name, genVersion.major,
+                           genVersion.minor));
+
+    return genVersion;
+}
+
 
 } // namespace sgct

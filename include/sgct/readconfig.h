@@ -19,12 +19,17 @@ namespace sgct {
 [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 
 [[nodiscard]] config::GeneratorVersion readJsonGeneratorVersion(
-    std::string_view configuration);
+    const std::string& configuration);
 
 [[nodiscard]] config::GeneratorVersion readConfigGenerator(const std::string& filename);
 
 [[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
     std::optional<config::GeneratorVersion> genVersion = std::nullopt);
+
+[[nodiscard]] std::string stringifyJsonFile(const std::string& filename);
+
+bool validateConfigAgainstSchema(const std::string& config,
+    const std::string& schema, std::string& resultMessage);
 
 } // namespace sgct
 

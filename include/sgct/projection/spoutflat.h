@@ -75,8 +75,8 @@ protected:
         float distance = 0.f;
     };
     FOV _spoutFov;
-    quat _spoutOrientation = { 0.f, 0.f, 0.f, 1.f };
-    vec3 _spoutOffset = { 0.f, 0.f, 0.f };
+    quat _spoutOrientation = quat(0.f, 0.f, 0.f, 1.f);
+    vec3 _spoutOffset = vec3(0.f, 0.f, 0.f);
     bool _spoutDrawMain = false;
 
     std::unique_ptr<OffScreenBuffer> _spoutFbo;

@@ -128,9 +128,9 @@ protected:
     InterpolationMode _interpolationMode = InterpolationMode::Linear;
     Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
-    ivec2 _cubemapResolution = { 512, 512 };
-    vec4 _clearColor = vec4{ 0.3f, 0.3f, 0.3f, 1.f };
-    ivec4 _vpCoords = ivec4{ 0, 0, 0, 0 };
+    ivec2 _cubemapResolution = ivec2(512, 512);
+    vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
+    ivec4 _vpCoords = ivec4(0, 0, 0, 0);
     bool _useDepthTransformation = false;
     bool _isStereo = false;
     unsigned int _texInternalFormat = 0;

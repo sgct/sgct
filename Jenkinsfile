@@ -66,7 +66,7 @@ parallel tools: {
 },
 linux_gcc_make: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux' && 'gcc') {
+    node('linux-gcc') {
       stage('linux-gcc-make/scm') {
         deleteDir();
         checkoutGit();
@@ -93,7 +93,7 @@ linux_gcc_make: {
 },
 linux_gcc_ninja: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux' && 'gcc') {
+    node('linux-gcc') {
       stage('linux-gcc-ninja/scm') {
         deleteDir();
         checkoutGit();
@@ -116,7 +116,7 @@ linux_gcc_ninja: {
 },
 linux_clang_make: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux' && 'clang') {
+    node('linux-clang') {
       stage('linux-clang-make/scm') {
         deleteDir();
         checkoutGit();
@@ -143,7 +143,7 @@ linux_clang_make: {
 },
 linux_clang_ninja: {
   if (env.USE_BUILD_OS_LINUX == 'true') {
-    node('linux' && 'clang') {
+    node('linux-clang') {
       stage('linux-clang-ninja/scm') {
         deleteDir();
         checkoutGit();
@@ -208,7 +208,7 @@ windows_ninja: {
           cmake --build .  -- -j 4 all
           """,
           label: 'Generate build-scripts with cmake and execute them'
-        ) 
+        )
       }
       stage('windows-ninja/test') {
         runUnitTests('build-ninja\\tests\\SGCTTest')

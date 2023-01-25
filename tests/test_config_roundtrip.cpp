@@ -3548,7 +3548,7 @@ TEST_CASE("FisheyeProjection/Crop", "[roundtrip]") {
 
         sgct::config::Viewport viewport;
         sgct::config::FisheyeProjection projection;
-        projection.crop = sgct::config::FisheyeProjection::Crop(1.f, 2.f, 3.f, 4.f);
+        projection.crop = sgct::config::FisheyeProjection::Crop{ 1.f, 2.f, 3.f, 4.f };
         viewport.projection = projection;
         window.viewports.push_back(viewport);
         node.windows.push_back(window);
@@ -3571,7 +3571,7 @@ TEST_CASE("FisheyeProjection/Crop", "[roundtrip]") {
 
         sgct::config::Viewport viewport;
         sgct::config::FisheyeProjection projection;
-        projection.crop = sgct::config::FisheyeProjection::Crop(5.f, 6.f, 7.f, 8.f);
+        projection.crop = sgct::config::FisheyeProjection::Crop{ 5.f, 6.f, 7.f, 8.f };
         viewport.projection = projection;
         window.viewports.push_back(viewport);
         node.windows.push_back(window);
@@ -3830,7 +3830,7 @@ TEST_CASE("PlanarProjection/FOV", "[roundtrip]") {
 
     sgct::config::Viewport viewport;
     sgct::config::PlanarProjection projection;
-    projection.fov = sgct::config::PlanarProjection::FOV(1.f, 2.f, 3.f, 4.f);
+    projection.fov = sgct::config::PlanarProjection::FOV{ 1.f, 2.f, 3.f, 4.f };
     viewport.projection = projection;
     window.viewports.push_back(viewport);
     node.windows.push_back(window);

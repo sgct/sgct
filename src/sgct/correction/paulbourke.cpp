@@ -65,7 +65,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
             );
         }
         buf.vertices.reserve(static_cast<size_t>(valX) * static_cast<size_t>(valY));
-        meshSize = std::move(glm::ivec2(valX, valY));
+        meshSize = glm::ivec2(valX, valY);
     }
 
     // get all data

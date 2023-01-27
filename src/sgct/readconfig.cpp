@@ -2021,7 +2021,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
                 v.projection = it->get<ProjectionPlane>();
             }
             else {
-                throw "Unknown type";
+                throw Err(6089, fmt::format("Unknown projection type '{}'", type));
             }
         }
     }
@@ -2592,7 +2592,7 @@ bool validateConfigAgainstSchema(const std::string& config,
         // The schema is defined based upon string from file
         std::string schemaString = stringifyJsonFile(schema);
         Log::Debug(fmt::format("Parsing schema from '{}'", schema));
-        nlohmann::json schemaInput = nlohmann::json::parse(schema);
+        nlohmann::json schemaInput = nlohmann::json::parse(schemaString);
         Log::Debug("Configuring validator");
         nlohmann::json_schema::json_validator validator(
             schemaInput,
@@ -2625,10 +2625,10 @@ bool validateConfigAgainstSchema(const std::string& config,
         std::string cfgString = stringifyJsonFile(std::string(config));
         nlohmann::json sgct_cfg = nlohmann::json::parse(cfgString);
         custom_error_handler err;
-        validator.validate(sgct_cfg, err);
+        //Need to get custom_error_handler working again
+        validator.validate(sgct_cfg);//, err);
         if (!err.validationSucceeded()) {
             //Log::Debug(err.message());
-            throw Err(6089, err.message());
         }
     }
     catch (const nlohmann::json::parse_error& e) {
@@ -2661,7 +2661,6 @@ sgct::config::GeneratorVersion readJsonGeneratorVersion(const std::string& confi
     if (it == j.end()) {
         throw std::runtime_error("Missing 'version' information");
     }
-
     sgct::config::GeneratorVersion genVersion;
     from_json(j, genVersion);
     return genVersion;

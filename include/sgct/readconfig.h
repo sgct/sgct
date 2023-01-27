@@ -19,7 +19,7 @@ namespace sgct {
 [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 
 [[nodiscard]] config::GeneratorVersion readJsonGeneratorVersion(
-    std::string_view configuration);
+    const std::string& configuration);
 
 [[nodiscard]] config::GeneratorVersion readConfigGenerator(const std::string& filename);
 

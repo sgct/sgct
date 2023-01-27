@@ -370,16 +370,20 @@ struct GeneratorVersion {
     int major;
     int minor;
 
-    bool versionCheck(GeneratorVersion check) {
+    bool versionCheck(GeneratorVersion check) const {
         if (check.name != name) {
             return false;
         }
-        else if (check.major > major) {
+        else if (major > check.major) {
             return true;
         }
         else {
-            return ((check.major == major) && (check.minor >= minor));
+            return ((major == check.major) && (minor >= check.minor));
         }
+    }
+
+    std::string versionString() const {
+        return (name + " " + std::to_string(major) + "." + std::to_string(minor));
     }
 };
 

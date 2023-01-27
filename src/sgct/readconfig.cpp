@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <iostream>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
@@ -2409,9 +2410,16 @@ void to_json(nlohmann::json& j, const Cluster& c) {
 }
 
 void from_json(const nlohmann::json& j, GeneratorVersion& v) {
-    j.at("name").get_to(v.name);
-    j.at("major").get_to(v.major);
-    j.at("minor").get_to(v.minor);
+    if (auto it = j.find("generator");  it != j.end()) {
+        SpoutOutputProjection::Channels c;
+        parseValue(*it, "name", v.name);
+        parseValue(*it, "major", v.major);
+        parseValue(*it, "minor", v.minor);
+    }
+    else {
+        throw Err(6089, "This configuration file was not generated from the window "
+            "editor, and thus cannot be edited (missing field 'generator' in file)");
+    }
 }
 
 void to_json(nlohmann::json& j, const GeneratorVersion& v) {
@@ -2552,7 +2560,10 @@ std::string stringifyJsonFile(const std::string& filename) {
     return buffer.str();
 }
 
-void validateConfigAgainstSchema(const std::string& config, const std::string& schema) {
+bool validateConfigAgainstSchema(const std::string& config,
+                                 const std::string& schema,
+                                 const std::string& validationTypeExplanation)
+{
     Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
     if (config.empty()) {
         throw Err(6080, "No configuration file provided");
@@ -2605,7 +2616,7 @@ void validateConfigAgainstSchema(const std::string& config, const std::string& s
                 else {
                     throw Err(
                         6081,
-                        fmt::format("Could not find schema file: {}", loadPath)
+                        fmt::format("Could not find schema file to load: {}", loadPath)
                     );
                 }
             }
@@ -2619,20 +2630,33 @@ void validateConfigAgainstSchema(const std::string& config, const std::string& s
             //Log::Debug(err.message());
             throw Err(6089, err.message());
         }
-    } catch (const nlohmann::json::parse_error& pe) {
-        throw Err(
-            6089,
-            fmt::format("Parsing of schema file '{}' failed with syntax error: {}",
-                schema, pe.what())
-        );
-    } catch (const std::exception &e) {
-        throw Err(6089, "General failure of schema validation.");
+    }
+    catch (const nlohmann::json::parse_error& e) {
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    catch (const std::runtime_error& e) {
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    catch (const std::exception &e) {
+        //This should be an "Unknown error" once the custom error handler is working again
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
     }
 }
 
-sgct::config::GeneratorVersion readJsonGeneratorVersion(std::string_view configuration) {
-    nlohmann::json j = nlohmann::json::parse(configuration);
+void convertToSgctExceptionAndThrow(const std::string& schema,
+                                    const std::string& validationTypeExplanation,
+                                    const std::string& exceptionMessage)
+{
+    throw Err(
+        6089,
+        fmt::format("Checking this configuration file against schema '{}' failed. "
+            "{}. Schema validator provided the following error message: {}",
+            schema, validationTypeExplanation, exceptionMessage)
+    );
+}
 
+sgct::config::GeneratorVersion readJsonGeneratorVersion(const std::string& configuration) {
+    nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(configuration));
     auto it = j.find("version");
     if (it == j.end()) {
         throw std::runtime_error("Missing 'version' information");

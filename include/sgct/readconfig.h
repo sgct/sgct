@@ -26,6 +26,14 @@ namespace sgct {
 [[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
     std::optional<config::GeneratorVersion> genVersion = std::nullopt);
 
+[[nodiscard]] std::string stringifyJsonFile(const std::string& filename);
+
+bool validateConfigAgainstSchema(const std::string& config, const std::string& schema,
+    const std::string& validationTypeExplanation);
+
+void convertToSgctExceptionAndThrow(const std::string& schema,
+    const std::string& validationTypeExplanation, const std::string& exceptionMessage);
+
 } // namespace sgct
 
 #endif // __SGCT__READCONFIG__H__

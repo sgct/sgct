@@ -2432,7 +2432,9 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 
 namespace sgct {
 
-config::Cluster readConfig(const std::string& filename) {
+config::Cluster readConfig(const std::string& filename,
+                           const std::string additionalErrorDescription)
+{
     Log::Debug(fmt::format("Parsing XML config '{}'", filename));
     if (filename.empty()) {
         throw Err(6080, "No configuration file provided");
@@ -2454,7 +2456,7 @@ config::Cluster readConfig(const std::string& filename) {
     }
 
     // Then load the cluster
-    config::Cluster cluster = [](std::filesystem::path path) {
+    config::Cluster cluster = [&additionalErrorDescription](std::filesystem::path path) {
         if (path.extension() == ".xml") {
             return xmlconfig::readXMLFile(path);
         }
@@ -2468,7 +2470,17 @@ config::Cluster readConfig(const std::string& filename) {
                 return readJsonConfig(contents);
             }
             catch (const nlohmann::json::exception& e) {
-                throw Err(6082, e.what());
+                if (!additionalErrorDescription.empty()) {
+                    throw Err(
+                        6082,
+                        fmt::format("Importing of this configuration file failed with "
+                            "the message: {}: {}", additionalErrorDescription, e.what()
+                        )
+                    );
+                }
+                else {
+                    throw Err(6082, e.what());
+                }
             }
         }
         else {
@@ -2641,6 +2653,7 @@ bool validateConfigAgainstSchema(const std::string& config,
         //This should be an "Unknown error" once the custom error handler is working again
         convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
     }
+    return true;
 }
 
 void convertToSgctExceptionAndThrow(const std::string& schema,
@@ -2679,11 +2692,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         if (path.extension() == ".json") {
             try {
                 std::ifstream f(path);
-                std::string contents = std::string(
-                    (std::istreambuf_iterator<char>(f)),
-                    std::istreambuf_iterator<char>()
-                );
-                return readJsonGeneratorVersion(contents);
+                return readJsonGeneratorVersion(path);
             }
             catch (const nlohmann::json::exception& e) {
                 throw Err(6082, e.what());

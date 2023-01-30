@@ -2474,7 +2474,7 @@ config::Cluster readConfig(const std::string& filename,
                     throw Err(
                         6082,
                         fmt::format("Importing of this configuration file failed with "
-                            "the message: {}: {}", additionalErrorDescription, e.what()
+                            "the message: {}:\n{}", additionalErrorDescription, e.what()
                         )
                     );
                 }
@@ -2550,7 +2550,7 @@ void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
     mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
-        "at entry in json file: {}", message, instance);
+        "\nat entry in json file: {}", message, instance);
 }
 
 bool custom_error_handler::validationSucceeded() {
@@ -2637,10 +2637,9 @@ bool validateConfigAgainstSchema(const std::string& config,
         std::string cfgString = stringifyJsonFile(std::string(config));
         nlohmann::json sgct_cfg = nlohmann::json::parse(cfgString);
         custom_error_handler err;
-        //Need to get custom_error_handler working again
-        validator.validate(sgct_cfg);//, err);
+        validator.validate(sgct_cfg, err);
         if (!err.validationSucceeded()) {
-            //Log::Debug(err.message());
+            Log::Debug(err.message());
         }
     }
     catch (const nlohmann::json::parse_error& e) {
@@ -2693,6 +2692,9 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
             try {
                 std::ifstream f(path);
                 return readJsonGeneratorVersion(path);
+            }
+            catch (const std::runtime_error& e) {
+                throw Err(6082, e.what());
             }
             catch (const nlohmann::json::exception& e) {
                 throw Err(6082, e.what());

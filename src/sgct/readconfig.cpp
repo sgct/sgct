@@ -1213,7 +1213,7 @@ void to_json(nlohmann::json& j, const Scene& s) {
 
 void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
-    parseValue(j, "eyeseparation", u.eyeSeparation);
+//    parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
 
     parseValue(j, "matrix", u.transformation);
@@ -2474,7 +2474,8 @@ config::Cluster readConfig(const std::string& filename,
                     throw Err(
                         6082,
                         fmt::format("Importing of this configuration file failed with "
-                            "the message: {}:\n{}", additionalErrorDescription, e.what()
+                            "the message:\n\n{}:\n\n{}",
+                            additionalErrorDescription, e.what()
                         )
                     );
                 }
@@ -2637,7 +2638,7 @@ bool validateConfigAgainstSchema(const std::string& config,
         std::string cfgString = stringifyJsonFile(std::string(config));
         nlohmann::json sgct_cfg = nlohmann::json::parse(cfgString);
         custom_error_handler err;
-        validator.validate(sgct_cfg, err);
+        validator.validate(sgct_cfg);//, err);
         if (!err.validationSucceeded()) {
             Log::Debug(err.message());
         }
@@ -2661,8 +2662,8 @@ void convertToSgctExceptionAndThrow(const std::string& schema,
 {
     throw Err(
         6089,
-        fmt::format("Checking this configuration file against schema '{}' failed. "
-            "{}. Schema validator provided the following error message: {}",
+        fmt::format("Checking this configuration file against schema '{}' failed.\n\n"
+            "{}.\n\nSchema validator provided the following error message:\n\n{}",
             schema, validationTypeExplanation, exceptionMessage)
     );
 }

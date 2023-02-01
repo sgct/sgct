@@ -23,8 +23,8 @@ include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
-list(APPEND CMAKE_MODULE_PATH 
-  ${PROJECT_SOURCE_DIR}/support/cmake/modules 
+list(APPEND CMAKE_MODULE_PATH
+  ${PROJECT_SOURCE_DIR}/support/cmake/modules
   ${PROJECT_BINARY_DIR}/pkg
 )
 
@@ -44,6 +44,7 @@ if (WIN32)
 endif ()
 
 # Exceptions for external libraries
+option(SGCT_DEP_INCLUDE_CATCH2 "Include Catch2 library" ON)
 option(SGCT_DEP_INCLUDE_FMT "Include FMT library" ON)
 option(SGCT_DEP_INCLUDE_SCN "Include SCN library" ON)
 option(SGCT_DEP_INCLUDE_GLFW "Include GLFW library" ON)

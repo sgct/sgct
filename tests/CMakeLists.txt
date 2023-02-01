@@ -26,8 +26,7 @@ else ()
   target_compile_options(SGCTTest PRIVATE "-O0")
 endif ()
 
-target_include_directories(SGCTTest PRIVATE "${PROJECT_SOURCE_DIR}/ext/catch2/single_include")
-target_link_libraries(SGCTTest PRIVATE sgct json glm)
+target_link_libraries(SGCTTest PRIVATE Catch2 sgct json glm)
 
 if (APPLE)
   target_link_libraries(SGCTTest PRIVATE ${CARBON_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY} ${APP_SERVICES_LIBRARY})

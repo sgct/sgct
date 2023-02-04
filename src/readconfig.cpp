@@ -1119,14 +1119,14 @@ void from_json(const nlohmann::json& j, sgct::quat& q) {
     auto itYaw = j.find("yaw");
     auto itRoll = j.find("roll");
     if (itPitch != j.end() && itYaw != j.end() && itRoll != j.end()) {
-        double x = itPitch->get<double>();;
-        double y = -itYaw->get<double>();
-        double z= -itRoll->get<double>();
+        float x = itPitch->get<float>();
+        float y = -itYaw->get<float>();
+        float z = -itRoll->get<float>();
 
-        glm::dquat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
-        quat = glm::rotate(quat, glm::radians(y), glm::dvec3(0.0, 1.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(x), glm::dvec3(1.0, 0.0, 0.0));
-        quat = glm::rotate(quat, glm::radians(z), glm::dvec3(0.0, 0.0, 1.0));
+        glm::quat quat = glm::dquat(1.0, 0.0, 0.0, 0.0);
+        quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0, 0.0, 0.0));
+        quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0, 0.0, 1.0));
         q = sgct::quat(quat.x, quat.y, quat.z, quat.w);
     }
 

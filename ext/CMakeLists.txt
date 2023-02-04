@@ -7,7 +7,6 @@
 ##########################################################################################
 
 function(set_compile_options project)
-  disable_external_warnings(${project})
   target_compile_features(${project} PUBLIC cxx_std_20)
   if (MSVC)
     target_compile_options(${project} PRIVATE /MP /EHsc /permissive-)

@@ -18,7 +18,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(support/cmake/copy_files.cmake)
 include(support/cmake/set_compile_options.cmake)
-include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)

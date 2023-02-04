@@ -25,15 +25,6 @@
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::SkySkan, code, msg)
 
-namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-} // namespace
-
 namespace sgct::correction {
 
 Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& parent) {
@@ -152,7 +143,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         -vHalf,
         -hHalf,
         hHalf,
-        fromGLM<glm::quat, quat>(rotQuat)
+        quat(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w)
     );
     Engine::instance().updateFrustums();
 

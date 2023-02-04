@@ -22,13 +22,6 @@
 #include <fstream>
 
 namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-
     struct Data {
         int nVertices = 0;
         int nFaces = 0;
@@ -445,7 +438,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.perspective.fov.bottom,
             data.perspective.fov.left,
             data.perspective.fov.right,
-            fromGLM<glm::quat, quat>(q)
+            quat(q.x, q.y, q.z, q.w)
         );
         Engine::instance().updateFrustums();
     }

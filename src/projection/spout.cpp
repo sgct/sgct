@@ -42,13 +42,6 @@ namespace {
 #endif // SGCT_HAS_SPOUT
 
 namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-
     struct Vertex {
         float x;
         float y;
@@ -630,10 +623,13 @@ void SpoutOutputProjection::initViewports() {
             glm::radians(angleCorrection),
             glm::vec3(1.f, 0.f, 0.f)
         );
+        glm::vec3 ll = glm::vec3(r * lowerLeft);
+        glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        glm::vec3 ur = glm::vec3(r * upperRightBase);
         _mainViewport.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 
@@ -645,10 +641,13 @@ void SpoutOutputProjection::initViewports() {
         upperRight.x = Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
+        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        glm::vec3 ur = glm::vec3(r * upperRight);
         _subViewports.right.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRight))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 
@@ -663,10 +662,13 @@ void SpoutOutputProjection::initViewports() {
         upperLeft.x = -Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+        glm::vec3 ll = glm::vec3(r * lowerLeft);
+        glm::vec3 ul = glm::vec3(r * upperLeft);
+        glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.left.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeft)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 
@@ -679,10 +681,13 @@ void SpoutOutputProjection::initViewports() {
         lowerLeft.y = -Distance;
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+        glm::vec3 ll = glm::vec3(r * lowerLeft);
+        glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.bottom.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeft)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 
@@ -696,27 +701,38 @@ void SpoutOutputProjection::initViewports() {
         _subViewports.top.setSize(vec2{ 1.f, 1.f });
 
         glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
+        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        glm::vec3 ul = glm::vec3(r * upperLeft);
+        glm::vec3 ur = glm::vec3(r * upperRight);
         _subViewports.top.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeft)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRight))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 
     // front
-    _subViewports.front.projectionPlane().setCoordinates(
-        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * lowerLeftBase)),
-        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperLeftBase)),
-        fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperRightBase))
-    );
+    {
+        glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
+        glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
+        glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
+        _subViewports.front.projectionPlane().setCoordinates(
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
+        );
+    }
 
     // back
     {
         glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
+        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.back.projectionPlane().setCoordinates(
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * lowerLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperLeftBase)),
-            fromGLM<glm::vec3, vec3>(glm::vec3(r * upperRightBase))
+            vec3(ll.x, ll.y, ll.z),
+            vec3(ul.x, ul.y, ul.z),
+            vec3(ur.x, ur.y, ur.z)
         );
     }
 }

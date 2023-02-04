@@ -27,14 +27,7 @@
 
 namespace {
     template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-    template <class... Ts> overloaded(Ts...)->overloaded<Ts...>;
-
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
+    template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
     sgct::config::Window::StereoMode parseStereoType(std::string_view t) {
         using M = sgct::config::Window::StereoMode;
@@ -236,7 +229,7 @@ sgct::quat parseOrientationNode(tinyxml2::XMLElement& element) {
         }
     }
 
-    return fromGLM<glm::quat, sgct::quat>(quat);
+    return sgct::quat(quat.x, quat.y, quat.z, quat.w);
 }
 
 std::optional<sgct::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
@@ -784,17 +777,20 @@ sgct::config::User parseUser(tinyxml2::XMLElement& element) {
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
         sgct::quat orientation = parseOrientationNode(*e);
-        user.transformation = fromGLM<glm::mat4, sgct::mat4>(
-            glm::mat4_cast(glm::make_quat(&orientation.x))
-        );
+        glm::mat4 q = glm::mat4_cast(glm::make_quat(&orientation.x));
+
+        sgct::mat4 q2;
+        std::memcpy(&q2, glm::value_ptr(q), sizeof(float[16]));
+        user.transformation = q2;
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
         user.transformation = parseValueMat4(*e);
         if (user.transformation) {
             if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                user.transformation = fromGLM<glm::mat4, sgct::mat4>(
-                    glm::transpose(glm::make_mat4(user.transformation->values))
-                );
+                glm::mat4 m = glm::transpose(glm::make_mat4(user.transformation->values));
+                sgct::mat4 r;
+                std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
+                user.transformation = r;
             }
         }
     }
@@ -895,17 +891,20 @@ sgct::config::Device parseDevice(tinyxml2::XMLElement& element) {
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
         sgct::quat orientation = parseOrientationNode(*e);
-        device.transformation = fromGLM<glm::mat4, sgct::mat4>(
-            glm::mat4_cast(glm::make_quat(&orientation.x))
-        );
+        glm::mat4 m = glm::mat4_cast(glm::make_quat(&orientation.x));
+        sgct::mat4 r;
+        std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
+        device.transformation = r;
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Matrix"); e) {
         device.transformation = parseValueMat4(*e);
         if (device.transformation) {
             if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                device.transformation = fromGLM<glm::mat4, sgct::mat4>(
-                    glm::transpose(glm::make_mat4(device.transformation->values))
-                );
+                glm::mat4 m =
+                    glm::transpose(glm::make_mat4(device.transformation->values));
+                sgct::mat4 r;
+                std::memcpy(&r, glm::value_ptr(m), sizeof(float[16]));
+                device.transformation = r;
             }
         }
     }
@@ -931,9 +930,10 @@ sgct::config::Tracker parseTracker(tinyxml2::XMLElement& element) {
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Orientation"); e) {
         sgct::quat orientation = parseOrientationNode(*e);
-        tracker.transformation = fromGLM<glm::mat4, sgct::mat4>(
-            glm::mat4_cast(glm::make_quat(&orientation.x))
-        );
+        glm::mat4 m = glm::mat4_cast(glm::make_quat(&orientation.x));
+        sgct::mat4 o;
+        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        tracker.transformation = o;
     }
     if (tinyxml2::XMLElement* e = element.FirstChildElement("Scale"); e) {
         tracker.scale = parseValue<double>(*e, "value");
@@ -942,9 +942,11 @@ sgct::config::Tracker parseTracker(tinyxml2::XMLElement& element) {
         tracker.transformation = parseValueMat4(*e);
         if (tracker.transformation) {
             if (std::optional<bool> t = parseValue<bool>(*e, "transpose"); t && *t) {
-                tracker.transformation = fromGLM<glm::mat4, sgct::mat4>(
-                    glm::transpose(glm::make_mat4(tracker.transformation->values))
-                );
+                glm::mat4 m =
+                    glm::transpose(glm::make_mat4(tracker.transformation->values));
+                sgct::mat4 o;
+                std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+                tracker.transformation = o;
             }
         }
     }
@@ -1125,7 +1127,7 @@ void from_json(const nlohmann::json& j, sgct::quat& q) {
         quat = glm::rotate(quat, glm::radians(y), glm::dvec3(0.0, 1.0, 0.0));
         quat = glm::rotate(quat, glm::radians(x), glm::dvec3(1.0, 0.0, 0.0));
         quat = glm::rotate(quat, glm::radians(z), glm::dvec3(0.0, 0.0, 1.0));
-        q = fromGLM<glm::quat, sgct::quat>(quat);
+        q = sgct::quat(quat.x, quat.y, quat.z, quat.w);
     }
 
     auto itX = j.find("x");
@@ -1218,7 +1220,10 @@ void from_json(const nlohmann::json& j, User& u) {
 
     if (auto it = j.find("orientation");  it != j.end()) {
         quat q = it->get<quat>();
-        u.transformation = fromGLM<glm::mat4, mat4>(glm::mat4_cast(glm::make_quat(&q.x)));
+        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
+        sgct::mat4 o;
+        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        u.transformation = o;
     }
 
     if (auto it = j.find("tracking");  it != j.end()) {
@@ -1456,7 +1461,10 @@ void from_json(const nlohmann::json& j, Tracker& t) {
 
     if (auto it = j.find("orientation");  it != j.end()) {
         quat q = it->get<quat>();
-        t.transformation = fromGLM<glm::mat4, mat4>(glm::mat4_cast(glm::make_quat(&q.x)));
+        glm::mat4 m = glm::mat4_cast(glm::make_quat(&q.x));
+        sgct::mat4 o;
+        std::memcpy(&o, glm::value_ptr(m), sizeof(float[16]));
+        t.transformation = o;
     }
     parseValue(j, "scale", t.scale);
     parseValue(j, "matrix", t.transformation);

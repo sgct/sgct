@@ -30,13 +30,6 @@ namespace {
         float s;
         float t;
     };
-
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
 } // namespace
 
 namespace sgct {
@@ -387,10 +380,13 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.x = projectionOffset;
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rotMat * upperRight);
             _subViewports.right.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRight))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -410,10 +406,13 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperLeft = upperLeftBase;
             upperLeft.x = -projectionOffset;
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.left.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeft)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeft)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -431,10 +430,13 @@ void FisheyeProjection::initViewports() {
             glm::vec4 lowerLeft = lowerLeftBase;
             lowerLeft.y = -projectionOffset;
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeft);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.bottom.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeft)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -453,19 +455,25 @@ void FisheyeProjection::initViewports() {
             glm::vec4 upperRight = upperRightBase;
             upperRight.y = projectionOffset;
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeft);
+            glm::vec3 ur = glm::vec3(rotMat * upperRight);
             _subViewports.top.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeft)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRight))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
         // +Z face
         {
+            glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
             _subViewports.front.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rollRot * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -481,10 +489,13 @@ void FisheyeProjection::initViewports() {
                     glm::vec3(0.f, 1.f, 0.f)
                 );
 
+                glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+                glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+                glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
                 _subViewports.back.projectionPlane().setCoordinates(
-                    fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                    fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                    fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                    vec3(ll.x, ll.y, ll.z),
+                    vec3(ul.x, ul.y, ul.z),
+                    vec3(ur.x, ur.y, ur.z)
                 );
             }
         }
@@ -505,10 +516,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(0.f, 1.f, 0.f)
             );
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.right.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -523,10 +537,13 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.bottom.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
@@ -538,19 +555,25 @@ void FisheyeProjection::initViewports() {
                 glm::vec3(1.f, 0.f, 0.f)
             );
 
+            glm::vec3 ll = glm::vec3(rotMat * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(rotMat * upperLeftBase);
+            glm::vec3 ur = glm::vec3(rotMat * upperRightBase);
             _subViewports.top.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(rotMat * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 
         // +Z face
         {
+            glm::vec3 ll = glm::vec3(panRot * lowerLeftBase);
+            glm::vec3 ul = glm::vec3(panRot * upperLeftBase);
+            glm::vec3 ur = glm::vec3(panRot * upperRightBase);
             _subViewports.front.projectionPlane().setCoordinates(
-                fromGLM<glm::vec3, vec3>(glm::vec3(panRot * lowerLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(panRot * upperLeftBase)),
-                fromGLM<glm::vec3, vec3>(glm::vec3(panRot * upperRightBase))
+                vec3(ll.x, ll.y, ll.z),
+                vec3(ul.x, ul.y, ul.z),
+                vec3(ur.x, ur.y, ur.z)
             );
         }
 

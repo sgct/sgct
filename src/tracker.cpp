@@ -19,15 +19,6 @@
 
 namespace sgct {
 
-namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-} // namespace
-
 Tracker::Tracker(std::string name) : _name(std::move(name)) {}
 
 void Tracker::setEnabled(bool state) {
@@ -68,10 +59,10 @@ void Tracker::setOrientation(quat q) {
 
     // create inverse rotation matrix
     glm::mat4 orientation = glm::inverse(glm::mat4_cast(glm::make_quat(&q.x)));
-    _orientation = fromGLM<glm::mat4, mat4>(orientation);
+    std::memcpy(&_orientation, glm::value_ptr(orientation), sizeof(float[16]));
 
     glm::mat4 transMat = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
-    _transform = fromGLM<glm::mat4, mat4>(transMat * orientation);
+    std::memcpy(&_transform, glm::value_ptr(transMat), sizeof(float[16]));
 }
 
 void Tracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -79,14 +70,16 @@ void Tracker::setOrientation(float xRot, float yRot, float zRot) {
     rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.f, 0.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.f, 0.f, 1.f));
-    setOrientation(fromGLM<glm::quat, quat>(std::move(rotQuat)));
+    setOrientation(sgct::quat(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w));
 }
 
 void Tracker::setOffset(vec3 offset) {
     std::unique_lock lock(mutex::Tracking);
     _offset = std::move(offset);
-    glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x));
-    _transform = fromGLM<glm::mat4, mat4>(trans * glm::make_mat4(_orientation.values));
+    glm::mat4 trans =
+        glm::translate(glm::mat4(1.f), glm::make_vec3(&_offset.x)) *
+        glm::make_mat4(_orientation.values);
+    std::memcpy(&_transform, glm::value_ptr(trans), sizeof(float[16]));
 }
 
 void Tracker::setScale(double scaleVal) {

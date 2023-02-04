@@ -189,7 +189,7 @@ target_include_directories(
   sgct SYSTEM
   PUBLIC
     ${PROJECT_SOURCE_DIR}/ext/stb
-) 
+)
 
 find_package(glad REQUIRED)
 find_package(ZLIB REQUIRED)

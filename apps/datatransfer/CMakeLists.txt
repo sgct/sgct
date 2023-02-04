@@ -11,11 +11,14 @@ set_compile_options(datatransfer)
 find_package(glm REQUIRED)
 target_link_libraries(datatransfer PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET datatransfer POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+
+  $<TARGET_FILE_DIR:datatransfer>
 )
-copy_files(datatransfer ${files})
 set_property(TARGET datatransfer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:datatransfer>)
 set_target_properties(datatransfer PROPERTIES FOLDER "Examples")
 

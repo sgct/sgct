@@ -11,12 +11,15 @@ set_compile_options(heightmapping)
 find_package(glm REQUIRED)
 target_link_libraries(heightmapping PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET heightmapping POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/heightmap.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/normalmap.png"
+
+  $<TARGET_FILE_DIR:heightmapping>
 )
-copy_files(heightmapping ${files})
 set_property(TARGET heightmapping PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:heightmapping>)
 set_target_properties(heightmapping PROPERTIES FOLDER "Examples")
 

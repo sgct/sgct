@@ -10,7 +10,9 @@ add_executable(stitcher main.cpp)
 set_compile_options(stitcher)
 target_link_libraries(stitcher PRIVATE sgct)
 
-set(files
+add_custom_command(
+  TARGET stitcher POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/bottom.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/left.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/right.png"
@@ -19,8 +21,9 @@ set(files
   "${CMAKE_CURRENT_SOURCE_DIR}/top.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye_stereo.xml"
+
+  $<TARGET_FILE_DIR:stitcher>
 )
-copy_files(stitcher ${files})
 set_property(TARGET stitcher PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:stitcher>)
 set_target_properties(stitcher PROPERTIES FOLDER "Examples")
 

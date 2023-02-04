@@ -11,10 +11,13 @@ set_compile_options(network)
 find_package(glm REQUIRED)
 target_link_libraries(network PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET network POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+
+  $<TARGET_FILE_DIR:network>
 )
-copy_files(network ${files})
 set_property(TARGET network PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:network>)
 set_target_properties(network PROPERTIES FOLDER "Examples")
 

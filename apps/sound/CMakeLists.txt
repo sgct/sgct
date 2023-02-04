@@ -23,10 +23,13 @@ find_package(OpenAL REQUIRED)
 target_include_directories(soundPRIVATE ${OPENAL_INCLUDE_DIRECTORY} ${ALUT_INCLUDE_DIRECTORY})
 target_link_libraries(sound PRIVATE ${OPENAL_LIBRARY} ${ALUT_LIBRARY})
 
-set(files
+add_custom_command(
+  TARGET soundExample POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/file1.wav"
+
+  $<TARGET_FILE_DIR:soundExample>
 )
-copy_files(soundExample ${files})
 set_property(TARGET sound PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:sound>)
 set_target_properties(sound PROPERTIES FOLDER "Examples")
 

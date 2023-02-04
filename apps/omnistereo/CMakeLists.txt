@@ -11,13 +11,16 @@ set_compile_options(omnistereo)
 find_package(glm REQUIRED)
 target_link_libraries(omnistereo PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET omnistereo POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/sepmap.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/test.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/turnmap.jpg"
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+
+  $<TARGET_FILE_DIR:omnistereo>
 )
-copy_files(omnistereo ${files})
 set_property(TARGET omnistereo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:omnistereo>)
 set_target_properties(omnistereo PROPERTIES FOLDER "Examples")
 

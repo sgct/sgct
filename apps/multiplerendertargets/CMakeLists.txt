@@ -11,10 +11,13 @@ set_compile_options(multiplerendertargets)
 find_package(glm REQUIRED)
 target_link_libraries(multiplerendertargets PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET multiplerendertargets POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/../SharedResources/box.png"
+
+  $<TARGET_FILE_DIR:multiplerendertargets>
 )
-copy_files(multiplerendertargets ${files})
 set_property(TARGET multiplerendertargets PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:multiplerendertargets>)
 set_target_properties(multiplerendertargets PROPERTIES FOLDER "Examples")
 

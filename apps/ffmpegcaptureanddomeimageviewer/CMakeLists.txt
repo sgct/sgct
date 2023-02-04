@@ -30,11 +30,14 @@ target_link_libraries(fmpegcaptureanddomeimageviewer PRIVATE
   ${FFMPEG_LIBAVRESAMPLE_LIBRARIES}
 )
 
-set(files
+add_custom_command(
+  TARGET fmpegcaptureanddomeimageviewer POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
   "${CMAKE_CURRENT_SOURCE_DIR}/two_nodes.xml"
+
+  $<TARGET_FILE_DIR:fmpegcaptureanddomeimageviewer>
 )
-copy_files(fmpegcaptureanddomeimageviewer ${files})
 set_property(TARGET fmpegcaptureanddomeimageviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:fmpegcaptureanddomeimageviewer>)
 set_target_properties(fmpegcaptureanddomeimageviewer PROPERTIES FOLDER "Examples")
 

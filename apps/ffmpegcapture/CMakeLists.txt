@@ -30,10 +30,13 @@ target_link_libraries(ffmpegcapture PRIVATE
   ${FFMPEG_LIBAVRESAMPLE_LIBRARIES}
 )
 
-set(files
+add_custom_command(
+  TARGET ffmpegcapture POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/fisheye.xml"
+
+  $<TARGET_FILE_DIR:ffmpegcapture>
 )
-copy_files(ffmpegcapture ${files})
 set_property(TARGET ffmpegcapture PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:ffmpegcapture>)
 set_target_properties(ffmpegcapture PROPERTIES FOLDER "Examples")
 

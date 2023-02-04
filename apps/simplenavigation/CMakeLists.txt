@@ -11,10 +11,13 @@ set_compile_options(simplenavigation)
 find_package(glm REQUIRED)
 target_link_libraries(simplenavigation PRIVATE sgct glm)
 
-set(files
+add_custom_command(
+  TARGET simplenavigation POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
   "${CMAKE_CURRENT_SOURCE_DIR}/single_fisheye.xml"
+
+  $<TARGET_FILE_DIR:simplenavigation>
 )
-copy_files(simplenavigation ${files})
 set_property(TARGET simplenavigation PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:simplenavigation>)
 set_target_properties(simplenavigation PROPERTIES FOLDER "Examples")
 

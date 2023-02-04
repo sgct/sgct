@@ -16,8 +16,6 @@ project(sgct VERSION 3.0.0)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-include(support/cmake/copy_files.cmake)
-include(support/cmake/set_compile_options.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)

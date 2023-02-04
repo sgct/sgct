@@ -11,8 +11,13 @@ set_compile_options(spoutsender)
 find_package(GLM REQUIRED)
 target_link_libraries(spoutsender PRIVATE sgct glm)
 
-set(files "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png")
-copy_files(spoutsender ${files})
+add_custom_command(
+  TARGET spoutsender POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  "${SGCT_EXAMPLE_SHARED_RESOURCES}/box.png"
+
+  $<TARGET_FILE_DIR:spoutsender>
+)
 set_property(TARGET spoutsender PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutsender>)
 set_target_properties(spoutsender PROPERTIES FOLDER "Examples")
 

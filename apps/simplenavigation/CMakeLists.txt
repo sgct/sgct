@@ -18,7 +18,7 @@ copy_files(simplenavigation ${files})
 set_property(TARGET simplenavigation PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:simplenavigation>)
 set_target_properties(simplenavigation PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:simplenavigation>)
   add_custom_command(TARGET simplenavigation POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:simplenavigation> $<TARGET_FILE_DIR:simplenavigation>
     COMMAND_EXPAND_LISTS

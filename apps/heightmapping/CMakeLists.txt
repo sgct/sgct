@@ -20,7 +20,7 @@ copy_files(heightmapping ${files})
 set_property(TARGET heightmapping PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:heightmapping>)
 set_target_properties(heightmapping PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:heightmapping>)
   add_custom_command(TARGET heightmapping POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:heightmapping> $<TARGET_FILE_DIR:heightmapping>
     COMMAND_EXPAND_LISTS

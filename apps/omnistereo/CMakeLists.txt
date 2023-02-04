@@ -21,7 +21,7 @@ copy_files(omnistereo ${files})
 set_property(TARGET omnistereo PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:omnistereo>)
 set_target_properties(omnistereo PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:omnistereo>)
   add_custom_command(TARGET omnistereo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:omnistereo> $<TARGET_FILE_DIR:omnistereo>
     COMMAND_EXPAND_LISTS

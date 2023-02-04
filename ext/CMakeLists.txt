@@ -14,23 +14,6 @@ function(set_compile_options project)
   endif ()
 endfunction()
 
-# add_library(dependencies INTERFACE)
-# 
-# find_package(glad REQUIRED)
-# target_link_libraries()
-# 
-# find_package(ZLIB REQUIRED)
-# find_package(glfw3 REQUIRED)
-# find_package(PNG REQUIRED)
-# find_package(tinyxml2 REQUIRED)
-# find_package(OpenGL REQUIRED)
-# if (SGCT_VRPN_SUPPORT)
-#   find_package(vrpn REQUIRED)
-# endif ()
-# if (SGCT_OPENVR_SUPPORT)
-#   find_package(openvr REQUIRED)
-# endif ()
-
 if (SGCT_DEP_INCLUDE_CATCH2)
   add_subdirectory(catch2)
   set_compile_options(Catch2)

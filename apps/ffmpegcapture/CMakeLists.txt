@@ -37,7 +37,7 @@ copy_files(ffmpegcapture ${files})
 set_property(TARGET ffmpegcapture PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:ffmpegcapture>)
 set_target_properties(ffmpegcapture PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:ffmpegcapture>)
   add_custom_command(TARGET ffmpegcapture POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:ffmpegcapture> $<TARGET_FILE_DIR:ffmpegcapture>
     COMMAND_EXPAND_LISTS

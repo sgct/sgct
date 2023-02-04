@@ -13,7 +13,7 @@ target_link_libraries(spoutapp PRIVATE sgct glm)
 set_property(TARGET spoutapp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutapp>)
 set_target_properties(spoutapp PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:spoutapp>)
   add_custom_command(TARGET spoutapp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:spoutapp> $<TARGET_FILE_DIR:spoutapp>
     COMMAND_EXPAND_LISTS

@@ -38,7 +38,7 @@ copy_files(fmpegcaptureanddomeimageviewer ${files})
 set_property(TARGET fmpegcaptureanddomeimageviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:fmpegcaptureanddomeimageviewer>)
 set_target_properties(fmpegcaptureanddomeimageviewer PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:fmpegcaptureanddomeimageviewer>)
   add_custom_command(TARGET fmpegcaptureanddomeimageviewer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:fmpegcaptureanddomeimageviewer> $<TARGET_FILE_DIR:fmpegcaptureanddomeimageviewer>
     COMMAND_EXPAND_LISTS

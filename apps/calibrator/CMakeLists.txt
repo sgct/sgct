@@ -23,8 +23,9 @@ copy_files(calibrator ${files})
 set_property(TARGET calibrator PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:calibrator>)
 set_target_properties(calibrator PROPERTIES FOLDER "Examples")
 
-if (WIN32)
-  add_custom_command(TARGET calibrator POST_BUILD
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:calibrator>)
+  add_custom_command(
+    TARGET calibrator POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:calibrator> $<TARGET_FILE_DIR:calibrator>
     COMMAND_EXPAND_LISTS
   )

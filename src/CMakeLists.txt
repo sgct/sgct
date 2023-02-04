@@ -237,21 +237,6 @@ target_compile_definitions(sgct
 )
 
 if (WIN32)
-  target_include_directories(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout)
-  target_link_libraries(sgct PUBLIC ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.lib)
-
-  get_target_property(tmp sgct DYNAMIC_LIBS)
-  if (NOT tmp)
-    set(tmp "")
-  endif ()
-
-  set_target_properties(sgct
-    PROPERTIES DYNAMIC_LIBS
-    "${tmp};${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.dll"
-  )
-endif ()
-
-if (WIN32)
   target_link_libraries(sgct PRIVATE ws2_32)
 elseif (APPLE)
   find_library(COCOA_LIBRARY Cocoa REQUIRED)

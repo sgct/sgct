@@ -16,7 +16,7 @@ copy_files(spoutsender ${files})
 set_property(TARGET spoutsender PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutsender>)
 set_target_properties(spoutsender PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:spoutsender>)
   add_custom_command(TARGET spoutsender POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:spoutsender> $<TARGET_FILE_DIR:spoutsender>
     COMMAND_EXPAND_LISTS

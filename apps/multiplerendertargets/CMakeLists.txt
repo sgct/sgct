@@ -18,7 +18,7 @@ copy_files(multiplerendertargets ${files})
 set_property(TARGET multiplerendertargets PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:multiplerendertargets>)
 set_target_properties(multiplerendertargets PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:multiplerendertargets>)
   add_custom_command(TARGET multiplerendertargets POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:multiplerendertargets> $<TARGET_FILE_DIR:multiplerendertargets>
     COMMAND_EXPAND_LISTS

@@ -35,7 +35,7 @@ if (MSVC)
   set_target_properties(Stitcher_GUI PROPERTIES FOLDER "Examples")
 endif ()
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:stitcher>)
   add_custom_command(TARGET stitcher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:stitcher> $<TARGET_FILE_DIR:stitcher>
     COMMAND_EXPAND_LISTS

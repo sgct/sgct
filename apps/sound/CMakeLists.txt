@@ -30,7 +30,7 @@ copy_files(soundExample ${files})
 set_property(TARGET sound PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:sound>)
 set_target_properties(sound PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:sound>)
   add_custom_command(TARGET sound POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:sound> $<TARGET_FILE_DIR:sound>
     COMMAND_EXPAND_LISTS

@@ -19,7 +19,7 @@ copy_files(datatransfer ${files})
 set_property(TARGET datatransfer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:datatransfer>)
 set_target_properties(datatransfer PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:datatransfer>)
   add_custom_command(TARGET datatransfer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:datatransfer> $<TARGET_FILE_DIR:datatransfer>
     COMMAND_EXPAND_LISTS

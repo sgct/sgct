@@ -18,7 +18,7 @@ copy_files(domeimageviewer ${files})
 set_property(TARGET domeimageviewer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:domeimageviewer>)
 set_target_properties(domeimageviewer PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:domeimageviewer>)
   add_custom_command(TARGET domeimageviewer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:domeimageviewer> $<TARGET_FILE_DIR:domeimageviewer>
     COMMAND_EXPAND_LISTS

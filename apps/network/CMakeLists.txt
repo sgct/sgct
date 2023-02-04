@@ -18,7 +18,7 @@ copy_files(network ${files})
 set_property(TARGET network PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:network>)
 set_target_properties(network PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:network>)
   add_custom_command(TARGET network POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:network> $<TARGET_FILE_DIR:network>
     COMMAND_EXPAND_LISTS

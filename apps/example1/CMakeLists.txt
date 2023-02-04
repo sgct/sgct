@@ -13,7 +13,7 @@ target_link_libraries(example1 PRIVATE sgct glm)
 set_property(TARGET example1 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:example1>)
 set_target_properties(example1 PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:example1>)
   add_custom_command(TARGET example1 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:example1> $<TARGET_FILE_DIR:example1>
     COMMAND_EXPAND_LISTS

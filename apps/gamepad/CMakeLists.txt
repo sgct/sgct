@@ -12,7 +12,7 @@ target_link_libraries(gamepad PRIVATE sgct)
 set_property(TARGET gamepad PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:gamepad>)
 set_target_properties(gamepad PROPERTIES FOLDER "Examples")
 
-if (WIN32)
+if (WIN32 AND $<TARGET_RUNTIME_DLLS:gamepad>)
   add_custom_command(TARGET gamepad POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:gamepad> $<TARGET_FILE_DIR:gamepad>
     COMMAND_EXPAND_LISTS

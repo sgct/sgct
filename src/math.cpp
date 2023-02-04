@@ -13,25 +13,21 @@
 
 namespace sgct {
 
-template <typename From, typename To>
-To fromGLM(From v) {
-    To r;
-    std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-    return r;
-}
-
 mat4 operator*(const mat4& m1, const mat4& m2) {
-    return fromGLM<glm::mat4, mat4>(
-        glm::make_mat4(m1.values) * glm::make_mat4(m2.values)
-    );
+    glm::mat4 r = glm::make_mat4(m1.values) * glm::make_mat4(m2.values);
+    mat4 res;
+    std::memcpy(&res, glm::value_ptr(r), sizeof(float[16]));
+    return res;
 }
 
 vec4 operator*(const mat4& m, const vec4& v) {
-    return fromGLM<glm::vec4, vec4>(glm::make_mat4(m.values) * glm::make_vec4(&v.x));
+    glm::vec4 r = glm::make_mat4(m.values) * glm::make_vec4(&v.x);
+    return vec4(r.x, r.y, r.z, r.w);
 }
 
 vec3 operator*(const quat& q, const vec3& v) {
-    return fromGLM<glm::vec3, vec3>(glm::make_quat(&q.x) * glm::make_vec3(&v.x));
+    glm::vec3 r = glm::make_quat(&q.x) * glm::make_vec3(&v.x);
+    return vec3(r.x, r.y, r.z);
 }
 
 } // namespace

@@ -62,10 +62,10 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
 
     std::string line;
     while (std::getline(meshFile, line)) {
-        float x;
-        float y;
-        float u;
-        float v;
+        float x = 0.f;
+        float y = 0.f;
+        float u = 0.f;
+        float v = 0.f;
         if (scn::scan(line, "Dome Azimuth={}", v)) {
             azimuth = v;
         }

@@ -225,7 +225,7 @@ void initializeGrid() {
     grid.cameraMatrixLocation = glGetUniformLocation(prog.id(), "camera");
     assert(grid.cameraMatrixLocation != -1);
     GLuint radiusLocation = glGetUniformLocation(prog.id(), "radius");
-    assert(radiusLocation != -1);
+    assert(radiusLocation != std::numeric_limits<GLuint>::max());
     glUniform1f(radiusLocation, radius);
     prog.unbind();
 }
@@ -439,7 +439,7 @@ void initializeBox() {
     assert(box.cameraMatrixLocation != -1);
 
     GLuint texLoc = glGetUniformLocation(prog.id(), "tex");
-    assert(texLoc != -1);
+    assert(texLoc != std::numeric_limits<GLuint>::max());
     constexpr std::array<int, 6> Indices = { 0, 1, 2, 3, 4, 5 };
     glUniform1iv(texLoc, 6, Indices.data());
     prog.unbind();

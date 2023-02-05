@@ -24,13 +24,6 @@
 #include <cstdarg>
 
 namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
         sgct::vec2 res = sgct::vec2{
             static_cast<float>(win.resolution().x),
@@ -42,10 +35,7 @@ namespace {
     }
 
     std::vector<std::string> split(std::string str, char delimiter) {
-        std::string ws;
-        ws.assign(str.begin(), str.end());
-
-        std::stringstream ss(ws);
+        std::stringstream ss(std::move(str));
         std::string part;
 
         std::vector<std::string> tmpVec;
@@ -82,7 +72,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
         return;
     }
 
-    std::vector<std::string> lines = split(text, '\n');
+    std::vector<std::string> lines = split(std::move(text), '\n');
     glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
 
     const float h = font.height() * 1.59f;
@@ -116,8 +106,10 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
                 glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );
             glm::mat4 scale = glm::scale(trans, glm::vec3(ffd.size.x, ffd.size.y, 1.f));
+            sgct::mat4 s;
+            std::memcpy(&s, glm::value_ptr(scale), sizeof(sgct::mat4));
 
-            FontManager::instance().bindShader(fromGLM<glm::mat4, mat4>(scale), color, 0);
+            FontManager::instance().bindShader(s, color, 0);
 
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

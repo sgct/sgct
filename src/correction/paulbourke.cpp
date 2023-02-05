@@ -40,9 +40,9 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
 
     std::string line;
 
-    // get the fist line containing the mapping type _id
-    int mappingType = -1;
+    // get the first line containing the mapping type _id
     if (std::getline(meshFile, line)) {
+        int mappingType = -1;
         auto r = scn::scan_default(line, mappingType);
         if (!r) {
             throw Error(

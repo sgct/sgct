@@ -7,9 +7,7 @@
 ##########################################################################################
 
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
-cmake_policy(SET CMP0048 NEW)
-cmake_policy(SET CMP0063 NEW)
-cmake_policy(SET CMP0072 NEW)
+cmake_policy(VERSION 3.25)
 
 project(sgct VERSION 3.0.0)
 

@@ -6,20 +6,14 @@
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
-cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
-cmake_policy(SET CMP0048 NEW)
-cmake_policy(SET CMP0063 NEW)
-cmake_policy(SET CMP0072 NEW)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
+cmake_policy(VERSION 3.25)
 
 project(sgct VERSION 3.0.0)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-include(support/cmake/copy_files.cmake)
-include(support/cmake/copy_sgct_dynamic_libraries.cmake)
-include(support/cmake/set_compile_options.cmake)
-include(support/cmake/disable_external_warnings.cmake)
 
 include(support/cmake/register_package.cmake)
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/pkg)
@@ -67,28 +61,15 @@ if (WIN32)
   endif ()
 endif ()
 
-# Example applications
-if (SGCT_EXAMPLES)
-  option(SGCT_EXAMPLES_FFMPEG "Build FFMPEG examples" OFF)
-  option(SGCT_EXAMPLES_OPENAL "Build OpenAL examples" OFF)
-  option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
-  option(SGCT_EXAMPLES_STITCHER "Build Stitcher examples" OFF)
-endif ()
-
-if (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++ -lc++abi")
-endif ()
-
 if (UNIX)
   option(SGCT_ENABLE_STATIC_ANALYZER "Enable Static analyzer" OFF)
 endif ()
 
-add_subdirectory(ext)
-add_subdirectory(src/sgct)
+add_subdirectory(ext SYSTEM)
+add_subdirectory(src)
 
 add_subdirectory(tests)
 
 if (SGCT_EXAMPLES)
-  add_subdirectory(src/apps)
+  add_subdirectory(apps)
 endif ()

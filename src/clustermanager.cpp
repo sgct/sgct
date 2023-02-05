@@ -22,15 +22,6 @@
 
 namespace sgct {
 
-namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-} // namespace
-
 ClusterManager* ClusterManager::_instance = nullptr;
 
 ClusterManager& ClusterManager::instance() {
@@ -86,7 +77,8 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         const glm::mat4 scale = cluster.scene->scale ?
             glm::scale(glm::mat4(1.f), glm::vec3(*cluster.scene->scale)) : glm::mat4(1.f);
 
-        _sceneTransform = fromGLM<glm::mat4, mat4>(rotation * translate * scale);
+        glm::mat4 complete = rotation * translate * scale;
+        std::memcpy(&_sceneTransform, glm::value_ptr(complete), sizeof(sgct::mat4));
     }
     // The users must be handled before the nodes due to the nodes depending on the users
     for (const config::User& u : cluster.users) {

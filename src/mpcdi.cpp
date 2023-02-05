@@ -25,13 +25,6 @@
 namespace sgct::mpcdi {
 
 namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-
     struct SubFile {
         std::string fileName;
         std::vector<char> buffer;
@@ -97,7 +90,7 @@ namespace {
         }
 
         proj.frustum = frustum;
-        proj.orientation = fromGLM<glm::quat, sgct::quat>(quat);
+        proj.orientation = sgct::quat(quat.x, quat.y, quat.z, quat.w);
 
         return proj;
     }

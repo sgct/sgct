@@ -37,13 +37,6 @@
 namespace sgct {
 
 namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-
     struct Vertex {
         float x;
         float y;

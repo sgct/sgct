@@ -24,15 +24,6 @@
 
 namespace sgct {
 
-namespace {
-    template <typename From, typename To>
-    To fromGLM(From v) {
-        To r;
-        std::memcpy(&r, glm::value_ptr(v), sizeof(To));
-        return r;
-    }
-} // namespace
-
 void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
                                      float nearClip, float farClip, vec3 offset)
 {
@@ -78,21 +69,19 @@ void Projection::calculateProjection(vec3 base, const ProjectionPlane& proj,
     _frustum.nearPlane = nearClip;
     _frustum.farPlane = farClip;
 
-    _viewMatrix = fromGLM<glm::mat4, mat4>(
-        glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(b + o))
-    );
+    glm::mat4 complete = glm::mat4(invDcm) * glm::translate(glm::mat4(1.f), -(b + o));
+    std::memcpy(&_viewMatrix, glm::value_ptr(complete), sizeof(sgct::mat4));
 
     // calc frustum matrix
-    _projectionMatrix = fromGLM<glm::mat4, mat4>(
-        glm::frustum(
-            _frustum.left,
-            _frustum.right,
-            _frustum.bottom,
-            _frustum.top,
-            _frustum.nearPlane,
-            _frustum.farPlane
-        )
+    glm::mat4 frustum = glm::frustum(
+        _frustum.left,
+        _frustum.right,
+        _frustum.bottom,
+        _frustum.top,
+        _frustum.nearPlane,
+        _frustum.farPlane
     );
+    std::memcpy(&_projectionMatrix, glm::value_ptr(frustum), sizeof(sgct::mat4));
 
     _viewProjectionMatrix = _projectionMatrix * _viewMatrix;
 }

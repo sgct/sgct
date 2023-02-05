@@ -8,6 +8,10 @@
 
 if (SGCT_DEP_INCLUDE_CATCH2)
   add_subdirectory(catch2)
+  # Catch2 by default compiles with C++14, which leads to some linker errors:
+  # https://github.com/catchorg/Catch2/issues/2046
+  target_compile_features(Catch2 PUBLIC cxx_std_20)
+  target_compile_features(Catch2WithMain PUBLIC cxx_std_20)
 endif ()
 
 if (SGCT_DEP_INCLUDE_GLAD)

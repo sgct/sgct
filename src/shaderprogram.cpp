@@ -68,54 +68,6 @@ namespace {
 
 namespace sgct {
 
-ShaderProgram::Shader::Shader(GLenum shaderType, std::string_view sourceString)
-    : _shaderType(shaderType)
-{
-    // Prepare source code for shader
-    constexpr char Null = '\0';
-    const char* shaderSrc[] = { sourceString.data(), &Null};
-
-    _shaderId = glCreateShader(_shaderType);
-    glShaderSource(_shaderId, 1, shaderSrc, nullptr);
-
-    glCompileShader(_shaderId);
-    checkCompilationStatus(_shaderType, _shaderId);
-}
-
-ShaderProgram::Shader::Shader(const Shader& rhs)
-    : _shaderType(rhs._shaderType)
-    , _shaderId(rhs._shaderId)
-{}
-
-ShaderProgram::Shader::Shader(Shader&& rhs) noexcept
-    : _shaderType(rhs._shaderType)
-    , _shaderId(rhs._shaderId)
-{
-    rhs._shaderId = 0;
-}
-
-ShaderProgram::Shader& ShaderProgram::Shader::operator=(const Shader& rhs) noexcept {
-    if (this != &rhs) {
-        _shaderId = rhs._shaderId;
-    }
-    return *this;
-}
-ShaderProgram::Shader& ShaderProgram::Shader::operator=(Shader&& rhs) noexcept {
-    if (this != &rhs) {
-        _shaderId = rhs._shaderId;
-        rhs._shaderId = 0;
-    }
-    return *this;
-}
-
-ShaderProgram::Shader::~Shader() {
-    glDeleteShader(_shaderId);
-}
-
-int ShaderProgram::Shader::id() const {
-    return _shaderId;
-}
-
 ShaderProgram::ShaderProgram(std::string name) : _name(std::move(name)) {}
 
 ShaderProgram::ShaderProgram(ShaderProgram&& rhs) noexcept
@@ -124,6 +76,10 @@ ShaderProgram::ShaderProgram(ShaderProgram&& rhs) noexcept
     , _shaders(std::move(rhs._shaders))
 {
     rhs._programId = 0;
+}
+
+ShaderProgram::~ShaderProgram() {
+    deleteProgram();
 }
 
 ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
@@ -137,10 +93,9 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& rhs) noexcept {
 }
 
 void ShaderProgram::deleteProgram() {
-    for (Shader& shader : _shaders) {
-        if (shader.id() > 0) {
-            glDetachShader(_programId, shader.id());
-        }
+    for (unsigned int shader : _shaders) {
+        glDetachShader(_programId, shader);
+        glDeleteShader(shader);
     }
     _shaders.clear();
 
@@ -149,14 +104,18 @@ void ShaderProgram::deleteProgram() {
 }
 
 void ShaderProgram::addShaderSource(std::string_view src, GLenum type) {
-    Shader v(type, src);
-    _shaders.push_back(std::move(v));
-}
+    // Prepare source code for shader
+    constexpr char Null = '\0';
 
-//void ShaderProgram::addShaderSource(std::string vertexSrc, std::string fragmentSrc) {
-//    addShaderSource(std::move(vertexSrc), GL_VERTEX_SHADER);
-//    addShaderSource(std::move(fragmentSrc), GL_FRAGMENT_SHADER);
-//}
+    unsigned int id = glCreateShader(type);
+    
+    const char* shaderSrc[] = { src.data(), &Null };
+    glShaderSource(id, 1, shaderSrc, nullptr);
+    glCompileShader(id);
+    checkCompilationStatus(type, id);
+
+    _shaders.push_back(id);
+}
 
 std::string ShaderProgram::name() const {
     return _name;
@@ -178,10 +137,8 @@ void ShaderProgram::createAndLinkProgram() {
     createProgram();
 
     // Link shaders
-    for (const Shader& shader : _shaders) {
-        if (shader.id() > 0) {
-            glAttachShader(_programId, shader.id());
-        }
+    for (unsigned int shader : _shaders) {
+        glAttachShader(_programId, shader);
     }
     glLinkProgram(_programId);
     bool isLinked = checkLinkStatus(_programId, _name);

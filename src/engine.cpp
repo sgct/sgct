@@ -114,9 +114,7 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT);
         }
         else {
-            const vec4 color = sgct::Engine::instance().clearColor();
-            const float alpha = window.hasAlpha() ? 0.f : color.w;
-            glClearColor(color.x, color.y, color.z, alpha);
+            glClearColor(0.f, 0.f, 0.f, window.hasAlpha() ? 0.f : 1.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
@@ -1694,10 +1692,6 @@ const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
 
-vec4 Engine::clearColor() const {
-    return _clearColor;
-}
-
 float Engine::nearClipPlane() const {
     return _nearClipPlane;
 }
@@ -1720,10 +1714,6 @@ void Engine::setEyeSeparation(float eyeSeparation) {
         }
     }
     updateFrustums();
-}
-
-void Engine::setClearColor(vec4 color) {
-    _clearColor = std::move(color);
 }
 
 const Window* Engine::focusedWindow() const {

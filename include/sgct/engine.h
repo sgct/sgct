@@ -235,9 +235,6 @@ public:
      */
     const Statistics& statistics() const;
 
-    /// \return the clear color as 4 floats (RGBA)
-    vec4 clearColor() const;
-
     /**
      * Returns the distance to the near clipping plane in meters.
      * 
@@ -268,13 +265,6 @@ public:
      * \param eyeSeparation eye separation in meters
      */
     void setEyeSeparation(float eyeSeparation);
-
-    /**
-     * Set the clear color (background color).
-     *
-     * \param color the clear color
-     */
-    void setClearColor(vec4 color);
 
     /**
      * This functions updates the frustum of all viewports. If a viewport is tracked, this
@@ -535,7 +525,6 @@ private:
 
     float _nearClipPlane = 0.1f;
     float _farClipPlane = 100.f;
-    vec4 _clearColor = vec4{ 0.f, 0.f, 0.f, 1.f };
 
     Statistics _statistics;
     double _statsPrevTimestamp = 0.0;

@@ -432,9 +432,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
     glEnable(GL_SCISSOR_TEST);
     setupViewport(vp);
 
-    const vec4 color = Engine::instance().clearColor();
-    const float alpha = renderData.window.hasAlpha() ? 0.f : color.w;
-    glClearColor(color.x, color.y, color.z, alpha);
+    glClearColor(0.f, 0.f, 0.f, renderData.window.hasAlpha() ? 0.f : 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);

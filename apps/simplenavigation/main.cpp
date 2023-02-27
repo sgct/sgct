@@ -456,7 +456,6 @@ int main(int argc, char** argv) {
 
     try {
         Engine::create(cluster, callbacks, config);
-        Engine::instance().setClearColor(vec4{ 0.1f, 0.1f, 0.1f, 1.f });
     }
     catch (const std::runtime_error& e) {
         Log::Error(e.what());

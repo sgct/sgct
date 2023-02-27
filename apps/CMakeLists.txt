@@ -14,7 +14,6 @@ option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
 option(SGCT_EXAMPLES_STITCHER "Build Stitcher examples" OFF)
 
 add_subdirectory(calibrator)
-add_subdirectory(clustertest)
 add_subdirectory(datatransfer)
 add_subdirectory(domeimageviewer)
 add_subdirectory(example1)

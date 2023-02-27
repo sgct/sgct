@@ -196,9 +196,8 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
             glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
             glEnable(GL_SCISSOR_TEST);
 
-            const vec4 color = Engine::instance().clearColor();
             const bool hasAlpha = win.hasAlpha();
-            glClearColor(color.x, color.y, color.z, hasAlpha ? 0.f : color.w);
+            glClearColor(0.f, 0.f, 0.f, hasAlpha ? 0.f : 1.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glDisable(GL_CULL_FACE);

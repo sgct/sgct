@@ -177,9 +177,6 @@ void initOGL(GLFWwindow*) {
         spoutSendersData[i].initialized = success;
     }
 
-    // set background
-    Engine::instance().setClearColor(vec4{ 0.3f, 0.3f, 0.3f, 0.f });
-
     texture = TextureManager::instance().loadTexture("box.png", true);
 
     box = std::make_unique<utils::Box>(2.f, utils::Box::TextureMappingMode::Regular);

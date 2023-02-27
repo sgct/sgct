@@ -208,7 +208,6 @@ void draw2D(const RenderData& data) {
 
 void initOGL(GLFWwindow*) {
     receiver = GetSpout();
-    Engine::instance().setClearColor(vec4{ 0.3f, 0.3f, 0.3f, 0.f });
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);

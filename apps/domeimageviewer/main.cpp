@@ -491,7 +491,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    Engine::instance().render();
+    Engine::instance().exec();
 
     isRunning = false;
 

@@ -931,7 +931,7 @@ void Engine::frameLockPostStage() {
     addValue(_statistics.syncTimes, glfwGetTime() - t0);
 }
 
-void Engine::render() {
+void Engine::exec() {
     Window::makeSharedContextCurrent();
 
     unsigned int timeQueryBegin = 0;

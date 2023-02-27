@@ -224,7 +224,7 @@ public:
      * function after the program is terminated for any reason or if a non-recoverable
      * error has occurred
      */
-    void render();
+    void exec();
 
     /**
      * Returns the Engine::Statistics object that contains all collected information about

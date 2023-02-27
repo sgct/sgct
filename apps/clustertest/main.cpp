@@ -553,7 +553,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    Engine::instance().render();
+    Engine::instance().exec();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

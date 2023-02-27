@@ -313,7 +313,7 @@ int main(int argc, char** argv) {
 
     connectionThread = std::make_unique<std::thread>(networkLoop);
 
-    Engine::instance().render();
+    Engine::instance().exec();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

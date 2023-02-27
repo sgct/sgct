@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
         Engine::destroy();
         return EXIT_FAILURE;
     }
-    Engine::instance().render();
+    Engine::instance().exec();
     Engine::destroy();
     exit(EXIT_SUCCESS);
 }

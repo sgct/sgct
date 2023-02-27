@@ -193,7 +193,7 @@ double Engine::Statistics::dt() const {
     return frametimes.front();
 }
 
-double Engine::Statistics::avgDt(unsigned int frameCounter) const {
+double Engine::Statistics::avgDt() const {
     const double accFT = std::accumulate(frametimes.begin(), frametimes.end(), 0.0);
     const int nValues = static_cast<int>(std::count_if(
         frametimes.cbegin(),
@@ -201,6 +201,7 @@ double Engine::Statistics::avgDt(unsigned int frameCounter) const {
         [](double d) { return d != 0.0; }
     ));
     // We must take the frame counter into account as the history might not be filled yet
+    unsigned int frameCounter = Engine::instance().currentFrameNumber();
     unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
     return accFT / f;
 }
@@ -209,7 +210,7 @@ double Engine::Statistics::minDt() const {
     return *std::min_element(frametimes.begin(), frametimes.end());
 }
 
-double Engine::Statistics::Statistics::maxDt() const {
+double Engine::Statistics::maxDt() const {
     return *std::max_element(frametimes.begin(), frametimes.end());
 }
 
@@ -248,6 +249,7 @@ config::Cluster loadCluster(std::optional<std::string> path) {
     ZoneScoped
 
     if (path) {
+        assert(std::filesystem::exists(*path) && std::filesystem::is_regular_file(*path));
         try {
             return readConfig(*path);
         }

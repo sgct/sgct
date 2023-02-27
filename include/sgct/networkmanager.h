@@ -45,7 +45,7 @@ public:
     void clearCallbacks();
 
     /**
-     * \param if this application is server/master in cluster then set to true
+     * \param sm if this application is server/master in cluster then set to true
      * \return min-max pair of the looping time to all connections if data was sent to the
      *         clients. If it was the acknowledge data call or no connections are
      *         available, a nullopt is returned

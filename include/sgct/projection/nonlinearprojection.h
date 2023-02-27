@@ -45,7 +45,7 @@ public:
     /**
      * Set the resolution of the cubemap faces.
      *
-     * \param res the pixel resolution of each quad
+     * \param resolution the pixel resolution of each quad
      */
     void setCubemapResolution(int resolution);
 

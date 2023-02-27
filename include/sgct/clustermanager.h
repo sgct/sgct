@@ -44,7 +44,7 @@ public:
      * Get a pointer to a specific node. Please observe that the address of this object
      * might change between frames and should not be kept around for long.
      *
-     * \param int the index to a node in the vector
+     * \param index int the index to a node in the vector
      * \return the pointer to the requested node. This pointer is
      *         not guaranteed to be stable between function calls
      */
@@ -105,13 +105,13 @@ public:
     /// \return state of the firm frame lock lock sync
     bool firmFrameLockSyncStatus() const;
 
-    /// \param the state of the firm frame lock sync
+    /// \param state the state of the firm frame lock sync
     void setFirmFrameLockSyncStatus(bool state);
 
     /// \return the external control port number
     int externalControlPort() const;
 
-    /// \param the external control port number
+    /// \param port the external control port number
     void setExternalControlPort(int port);
 
     /// Set if software sync between nodes should be ignored

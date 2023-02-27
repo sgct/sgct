@@ -231,7 +231,7 @@ void OffScreenBuffer::bind() {
     setDrawBuffers();
 }
 
-void OffScreenBuffer::bind(bool isMultisampled, GLsizei n, const GLenum* bufs) {
+void OffScreenBuffer::bind(bool isMultisampled, int n, const unsigned int* bufs) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 

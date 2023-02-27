@@ -103,7 +103,6 @@ public:
     void swap(bool takeScreenshot);
     void updateResolutions();
 
-    /// \return true if frame buffer is resized and window is visible.
     void update();
 
     /**
@@ -149,8 +148,7 @@ public:
     /**
      * Sets the window resolution.
      *
-     * \param x The width of the window in pixels.
-     * \param y The height of the window in pixels.
+     * \param resolution The width and height of the window in pixels.
      */
     void setWindowResolution(ivec2 resolution);
 
@@ -158,17 +156,15 @@ public:
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
      * resolution is used that is different from the window resolution.
      *
-     * \param x The width of the frame buffer in pixels.
-     * \param y The height of the frame buffer in pixels.
+     * \param resolution The width and height of the frame buffer in pixels.
      */
     void setFramebufferResolution(ivec2 resolution);
 
     /**
      * Set this window's position in screen coordinates.
      *
-     * \param x horizontal position in pixels
-     * \param y vertical position in pixels
-     */
+     * \param positions The horizontal and vertical position in pixels
+    */
     void setWindowPosition(ivec2 positions);
 
     /// Set if fullscreen mode should be used

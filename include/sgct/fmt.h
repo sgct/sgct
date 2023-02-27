@@ -38,13 +38,17 @@
 #pragma warning(pop)
 #endif // WIN32
 
+namespace fmt {
+
 template <>
-struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string_view> {
+struct formatter<std::filesystem::path> : formatter<std::string_view> {
     template <typename FormatContext>
     auto format(const std::filesystem::path& path, FormatContext& ctx)
     {
         return formatter<std::string_view>::format(path.string(), ctx);
     }
 };
+
+} // namespace fmt
 
 #endif // __SGCT__FMT__H__

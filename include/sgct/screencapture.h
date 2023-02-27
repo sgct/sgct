@@ -46,6 +46,7 @@ public:
      *
      * \param resolution the  pixel resolution of the frame buffer
      * \param channels the number of color channels
+     * \param bytesPerColor The number of bytes that are stored for each color per pixel
      */
     void initOrResize(ivec2 resolution, int channels, int bytesPerColor);
 
@@ -63,7 +64,8 @@ public:
      * This function saves the images to disc.o
      *
      * \param textureId textureId is the texture that will be streamed from the GPU if
-     *        frame buffer objects are used in the rendering.
+     *        frame buffer objects are used in the rendering
+     * \param capSrc The object that should be captured
      */
     void saveScreenCapture(unsigned int textureId,
         CaptureSource capSrc = CaptureSource::Texture);

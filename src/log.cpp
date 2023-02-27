@@ -61,7 +61,7 @@ void Log::printv(Level level, std::string message) {
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
-        time_t now = time(nullptr);
+        time_t now = ::time(nullptr);
         tm* timeInfoPtr;
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);

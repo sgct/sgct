@@ -228,6 +228,10 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
 {
     ZoneScoped
 
+    if (_instance) {
+        throw std::logic_error("Creating the instance when one already existed");
+    }
+
     // (2019-12-02, abock) Unfortunately I couldn't find a better why than using this two
     // phase initialization approach. There are a few callbacks in the second phase that
     // are calling out to client code that (rightly) assumes that the Engine has been
@@ -302,6 +306,10 @@ config::Cluster loadCluster(std::optional<std::string> path) {
         cluster.nodes.push_back(node);
         return cluster;
     }
+}
+
+double time() {
+    return glfwGetTime();
 }
 
 Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config)
@@ -773,6 +781,9 @@ Engine::~Engine() {
 void Engine::initWindows(int majorVersion, int minorVersion) {
     ZoneScoped
 
+    assert(majorVersion > 0);
+    assert(minorVersion > 0);
+
     int ver[3];
     glfwGetVersion(&ver[0], &ver[1], &ver[2]);
     Log::Info(fmt::format("Using GLFW version {}.{}.{}", ver[0], ver[1], ver[2]));
@@ -1103,21 +1114,21 @@ void Engine::render() {
         frameLockPostStage();
         // Swap front and back rendering buffers
         for (const std::unique_ptr<Window>& window : windows) {
-            bool shouldTakeScreenshot = _takeScreenshot;
+            bool shouldTakeScreenshot = _shouldTakeScreenshot;
 
             // If we don't want to take any screenshots anyway, there is no need for any
             // extra work. Same thing if we want to take a screenshot of all windows,
             // meaning that the _takeScreenshotIds list is empty
-            if (_takeScreenshot && !_takeScreenshotIds.empty()) {
+            if (_shouldTakeScreenshot && !_shouldTakeScreenshotIds.empty()) {
                 auto it = std::find(
-                    _takeScreenshotIds.begin(),
-                    _takeScreenshotIds.end(),
+                    _shouldTakeScreenshotIds.begin(),
+                    _shouldTakeScreenshotIds.end(),
                     window->id()
                 );
                 // If the window id is in the list of ids, then we want to take a
                 // screenshot. We already checked that `shouldTakeScreenshot` is true in
                 // the if statement above
-                shouldTakeScreenshot = (it != _takeScreenshotIds.end());
+                shouldTakeScreenshot = (it != _shouldTakeScreenshotIds.end());
             }
             window->swap(shouldTakeScreenshot);
         }
@@ -1132,10 +1143,10 @@ void Engine::render() {
 
         // for all windows
         _frameCounter++;
-        if (_takeScreenshot) {
+        if (_shouldTakeScreenshot) {
             _shotCounter++;
         }
-        _takeScreenshot = false;
+        _shouldTakeScreenshot = false;
     }
 
     Window::makeSharedContextCurrent();
@@ -1193,7 +1204,6 @@ void Engine::renderFBOTexture(Window& window) {
         );
 
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
     }
     else {
         glActiveTexture(GL_TEXTURE0);
@@ -1206,7 +1216,6 @@ void Engine::renderFBOTexture(Window& window) {
         maskShaderSet = true;
 
         std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderWarpMesh));
-        //std::for_each(vps.begin(), vps.end(), std::mem_fn(&Viewport::renderQuadMesh));
 
         // render right eye in active stereo mode
         if (window.stereoMode() == Window::StereoMode::Active) {
@@ -1590,6 +1599,8 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
 {
     ZoneScoped
 
+    assert(prevWindow.id() != window.id());
+
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     setupViewport(window, viewport, mode);
@@ -1679,60 +1690,6 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
     glScissor(vpCoordinates.x, vpCoordinates.y, vpCoordinates.z, vpCoordinates.w);
 }
 
-void Engine::setCallbackPreWindow(std::function<void()> func) {
-    _preWindowFn = std::move(func);
-}
-
-void Engine::setCallbackInitOpenGL(std::function<void(GLFWwindow*)> func) {
-    _initOpenGLFn = std::move(func);
-}
-
-void Engine::setCallbackPreSync(std::function<void()> func) {
-    _preSyncFn = std::move(func);
-}
-
-void Engine::setCallbackPostSyncPreDraw(std::function<void()> func) {
-    _postSyncPreDrawFn = std::move(func);
-}
-
-void Engine::setCallbackDraw(std::function<void(const RenderData&)> func) {
-    _drawFn = std::move(func);
-}
-
-void Engine::setCallbackDraw2D(std::function<void(const RenderData&)> func) {
-    _draw2DFn = std::move(func);
-}
-
-void Engine::setCallbackPostDraw(std::function<void()> func) {
-    _postDrawFn = std::move(func);
-}
-
-void Engine::setCallbackCleanup(std::function<void()> func) {
-    _cleanupFn = std::move(func);
-}
-
-void Engine::setCallbackKeyboard(
-                            std::function<void(Key, Modifier, Action, int, Window*)> func)
-{
-    gKeyboardCallback = std::move(func);
-}
-
-void Engine::setCallbackCharacter(std::function<void(unsigned int, int, Window*)> func) {
-    gCharCallback = std::move(func);
-}
-
-void Engine::setCallbackMousePosition(std::function<void(double, double, Window*)> func) {
-    gMousePosCallback = std::move(func);
-}
-
-void Engine::setCallbackMouseScroll(std::function<void(double, double, Window*)> func) {
-    gMouseScrollCallback = std::move(func);
-}
-
-void Engine::setCallbackDrop(std::function<void(int, const char**)> func) {
-    gDropCallback = std::move(func);
-}
-
 const Engine::Statistics& Engine::statistics() const {
     return _statistics;
 }
@@ -1778,18 +1735,18 @@ const Window* Engine::focusedWindow() const {
     return it != ws.end() ? it->get() : nullptr;
 }
 
-void Engine::setStatsGraphVisibility(bool state) {
-    if (state && _statisticsRenderer == nullptr) {
+void Engine::setStatsGraphVisibility(bool value) {
+    if (value && _statisticsRenderer == nullptr) {
         _statisticsRenderer = std::make_unique<StatisticsRenderer>(_statistics);
     }
-    if (!state && _statisticsRenderer) {
+    if (!value && _statisticsRenderer) {
         _statisticsRenderer = nullptr;
     }
 }
 
 void Engine::takeScreenshot(std::vector<int> windowIds) {
-    _takeScreenshot = true;
-    _takeScreenshotIds = std::move(windowIds);
+    _shouldTakeScreenshot = true;
+    _shouldTakeScreenshotIds = std::move(windowIds);
 }
 
 const std::function<void(const RenderData&)>& Engine::drawFunction() const {
@@ -1808,16 +1765,12 @@ User& Engine::defaultUser() {
     return ClusterManager::instance().defaultUser();
 }
 
-double Engine::getTime() {
-    return glfwGetTime();
-}
-
 void Engine::setSyncParameters(bool printMessage, float timeout) {
     _printSyncMessage = printMessage;
     _syncTimeout = timeout;
 }
 
-void Engine::setScreenShotNumber(unsigned int number) {
+void Engine::setScreenshotNumber(unsigned int number) {
     _shotCounter = number;
 }
 

@@ -179,7 +179,7 @@ void Image::savePNG(std::string filename, int compressionLevel) {
         throw Err(9007, fmt::format("Can't save {} bit", _bytesPerChannel * 8));
     }
 
-    double t0 = Engine::getTime();
+    double t0 = time();
 
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
@@ -263,8 +263,8 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
     fclose(fp);
 
-    const double time = (Engine::getTime() - t0) * 1000.0;
-    Log::Debug(fmt::format("'{}' was saved successfully ({:.2f} ms)", filename, time));
+    const double t = (time() - t0) * 1000.0;
+    Log::Debug(fmt::format("'{}' was saved successfully ({:.2f} ms)", filename, t));
 }
 
 unsigned char* Image::data() {
@@ -300,7 +300,7 @@ void Image::setBytesPerChannel(int bpc) {
 }
 
 void Image::allocateOrResizeData() {
-    double t0 = Engine::getTime();
+    double t0 = time();
 
     const unsigned int dataSize = _nChannels * _size.x * _size.y * _bytesPerChannel;
     if (dataSize == 0) {
@@ -323,7 +323,7 @@ void Image::allocateOrResizeData() {
 
         Log::Debug(fmt::format(
             "Allocated {} bytes for image data ({:.2f} ms)",
-            _dataSize, (Engine::getTime() - t0) * 1000.0
+            _dataSize, (time() - t0) * 1000.0
         ));
     }
 }

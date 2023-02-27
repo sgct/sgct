@@ -79,7 +79,7 @@ void networkAck(int packageId, int) {
 
     if (timerData.second == packageId) {
         Log::Info(fmt::format(
-            "Loop time: {} ms", (Engine::getTime() - timerData.first) * 1000.0
+            "Loop time: {} ms", (time() - timerData.first) * 1000.0
         ));
     }
 }
@@ -161,7 +161,7 @@ void disconnect() {
 void sendData(const void* data, int length, int id) {
     if (networkPtr) {
         NetworkManager::instance().transferData(data, length, id, *networkPtr);
-        timerData.first = Engine::getTime();
+        timerData.first = time();
         timerData.second = id;
     }
 }
@@ -208,7 +208,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
     }
 }
 

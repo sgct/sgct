@@ -137,7 +137,7 @@ void renderGrid(glm::mat4 transform) {
 }
 
 void initOmniStereo(bool mask) {
-    double t0 = Engine::instance().getTime();
+    double t0 = time();
 
     if (Engine::instance().windows().size() < 2) {
         Log::Error("Failed to allocate omni stereo in secondary window");
@@ -341,7 +341,7 @@ void initOmniStereo(bool mask) {
     int percentage = (100 * VPCounter) / (res.x * res.y * 3);
     Log::Info(fmt::format(
         "Time to init viewports: {} s\n{} %% will be rendered",
-        Engine::instance().getTime() - t0, percentage
+        time() - t0, percentage
     ));
     omniInited = true;
 }
@@ -376,7 +376,7 @@ void drawOmniStereo(const RenderData& renderData) {
         return;
     }
 
-    double t0 = Engine::instance().getTime();
+    double t0 = time();
 
     Window& win = *Engine::instance().windows()[1];
     ivec2 res = ivec2{
@@ -410,8 +410,7 @@ void drawOmniStereo(const RenderData& renderData) {
         }
     }
 
-    const double t1 = Engine::instance().getTime();
-    Log::Info(fmt::format("Time to draw frame: {}s", t1 - t0));
+    Log::Info(fmt::format("Time to draw frame: {}s", time() - t0));
 }
 
 void draw(const RenderData& data) {
@@ -441,7 +440,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
     }
 }
 

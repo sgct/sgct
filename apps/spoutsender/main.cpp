@@ -132,7 +132,7 @@ void postDraw() {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
     }
 }
 

@@ -98,7 +98,7 @@ void startDataTransfer() {
         return;
     }
 
-    sendTimer = Engine::getTime();
+    sendTimer = time();
 
     // load from file
     const std::string& tmpPair = imagePaths[static_cast<size_t>(id)];
@@ -268,7 +268,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
 
         // if texture is uploaded then iterate the index
         if (serverUploadDone && clientsUploadDone) {
@@ -392,7 +392,7 @@ void dataTransferAcknowledge(int packageId, int clientIndex) {
 
             Log::Info(fmt::format(
                 "Time to distribute and upload textures on cluster: {} ms",
-                (Engine::getTime() - sendTimer) * 1000.0
+                (time() - sendTimer) * 1000.0
             ));
         }
     }

@@ -160,7 +160,7 @@ void draw(RenderData data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
     }
 }
 

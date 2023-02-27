@@ -119,7 +119,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::getTime();
+        currentTime = time();
     }
 }
 

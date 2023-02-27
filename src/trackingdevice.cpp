@@ -272,19 +272,19 @@ bool TrackingDevice::hasAnalogs() const {
 void TrackingDevice::setTrackerTimeStamp() {
     std::unique_lock lock(mutex::Tracking);
     _trackerTimePrevious = _trackerTime;
-    _trackerTime = Engine::getTime();
+    _trackerTime = time();
 }
 
 void TrackingDevice::setAnalogTimeStamp() {
     std::unique_lock lock(mutex::Tracking);
     _analogTimePrevious = _analogTime;
-    _analogTime = Engine::getTime();
+    _analogTime = time();
 }
 
 void TrackingDevice::setButtonTimeStamp(int index) {
     std::unique_lock lock(mutex::Tracking);
     _buttonTimePrevious[index] = _buttonTime[index];
-    _buttonTime[index] = Engine::getTime();
+    _buttonTime[index] = time();
 }
 
 double TrackingDevice::trackerTimeStamp() {

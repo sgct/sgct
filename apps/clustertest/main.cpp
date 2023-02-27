@@ -281,7 +281,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster()) {
-        currentTime = Engine::instance().getTime();
+        currentTime = time();
 
         time_t now = time(nullptr);
         constexpr int TimeBufferSize = 256;

@@ -344,7 +344,7 @@ int Network::iterateFrameCounter() {
 
     {
         std::unique_lock lock(_connectionMutex);
-        _timeStampSend = Engine::getTime();
+        _timeStampSend = time();
     }
 
     return _currentSendFrame;
@@ -450,7 +450,7 @@ void Network::setRecvFrame(int i) {
     _currentRecvFrame = i;
     _isUpdated = true;
 
-    _timeStampTotal = Engine::getTime() - _timeStampSend;
+    _timeStampTotal = time() - _timeStampSend;
 }
 
 int Network::lastError() {

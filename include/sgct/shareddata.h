@@ -29,8 +29,7 @@ public:
     static void destroy();
 
     void setEncodeFunction(std::function<std::vector<std::byte>()> function);
-    void setDecodeFunction(
-        std::function<void(const std::vector<std::byte>&, unsigned int)> function);
+    void setDecodeFunction(std::function<void(const std::vector<std::byte>&)> function);
 
     /// This fuction is called internally by SGCT and shouldn't be used by the user.
     void encode();
@@ -47,7 +46,7 @@ private:
 
     // function pointers
     std::function<std::vector<std::byte>()> _encodeFn;
-    std::function<void(const std::vector<std::byte>&, unsigned int)> _decodeFn;
+    std::function<void(const std::vector<std::byte>&)> _decodeFn;
 
     static SharedData* _instance;
     std::vector<std::byte> _dataBlock;

@@ -105,27 +105,25 @@ public:
         std::function<std::vector<std::byte>()> encode;
 
         /// This function is called by decode all shared data sent to us from the master
-        /// The first parameter is the block of data that contains the data to be decoded,
-        /// the second parameter is the position in the data at which to start the
-        /// decoding.
-        std::function<void(const std::vector<std::byte>&, unsigned int)> decode;
+        /// The parameter is the block of data that contains the data to be decoded.
+        std::function<void(const std::vector<std::byte>&)> decode;
 
-        /// This function is called when a TCP message is received
+        /// This function is called when a TCP message is received.
         std::function<void(const char*, int)> externalDecode;
 
-        /// This function is called when the connection status changes
+        /// This function is called when the connection status changes.
         std::function<void(bool)> externalStatus;
 
-        /// This function is called when a TCP message is received
+        /// This function is called when a TCP message is received.
         std::function<void(void*, int, int, int)> dataTransferDecode;
 
-        /// This function is called when the connection status changes
+        /// This function is called when the connection status changes.
         std::function<void(bool, int)> dataTransferStatus;
 
-        /// This function is called when data is successfully sent
+        /// This function is called when data is successfully sent.
         std::function<void(int, int)> dataTransferAcknowledge;
 
-        /// This function sets the keyboard callback (GLFW wrapper) for all windows
+        /// This function sets the keyboard callback (GLFW wrapper) for all windows.
         std::function<void(Key, Modifier, Action, int, Window*)> keyboard;
 
         /// All windows are connected to this callback.

@@ -243,9 +243,7 @@ void draw(const RenderData& data) {
 
 void preSync() {
     if (Engine::instance().isMaster() && !mPause) {
-        currentTime += Engine::instance().statistics().avgDt(
-            Engine::instance().currentFrameNumber()
-        );
+        currentTime += Engine::instance().statistics().avgDt();
     }
 }
 
@@ -338,7 +336,8 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data) {
+    unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, stats);
     deserializeObject(data, pos, takeScreenshot);

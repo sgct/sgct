@@ -638,18 +638,18 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data, unsigned int) {
-    unsigned ppos = 0;
-    deserializeObject(data, ppos, takeScreenshot);
-    deserializeObject(data, ppos, captureBackbuffer);
-    deserializeObject(data, ppos, renderGrid);
-    deserializeObject(data, ppos, renderBox);
-    deserializeObject(data, ppos, runTests);
-    deserializeObject(data, ppos, frameNumber);
-    deserializeObject(data, ppos, showId);
-    deserializeObject(data, ppos, showStats);
-    deserializeObject(data, ppos, theta);
-    deserializeObject(data, ppos, phi);
+void decode(const std::vector<std::byte>& data) {
+    unsigned pos = 0;
+    deserializeObject(data, pos, takeScreenshot);
+    deserializeObject(data, pos, captureBackbuffer);
+    deserializeObject(data, pos, renderGrid);
+    deserializeObject(data, pos, renderBox);
+    deserializeObject(data, pos, runTests);
+    deserializeObject(data, pos, frameNumber);
+    deserializeObject(data, pos, showId);
+    deserializeObject(data, pos, showStats);
+    deserializeObject(data, pos, theta);
+    deserializeObject(data, pos, phi);
 }
 
 void cleanup() {

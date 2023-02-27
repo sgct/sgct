@@ -45,7 +45,7 @@ void SharedData::setEncodeFunction(std::function<std::vector<std::byte>()> funct
 }
 
 void SharedData::setDecodeFunction(
-                std::function<void(const std::vector<std::byte>&, unsigned int)> function)
+                              std::function<void(const std::vector<std::byte>&)> function)
 {
     _decodeFn = std::move(function);
 }
@@ -75,7 +75,7 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
             reinterpret_cast<const std::byte*>(receivedData),
             reinterpret_cast<const std::byte*>(receivedData) + receivedLength
         );
-        _decodeFn(data, 0u);
+        _decodeFn(data);
     }
 }
 

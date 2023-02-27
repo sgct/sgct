@@ -155,7 +155,8 @@ std::vector<std::byte> encode() {
     return data;
 }
 
-void decode(const std::vector<std::byte>& data, unsigned int pos) {
+void decode(const std::vector<std::byte>& data) {
+    unsigned int pos = 0;
     deserializeObject(data, pos, currentTime);
     deserializeObject(data, pos, takeScreenshot);
 }

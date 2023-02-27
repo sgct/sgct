@@ -36,6 +36,7 @@
 namespace sgct {
 
 namespace {
+
 correction::Buffer setupMaskMesh(const vec2& pos, const vec2& size) {
     correction::Buffer buff;
     buff.geometryType = GL_TRIANGLE_STRIP;
@@ -115,12 +116,12 @@ void exportMesh(GLenum type, const std::string& path, const correction::Buffer& 
     file << "# SGCT warping mesh\n# Number of vertices: " << buf.vertices.size() << "\n";
 
     // export vertices
-    for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+    for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
         file << fmt::format("v {} {} 0\n", vertex.x, vertex.y);
     }
 
     // export texture coords
-    for (const sgct::correction::CorrectionMeshVertex& vertex : buf.vertices) {
+    for (const sgct::correction::Buffer::Vertex& vertex : buf.vertices) {
         file << fmt::format("vt {} {} 0\n", vertex.s, vertex.t);
     }
 
@@ -306,7 +307,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geom,
 
     glGenBuffers(1, &geom.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, geom.vbo);
-    constexpr int s = sizeof(correction::CorrectionMeshVertex);
+    constexpr int s = sizeof(correction::Buffer::Vertex);
     glBufferData(
         GL_ARRAY_BUFFER,
         buffer.vertices.size() * s,

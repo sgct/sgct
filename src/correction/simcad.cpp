@@ -116,7 +116,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     const size_t nRows = static_cast<unsigned int>(nRowsf);
 
     // init to max intensity (opaque white)
-    CorrectionMeshVertex vertex;
+    Buffer::Vertex vertex;
     vertex.r = 1.f;
     vertex.g = 1.f;
     vertex.b = 1.f;

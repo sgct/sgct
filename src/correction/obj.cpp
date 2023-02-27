@@ -265,7 +265,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
     buffer.vertices.reserve(positions.size());
     assert(positions.size() == texCoords.size());
     for (size_t i = 0; i < positions.size(); ++i) {
-        CorrectionMeshVertex v;
+        Buffer::Vertex v;
         v.x = positions[i].x;
         v.y = positions[i].y;
         v.r = 1.f;

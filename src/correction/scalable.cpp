@@ -464,7 +464,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
     buf.geometryType = GL_TRIANGLES;
     buf.vertices.reserve(data.vertices.size());
     for (const Data::Vertex& vertex : data.vertices) {
-        CorrectionMeshVertex v;
+        Buffer::Vertex v;
         float x = (vertex.x / data.resolution.x) * parent.size().x + parent.position().x;
         float y = (vertex.y / data.resolution.y) * parent.size().y + parent.position().y;
 

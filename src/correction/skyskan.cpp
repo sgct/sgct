@@ -176,7 +176,7 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
         }
     }
 
-    for (CorrectionMeshVertex& vertex : buf.vertices) {
+    for (Buffer::Vertex& vertex : buf.vertices) {
         const vec2& s = parent.size();
         const vec2& p = parent.position();
 

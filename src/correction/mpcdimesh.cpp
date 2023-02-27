@@ -96,7 +96,7 @@ Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
 
     buf.vertices.reserve(nCorrectionValues);
     for (unsigned int i = 0; i < nCorrectionValues; ++i) {
-        CorrectionMeshVertex vertex;
+        Buffer::Vertex vertex;
         // init to max intensity (opaque white)
         vertex.r = 1.f;
         vertex.g = 1.f;

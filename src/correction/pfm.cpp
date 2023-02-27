@@ -88,7 +88,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
     // We assume we loaded side-by-side images, i.e. different warp per eye
     for (size_t e = 0; e < 2; e++) {
-        CorrectionMeshVertex vertex;
+        Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
         vertex.b = 1.f;

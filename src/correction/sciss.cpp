@@ -196,7 +196,7 @@ Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent
         const vec2& p = parent.position();
 
         // convert to [-1, 1]
-        CorrectionMeshVertex& vertex = buf.vertices[i];
+        Buffer::Vertex& vertex = buf.vertices[i];
         vertex.x = 2.f * (scissVertex.x * s.x + p.x) - 1.f;
         vertex.y = 2.f * ((1.f - scissVertex.y) * s.y + p.y) - 1.f;
 

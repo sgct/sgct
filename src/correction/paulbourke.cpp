@@ -73,7 +73,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     while (std::getline(meshFile, line)) {
         auto r = scn::scan_default(line, x, y, s, t, intensity);
         if (r) {
-            CorrectionMeshVertex vertex;
+            Buffer::Vertex vertex;
             vertex.x = x;
             vertex.y = y;
             vertex.s = s;
@@ -109,7 +109,7 @@ Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos
     }
 
     const float aspect = aspectRatio * (size.x / size.y);
-    for (CorrectionMeshVertex& vertex : buf.vertices) {
+    for (Buffer::Vertex& vertex : buf.vertices) {
         // convert to [0, 1] (normalize)
         vertex.x /= aspect;
         vertex.x = (vertex.x + 1.f) / 2.f;

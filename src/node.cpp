@@ -19,7 +19,7 @@
 namespace sgct {
 
 void Node::applyNode(const config::Node& node, bool initializeWindows) {
-    ZoneScoped
+    ZoneScoped;
 
     // Set network address
     std::string address = node.address;

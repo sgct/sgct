@@ -37,7 +37,7 @@ namespace sgct::correction {
 Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
                           const vec2& size)
 {
-    ZoneScoped
+    ZoneScoped;
 
     // During projector alignment of 33x33 matrix is used to define geometry correction.
     // The corrections are stored in the warp file. This explains why this file only

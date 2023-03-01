@@ -104,7 +104,7 @@ void SpoutOutputProjection::update(vec2) {
 void SpoutOutputProjection::render(const Window& window, const BaseViewport& viewport,
                                    Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
@@ -246,7 +246,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 }
 
 void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
     {

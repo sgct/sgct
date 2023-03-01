@@ -89,7 +89,7 @@ void BaseViewport::setUserName(std::string userName) {
 }
 
 void BaseViewport::linkUserName() {
-    ZoneScoped
+    ZoneScoped;
 
     if (!_userName.empty()) {
         User* user = ClusterManager::instance().user(_userName);
@@ -104,7 +104,7 @@ void BaseViewport::linkUserName() {
 }
 
 void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float farClip) {
-    ZoneScoped
+    ZoneScoped;
 
     switch (mode) {
         case Frustum::Mode::MonoEye:

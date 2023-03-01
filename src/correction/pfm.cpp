@@ -22,7 +22,7 @@ namespace sgct::correction {
 Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
                                       const vec2& size)
 {
-    ZoneScoped
+    ZoneScoped;
 
     Buffer buf;
 

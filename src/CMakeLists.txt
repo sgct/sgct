@@ -211,7 +211,6 @@ target_link_libraries(sgct
     glad::glad
     glfw
     fmt
-    tracy
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
@@ -224,13 +223,13 @@ target_link_libraries(sgct
     scn
     stb
     tinyxml2::tinyxml2
+    TracyClient
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     json
 )
 
 target_compile_definitions(sgct
   PUBLIC
-    $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:SGCT_HAS_TRACY>
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>

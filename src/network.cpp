@@ -807,7 +807,7 @@ void Network::communicationHandler() {
 }
 
 void Network::sendData(const void* data, int length) {
-    ZoneScoped
+    ZoneScoped;
 
     long sendSize = length;
 
@@ -827,7 +827,7 @@ void Network::sendData(const void* data, int length) {
 }
 
 void Network::closeNetwork(bool forced) {
-    ZoneScoped
+    ZoneScoped;
 
     decoderCallback = nullptr;
     _updateCallback = nullptr;
@@ -855,7 +855,7 @@ void Network::closeNetwork(bool forced) {
 }
 
 void Network::initShutdown() {
-    ZoneScoped
+    ZoneScoped;
 
     if (_isConnected) {
         constexpr const char GameOver[9] = {
@@ -867,7 +867,7 @@ void Network::initShutdown() {
     Log::Info(fmt::format("Closing connection {}", _id));
 
     {
-        ZoneScopedN("Decoder callback lock")
+        ZoneScopedN("Decoder callback lock");
         std::unique_lock lock(_connectionMutex);
         decoderCallback = nullptr;
     }

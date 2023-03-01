@@ -97,7 +97,7 @@ namespace {
 namespace sgct::correction {
 
 Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& parent) {
-    ZoneScoped
+    ZoneScoped;
 
     Log::Info(fmt::format("Reading scalable mesh data from {}", path));
 

@@ -20,7 +20,7 @@
 namespace sgct::correction {
 
 Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh) {
-    ZoneScoped
+    ZoneScoped;
 
     Buffer buf;
 

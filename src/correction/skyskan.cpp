@@ -28,7 +28,7 @@
 namespace sgct::correction {
 
 Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& parent) {
-    ZoneScoped
+    ZoneScoped;
 
     Buffer buf;
 

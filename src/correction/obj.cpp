@@ -35,7 +35,7 @@ namespace {
 namespace sgct::correction {
 
 Buffer generateOBJMesh(const std::filesystem::path& path) {
-    ZoneScoped
+    ZoneScoped;
 
     Log::Info(fmt::format("Reading Wavefront OBJ mesh data from {}", path));
 

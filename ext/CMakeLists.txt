@@ -116,16 +116,19 @@ if (WIN32 AND SGCT_SPOUT_SUPPORT)
   set_property(TARGET spout PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/ext/spout/SpoutLibrary.dll)
 endif ()
 
-if (NOT TARGET tracy)
-  add_library(tracy STATIC "${PROJECT_SOURCE_DIR}/ext/tracy/TracyClient.cpp")
-  target_include_directories(tracy PUBLIC "tracy")
-  set_property(TARGET tracy PROPERTY FOLDER "Dependencies")
-  target_compile_definitions(tracy
-    PUBLIC
-      $<$<BOOL:${SGCT_DEP_ENABLE_TRACY}>:TRACY_ENABLE>
-    PRIVATE
-      _CRT_SECURE_NO_WARNINGS
-  )
+if (NOT TARGET TracyClient)
+  option(TRACY_ENABLE "Enable profiling" OFF)
+  option(TRACY_NO_FRAME_IMAGE "Disable the frame image support and its thread" ON)
+  add_subdirectory(tracy)
+  set_property(TARGET TracyClient PROPERTY FOLDER "Dependencies")
+  sgct_register_package(TracyClient TracyClient)
+endif ()
+
+if (WIN32)
+  if (TRACY_ENABLE)
+  message(WARNING "Tracy does not support compiling with Edit&Continue, so we have to disable that feature")
+  set(SGCT_ENABLE_EDIT_CONTINUE OFF CACHE BOOL "" FORCE)
+  endif ()
 endif ()
 
 #

@@ -96,7 +96,7 @@ Window::Window() {}
 Window::~Window() {}
 
 void Window::applyWindow(const config::Window& window) {
-    ZoneScoped
+    ZoneScoped;
 
     _id = window.id;
 
@@ -175,7 +175,7 @@ void Window::applyWindow(const config::Window& window) {
         setFullScreenMonitorIndex(*window.monitor);
     }
     if (window.mpcdi) {
-        ZoneScopedN("MPCDI")
+        ZoneScopedN("MPCDI");
 
         mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
         setWindowPosition(ivec2{ 0, 0 });
@@ -222,7 +222,7 @@ void Window::applyWindow(const config::Window& window) {
     initWindowResolution(window.size);
 
     if (window.resolution) {
-        ZoneScopedN("Resolution")
+        ZoneScopedN("Resolution");
 
         setFramebufferResolution(*window.resolution);
         setFixResolution(true);
@@ -260,7 +260,7 @@ bool Window::isFocused() const {
 }
 
 void Window::close() {
-    ZoneScoped
+    ZoneScoped;
 
     makeSharedContextCurrent();
 
@@ -305,7 +305,7 @@ void Window::close() {
 }
 
 void Window::initOGL() {
-    ZoneScoped
+    ZoneScoped;
 
     std::tie(_internalColorFormat, _colorDataType, _bytesPerColor) =
         [](ColorBitDepth bd) -> std::tuple<GLenum, GLenum, int>
@@ -346,7 +346,7 @@ void Window::initOGL() {
 }
 
 void Window::initContextSpecificOGL() {
-    ZoneScoped
+    ZoneScoped;
 
     makeOpenGLContextCurrent();
     std::for_each(_viewports.begin(), _viewports.end(), std::mem_fn(&Viewport::loadData));
@@ -360,7 +360,7 @@ void Window::initContextSpecificOGL() {
 }
 
 unsigned int Window::frameBufferTexture(TextureIndex index) {
-    ZoneScoped
+    ZoneScoped;
 
     // @TODO (abock, 2019-12-04) I think this function should be made constant and we
     // figure out beforehand which textures we need to create. So this function just
@@ -421,7 +421,7 @@ void Window::setFocused(bool state) {
 }
 
 void Window::setWindowTitle(const char* title) {
-    ZoneScoped
+    ZoneScoped;
     glfwSetWindowTitle(_windowHandle, title);
 }
 
@@ -453,7 +453,7 @@ void Window::swap(bool takeScreenshot) {
     makeOpenGLContextCurrent();
 
     if (takeScreenshot) {
-        ZoneScopedN("Take Screenshot")
+        ZoneScopedN("Take Screenshot");
         if (Settings::instance().captureFromBackBuffer() && _isDoubleBuffered) {
             if (_screenCaptureLeftOrMono) {
                 _screenCaptureLeftOrMono->saveScreenCapture(
@@ -486,17 +486,17 @@ void Window::swap(bool takeScreenshot) {
     _windowResOld = _windowRes;
 
     if (_isDoubleBuffered) {
-        ZoneScopedN("glfwSwapBuffers")
+        ZoneScopedN("glfwSwapBuffers");
         glfwSwapBuffers(_windowHandle);
     }
     else {
-        ZoneScopedN("glFinish")
+        ZoneScopedN("glFinish");
         glFinish();
     }
 }
 
 void Window::updateResolutions() {
-    ZoneScoped
+    ZoneScoped;
 
     if (_pendingWindowRes.has_value()) {
         _windowRes = *_pendingWindowRes;
@@ -545,7 +545,7 @@ void Window::setHorizFieldOfView(float hFovDeg) {
 }
 
 void Window::initWindowResolution(ivec2 resolution) {
-    ZoneScoped
+    ZoneScoped;
 
     _windowRes = resolution;
     _windowResOld = _windowRes;
@@ -558,7 +558,7 @@ void Window::initWindowResolution(ivec2 resolution) {
 }
 
 void Window::update() {
-    ZoneScoped
+    ZoneScoped;
 
     if (!_isVisible || !isWindowResized()) {
         return;
@@ -602,7 +602,7 @@ void Window::update() {
 }
 
 void Window::makeSharedContextCurrent() {
-    ZoneScoped
+    ZoneScoped;
 
     if (_activeContext == _sharedHandle) {
         // glfwMakeContextCurrent is expensive even if we don't change the context
@@ -613,7 +613,7 @@ void Window::makeSharedContextCurrent() {
 }
 
 void Window::makeOpenGLContextCurrent() {
-    ZoneScoped
+    ZoneScoped;
 
     if (_activeContext == _windowHandle) {
         // glfwMakeContextCurrent is expensive even if we don't change the context
@@ -757,10 +757,10 @@ void Window::setBlitWindowId(int id) {
 }
 
 void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
-    ZoneScoped
+    ZoneScoped;
 
     {
-        ZoneScopedN("Set GLFW settings")
+        ZoneScopedN("Set GLFW settings");
         glfwWindowHint(GLFW_DEPTH_BITS, 32);
         glfwWindowHint(GLFW_DECORATED, _isDecorated ? GLFW_TRUE : GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, _isResizable ? GLFW_TRUE : GLFW_FALSE);
@@ -784,7 +784,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     GLFWmonitor* mon = nullptr;
     if (_isFullScreen) {
-        ZoneScopedN("Fullscreen Settings")
+        ZoneScopedN("Fullscreen Settings");
         int count;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
@@ -818,7 +818,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 
     {
-        ZoneScopedN("glfwCreateWindow")
+        ZoneScopedN("glfwCreateWindow");
         _windowHandle = glfwCreateWindow(_windowRes.x, _windowRes.y, "SGCT", mon, share);
         glfwSetWindowUserPointer(_windowHandle, this);
         if (_windowHandle == nullptr) {
@@ -827,7 +827,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     }
 
     {
-        ZoneScopedN("glfwMakeContextCurrent")
+        ZoneScopedN("glfwMakeContextCurrent");
         _sharedHandle = share != nullptr ? share : _windowHandle;
         glfwMakeContextCurrent(_windowHandle);
     }
@@ -835,7 +835,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     // Mac for example scales the window size != frame buffer size
     glm::ivec2 bufferSize;
     {
-        ZoneScopedN("glfwGetFramebufferSize")
+        ZoneScopedN("glfwGetFramebufferSize");
         glfwGetFramebufferSize(_windowHandle, &bufferSize[0], &bufferSize[1]);
     }
 
@@ -890,13 +890,13 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
 
     {
         // swap the buffers and update the window
-        ZoneScopedN("glfwSwapBuffers")
+        ZoneScopedN("glfwSwapBuffers");
         glfwSwapBuffers(_windowHandle);
     }
 }
 
 void Window::initNvidiaSwapGroups() {
-    ZoneScoped
+    ZoneScoped;
 
 #ifdef WIN32
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
@@ -1007,8 +1007,8 @@ void Window::resetSwapGroupFrameNumber() {
 }
 
 void Window::createTextures() {
-    ZoneScoped
-    TracyGpuZone("Create Textures")
+    ZoneScoped;
+    TracyGpuZone("Create Textures");
 
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
@@ -1042,8 +1042,8 @@ void Window::createTextures() {
 }
 
 void Window::generateTexture(unsigned int& id, Window::TextureType type) {
-    ZoneScoped
-    TracyGpuZone("Generate Textures")
+    ZoneScoped;
+    TracyGpuZone("Generate Textures");
 
     glDeleteTextures(1, &id);
     glGenTextures(1, &id);
@@ -1086,8 +1086,8 @@ void Window::generateTexture(unsigned int& id, Window::TextureType type) {
 }
 
 void Window::createFBOs() {
-    ZoneScoped
-    TracyGpuZone("Create FBOs")
+    ZoneScoped;
+    TracyGpuZone("Create FBOs");
 
     _finalFBO->setInternalColorFormat(_internalColorFormat);
     _finalFBO->createFBO(_framebufferRes.x, _framebufferRes.y, _nAASamples, _isMirrored);
@@ -1099,8 +1099,8 @@ void Window::createFBOs() {
 }
 
 void Window::createVBOs() {
-    ZoneScoped
-    TracyGpuZone("Create VBOs")
+    ZoneScoped;
+    TracyGpuZone("Create VBOs");
 
     constexpr std::array<const float, 36> QuadVerts = {
     //     x     y     z      u    v      r    g    b    a
@@ -1144,8 +1144,8 @@ void Window::createVBOs() {
 }
 
 void Window::loadShaders() {
-    ZoneScoped
-    TracyGpuZone("Load Shaders")
+    ZoneScoped;
+    TracyGpuZone("Load Shaders");
 
     if (_stereoMode <= StereoMode::Active || _stereoMode >= StereoMode::SideBySide) {
         return;

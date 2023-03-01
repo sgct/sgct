@@ -293,7 +293,7 @@ void SpoutFlatProjection::blitCubeFace(int face) {
 void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewport,
                                  Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     if (!_mappingHandle) {
         return;
@@ -349,7 +349,7 @@ void SpoutFlatProjection::render(const Window& window, const BaseViewport& viewp
 }
 
 void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)
     {

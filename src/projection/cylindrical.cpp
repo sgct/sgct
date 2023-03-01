@@ -71,7 +71,7 @@ CylindricalProjection::~CylindricalProjection() {
 void CylindricalProjection::render(const Window& window, const BaseViewport& viewport,
                                    Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
@@ -122,7 +122,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
 }
 
 void CylindricalProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     renderCubeFaces(window, frustumMode);
 }

@@ -79,7 +79,7 @@ void SphericalMirrorProjection::update(vec2) {}
 void SphericalMirrorProjection::render(const Window& window, const BaseViewport& viewport,
                                        Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     Engine::instance().setupViewport(window, viewport, frustumMode);
 
@@ -139,7 +139,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
 }
 
 void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     auto renderInternal = [this, &window, frustumMode](BaseViewport& bv, unsigned int t) {
         if (!bv.isEnabled()) {

@@ -48,7 +48,7 @@ void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat
 }
 
 void Viewport::applyViewport(const config::Viewport& viewport) {
-    ZoneScoped
+    ZoneScoped;
 
     if (viewport.user) {
         setUserName(*viewport.user);
@@ -111,7 +111,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
 }
 
 void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
-    ZoneScoped
+    ZoneScoped;
 
     if (mpcdi.position) {
         setPos(*mpcdi.position);
@@ -135,7 +135,7 @@ void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
 }
 
 void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
-    ZoneScoped
+    ZoneScoped;
 
     setViewPlaneCoordsUsingFOVs(
         proj.fov.up,
@@ -151,7 +151,7 @@ void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
 }
 
 void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
-    ZoneScoped
+    ZoneScoped;
 
     auto fishProj = std::make_unique<FisheyeProjection>(_parent);
     fishProj->setUser(_user);
@@ -200,7 +200,7 @@ void Viewport::applyFisheyeProjection(const config::FisheyeProjection& proj) {
 
 void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p) {
 #ifdef SGCT_HAS_SPOUT
-    ZoneScoped
+    ZoneScoped;
 
     auto proj = std::make_unique<SpoutOutputProjection>(_parent);
     proj->setUser(_user);
@@ -245,7 +245,7 @@ void Viewport::applySpoutOutputProjection(const config::SpoutOutputProjection& p
 
 void Viewport::applySpoutFlatProjection(const config::SpoutFlatProjection& p) {
 #ifdef SGCT_HAS_SPOUT
-    ZoneScoped
+    ZoneScoped;
 
     auto proj = std::make_unique<SpoutFlatProjection>(_parent);
     proj->setUser(_user);
@@ -281,7 +281,7 @@ void Viewport::applySpoutFlatProjection(const config::SpoutFlatProjection& p) {
 }
 
 void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     auto proj = std::make_unique<CylindricalProjection>(_parent);
     proj->setUser(_user);
@@ -303,7 +303,7 @@ void Viewport::applyCylindricalProjection(const config::CylindricalProjection& p
 
 void Viewport::applyEquirectangularProjection(const config::EquirectangularProjection& p)
 {
-    ZoneScoped
+    ZoneScoped;
 
     auto proj = std::make_unique<EquirectangularProjection>(_parent);
     proj->setUser(_user);
@@ -316,7 +316,7 @@ void Viewport::applyEquirectangularProjection(const config::EquirectangularProje
 
 void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProjection& p)
 {
-    ZoneScoped
+    ZoneScoped;
 
     auto proj = std::make_unique<SphericalMirrorProjection>(
         _parent,
@@ -345,7 +345,7 @@ void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
 }
 
 void Viewport::loadData() {
-    ZoneScoped
+    ZoneScoped;
 
     TextureManager& mgr = TextureManager::instance();
     if (!_overlayFilename.empty()) {
@@ -378,7 +378,7 @@ void Viewport::loadData() {
 }
 
 void Viewport::renderQuadMesh() const {
-    ZoneScoped
+    ZoneScoped;
 
     if (_isEnabled) {
         _mesh.renderQuadMesh();
@@ -386,7 +386,7 @@ void Viewport::renderQuadMesh() const {
 }
 
 void Viewport::renderWarpMesh() const {
-    ZoneScoped
+    ZoneScoped;
 
     if (_isEnabled) {
         _mesh.renderWarpMesh();
@@ -394,7 +394,7 @@ void Viewport::renderWarpMesh() const {
 }
 
 void Viewport::renderMaskMesh() const {
-    ZoneScoped
+    ZoneScoped;
 
     if (_isEnabled) {
         _mesh.renderMaskMesh();

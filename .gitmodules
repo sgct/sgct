@@ -12,7 +12,7 @@
     url = https://github.com/g-truc/glm.git
 [submodule "ext/tracy"]
 	path = ext/tracy
-	url = https://github.com/OpenSpace/tracy.git
+	url = https://github.com/wolfpld/tracy.git
 [submodule "ext/fmt"]
 	path = ext/fmt
 	url = https://github.com/fmtlib/fmt.git

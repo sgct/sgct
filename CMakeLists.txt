@@ -51,14 +51,9 @@ option(SGCT_DEP_INCLUDE_ZLIB "Include ZLIB library" ON)
 option(SGCT_DEP_INCLUDE_GLM "Include GLM library" ON)
 option(SGCT_DEP_INCLUDE_OPENVR "Include OpenVR library" ON)
 
-option(SGCT_DEP_ENABLE_TRACY "Enable Tracy Profiler" OFF)
 if (WIN32)
   option(SGCT_ENABLE_EDIT_CONTINUE "Enable Edit&Continue" ON)
 
-  if (SGCT_DEP_ENABLE_TRACY)
-    message(WARNING "Tracy does not support compiling with Edit&Continue, so we have to disable that feature")
-    set(SGCT_ENABLE_EDIT_CONTINUE OFF CACHE BOOL "" FORCE)
-  endif ()
 endif ()
 
 if (UNIX)

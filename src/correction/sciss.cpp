@@ -54,7 +54,7 @@ namespace {
 namespace sgct::correction {
 
 Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent) {
-    ZoneScoped
+    ZoneScoped;
 
     Buffer buf;
 

@@ -67,7 +67,7 @@ void NonLinearProjection::initialize(unsigned int internalFormat, unsigned int f
 void NonLinearProjection::updateFrustums(Frustum::Mode mode, float nearClip,
                                          float farClip)
 {
-    ZoneScoped
+    ZoneScoped;
 
     if (_subViewports.right.isEnabled()) {
         _subViewports.right.calculateNonLinearFrustum(mode, nearClip, farClip);

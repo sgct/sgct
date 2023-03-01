@@ -69,7 +69,7 @@ EquirectangularProjection::~EquirectangularProjection() {
 void EquirectangularProjection::render(const Window& window, const BaseViewport& viewport,
                                        Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
@@ -118,7 +118,7 @@ void EquirectangularProjection::render(const Window& window, const BaseViewport&
 }
 
 void EquirectangularProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     renderCubeFaces(window, frustumMode);
 }

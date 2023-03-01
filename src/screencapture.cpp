@@ -64,7 +64,7 @@ namespace sgct {
 ScreenCapture::ScreenCapture()
     : _nThreads(Settings::instance().numberCaptureThreads())
 {
-    ZoneScoped
+    ZoneScoped;
 }
 
 ScreenCapture::~ScreenCapture() {
@@ -128,7 +128,7 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
 }
 
 void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
-    ZoneScoped
+    ZoneScoped;
 
     uint64_t number = Engine::instance().screenShotNumber();
     if (Settings::instance().hasScreenshotLimit()) {

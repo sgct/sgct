@@ -82,7 +82,7 @@ void FisheyeProjection::update(vec2 size) {
 void FisheyeProjection::render(const Window& window, const BaseViewport& viewport,
                                Frustum::Mode frustumMode)
 {
-    ZoneScoped
+    ZoneScoped;
 
     glEnable(GL_SCISSOR_TEST);
     Engine::instance().setupViewport(window, viewport, frustumMode);
@@ -153,7 +153,7 @@ void FisheyeProjection::render(const Window& window, const BaseViewport& viewpor
 }
 
 void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode) {
-    ZoneScoped
+    ZoneScoped;
 
     switch (frustumMode) {
         case Frustum::Mode::MonoEye:

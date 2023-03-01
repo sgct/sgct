@@ -55,7 +55,7 @@ namespace sgct {
 StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
     : _statistics(statistics)
 {
-    ZoneScoped
+    ZoneScoped;
 
     // Static background quad
     struct sVertex {
@@ -148,7 +148,7 @@ StatisticsRenderer::StatisticsRenderer(const Engine::Statistics& statistics)
 }
 
 StatisticsRenderer::~StatisticsRenderer() {
-    ZoneScoped
+    ZoneScoped;
 
     _shader.deleteProgram();
 
@@ -164,7 +164,7 @@ StatisticsRenderer::~StatisticsRenderer() {
 }
 
 void StatisticsRenderer::update() {
-    ZoneScoped
+    ZoneScoped;
 
     // Lines rendering
     // The statistics are stored as 1D double arrays, but we need 2D float arrays
@@ -268,7 +268,7 @@ void StatisticsRenderer::update() {
 }
 
 void StatisticsRenderer::render(const Window& window, const Viewport& viewport) {
-    ZoneScoped
+    ZoneScoped;
 
     ivec2 res = window.framebufferResolution();
     const glm::mat4 orthoMat = glm::ortho(
@@ -284,7 +284,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         //
         // Render lines
         //
-        ZoneScopedN("Lines")
+        ZoneScopedN("Lines");
 
         _shader.bind();
 
@@ -408,7 +408,7 @@ void StatisticsRenderer::render(const Window& window, const Viewport& viewport) 
         // Render Histogram
         //
 
-        ZoneScopedN("Histogram")
+        ZoneScopedN("Histogram");
 
         auto renderHistogram = [&](int i, const vec4& color) {
             const auto [pos, size] = [](int j) -> std::tuple<glm::vec2, glm::vec2> {

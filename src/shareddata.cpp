@@ -51,7 +51,7 @@ void SharedData::setDecodeFunction(
 }
 
 void SharedData::decode(const char* receivedData, int receivedLength) {
-    ZoneScoped
+    ZoneScoped;
 
     {
         std::unique_lock lk(mutex::DataSync);
@@ -80,7 +80,7 @@ void SharedData::decode(const char* receivedData, int receivedLength) {
 }
 
 void SharedData::encode() {
-    ZoneScoped
+    ZoneScoped;
 
     {
         std::unique_lock lk(mutex::DataSync);

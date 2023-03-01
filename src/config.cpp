@@ -16,7 +16,7 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
-#include <Tracy.hpp>
+#include <tracy/Tracy.hpp>
 
 #define Error(code, msg) sgct::Error(sgct::Error::Component::Config, code, msg)
 
@@ -29,7 +29,7 @@ namespace {
 namespace sgct::config {
 
 void validateUser(const User& u) {
-    ZoneScoped
+    ZoneScoped;
 
     if (u.eyeSeparation && *u.eyeSeparation < 0.f) {
         throw Error(1000, "Eye separation must be zero or a positive number");
@@ -47,7 +47,7 @@ void validateUser(const User& u) {
 }
 
 void validateCapture(const Capture& c) {
-    ZoneScoped
+    ZoneScoped;
 
     if (c.path && c.path->empty()) {
         throw Error(1010, "Capture path must not be empty");
@@ -63,7 +63,7 @@ void validateCapture(const Capture& c) {
 void validateScene(const Scene&) {}
 
 void validateSettings(const Settings& s) {
-    ZoneScoped
+    ZoneScoped;
 
     if (s.display && s.display->swapInterval && *s.display->swapInterval < 0) {
         throw Error(1020, "Swap interval must not be negative");
@@ -74,7 +74,7 @@ void validateSettings(const Settings& s) {
 }
 
 void validateDevice(const Device& d) {
-    ZoneScoped
+    ZoneScoped;
 
     auto validateAddress = [](const auto& v) -> bool { return !v.vrpnAddress.empty(); };
 
@@ -95,7 +95,7 @@ void validateDevice(const Device& d) {
 }
 
 void validateTracker(const Tracker& t) {
-    ZoneScoped
+    ZoneScoped;
 
     if (t.name.empty()) {
         throw Error(1040, "Tracker name must not be empty");
@@ -104,7 +104,7 @@ void validateTracker(const Tracker& t) {
 }
 
 void validatePlanarProjection(const PlanarProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     if (p.fov.up == p.fov.down) {
         throw Error(1050, "Up and down field of views can not be the same");
@@ -115,7 +115,7 @@ void validatePlanarProjection(const PlanarProjection& p) {
 }
 
 void validateFisheyeProjection(const FisheyeProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     if (p.fov && *p.fov <= 0.f) {
         throw Error(1060, "Field of view setting must be positive");
@@ -144,7 +144,7 @@ void validateFisheyeProjection(const FisheyeProjection& p) {
 }
 
 void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     if (p.quality && *p.quality <= 0) {
         throw Error(1070, "Quality value must be positive");
@@ -161,7 +161,7 @@ void validateSphericalMirrorProjection(const SphericalMirrorProjection& p) {
 }
 
 void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     if (p.mappingSpoutName.empty()) {
         throw Error(1080, "Spout Mapping name must not be empty");
@@ -178,7 +178,7 @@ void validateSpoutOutputProjection(const SpoutOutputProjection& p) {
 }
 
 void validateSpoutFlatProjection(const SpoutFlatProjection& p) {
-    ZoneScoped
+    ZoneScoped;
 
     validatePlanarProjection(p.proj);
     if (p.mappingSpoutName.empty()) {
@@ -207,7 +207,7 @@ void validateProjectionPlane(const ProjectionPlane&) {}
 void validateMpcdiProjection(const MpcdiProjection&) {}
 
 void validateViewport(const Viewport& v, bool /*draw3D*/) {
-    ZoneScoped
+    ZoneScoped;
 
     if (v.user && v.user->empty()) {
         throw Error(1090, "User must not be empty");
@@ -256,7 +256,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
 }
 
 void validateWindow(const Window& w) {
-    ZoneScoped
+    ZoneScoped;
 
     if (w.name && w.name->empty()) {
         throw Error(1100, "Window name must not be empty");
@@ -291,7 +291,7 @@ void validateWindow(const Window& w) {
 }
 
 void validateNode(const Node& n) {
-    ZoneScoped
+    ZoneScoped;
 
     if (n.address.empty()) {
         throw Error(1110, "Node address must not be empty");
@@ -352,7 +352,7 @@ void validateNode(const Node& n) {
 }
 
 void validateCluster(const Cluster& c) {
-    ZoneScoped
+    ZoneScoped;
 
     if (c.masterAddress.empty()) {
         throw Error(1120, "Cluster master address must not be empty");

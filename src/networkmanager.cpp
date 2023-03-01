@@ -58,7 +58,7 @@ void NetworkManager::create(NetworkMode nm,
                             std::function<void(bool, int)> dataTransferStatus,
                             std::function<void(int, int)> dataTransferAcknowledge)
 {
-    ZoneScoped
+    ZoneScoped;
 
     if (_instance) {
         throw std::logic_error("NetworkManager has already been created");
@@ -91,14 +91,14 @@ NetworkManager::NetworkManager(NetworkMode nm,
     , _dataTransferAcknowledgeFn(std::move(dataTransferAcknowledge))
     , _mode(nm)
 {
-    ZoneScoped
+    ZoneScoped;
 
     Log::Debug("Initiating network API");
 #ifdef WIN32
     WORD version = MAKEWORD(2, 2);
 
     {
-        ZoneScopedN("WSAStartup")
+        ZoneScopedN("WSAStartup");
         WSADATA wsaData;
         const int err = WSAStartup(version, &wsaData);
         if (err != 0 || LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
@@ -117,7 +117,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     // get name & local IPs. retrieves the standard host name for the local computer
     std::array<char, 256> Buffer;
     {
-        ZoneScopedN("gethostname")
+        ZoneScopedN("gethostname");
 #ifdef WIN32
         const int res = gethostname(Buffer.data(), static_cast<int>(Buffer.size()));
 #else // WIN32
@@ -150,7 +150,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
 
     addrinfo* info;
     {
-        ZoneScopedN("getaddrinfo")
+        ZoneScopedN("getaddrinfo");
         //TODO: micah - why does getaddrinfo fail for 'macbookpro.local'
         #ifdef __APPLE__
             int result = getaddrinfo("localhost", "http", &hints, &info);
@@ -165,7 +165,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
     std::vector<std::string> dnsNames;
     char addr_str[INET_ADDRSTRLEN];
     for (addrinfo* p = info; p != nullptr; p = p->ai_next) {
-        ZoneScopedN("inet_ntop")
+        ZoneScopedN("inet_ntop");
         sockaddr_in* sockaddr_ipv4 = reinterpret_cast<sockaddr_in*>(p->ai_addr);
         inet_ntop(AF_INET, &sockaddr_ipv4->sin_addr, addr_str, INET_ADDRSTRLEN);
         if (p->ai_canonname) {
@@ -192,7 +192,7 @@ NetworkManager::NetworkManager(NetworkMode nm,
 }
 
 NetworkManager::~NetworkManager() {
-    ZoneScoped
+    ZoneScoped;
 
     _isRunning = false;
     cond.notify_all();
@@ -207,7 +207,7 @@ NetworkManager::~NetworkManager() {
         // @TODO (abock, 2019-12-20) We can probably remove this waiting altogether. The
         // node callbacks are run synchronously with this function, and either way, what
         // if the callbacks take longer and we crash anyway?
-        ZoneScopedN("Sleeping")
+        ZoneScopedN("Sleeping");
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
@@ -222,7 +222,7 @@ NetworkManager::~NetworkManager() {
 }
 
 void NetworkManager::initialize() {
-    ZoneScoped
+    ZoneScoped;
 
     ClusterManager& cm = ClusterManager::instance();
 
@@ -265,7 +265,7 @@ void NetworkManager::initialize() {
 
     // Add Cluster Functionality
     if (ClusterManager::instance().numberOfNodes() > 1) {
-        ZoneScopedN("Create cluster connections")
+        ZoneScopedN("Create cluster connections");
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
@@ -357,7 +357,7 @@ void NetworkManager::initialize() {
 
     // add connection for external communication
     if (_isServer && cm.externalControlPort() != 0) {
-        ZoneScopedN("Create external control")
+        ZoneScopedN("Create external control");
 
         addConnection(
             cm.externalControlPort(),
@@ -599,7 +599,7 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
             const std::string msg = "Connected to SGCT!\r\n";
             connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
             if (_externalStatusFn) {
-                ZoneScopedN("[SGCT] External Status")
+                ZoneScopedN("[SGCT] External Status");
                 _externalStatusFn(status);
             }
         }
@@ -631,7 +631,7 @@ void NetworkManager::setAllNodesConnected() {
 void NetworkManager::addConnection(int port, std::string address,
                                    Network::ConnectionType connectionType)
 {
-    ZoneScoped
+    ZoneScoped;
 
     if (port == 0) {
         throw Error(5025, fmt::format("No port provided for connection to {}", address));
@@ -679,7 +679,7 @@ void NetworkManager::addConnection(int port, std::string address,
 }
 
 bool NetworkManager::matchesAddress(std::string_view address) const {
-    ZoneScoped
+    ZoneScoped;
 
     const auto it = std::find(_localAddresses.cbegin(), _localAddresses.cend(), address);
     return it != _localAddresses.cend();

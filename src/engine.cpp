@@ -1739,6 +1739,10 @@ void Engine::takeScreenshot(std::vector<int> windowIds) {
     _shouldTakeScreenshotIds = std::move(windowIds);
 }
 
+void Engine::resetScreenshotNumber() {
+    _shotCounter = 0;
+}
+
 const std::function<void(const RenderData&)>& Engine::drawFunction() const {
     return _drawFn;
 }

@@ -306,6 +306,11 @@ public:
     void takeScreenshot(std::vector<int> windowIds = std::vector<int>());
 
     /**
+     * Resets the screenshot number to 0.
+     */
+    void resetScreenshotNumber();
+
+    /**
      * Sets the number that the next screenshot will recieve with the next call of
      * Engine::takeScreenshot.
      *

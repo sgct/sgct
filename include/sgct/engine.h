@@ -37,7 +37,7 @@ class StatisticsRenderer;
  *
  * \param path The path to the configuration that should be loaded
  * \return The loaded Cluster object that contains all of the information from the file
- * 
+ *
  * \pre The \p path, if it is provided, must be an existing file
  * \exception std::runtime_error This exception is thrown whenever an unrecoverable error
  *            occurs while trying to load the provided path. This error is never raised
@@ -63,7 +63,7 @@ public:
      * Structure with all statistics gathered about different frametimes. The newest value
      * is always at the front of the different arrays, the remaining values being sorted
      * by the frame in which they occured. These values are only collected while the
-     * statistics are being 
+     * statistics are being
      */
     struct Statistics {
         /// For how many frames are the history values collected before the oldest values
@@ -109,7 +109,8 @@ public:
         std::function<void()> preWindow;
 
         /// This function is called once before the starting the render loop and after
-        /// creation of the OpenGL context.
+        /// creation of the OpenGL context. The window that is passed in this callback is
+        /// the shared context between all created windows
         std::function<void(GLFWwindow*)> initOpenGL;
 
         /// This function is called before the synchronization stage.
@@ -130,7 +131,8 @@ public:
         /// swap.
         std::function<void()> postDraw;
 
-        /// This is called before all SGCT components will be destroyed.
+        /// This is called before all SGCT components will be destroyed. The same shared
+        /// context is active that was passed in the Callbacks::initOpenGL callback
         std::function<void()> cleanup;
 
         /// This function is called to encode all shared data that is sent to the
@@ -179,7 +181,7 @@ public:
      * Returns the global Engine object that is created through the Engine::create
      * function. This function must only be called after the Engine::create function has
      * been called successfully.
-     * 
+     *
      * \return The global Engine object responsible for this application
      * \throw std::logic_error This error is thrown if this function is called before the
      *        Engine::create function is called or after the Engine::destroy function was
@@ -237,7 +239,7 @@ public:
 
     /**
      * Returns the distance to the near clipping plane in meters.
-     * 
+     *
      * \return The distance to the near clipping plane in meters
      */
     float nearClipPlane() const;
@@ -402,7 +404,7 @@ private:
      * The global singleton instance of this Engine class. This instance is created
      * through the Engine::create function, accessed through the Engine::instance
      * function, and removed through the Engine::destroy function.
-     */ 
+     */
     static Engine* _instance;
 
     /**
@@ -519,30 +521,72 @@ private:
     void blitWindowViewport(Window& prevWindow, Window& window,
         const Viewport& viewport, Frustum::Mode mode);
 
+    /// The function pointer that is called before any windows are created
     std::function<void()> _preWindowFn;
+
+    /// The function pointer that is called after all windows have been created
     std::function<void(GLFWwindow*)> _initOpenGLFn;
+
+    /// Function pointer that is called before the synchronization step of the frame
     std::function<void()> _preSyncFn;
+
+    /// Function pointer that is called after the synchronization but before rendering
     std::function<void()> _postSyncPreDrawFn;
+
+    /// Function pointer that is called for the 3D portion of the rendering
     std::function<void(const RenderData&)> _drawFn;
+
+    /// Function pointer that is called for the 2D portion of the rendering
     std::function<void(const RenderData&)> _draw2DFn;
+
+    /// Function pointer that is called after all rendering has finished
     std::function<void()> _postDrawFn;
+
+    /// Function pointer that is called when the Engine is being destroyed
     std::function<void()> _cleanupFn;
 
+    /// The near clipping plane used in the rendering and set through
+    /// Engine::setNearAndFarClippingPlanes
     float _nearClipPlane = 0.1f;
+
+    /// The far clipping plane used in the rendering and set through
+    /// Engine::setNearAndFarClippingPlanes
     float _farClipPlane = 100.f;
 
+    /// The container for the per-frame statistics that are being collected
     Statistics _statistics;
+
+    /// Stores the previous frametime so that a delta frametime can be calculated
     double _statsPrevTimestamp = 0.0;
+
+    /// The class that renders the on-screen representation of the Statistics data. If
+    /// this pointer is `nullptr` then no rendering is performed
     std::unique_ptr<StatisticsRenderer> _statisticsRenderer;
 
+    /// Stores the configuration option whether the created OpenGL contexts should be
+    /// debug contexts or regular ones. This value is only in use between the constructor
+    /// and the Engine::initialize function
     bool _createDebugContext = false;
+
+    /// Whether SGCT should take a screenshot in the next frame
     bool _shouldTakeScreenshot = false;
+
+    /// Contains the list of window ids that should have a screenshot taken. If this
+    /// vector is empty, all windows will have a screenshot
     std::vector<int> _shouldTakeScreenshotIds;
+
+    /// Whether SGCT should terminate in the next frame
     bool _shouldTerminate = false;
 
+    /// If this is true, a log message is printed to the console while a client is waiting
+    /// for the master to connect or while the master is waiting for one or more clients
     bool _printSyncMessage = true;
+
+    /// The number of seconds that SGCT will wait for the master or clients to connect
+    /// before aborting
     float _syncTimeout = 60.f;
 
+    /// Contains information about the FXAA shader that may be used in the rendering
     struct FXAAShader {
         ShaderProgram shader;
         int sizeX = -1;
@@ -551,6 +595,7 @@ private:
         int subPixOffset = -1;
     };
     std::optional<FXAAShader> _fxaa;
+
     ShaderProgram _fboQuad;
     ShaderProgram _overlay;
 

@@ -1215,7 +1215,6 @@ void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
     parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
-
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {

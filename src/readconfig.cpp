@@ -1858,8 +1858,12 @@ void from_json(const nlohmann::json& j, SpoutFlatProjection& p) {
         p.height = it->get<int>();
     }
 
-    if (auto it = j.find("mappingSpoutName");  it != j.end()) {
+    if (auto it = j.find("mappingspoutname");  it != j.end()) {
         p.mappingSpoutName = it->get<std::string>();
+    }
+
+    if (auto it = j.find("drawmain");  it != j.end()) {
+        p.drawMain = it->get<bool>();
     }
 
     if (auto it = j.find("background");  it != j.end()) {

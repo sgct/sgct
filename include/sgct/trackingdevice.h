@@ -9,6 +9,7 @@
 #ifndef __SGCT__TRACKINGDEVICE__H__
 #define __SGCT__TRACKINGDEVICE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <string>
 #include <vector>
@@ -16,7 +17,7 @@
 namespace sgct {
 
 /// Helper class that holds tracking device/sensor data
-class TrackingDevice {
+class SGCT_EXPORT TrackingDevice {
 public:
     /// Constructor
     TrackingDevice(int parentIndex, std::string name);

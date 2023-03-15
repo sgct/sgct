@@ -9,6 +9,7 @@
 #ifndef __SGCT__TEXTUREMANAGER__H__
 #define __SGCT__TEXTUREMANAGER__H__
 
+#include <sgct/sgctexports.h>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,7 @@ class Image;
  * The TextureManager loads and handles textures. It is a singleton and can be accessed
  * anywhere using its static instance. Currently only PNG textures are supported.
  */
-class TextureManager {
+class SGCT_EXPORT TextureManager {
 public:
     static TextureManager& instance();
     static void destroy();

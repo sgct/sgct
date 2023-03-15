@@ -9,6 +9,7 @@
 #ifndef __SGCT__LOGGER__H__
 #define __SGCT__LOGGER__H__
 
+#include <sgct/sgctexports.h>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -17,7 +18,7 @@
 
 namespace sgct {
 
-class Log {
+class SGCT_EXPORT Log {
 public:
     /// Different notify levels for messages
     enum class Level { Error = 3, Warning = 2, Info = 1, Debug = 0 };
@@ -48,6 +49,10 @@ public:
 
 private:
     Log();
+    Log(const Log&) = delete;
+    Log(Log&&) = delete;
+    Log& operator=(const Log&) = delete;
+    Log& operator=(Log&&) = delete;
 
     void printv(Level level, std::string message);
 

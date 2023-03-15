@@ -8,7 +8,7 @@
 
 add_executable(stitcher main.cpp)
 set_compile_options(stitcher)
-target_link_libraries(stitcher PRIVATE sgct)
+target_link_libraries(stitcher PRIVATE sgct::sgct)
 
 add_custom_command(
   TARGET stitcher POST_BUILD

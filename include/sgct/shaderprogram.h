@@ -9,6 +9,7 @@
 #ifndef __SGCT__SHADERPROGRAM__H__
 #define __SGCT__SHADERPROGRAM__H__
 
+#include <sgct/sgctexports.h>
 #include <string>
 #include <vector>
 
@@ -18,7 +19,7 @@ namespace sgct {
  * Class for handling compiling, linking and using shader programs. Uniform and attribute
  * handling must be managed explicitly.
 */
-class ShaderProgram {
+class SGCT_EXPORT ShaderProgram {
 public:
     ShaderProgram() = default;
 
@@ -30,7 +31,10 @@ public:
      * \param name Name of the shader program. Must be unique
      */
     ShaderProgram(std::string name);
+    ShaderProgram(const ShaderProgram&) = delete;
     ShaderProgram(ShaderProgram&&) noexcept;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(ShaderProgram&&) noexcept;
 
     /**
      * The destructor clears the shader data vector but the program can still be used. The
@@ -38,8 +42,6 @@ public:
      * programs can be copied when storing in containers.
      */
     ~ShaderProgram();
-
-    ShaderProgram& operator=(ShaderProgram&&) noexcept;
 
     /// Will detach all attached shaders, delete them and then delete the program
     void deleteProgram();

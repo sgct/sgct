@@ -13,6 +13,8 @@ function (set_compile_options target)
     "/MP"                 # Multi-threading support
     "/W4"                 # Baseline reasonable warnings
     "/wd4068"             # unknown pragma
+    "/wd4251"             # member needs to have dll-interface
+    "/wd4275"             # base needs to have dll-interface
     "/Zc:__cplusplus"     # Correctly set the __cplusplus macro
   )
   if (SGCT_ENABLE_EDIT_CONTINUE)

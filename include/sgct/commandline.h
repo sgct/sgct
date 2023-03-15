@@ -9,6 +9,7 @@
 #ifndef __SGCT__COMMANDLINE__H__
 #define __SGCT__COMMANDLINE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/log.h>
 #include <sgct/settings.h>
 #include <optional>
@@ -17,7 +18,7 @@
 
 namespace sgct {
 
-struct Configuration {
+struct SGCT_EXPORT Configuration {
     std::optional<std::string> configFilename;
     std::optional<bool> isServer;
     std::optional<Log::Level> logLevel;
@@ -43,10 +44,10 @@ struct Configuration {
  * \param arg The list of arguments that should be processed by this function
  * \return The filled struct with commandline options
  */
-Configuration parseArguments(std::vector<std::string>& arg);
+SGCT_EXPORT Configuration parseArguments(std::vector<std::string>& arg);
 
 /// Returns the text providing information about the available commandline options
-std::string helpMessage();
+SGCT_EXPORT std::string helpMessage();
 
 } // namespace sgct
 

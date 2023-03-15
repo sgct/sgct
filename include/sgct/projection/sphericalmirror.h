@@ -9,6 +9,7 @@
 #ifndef __SGCT__SPHERICALMIRROR__H__
 #define __SGCT__SPHERICALMIRROR__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/correctionmesh.h>
@@ -16,7 +17,7 @@
 namespace sgct {
 
 /// This class manages and renders non-linear fisheye projections
-class SphericalMirrorProjection final : public NonLinearProjection {
+class SGCT_EXPORT SphericalMirrorProjection final : public NonLinearProjection {
 public:
     SphericalMirrorProjection(const Window* parent, std::string bottomMesh,
         std::string leftMesh, std::string rightMesh, std::string topMesh);

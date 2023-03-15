@@ -1,0 +1,108 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "tracy",
+      "hidden": true,
+      "cacheVariables": {
+        "SGCT_ENABLE_EDIT_CONTINUE": { "type": "BOOL", "value": "OFF"},
+        "SGCT_TRACY_SUPPORT":        { "type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "vcpkg",
+      "hidden": true,
+      "toolchainFile": "${sourceParentDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE" : "${sourceParentDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "SGCT_DEP_INCLUDE_CATCH2":   { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_FMT":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_FREETYPE": { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_GLAD":     { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_GLFW":     { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_GLM":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_JSON":     { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_LIBPNG":   { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_OPENVR":   { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_SCN":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_STB":      { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_TINYXML":  { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_TRACY":    { "type": "BOOL", "value": "OFF"},
+        "SGCT_DEP_INCLUDE_ZLIB":     { "type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "MSVC 2022",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
+    },
+    {
+      "name": "msvc-submodule-static",
+      "displayName": "MSVC 2022 Using submodules, static linking",
+      "inherits": ["msvc"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS"             : { "type": "BOOL", "value": "OFF"},
+        "SGCT_FREETYPE_SUPPORT"         : { "type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "msvc-submodule-static-tracy",
+      "displayName": "MSVC 2022 Using submodules, static linking, tracy enabled",
+      "inherits": ["msvc", "tracy"]
+    },
+    {
+      "name": "msvc-submodule-dynamic",
+      "displayName": "MSVC 2022 Using submodules, dynamic linking",
+      "inherits": ["msvc"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS"             : { "type": "BOOL", "value": "ON"},
+        "SGCT_FREETYPE_SUPPORT"         : { "type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "msvc-submodule-dynamic-tracy",
+      "displayName": "MSVC 2022 Using submodules, dynamic linking, tracy enabled",
+      "inherits": ["msvc", "tracy"]
+    },
+    {
+      "name": "msvc-vcpkg-static",
+      "displayName": "MSVC 2022 Using vcpkg, static linking",
+      "inherits": ["vcpkg", "msvc"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET"    : "x64-windows-static-md",
+        "BUILD_SHARED_LIBS"       : { "type": "BOOL", "value": "OFF"},
+        "VCPKG_MANIFEST_FEATURES" : "freetype",
+        "SGCT_FREETYPE_SUPPORT"   : { "type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "msvc-vcpkg-static-tracy",
+      "displayName": "MSVC 2022 Using vcpkg, static linking, tracy enabled",
+      "inherits": ["vcpkg", "msvc", "tracy"],
+      "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES" : "freetype;tracy"
+      }
+    },
+    {
+      "name": "msvc-vcpkg-dynamic",
+      "displayName": "MSVC 2022 Using vcpkg, dynamic linking",
+      "inherits": ["vcpkg", "msvc"],
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET"    : "x64-windows",
+        "BUILD_SHARED_LIBS"       : { "type": "BOOL", "value": "ON"},
+        "VCPKG_MANIFEST_FEATURES" : "freetype",
+        "SGCT_FREETYPE_SUPPORT"   : { "type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "msvc-vcpkg-dynamic-tracy",
+      "displayName": "MSVC 2022 Using vcpkg, dynamic linking, tracy enabled",
+      "inherits": ["vcpkg", "msvc", "tracy"],
+      "cacheVariables": {
+        "VCPKG_MANIFEST_FEATURES" : "freetype;tracy"
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@
 #ifndef __SGCT__SPOUT__H__
 #define __SGCT__SPOUT__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
@@ -20,7 +21,7 @@ namespace sgct {
 class OffScreenBuffer;
 
 /// This class manages and renders non linear fisheye projections
-class SpoutOutputProjection : public NonLinearProjection {
+class SGCT_EXPORT SpoutOutputProjection : public NonLinearProjection {
 public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
 

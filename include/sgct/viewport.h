@@ -9,8 +9,8 @@
 #ifndef __SGCT__VIEWPORT__H__
 #define __SGCT__VIEWPORT__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/baseviewport.h>
-
 #include <sgct/correctionmesh.h>
 #include <memory>
 #include <string>
@@ -33,9 +33,10 @@ namespace sgct {
 class NonLinearProjection;
 
 /// This class holds and manages viewportdata and calculates frustums
-class Viewport final : public BaseViewport {
+class SGCT_EXPORT Viewport final : public BaseViewport {
 public:
     Viewport(const Window* parent);
+    ~Viewport();
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
         unsigned int format, unsigned int type, int samples);

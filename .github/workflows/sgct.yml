@@ -1,0 +1,66 @@
+name: Build sgct
+
+on: 
+  push:
+  workflow_dispatch:
+
+env:
+  VCPKG_BINARY_SOURCES: 'clear;nuget,GitHub,readwrite'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        ext: ["submodule" ,"vcpkg"]
+        linkage: ["static", "dynamic"]
+        tracy: ["-tracy", ""]
+      fail-fast: false
+      
+    runs-on: windows-latest
+    timeout-minutes: 360
+    
+    steps:
+    - name: Clone VCPKG
+      uses: actions/checkout@v3
+      with:
+        repository: 'microsoft/vcpkg'
+        fetch-depth: 0
+        path: 'vcpkg'
+    
+    # Cache built dependencies for faster subsequent builds
+    - name: 'Setup NuGet Credentials'
+      shell: bash
+      run: >
+        `vcpkg fetch nuget | tail -n 1`
+        sources add
+        -source "https://nuget.pkg.github.com/inviwo/index.json"
+        -storepasswordincleartext
+        -name "GitHub"
+        -username "inviwo"
+        -password "${{ secrets.GITHUB_TOKEN }}"
+
+    - name: Setup C++ Log matchers
+      uses: Trass3r/setup-cpp@v1  
+
+    - name: Clone
+      uses: actions/checkout@v3
+      with: 
+        path: sgct
+        submodules: recursive
+
+    - name: Configure
+      shell: bash
+      run: >
+        cmake -S sgct -B build --preset msvc-${{ matrix.ext }}-${{ matrix.linkage }}${{ matrix.tracy }}
+        -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      timeout-minutes: 360
+      shell: bash
+      run: cmake --build build --config Release --parallel
+
+    - name: Test
+      if: matrix.tracy == ''
+      timeout-minutes: 360
+      shell: bash
+      run: ctest --test-dir build --build-config Release --output-on-failure

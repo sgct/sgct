@@ -9,11 +9,12 @@
 #ifndef __SGCT__BUFFER__H__
 #define __SGCT__BUFFER__H__
 
+#include <sgct/sgctexports.h>
 #include <vector>
 
 namespace sgct::correction {
 
-struct Buffer {
+struct SGCT_EXPORT Buffer {
     /// This struct represents an individual vertex that is part of a \sa Buffer 
     struct Vertex {
         float x = 0.f;

@@ -9,6 +9,7 @@
 #ifndef __SGCT__NODE__H__
 #define __SGCT__NODE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/keys.h>
 #include <sgct/window.h>
 #include <string>
@@ -18,8 +19,15 @@ namespace sgct::config { struct Node; }
 
 namespace sgct {
 
-class Node {
+class SGCT_EXPORT Node {
 public:
+    Node() = default;
+    Node(const Node&) = delete;
+    Node(Node&&) = default;
+    Node& operator=(const Node&) = delete;
+    Node& operator=(Node&&) = default;
+
+
     void applyNode(const config::Node& node, bool initializeWindows);
 
     /// Add a window to this node. Note that a window must be opened to become

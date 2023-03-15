@@ -9,6 +9,7 @@
 #ifndef __SGCT__CORRECTION_MESH__H__
 #define __SGCT__CORRECTION_MESH__H__
 
+#include <sgct/sgctexports.h>
 #include <string>
 #include <vector>
 
@@ -22,7 +23,7 @@ namespace correction { struct Buffer; }
  * Helper class for reading and rendering a correction mesh. A correction mesh is used for
  * warping and edge-blending.
  */
-class CorrectionMesh {
+class SGCT_EXPORT CorrectionMesh {
 public:
     /**
      * This function finds a suitable parser for warping meshes and loads them.

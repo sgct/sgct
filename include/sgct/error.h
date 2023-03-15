@@ -9,6 +9,7 @@
 #ifndef __SGCT__ERROR__H__
 #define __SGCT__ERROR__H__
 
+#include <sgct/sgctexports.h>
 #include <stdexcept>
 #include <string>
 
@@ -243,7 +244,7 @@ namespace sgct {
  OBS:  When adding a new error code, don't forget to update docs/errors.md accordingly
  */
 
-struct Error : public std::runtime_error {
+struct SGCT_EXPORT Error : public std::runtime_error {
     enum class Component {
         Config,
         CorrectionMesh,

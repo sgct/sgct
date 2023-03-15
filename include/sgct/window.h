@@ -9,6 +9,7 @@
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/shaderprogram.h>
 #include <sgct/viewport.h>
 #include <optional>
@@ -27,7 +28,7 @@ class OffScreenBuffer;
 class ScreenCapture;
 
 /// Helper class for window data.
-class Window {
+class SGCT_EXPORT Window {
 public:
     /// Different stereo modes used for rendering
     enum class StereoMode {
@@ -90,6 +91,11 @@ public:
 
     Window();
     ~Window();
+
+    Window(const Window&) = delete;
+    Window(Window&&) = delete;
+    Window& operator=(const Window&) = delete;
+    Window& operator=(Window&&) = delete;
 
     void close();
 

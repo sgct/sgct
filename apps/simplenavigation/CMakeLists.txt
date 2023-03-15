@@ -9,7 +9,7 @@
 add_executable(simplenavigation main.cpp)
 set_compile_options(simplenavigation)
 find_package(glm REQUIRED)
-target_link_libraries(simplenavigation PRIVATE sgct glm)
+target_link_libraries(simplenavigation PRIVATE sgct::sgct glm::glm)
 
 add_custom_command(
   TARGET simplenavigation POST_BUILD

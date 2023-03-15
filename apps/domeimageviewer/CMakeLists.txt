@@ -8,7 +8,7 @@
 
 add_executable(domeimageviewer main.cpp)
 set_compile_options(domeimageviewer)
-target_link_libraries(domeimageviewer PRIVATE sgct)
+target_link_libraries(domeimageviewer PRIVATE sgct::sgct)
 
 add_custom_command(
   TARGET domeimageviewer POST_BUILD

@@ -20,13 +20,25 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif // WIN32
 
+#ifdef TRACY_ENABLE
+
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyOpenGL.hpp>
 
-#ifdef TRACY_ENABLE
-
+#ifdef SGCT_OVERRIDE_NEW_AND_DELETE
 void* operator new(size_t count);
 void operator delete(void* ptr) noexcept;
+#endif // SGCT_OVERRIDE_NEW_AND_DELETE
+
+#else
+
+#define ZoneScoped
+#define ZoneScopedN(x)
+#define TracyGpuZone(x)
+#define TracyGpuContext
+#define TracyGpuCollect
+#define FrameMark
+
 
 #endif // TRACY_ENABLE
 

@@ -9,6 +9,7 @@
 #ifndef __SGCT__CORRECTION_SCISS__H__
 #define __SGCT__CORRECTION_SCISS__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 
@@ -16,7 +17,7 @@ namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
 
-Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent);
+SGCT_EXPORT Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent);
 
 } // namespace sgct::correction
 

@@ -22,7 +22,7 @@ ShaderManager* ShaderManager::_instance = nullptr;
 
 ShaderManager& ShaderManager::instance() {
     if (!_instance) {
-        _instance = new ShaderManager;
+        _instance = new ShaderManager();
     }
     return *_instance;
 }

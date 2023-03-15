@@ -9,6 +9,7 @@
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/actions.h>
 #include <sgct/callbackdata.h>
 #include <sgct/config.h>
@@ -43,7 +44,7 @@ class StatisticsRenderer;
  *            occurs while trying to load the provided path. This error is never raised
  *            when providing no path
  */
-config::Cluster loadCluster(std::optional<std::string> path = std::nullopt);
+SGCT_EXPORT config::Cluster loadCluster(std::optional<std::string> path = std::nullopt);
 
 /**
  * Returns the number of seconds since the program start. The resultion of this
@@ -51,13 +52,13 @@ config::Cluster loadCluster(std::optional<std::string> path = std::nullopt);
  *
  * \return The number of seconds since the program started
  */
-double time();
+SGCT_EXPORT double time();
 
 /**
  * The Engine class is the central part of SGCT and handles most of the callbacks,
  * rendering, network handling, input devices, etc.
  */
-class Engine {
+class SGCT_EXPORT Engine {
 public:
     /**
      * Structure with all statistics gathered about different frametimes. The newest value
@@ -65,7 +66,7 @@ public:
      * by the frame in which they occured. These values are only collected while the
      * statistics are being
      */
-    struct Statistics {
+    struct SGCT_EXPORT Statistics {
         /// For how many frames are the history values collected before the oldest values
         /// are replaced
         static constexpr int HistoryLength = 128;
@@ -102,7 +103,7 @@ public:
      * This struct holds all of the callback functions that can be used by the client
      * library to be called during the different times of the frame.
      */
-    struct Callbacks {
+    struct SGCT_EXPORT Callbacks {
         /// This function is called before the window is created (before OpenGL context is
         /// created). At this stage the configuration file has been read and network
         /// is initialized.

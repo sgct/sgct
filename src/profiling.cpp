@@ -9,6 +9,7 @@
 #include <sgct/profiling.h>
 
 #ifdef TRACY_ENABLE
+#ifdef SGCT_OVERRIDE_NEW_AND_DELETE
 
 #ifdef WIN32
 #include <CodeAnalysis/warnings.h>
@@ -31,4 +32,5 @@ void operator delete(void* ptr) noexcept {
 #pragma warning(pop)
 #endif // WIN32
 
+#endif // SGCT_OVERRIDE_NEW_AND_DELETE
 #endif // TRACY_ENABLE

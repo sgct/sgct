@@ -9,6 +9,7 @@
 #ifndef __SGCT__MPCDI__H__
 #define __SGCT__MPCDI__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/config.h>
 #include <sgct/math.h>
 #include <string>
@@ -16,7 +17,7 @@
 
 namespace sgct::mpcdi {
 
-struct ReturnValue {
+struct SGCT_EXPORT ReturnValue {
     /// The window resolution
     ivec2 resolution = ivec2{ 0, 0 };
     struct ViewportInfo {
@@ -30,7 +31,7 @@ struct ReturnValue {
 };
 
 // throws std::runtime_error if the parsing fails
-ReturnValue parseMpcdiConfiguration(const std::string& filename);
+SGCT_EXPORT ReturnValue parseMpcdiConfiguration(const std::string& filename);
 
 } //namespace sgct::mpcdi
 

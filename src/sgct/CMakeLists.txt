@@ -134,9 +134,6 @@ set(SOURCE_FILES
   utils/domegrid.cpp
   utils/plane.cpp
   utils/sphere.cpp
-  jsv/json-validator.cpp
-  jsv/json-patch.cpp
-  jsv/json-uri.cpp
 )
 
 if (SGCT_VRPN_SUPPORT)
@@ -194,7 +191,6 @@ target_include_directories(
   sgct SYSTEM
   PUBLIC
     ${PROJECT_SOURCE_DIR}/ext/stb
-    ${PROJECT_SOURCE_DIR}/ext/jsv/src
 ) 
 
 find_package(glad REQUIRED)
@@ -228,6 +224,7 @@ target_link_libraries(sgct
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     json
+    jsv
 )
 
 target_compile_definitions(sgct 

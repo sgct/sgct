@@ -224,7 +224,7 @@ target_link_libraries(sgct
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     json
-    json-schema-validator
+    nlohmann_json_schema_validator
 )
 
 target_compile_definitions(sgct 

@@ -111,7 +111,6 @@ endif ()
 #  target_include_directories(json INTERFACE "json/single_include")
 #endif ()
 add_subdirectory(json SYSTEM)
+add_library(json INTERFACE)
 
 set(JSON_VALIDATOR_INSTALL FALSE CACHE BOOL "" FORCE)
-add_subdirectory(jsv SYSTEM)
-#add_library(jsv INTERFACE)

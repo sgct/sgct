@@ -185,7 +185,7 @@ target_include_directories(sgct
   PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
-target_include_directories(sgct PUBLIC "../../ext/jsv/src")
+target_include_directories(sgct PUBLIC "../../ext/json-schema-validator/src")
 target_include_directories(sgct PUBLIC "../../ext/json/single_include")
 target_include_directories(
   sgct SYSTEM
@@ -224,7 +224,7 @@ target_link_libraries(sgct
     tinyxml2::tinyxml2
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
     json
-    jsv
+    json-schema-validator
 )
 
 target_compile_definitions(sgct 

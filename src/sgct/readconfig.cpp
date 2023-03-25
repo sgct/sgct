@@ -2691,7 +2691,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         if (path.extension() == ".json") {
             try {
                 std::ifstream f(path);
-                return readJsonGeneratorVersion(path);
+                return readJsonGeneratorVersion(path.string());
             }
             catch (const std::runtime_error& e) {
                 throw Err(6082, e.what());

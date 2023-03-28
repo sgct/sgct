@@ -2572,10 +2572,10 @@ std::string stringifyJsonFile(const std::string& filename) {
     return buffer.str();
 }
 
-bool validateConfigAgainstSchema(const std::string& config,
-                                 const std::string& schema,
-                                 const std::string& validationTypeExplanation)
-{
+bool loadFileAndSchemaThenValidate(const std::string& config,
+                                   const std::string& schema,
+                                   const std::string& validationTypeExplanation)
+{                                 
     Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
     if (config.empty()) {
         throw Err(6080, "No configuration file provided");
@@ -2583,7 +2583,6 @@ bool validateConfigAgainstSchema(const std::string& config,
     if (schema.empty()) {
         throw Err(6080, "No schema file provided");
     }
-
     std::string configName = std::filesystem::absolute(config).string();
     if (!std::filesystem::exists(configName)) {
         throw Err(
@@ -2599,48 +2598,18 @@ bool validateConfigAgainstSchema(const std::string& config,
         );
     }
     std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
-
+    std::string cfgString = stringifyJsonFile(std::string(config));
+    bool validationSuccessful = false;
     try {
         // The schema is defined based upon string from file
         std::string schemaString = stringifyJsonFile(schema);
-        Log::Debug(fmt::format("Parsing schema from '{}'", schema));
         nlohmann::json schemaInput = nlohmann::json::parse(schemaString);
-        Log::Debug("Configuring validator");
-        nlohmann::json_schema::json_validator validator(
+        validationSuccessful = validateConfigAgainstSchema(
+            cfgString,
             schemaInput,
-            [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
-                std::string loadPath = schemaDir.string() + std::string("/") +
-                    id.to_string();
-                size_t lbIndex = loadPath.find("#");
-                if (lbIndex != std::string::npos) {
-                    loadPath = loadPath.substr(0, lbIndex);
-                }
-                //Remove trailing spaces
-                if(loadPath.length() > 0 ) {
-                    const size_t strEnd = loadPath.find_last_not_of(" #\t\r\n\0");
-                    loadPath = loadPath.substr(0, strEnd + 1);
-                }
-                if (std::filesystem::exists(loadPath)) {
-                    Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
-                    std::string newSchema = stringifyJsonFile(loadPath);
-                    value = nlohmann::json::parse(newSchema);
-                }
-                else {
-                    throw Err(
-                        6081,
-                        fmt::format("Could not find schema file to load: {}", loadPath)
-                    );
-                }
-            }
+            schemaDir,
+            validationTypeExplanation
         );
-        //validator.set_root_schema(person_schema, &mySchemaLoader); //insert root schema
-        std::string cfgString = stringifyJsonFile(std::string(config));
-        nlohmann::json sgct_cfg = nlohmann::json::parse(cfgString);
-        custom_error_handler err;
-        validator.validate(sgct_cfg);//, err);
-        if (!err.validationSucceeded()) {
-            Log::Debug(err.message());
-        }
     }
     catch (const nlohmann::json::parse_error& e) {
         convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
@@ -2651,6 +2620,48 @@ bool validateConfigAgainstSchema(const std::string& config,
     catch (const std::exception &e) {
         //This should be an "Unknown error" once the custom error handler is working again
         convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    return validationSuccessful;
+}
+
+bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
+                                 const nlohmann::json& schemaInput,
+                                 std::filesystem::path& schemaDir,
+                                 const std::string& validationTypeExplanation)
+{
+    nlohmann::json_schema::json_validator validator(
+        schemaInput,
+        [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
+            std::string loadPath = schemaDir.string() + std::string("/") +
+                id.to_string();
+            size_t lbIndex = loadPath.find("#");
+            if (lbIndex != std::string::npos) {
+                loadPath = loadPath.substr(0, lbIndex);
+            }
+            //Remove trailing spaces
+            if(loadPath.length() > 0 ) {
+                const size_t strEnd = loadPath.find_last_not_of(" #\t\r\n\0");
+                loadPath = loadPath.substr(0, strEnd + 1);
+            }
+            if (std::filesystem::exists(loadPath)) {
+                Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
+                std::string newSchema = stringifyJsonFile(loadPath);
+                value = nlohmann::json::parse(newSchema);
+            }
+            else {
+                throw Err(
+                    6081,
+                    fmt::format("Could not find schema file to load: {}", loadPath)
+                );
+            }
+        }
+    );
+    //validator.set_root_schema(person_schema, &mySchemaLoader); //insert root schema
+    nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
+    custom_error_handler err;
+    validator.validate(sgct_cfg);//, err);
+    if (!err.validationSucceeded()) {
+        Log::Debug(err.message());
     }
     return true;
 }

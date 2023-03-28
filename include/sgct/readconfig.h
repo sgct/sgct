@@ -29,7 +29,11 @@ namespace sgct {
 
 [[nodiscard]] std::string stringifyJsonFile(const std::string& filename);
 
-bool validateConfigAgainstSchema(const std::string& config, const std::string& schema,
+bool loadFileAndSchemaThenValidate(const std::string& config, const std::string& schema,
+    const std::string& validationTypeExplanation);
+
+bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
+    const nlohmann::json& schemaInput, std::filesystem::path& schemaDir,
     const std::string& validationTypeExplanation);
 
 void convertToSgctExceptionAndThrow(const std::string& schema,

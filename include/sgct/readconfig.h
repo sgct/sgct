@@ -10,6 +10,7 @@
 #define __SGCT__READCONFIG__H__
 
 #include <sgct/config.h>
+#include <filesystem>
 #include <string>
 
 namespace sgct {
@@ -33,7 +34,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config, const std::string&
     const std::string& validationTypeExplanation);
 
 bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
-    const nlohmann::json& schemaInput, std::filesystem::path& schemaDir,
+    const std::string& stringifiedSchema, std::filesystem::path& schemaDir,
     const std::string& validationTypeExplanation);
 
 void convertToSgctExceptionAndThrow(const std::string& schema,

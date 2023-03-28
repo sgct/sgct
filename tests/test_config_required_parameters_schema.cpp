@@ -10,8 +10,7 @@
 
 #include <sgct/readconfig.h>
 
-
-TEST_CASE("Parse Required: Version", "[parse]") {
+TEST_CASE("Parse Required Schema: Version", "[parse]") {
     constexpr std::string_view Sources = R"(
 {}
 )";
@@ -22,7 +21,7 @@ TEST_CASE("Parse Required: Version", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: Cluster/Master Address", "[parse]") {
+TEST_CASE("Parse Required Schema: Cluster/Master Address", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1
@@ -35,7 +34,7 @@ TEST_CASE("Parse Required: Cluster/Master Address", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: Node/Address", "[parse]") {
+TEST_CASE("Parse Required Schema: Node/Address", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -54,7 +53,7 @@ TEST_CASE("Parse Required: Node/Address", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: Node/Port", "[parse]") {
+TEST_CASE("Parse Required Schema: Node/Port", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -73,7 +72,7 @@ TEST_CASE("Parse Required: Node/Port", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: Window/Size", "[parse]") {
+TEST_CASE("Parse Required Schema: Window/Size", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -97,7 +96,7 @@ TEST_CASE("Parse Required: Window/Size", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: FisheyeProjection/Crop/Left", "[parse]") {
+TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Left", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -134,7 +133,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Left", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: FisheyeProjection/Crop/Right", "[parse]") {
+TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Right", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -171,7 +170,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Right", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: FisheyeProjection/Crop/Bottom", "[parse]") {
+TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Bottom", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -208,7 +207,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Bottom", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: FisheyeProjection/Crop/Top", "[parse]") {
+TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Top", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -245,7 +244,7 @@ TEST_CASE("Parse Required: FisheyeProjection/Crop/Top", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: PlanarProjection/FOV", "[parse]") {
+TEST_CASE("Parse Required Schema: PlanarProjection/FOV", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -277,7 +276,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: PlanarProjection/FOV/Down", "[parse]") {
+TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Down", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -314,7 +313,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Down", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: PlanarProjection/FOV/Left", "[parse]") {
+TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Left", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -352,7 +351,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Left", "[parse]") {
 }
 
 
-TEST_CASE("Parse Required: PlanarProjection/FOV/Right", "[parse]") {
+TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Right", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -389,7 +388,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Right", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: PlanarProjection/FOV/Up", "[parse]") {
+TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Up", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -428,7 +427,7 @@ TEST_CASE("Parse Required: PlanarProjection/FOV/Up", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: ProjectionPlane/LowerLeft", "[parse]") {
+TEST_CASE("Parse Required Schema: ProjectionPlane/LowerLeft", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -464,7 +463,7 @@ TEST_CASE("Parse Required: ProjectionPlane/LowerLeft", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: ProjectionPlane/UpperLeft", "[parse]") {
+TEST_CASE("Parse Required Schema: ProjectionPlane/UpperLeft", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -500,7 +499,7 @@ TEST_CASE("Parse Required: ProjectionPlane/UpperLeft", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: ProjectionPlane/UpperRight", "[parse]") {
+TEST_CASE("Parse Required Schema: ProjectionPlane/UpperRight", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -536,7 +535,7 @@ TEST_CASE("Parse Required: ProjectionPlane/UpperRight", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SphericalMirror/Mesh", "[parse]") {
+TEST_CASE("Parse Required Schema: SphericalMirror/Mesh", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -568,7 +567,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SphericalMirror/Mesh/Bottom", "[parse]") {
+TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Bottom", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -605,7 +604,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Bottom", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SphericalMirror/Mesh/Left", "[parse]") {
+TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Left", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -642,7 +641,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Left", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SphericalMirror/Mesh/Right", "[parse]") {
+TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Right", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -679,7 +678,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Right", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
+TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Top", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -716,7 +715,7 @@ TEST_CASE("Parse Required: SphericalMirror/Mesh/Top", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
+TEST_CASE("Parse Required Schema: SpoutOutputProjection/MappingSpoutName", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -748,7 +747,7 @@ TEST_CASE("Parse Required: SpoutOutputProjection/MappingSpoutName", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
+TEST_CASE("Parse Required Schema: User/Tracking/Tracker", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -769,7 +768,7 @@ TEST_CASE("Parse Required: User/Tracking/Tracker", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: User/Tracking/Device", "[parse]") {
+TEST_CASE("Parse Required Schema: User/Tracking/Device", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -790,7 +789,7 @@ TEST_CASE("Parse Required: User/Tracking/Device", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: Tracker/Name", "[parse]") {
+TEST_CASE("Parse Required Schema: Tracker/Name", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,

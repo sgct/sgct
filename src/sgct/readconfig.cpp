@@ -2603,10 +2603,9 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
     try {
         // The schema is defined based upon string from file
         std::string schemaString = stringifyJsonFile(schema);
-        nlohmann::json schemaInput = nlohmann::json::parse(schemaString);
         validationSuccessful = validateConfigAgainstSchema(
             cfgString,
-            schemaInput,
+            schemaString,
             schemaDir,
             validationTypeExplanation
         );
@@ -2625,10 +2624,11 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
 }
 
 bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
-                                 const nlohmann::json& schemaInput,
+                                 const std::string& stringifiedSchema,
                                  std::filesystem::path& schemaDir,
                                  const std::string& validationTypeExplanation)
 {
+    nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
     nlohmann::json_schema::json_validator validator(
         schemaInput,
         [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {

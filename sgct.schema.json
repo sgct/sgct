@@ -144,6 +144,11 @@
       "title": "Master Address",
       "description": "Contains the address of the node that acts as the server for this cluster. This means that one of the Node elements described in this configuration file has to have an address that corresponds to this masterAddress. This value can be either an IP address or a DNS name, which will be resolved at application startup"
     },
+    "monitor": {
+      "type": "integer",
+      "title": "Monitor",
+      "description": "Determines which monitor should be used for the exclusive fullscreen in case fullscreen is set to true. The list of monitors on the system are zero-based and range between 0 and the number of monitors - 1. For this attribute, the special value -1 can be used to denote that the primary monitor as defined by the operating system should be used, regardless of its index. The default value is -1"
+    },
     "port": {
       "type": "integer",
       "minimum": 0,
@@ -607,7 +612,7 @@
           "title": "Rotation",
           "description": "Provides a rotation angle (in radians) why which the cylindrical projection is offset into the resulting image"
         },
-        "heightOffset": {
+        "heightoffset": {
           "type": "number",
           "title": "Height Offset",
           "description": "Offsets the height from which the cylindrical projection is generated. This is, in general, only necessary if the user position is offset and you want to counter that offset to continue producing a “standard” cylindrical projection"
@@ -848,9 +853,7 @@
           "description": "If this value is specified, the 3D contents of a different window are blitted (=copied) into this window before calling its own rendering. A common use-case for this are GUI windows that want to show the 3D rendering but not take the performance impact of rendering an expensive scene twice. Instead of rendering the 3D scene, a GUI window would set draw3D to false and this attribute to the id of the main window, meaning that the contents of that other window are copied and then the 2D UI will be rendered on top of the blitted content. Unless specified otherwise, a window’s id is its position in the XML file inside a node, starting at 0. So the first window of a node will have the id 0, the second 1, etc. The default value is -1 which means taht not blitting is performed"
         },
         "monitor": {
-          "type": "integer",
-          "title": "Monitor",
-          "description": "Determines which monitor should be used for the exclusive fullscreen in case fullscreen is set to true. The list of monitors on the system are zero-based and range between 0 and the number of monitors - 1. For this attribute, the special value -1 can be used to denote that the primary monitor as defined by the operating system should be used, regardless of its index. The default value is -1"
+          "$ref": "#/$defs/monitor"
         },
         "mpcdi": {
           "type": "string",

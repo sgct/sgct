@@ -13,6 +13,7 @@ add_executable(
   test_config_load.cpp
   test_config_parse.cpp
   test_config_required_parameters.cpp
+  test_config_required_parameters_schema.cpp
   test_config_roundtrip.cpp
 )
 

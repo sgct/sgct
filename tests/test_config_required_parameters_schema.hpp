@@ -1,4 +1,18 @@
-{
+/*|**************************************************************************************
+ * SGCT                                                                                  *
+ * Simple Graphics Cluster Toolkit                                                       *
+ *                                                                                       *
+ * Copyright (c) 2012-2023                                                               *
+ * For conditions of distribution and use, see copyright notice in LICENSE.md            *
+ ****************************************************************************************/
+
+#include <filesystem>
+#include <string>
+
+std::filesystem::path schemaDir = std::filesystem::u8path("../");
+
+const std::string sgctSchemaJson = 
+R"|({
   "$schema": "http://json-schema.org/draft-07/schema",
 
   "$defs": {
@@ -336,6 +350,7 @@
           "description": "A linear offset in meters that is added to the virtual image plane. Must define three float attributes x, y, and z. The default values are x=0, y=0, z=0, meaning that no offset is applied to the image plane"
         }
       },
+      "required": ["fov"],
       "description": "Describes a projection for the Viewport that is a flat projection described by simple frustum, which may be asymmetric"
     },
 
@@ -398,7 +413,7 @@
             }
           },
           "title": "Crop",
-	  "required": ["left", "right", "bottom", "top"],
+       	  "required": ["left", "right", "bottom", "top"],
           "description": "This node can be used to crop the fisheye after the post processing has been performed. This might be useful for domes running a single projector with a fisheye lens. Normally a projector has a 16:9, 16:10, or 4:3 aspect ratio, but the fiehye output has a 1:1 aspect ratio. This circle can be squared by cropping the 1:1 aspect ratio fisheye image down to the aspect ratio of the projector that is used. By default, no cropping is applied to the image, leaving it in a 1:1 aspect ratio"
         },
         "keepaspectratio": {
@@ -1250,4 +1265,4 @@
   "required": [
     "version", "masteraddress"
   ]
-}
+})|";

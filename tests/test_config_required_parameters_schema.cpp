@@ -12,7 +12,6 @@
 #include <nlohmann/json.hpp>
 #include <nlohmann/json-schema.hpp>
 #include <sgct/readconfig.h>
-#include <iostream>
 
 TEST_CASE("Parse Required Schema: Version", "[parse schema]") {
     const std::string Sources = R"(

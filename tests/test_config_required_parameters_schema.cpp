@@ -9,9 +9,9 @@
 #include "test_config_required_parameters_schema.hpp"
 #include "catch2/catch.hpp"
 
-#include <sgct/readconfig.h>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json-schema.hpp>
+#include <sgct/readconfig.h>
 #include <iostream>
 
 TEST_CASE("Parse Required Schema: Version", "[parse schema]") {

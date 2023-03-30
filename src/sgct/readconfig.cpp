@@ -2617,7 +2617,6 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
         convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
     }
     catch (const std::exception &e) {
-        //This should be an "Unknown error" once the custom error handler is working again
         convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
     }
     return validationSuccessful;
@@ -2656,13 +2655,8 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
             }
         }
     );
-    //validator.set_root_schema(person_schema, &mySchemaLoader); //insert root schema
     nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
-    custom_error_handler err;
-    validator.validate(sgct_cfg);//, err);
-    if (!err.validationSucceeded()) {
-        Log::Debug(err.message());
-    }
+    validator.validate(sgct_cfg);
     return true;
 }
 

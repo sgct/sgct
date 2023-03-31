@@ -18,7 +18,7 @@ TEST_CASE("Parse Required Schema: Version", "[parse schema]") {
 {}
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At  of {} - required property 'version' not found in object\n"
@@ -33,7 +33,7 @@ TEST_CASE("Parse Required Schema: Cluster/Master Address", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At  of {\"version\":1} - required property 'masteraddress' not found in "
@@ -55,7 +55,7 @@ TEST_CASE("Parse Required Schema: Node/Address", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0 of {\"port\":1} - required property 'address' not found "
@@ -77,7 +77,7 @@ TEST_CASE("Parse Required Schema: Node/Port", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0 of {\"address\":\"localhost\"} - required property 'port' "
@@ -104,7 +104,7 @@ TEST_CASE("Parse Required Schema: Window/Size", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
           "At /nodes/0/windows/0 of {} - required property 'size' not found in object\n"
@@ -143,7 +143,7 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Left", "[parse schema]"
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
@@ -184,7 +184,7 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Right", "[parse schema]
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
@@ -225,7 +225,7 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Bottom", "[parse schema
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"left\":1.0,"
@@ -266,7 +266,7 @@ TEST_CASE("Parse Required Schema: FisheyeProjection/Crop/Top", "[parse schema]")
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"crop\":{\"bottom\":1.0,"
@@ -302,7 +302,7 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
@@ -343,7 +343,7 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Down", "[parse schema]") 
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of "
@@ -384,7 +384,7 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Left", "[parse schema]") 
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
@@ -426,7 +426,7 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Right", "[parse schema]")
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
@@ -467,7 +467,7 @@ TEST_CASE("Parse Required Schema: PlanarProjection/FOV/Up", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"fov\":{\"down\":1.0,"
@@ -505,7 +505,7 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/LowerLeft", "[parse schema]") 
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
@@ -544,7 +544,7 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/UpperLeft", "[parse schema]") 
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"lowerleft\":"
@@ -583,7 +583,7 @@ TEST_CASE("Parse Required Schema: ProjectionPlane/UpperRight", "[parse schema]")
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"lowerleft\":"
@@ -620,7 +620,7 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
@@ -661,7 +661,7 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Bottom", "[parse schema]"
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"left\":\"abc\","
@@ -702,7 +702,7 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Left", "[parse schema]") 
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
@@ -744,7 +744,7 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Right", "[parse schema]")
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
@@ -786,7 +786,7 @@ TEST_CASE("Parse Required Schema: SphericalMirror/Mesh/Top", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"mesh\":{\"bottom\":"
@@ -823,7 +823,7 @@ TEST_CASE("Parse Required Schema: SpoutOutputProjection/MappingSpoutName", "[par
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /nodes/0/windows/0/viewports/0/projection of {\"type\":"
@@ -850,7 +850,7 @@ TEST_CASE("Parse Required Schema: User/Tracking/Tracker", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /users/0/tracking/0 of {\"device\":\"abc\"} - required property "
@@ -876,7 +876,7 @@ TEST_CASE("Parse Required Schema: User/Tracking/Device", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /users/0/tracking/0 of {\"tracker\":\"abc\"} - required property "
@@ -897,7 +897,7 @@ TEST_CASE("Parse Required Schema: Tracker/Name", "[parse schema]") {
 }
 )";
     CHECK_THROWS_MATCHES(
-        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir, "Generic"),
+        sgct::validateConfigAgainstSchema(Sources, sgctSchemaJson, schemaDir),
         std::exception,
         Catch::Matchers::Message(
             "At /trackers/0 of {} - required property 'name' not found in object\n"

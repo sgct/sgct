@@ -2606,8 +2606,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
         validationSuccessful = validateConfigAgainstSchema(
             cfgString,
             schemaString,
-            schemaDir,
-            validationTypeExplanation
+            schemaDir
         );
     }
     catch (const nlohmann::json::parse_error& e) {
@@ -2624,8 +2623,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
 
 bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                                  const std::string& stringifiedSchema,
-                                 std::filesystem::path& schemaDir,
-                                 const std::string& validationTypeExplanation)
+                                 std::filesystem::path& schemaDir)
 {
     nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
     nlohmann::json_schema::json_validator validator(

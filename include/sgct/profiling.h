@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2022                                                               *
+ * Copyright (c) 2012-2023                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -20,8 +20,8 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif // WIN32
 
-#include <Tracy.hpp>
-#include <TracyOpenGL.hpp>
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 #ifdef TRACY_ENABLE
 

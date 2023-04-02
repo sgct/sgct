@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2022                                                               *
+ * Copyright (c) 2012-2023                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -45,7 +45,7 @@ public:
     void clearCallbacks();
 
     /**
-     * \param if this application is server/master in cluster then set to true
+     * \param sm if this application is server/master in cluster then set to true
      * \return min-max pair of the looping time to all connections if data was sent to the
      *         clients. If it was the acknowledge data call or no connections are
      *         available, a nullopt is returned

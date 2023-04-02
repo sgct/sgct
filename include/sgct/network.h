@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2022                                                               *
+ * Copyright (c) 2012-2023                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -44,7 +44,7 @@ public:
      * \param port is the network port (TCP)
      * \param address is the hostname, IPv4 address or ip6 address
      * \param isServer indicates if this connection is a server or client
-     * \param connectionType is the type of connection
+     * \param type is the type of connection
      */
     Network(int port, std::string address, bool isServer, ConnectionType type);
     ~Network();

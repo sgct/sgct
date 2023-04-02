@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2022                                                               *
+ * Copyright (c) 2012-2023                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -45,7 +45,7 @@ public:
     /**
      * Set the resolution of the cubemap faces.
      *
-     * \param res the pixel resolution of each quad
+     * \param resolution the pixel resolution of each quad
      */
     void setCubemapResolution(int resolution);
 
@@ -128,9 +128,9 @@ protected:
     InterpolationMode _interpolationMode = InterpolationMode::Linear;
     Frustum::Mode _preferedMonoFrustumMode = Frustum::Mode::MonoEye;
 
-    ivec2 _cubemapResolution = { 512, 512 };
-    vec4 _clearColor = vec4{ 0.3f, 0.3f, 0.3f, 1.f };
-    ivec4 _vpCoords = ivec4{ 0, 0, 0, 0 };
+    ivec2 _cubemapResolution = ivec2(512, 512);
+    vec4 _clearColor = vec4(0.3f, 0.3f, 0.3f, 1.f);
+    ivec4 _vpCoords = ivec4(0, 0, 0, 0);
     bool _useDepthTransformation = false;
     bool _isStereo = false;
     unsigned int _texInternalFormat = 0;

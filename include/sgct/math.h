@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2022                                                               *
+ * Copyright (c) 2012-2023                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -12,37 +12,73 @@
 namespace sgct {
 
 struct ivec2 {
-    int x, y;
+    constexpr ivec2() = default;
+    constexpr ivec2(int x_, int y_) : x(x_), y(y_) {}
+
+    int x = 0;
+    int y = 0;
 };
 
 struct ivec3 {
-    int x, y, z;
+    constexpr ivec3() = default;
+    constexpr ivec3(int x_, int y_, int z_) : x(x_), y(y_), z(z_) {}
+
+    int x = 0;
+    int y = 0;
+    int z = 0;
 };
 
 struct ivec4 {
-    int x, y, z, w;
+    constexpr ivec4() = default;
+    constexpr ivec4(int x_, int y_, int z_, int w_) : x(x_), y(y_), z(z_), w(w_) {}
+
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    int w = 0;
 };
 
 struct vec2 {
-    float x, y;
+    constexpr vec2() = default;
+    constexpr vec2(float x_, float y_) : x(x_), y(y_) {}
+    
+    float x = 0.f;
+    float y = 0.f;
 };
 
 struct vec3 {
-    float x, y, z;
+    constexpr vec3() = default;
+    constexpr vec3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
+    
+    float x = 0.f;
+    float y = 0.f;
+    float z = 0.f;
 };
 
 struct vec4 {
-    float x, y, z, w;
+    constexpr vec4() = default;
+    constexpr vec4(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
+    
+    float x = 0.f;
+    float y = 0.f;
+    float z = 0.f;
+    float w = 0.f;
 };
 
 struct quat {
-    float x, y, z, w;
+    constexpr quat() = default;
+    constexpr quat(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
+    
+    float x = 0.f;
+    float y = 0.f;
+    float z = 0.f;
+    float w = 0.f;
 };
 
 // Column-major order matrix
 struct mat4 {
-    mat4() = default;
-    mat4(float v) {
+    constexpr mat4() = default;
+    constexpr mat4(float v) {
         values[0 * 4 + 0] = v;
         values[0 * 4 + 1] = 0.f;
         values[0 * 4 + 2] = 0.f;

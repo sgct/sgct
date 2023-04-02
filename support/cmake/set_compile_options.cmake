@@ -2,7 +2,7 @@
 # SGCT                                                                                   #
 # Simple Graphics Cluster Toolkit                                                        #
 #                                                                                        #
-# Copyright (c) 2012-2022                                                                #
+# Copyright (c) 2012-2023                                                                #
 # For conditions of distribution and use, see copyright notice in LICENSE.md             #
 ##########################################################################################
 
@@ -12,9 +12,7 @@ function (set_compile_options target)
   set(MSVC_WARNINGS
     "/MP"                 # Multi-threading support
     "/W4"                 # Baseline reasonable warnings
-    "/wd4201"       # nonstandard extension used : nameless struct/union  [raised by: GLM]
     "/wd4068"             # unknown pragma
-    "/Zc:strictStrings-"  # Windows header don't adhere to this
     "/Zc:__cplusplus"     # Correctly set the __cplusplus macro
   )
   if (SGCT_ENABLE_EDIT_CONTINUE)
@@ -23,12 +21,11 @@ function (set_compile_options target)
   endif ()
 
   set(CLANG_WARNINGS
-    "-stdlib=libc++"
     "-Wall"
     "-Wextra"
     "-Wmost"
     "-Wpedantic"
-    
+
     "-Wabstract-vbase-init"
     "-Walloca"
     "-Wanon-enum-enum-conversion"
@@ -103,7 +100,7 @@ function (set_compile_options target)
     "-Wused-but-marked-unused"
     "-Wvariadic-macros"
     "-Wvla"
-    
+
     "-Wno-missing-braces"
     "-Wno-unknown-pragmas"
   )
@@ -146,8 +143,7 @@ function (set_compile_options target)
   elseif (APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${target} PRIVATE ${CLANG_WARNINGS})
   elseif (UNIX AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(${target} PRIVATE ${CLANG_WARNINGS} "-std=c++17")
-    target_link_libraries(${target} PRIVATE "c++" "c++abi")
+    target_compile_options(${target} PRIVATE ${CLANG_WARNINGS})
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(${target} PRIVATE ${GCC_WARNINGS})
     if (SGCT_ENABLE_STATIC_ANALYZER)

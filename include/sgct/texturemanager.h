@@ -50,7 +50,7 @@ public:
               this value to 1 or less disables mipmaps
      * \return The OpenGL name for the texture that was loaded
      */
-    unsigned int loadTexture(Image img, bool interpolate = true,
+    unsigned int loadTexture(const Image& img, bool interpolate = true,
         float anisotropicFilterSize = 1.f, int mipmapLevels = 8);
 
     /**

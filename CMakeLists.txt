@@ -19,8 +19,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(support/cmake/register_package.cmake)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pkg)
-list(APPEND CMAKE_MODULE_PATH 
-  ${PROJECT_SOURCE_DIR}/support/cmake/modules 
+list(APPEND CMAKE_MODULE_PATH
+  ${PROJECT_SOURCE_DIR}/support/cmake/modules
   ${CMAKE_BINARY_DIR}/pkg
 )
 
@@ -76,7 +76,7 @@ option(SGCT_INSTALL "Install SGCT library" OFF)
 option(SGCT_BUILD_TESTS "Build SGCT tests" ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # add dummy uninstall target to avoid it beeing added by dependencies

@@ -85,7 +85,7 @@ linux_gcc_make: {
         )
       }
       stage('linux-gcc-make/test') {
-        runUnitTests('build-make/bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'gcc')
@@ -108,7 +108,7 @@ linux_gcc_ninja: {
         ])
       }
       stage('linux-gcc-ninja/test') {
-        runUnitTests('build-ninja/bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'gcc')
@@ -135,7 +135,7 @@ linux_clang_make: {
         )
       }
       stage('linux-clang-make/test') {
-        runUnitTests('build-make/bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'clang')
@@ -158,7 +158,7 @@ linux_clang_ninja: {
         ])
       }
       stage('linux-clang-ninja/test') {
-        runUnitTests('build-ninja/bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('linux' && 'clang')
@@ -234,7 +234,7 @@ macos_make: {
         ])
       }
       stage('macos-make/test') {
-        runUnitTests('../bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('macos')
@@ -257,7 +257,7 @@ macos_ninja: {
         ])
       }
       stage('macos-xcode/test') {
-        runUnitTests('../bin/SGCTTest')
+        runUnitTests('bin/SGCTTest')
       }
       cleanWs()
     } // node('macos')

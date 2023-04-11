@@ -9,6 +9,7 @@
 #ifndef __SGCT__STATISTICSRENDERER__H__
 #define __SGCT__STATISTICSRENDERER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/engine.h>
 #include <sgct/shaderprogram.h>
 #include <memory>
@@ -17,7 +18,7 @@ namespace sgct { class Window; }
 
 namespace sgct {
 
-class StatisticsRenderer {
+class SGCT_EXPORT StatisticsRenderer {
 public:
     StatisticsRenderer(const Engine::Statistics& statistics);
     ~StatisticsRenderer();

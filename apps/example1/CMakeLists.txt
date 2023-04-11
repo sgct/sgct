@@ -9,7 +9,7 @@
 add_executable(example1 main.cpp)
 set_compile_options(example1)
 find_package(glm REQUIRED)
-target_link_libraries(example1 PRIVATE sgct glm)
+target_link_libraries(example1 PRIVATE sgct::sgct glm::glm)
 set_property(TARGET example1 PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:example1>)
 set_target_properties(example1 PROPERTIES FOLDER "Examples")
 

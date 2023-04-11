@@ -9,6 +9,7 @@
 #ifndef __SGCT__PROJECTION__H__
 #define __SGCT__PROJECTION__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/frustum.h>
 #include <sgct/math.h>
 
@@ -17,7 +18,7 @@ namespace sgct {
 class ProjectionPlane;
 
 /// This class holds and manages 3D projections
-class Projection {
+class SGCT_EXPORT Projection {
 public:
     void calculateProjection(vec3 base, const ProjectionPlane& proj, float nearClip,
         float farClip, vec3 viewOffset = vec3{ 0.f, 0.f, 0.f });

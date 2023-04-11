@@ -9,12 +9,13 @@
 #ifndef __SGCT__CORRECTION_OBJ__H__
 #define __SGCT__CORRECTION_OBJ__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 
 namespace sgct::correction {
 
-Buffer generateOBJMesh(const std::filesystem::path& path);
+SGCT_EXPORT Buffer generateOBJMesh(const std::filesystem::path& path);
 
 } // namespace sgct::correction
 

@@ -9,6 +9,7 @@
 #ifndef __SGCT__SCREENCAPTURE__H__
 #define __SGCT__SCREENCAPTURE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <functional>
 #include <mutex>
@@ -21,7 +22,7 @@ namespace sgct {
 class Image;
 
 /// This class is used internally by SGCT and is called when taking screenshots
-class ScreenCapture {
+class SGCT_EXPORT ScreenCapture {
 public:
     /// The different file formats supported
     enum class CaptureFormat { PNG, TGA, JPEG };

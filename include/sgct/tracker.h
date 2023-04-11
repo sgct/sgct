@@ -9,6 +9,7 @@
 #ifndef __SGCT__TRACKER__H__
 #define __SGCT__TRACKER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <sgct/trackingdevice.h>
 #include <memory>
@@ -18,9 +19,13 @@
 namespace sgct {
 
 /// Class that manages a tracking system's properties and devices/sensors
-class Tracker {
+class SGCT_EXPORT Tracker {
 public:
     explicit Tracker(std::string name);
+    Tracker(const Tracker&) = delete;
+    Tracker(Tracker&&) = default;
+    Tracker& operator=(const Tracker&) = delete;
+    Tracker& operator=(Tracker&&) = default;
 
     void setEnabled(bool state);
     void addDevice(std::string name, int index);

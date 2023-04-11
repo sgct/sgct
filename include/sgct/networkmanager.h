@@ -9,6 +9,7 @@
 #ifndef __SGCT__NETWORKMANAGER__H__
 #define __SGCT__NETWORKMANAGER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/network.h>
 #include <atomic>
 #include <condition_variable>
@@ -23,7 +24,7 @@ namespace sgct {
 class Network;
 
 /// The network manager manages all network connections for SGCT.
-class NetworkManager {
+class SGCT_EXPORT NetworkManager {
 public:
     enum class SyncMode { SendDataToClients = 0, Acknowledge };
     enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
@@ -80,6 +81,11 @@ private:
         std::function<void(void*, int, int, int)> dataTransferDecode,
         std::function<void(bool, int)> dataTransferStatus,
         std::function<void(int, int)> dataTransferAcknowledge);
+    NetworkManager(const NetworkManager&) = delete;
+    NetworkManager(NetworkManager&&) = delete;
+    NetworkManager& operator=(const NetworkManager&) = delete;
+    NetworkManager& operator=(NetworkManager&&) = delete;
+
 
     void addConnection(int port, std::string address,
         Network::ConnectionType connectionType = Network::ConnectionType::SyncConnection);

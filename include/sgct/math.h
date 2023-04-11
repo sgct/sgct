@@ -9,9 +9,11 @@
 #ifndef __SGCT__MATH_H__
 #define __SGCT__MATH_H__
 
+#include <sgct/sgctexports.h>
+
 namespace sgct {
 
-struct ivec2 {
+struct SGCT_EXPORT ivec2 {
     constexpr ivec2() = default;
     constexpr ivec2(int x_, int y_) : x(x_), y(y_) {}
 
@@ -19,7 +21,7 @@ struct ivec2 {
     int y = 0;
 };
 
-struct ivec3 {
+struct SGCT_EXPORT ivec3 {
     constexpr ivec3() = default;
     constexpr ivec3(int x_, int y_, int z_) : x(x_), y(y_), z(z_) {}
 
@@ -28,7 +30,7 @@ struct ivec3 {
     int z = 0;
 };
 
-struct ivec4 {
+struct SGCT_EXPORT ivec4 {
     constexpr ivec4() = default;
     constexpr ivec4(int x_, int y_, int z_, int w_) : x(x_), y(y_), z(z_), w(w_) {}
 
@@ -38,7 +40,7 @@ struct ivec4 {
     int w = 0;
 };
 
-struct vec2 {
+struct SGCT_EXPORT vec2 {
     constexpr vec2() = default;
     constexpr vec2(float x_, float y_) : x(x_), y(y_) {}
     
@@ -46,7 +48,7 @@ struct vec2 {
     float y = 0.f;
 };
 
-struct vec3 {
+struct SGCT_EXPORT vec3 {
     constexpr vec3() = default;
     constexpr vec3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
     
@@ -55,7 +57,7 @@ struct vec3 {
     float z = 0.f;
 };
 
-struct vec4 {
+struct SGCT_EXPORT vec4 {
     constexpr vec4() = default;
     constexpr vec4(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
     
@@ -65,7 +67,7 @@ struct vec4 {
     float w = 0.f;
 };
 
-struct quat {
+struct SGCT_EXPORT quat {
     constexpr quat() = default;
     constexpr quat(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
     
@@ -76,7 +78,7 @@ struct quat {
 };
 
 // Column-major order matrix
-struct mat4 {
+struct SGCT_EXPORT mat4 {
     constexpr mat4() = default;
     constexpr mat4(float v) {
         values[0 * 4 + 0] = v;
@@ -99,9 +101,9 @@ struct mat4 {
     float values[16];
 };
 
-mat4 operator*(const mat4& m1, const mat4& m2);
-vec4 operator*(const mat4& m, const vec4& v);
-vec3 operator*(const quat& q, const vec3& v);
+SGCT_EXPORT mat4 operator*(const mat4& m1, const mat4& m2);
+SGCT_EXPORT vec4 operator*(const mat4& m, const vec4& v);
+SGCT_EXPORT vec3 operator*(const quat& q, const vec3& v);
 
 } // namespace sgct
 

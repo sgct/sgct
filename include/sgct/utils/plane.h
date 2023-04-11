@@ -9,6 +9,8 @@
 #ifndef __SGCT__PLANE__H__
 #define __SGCT__PLANE__H__
 
+#include <sgct/sgctexports.h>
+
 /**
  * \namespace sgct::utils
  * \brief SGCT utils namespace contains basic utilities for geometry rendering
@@ -16,7 +18,7 @@
 namespace sgct::utils {
 
 /// This class creates and renders a textured box.
-class Plane {
+class SGCT_EXPORT Plane {
 public:
     /// This constructor requires a valid OpenGL contex
     Plane(float width, float height);

@@ -9,6 +9,7 @@
 #ifndef __SGCT__NETWORK__H__
 #define __SGCT__NETWORK__H__
 
+#include <sgct/sgctexports.h>
 #include <atomic>
 #include <condition_variable>
 #include <functional>
@@ -27,7 +28,7 @@
 namespace sgct {
 
 /// Network manages peer-to-peer tcp connections.
-class Network {
+class SGCT_EXPORT Network {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
     static constexpr char DefaultId = 0;
@@ -47,6 +48,10 @@ public:
      * \param type is the type of connection
      */
     Network(int port, std::string address, bool isServer, ConnectionType type);
+    Network(const Network&) = delete;
+    Network(Network&&) = delete;
+    Network& operator=(const Network&) = delete;
+    Network& operator=(Network&&) = delete;
     ~Network();
 
     void initialize();

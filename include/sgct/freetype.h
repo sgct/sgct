@@ -9,6 +9,7 @@
 #ifndef __SGCT__FREETYPE__H__
 #define __SGCT__FREETYPE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/fmt.h>
 #include <sgct/math.h>
 
@@ -23,7 +24,7 @@ class Font;
 
 enum class Alignment { TopLeft, TopCenter, TopRight};
 
-void print(const Window& window, const BaseViewport& viewport, Font& font,
+SGCT_EXPORT void print(const Window& window, const BaseViewport& viewport, Font& font,
     Alignment mode, float x, float y, const vec4& color, std::string text);
 
 } // namespace sgct::text

@@ -9,6 +9,7 @@
 #ifndef __SGCT__CLUSTERMANAGER__H__
 #define __SGCT__CLUSTERMANAGER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <memory>
 #include <string>
@@ -26,7 +27,7 @@ class User;
  * The ClusterManager manages all nodes and cluster settings. This class is a static
  * singleton and is accessed using its instance.
  */
-class ClusterManager {
+class SGCT_EXPORT ClusterManager {
 public:
     static ClusterManager& instance();
     static void create(const config::Cluster& cluster, int clusterID);
@@ -122,6 +123,11 @@ public:
 
 private:
     ClusterManager(int clusterID);
+    ClusterManager(const ClusterManager&) = delete;
+    ClusterManager(ClusterManager&&) = delete;
+    ClusterManager& operator=(const ClusterManager&) = delete;
+    ClusterManager& operator=(ClusterManager&&) = delete;
+
     ~ClusterManager();
 
     static ClusterManager* _instance;

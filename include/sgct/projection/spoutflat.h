@@ -9,6 +9,7 @@
 #ifndef __SGCT__SPOUTFLAT__H__
 #define __SGCT__SPOUTFLAT__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 #include <sgct/projection/projectionplane.h>
 #include <sgct/callbackdata.h>
@@ -19,7 +20,7 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 namespace sgct {
 
 /// Base class for non linear projections
-class SpoutFlatProjection : public NonLinearProjection {
+class SGCT_EXPORT SpoutFlatProjection : public NonLinearProjection {
 public:
     SpoutFlatProjection(const Window* parent);
 

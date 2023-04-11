@@ -9,6 +9,7 @@
 #ifndef __SGCT__EQUIRECTANGULAR__H__
 #define __SGCT__EQUIRECTANGULAR__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
@@ -17,7 +18,7 @@
 
 namespace sgct {
 
-class EquirectangularProjection final : public NonLinearProjection {
+class SGCT_EXPORT EquirectangularProjection final : public NonLinearProjection {
 public:
     EquirectangularProjection(const Window* parent);
     ~EquirectangularProjection() final;

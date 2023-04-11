@@ -14,7 +14,9 @@
 #include <sgct/log.h>
 #include <sgct/mutexes.h>
 #include <sgct/tracker.h>
+#ifdef SGCT_HAS_VRPN
 #include <sgct/trackingmanager.h>
+#endif
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -51,7 +53,11 @@ void TrackingDevice::setNumberOfAxes(int numOfAxes) {
 }
 
 void TrackingDevice::setSensorTransform(vec3 vec, quat rot) {
+#ifdef SGCT_HAS_VRPN
     Tracker* parent = TrackingManager::instance().trackers()[_parentIndex].get();
+#else
+    Tracker* parent = nullptr;
+#endif
 
     if (parent == nullptr) {
         Log::Error(fmt::format("Error getting handle to tracker for device '{}'", _name));

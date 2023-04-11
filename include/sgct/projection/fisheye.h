@@ -9,6 +9,7 @@
 #ifndef __SGCT__FISHEYE__H__
 #define __SGCT__FISHEYE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
@@ -16,7 +17,7 @@
 namespace sgct {
 
 /// This class manages and renders non linear fisheye projections
-class FisheyeProjection final : public NonLinearProjection {
+class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 

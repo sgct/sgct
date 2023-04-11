@@ -9,12 +9,13 @@
 #ifndef __SGCT__OFFSCREENBUFFER__H__
 #define __SGCT__OFFSCREENBUFFER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 
 namespace sgct {
 
 /// Helper class for creating frame buffer objects and render buffer objects.
-class OffScreenBuffer {
+class SGCT_EXPORT OffScreenBuffer {
 public:
     static void unbind();
 

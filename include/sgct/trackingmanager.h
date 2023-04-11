@@ -9,6 +9,7 @@
 #ifndef __SGCT__TRACKINGMANAGER__H__
 #define __SGCT__TRACKINGMANAGER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/tracker.h>
 #include <memory>
 #include <set>
@@ -27,7 +28,7 @@ class TrackingDevice;
 class User;
 
 /// Class that manages tracking systems
-class TrackingManager {
+class SGCT_EXPORT TrackingManager {
 public:
     static TrackingManager& instance();
     static void destroy();

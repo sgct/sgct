@@ -11,6 +11,7 @@
 
 #ifdef SGCT_HAS_TEXT
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <string>
 #include <unordered_map>
@@ -36,7 +37,7 @@ namespace sgct::text {
  * <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehe's font
  * tutorial for freetype</a>.
  */
-class Font {
+class SGCT_EXPORT Font {
 public:
     struct FontFaceData {
         unsigned int texId = 0;

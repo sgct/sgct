@@ -370,6 +370,10 @@ struct GeneratorVersion {
     int major;
     int minor;
 
+    bool operator==(const GeneratorVersion& rhs) const {
+        return (name == rhs.name) && (major == rhs.major) && (minor == rhs.minor);
+    }
+
     bool versionCheck(GeneratorVersion check) const {
         if (check.name != name) {
             return false;

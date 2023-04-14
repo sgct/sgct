@@ -9,6 +9,7 @@
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
+#include <sgct/sgctexports.h>
 #include <algorithm>
 #include <optional>
 #include <string>
@@ -22,7 +23,7 @@ namespace config {
 } // namespace config
 
 /// This singleton class will hold global SGCT settings.
-class Settings {
+class SGCT_EXPORT Settings {
 public:
     enum class CaptureFormat { PNG, TGA, JPG };
 

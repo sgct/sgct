@@ -9,10 +9,12 @@
 #ifndef __SGCT__FRUSTUM__H__
 #define __SGCT__FRUSTUM__H__
 
+#include <sgct/sgctexports.h>
+
 namespace sgct {
 
 /// The frustum class stores the view frustum for each viewport
-struct Frustum {
+struct SGCT_EXPORT Frustum {
     /// SGCT stores all view frustums as triplets for switching between mono and stereo
     enum class Mode { MonoEye = 0, StereoLeftEye, StereoRightEye };
 

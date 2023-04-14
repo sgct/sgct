@@ -9,6 +9,7 @@
 #ifndef __SGCT__SHADERMANAGER__H__
 #define __SGCT__SHADERMANAGER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/shaderprogram.h>
 #include <string>
 #include <vector>
@@ -16,13 +17,19 @@
 namespace sgct {
 
 /// For managing shader programs. Implemented as a singleton
-class ShaderManager {
+class SGCT_EXPORT ShaderManager {
 public:
     static ShaderManager& instance();
     static void destroy();
 
+    ShaderManager(const ShaderManager&) = delete;
+    ShaderManager(ShaderManager&&) = delete;
+    ShaderManager& operator=(const ShaderManager&) = delete;
+    ShaderManager& operator=(ShaderManager&&) = delete;
+
     /// Destructor deallocates and deletes all shaders
     ~ShaderManager();
+
 
     /**
      * Adds shader programs to the manager. The shaders will be compiled and linked to the
@@ -64,6 +71,7 @@ public:
     const ShaderProgram& shaderProgram(std::string_view name) const;
 
 private:
+    ShaderManager() = default;
     static ShaderManager* _instance;
     // Active shaders in the manager
     std::vector<ShaderProgram> _shaderPrograms;

@@ -9,6 +9,7 @@
 #ifndef __SGCT__CONFIG__H__
 #define __SGCT__CONFIG__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <optional>
 #include <string>
@@ -17,7 +18,7 @@
 
 namespace sgct::config {
 
-struct User {
+struct SGCT_EXPORT User {
     struct Tracking {
         std::string tracker;
         std::string device;
@@ -29,11 +30,11 @@ struct User {
     std::optional<mat4> transformation;
     std::optional<Tracking> tracking;
 };
-void validateUser(const User& user);
+SGCT_EXPORT void validateUser(const User& user);
 
 
 
-struct Capture {
+struct SGCT_EXPORT Capture {
     enum class Format { PNG, JPG, TGA };
     struct ScreenShotRange {
         int first = -1; // inclusive
@@ -44,20 +45,20 @@ struct Capture {
     std::optional<Format> format;
     std::optional<ScreenShotRange> range;
 };
-void validateCapture(const Capture& capture);
+SGCT_EXPORT void validateCapture(const Capture& capture);
 
 
 
-struct Scene {
+struct SGCT_EXPORT Scene {
     std::optional<vec3> offset;
     std::optional<quat> orientation;
     std::optional<float> scale;
 };
-void validateScene(const Scene& scene);
+SGCT_EXPORT void validateScene(const Scene& scene);
 
 
 
-struct Settings {
+struct SGCT_EXPORT Settings {
     enum class BufferFloatPrecision { Float16Bit, Float32Bit};
 
     struct Display {
@@ -71,11 +72,11 @@ struct Settings {
     std::optional<BufferFloatPrecision> bufferFloatPrecision;
     std::optional<Display> display;
 };
-void validateSettings(const Settings& settings);
+SGCT_EXPORT void validateSettings(const Settings& settings);
 
 
 
-struct Device {
+struct SGCT_EXPORT Device {
     struct Sensors {
         std::string vrpnAddress;
         int identifier = -1;
@@ -96,26 +97,26 @@ struct Device {
     std::optional<vec3> offset;
     std::optional<mat4> transformation;
 };
-void validateDevice(const Device& device);
+SGCT_EXPORT void validateDevice(const Device& device);
 
 
 
-struct Tracker {
+struct SGCT_EXPORT Tracker {
     std::string name;
     std::vector<Device> devices;
     std::optional<vec3> offset;
     std::optional<double> scale;
     std::optional<mat4> transformation;
 };
-void validateTracker(const Tracker& tracker);
+SGCT_EXPORT void validateTracker(const Tracker& tracker);
 
 
 
-struct NoProjection {};
+struct SGCT_EXPORT NoProjection {};
 
 
 
-struct PlanarProjection {
+struct SGCT_EXPORT PlanarProjection {
     struct FOV {
         float down = 0.f;
         float left = 0.f;
@@ -127,11 +128,11 @@ struct PlanarProjection {
     std::optional<quat> orientation;
     std::optional<vec3> offset;
 };
-void validatePlanarProjection(const PlanarProjection& proj);
+SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
 
 
 
-struct FisheyeProjection {
+struct SGCT_EXPORT FisheyeProjection {
     enum class Interpolation { Linear, Cubic };
     struct Crop {
         // Crop values are measured as [0,1] from the respective side, which is why right
@@ -151,11 +152,11 @@ struct FisheyeProjection {
     std::optional<vec3> offset;
     std::optional<vec4> background;
 };
-void validateFisheyeProjection(const FisheyeProjection& proj);
+SGCT_EXPORT void validateFisheyeProjection(const FisheyeProjection& proj);
 
 
 
-struct SphericalMirrorProjection {
+struct SGCT_EXPORT SphericalMirrorProjection {
     struct Mesh {
         std::string bottom;
         std::string left;
@@ -167,11 +168,11 @@ struct SphericalMirrorProjection {
     std::optional<vec4> background;
     Mesh mesh;
 };
-void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
+SGCT_EXPORT void validateSphericalMirrorProjection(const SphericalMirrorProjection& proj);
 
 
 
-struct SpoutOutputProjection {
+struct SGCT_EXPORT SpoutOutputProjection {
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
     struct Channels {
         bool right = true;
@@ -189,11 +190,11 @@ struct SpoutOutputProjection {
     std::optional<vec3> orientation;
     std::optional<bool> drawMain;
 };
-void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
+SGCT_EXPORT void validateSpoutOutputProjection(const SpoutOutputProjection& proj);
 
 
 
-struct SpoutFlatProjection {
+struct SGCT_EXPORT SpoutFlatProjection {
     PlanarProjection proj;
     std::optional<int> width;
     std::optional<int> height;
@@ -201,36 +202,36 @@ struct SpoutFlatProjection {
     std::optional<vec4> background;
     std::optional<bool> drawMain;
 };
-void validateSpoutFlatProjection(const SpoutFlatProjection& proj);
+SGCT_EXPORT void validateSpoutFlatProjection(const SpoutFlatProjection& proj);
 
 
 
-struct CylindricalProjection {
+struct SGCT_EXPORT CylindricalProjection {
     std::optional<int> quality;
     std::optional<float> rotation;
     std::optional<float> heightOffset;
     std::optional<float> radius;
 };
-void validateCylindricalProjection(const CylindricalProjection& proj);
+SGCT_EXPORT void validateCylindricalProjection(const CylindricalProjection& proj);
 
 
 
-struct EquirectangularProjection {
+struct SGCT_EXPORT EquirectangularProjection {
     std::optional<int> quality;
 };
-void validateEquirectangularProjection(const EquirectangularProjection& proj);
+SGCT_EXPORT void validateEquirectangularProjection(const EquirectangularProjection& proj);
 
 
-struct ProjectionPlane {
+struct SGCT_EXPORT ProjectionPlane {
     vec3 lowerLeft = vec3{ 0.f, 0.f, 0.f };
     vec3 upperLeft = vec3{ 0.f, 0.f, 0.f };
     vec3 upperRight = vec3{ 0.f, 0.f, 0.f };
 };
-void validateProjectionPlane(const ProjectionPlane& proj);
+SGCT_EXPORT void validateProjectionPlane(const ProjectionPlane& proj);
 
 
 
-struct MpcdiProjection {
+struct SGCT_EXPORT MpcdiProjection {
     struct Frustum {
         float down;
         float up;
@@ -246,7 +247,7 @@ struct MpcdiProjection {
     std::optional<quat> orientation;
     std::optional<vec3> offset;
 };
-void validateMpcdiProjection(const MpcdiProjection& proj);
+SGCT_EXPORT void validateMpcdiProjection(const MpcdiProjection& proj);
 
 
 
@@ -256,7 +257,7 @@ using Projections = std::variant<NoProjection, CylindricalProjection,
 
 
 
-struct Viewport {
+struct SGCT_EXPORT Viewport {
     enum class Eye { Mono, StereoLeft, StereoRight };
 
     std::optional<std::string> user;
@@ -271,11 +272,11 @@ struct Viewport {
 
     Projections projection;
 };
-void validateViewport(const Viewport& viewport, bool draw3D);
+SGCT_EXPORT void validateViewport(const Viewport& viewport, bool draw3D);
 
 
 
-struct Window {
+struct SGCT_EXPORT Window {
     enum class ColorBitDepth {
         Depth8,
         Depth16,
@@ -333,22 +334,22 @@ struct Window {
 
     std::vector<Viewport> viewports;
 };
-void validateWindow(const Window& window);
+SGCT_EXPORT void validateWindow(const Window& window);
 
 
 
-struct Node {
+struct SGCT_EXPORT Node {
     std::string address;
     int port = 0;
     std::optional<int> dataTransferPort;
     std::optional<bool> swapLock;
     std::vector<Window> windows;
 };
-void validateNode(const Node& node);
+SGCT_EXPORT void validateNode(const Node& node);
 
 
 
-struct Cluster {
+struct SGCT_EXPORT Cluster {
     bool success = false;
 
     std::string masterAddress;
@@ -363,9 +364,9 @@ struct Cluster {
     std::vector<Tracker> trackers;
     std::optional<Settings> settings;
 };
-void validateCluster(const Cluster& cluster);
+SGCT_EXPORT void validateCluster(const Cluster& cluster);
 
-struct GeneratorVersion {
+struct SGCT_EXPORT GeneratorVersion {
     std::string name;
     int major;
     int minor;
@@ -390,8 +391,7 @@ struct GeneratorVersion {
         return (name + " " + std::to_string(major) + "." + std::to_string(minor));
     }
 };
-
-void validateGeneratorVersion(const GeneratorVersion& gVersion);
+SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
 
 } // namespace sgct::config
 

@@ -9,6 +9,7 @@
 #ifndef __SGCT__SHAREDDATA__H__
 #define __SGCT__SHAREDDATA__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/mutexes.h>
 #include <sgct/network.h>
 #include <array>
@@ -23,7 +24,7 @@ namespace sgct {
  * This class shares application data between nodes in a cluster where the master encodes
  * and transmits the data and the clients receives and decode the data.
  */
-class SharedData {
+class SGCT_EXPORT SharedData {
 public:
     static SharedData& instance();
     static void destroy();
@@ -87,10 +88,10 @@ void serializeObject(std::vector<std::byte>& buffer, const std::vector<T>& value
 }
 
 template <>
-void serializeObject(std::vector<std::byte>& buffer, std::string_view value);
+SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, std::string_view value);
 
-void serializeObject(std::vector<std::byte>& buffer, const std::string& value);
-void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value);
+SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, const std::string& value);
+SGCT_EXPORT void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value);
 
 template <typename T>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
@@ -127,11 +128,11 @@ void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
 }
 
 template <>
-void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
+SGCT_EXPORT void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
     std::string& value);
 
 template <>
-void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
+SGCT_EXPORT void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
     std::wstring& value);
 
 } // namespace sgct

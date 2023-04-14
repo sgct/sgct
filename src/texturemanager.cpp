@@ -127,7 +127,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     }
 
     unsigned int t = loadTexture(
-        std::move(img),
+        img,
         interpolate,
         anisotropicFilterSize,
         mipmapLevels
@@ -136,7 +136,7 @@ unsigned int TextureManager::loadTexture(const std::string& filename, bool inter
     return t;
 }
 
-unsigned int TextureManager::loadTexture(Image img, bool interpolate,
+unsigned int TextureManager::loadTexture(const Image& img, bool interpolate,
                                          float anisotropicFilterSize, int mipmapLevels)
 {
     GLuint t = uploadImage(img, interpolate, mipmapLevels, anisotropicFilterSize);

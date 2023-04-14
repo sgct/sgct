@@ -9,10 +9,12 @@
 #ifndef __SGCT__DOME__H__
 #define __SGCT__DOME__H__
 
+#include <sgct/sgctexports.h>
+
 namespace sgct::utils {
 
 /// Helper class to render a dome grid
-class Dome {
+class SGCT_EXPORT Dome {
 public:
     /// This constructor requires a valid OpenGL context
     Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);

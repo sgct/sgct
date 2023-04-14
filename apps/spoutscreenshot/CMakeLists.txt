@@ -8,7 +8,7 @@
 
 add_executable(spoutscreenshot main.cpp)
 set_compile_options(spoutscreenshot)
-target_link_libraries(spoutscreenshot PRIVATE sgct)
+target_link_libraries(spoutscreenshot PRIVATE sgct::sgct)
 set_property(TARGET spoutscreenshot PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutscreenshot>)
 set_target_properties(spoutscreenshot PROPERTIES FOLDER "Examples")
 

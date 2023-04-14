@@ -9,10 +9,12 @@
 #ifndef __SGCT__SPHERE__H__
 #define __SGCT__SPHERE__H__
 
+#include <sgct/sgctexports.h>
+
 namespace sgct::utils {
 
 /// This class creates and renders a textured sphere.
-class Sphere {
+class SGCT_EXPORT Sphere {
 public:
     /// This constructor requires a valid OpenGL context
     Sphere(float radius, unsigned int segments);

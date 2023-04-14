@@ -9,6 +9,7 @@
 #ifndef __SGCT__CALLBACKDATA__H__
 #define __SGCT__CALLBACKDATA__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/frustum.h>
 #include <sgct/math.h>
 #include <utility>
@@ -18,7 +19,7 @@ namespace sgct {
 class BaseViewport;
 class Window;
 
-struct RenderData {
+struct SGCT_EXPORT RenderData {
     RenderData(const Window& window_, const BaseViewport& viewport_,
                Frustum::Mode frustumMode_, mat4 modelMatrix_, mat4 viewMatrix_,
                mat4 projectionMatrix_, mat4 modelViewProjectionMatrix_)

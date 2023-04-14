@@ -11,6 +11,7 @@
 
 #ifdef SGCT_HAS_TEXT
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <sgct/shaderprogram.h>
 
@@ -91,7 +92,7 @@ class Font;
  * );
  * \endcode
  */
-class FontManager {
+class SGCT_EXPORT FontManager {
 public:
     static FontManager& instance();
     static void destroy();

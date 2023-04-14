@@ -29,9 +29,14 @@ else ()
   target_compile_options(SGCTTest PRIVATE "-O0")
 endif ()
 
-target_include_directories(SGCTTest PRIVATE "${PROJECT_SOURCE_DIR}/ext/catch2/single_include")
-target_link_libraries(SGCTTest PRIVATE Catch2WithMain sgct json nlohmann_json_schema_validator glm)
+find_package(nlohmann_json REQUIRED)
+find_package(glm REQUIRED)
+find_package(Catch2 REQUIRED)
+
+target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::nlohmann_json_schema_validator glm::glm)
 
 if (APPLE)
   target_link_libraries(SGCTTest PRIVATE ${CARBON_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY} ${APP_SERVICES_LIBRARY})
 endif ()
+
+add_test(NAME SGCTTest COMMAND SGCTTest)

@@ -9,6 +9,7 @@
 #ifndef __SGCT__BASEVIEWPORT__H__
 #define __SGCT__BASEVIEWPORT__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/frustum.h>
 #include <sgct/math.h>
 #include <sgct/projection.h>
@@ -21,10 +22,10 @@ class Window;
 class User;
 
 /// This class holds and manages viewportdata and calculates frustums
-class BaseViewport {
+class SGCT_EXPORT BaseViewport {
 public:
     BaseViewport(const Window* parent);
-    virtual ~BaseViewport() = default;
+    virtual ~BaseViewport();
 
     void setPos(vec2 position);
     void setSize(vec2 size);

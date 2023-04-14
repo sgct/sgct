@@ -9,6 +9,7 @@
 #ifndef __SGCT__NONLINEARPROJECTION__H__
 #define __SGCT__NONLINEARPROJECTION__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/baseviewport.h>
 #include <sgct/shaderprogram.h>
 #include <memory>
@@ -20,7 +21,7 @@ class OffScreenBuffer;
 class Window;
 
 /// Base class for non linear projections
-class NonLinearProjection {
+class SGCT_EXPORT NonLinearProjection {
 public:
     enum class InterpolationMode { Linear, Cubic };
 

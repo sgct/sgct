@@ -26,6 +26,8 @@ BaseViewport::BaseViewport(const Window* parent)
     , _user(&ClusterManager::instance().defaultUser())
 {}
 
+BaseViewport::~BaseViewport() = default;
+
 void BaseViewport::setPos(vec2 position) {
     _position = std::move(position);
 }

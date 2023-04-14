@@ -9,6 +9,7 @@
 #ifndef __SGCT__CORRECTION_SKYSKAN__H__
 #define __SGCT__CORRECTION_SKYSKAN__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 
@@ -16,7 +17,7 @@ namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
 
-Buffer generateSkySkanMesh(const std::filesystem::path& meshPath, BaseViewport& parent);
+SGCT_EXPORT Buffer generateSkySkanMesh(const std::filesystem::path& meshPath, BaseViewport& parent);
 
 } // namespace sgct::correction
 

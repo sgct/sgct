@@ -9,13 +9,14 @@
 #ifndef __SGCT__CORRECTION_PFM__H__
 #define __SGCT__CORRECTION_PFM__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 
 namespace sgct::correction {
 
-Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
+SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
     const vec2& size);
 
 } // namespace sgct::correction

@@ -9,12 +9,13 @@
 #ifndef __SGCT__IMAGE__H__
 #define __SGCT__IMAGE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <string>
 
 namespace sgct {
 
-class Image {
+class SGCT_EXPORT Image {
 public:
     enum class FormatType { PNG = 0, JPEG, TGA, Unknown };
 

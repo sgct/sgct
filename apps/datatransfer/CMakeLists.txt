@@ -9,7 +9,7 @@
 add_executable(datatransfer main.cpp)
 set_compile_options(datatransfer)
 find_package(glm REQUIRED)
-target_link_libraries(datatransfer PRIVATE sgct glm)
+target_link_libraries(datatransfer PRIVATE sgct::sgct glm::glm)
 
 add_custom_command(
   TARGET datatransfer POST_BUILD

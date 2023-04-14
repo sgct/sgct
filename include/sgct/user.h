@@ -9,13 +9,14 @@
 #ifndef __SGCT__USER__H__
 #define __SGCT__USER__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <string>
 
 namespace sgct {
 
 /// Helper class for setting user variables
-class User {
+class SGCT_EXPORT User {
 public:
     /// Default contructor
     User(std::string name);

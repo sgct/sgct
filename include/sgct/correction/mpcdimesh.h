@@ -9,11 +9,12 @@
 #ifndef __SGCT__CORRECTION_MPCDIMESH__H__
 #define __SGCT__CORRECTION_MPCDIMESH__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/correction/buffer.h>
 
 namespace sgct::correction {
 
-Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh);
+SGCT_EXPORT Buffer generateMpcdiMesh(const std::vector<char>& mpcdiMesh);
 
 } // namespace sgct::correction
 

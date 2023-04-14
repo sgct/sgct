@@ -37,6 +37,8 @@ namespace sgct {
 
 Viewport::Viewport(const Window* parent) : BaseViewport(parent) {}
 
+Viewport::~Viewport() = default;
+
 void Viewport::initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
                           unsigned int format, unsigned int type, int samples)
 {

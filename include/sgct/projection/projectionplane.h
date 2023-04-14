@@ -9,12 +9,13 @@
 #ifndef __SGCT__PROJECTIONPLANE__H__
 #define __SGCT__PROJECTIONPLANE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 
 namespace sgct {
 
 /// This class holds and manages the 3D projection plane
-class ProjectionPlane {
+class SGCT_EXPORT ProjectionPlane {
 public:
     void setCoordinates(vec3 lowerLeft, vec3 upperLeft, vec3 upperRight);
     void offset(const vec3& p);

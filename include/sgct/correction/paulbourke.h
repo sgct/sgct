@@ -9,13 +9,14 @@
 #ifndef __SGCT__CORRECTION_PAULBOURKE__H__
 #define __SGCT__CORRECTION_PAULBOURKE__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/math.h>
 #include <sgct/correction/buffer.h>
 #include <filesystem>
 
 namespace sgct::correction {
 
-Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos,
+SGCT_EXPORT Buffer generatePaulBourkeMesh(const std::filesystem::path& path, const vec2& pos,
     const vec2& size, float aspectRatio);
 
 } // namespace sgct::correction

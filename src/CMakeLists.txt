@@ -7,21 +7,35 @@
 ##########################################################################################
 
 include(${PROJECT_SOURCE_DIR}/support/cmake/set_compile_options.cmake)
+include(GenerateExportHeader)
 
-add_library(sgct STATIC)
+add_library(sgct)
 add_library(sgct::sgct ALIAS sgct)
 set_compile_options(sgct)
+generate_export_header(sgct
+  EXPORT_FILE_NAME include/sgct/sgctexports.h
+)  
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/src/version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h @ONLY
 )
 
+target_include_directories(sgct 
+  PUBLIC $<INSTALL_INTERFACE:include>
+)
+
 target_sources(
   sgct
-  PRIVATE
+  PUBLIC
+  FILE_SET HEADERS
+  TYPE HEADERS
+  BASE_DIRS 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/sgctexports.h
     ${CMAKE_CURRENT_BINARY_DIR}/include/sgct/version.h
-
     ${PROJECT_SOURCE_DIR}/include/sgct/actions.h
     ${PROJECT_SOURCE_DIR}/include/sgct/baseviewport.h
     ${PROJECT_SOURCE_DIR}/include/sgct/callbackdata.h
@@ -92,6 +106,10 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/utils/plane.h
     ${PROJECT_SOURCE_DIR}/include/sgct/utils/sphere.h
 
+    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/openvr.h>
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h>
+
+  PRIVATE
     baseviewport.cpp
     clustermanager.cpp
     commandline.cpp
@@ -147,23 +165,10 @@ target_sources(
     utils/domegrid.cpp
     utils/plane.cpp
     utils/sphere.cpp
+
+    $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr.cpp>
+    $<$<BOOL:${SGCT_VRPN_SUPPORT}>:trackingmanager.cpp>
 )
-
-if (SGCT_VRPN_SUPPORT)
-  target_sources(
-    sgct PRIVATE
-      ${PROJECT_SOURCE_DIR}/include/sgct/trackingmanager.h
-      trackingmanager.cpp
-  )
-endif ()
-
-if (SGCT_OPENVR_SUPPORT)
-  target_sources(
-    sgct PRIVATE
-      ${PROJECT_SOURCE_DIR}/include/sgct/openvr.h
-      openvr.cpp
-  )
-endif ()
 
 target_precompile_headers(sgct PRIVATE
   <sgct/config.h>
@@ -188,47 +193,56 @@ target_precompile_headers(sgct PRIVATE
   <vector>
 )
 
-target_include_directories(sgct
-  PUBLIC  ${PROJECT_SOURCE_DIR}/include
-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include
-)
 target_include_directories(sgct PUBLIC "../../ext/json-schema-validator/src")
-target_include_directories(sgct PUBLIC "../../ext/json/single_include")
 
+find_package(fmt REQUIRED)
 find_package(glad REQUIRED)
-find_package(ZLIB REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(PNG REQUIRED)
-find_package(tinyxml2 REQUIRED)
+find_package(glm REQUIRED)
+find_package(minizip REQUIRED)
+find_package(nlohmann_json REQUIRED)
 find_package(OpenGL REQUIRED)
-if (SGCT_VRPN_SUPPORT)
-  find_package(vrpn REQUIRED)
+find_package(PNG REQUIRED)
+find_package(scn REQUIRED)
+find_package(Stb REQUIRED)
+find_package(tinyxml2 REQUIRED)
+find_package(ZLIB REQUIRED)
+
+if (SGCT_TRACY_SUPPORT)
+  find_package(Threads REQUIRED) # Needed by Tracy
+  find_package(Tracy REQUIRED)
+endif ()
+if (SGCT_FREETYPE_SUPPORT)
+  find_package(Freetype REQUIRED)
 endif ()
 if (SGCT_OPENVR_SUPPORT)
   find_package(openvr REQUIRED)
 endif ()
+if (SGCT_VRPN_SUPPORT)
+  find_package(vrpn REQUIRED)
+endif ()
 
 target_link_libraries(sgct
   PUBLIC
+    fmt::fmt
     glad::glad
     glfw
-    fmt
     ${OPENGL_gl_LIBRARY}
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:freetype>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:openvr>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:spout>
+    $<$<BOOL:${SGCT_TRACY_SUPPORT}>:Tracy::TracyClient>
   PRIVATE
     ZLIB::ZLIB
     minizip::minizip
-    glm
+    glm::glm
     PNG::PNG
-    scn
-    stb
+    scn::scn
+    sgct::stb
     tinyxml2::tinyxml2
-    TracyClient
+    nlohmann_json::nlohmann_json
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:vrpn>
-    json
-    nlohmann_json_schema_validator
+    nlohmann_json_schema_validator::nlohmann_json_schema_validator
 )
 
 target_compile_definitions(sgct
@@ -236,6 +250,7 @@ target_compile_definitions(sgct
     $<$<BOOL:${SGCT_FREETYPE_SUPPORT}>:SGCT_HAS_TEXT>
     $<$<BOOL:${SGCT_OPENVR_SUPPORT}>:SGCT_HAS_OPENVR>
     $<$<BOOL:${SGCT_SPOUT_SUPPORT}>:SGCT_HAS_SPOUT>
+    $<$<BOOL:${SGCT_MEMORY_PROFILING}>:SGCT_OVERRIDE_NEW_AND_DELETE>
   PRIVATE
     $<$<BOOL:${SGCT_VRPN_SUPPORT}>:SGCT_HAS_VRPN>
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
@@ -254,5 +269,25 @@ else () # Linux
   target_link_libraries(sgct PRIVATE
     ${X11_X11_LIB} ${X11_Xrandr_LIB} ${X11_Xinerama_LIB} ${X11_Xinput_LIB}
     ${X11_Xxf86vm_LIB} ${X11_Xcursor_LIB}
+  )
+endif ()
+
+if (SGCT_INSTALL)
+  include(GNUInstallDirs)
+  install(TARGETS sgct EXPORT sgctTargets 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+  install(
+    EXPORT sgctTargets 
+    FILE sgctTargets.cmake
+    NAMESPACE sgct:: 
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
+  )
+  install(
+      FILES ${PROJECT_SOURCE_DIR}/support/cmake/sgctConfig.cmake
+      DESTINATION ${CMAKE_INSTALL_DATADIR}/sgct
   )
 endif ()

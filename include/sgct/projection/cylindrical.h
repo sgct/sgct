@@ -9,6 +9,7 @@
 #ifndef __SGCT__CYLINDRICAL__H__
 #define __SGCT__CYLINDRICAL__H__
 
+#include <sgct/sgctexports.h>
 #include <sgct/projection/nonlinearprojection.h>
 
 #include <sgct/callbackdata.h>
@@ -16,7 +17,7 @@
 
 namespace sgct {
 
-class CylindricalProjection final : public NonLinearProjection {
+class SGCT_EXPORT CylindricalProjection final : public NonLinearProjection {
 public:
     CylindricalProjection(const Window* parent);
     ~CylindricalProjection() final;

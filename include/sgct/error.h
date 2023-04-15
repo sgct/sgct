@@ -212,6 +212,7 @@ namespace sgct {
  * 6086: Parsing / Unknown color bit depth %s
  * 6087: Parsing / Unknown resolution %s for cube map
  * 6088: Parsing / Unsupported file extension %s
+ * 6089: Parsing / Validation against schema failed
  * 6090: SpoutOutput / Unknown spout output mapping: %s
  * 6100: SphericalMirror / Missing geometry paths
 

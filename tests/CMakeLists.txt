@@ -16,6 +16,7 @@ target_sources(
     test_config_load.cpp
     test_config_parse.cpp
     test_config_required_parameters.cpp
+    test_config_required_parameters_schema.cpp
     test_config_roundtrip.cpp
 )
 
@@ -32,7 +33,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(glm REQUIRED)
 find_package(Catch2 REQUIRED)
 
-target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json glm::glm)
+target_link_libraries(SGCTTest PRIVATE Catch2::Catch2WithMain sgct::sgct nlohmann_json::nlohmann_json nlohmann_json_schema_validator::nlohmann_json_schema_validator glm::glm)
 
 if (APPLE)
   target_link_libraries(SGCTTest PRIVATE ${CARBON_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COCOA_LIBRARY} ${APP_SERVICES_LIBRARY})

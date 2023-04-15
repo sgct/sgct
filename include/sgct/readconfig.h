@@ -11,16 +11,34 @@
 
 #include <sgct/sgctexports.h>
 #include <sgct/config.h>
+#include <filesystem>
 #include <string>
 
 namespace sgct {
 
-SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(const std::string& filename);
+SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(const std::string& filename,
+    const std::string additionalErrorDescription = "");
 
 SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 
+SGCT_EXPORT [[nodiscard]] config::GeneratorVersion readJsonGeneratorVersion(
+    const std::string& configuration);
+
+SGCT_EXPORT [[nodiscard]] config::GeneratorVersion readConfigGenerator(const std::string& filename);
+
 SGCT_EXPORT [[nodiscard]] std::string serializeConfig(const config::Cluster& cluster,
     std::optional<config::GeneratorVersion> genVersion = std::nullopt);
+
+SGCT_EXPORT [[nodiscard]] std::string stringifyJsonFile(const std::string& filename);
+
+SGCT_EXPORT bool loadFileAndSchemaThenValidate(const std::string& config, const std::string& schema,
+    const std::string& validationTypeExplanation);
+
+SGCT_EXPORT bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
+    const std::string& stringifiedSchema, std::filesystem::path& schemaDir);
+
+SGCT_EXPORT void convertToSgctExceptionAndThrow(const std::string& schema,
+    const std::string& validationTypeExplanation, const std::string& exceptionMessage);
 
 } // namespace sgct
 

@@ -14,14 +14,16 @@
 #include <sgct/log.h>
 #include <sgct/math.h>
 #include <sgct/tinyxml.h>
-#include <nlohmann/json.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <nlohmann/json.hpp>
+#include <nlohmann/json-schema.hpp>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <iostream>
 
 #define Err(code, msg) sgct::Error(sgct::Error::Component::ReadConfig, code, msg)
 
@@ -1215,7 +1217,6 @@ void from_json(const nlohmann::json& j, User& u) {
     parseValue(j, "name", u.name);
     parseValue(j, "eyeseparation", u.eyeSeparation);
     parseValue(j, "pos", u.position);
-
     parseValue(j, "matrix", u.transformation);
 
     if (auto it = j.find("orientation");  it != j.end()) {
@@ -2031,7 +2032,7 @@ void from_json(const nlohmann::json& j, Viewport& v) {
                 v.projection = it->get<ProjectionPlane>();
             }
             else {
-                throw "Unknown type";
+                throw Err(6089, fmt::format("Unknown projection type '{}'", type));
             }
         }
     }
@@ -2420,9 +2421,16 @@ void to_json(nlohmann::json& j, const Cluster& c) {
 }
 
 void from_json(const nlohmann::json& j, GeneratorVersion& v) {
-    j.at("name").get_to(v.name);
-    j.at("major").get_to(v.major);
-    j.at("minor").get_to(v.minor);
+    if (auto it = j.find("generator");  it != j.end()) {
+        SpoutOutputProjection::Channels c;
+        parseValue(*it, "name", v.name);
+        parseValue(*it, "major", v.major);
+        parseValue(*it, "minor", v.minor);
+    }
+    else {
+        throw Err(6089, "This configuration file was not generated from the window "
+            "editor, and thus cannot be edited (missing field 'generator' in file)");
+    }
 }
 
 void to_json(nlohmann::json& j, const GeneratorVersion& v) {
@@ -2435,7 +2443,9 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 
 namespace sgct {
 
-config::Cluster readConfig(const std::string& filename) {
+config::Cluster readConfig(const std::string& filename,
+                           const std::string additionalErrorDescription)
+{
     Log::Debug(fmt::format("Parsing XML config '{}'", filename));
     if (filename.empty()) {
         throw Err(6080, "No configuration file provided");
@@ -2457,7 +2467,7 @@ config::Cluster readConfig(const std::string& filename) {
     }
 
     // Then load the cluster
-    config::Cluster cluster = [](std::filesystem::path path) {
+    config::Cluster cluster = [&additionalErrorDescription](std::filesystem::path path) {
         if (path.extension() == ".xml") {
             return xmlconfig::readXMLFile(path);
         }
@@ -2471,7 +2481,18 @@ config::Cluster readConfig(const std::string& filename) {
                 return readJsonConfig(contents);
             }
             catch (const nlohmann::json::exception& e) {
-                throw Err(6082, e.what());
+                if (!additionalErrorDescription.empty()) {
+                    throw Err(
+                        6082,
+                        fmt::format("Importing of this configuration file failed with "
+                            "the message:\n\n{}:\n\n{}",
+                            additionalErrorDescription, e.what()
+                        )
+                    );
+                }
+                else {
+                    throw Err(6082, e.what());
+                }
             }
         }
         else {
@@ -2523,5 +2544,191 @@ std::string serializeConfig(const config::Cluster& cluster,
     to_json(res, cluster);
     return res.dump(2);
 }
+
+class custom_error_handler : public nlohmann::json_schema::basic_error_handler
+{
+public:
+    void error(const nlohmann::json::json_pointer &ptr, const nlohmann::json &instance,
+               const std::string &message) override;
+    bool validationSucceeded();
+    std::string& message();
+private:
+    std::string mErrMessage;
+};
+
+void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
+                                 const nlohmann::json &instance,
+                                 const std::string &message)
+{
+    nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
+    mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
+        "\nat entry in json file: {}", message, instance);
+}
+
+bool custom_error_handler::validationSucceeded() {
+    return mErrMessage.empty();
+}
+
+std::string& custom_error_handler::message() {
+    return mErrMessage;
+}
+
+std::string stringifyJsonFile(const std::string& filename) {
+    std::ifstream myfile;
+    myfile.open(filename);
+    if (myfile.fail()) {
+        throw Err(6082, fmt::format("Failed to open '{}'.", filename));
+    }
+    std::stringstream buffer;
+    buffer << myfile.rdbuf();
+    return buffer.str();
+}
+
+bool loadFileAndSchemaThenValidate(const std::string& config,
+                                   const std::string& schema,
+                                   const std::string& validationTypeExplanation)
+{                                 
+    Log::Debug(fmt::format("Validating config '{}' against schema '{}'", config, schema));
+    if (config.empty()) {
+        throw Err(6080, "No configuration file provided");
+    }
+    if (schema.empty()) {
+        throw Err(6080, "No schema file provided");
+    }
+    std::string configName = std::filesystem::absolute(config).string();
+    if (!std::filesystem::exists(configName)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find configuration file: {}", configName)
+        );
+    }
+    std::string schemaName = std::filesystem::absolute(schema).string();
+    if (!std::filesystem::exists(schemaName)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find schema file: {}", schemaName)
+        );
+    }
+    std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
+    std::string cfgString = stringifyJsonFile(std::string(config));
+    bool validationSuccessful = false;
+    try {
+        // The schema is defined based upon string from file
+        std::string schemaString = stringifyJsonFile(schema);
+        validationSuccessful = validateConfigAgainstSchema(
+            cfgString,
+            schemaString,
+            schemaDir
+        );
+    }
+    catch (const nlohmann::json::parse_error& e) {
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    catch (const std::runtime_error& e) {
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    catch (const std::exception &e) {
+        convertToSgctExceptionAndThrow(schema, validationTypeExplanation, e.what());
+    }
+    return validationSuccessful;
+}
+
+bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
+                                 const std::string& stringifiedSchema,
+                                 std::filesystem::path& schemaDir)
+{
+    nlohmann::json schemaInput = nlohmann::json::parse(stringifiedSchema);
+    nlohmann::json_schema::json_validator validator(
+        schemaInput,
+        [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
+            std::string loadPath = schemaDir.string() + std::string("/") +
+                id.to_string();
+            size_t lbIndex = loadPath.find("#");
+            if (lbIndex != std::string::npos) {
+                loadPath = loadPath.substr(0, lbIndex);
+            }
+            //Remove trailing spaces
+            if(loadPath.length() > 0 ) {
+                const size_t strEnd = loadPath.find_last_not_of(" #\t\r\n\0");
+                loadPath = loadPath.substr(0, strEnd + 1);
+            }
+            if (std::filesystem::exists(loadPath)) {
+                Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
+                std::string newSchema = stringifyJsonFile(loadPath);
+                value = nlohmann::json::parse(newSchema);
+            }
+            else {
+                throw Err(
+                    6081,
+                    fmt::format("Could not find schema file to load: {}", loadPath)
+                );
+            }
+        }
+    );
+    nlohmann::json sgct_cfg = nlohmann::json::parse(stringifiedConfig);
+    validator.validate(sgct_cfg);
+    return true;
+}
+
+void convertToSgctExceptionAndThrow(const std::string& schema,
+                                    const std::string& validationTypeExplanation,
+                                    const std::string& exceptionMessage)
+{
+    throw Err(
+        6089,
+        fmt::format("Checking this configuration file against schema '{}' failed.\n\n"
+            "{}.\n\nSchema validator provided the following error message:\n\n{}",
+            schema, validationTypeExplanation, exceptionMessage)
+    );
+}
+
+sgct::config::GeneratorVersion readJsonGeneratorVersion(const std::string& configuration) {
+    nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(configuration));
+    auto it = j.find("version");
+    if (it == j.end()) {
+        throw std::runtime_error("Missing 'version' information");
+    }
+    sgct::config::GeneratorVersion genVersion;
+    from_json(j, genVersion);
+    return genVersion;
+}
+
+sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) {
+    std::string name = std::filesystem::absolute(filename).string();
+    if (!std::filesystem::exists(name)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find configuration file: {}", name)
+        );
+    }
+
+    config::GeneratorVersion genVersion = [](std::filesystem::path path) {
+        if (path.extension() == ".json") {
+            try {
+                std::ifstream f(path);
+                return readJsonGeneratorVersion(path.string());
+            }
+            catch (const std::runtime_error& e) {
+                throw Err(6082, e.what());
+            }
+            catch (const nlohmann::json::exception& e) {
+                throw Err(6082, e.what());
+            }
+        }
+        else {
+            throw Err(
+                6088,
+                fmt::format("Unsupported file extension {}", path.extension().string())
+            );
+        }
+    }(name);
+
+    Log::Debug(fmt::format("Config file '{}' read for generator version:"
+                           "'{}' version {}.{}", name, genVersion.name, genVersion.major,
+                           genVersion.minor));
+
+    return genVersion;
+}
+
 
 } // namespace sgct

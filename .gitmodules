@@ -28,3 +28,6 @@
 [submodule "ext/scnlib"]
 	path = ext/scnlib
 	url = https://github.com/eliaskosunen/scnlib.git
+[submodule "ext/json-schema-validator"]
+	path = ext/json-schema-validator
+	url = https://github.com/pboettch/json-schema-validator

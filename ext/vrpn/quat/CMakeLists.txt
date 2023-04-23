@@ -56,7 +56,7 @@ endif()
 add_library(quat STATIC ${QUATLIB_SOURCES} ${QUATLIB_HEADER})
 set_property(TARGET quat PROPERTY PUBLIC_HEADER ${QUATLIB_HEADER})
 #set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_target_properties(quat PROPERTIES FOLDER "Dependencies")
+set_target_properties(quat PROPERTIES FOLDER "External")
 if(VRPN_INSTALL)
 	install(TARGETS
 		quat

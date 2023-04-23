@@ -356,7 +356,7 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 		vrpn
 		PROPERTY
 		FOLDER
-		"Dependencies")
+		"External")
 endif()
 
 add_subdirectory(client_src)

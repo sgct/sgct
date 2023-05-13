@@ -26,7 +26,9 @@ namespace sgct {
 
 TrackingDevice::TrackingDevice(int parentIndex, std::string name)
     : _name(std::move(name))
+#ifdef SGCT_HAS_VRPN
     , _parentIndex(parentIndex)
+#endif // SGCT_HAS_VRPN
 {}
 
 void TrackingDevice::setEnabled(bool state) {

@@ -2422,7 +2422,6 @@ void to_json(nlohmann::json& j, const Cluster& c) {
 
 void from_json(const nlohmann::json& j, GeneratorVersion& v) {
     if (auto it = j.find("generator");  it != j.end()) {
-        SpoutOutputProjection::Channels c;
         parseValue(*it, "name", v.name);
         parseValue(*it, "major", v.major);
         parseValue(*it, "minor", v.minor);
@@ -2670,9 +2669,9 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     return true;
 }
 
-void convertToSgctExceptionAndThrow(const std::string& schema,
-                                    const std::string& validationTypeExplanation,
-                                    const std::string& exceptionMessage)
+[[ noreturn ]] void convertToSgctExceptionAndThrow(const std::string& schema,
+                                             const std::string& validationTypeExplanation,
+                                                      const std::string& exceptionMessage)
 {
     throw Err(
         6089,

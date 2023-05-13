@@ -37,7 +37,7 @@ SGCT_EXPORT bool loadFileAndSchemaThenValidate(const std::string& config, const 
 SGCT_EXPORT bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
     const std::string& stringifiedSchema, std::filesystem::path& schemaDir);
 
-SGCT_EXPORT void convertToSgctExceptionAndThrow(const std::string& schema,
+SGCT_EXPORT [[ noreturn ]] void convertToSgctExceptionAndThrow(const std::string& schema,
     const std::string& validationTypeExplanation, const std::string& exceptionMessage);
 
 } // namespace sgct

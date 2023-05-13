@@ -129,7 +129,9 @@ private:
 
     bool _isEnabled = true;
     const std::string _name;
+#ifdef SGCT_HAS_VRPN
     const int _parentIndex; // the index of parent Tracker
+#endif // SGCT_HAS_VRPN
     int _nButtons = 0;
     int _nAxes = 0;
     int _sensorId = -1;

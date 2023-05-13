@@ -25,7 +25,7 @@ public:
     Tracker(const Tracker&) = delete;
     Tracker(Tracker&&) = default;
     Tracker& operator=(const Tracker&) = delete;
-    Tracker& operator=(Tracker&&) = default;
+    Tracker& operator=(Tracker&&) = delete;
 
     void setEnabled(bool state);
     void addDevice(std::string name, int index);

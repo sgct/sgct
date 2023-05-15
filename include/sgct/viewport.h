@@ -36,7 +36,7 @@ class NonLinearProjection;
 class SGCT_EXPORT Viewport final : public BaseViewport {
 public:
     Viewport(const Window* parent);
-    ~Viewport();
+    ~Viewport() override;
 
     void initialize(vec2 size, bool hasStereo, unsigned int internalFormat,
         unsigned int format, unsigned int type, int samples);

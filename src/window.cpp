@@ -228,6 +228,10 @@ void Window::applyWindow(const config::Window& window) {
         setFixResolution(true);
     }
 
+    if (window.guiMirrorWindowNumForRender) {
+        setGuiRenderMirrorWindow(*window.guiMirrorWindowNumForRender);
+    }
+
     for (const config::Viewport& viewport : window.viewports) {
         auto vp = std::make_unique<Viewport>(this);
         vp->applyViewport(viewport);
@@ -752,6 +756,16 @@ void Window::setBlitWindowId(int id) {
     if (_blitWindowId >= 0) {
         Log::Info(
             fmt::format("Window {}: Blit Window enabled from {}", _id, _blitWindowId)
+        );
+    }
+}
+
+void Window::setGuiRenderMirrorWindow(int windowNum) {
+    _guiWindowMirrorRender = windowNum;
+    if (_guiWindowMirrorRender > 0) {
+        Log::Info(
+            fmt::format("Window {}: GUI Window set to mirror window {}", _id,
+                _guiWindowMirrorRender)
         );
     }
 }
@@ -1340,6 +1354,10 @@ bool Window::shouldCallDraw3DFunction() const {
 
 int Window::blitWindowId() const {
     return _blitWindowId;
+}
+
+bool Window::guiMirrorWindowNumForRender() const {
+    return _guiMirrorWindowNumForRender;
 }
 
 } // namespace sgct

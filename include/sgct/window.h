@@ -217,6 +217,9 @@ public:
     /// Set the id of the window that should be blitted to this window
     void setBlitWindowId(int id);
 
+    /// Set the zero-based window number of which the GUI window will mirror its rendering
+    void setGuiRenderMirrorWindow(int windowNum);
+
     /// Set the number of samples used in multisampled anti-aliasing
     void setNumberOfAASamples(int samples);
 
@@ -385,6 +388,7 @@ private:
     bool _hasCallDraw2DFunction = true;
     bool _hasCallDraw3DFunction = true;
     int _blitWindowId = -1;
+    int _guiWindowMirrorRender = 0;
     bool _useQuadBuffer = false;
     bool _isFullScreen = false;
     bool _shouldAutoiconify = false;

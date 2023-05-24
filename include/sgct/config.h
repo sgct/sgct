@@ -331,6 +331,7 @@ struct SGCT_EXPORT Window {
     std::optional<ivec2> pos;
     ivec2 size = ivec2{ 1, 1 };
     std::optional<ivec2> resolution;
+    std::optional<int> guiMirrorWindowNumForRender;
 
     std::vector<Viewport> viewports;
 };

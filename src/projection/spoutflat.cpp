@@ -370,7 +370,8 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
             vp.projection(mode).viewMatrix(),
             vp.projection(mode).projectionMatrix(),
             vp.projection(mode).viewProjectionMatrix() *
-            ClusterManager::instance().sceneTransform()
+            ClusterManager::instance().sceneTransform(),
+            ivec2(_resolutionX, _resolutionY)
         );
         glLineWidth(1.f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

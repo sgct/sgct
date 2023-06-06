@@ -1345,7 +1345,8 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
                         vp->projection(frustum).viewMatrix(),
                         vp->projection(frustum).projectionMatrix(),
                         vp->projection(frustum).viewProjectionMatrix() *
-                            ClusterManager::instance().sceneTransform()
+                            ClusterManager::instance().sceneTransform(),
+                        win.finalFBODimensions()
                     );
                     _drawFn(renderData);
                 }
@@ -1435,7 +1436,8 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
                 vp->projection(frustum).viewMatrix(),
                 vp->projection(frustum).projectionMatrix(),
                 vp->projection(frustum).viewProjectionMatrix() *
-                    ClusterManager::instance().sceneTransform()
+                    ClusterManager::instance().sceneTransform(),
+                win.finalFBODimensions()
             );
 
             _draw2DFn(renderData);

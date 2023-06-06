@@ -167,7 +167,8 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
             bv.projection(frustumMode).viewMatrix(),
             bv.projection(frustumMode).projectionMatrix(),
             bv.projection(frustumMode).viewProjectionMatrix() *
-                ClusterManager::instance().sceneTransform()
+                ClusterManager::instance().sceneTransform(),
+            _cubemapResolution
         );
         Engine::instance().drawFunction()(renderData);
 

@@ -422,7 +422,8 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
         vp.projection(mode).viewMatrix(),
         vp.projection(mode).projectionMatrix(),
         vp.projection(mode).viewProjectionMatrix() *
-            ClusterManager::instance().sceneTransform()
+            ClusterManager::instance().sceneTransform(),
+        _cubemapResolution
     );
     glLineWidth(1.f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

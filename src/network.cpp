@@ -326,6 +326,48 @@ void Network::closeSocket(SGCT_SOCKET socket) {
         return;
     }
 
+    // set timeout
+    const int timeout = 0; // infinite
+    setsockopt(
+        *socket,
+        SOL_SOCKET,
+        SO_SNDTIMEO,
+        reinterpret_cast<const char*>(&timeout),
+        sizeof(timeout)
+    );
+
+    int sockoptRes = setsockopt(
+        *socket,
+        SOL_SOCKET,
+        SO_REUSEADDR,
+        reinterpret_cast<const char*>(&flag),
+        sizeof(flag)
+    );
+    if (sockoptRes == SOCKET_ERROR) {
+        throw Err(5006, fmt::format("Failed to set reuse address: {}", SGCT_ERRNO));
+    }
+
+    if (type() != Network::ConnectionType::SyncConnection) {
+        // set on all connections types, cluster nodes sends data several times per
+        // second so there is no need so send alive packages
+        int iResult = setsockopt(
+            *socket,
+            SOL_SOCKET,
+            SO_KEEPALIVE,
+            reinterpret_cast<const char*>(&flag),
+            sizeof(flag)
+        );
+        if (iResult == SOCKET_ERROR) {
+            throw Err(5009, fmt::format("Failed to set keep alive: {}", SGCT_ERRNO));
+        }
+    }
+}
+
+void Network::closeSocket(SGCT_SOCKET lSocket) {
+    if (lSocket == INVALID_SOCKET) {
+        return;
+    }
+
     const std::unique_lock lock(_connectionMutex);
 
 #ifdef WIN32
@@ -447,9 +489,46 @@ void Network::setRecvFrame(int i) {
     _timeStampTotal = time() - _timeStampSend;
 }
 
+int Network::lastError() {
+    return SGCT_ERRNO;
+}
+
+int Network::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags) {
+    int attempts = 1;
+
+#ifdef WIN32
+    int iResult = 0;
+    const auto sgctError = WSAEINTR;
+#else
+    ssize_t iResult = 0;
+    const auto sgctError = EINTR;
+#endif
+
+    while (iResult < length) {
+        long tmpRes = recv(lsocket, buffer + iResult, length - iResult, flags);
+        if (tmpRes > 0) {
+            iResult += tmpRes;
+        }
+        else if (SGCT_ERRNO == sgctError && attempts <= MaxNumberOfAttempts) {
+            Log::Warning(fmt::format(
+                "Receiving data after interrupted system error (attempt {})", attempts
+            ));
+            attempts++;
+        }
+        else {
+            // capture error
+            iResult = tmpRes;
+            break;
+        }
+    }
+
+    // POXIX requires `recv` to return ssize_t which is -> long. We are not going to get
+    // enough data to fill this, so we should be fine
+    return static_cast<int>(iResult);
+}
+<<<<<<< HEAD
 void Network::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
-                           uint32_t& currSize)
-{
+                           uint32_t& currSize {
     // only grow
     if (reqSize <= currSize) {
         return;

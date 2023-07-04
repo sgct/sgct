@@ -8,7 +8,7 @@
 
 add_executable(spoutapp main.cpp)
 set_compile_options(spoutapp)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(spoutapp PRIVATE sgct::sgct glm::glm)
 set_property(TARGET spoutapp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutapp>)
 set_target_properties(spoutapp PROPERTIES FOLDER "Examples")

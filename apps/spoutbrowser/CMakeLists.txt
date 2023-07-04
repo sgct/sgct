@@ -8,7 +8,7 @@
 
 add_executable(spoutbrowser main.cpp)
 set_compile_options(spoutbrowser)
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 target_link_libraries(spoutbrowser PRIVATE sgct::sgct glm::glm)
 set_property(TARGET spoutbrowser PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:spoutbrowser>)
 set_target_properties(spoutbrowser PROPERTIES FOLDER "Examples")

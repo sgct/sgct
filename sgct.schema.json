@@ -1185,9 +1185,39 @@
       },
       "required": [ "name" ],
       "description": "Defines a group of tracking devices or sensors as they are advertised by the VRPN standard. See its documentation for more information on this"
+    },
+
+    "meta:": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string",
+          "title": "Author",
+          "description": "The author's name"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The description of the window configuration"
+        },
+        "license": {
+          "type": "string",
+          "title": "License",
+          "description": "Details of the software license"
+        },
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "Name of the window configuration"
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "description": "Version number of the window configuration"
+        }
+      }
     }
   },
-
 
   "type": "object",
   "properties": {
@@ -1245,6 +1275,9 @@
       "type": "array",
       "items": { "$ref": "#/$defs/user" },
       "title": "Users"
+    },
+    "meta": {
+      "$ref": "#/$defs/meta"
     }
   },
   "required": [

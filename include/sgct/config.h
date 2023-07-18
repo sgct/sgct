@@ -393,6 +393,14 @@ struct SGCT_EXPORT GeneratorVersion {
 };
 SGCT_EXPORT void validateGeneratorVersion(const GeneratorVersion& gVersion);
 
+struct SGCT_EXPORT Meta {
+    std::string author;
+    std::string description;
+    std::string license;
+    std::string name;
+    std::string version;
+};
+
 } // namespace sgct::config
 
 #endif // __SGCT__CONFIG__H__

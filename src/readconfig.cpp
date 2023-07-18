@@ -2432,6 +2432,21 @@ void from_json(const nlohmann::json& j, GeneratorVersion& v) {
     }
 }
 
+void from_json(const nlohmann::json& j, Meta& m) {
+    if (auto it = j.find("meta");  it != j.end()) {
+        try {
+            parseValue(*it, "description", m.description);
+            parseValue(*it, "name", m.name);
+            parseValue(*it, "author", m.author);
+            parseValue(*it, "license", m.license);
+            parseValue(*it, "version", m.version);
+        }
+        catch (const std::runtime_error& e) {
+            return;
+        }
+    }
+}
+
 void to_json(nlohmann::json& j, const GeneratorVersion& v) {
     j["name"] = v.name;
     j["major"] = v.major;
@@ -2726,6 +2741,25 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
                            "'{}' version {}.{}", name, genVersion.name, genVersion.major,
                            genVersion.minor));
 
+    return genVersion;
+}
+
+std::string readMetaDescription(const std::string& filename) {
+    std::string name = std::filesystem::absolute(filename).string();
+    if (!std::filesystem::exists(name)) {
+        throw Err(
+            6081,
+            fmt::format("Could not find configuration file: {}", name)
+        );
+    }
+
+    nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(filename));
+    auto it = j.find("meta");
+    if (it == j.end()) {
+        return "";
+    }
+    sgct::config::GeneratorVersion genVersion;
+    from_json(j, genVersion);
     return genVersion;
 }
 

@@ -41,7 +41,8 @@ SGCT_EXPORT bool validateConfigAgainstSchema(const std::string& stringifiedConfi
 SGCT_EXPORT [[ noreturn ]] void convertToSgctExceptionAndThrow(const std::string& schema,
     const std::string& validationTypeExplanation, const std::string& exceptionMessage);
 
-SGCT_EXPORT [[nodiscard]] sgct::config::Meta readMeta(const std::string& filename);
+SGCT_EXPORT [[nodiscard]] sgct::config::Meta readMeta(const std::string& filename,
+    bool ignoreErrors = true);
 
 } // namespace sgct
 

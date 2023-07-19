@@ -2744,41 +2744,51 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     return genVersion;
 }
 
-sgct::config::Meta readMeta(const std::string& filename) {
+sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
+    sgct::config::Meta meta;
     std::string name = std::filesystem::absolute(filename).string();
     if (!std::filesystem::exists(name)) {
+        if (ignoreErrors) {
+            return meta;
+        }
         throw Err(
             6081,
             fmt::format("Could not find configuration file: {}", name)
         );
     }
 
-    sgct::config::Meta meta = [](std::filesystem::path path) {
+    meta = [&](std::filesystem::path path) {
+        sgct::config::Meta m;
         if (path.extension() == ".json") {
             try {
                 std::ifstream f(path);
                 nlohmann::json j =
                     nlohmann::json::parse(stringifyJsonFile(path.string()));
-                sgct::config::Meta m;
                 auto it = j.find("meta");
                 if (it != j.end()) {
                     from_json(j, m);
                 }
-                return m;
             }
             catch (const std::runtime_error& e) {
-                throw Err(6082, e.what());
+                if (!ignoreErrors) {
+                    throw Err(6082, e.what());
+                }
             }
             catch (const nlohmann::json::exception& e) {
-                throw Err(6082, e.what());
+                if (!ignoreErrors) {
+                    throw Err(6082, e.what());
+                }
             }
         }
         else {
-            throw Err(
-                6088,
-                fmt::format("Unsupported file extension {}", path.extension().string())
-            );
+            if (!ignoreErrors) {
+                throw Err(
+                    6088,
+                    fmt::format("Invalid file extension {}", path.extension().string())
+                );
+            }
         }
+        return m;
     }(name);
 
     return meta;

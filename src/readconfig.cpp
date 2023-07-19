@@ -2744,7 +2744,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     return genVersion;
 }
 
-std::string readMetaDescription(const std::string& filename) {
+sgct::config::Meta readMeta(const std::string& filename) {
     std::string name = std::filesystem::absolute(filename).string();
     if (!std::filesystem::exists(name)) {
         throw Err(
@@ -2753,14 +2753,35 @@ std::string readMetaDescription(const std::string& filename) {
         );
     }
 
-    nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(filename));
-    auto it = j.find("meta");
-    if (it == j.end()) {
-        return "";
-    }
-    sgct::config::GeneratorVersion genVersion;
-    from_json(j, genVersion);
-    return genVersion;
+    sgct::config::Meta meta = [](std::filesystem::path path) {
+        if (path.extension() == ".json") {
+            try {
+                std::ifstream f(path);
+                nlohmann::json j =
+                    nlohmann::json::parse(stringifyJsonFile(path.string()));
+                sgct::config::Meta m;
+                auto it = j.find("meta");
+                if (it != j.end()) {
+                    from_json(j, m);
+                }
+                return m;
+            }
+            catch (const std::runtime_error& e) {
+                throw Err(6082, e.what());
+            }
+            catch (const nlohmann::json::exception& e) {
+                throw Err(6082, e.what());
+            }
+        }
+        else {
+            throw Err(
+                6088,
+                fmt::format("Unsupported file extension {}", path.extension().string())
+            );
+        }
+    }(name);
+
+    return meta;
 }
 
 

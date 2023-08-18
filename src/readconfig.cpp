@@ -2745,11 +2745,12 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
 }
 
 sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
-    sgct::config::Meta meta;
-    std::string name = std::filesystem::absolute(filename).string();
+    assert(std::filesystem::path(filename).extension() == ".json");
+
+    std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
         if (ignoreErrors) {
-            return meta;
+            return sgct::config::Meta();
         }
         throw Err(
             6081,
@@ -2757,42 +2758,28 @@ sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
         );
     }
 
-    meta = [&](std::filesystem::path path) {
-        sgct::config::Meta m;
-        if (path.extension() == ".json") {
-            try {
-                std::ifstream f(path);
-                nlohmann::json j =
-                    nlohmann::json::parse(stringifyJsonFile(path.string()));
-                auto it = j.find("meta");
-                if (it != j.end()) {
-                    from_json(j, m);
-                }
-            }
-            catch (const std::runtime_error& e) {
-                if (!ignoreErrors) {
-                    throw Err(6082, e.what());
-                }
-            }
-            catch (const nlohmann::json::exception& e) {
-                if (!ignoreErrors) {
-                    throw Err(6082, e.what());
-                }
-            }
+    try {
+        std::ifstream f(name);
+        nlohmann::json j = nlohmann::json::parse(stringifyJsonFile(name.string()));
+        if (auto it = j.find("meta");  it != j.end()) {
+            sgct::config::Meta meta;
+            from_json(j, meta);
+            return meta;
         }
         else {
-            if (!ignoreErrors) {
-                throw Err(
-                    6088,
-                    fmt::format("Invalid file extension {}", path.extension().string())
-                );
-            }
+            return sgct::config::Meta();
         }
-        return m;
-    }(name);
-
-    return meta;
+    }
+    catch (const std::runtime_error& e) {
+        if (!ignoreErrors) {
+            throw Err(6082, e.what());
+        }
+    }
+    catch (const nlohmann::json::exception& e) {
+        if (!ignoreErrors) {
+            throw Err(6082, e.what());
+        }
+    }
 }
-
 
 } // namespace sgct

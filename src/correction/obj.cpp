@@ -140,15 +140,10 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             rest = rest.substr(sep + 1);
 
             sep = rest.find(' ');
-            if (sep == std::string_view::npos) {
-                throw Error(
-                    Error::Component::OBJ, 2035,
-                    fmt::format(
-                        "Illegal face format in OBJ file {} in line {}", path, line
-                    )
-                );
-            }
-            std::string_view f3 = rest.substr(0, sep);
+            std::string_view f3 =
+                sep == std::string_view::npos ?
+                rest :
+                rest.substr(0, sep);
 
             // The face description might just consist of a single value, in which case
             // the f.find method will return npos, which tells substr to "extract" the

@@ -1187,18 +1187,18 @@
       "description": "Defines a group of tracking devices or sensors as they are advertised by the VRPN standard. See its documentation for more information on this"
     },
 
-    "meta:": {
+    "meta": {
       "type": "object",
       "properties": {
         "author": {
           "type": "string",
           "title": "Author",
-          "description": "The author's name"
+          "description": "Author's name"
         },
         "description": {
           "type": "string",
           "title": "Description",
-          "description": "The description of the window configuration"
+          "description": "Description of the window configuration"
         },
         "license": {
           "type": "string",
@@ -1213,9 +1213,11 @@
         "version": {
           "type": "string",
           "title": "Version",
-          "description": "Version number of the window configuration"
+          "description": "Version number of configuration meta"
         }
-      }
+      },
+      "required": ["description", "name"],
+      "description": "Information and description of configuration file"
     }
   },
 

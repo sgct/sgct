@@ -2576,7 +2576,7 @@ void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
     mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
-        "\nat entry in json file: {}", message, instance);
+        "\nat entry in json file: {}", message, instance.dump());
 }
 
 bool custom_error_handler::validationSucceeded() {

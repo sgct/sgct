@@ -13,6 +13,7 @@
 #include <nlohmann/json-schema.hpp>
 #include <sgct/readconfig.h>
 #include <fstream>
+#include <sstream>
 
 namespace {
     std::string stringify(const std::string filename) {

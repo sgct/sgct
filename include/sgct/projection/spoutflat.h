@@ -62,10 +62,10 @@ protected:
         unsigned int depthSwap = 0;
     } _textureIdentifiers;
 
-    std::string _mappingName = "SPOUT_OS_MAPPING";
+    std::string _mappingName = "SPOUT_SGCT_MAPPING";
     SPOUTHANDLE _mappingHandle = nullptr;
-    int _resolutionX = 1024;
-    int _resolutionY = 768;
+    int _resolutionX = 1280;
+    int _resolutionY = 720;
     ShaderProgram _shader;
 
     struct FOV {

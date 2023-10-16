@@ -1759,7 +1759,7 @@ void from_json(const nlohmann::json& j, SpoutOutputProjection& p) {
         p.quality = cubeMapResolutionForQuality(quality);
     }
 
-    if (auto it = j.find("drawMain");  it != j.end()) {
+    if (auto it = j.find("drawmain");  it != j.end()) {
         p.drawMain = it->get<bool>();
     }
 

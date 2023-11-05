@@ -12,6 +12,11 @@ function (set_compile_options target)
   set(MSVC_WARNINGS
     "/MP"                 # Multi-threading support
     "/W4"                 # Baseline reasonable warnings
+    "/w44062"             # missing case label
+    "/w44289"             # using for-loop variable outside of loop
+    "/w44296"             # expression is always true/false
+    "/w45041"             # out-of-line definition for constexpr data is deprecated
+    "/w45204"             # virtual class has non-virtual trivial destructor
     "/wd4068"             # unknown pragma
     "/wd4251"             # member needs to have dll-interface
     "/wd4275"             # base needs to have dll-interface

@@ -38,7 +38,6 @@ namespace {
             case sgct::Settings::DrawBufferType::DiffuseNormalPosition:
                 glDrawBuffers(3, d);
                 break;
-            default: throw std::logic_error("Unhandled case label");
         }
     }
 } // namespace

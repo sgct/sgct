@@ -628,7 +628,6 @@ void NetworkManager::addConnection(int port, std::string address,
             case Network::ConnectionType::DataTransfer:
                 _dataTransferConnections.push_back(connection.get());
                 break;
-            default: throw std::logic_error("Missing case label");
         }
     }
 }

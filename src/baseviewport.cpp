@@ -133,7 +133,6 @@ void BaseViewport::calculateFrustum(Frustum::Mode mode, float nearClip, float fa
                 farClip
             );
             break;
-        default: throw std::logic_error("Unhandled case label");
     }
 }
 
@@ -178,7 +177,6 @@ void BaseViewport::calculateNonLinearFrustum(Frustum::Mode mode, float nearClip,
             );
             break;
         }
-        default: throw std::logic_error("Unhandled case label");
     }
 }
 

@@ -155,7 +155,6 @@ void FisheyeProjection::renderCubemap(Window& window, Frustum::Mode frustumMode)
                 vec3{ Engine::defaultUser().eyeSeparation() / _diameter, 0.f, 0.f }
             );
             break;
-        default: throw std::logic_error("Unhandled case label");
     }
 
     auto render = [this](const Window& win, BaseViewport& vp, int idx, Frustum::Mode mode)

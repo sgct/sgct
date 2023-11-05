@@ -2422,15 +2422,20 @@ void from_json(const nlohmann::json& j, GeneratorVersion& v) {
 
 void from_json(const nlohmann::json& j, Meta& m) {
     if (auto it = j.find("meta");  it != j.end()) {
-        try {
+        if (it->find("description") != it->end()) {
             parseValue(*it, "description", m.description);
-            parseValue(*it, "name", m.name);
-            parseValue(*it, "author", m.author);
-            parseValue(*it, "license", m.license);
-            parseValue(*it, "version", m.version);
         }
-        catch (const std::runtime_error& e) {
-            return;
+        if (it->find("name") != it->end()) {
+            parseValue(*it, "name", m.name);
+        }
+        if (it->find("author") != it->end()) {
+            parseValue(*it, "author", m.author);
+        }
+        if (it->find("license") != it->end()) {
+            parseValue(*it, "license", m.license);
+        }
+        if (it->find("version") != it->end()) {
+            parseValue(*it, "version", m.version);
         }
     }
 }
@@ -2768,6 +2773,8 @@ sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
             throw Err(6082, e.what());
         }
     }
+
+    return sgct::config::Meta();
 }
 
 } // namespace sgct

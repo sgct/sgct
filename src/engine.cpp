@@ -114,7 +114,7 @@ namespace {
             glClear(GL_COLOR_BUFFER_BIT);
         }
         else {
-            glClearColor(0.f, 0.f, 0.f, window.hasAlpha() ? 0.f : 1.f);
+            glClearColor(0.f, 0.f, 0.f, 1.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     }
@@ -1009,7 +1009,6 @@ void Engine::exec() {
                 }
 
                 NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
-                nonLinearProj->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 if (sm == Window::StereoMode::NoStereo) {
                     // for mono viewports frustum mode can be selected by user or xml
                     nonLinearProj->renderCubemap(*win, vp->eye());
@@ -1048,7 +1047,6 @@ void Engine::exec() {
                     continue;
                 }
                 NonLinearProjection* p = vp->nonLinearProjection();
-                p->setAlpha(win->hasAlpha() ? 0.f : 1.f);
                 p->renderCubemap(*win, Frustum::Mode::StereoRightEye);
             }
 

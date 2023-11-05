@@ -685,7 +685,6 @@ sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
     window.doubleBuffered = parseValue<bool>(elem, "dbuffered");
 
     window.msaa = parseValue<int>(elem, "msaa");
-    window.hasAlpha = parseValue<bool>(elem, "alpha");
     window.useFxaa = parseValue<bool>(elem, "fxaa");
 
     window.isDecorated = parseValue<bool>(elem, "decorated");
@@ -2154,7 +2153,6 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "doublebuffered", w.doubleBuffered);
 
     parseValue(j, "msaa", w.msaa);
-    parseValue(j, "alpha", w.hasAlpha);
     parseValue(j, "fxaa", w.useFxaa);
 
     parseValue(j, "border", w.isDecorated);
@@ -2250,10 +2248,6 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.msaa.has_value()) {
         j["msaa"] = *w.msaa;
-    }
-
-    if (w.hasAlpha.has_value()) {
-        j["alpha"] = *w.hasAlpha;
     }
 
     if (w.useFxaa.has_value()) {

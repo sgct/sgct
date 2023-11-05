@@ -161,14 +161,7 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
         }
 
         glDisable(GL_CULL_FACE);
-        const bool hasAlpha = window.hasAlpha();
-        if (hasAlpha) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
-        else {
-            glDisable(GL_BLEND);
-        }
+        glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
@@ -188,12 +181,6 @@ void SpoutOutputProjection::render(const Window& window, const BaseViewport& vie
 
         glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glDisable(GL_DEPTH_TEST);
-
-        if (hasAlpha) {
-            glDisable(GL_BLEND);
-        }
-
-        // restore depth func
         glDepthFunc(GL_LESS);
 
         OffScreenBuffer::unbind();
@@ -274,18 +261,11 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             glScissor(0, 0, _cubemapResolution.x, _cubemapResolution.y);
             glEnable(GL_SCISSOR_TEST);
 
-            const bool hasAlpha = win.hasAlpha();
-            glClearColor(0.f, 0.f, 0.f, hasAlpha ? 0.f : 1.f);
+            glClearColor(0.f, 0.f, 0.f, 1.f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glDisable(GL_CULL_FACE);
-            if (hasAlpha) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            else {
-                glDisable(GL_BLEND);
-            }
+            glDisable(GL_BLEND);
 
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_ALWAYS);
@@ -306,11 +286,6 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
-
-            if (hasAlpha) {
-                glDisable(GL_BLEND);
-            }
-
             glDepthFunc(GL_LESS);
             glDisable(GL_SCISSOR_TEST);
         }

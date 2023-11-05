@@ -88,14 +88,7 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
     glBindTexture(GL_TEXTURE_CUBE_MAP, _textures.cubeMapColor);
 
     glDisable(GL_CULL_FACE);
-    const bool hasAlpha = window.hasAlpha();
-    if (hasAlpha) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-    else {
-        glDisable(GL_BLEND);
-    }
+    glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
@@ -112,12 +105,6 @@ void CylindricalProjection::render(const Window& window, const BaseViewport& vie
 
     glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glDisable(GL_DEPTH_TEST);
-
-    if (hasAlpha) {
-        glDisable(GL_BLEND);
-    }
-
-    // restore depth func
     glDepthFunc(GL_LESS);
 }
 

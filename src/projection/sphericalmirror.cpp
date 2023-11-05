@@ -101,14 +101,7 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     glActiveTexture(GL_TEXTURE0);
 
     glDisable(GL_CULL_FACE);
-    const bool hasAlpha = window.hasAlpha();
-    if (hasAlpha) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-    else {
-        glDisable(GL_BLEND);
-    }
+    glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
 
@@ -130,11 +123,6 @@ void SphericalMirrorProjection::render(const Window& window, const BaseViewport&
     ShaderProgram::unbind();
 
     glDisable(GL_DEPTH_TEST);
-
-    if (hasAlpha) {
-        glDisable(GL_BLEND);
-    }
-
     glDepthFunc(GL_LESS);
 }
 
@@ -156,7 +144,7 @@ void SphericalMirrorProjection::renderCubemap(Window& window, Frustum::Mode frus
 
         setupViewport(bv);
 
-        glClearColor(0.f, 0.f, 0.f, window.hasAlpha() ? 0.f : 1.f);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         RenderData renderData(

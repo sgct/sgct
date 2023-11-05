@@ -110,10 +110,6 @@ void NonLinearProjection::setClearColor(vec4 color) {
     _clearColor = std::move(color);
 }
 
-void NonLinearProjection::setAlpha(float alpha) {
-    _clearColor.w = alpha;
-}
-
 void NonLinearProjection::setUser(User* user) {
     _subViewports.right.setUser(user);
     _subViewports.left.setUser(user);
@@ -433,7 +429,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
     glEnable(GL_SCISSOR_TEST);
     setupViewport(vp);
 
-    glClearColor(0.f, 0.f, 0.f, renderData.window.hasAlpha() ? 0.f : 1.f);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_SCISSOR_TEST);

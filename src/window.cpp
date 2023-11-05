@@ -147,9 +147,6 @@ void Window::applyWindow(const config::Window& window) {
     if (window.msaa) {
         setNumberOfAASamples(*window.msaa);
     }
-    if (window.hasAlpha) {
-        setAlpha(*window.hasAlpha);
-    }
     if (window.useFxaa) {
         setUseFXAA(*window.useFxaa);
     }
@@ -568,18 +565,17 @@ void Window::update() {
     resizeFBOs();
 
     auto resizePBO = [this](ScreenCapture& sc) {
-        const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance().captureFromBackBuffer()) {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
             const ivec2 res = resolution();
-            sc.initOrResize(res, nCaptureChannels, 1);
+            sc.initOrResize(res, 3, 1);
         }
         else {
             // default: capture from texture (supports HDR)
             sc.setTextureTransferProperties(_colorDataType);
             const ivec2 res = framebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
+            sc.initOrResize(res, 3, _bytesPerColor);
         }
     };
     if (_screenCaptureLeftOrMono) {
@@ -933,17 +929,16 @@ void Window::initNvidiaSwapGroups() {
 
 void Window::initScreenCapture() {
     auto initializeCapture = [this](ScreenCapture& sc) {
-        const int nCaptureChannels = _hasAlpha ? 4 : 3;
         if (Settings::instance().captureFromBackBuffer()) {
             // capturing from buffer supports only 8-bit per color component capture
             const ivec2 res = resolution();
-            sc.initOrResize(res, nCaptureChannels, 1);
+            sc.initOrResize(res, 3, 1);
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE);
         }
         else {
             // default: capture from texture (supports HDR)
             const ivec2 res = framebufferResolution();
-            sc.initOrResize(res, nCaptureChannels, _bytesPerColor);
+            sc.initOrResize(res, 3, _bytesPerColor);
             sc.setTextureTransferProperties(_colorDataType);
         }
 
@@ -1271,14 +1266,6 @@ ScreenCapture* Window::screenCapturePointer(Eye eye) const {
 
 bool Window::useRightEyeTexture() const {
     return _stereoMode != StereoMode::NoStereo && _stereoMode < StereoMode::SideBySide;
-}
-
-void Window::setAlpha(bool state) {
-    _hasAlpha = state;
-}
-
-bool Window::hasAlpha() const {
-    return _hasAlpha;
 }
 
 float Window::horizFieldOfViewDegrees() const {

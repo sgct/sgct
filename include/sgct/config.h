@@ -317,7 +317,6 @@ struct SGCT_EXPORT Window {
     std::optional<bool> isHidden;
     std::optional<bool> doubleBuffered;
     std::optional<int> msaa;
-    std::optional<bool> hasAlpha;
     std::optional<bool> useFxaa;
     std::optional<bool> isDecorated;
     std::optional<bool> isResizable;

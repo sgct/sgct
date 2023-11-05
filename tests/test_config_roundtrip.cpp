@@ -1108,62 +1108,6 @@ TEST_CASE("Window/MSAA", "[roundtrip]") {
     }
 }
 
-TEST_CASE("Window/HasAlpha", "[roundtrip]") {
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hasAlpha = std::nullopt;
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hasAlpha = false;
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.hasAlpha = true;
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-}
-
 TEST_CASE("Window/UseFXAA", "[roundtrip]") {
     {
         sgct::config::Cluster input;

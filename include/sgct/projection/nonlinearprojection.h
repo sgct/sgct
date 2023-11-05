@@ -70,13 +70,6 @@ public:
      */
     void setClearColor(vec4 color);
 
-    /**
-     * Set the alpha clear color value for the non-linear projection renderer.
-     *
-     * \param alpha is the alpha value
-     */
-    void setAlpha(float alpha);
-
     virtual void setUser(User* user);
 
     /// \return the resolution of the cubemap

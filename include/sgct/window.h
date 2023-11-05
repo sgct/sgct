@@ -226,12 +226,6 @@ public:
      */
     void setStereoMode(StereoMode sm);
 
-    /**
-     * Set if fisheye alpha state. Should only be set using XML config of before calling
-     * Engine::init.
-     */
-    void setAlpha(bool state);
-
     /// \return true if full screen rendering is enabled
     bool isFullScreen() const;
 
@@ -307,9 +301,6 @@ public:
     GLFWwindow* windowHandle() const;
 
     const std::vector<std::unique_ptr<Viewport>>& viewports() const;
-
-    /// Enable alpha clear color and 4-component screenshots
-    bool hasAlpha() const;
 
     /// Get FOV of viewport[0]
     float horizFieldOfViewDegrees() const;
@@ -395,7 +386,6 @@ private:
     bool _isDecorated = true;
     bool _isResizable = true;
     bool _isMirrored = false;
-    bool _hasAlpha = false;
     ivec2 _framebufferRes = ivec2{ 512, 256 };
     ivec2 _windowInitialRes = ivec2{ 640, 480 };
     std::optional<ivec2> _pendingWindowRes;

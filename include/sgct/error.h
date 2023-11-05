@@ -68,7 +68,6 @@ namespace sgct {
  * 1112: Node / Node data transfer port must be non-negative
  * 1113: Node / Every node must contain at least one window
  * 1120: Cluster / Cluster master address must not be empty
- * 1121: Cluster / Cluster external control port must be non-negative
  * 1122: Cluster / There must be at least one user in the cluster
  * 1123: Cluster / More than one unnamed users specified in the cluster
  * 1124: Cluster / No two users can have the same name

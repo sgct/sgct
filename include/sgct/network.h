@@ -37,7 +37,7 @@ public:
     static constexpr char ConnectedId = 18;
     static constexpr char DisconnectId = 19;
 
-    enum class ConnectionType { SyncConnection, ExternalConnection, DataTransfer };
+    enum class ConnectionType { SyncConnection, DataTransfer };
 
     static constexpr size_t HeaderSize = 13;
 

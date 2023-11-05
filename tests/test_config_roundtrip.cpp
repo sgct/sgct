@@ -85,38 +85,6 @@ TEST_CASE("Cluster/SetThreadAffinity", "[roundtrip]") {
     }
 }
 
-TEST_CASE("Cluster/ExternalControlPort", "[roundtrip]") {
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.externalControlPort = std::nullopt;
-        
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.externalControlPort = 0;
-        
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-        input.externalControlPort = 1;
-        
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-}
-
 TEST_CASE("Cluster/FirmSync", "[roundtrip]") {
     {
         sgct::config::Cluster input;

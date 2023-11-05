@@ -53,11 +53,9 @@ namespace {
     constexpr int MaxNetworkSyncFrameNumber = 10000;
 
     std::string getTypeStr(sgct::Network::ConnectionType ct) {
-        using N = sgct::Network;
         switch (ct) {
-            case N::ConnectionType::SyncConnection: return "sync";
-            case N::ConnectionType::ExternalConnection: return "external ASCII control";
-            case N::ConnectionType::DataTransfer: return "data transfer";
+            case sgct::Network::ConnectionType::SyncConnection: return "sync";
+            case sgct::Network::ConnectionType::DataTransfer: return "data transfer";
             default: throw std::logic_error("Unhandled case label");
         }
     }
@@ -723,35 +721,6 @@ void Network::communicationHandler() {
             else if (_headerId == ConnectedId && _connectedCallback) {
                 _connectedCallback();
                 NetworkManager::cond.notify_all();
-            }
-        }
-        // handle external ascii communication
-        else if (type() == ConnectionType::ExternalConnection) {
-            extBuffer += std::string(_recvBuffer.data()).substr(0, iResult);
-
-            if (extBuffer.find(24) != std::string::npos ||
-                extBuffer.find(27) != std::string::npos ||
-                extBuffer.find("quit") != std::string::npos)
-            {
-                setConnectedStatus(false);
-                break;
-            }
-
-            // separate messages by <CR><NL>
-            size_t found = extBuffer.find("\r\n");
-            while (found != std::string::npos) {
-                std::string extMessage = extBuffer.substr(0, found);
-                extBuffer = extBuffer.substr(found + 2); // jump over \r\n
-
-                if (decoderCallback) {
-                    const int size = static_cast<int>(extMessage.size());
-                    decoderCallback(extMessage.c_str(), size);
-                }
-
-                // reply
-                std::string msg = "OK\r\n";
-                sendData(msg.c_str(), static_cast<int>(msg.size()));
-                found = extBuffer.find("\r\n");
             }
         }
         // handle data transfer communication

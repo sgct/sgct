@@ -52,8 +52,6 @@ NetworkManager& NetworkManager::instance() {
 }
 
 void NetworkManager::create(NetworkMode nm,
-                            std::function<void(const char*, int)> externalDecode,
-                            std::function<void(bool)> externalStatus,
                             std::function<void(void*, int, int, int)> dataTransferDecode,
                             std::function<void(bool, int)> dataTransferStatus,
                             std::function<void(int, int)> dataTransferAcknowledge)
@@ -65,8 +63,6 @@ void NetworkManager::create(NetworkMode nm,
     }
     _instance = new NetworkManager(
         nm,
-        std::move(externalDecode),
-        std::move(externalStatus),
         std::move(dataTransferDecode),
         std::move(dataTransferStatus),
         std::move(dataTransferAcknowledge)
@@ -79,14 +75,10 @@ void NetworkManager::destroy() {
 }
 
 NetworkManager::NetworkManager(NetworkMode nm,
-                               std::function<void(const char*, int)> externalDecode,
-                               std::function<void(bool)> externalStatus,
                              std::function<void(void*, int, int, int)> dataTransferDecode,
                                         std::function<void(bool, int)> dataTransferStatus,
                                     std::function<void(int, int)> dataTransferAcknowledge)
-    : _externalDecodeFn(std::move(externalDecode))
-    , _externalStatusFn(std::move(externalStatus))
-    , _dataTransferDecodeFn(std::move(dataTransferDecode))
+    : _dataTransferDecodeFn(std::move(dataTransferDecode))
     , _dataTransferStatusFn(std::move(dataTransferStatus))
     , _dataTransferAcknowledgeFn(std::move(dataTransferAcknowledge))
     , _mode(nm)
@@ -269,7 +261,7 @@ void NetworkManager::initialize() {
         // sanity check if port is used somewhere else
         for (size_t i = 0; i < _networkConnections.size(); i++) {
             const int port = _networkConnections[i]->port();
-            if (port == cm.thisNode().syncPort() || port == cm.externalControlPort() ||
+            if (port == cm.thisNode().syncPort() ||
                 port == cm.thisNode().dataTransferPort())
             {
                 throw Error(
@@ -355,28 +347,12 @@ void NetworkManager::initialize() {
         }
     }
 
-    // add connection for external communication
-    if (_isServer && cm.externalControlPort() != 0) {
-        ZoneScopedN("Create external control");
-
-        addConnection(
-            cm.externalControlPort(),
-            "127.0.0.1",
-            Network::ConnectionType::ExternalConnection
-        );
-        if (_externalDecodeFn) {
-            _networkConnections.back()->setDecodeFunction(_externalDecodeFn);
-        }
-    }
-
     Log::Debug(
         fmt::format("Cluster sync: {}", cm.firmFrameLockSyncStatus() ? "firm" : "loose")
     );
 }
 
 void NetworkManager::clearCallbacks() {
-    _externalDecodeFn = nullptr;
-    _externalStatusFn = nullptr;
     _dataTransferDecodeFn = nullptr;
     _dataTransferStatusFn = nullptr;
     _dataTransferAcknowledgeFn = nullptr;
@@ -441,10 +417,6 @@ bool NetworkManager::isSyncComplete() const {
         [](Network* n) { return n->isUpdated(); }
     ));
     return (counter == _nActiveSyncConnections);
-}
-
-Network* NetworkManager::externalControlConnection() {
-    return _externalControlConnection;
 }
 
 void NetworkManager::transferData(const void* data, int length, int packageId) {
@@ -591,19 +563,6 @@ void NetworkManager::updateConnectionStatus(Network* connection) {
             }
         }
 
-        // Check if any external connection
-        if (connection->type() == Network::ConnectionType::ExternalConnection &&
-            connection->isConnected())
-        {
-            const bool status = connection->isConnected();
-            const std::string msg = "Connected to SGCT!\r\n";
-            connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
-            if (_externalStatusFn) {
-                ZoneScopedN("[SGCT] External Status");
-                _externalStatusFn(status);
-            }
-        }
-
         // wake up the connection handler thread on server
         connection->startConnectionConditionVar().notify_all();
     }
@@ -660,7 +619,6 @@ void NetworkManager::addConnection(int port, std::string address,
     // Update the previously existing shortcuts (maybe remove them altogether?)
     _syncConnections.clear();
     _dataTransferConnections.clear();
-    _externalControlConnection = nullptr;
 
     for (const std::unique_ptr<Network>& connection : _networkConnections) {
         switch (connection->type()) {
@@ -669,9 +627,6 @@ void NetworkManager::addConnection(int port, std::string address,
                 break;
             case Network::ConnectionType::DataTransfer:
                 _dataTransferConnections.push_back(connection.get());
-                break;
-            case Network::ConnectionType::ExternalConnection:
-                _externalControlConnection = connection.get();
                 break;
             default: throw std::logic_error("Missing case label");
         }

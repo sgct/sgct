@@ -354,7 +354,6 @@ struct SGCT_EXPORT Cluster {
     std::string masterAddress;
     std::optional<bool> debugLog;
     std::optional<int> setThreadAffinity;
-    std::optional<int> externalControlPort;
     std::optional<bool> firmSync;
     std::optional<Scene> scene;
     std::vector<Node> nodes;

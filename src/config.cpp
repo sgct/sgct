@@ -357,9 +357,6 @@ void validateCluster(const Cluster& c) {
     if (c.masterAddress.empty()) {
         throw Error(1120, "Cluster master address must not be empty");
     }
-    if (c.externalControlPort && *c.externalControlPort <= 0) {
-        throw Error(1121, "Cluster external control port must be non-negative");
-    }
     if (c.scene) {
         validateScene(*c.scene);
     }

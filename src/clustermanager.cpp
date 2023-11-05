@@ -58,9 +58,6 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
     if (cluster.debugLog && *cluster.debugLog) {
         Log::instance().setNotifyLevel(Log::Level::Debug);
     }
-    if (cluster.externalControlPort) {
-        setExternalControlPort(*cluster.externalControlPort);
-    }
     if (cluster.firmSync) {
         setFirmFrameLockSyncStatus(*cluster.firmSync);
     }
@@ -179,14 +176,6 @@ void ClusterManager::setUseIgnoreSync(bool state) {
 
 const std::string& ClusterManager::masterAddress() const {
     return _masterAddress;
-}
-
-int ClusterManager::externalControlPort() const {
-    return _externalControlPort;
-}
-
-void ClusterManager::setExternalControlPort(int port) {
-    _externalControlPort = port;
 }
 
 int ClusterManager::numberOfNodes() const {

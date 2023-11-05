@@ -2521,7 +2521,6 @@ TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2582,8 +2581,6 @@ TEST_CASE("Parse/OpenSpace: Equirectangular GUI", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -2674,7 +2671,6 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2724,9 +2720,6 @@ TEST_CASE("Parse/OpenSpace: Fullscreen 1080", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -2793,7 +2786,6 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -2860,8 +2852,6 @@ TEST_CASE("Parse/OpenSpace: GUI Projector", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.nodes.size() == 1);
     const Node& n = res.nodes[0];
@@ -3222,7 +3212,6 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3295,8 +3284,6 @@ TEST_CASE("Parse/OpenSpace: Single GUI", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -3405,7 +3392,6 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3454,8 +3440,6 @@ TEST_CASE("Parse/OpenSpace: Single SBS Stereo", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
 
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
@@ -3675,7 +3659,6 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
 {
   "version": 1,
   "masteraddress": "localhost",
-  "externalcontrolport": 20500,
   "settings": {
     "display": {
       "swapinterval": 0
@@ -3724,8 +3707,7 @@ TEST_CASE("Parse/OpenSpace: Single", "[parse]") {
     Cluster res = sgct::readJsonConfig(Source);
 
     CHECK(res.masterAddress == "localhost");
-    REQUIRE(res.externalControlPort.has_value());
-    CHECK(*res.externalControlPort == 20500);
+
     REQUIRE(res.settings.has_value());
     REQUIRE(res.settings->display.has_value());
     REQUIRE(*res.settings->display->swapInterval == 0);

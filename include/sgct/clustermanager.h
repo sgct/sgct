@@ -109,12 +109,6 @@ public:
     /// \param state the state of the firm frame lock sync
     void setFirmFrameLockSyncStatus(bool state);
 
-    /// \return the external control port number
-    int externalControlPort() const;
-
-    /// \param port the external control port number
-    void setExternalControlPort(int port);
-
     /// Set if software sync between nodes should be ignored
     void setUseIgnoreSync(bool state);
 
@@ -136,7 +130,6 @@ private:
     bool _firmFrameLockSync = false;
     bool _ignoreSync = false;
     std::string _masterAddress;
-    int _externalControlPort = 0;
 
     std::vector<std::unique_ptr<Node>> _nodes;
     std::vector<std::unique_ptr<User>> _users;

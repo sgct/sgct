@@ -31,8 +31,6 @@ public:
 
     static NetworkManager& instance();
     static void create(NetworkMode nm,
-        std::function<void(const char*, int)> externalDecode,
-        std::function<void(bool)> externalStatus,
         std::function<void(void*, int, int, int)> dataTransferDecode,
         std::function<void(bool, int)> dataTransferStatus,
         std::function<void(int, int)> dataTransferAcknowledge);
@@ -65,7 +63,6 @@ public:
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;
-    Network* externalControlConnection();
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, Network& connection);
 
@@ -76,8 +73,7 @@ public:
     const Network& syncConnection(int index) const;
 
 private:
-    NetworkManager(NetworkMode nm, std::function<void(const char*, int)> externalDecode,
-        std::function<void(bool)> externalStatus,
+    NetworkManager(NetworkMode nm,
         std::function<void(void*, int, int, int)> dataTransferDecode,
         std::function<void(bool, int)> dataTransferStatus,
         std::function<void(int, int)> dataTransferAcknowledge);
@@ -96,8 +92,6 @@ private:
 
     static NetworkManager* _instance;
 
-    std::function<void(const char*, int)> _externalDecodeFn;
-    std::function<void(bool)> _externalStatusFn;
     std::function<void(void*, int, int, int)> _dataTransferDecodeFn;
     std::function<void(bool, int)> _dataTransferStatusFn;
     std::function<void(int, int)> _dataTransferAcknowledgeFn;
@@ -107,7 +101,6 @@ private:
     std::vector<std::unique_ptr<Network>> _networkConnections;
     std::vector<Network*> _syncConnections;
     std::vector<Network*> _dataTransferConnections;
-    Network* _externalControlConnection = nullptr;
 
     std::vector<std::string> _localAddresses; // stores this computers ip addresses
 

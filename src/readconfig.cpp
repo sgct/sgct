@@ -991,7 +991,6 @@ sgct::config::Cluster readXMLFile(const std::filesystem::path& path) {
 
     cluster.setThreadAffinity = parseValue<int>(root, "setThreadAffinity");
     cluster.debugLog = parseValue<bool>(root, "debugLog");
-    cluster.externalControlPort = parseValue<int>(root, "externalControlPort");
     cluster.firmSync = parseValue<bool>(root, "firmSync");
 
     if (tinyxml2::XMLElement* e = root.FirstChildElement("Scene"); e) {
@@ -2358,7 +2357,6 @@ void from_json(const nlohmann::json& j, Cluster& c) {
 
     parseValue(j, "threadaffinity", c.setThreadAffinity);
     parseValue(j, "debuglog", c.debugLog);
-    parseValue(j, "externalcontrolport", c.externalControlPort);
     parseValue(j, "firmsync", c.firmSync);
 
     parseValue(j, "scene", c.scene);
@@ -2379,10 +2377,6 @@ void to_json(nlohmann::json& j, const Cluster& c) {
 
     if (c.debugLog.has_value()) {
         j["debuglog"] = *c.debugLog;
-    }
-
-    if (c.externalControlPort.has_value()) {
-        j["externalcontrolport"] = *c.externalControlPort;
     }
 
     if (c.firmSync.has_value()) {

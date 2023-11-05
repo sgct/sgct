@@ -318,7 +318,6 @@ bool operator==(const Cluster& lhs, const Cluster& rhs) {
         lhs.masterAddress == rhs.masterAddress &&
         lhs.debugLog == rhs.debugLog &&
         lhs.setThreadAffinity == rhs.setThreadAffinity &&
-        lhs.externalControlPort == rhs.externalControlPort &&
         lhs.firmSync == rhs.firmSync &&
         lhs.scene == rhs.scene &&
         lhs.nodes == rhs.nodes &&

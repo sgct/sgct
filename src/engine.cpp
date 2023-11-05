@@ -402,8 +402,6 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 
     NetworkManager::create(
         netMode,
-        std::move(callbacks.externalDecode),
-        std::move(callbacks.externalStatus),
         std::move(callbacks.dataTransferDecode),
         std::move(callbacks.dataTransferStatus),
         std::move(callbacks.dataTransferAcknowledge)

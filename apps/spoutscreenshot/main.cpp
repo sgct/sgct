@@ -189,6 +189,8 @@ void keyboard(Key key, Modifier, Action action, int, Window*) {
             case Key::Space:
                 shouldTakeScreenshot = true;
                 break;
+            default:
+                break;
         }
     }
 }

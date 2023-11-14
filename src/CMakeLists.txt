@@ -81,6 +81,7 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/trackingdevice.h
     ${PROJECT_SOURCE_DIR}/include/sgct/user.h
     ${PROJECT_SOURCE_DIR}/include/sgct/viewport.h
+    ${PROJECT_SOURCE_DIR}/include/sgct/vioso.h
     ${PROJECT_SOURCE_DIR}/include/sgct/window.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
@@ -142,6 +143,7 @@ target_sources(
     trackingdevice.cpp
     user.cpp
     viewport.cpp
+    vioso.cpp
     window.cpp
     correction/domeprojection.cpp
     correction/mpcdimesh.cpp

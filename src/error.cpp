@@ -30,6 +30,7 @@ namespace {
             case sgct::Error::Component::Shader: return "Shader";
             case sgct::Error::Component::SimCAD: return "SimCAD";
             case sgct::Error::Component::SkySkan: return "SkySkan";
+            case sgct::Error::Component::Vioso: return "Vioso";
             case sgct::Error::Component::Window: return "Window";
             default: throw std::logic_error("Unhandled case label");
         }

@@ -241,6 +241,9 @@ namespace sgct {
  * 9011: Image / One of the called PNG functions failed
  * 9012: Image / Invalid image size %i x %i %i channels
 
+ * 10000s: Vioso
+ * 10000: Vioso / Cannot find file
+
  OBS:  When adding a new error code, don't forget to update docs/errors.md accordingly
  */
 
@@ -263,6 +266,7 @@ struct SGCT_EXPORT Error : public std::runtime_error {
         Shader,
         SimCAD,
         SkySkan,
+        Vioso
         Window
     };
 

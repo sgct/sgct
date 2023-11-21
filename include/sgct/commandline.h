@@ -46,7 +46,9 @@ struct SGCT_EXPORT Configuration {
  */
 SGCT_EXPORT Configuration parseArguments(std::vector<std::string>& arg);
 
-/// Returns the text providing information about the available commandline options
+/**
+ * Returns the text providing information about the available commandline options.
+ */
 SGCT_EXPORT std::string helpMessage();
 
 } // namespace sgct

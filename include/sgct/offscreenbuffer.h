@@ -14,7 +14,9 @@
 
 namespace sgct {
 
-/// Helper class for creating frame buffer objects and render buffer objects.
+/**
+ * Helper class for creating frame buffer objects and render buffer objects.
+ */
 class SGCT_EXPORT OffScreenBuffer {
 public:
     static void unbind();
@@ -27,29 +29,31 @@ public:
 
     /**
      * \param texId GL id of the texture to attach
-     * \param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
+     * \param attachment The gl attachment enum in the form of `GL_COLOR_ATTACHMENT`i
      */
     void attachColorTexture(unsigned int texId, unsigned int attachment);
     void attachDepthTexture(unsigned int texId);
 
     /**
      * \param texId GL id of the texture to attach
-     * \param face the target cubemap face
-     * \param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
+     * \param face The target cubemap face
+     * \param attachment The gl attachment enum in the form of `GL_COLOR_ATTACHMENT`i
      */
     void attachCubeMapTexture(unsigned int texId, unsigned int face,
         unsigned int attachment);
     void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 
-    /// Bind framebuffer, auto-set multisampling and draw buffers
+    /**
+     * Bind framebuffer, auto-set multisampling and draw buffers.
+     */
     void bind();
 
     /**
      * Bind framebuffer.
      *
-     * \param isMultisampled is true if MSAA should be used
-     * \param n number of color buffers
-     * \param bufs array with color buffers (GL_COLOR_ATTACHMENTn)
+     * \param isMultisampled `true` if MSAA should be used
+     * \param n Number of color buffers
+     * \param bufs Array with color buffers (`GL_COLOR_ATTACHMENT`n)
      */
     void bind(bool isMultisampled, int n, const unsigned int* bufs);
     void bindBlit();

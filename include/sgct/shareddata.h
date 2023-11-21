@@ -32,10 +32,14 @@ public:
     void setEncodeFunction(std::function<std::vector<std::byte>()> function);
     void setDecodeFunction(std::function<void(const std::vector<std::byte>&)> function);
 
-    /// This fuction is called internally by SGCT and shouldn't be used by the user.
+    /**
+     * This fuction is called internally by SGCT and shouldn't be used by the user.
+     */
     void encode();
 
-    /// This function is called internally by SGCT and shouldn't be used by the user.
+    /**
+     * This function is called internally by SGCT and shouldn't be used by the user.
+     */
     void decode(const char* receivedData, int receivedLength);
 
     unsigned char* dataBlock();
@@ -45,7 +49,6 @@ public:
 private:
     SharedData();
 
-    // function pointers
     std::function<std::vector<std::byte>()> _encodeFn;
     std::function<void(const std::vector<std::byte>&)> _decodeFn;
 

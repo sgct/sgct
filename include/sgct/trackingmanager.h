@@ -27,7 +27,9 @@ namespace config {
 class TrackingDevice;
 class User;
 
-/// Class that manages tracking systems
+/**
+ * Class that manages tracking systems.
+ */
 class SGCT_EXPORT TrackingManager {
 public:
     static TrackingManager& instance();
@@ -38,7 +40,9 @@ public:
 
     void startSampling();
 
-    /// Update the user position if headtracking is used. The engine calls this function
+    /**
+     * Update the user position if headtracking is used. The engine calls this function.
+     */
     void updateTrackingDevices();
     void addTracker(std::string name);
 

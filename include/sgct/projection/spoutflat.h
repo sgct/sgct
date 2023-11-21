@@ -19,7 +19,9 @@ typedef SPOUTLIBRARY* SPOUTHANDLE;
 
 namespace sgct {
 
-/// Base class for non linear projections
+/**
+ * Base class for non linear projections.
+ */
 class SGCT_EXPORT SpoutFlatProjection : public NonLinearProjection {
 public:
     SpoutFlatProjection(const Window* parent);

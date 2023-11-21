@@ -23,7 +23,9 @@ namespace sgct {
 
 class Network;
 
-/// The network manager manages all network connections for SGCT.
+/**
+ * The network manager manages all network connections for SGCT.
+ */
 class SGCT_EXPORT NetworkManager {
 public:
     enum class SyncMode { SendDataToClients = 0, Acknowledge };
@@ -44,22 +46,24 @@ public:
     void clearCallbacks();
 
     /**
-     * \param sm if this application is server/master in cluster then set to true
-     * \return min-max pair of the looping time to all connections if data was sent to the
-     *         clients. If it was the acknowledge data call or no connections are
-     *         available, a nullopt is returned
+     * \param sm If this application is server/master in cluster then set to true
+     * \return The min-max pair of the looping time to all connections if data was sent to
+     *         the clients. If it was the acknowledge data call or no connections are
+     *         available, a `nullopt` is returned
      */
     std::optional<std::pair<double, double>> sync(SyncMode sm);
 
     /**
-     * Compare if the last frame and current frames are different -> data update
-     * And if send frame == recieved frame
+     * Compare if the last frame and current frames are different -> data update and if
+     * send frame == recieved frame
      */
     bool isSyncComplete() const;
 
     bool matchesAddress(std::string_view address) const;
 
-    /// Retrieve the node id if this node is part of the cluster configuration
+    /**
+     * Retrieve the node id if this node is part of the cluster configuration.
+     */
     bool isComputerServer() const;
     bool isRunning() const;
     bool areAllNodesConnected() const;

@@ -35,19 +35,23 @@ public:
 
     void applyCluster(const config::Cluster& cluster);
 
-    /// Add a cluster node to the manager's vector
+    /**
+     * Add a cluster node to the manager's vector.
+     */
     void addNode(std::unique_ptr<Node> node);
 
-    /// Add a new user
+    /**
+     * Add a new user.
+     */
     void addUser(std::unique_ptr<User> user);
 
     /**
      * Get a pointer to a specific node. Please observe that the address of this object
      * might change between frames and should not be kept around for long.
      *
-     * \param index int the index to a node in the vector
-     * \return the pointer to the requested node. This pointer is
-     *         not guaranteed to be stable between function calls
+     * \param index The index to a node in the vector
+     * \return The pointer to the requested node. This pointer is not guaranteed to be
+     *         stable between function calls
      */
     const Node& node(int index) const;
 
@@ -55,7 +59,7 @@ public:
      * Get the current node. Please observe that the address of this object might change
      * between frames and should not be stored.
      *
-     * \return a reference to the node that this application is running on
+     * \return A reference to the node that this application is running on
      */
     Node& thisNode();
 
@@ -63,7 +67,7 @@ public:
      * Get the current node. Please observe that the address of this object might change
      * between frames and should not be stored.
      *
-     * \return a reference to the node that this application is running on
+     * \return A reference to the node that this application is running on
      */
     const Node& thisNode() const;
 
@@ -71,7 +75,7 @@ public:
      * Get the default user. Please observe that the address of this object might change
      * between frames and should not be stored.
      *
-     * \return the pointer to the default user
+     * \return The pointer to the default user
      */
     User& defaultUser();
 
@@ -79,7 +83,7 @@ public:
      * Get the user with the specific name. Please observe that the address of this object
      * might change between frames and should not be stored.
      *
-     * \return the pointer to a named user. nullptr is returned if no user is found.
+     * \return The pointer to a named user. nullptr is returned if no user is found
      */
     User* user(std::string_view name);
 
@@ -87,32 +91,48 @@ public:
      * Get the tracked user. Please observe that the address of this object might change
      * between frames and should not be stored.
      *
-     * \return the pointer to the tracked user. Returns nullptr if no user is tracked.
+     * \return The pointer to the tracked user. Returns nullptr if no user is tracked
      */
     User* trackedUser();
 
-    /// \return the number of nodes in the cluster
+    /**
+     * \return the number of nodes in the cluster
+     */
     int numberOfNodes() const;
 
-    /// \return the scene transform specified in the configuration file
+    /**
+     * \return the scene transform specified in the configuration file
+     */
     const mat4& sceneTransform() const;
 
-    /// \return the id to the node which runs this application
+    /**
+     * \return the id to the node which runs this application
+     */
     int thisNodeId() const;
 
-    /// \return the DNS name or IP of the master in the cluster
+    /**
+     * \return the DNS name or IP of the master in the cluster
+     */
     const std::string& masterAddress() const;
 
-    /// \return state of the firm frame lock lock sync
+    /**
+     * \return state of the firm frame lock lock sync
+     */
     bool firmFrameLockSyncStatus() const;
 
-    /// \param state the state of the firm frame lock sync
+    /**
+     * \param state the state of the firm frame lock sync
+     */
     void setFirmFrameLockSyncStatus(bool state);
 
-    /// Set if software sync between nodes should be ignored
+    /**
+     * Set if software sync between nodes should be ignored.
+     */
     void setUseIgnoreSync(bool state);
 
-    /// Get if software sync between nodes is disabled
+    /**
+     * Get if software sync between nodes is disabled.
+     */
     bool ignoreSync() const;
 
 private:

@@ -16,7 +16,9 @@
 
 namespace sgct {
 
-/// For managing shader programs. Implemented as a singleton
+/**
+ * For managing shader programs. Implemented as a singleton.
+ */
 class SGCT_EXPORT ShaderManager {
 public:
     static ShaderManager& instance();
@@ -27,7 +29,9 @@ public:
     ShaderManager& operator=(const ShaderManager&) = delete;
     ShaderManager& operator=(ShaderManager&&) = delete;
 
-    /// Destructor deallocates and deletes all shaders
+    /**
+     * Destructor deallocates and deletes all shaders.
+     */
     ~ShaderManager();
 
 
@@ -40,7 +44,7 @@ public:
      * \param name Unique name of the shader
      * \param vertexSrc The vertex shader source code
      * \param fragmentSrc The fragment shader source code
-     * \throws std::runtime_error If there was an error creating the shader program
+     * \throw std::runtime_error If there was an error creating the shader program
      */
     void addShaderProgram(std::string name, std::string_view vertexSrc,
         std::string_view fragmentSrc);
@@ -50,7 +54,7 @@ public:
      * will be deallocated and removed.
      *
      * \param name Name of the shader program to remove
-     * \return true if the shader program was removed correctly
+     * \return `true` if the shader program was removed correctly
      */
     bool removeShaderProgram(std::string_view name);
 
@@ -66,14 +70,15 @@ public:
      *
      * \param name Name of the shader program
      * \return The specified shader program
-     * \throws std::runtime_error If the shader program with the \p name was not found
+     *
+     * \throw std::runtime_error If the shader program with the \p name was not found
      */
     const ShaderProgram& shaderProgram(std::string_view name) const;
 
 private:
     ShaderManager() = default;
     static ShaderManager* _instance;
-    // Active shaders in the manager
+    /// Active shaders in the manager
     std::vector<ShaderProgram> _shaderPrograms;
 };
 

@@ -18,7 +18,9 @@
 
 namespace sgct {
 
-/// Class that manages a tracking system's properties and devices/sensors
+/**
+ * Class that manages a tracking system's properties and devices/sensors.
+ */
 class SGCT_EXPORT Tracker {
 public:
     explicit Tracker(std::string name);
@@ -35,16 +37,21 @@ public:
     TrackingDevice* device(std::string_view name) const;
     TrackingDevice* deviceBySensorId(int id) const;
 
-    /// Set the orientation as quaternion
+    /**
+     * Set the orientation as quaternion.
+     */
     void setOrientation(quat q);
-    /// Set the orientation as euler angles (degrees)
+
+    /**
+     * Set the orientation as euler angles (degrees).
+     */
     void setOrientation(float xRot, float yRot, float zRot);
     void setOffset(vec3 offset);
     void setScale(double scaleVal);
 
     /**
-     * Set the tracker system transform matrix
-     * worldTransform = (trackerTransform * sensorMat) * deviceTransformMat
+     * Set the tracker system transform matrix:
+     * `worldTransform = (trackerTransform * sensorMat) * deviceTransformMat`
      */
     void setTransform(mat4 mat);
 

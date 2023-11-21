@@ -15,7 +15,9 @@
 namespace sgct::correction {
 
 struct SGCT_EXPORT Buffer {
-    /// This struct represents an individual vertex that is part of a \sa Buffer 
+    /**
+     * This struct represents an individual vertex that is part of a \see Buffer.
+     */
     struct Vertex {
         float x = 0.f;
         float y = 0.f;

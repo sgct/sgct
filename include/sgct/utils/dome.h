@@ -13,13 +13,19 @@
 
 namespace sgct::utils {
 
-/// Helper class to render a dome grid
+/**
+ * Helper class to render a dome grid.
+ */
 class SGCT_EXPORT Dome {
 public:
-    /// This constructor requires a valid OpenGL context
+    /**
+     * This constructor requires a valid OpenGL context.
+     */
     Dome(float r, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
 
-    /// The destructor requires a valid OpenGL context
+    /**
+     * The destructor requires a valid OpenGL context.
+     */
     ~Dome();
 
     void draw();

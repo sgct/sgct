@@ -43,7 +43,7 @@ struct SGCT_EXPORT ivec4 {
 struct SGCT_EXPORT vec2 {
     constexpr vec2() = default;
     constexpr vec2(float x_, float y_) : x(x_), y(y_) {}
-    
+
     float x = 0.f;
     float y = 0.f;
 };
@@ -51,7 +51,7 @@ struct SGCT_EXPORT vec2 {
 struct SGCT_EXPORT vec3 {
     constexpr vec3() = default;
     constexpr vec3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
-    
+
     float x = 0.f;
     float y = 0.f;
     float z = 0.f;
@@ -60,7 +60,7 @@ struct SGCT_EXPORT vec3 {
 struct SGCT_EXPORT vec4 {
     constexpr vec4() = default;
     constexpr vec4(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
-    
+
     float x = 0.f;
     float y = 0.f;
     float z = 0.f;
@@ -70,7 +70,7 @@ struct SGCT_EXPORT vec4 {
 struct SGCT_EXPORT quat {
     constexpr quat() = default;
     constexpr quat(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
-    
+
     float x = 0.f;
     float y = 0.f;
     float z = 0.f;

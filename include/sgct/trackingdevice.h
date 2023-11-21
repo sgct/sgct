@@ -16,53 +16,81 @@
 
 namespace sgct {
 
-/// Helper class that holds tracking device/sensor data
+/**
+ * Helper class that holds tracking device/sensor data.
+ */
 class SGCT_EXPORT TrackingDevice {
 public:
-    /// Constructor
+    /**
+     * Constructor.
+     */
     TrackingDevice(int parentIndex, std::string name);
 
-    /// Set if this device is enabled or not
+    /**
+     * Set if this device is enabled or not.
+     */
     void setEnabled(bool state);
 
-    /// Set the id for this sensor
+    /**
+     * Set the id for this sensor.
+     */
     void setSensorId(int id);
 
-    /// Set the number of digital buttons
+    /**
+     * Set the number of digital buttons.
+     */
     void setNumberOfButtons(int numOfButtons);
 
-    /// Set the number of analog axes
+    /**
+     * Set the number of analog axes.
+     */
     void setNumberOfAxes(int numOfAxes);
     void setSensorTransform(vec3 vec, quat rot);
     void setButtonValue(bool val, int index);
     void setAnalogValue(const double* array, int size);
 
-    /// Set the orientation euler angles (degrees) used to generate the orientation matrix
+    /**
+     * Set the orientation euler angles (degrees) used to generate the orientation matrix.
+     */
     void setOrientation(float xRot, float yRot, float zRot);
 
-    /// Set the orientation quaternion used to generate the orientation matrix
+    /**
+     * Set the orientation quaternion used to generate the orientation matrix.
+     */
     void setOrientation(quat q);
 
-    /// Set the offset vector used to generate the offset matrix
+    /**
+     * Set the offset vector used to generate the offset matrix.
+     */
     void setOffset(vec3 offset);
 
-    /// Set the device transform matrix
+    /**
+     * Set the device transform matrix.
+     */
     void setTransform(mat4 mat);
 
     const std::string& name() const;
     int numberOfButtons() const;
     int numberOfAxes() const;
 
-    /// \return a digital value from array
+    /**
+     * \return A digital value from array
+     */
     bool button(int index) const;
 
-    /// \return a digital value from array
+    /**
+     * \return A digital value from array
+     */
     bool buttonPrevious(int index) const;
 
-    /// \return an analog value from array
+    /**
+     * \return An analog value from array
+     */
     double analog(int index) const;
 
-    /// \return an analog value from array
+    /**
+     * \return An analog value from array
+     */
     double analogPrevious(int index) const;
 
     bool isEnabled() const;
@@ -70,43 +98,69 @@ public:
     bool hasButtons() const;
     bool hasAnalogs() const;
 
-    /// \return the id of this device/sensor
+    /**
+     * \return The id of this device/sensor
+     */
     int sensorId();
 
-    /// \return the sensor's position in world coordinates
+    /**
+     * \return The sensor's position in world coordinates
+     */
     vec3 position() const;
 
-    /// \return the sensor's position in world coordinates
+    /**
+     * \return The sensor's position in world coordinates
+     */
     vec3 previousPosition() const;
 
-    /// \return the sensor's rotation as as euler angles in world coordinates
+    /**
+     * \return The sensor's rotation as as euler angles in world coordinates
+     */
     vec3 eulerAngles() const;
 
-    /// \return the sensor's rotation as as euler angles in world coordinates
+    /**
+     * \return The sensor's rotation as as euler angles in world coordinates
+     */
     vec3 eulerAnglesPrevious() const;
 
-    /// \return the sensor's rotation as a quaternion in world coordinates
+    /**
+     * \return The sensor's rotation as a quaternion in world coordinates
+     */
     quat rotation() const;
 
-    /// \return the sensor's rotation as a quaternion in world coordinates
+    /**
+     * \return The sensor's rotation as a quaternion in world coordinates
+     */
     quat rotationPrevious() const;
 
-    /// \return the sensor's transform matrix in world coordinates
+    /**
+     * \return The sensor's transform matrix in world coordinates
+     */
     mat4 worldTransform() const;
 
-    /// \return the sensor's transform matrix in world coordinates
+    /**
+     * \return The sensor's transform matrix in world coordinates
+     */
     mat4 worldTransformPrevious() const;
 
-    /// \return the raw sensor rotation quaternion
+    /**
+     * \return The raw sensor rotation quaternion
+     */
     quat sensorRotation() const;
 
-    /// \return the raw sensor rotation quaternion
+    /**
+     * \return The raw sensor rotation quaternion
+     */
     quat sensorRotationPrevious() const;
 
-    /// \return the raw sensor position vector
+    /**
+     * \return The raw sensor position vector
+     */
     vec3 sensorPosition() const;
 
-    /// \return the raw sensor position vector
+    /**
+     * \return The raw sensor position vector
+     */
     vec3 sensorPositionPrevious() const;
 
     double trackerTimeStamp();

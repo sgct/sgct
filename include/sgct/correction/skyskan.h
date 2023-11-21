@@ -17,7 +17,8 @@ namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
 
-SGCT_EXPORT Buffer generateSkySkanMesh(const std::filesystem::path& meshPath, BaseViewport& parent);
+SGCT_EXPORT Buffer generateSkySkanMesh(const std::filesystem::path& meshPath,
+    BaseViewport& parent);
 
 } // namespace sgct::correction
 

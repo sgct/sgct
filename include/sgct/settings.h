@@ -22,7 +22,9 @@ namespace config {
     struct Settings;
 } // namespace config
 
-/// This singleton class will hold global SGCT settings.
+/**
+ * This singleton class will hold global SGCT settings.
+ */
 class SGCT_EXPORT Settings {
 public:
     enum class CaptureFormat { PNG, TGA, JPG };
@@ -54,39 +56,52 @@ public:
      * Set the refreshrate hint of the window in fullscreen mode. If it's not listed in
      * your monitor's video-mode list than it will not be used.
      *
-     * \param freq the refresh frequency/rate
+     * \param freq The refresh frequency/rate
      */
     void setRefreshRateHint(int freq);
 
-    /// Set to true if depth buffer textures should be allocated and used.
+    /**
+     * Set to true if depth buffer textures should be allocated and used.
+     */
     void setUseDepthTexture(bool state);
 
-    /// Set to true if normal textures should be allocated and used.
+    /**
+     * Set to true if normal textures should be allocated and used.
+     */
     void setUseNormalTexture(bool state);
 
-    /// Set to true if position buffer textures should be allocated and used.
+    /**
+     * Set to true if position buffer textures should be allocated and used.
+     */
     void setUsePositionTexture(bool state);
 
     /**
      * Set the float precision of the float buffers (normal and position buffer).
-     * \param bfp is the float precition that will be used in next resize or creation
+     *
+     * \param bfp The float precition that will be used in next resize or creation
      */
     void setBufferFloatPrecision(BufferFloatPrecision bfp);
 
-    /// Set the number of capture threads used by SGCT (multi-threaded screenshots)
+    /**
+     * Set the number of capture threads used by SGCT (multi-threaded screenshots).
+     */
     void setNumberOfCaptureThreads(int count);
 
     /**
      * Set capture/screenshot path used by SGCT.
      *
-     * \param path the path including filename without suffix
+     * \param path The path including filename without suffix
      */
     void setCapturePath(std::string path);
 
-    /// Set the screenshot capture format.
+    /**
+     * Set the screenshot capture format.
+     */
     void setCaptureFormat(CaptureFormat format);
 
-    /// Sets the prefix to be used for all screenshots
+    /**
+     * Sets the prefix to be used for all screenshots.
+     */
     void setScreenshotPrefix(std::string prefix);
 
     /**
@@ -95,20 +110,28 @@ public:
      */
     void setCaptureFromBackBuffer(bool state);
 
-    /// Set to true if warping meshes should be exported as OBJ files.
+    /**
+     * Set to true if warping meshes should be exported as OBJ files.
+     */
     void setExportWarpingMeshes(bool state);
 
-    /// If set to true, the node name is added to screenshots
+    /**
+     * If set to true, the node name is added to screenshots.
+     */
     void setAddNodeNameToScreenshot(bool state);
 
-    /// If set to true, the window name is added to screenshots
+    /**
+     * If set to true, the window name is added to screenshots.
+     */
     void setAddWindowNameToScreenshot(bool state);
 
-    /// Get the capture/screenshot path.
+    /**
+     * Get the capture/screenshot path.
+     */
     const std::string& capturePath() const;
 
     /**
-     * Get swap interval for all windows
+     * Get swap interval for all windows.
      *   -1 = adaptive sync (Nvidia)
      *    0 = vertical sync off
      *    1 = wait for vertical sync
@@ -116,10 +139,14 @@ public:
      */
     int swapInterval() const;
 
-    /// Get the refreshrate hint of the window in fullscreen mode.
+    /**
+     * Get the refreshrate hint of the window in fullscreen mode.
+     */
     int refreshRateHint() const;
 
-    /// Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
+    /**
+     * Get the precision of the float buffers as an `GLint` (`GL_RGB16F` or `GL_RGB32F`)
+     */
     unsigned int bufferFloatPrecision() const;
 
     /**
@@ -128,51 +155,75 @@ public:
      */
     bool captureFromBackBuffer() const;
 
-    /// Get if warping meshes should be exported as obj-files.
+    /**
+     * Get if warping meshes should be exported as obj-files.
+     */
     bool exportWarpingMeshes() const;
 
     /**
-     * Get the capture/screenshot path
+     * Get the capture/screenshot path.
      *
-     * \return the captureformat if set, otherwise -1 is returned
+     * \return The captureformat if set, otherwise -1 is returned
      */
     CaptureFormat captureFormat() const;
 
-    /// Return true if depth buffer is rendered to texture
+    /**
+     * \return `true` if depth buffer is rendered to texture
+     */
     bool useDepthTexture() const;
 
-    /// Return true if normals are rendered to texture
+    /**
+     * \return `true` if normals are rendered to texture
+     */
     bool useNormalTexture() const;
 
-    /// Return true if positions are rendered to texture
+    /**
+     * \return `true` if positions are rendered to texture
+     */
     bool usePositionTexture() const;
 
-    /// Get the number of capture threads (for screenshot recording)
+    /**
+     * \return The number of capture threads (for screenshot recording)
+     */
     int numberCaptureThreads() const;
 
-    /// Returns whether screenshots should contain the node name
+    /**
+     * \return Should screenshots contain the node name
+     */
     bool addNodeNameToScreenshot() const;
 
-    /// Returns whether screenshots should contain the window name
+    /**
+     * \return Whether screenshots should contain the window name
+     */
     bool addWindowNameToScreenshot() const;
 
-    /// Returns the prefix that is used for all screenshots
+    /**
+     * \return The prefix that is used for all screenshots
+     */
     const std::string& prefixScreenshot() const;
 
-    /// Returns true if the screenshots written out should be limited based on the begin
-    /// and end ranges
+    /**
+     * \return `true` if the screenshots written out should be limited based on the begin
+     *         and end ranges
+     */
     bool hasScreenshotLimit() const;
 
-    /// The index of the first screenshot that will actually be rendered. If this value is
-    /// set, all previous screenshots will be ignored, but the counter will be increased
-    /// either way
+    /**
+     * The index of the first screenshot that will actually be rendered. If this value is
+     * set, all previous screenshots will be ignored, but the counter will be increased
+     * either way
+     */
     uint64_t screenshotLimitBegin() const;
 
-    /// The index of the last screenshot that will not be rendered anymore. If this value
-    /// is set, all screenshots starting with this index will be ignored.
+    /**
+     * The index of the last screenshot that will not be rendered anymore. If this value
+     * is set, all screenshots starting with this index will be ignored.
+     */
     uint64_t screenshotLimitEnd() const;
 
-    /// \return the drawBufferType
+    /**
+     * \return The drawBufferType
+     */
     DrawBufferType drawBufferType() const;
 
 private:

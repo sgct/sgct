@@ -20,7 +20,9 @@ namespace sgct {
 
 class SGCT_EXPORT Log {
 public:
-    /// Different notify levels for messages
+    /**
+     * Different notify levels for messages.
+     */
     enum class Level { Error = 3, Warning = 2, Info = 1, Debug = 0 };
 
     static Log& instance();
@@ -31,20 +33,30 @@ public:
     static void Info(std::string_view message);
     static void Error(std::string_view message);
 
-    /// Set the notify level for displaying messages
+    /**
+     * Set the notify level for displaying messages.
+     */
     void setNotifyLevel(Level nl);
 
-    /// Set whether time of day should be displayed with each print message
+    /**
+     * Set whether time of day should be displayed with each print message.
+     */
     void setShowTime(bool state);
 
-    /// Sets whether the log level should be displayed with each print message
+    /**
+     * Sets whether the log level should be displayed with each print message.
+     */
     void setShowLogLevel(bool state);
 
-    /// Set if log to console should be enabled. It is enabled on default
+    /**
+     * Set if log to console should be enabled. It is enabled on default.
+     */
     void setLogToConsole(bool state);
 
-    /// Set the callback that gets invoked for each log. If you want to disable logging to
-    /// the callback, pass a null function as a parameter
+    /**
+     * Set the callback that gets invoked for each log. If you want to disable logging to
+     * the callback, pass a null function as a parameter.
+     */
     void setLogCallback(std::function<void(Level, std::string_view)> fn);
 
 private:

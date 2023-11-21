@@ -14,13 +14,12 @@
 #undef __gl_h_
 #endif
 
-/* Workaround for APIENTRY macro redefinition
- * Problem: glad.h will define APIENTRY if it is not defined. But if windows.h is included
- * after glad.h it will also unconditionally set APIENTRY and we get a macro redefinition
- * warning.
- * Solution: We manually define APIENTRY before including glad.h and keep track of if we
- * did to be able to undefine it if we did define it.
- */
+// Workaround for APIENTRY macro redefinition
+// Problem: glad.h will define APIENTRY if it is not defined. But if windows.h is included
+// after glad.h it will also unconditionally set APIENTRY and we get a macro redefinition
+// warning.
+// Solution: We manually define APIENTRY before including glad.h and keep track of if we
+// did to be able to undefine it if we did define it.
 #if defined(_WIN32)
 #if !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 #define APIENTRY __stdcall

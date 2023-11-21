@@ -26,7 +26,9 @@ public:
     void load(const std::string& filename);
     void load(unsigned char* data, int length);
 
-    /// Save the buffer to file. Type is automatically set by filename suffix.
+    /**
+     * Save the buffer to file. Type is automatically set by filename suffix.
+     */
     void save(const std::string& filename);
 
     unsigned char* data();

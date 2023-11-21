@@ -16,7 +16,9 @@
 
 namespace sgct {
 
-/// This class manages and renders non-linear fisheye projections
+/**
+ * This class manages and renders non-linear fisheye projections.
+ */
 class SGCT_EXPORT SphericalMirrorProjection final : public NonLinearProjection {
 public:
     SphericalMirrorProjection(const Window* parent, std::string bottomMesh,
@@ -25,18 +27,22 @@ public:
 
     void update(vec2 size) override;
 
-    /// Render the non linear projection to currently bounded FBO
+    /**
+     * Render the non linear projection to currently bounded FBO.
+     */
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) override;
 
-    /// Render the enabled faces of the cubemap
+    /**
+     * Render the enabled faces of the cubemap.
+     */
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     /**
      * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
      * from the horizontal.
      *
-     * \param angle the tilt angle in degrees
+     * \param angle The tilt angle in degrees
      */
     void setTilt(float angle);
 

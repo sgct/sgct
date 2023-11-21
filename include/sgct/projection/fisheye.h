@@ -16,7 +16,9 @@
 
 namespace sgct {
 
-/// This class manages and renders non linear fisheye projections
+/**
+ * This class manages and renders non linear fisheye projections.
+ */
 class SGCT_EXPORT FisheyeProjection final : public NonLinearProjection {
 public:
     enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
@@ -24,21 +26,27 @@ public:
     FisheyeProjection(const Window* parent);
     ~FisheyeProjection() final;
 
-    /// Update projection when aspect ratio changes for the viewport.
+    /**
+     * Update projection when aspect ratio changes for the viewport.
+     */
     void update(vec2 size) override;
 
-    /// Render the non-linear projection to currently bounded FBO
+    /**
+     * Render the non-linear projection to currently bounded FBO.
+     */
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) override;
 
-    /// Render the enabled faces of the cubemap
+    /**
+     * Render the enabled faces of the cubemap.
+     */
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     /**
      * Set the dome diameter used in the fisheye renderer (used for the viewplane distance
-     * calculations)
+     * calculations).
      *
-     * \param diameter diameter of the dome diameter in meters
+     * \param diameter Diameter of the dome diameter in meters
      */
     void setDomeDiameter(float diameter);
 
@@ -46,14 +54,14 @@ public:
      * Set the fisheye/dome tilt angle used in the fisheye renderer. The tilt angle is
      * from the horizontal.
      *
-     * \param angle the tilt angle in degrees
+     * \param angle The tilt angle in degrees
      */
     void setTilt(float angle);
 
     /**
      * Set the fisheye/dome field-of-view angle used in the fisheye renderer.
      *
-     * \param angle the FOV angle in degrees
+     * \param angle The FOV angle in degrees
      */
     void setFOV(float angle);
 
@@ -74,7 +82,7 @@ public:
     /**
      * Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
      * Base of fisheye is the XY-plane. The base offset will be added to the offset
-     * specified by setFisheyeOffset. These values are set from the XML config.
+     * specified by setFisheyeOffset. These values are set from the configuration.
      */
     void setBaseOffset(vec3 offset);
 

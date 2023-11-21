@@ -36,14 +36,12 @@ class Font;
 
 /**
  * Singleton for font handling. A lot of the font handling is based on Nehes tutorials for
- * freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">
- * Nehes tutorials for freetype</a>
- *
+ * freetype [link](http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/")
  *
  * How to load a font (somewhere in the OpenGL init callback or in callbacks with shared
  * OpenGL context):
  *
- * \code{.cpp}
+ * ```cpp
  * //Add Verdana size 14 to the FontManager using the system font path
  * if (!sgct::text::FontManager::instance().addFont("Verdana", "verdana.ttf"))
  *    sgct::text::FontManager::instance().getFont("Verdana", 14);
@@ -57,10 +55,10 @@ class Font;
  * {
  *   sgct::text::FontManager::instance().getFont("Special", 14);
  * }
- * \endcode
+ * ```
  *
  * Then in the draw or draw2d callback the font can be rendered:
- * \code{.cpp}
+ * ```cpp
  * sgct::text::print(
  *     sgct::text::FontManager::instance().getFont("Verdana", 14),
  *     sgct::text::TopLeft,
@@ -68,10 +66,10 @@ class Font;
  *     50,
  *     "Hello World"
  * );
- * \endcode
+ * ```
  *
  * SGCT has an internal font that can be used as well:
- * \code{.cpp}
+ * ```cpp
  * sgct::text::print(
  *     sgct::text::FontManager::instance().getDefaultFont(14),
  *     sgct::text::TopLeft,
@@ -79,10 +77,10 @@ class Font;
  *     50,
  *     "Hello World"
  * );
- *\endcode
+ * ```
  *
  * Non ASCII characters are supported as well:
- * \code{.cpp}
+ * ```cpp
  * sgct::text::print(
  *     sgct::text::FontManager::instance().getDefaultFont(14),
  *     sgct::text::TopLeft,
@@ -90,14 +88,16 @@ class Font;
  *     50,
  *     L"Hallå Världen"
  * );
- * \endcode
+ * ```
  */
 class SGCT_EXPORT FontManager {
 public:
     static FontManager& instance();
     static void destroy();
 
-    /// Destructor cleans up all font objects, textures and shaders
+    /**
+     * Destructor cleans up all font objects, textures and shaders.
+     */
     ~FontManager();
 
     /**
@@ -113,19 +113,21 @@ public:
      *
      * \param name Name of the font
      * \param height Height in  pixels for the font
-     * \return Pointer to the font face, NULL if not found
+     * \return Pointer to the font face, `nullptr` if not found
      */
     Font* font(const std::string& name, unsigned int height = 10);
 
     /**
      * Binds the font shader and also sets the four uniform values for the
      * modelviewprojectionmatrix, the inner color of the text, the stroke color, and the
-     * texture index at which the font information is stored
+     * texture index at which the font information is stored.
      */
     void bindShader(const mat4& mvp, const vec4& color, int texture) const;
 
 private:
-    /// Constructor initiates the freetype library
+    /**
+     * Constructor initiates the freetype library.
+     */
     FontManager();
 
     /**
@@ -141,10 +143,10 @@ private:
 
     FT_Library _library;
 
-    // Holds all predefined font paths for generating font glyphs
+    /// Holds all predefined font paths for generating font glyphs
     std::map<std::string, std::string> _fontPaths;
 
-    // All generated fonts
+    /// All generated fonts
     std::map<std::pair<std::string, unsigned int>, std::unique_ptr<Font>> _fontMap;
 
     ShaderProgram _shader;

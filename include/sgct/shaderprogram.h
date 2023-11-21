@@ -43,17 +43,20 @@ public:
      */
     ~ShaderProgram();
 
-    /// Will detach all attached shaders, delete them and then delete the program
+    /**
+     * Will detach all attached shaders, delete them and then delete the program.
+     */
     void deleteProgram();
 
     /**
      * Will create and add a shader to the program.
      *
      * \param src The shader source string
-     * \param type Type of shader can be one of the following: GL_COMPUTE_SHADER,
-     *             GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
-     *             GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
-     * \throws std::runtime_error If the adding of the shaders failed
+     * \param type Type of shader can be one of the following: `GL_COMPUTE_SHADER`,
+     *             `GL_VERTEX_SHADER`, `GL_TESS_CONTROL_SHADER`,
+     *             `GL_TESS_EVALUATION_SHADER`, `GL_GEOMETRY_SHADER`, or
+     *             `GL_FRAGMENT_SHADER`
+     * \throw std::runtime_error If the adding of the shaders failed
      */
     void addShaderSource(std::string_view src, unsigned int type);
 
@@ -64,24 +67,36 @@ public:
      */
     void createAndLinkProgram();
 
-    /// Use the shader program in the current rendering pipeline
+    /**
+     * Use the shader program in the current rendering pipeline.
+     */
     void bind() const;
 
-    /// Unset the shader program in the current rendering pipeline
+    /**
+     * Unset the shader program in the current rendering pipeline.
+     */
     static void unbind();
 
-    /// Get the name of the program
+    /**
+     * \return The name of the program
+     */
     std::string name() const;
 
-    /// Get the program ID
+    /**
+     * \return The program ID
+     */
     int id() const;
 
 private:
-    /// Will create and the program and return whether it was properly created or not
+    /**
+     * Will create and the program and return whether it was properly created or not.
+     */
     void createProgram();
 
-    std::string _name; /// Name of the program, has to be unique
-    int _programId = 0; /// Unique program _id
+    /// Name of the program, has to be unique
+    std::string _name;
+    /// Unique program id
+    int _programId = 0;
 
     std::vector<unsigned int> _shaders;
 };

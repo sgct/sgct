@@ -20,7 +20,9 @@ namespace sgct {
 
 class OffScreenBuffer;
 
-/// This class manages and renders non linear fisheye projections
+/**
+ * This class manages and renders non-linear fisheye projections.
+ */
 class SGCT_EXPORT SpoutOutputProjection : public NonLinearProjection {
 public:
     enum class Mapping { Fisheye, Equirectangular, Cubemap };
@@ -35,14 +37,20 @@ public:
     void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(vec3 orientation);
 
-    /// Update projection when aspect ratio changes for the viewport.
+    /**
+     * Update projection when aspect ratio changes for the viewport.
+     */
     void update(vec2 size) override;
 
-    /// Render the non linear projection to currently bounded FBO
+    /**
+     * Render the non linear projection to currently bounded FBO.
+     */
     void render(const Window& window, const BaseViewport& viewport,
         Frustum::Mode frustumMode) override;
 
-    /// Render the enabled faces of the cubemap
+    /**
+     * Render the enabled faces of the cubemap.
+     */
     void renderCubemap(Window& window, Frustum::Mode frustumMode) override;
 
     void updateFrustums(Frustum::Mode mode, float nearClip, float farClip) override;

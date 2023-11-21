@@ -21,7 +21,9 @@ namespace sgct {
 class Window;
 class User;
 
-/// This class holds and manages viewportdata and calculates frustums
+/**
+ * This class holds and manages viewportdata and calculates frustums.
+ */
 class SGCT_EXPORT BaseViewport {
 public:
     BaseViewport(const Window* parent);
@@ -50,7 +52,9 @@ public:
 
     void calculateFrustum(Frustum::Mode mode, float nearClip, float farClip);
 
-    /// Make projection symmetric relative to user
+    /**
+     * Make projection symmetric relative to user.
+     */
     void calculateNonLinearFrustum(Frustum::Mode mode, float nearClip, float farClip);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         quat rot, float dist = 10.f);

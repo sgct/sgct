@@ -27,10 +27,14 @@ class BaseViewport;
 class OffScreenBuffer;
 class ScreenCapture;
 
-/// Helper class for window data.
+/**
+ * Helper class for window data.
+ */
 class SGCT_EXPORT Window {
 public:
-    /// Different stereo modes used for rendering
+    /**
+     * Different stereo modes used for rendering.
+     */
     enum class StereoMode {
         NoStereo = 0,
         Active,
@@ -61,7 +65,9 @@ public:
 
     enum class Eye { MonoOrLeft, Right };
 
-    /// The different texture indexes in window buffers
+    /**
+     * The different texture indexes in window buffers.
+     */
     enum class TextureIndex {
         LeftEye = 0,
         RightEye,
@@ -74,12 +80,14 @@ public:
     void applyWindow(const config::Window& window);
 
     /**
-     * Init Nvidia swap groups if supported by hardware. Supported hardware is Nvidia
+     * Init Nvidia swap groups if supported by hardware. Supported hardware is NVidia
      * Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync card.
      */
     static void initNvidiaSwapGroups();
 
-    /// Force a restore of the shared OpenGL context
+    /**
+     * Force a restore of the shared OpenGL context.
+     */
     static void resetSwapGroupFrameNumber();
     static void setBarrier(bool state);
     static bool isBarrierActive();
@@ -99,13 +107,19 @@ public:
 
     void close();
 
-    /// Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs
+    /**
+     * Initialize window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
+     */
     void initOGL();
 
-    /// Init context specific data such as viewport corrections/warping meshes
+    /**
+     * Initialize context specific data such as viewport corrections/warping meshes.
+     */
     void initContextSpecificOGL();
 
-    /// Swap previous data and current data. This is done at the end of the render loop.
+    /**
+     * Swap previous data and current data. This is done at the end of the render loop.
+     */
     void swap(bool takeScreenshot);
     void updateResolutions();
 
@@ -122,16 +136,20 @@ public:
 
     void makeOpenGLContextCurrent();
 
-    /// Name this window
+    /**
+     * Name this window.
+     */
     void setName(std::string name);
 
-    /// Tag this window. Tags are seperated by comma
+    /**
+     * Tag this window. Tags are seperated by comma.
+     */
     void setTags(std::vector<std::string> tags);
 
     /**
      * Set the visibility state of this window. If a window is hidden the rendering for
      * that window will be paused unless it's forced to render while hidden by using
-     * setRenderWhileHidden().
+     * #setRenderWhileHidden.
      */
     void setVisible(bool state);
 
@@ -141,20 +159,22 @@ public:
      */
     void setRenderWhileHidden(bool state);
 
-    /// Set the focued flag for this window (should not be done by user)
+    /**
+     * Set the focued flag for this window (should not be done by user).
+     */
     void setFocused(bool state);
 
     /**
      * Set the window title.
      *
-     * \param title The title of the window.
+     * \param title The title of the window
      */
     void setWindowTitle(const char* title);
 
     /**
      * Sets the window resolution.
      *
-     * \param resolution The width and height of the window in pixels.
+     * \param resolution The width and height of the window in pixels
      */
     void setWindowResolution(ivec2 resolution);
 
@@ -162,7 +182,7 @@ public:
      * Sets the framebuffer resolution. These parameters will only be used if a fixed
      * resolution is used that is different from the window resolution.
      *
-     * \param resolution The width and height of the frame buffer in pixels.
+     * \param resolution The width and height of the frame buffer in pixels
      */
     void setFramebufferResolution(ivec2 resolution);
 
@@ -173,32 +193,50 @@ public:
     */
     void setWindowPosition(ivec2 positions);
 
-    /// Set if fullscreen mode should be used
+    /**
+     * Set if fullscreen mode should be used.
+     */
     void setFullscreen(bool fullscreen);
 
-    /// Sets whether a full screen window should automatically iconify when losing focus
+    /**
+     * Sets whether a full screen window should automatically iconify when losing focus.
+     */
     void setAutoiconify(bool shouldAutoiconify);
 
-    /// Set if the window should float (be on top / topmost)
+    /**
+     * Set if the window should float (be on top / topmost).
+     */
     void setFloating(bool floating);
 
-    /// Set if the window is double buffered (can only be set before window creation)
+    /**
+     * Set if the window is double buffered (can only be set before window creation).
+     */
     void setDoubleBuffered(bool doubleBuffered);
 
-    /// Set if window borders should be visible
+    /**
+     * Set if window borders should be visible.
+     */
     void setWindowDecoration(bool state);
 
-    /// Set if the window should be resizable
+    /**
+     * Set if the window should be resizable.
+     */
     void setWindowResizable(bool state);
 
-    /// Set which monitor that should be used for fullscreen mode
+    /**
+     * Set which monitor that should be used for fullscreen mode.
+     */
     void setFullScreenMonitorIndex(int index);
 
-    /// Force the framebuffer to a fixed size which may be different from the window size
+    /**
+     * Force the framebuffer to a fixed size which may be different from the window size.
+     */
     void setFixResolution(bool state);
     void setHorizFieldOfView(float hFovDeg);
 
-    /// Set if FXAA should be used.
+    /**
+     * Set if FXAA should be used.
+     */
     void setUseFXAA(bool state);
 
     /**
@@ -208,16 +246,24 @@ public:
      */
     void setUseQuadbuffer(bool state);
 
-    /// Set if the specifed Draw2D function pointer should be called for this window.
+    /**
+     * Set if the specifed Draw2D function pointer should be called for this window.
+     */
     void setCallDraw2DFunction(bool state);
 
-    /// Set if the specifed Draw3D function pointer should be called for this window.
+    /**
+     * Set if the specifed Draw3D function pointer should be called for this window.
+     */
     void setCallDraw3DFunction(bool state);
 
-    /// Set the id of the window that should be blitted to this window
+    /**
+     * Set the id of the window that should be blitted to this window.
+     */
     void setBlitWindowId(int id);
 
-    /// Set the number of samples used in multisampled anti-aliasing
+    /**
+     * Set the number of samples used in multisampled anti-aliasing.
+     */
     void setNumberOfAASamples(int samples);
 
     /**
@@ -226,65 +272,96 @@ public:
      */
     void setStereoMode(StereoMode sm);
 
-    /// \return true if full screen rendering is enabled
+    /**
+     * \return `true` if full screen rendering is enabled
+     */
     bool isFullScreen() const;
 
-    /// \return true if full screen windows should automatically iconify when losing focus
+    /**
+     * \return `true` if full screen windows should automatically iconify when losing
+     *         focus
+     */
     bool shouldAutoiconify() const;
 
-    /// \return true if window is floating/allways on top/topmost
+    /**
+     * \return `true` if window is floating/allways on top/topmost
+     */
     bool isFloating() const;
 
-    /// \return true if window is double-buffered
+    /**
+     * \return `true` if window is double-buffered
+     */
     bool isDoubleBuffered() const;
 
-    /// \return this window's focused flag
+    /**
+     * \return `this` window's focused flag
+     */
     bool isFocused() const;
 
-    /// \return if the window is visible or not
+    /**
+     * \return `true` if the window is visible or not
+     */
     bool isVisible() const;
 
-    /// \return true if the window is set to render while hidden
+    /**
+     * \return `true` if the window is set to render while hidden
+     */
     bool isRenderingWhileHidden() const;
 
-    /// \return If the frame buffer has a fix resolution this function returns true
+    /**
+     * \return If the frame buffer has a fix resolution this function returns `true`
+     */
     bool isFixResolution() const;
 
-    /// \return true if any kind of stereo is enabled
+    /**
+     * \return `true` if any kind of stereo is enabled
+     */
     bool isStereo() const;
 
-    /// \return true if this window is resized
+    /**
+     * \return `true` if this window is resized
+     */
     bool isWindowResized() const;
 
-    /// \return the name of this window
+    /**
+     * \return The name of this window
+     */
     const std::string& name() const;
 
-    /// \return true if a specific tag exists
+    /**
+     * \return `true` if a specific tag exists
+     */
     bool hasTag(std::string_view tag) const;
 
-    /// \return this window's id
+    /**
+     * \return This window's id
+     */
     int id() const;
 
     /**
      * Get a frame buffer texture. If the texture doesn't exists then it will be created.
      *
      * \param index Index or Engine::TextureIndex enum
-     * \return texture index of selected frame buffer texture
+     * \return The texture index of selected frame buffer texture
      */
     unsigned int frameBufferTexture(TextureIndex index);
 
     /**
      * This function returns the screen capture pointer if it's set otherwise nullptr.
      *
-     * \param eye can either be 0 (left) or 1 (right)
-     * \return pointer to screen capture pointer
+     * \param eye Can either be 0 (left) or 1 (right)
+     * \return Pointer to screen capture pointer
      */
     ScreenCapture* screenCapturePointer(Eye eye) const;
 
-    /// \return the number of samples used in multisampled anti-aliasing
+    /**
+     * \return The number of samples used in multisampled anti-aliasing
+     */
     int numberOfAASamples() const;
 
-    /// \return the stereo mode
+    /**
+     * \return The stereo mode
+     */
     StereoMode stereoMode() const;
 
     /**
@@ -294,24 +371,36 @@ public:
      */
     ivec2 finalFBODimensions() const;
 
-    /// Returns pointer to FBO container
+    /**
+     * Returns pointer to FBO container.
+     */
     OffScreenBuffer* fbo() const;
 
-    /// \return pointer to GLFW window
+    /**
+     * \return The pointer to GLFW window
+     */
     GLFWwindow* windowHandle() const;
 
     const std::vector<std::unique_ptr<Viewport>>& viewports() const;
 
-    /// Get FOV of viewport[0]
+    /**
+     * Get FOV of viewport[0]
+     */
     float horizFieldOfViewDegrees() const;
 
-    /// \return Get the window resolution.
+    /**
+     * \return Get the window resolution
+     */
     ivec2 resolution() const;
 
-    /// \return Get the frame buffer resolution.
+    /**
+     * \return Get the frame buffer resolution
+     */
     ivec2 framebufferResolution() const;
 
-    /// \return Get the initial window resolution.
+    /**
+     * \return Get the initial window resolution
+     */
     ivec2 initialResolution() const;
 
     /**
@@ -320,20 +409,28 @@ public:
      */
     vec2 scale() const;
 
-    /// \return the aspect ratio of the window
+    /**
+     * \return The aspect ratio of the window
+     */
     float aspectRatio() const;
 
-    /// \return Get the frame buffer bytes per color component (BPCC) count.
+    /**
+     * \return Get the frame buffer bytes per color component (BPCC) count
+     */
     int framebufferBPCC() const;
 
     void renderScreenQuad() const;
 
     void addViewport(std::unique_ptr<Viewport> vpPtr);
 
-    /// \return true if any masks are used
+    /**
+     * \return `true` if any masks are used
+     */
     bool hasAnyMasks() const;
 
-    /// \return true if FXAA should be used
+    /**
+     * \return `true` if FXAA should be used
+     */
     bool useFXAA() const;
 
     void bindStereoShaderProgram(unsigned int leftTex, unsigned int rightTex) const;
@@ -348,19 +445,28 @@ private:
     void initWindowResolution(ivec2 resolution);
 
     void initScreenCapture();
-    /// This function creates textures that will act as FBO targets.
+
+    /**
+     * This function creates textures that will act as FBO targets.
+     */
     void createTextures();
     void generateTexture(unsigned int& id, TextureType type);
 
-    /// This function creates FBOs. This is done in the initOGL function.
+    /**
+     * This function creates FBOs. This is done in the initOGL function.
+     */
     void createFBOs();
 
-    /// This function resizes the FBOs when the window is resized to achive 1:1 mapping
+    /**
+     * This function resizes the FBOs when the window is resized to achive 1:1 mapping.
+     */
     void resizeFBOs();
 
     void destroyFBOs();
 
-    /// Create vertex buffer objects used to render framebuffer quad
+    /**
+     * Create vertex buffer objects used to render framebuffer quad.
+     */
     void createVBOs();
     void loadShaders();
     bool useRightEyeTexture() const;

@@ -30,7 +30,9 @@ struct SGCT_EXPORT ReturnValue {
     std::vector<ViewportInfo> viewports;
 };
 
-// throws std::runtime_error if the parsing fails
+/**
+ * \throw std::runtime_error if the parsing fails
+ */
 SGCT_EXPORT ReturnValue parseMpcdiConfiguration(const std::string& filename);
 
 } //namespace sgct::mpcdi

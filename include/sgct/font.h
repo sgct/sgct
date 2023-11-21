@@ -56,16 +56,24 @@ public:
      */
     Font(FT_Library lib, FT_Face face, unsigned int h);
 
-    /// Cleans up memory used by the Font and destroys the OpenGL objects
+    /**
+     * Cleans up memory used by the Font and destroys the OpenGL objects.
+     */
     ~Font();
 
-    /// Get the font face data
+    /**
+     * Get the font face data.
+     */
     const Font::FontFaceData& fontFaceData(char c);
 
-    /// Get the vertex array id
+    /**
+     * Get the vertex array id.
+     */
     unsigned int vao() const;
 
-    /// Get height of the font
+    /**
+     * Get height of the font.
+     */
     float height() const;
 
     /**

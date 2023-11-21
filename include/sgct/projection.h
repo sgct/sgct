@@ -17,7 +17,9 @@ namespace sgct {
 
 class ProjectionPlane;
 
-/// This class holds and manages 3D projections
+/**
+ * This class holds and manages 3D projections.
+ */
 class SGCT_EXPORT Projection {
 public:
     void calculateProjection(vec3 base, const ProjectionPlane& proj, float nearClip,

@@ -16,8 +16,8 @@
 
 namespace sgct::correction {
 
-SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-    const vec2& size);
+SGCT_EXPORT Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path,
+    const vec2& pos, const vec2& size);
 
 } // namespace sgct::correction
 

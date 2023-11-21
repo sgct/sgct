@@ -31,24 +31,24 @@ class Node;
 class StatisticsRenderer;
 
 /**
- * Loads the cluster information from the provided \p path. The \p path is a
- * configuration file and should be an absolute path or relative to the current working
- * directory. If no path is provided, a default setup consisting of a FOV-based rendering
- * with a 1280x720 window with is loaded instead.
+ * Loads the cluster information from the provided \p path. The \p path is a configuration
+ * file and should be an absolute path or relative to the current working directory. If no
+ * path is provided, a default setup consisting of a FOV-based rendering with a 1280x720
+ * window with is loaded instead.
  *
  * \param path The path to the configuration that should be loaded
  * \return The loaded Cluster object that contains all of the information from the file
  *
- * \pre The \p path, if it is provided, must be an existing file
  * \exception std::runtime_error This exception is thrown whenever an unrecoverable error
  *            occurs while trying to load the provided path. This error is never raised
  *            when providing no path
+ * \pre The \p path, if it is provided, must be an existing file
  */
 SGCT_EXPORT config::Cluster loadCluster(std::optional<std::string> path = std::nullopt);
 
 /**
- * Returns the number of seconds since the program start. The resultion of this
- * counter is usually the best available counter from the operating system.
+ * Returns the number of seconds since the program start. The resultion of this counter is
+ * usually the best available counter from the operating system.
  *
  * \return The number of seconds since the program started
  */
@@ -64,7 +64,7 @@ public:
      * Structure with all statistics gathered about different frametimes. The newest value
      * is always at the front of the different arrays, the remaining values being sorted
      * by the frame in which they occured. These values are only collected while the
-     * statistics are being
+     * statistics are being shown.
      */
     struct SGCT_EXPORT Statistics {
         /// For how many frames are the history values collected before the oldest values
@@ -86,16 +86,24 @@ public:
         /// The highest time recorded for network communication between master and clients
         std::array<double, HistoryLength> loopTimeMax = {};
 
-        /// \return The frame time (delta time) in seconds
+        /**
+         * \return The frame time (delta time) in seconds
+         */
         double dt() const;
 
-        /// \return The average frame time (delta time) in seconds
+        /**
+         * \return The average frame time (delta time) in seconds
+         */
         double avgDt() const;
 
-        /// \return the minimum frame time (delta time) in the averaging window (seconds)
+        /**
+         * \return the minimum frame time (delta time) in the averaging window (seconds)
+         */
         double minDt() const;
 
-        /// \return the maximum frame time (delta time) in the averaging window (seconds)
+        /**
+         * \return the maximum frame time (delta time) in the averaging window (seconds)
+         */
         double maxDt() const;
     };
 
@@ -184,6 +192,7 @@ public:
      * been called successfully.
      *
      * \return The global Engine object responsible for this application
+     *
      * \throw std::logic_error This error is thrown if this function is called before the
      *        Engine::create function is called or after the Engine::destroy function was
      *        called
@@ -193,8 +202,8 @@ public:
     /**
      * Creates the singleton Engine that is accessible through the Engine::instance
      * function. This function can only be called while no Engine instance exists, which
-     * means that either it has to be the first call to this function or the
-     * Engine::destroy function was called in between.
+     * means that either it has to be the first call to this function or the #destroy
+     * function was called in between.
      *
      * \param cluster The configuration object for the config::Cluster that contains the
      *        information about how many nodes should exist, how many windows each node
@@ -225,7 +234,7 @@ public:
      * This function starts the SGCT render loop in which the rendering, synchronization,
      * event handling, and everything else happens. Control will only return from this
      * function after the program is terminated for any reason or if a non-recoverable
-     * error has occurred
+     * error has occurred.
      */
     void exec();
 
@@ -234,7 +243,7 @@ public:
      * the frametimes, drawtimes, and other frame-based statistics. The reference returned
      * by this function is valid until the Engine::destroy function is called.
      *
-     * \return The Engine::Statistics object containing all of the statistics information
+     * \return The #Statistics object containing all of the statistics information
      */
     const Statistics& statistics() const;
 
@@ -256,8 +265,8 @@ public:
      * Set the near and far clipping planes. This operation recalculates all frustums for
      * all viewports.
      *
-     * \param nearClippingPlane near clipping plane in meters
-     * \param farClippingPlane far clipping plane in meters
+     * \param nearClippingPlane The near clipping plane in meters
+     * \param farClippingPlane The far clipping plane in meters
      */
     void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
 
@@ -265,7 +274,7 @@ public:
      * Set the eye separation (interocular distance) for all users. This operation
      * recalculates all frustums for all viewports.
      *
-     * \param eyeSeparation eye separation in meters
+     * \param eyeSeparation The eye separation in meters
      */
     void setEyeSeparation(float eyeSeparation);
 
@@ -281,7 +290,6 @@ public:
      *
      * \return The focus window or `nullptr` if no such window exists
      */
-    /// \return the index of the focus window. If no window has focus, nullptr is returned
     const Window* focusedWindow() const;
 
     /**
@@ -297,7 +305,7 @@ public:
      * then two screenshots will be saved per frame, one for each eye. The filename for
      * each image is the window title with an incremental counter appended to it. Each
      * successive call of this function will increment the counter. If it is desired to
-     * reset the counter, see Engine::setScreenshotNumber
+     * reset the counter, see #setScreenshotNumber.
      *
      * To record frames for a movie simply call this function every frame you wish to
      * record. The write to disk is multi-threaded.
@@ -315,7 +323,7 @@ public:
 
     /**
      * Sets the number that the next screenshot will recieve with the next call of
-     * Engine::takeScreenshot.
+     * #takeScreenshot.
      *
      * \param number The next screenshot number
      */
@@ -323,12 +331,10 @@ public:
 
     /**
      * Returns the number the next screenshot will receive upon the next call of
-     * Engine::takeScreenshot. This counter can be reset through
-     * Engine::setScreenshotNumber.
+     * #takeScreenshot. This counter can be reset through #setScreenshotNumber.
      *
      * \return The number the next screenshot will receive
      */
-    /// \return the current screenshot number (file index)
     unsigned int screenShotNumber() const;
 
     /**
@@ -403,15 +409,14 @@ public:
 private:
     /**
      * The global singleton instance of this Engine class. This instance is created
-     * through the Engine::create function, accessed through the Engine::instance
-     * function, and removed through the Engine::destroy function.
+     * through the #create function, accessed through the #instance function, and removed
+     * through the #destroy function.
      */
     static Engine* _instance;
 
     /**
-     * The internal constructor for this class, which will be called by the
-     * Engine::create function. See the Engine::create function for more documentation on
-     * the parameters.
+     * The internal constructor for this class, which will be called by the #create
+     * function. See the #create function for more documentation on the parameters.
      *
      * \param cluster The cluster setup that should be used for this SGCT run
      * \param callbacks The list of callbacks that should be installed
@@ -419,7 +424,9 @@ private:
      */
     Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& arg);
 
-    /// Engine destructor destructs GLFW and releases resources/memory.
+    /**
+     * Engine destructor destructs GLFW and releases resources/memory.
+     */
     ~Engine();
 
     /**
@@ -484,8 +491,8 @@ private:
      *
      * \param window The window whose viewports should be rendered
      * \param frustum The frustum that should be used to render the viewports
-     * \paramm ti The Window::TextureIndex that is pointing at the target where the
-     *         rendering should be placed
+     * \param ti The Window::TextureIndex that is pointing at the target where the
+     *        rendering should be placed
      */
     void renderViewports(Window& window, Frustum::Mode frustum, Window::TextureIndex ti);
 
@@ -547,11 +554,11 @@ private:
     std::function<void()> _cleanupFn;
 
     /// The near clipping plane used in the rendering and set through
-    /// Engine::setNearAndFarClippingPlanes
+    /// #setNearAndFarClippingPlanes
     float _nearClipPlane = 0.1f;
 
     /// The far clipping plane used in the rendering and set through
-    /// Engine::setNearAndFarClippingPlanes
+    /// #setNearAndFarClippingPlanes
     float _farClipPlane = 100.f;
 
     /// The container for the per-frame statistics that are being collected
@@ -566,7 +573,7 @@ private:
 
     /// Stores the configuration option whether the created OpenGL contexts should be
     /// debug contexts or regular ones. This value is only in use between the constructor
-    /// and the Engine::initialize function
+    /// and the #initialize function
     bool _createDebugContext = false;
 
     /// Whether SGCT should take a screenshot in the next frame

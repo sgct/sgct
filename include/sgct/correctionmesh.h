@@ -28,22 +28,29 @@ public:
     /**
      * This function finds a suitable parser for warping meshes and loads them.
      *
-     * \param path the path to the mesh data
-     * \param parent the pointer to parent viewport
-     * \param needsMaskGeometry If true, a separate geometry to applying blend masks is
+     * \param path The path to the mesh data
+     * \param parent The pointer to parent viewport
+     * \param needsMaskGeometry If `true`, a separate geometry to applying blend masks is
      *        loaded
+     *
      * \throw std::runtime_error if mesh was not loaded successfully
      */
     void loadMesh(std::string path, BaseViewport& parent,
         bool needsMaskGeometry = false);
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderQuadMesh() const;
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderWarpMesh() const;
 
-    /// Render the final mesh where for mapping the frame buffer to the screen.
+    /**
+     * Render the final mesh where for mapping the frame buffer to the screen.
+     */
     void renderMaskMesh() const;
 
 private:

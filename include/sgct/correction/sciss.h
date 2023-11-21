@@ -17,7 +17,8 @@ namespace sgct { class BaseViewport; }
 
 namespace sgct::correction {
 
-SGCT_EXPORT Buffer generateScissMesh(const std::filesystem::path& path, BaseViewport& parent);
+SGCT_EXPORT Buffer generateScissMesh(const std::filesystem::path& path,
+    BaseViewport& parent);
 
 } // namespace sgct::correction
 

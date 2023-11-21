@@ -21,10 +21,14 @@ namespace sgct {
 
 class Image;
 
-/// This class is used internally by SGCT and is called when taking screenshots
+/**
+ * This class is used internally by SGCT and is called when taking screenshots.
+ */
 class SGCT_EXPORT ScreenCapture {
 public:
-    /// The different file formats supported
+    /**
+     * The different file formats supported.
+     */
     enum class CaptureFormat { PNG, TGA, JPEG };
     enum class CaptureSource { Texture, BackBuffer, LeftBackBuffer, RightBackBuffer };
     enum class EyeIndex { Mono, StereoLeft, StereoRight };
@@ -45,27 +49,29 @@ public:
     /**
      * Initializes the PBO or re-sizes it if the frame buffer size have changed.
      *
-     * \param resolution the  pixel resolution of the frame buffer
-     * \param channels the number of color channels
+     * \param resolution The pixel resolution of the frame buffer
+     * \param channels The number of color channels
      * \param bytesPerColor The number of bytes that are stored for each color per pixel
      */
     void initOrResize(ivec2 resolution, int channels, int bytesPerColor);
 
     /**
      * Set the opengl texture properties for glGetTexImage.
-     * Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
-     * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
+     * Type can be: `GL_UNSIGNED_BYTE`, `GL_UNSIGNED_SHORT`, `GL_HALF_FLOAT`, `GL_FLOAT`,
+     * `GL_SHORT`, `GL_INT`, `GL_UNSIGNED_SHORT` or `GL_UNSIGNED_INT`
      */
     void setTextureTransferProperties(unsigned int type);
 
-    /// Set the image format to use
+    /**
+     * Set the image format to use.
+     */
     void setCaptureFormat(CaptureFormat cf);
 
     /**
-     * This function saves the images to disc.o
+     * This function saves the images to disc.
      *
-     * \param textureId textureId is the texture that will be streamed from the GPU if
-     *        frame buffer objects are used in the rendering
+     * \param textureId The texture that will be streamed from the GPU if frame buffer
+     *        objects are used in the rendering
      * \param capSrc The object that should be captured
      */
     void saveScreenCapture(unsigned int textureId,

@@ -32,7 +32,9 @@ namespace sgct {
 
 class NonLinearProjection;
 
-/// This class holds and manages viewportdata and calculates frustums
+/**
+ * This class holds and manages viewportdata and calculates frustums.
+ */
 class SGCT_EXPORT Viewport final : public BaseViewport {
 public:
     Viewport(const Window* parent);
@@ -46,13 +48,19 @@ public:
     void setMpcdiWarpMesh(std::vector<char> data);
     void loadData();
 
-    /// Render the viewport mesh which the framebuffer texture is attached to
+    /**
+     * Render the viewport mesh which the framebuffer texture is attached to.
+     */
     void renderQuadMesh() const;
 
-    /// Render the viewport mesh which the framebuffer texture is attached to
+    /**
+     * Render the viewport mesh which the framebuffer texture is attached to.
+     */
     void renderWarpMesh() const;
 
-    /// Render the viewport mesh which the framebuffer texture is attached to
+    /**
+     * Render the viewport mesh which the framebuffer texture is attached to.
+     */
     void renderMaskMesh() const;
 
     bool hasOverlayTexture() const;

@@ -48,7 +48,7 @@ namespace {
         if (t == "top_bottom") { return M::TopBottom; }
         if (t == "top_bottom_inverted") { return M::TopBottomInverted; }
 
-        throw Err(6085, fmt::format("Unkonwn stereo mode {}", t));
+        throw Err(6085, fmt::format("Unknown stereo mode {}", t));
     }
 
     std::string_view toString(sgct::config::Window::StereoMode mode) {

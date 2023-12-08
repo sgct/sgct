@@ -243,7 +243,7 @@ public:
      * the frametimes, drawtimes, and other frame-based statistics. The reference returned
      * by this function is valid until the Engine::destroy function is called.
      *
-     * \return The #Statistics object containing all of the statistics information
+     * \return The Statistics object containing all of the statistics information
      */
     const Statistics& statistics() const;
 

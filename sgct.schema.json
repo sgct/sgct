@@ -586,7 +586,7 @@
           "description": "This value determines the color that is used for the parts of the image that are not covered. The alpha component of this color has to be provided even if the final render target does not contain an alpha channel. All attributes r, g, b, and a must be defined and be between 0 and 1. The default color is a dark gray (0.3, 0.3, 0.3, 1.0)"
         },
         "planarprojection": {
-          "$ref": "#/$def/planarprojection",
+          "$ref": "#/$defs/planarprojection",
           "title": "Planarprojection",
           "description": "The planar projection that is used for the forward facing standard rendering"
         }

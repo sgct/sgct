@@ -44,12 +44,9 @@ SGCT_EXPORT [[noreturn]] void convertToSgctExceptionAndThrow(const std::string& 
 /**
  * Reads and returns meta information in the configuration file. Since meta is
  * non-critical, and is composed of only strings (blank by default), a Meta object is
- * always returned even if the source file does not contain any meta information. If
- * \p ignoreErrors is set to true, adherence to the JSON schema will be ignored and no
- * parsing exceptions will be thrown.
+ * always returned even if the source file does not contain any meta information.
  */
-SGCT_EXPORT [[nodiscard]] sgct::config::Meta readMeta(const std::string& filename,
-    bool ignoreErrors = true);
+SGCT_EXPORT [[nodiscard]] sgct::config::Meta readMeta(const std::string& filename);
 
 } // namespace sgct
 

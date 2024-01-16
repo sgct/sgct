@@ -2737,14 +2737,11 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     return genVersion;
 }
 
-sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
+sgct::config::Meta readMeta(const std::string& filename) {
     assert(std::filesystem::path(filename).extension() == ".json");
 
     std::filesystem::path name = std::filesystem::absolute(filename);
     if (!std::filesystem::exists(name)) {
-        if (ignoreErrors) {
-            return sgct::config::Meta();
-        }
         throw Err(
             6081,
             fmt::format("Could not find configuration file: {}", name)
@@ -2764,14 +2761,10 @@ sgct::config::Meta readMeta(const std::string& filename, bool ignoreErrors) {
         }
     }
     catch (const std::runtime_error& e) {
-        if (!ignoreErrors) {
-            throw Err(6082, e.what());
-        }
+        throw Err(6082, e.what());
     }
     catch (const nlohmann::json::exception& e) {
-        if (!ignoreErrors) {
-            throw Err(6082, e.what());
-        }
+        throw Err(6082, e.what());
     }
 
     return sgct::config::Meta();

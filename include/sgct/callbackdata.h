@@ -22,7 +22,7 @@ class Window;
 struct SGCT_EXPORT RenderData {
     RenderData(const Window& window_, const BaseViewport& viewport_,
                Frustum::Mode frustumMode_, mat4 modelMatrix_, mat4 viewMatrix_,
-               mat4 projectionMatrix_, mat4 modelViewProjectionMatrix_, ivec2 bufferSize)
+               mat4 projectionMatrix_, mat4 modelViewProjectionMatrix_, ivec2 bufferSize_)
         : window(window_)
         , viewport(viewport_)
         , frustumMode(frustumMode_)
@@ -30,7 +30,7 @@ struct SGCT_EXPORT RenderData {
         , viewMatrix(std::move(viewMatrix_))
         , projectionMatrix(std::move(projectionMatrix_))
         , modelViewProjectionMatrix(std::move(modelViewProjectionMatrix_))
-        , bufferSize(std::move(bufferSize))
+        , bufferSize(std::move(bufferSize_))
     {}
     const Window& window;
     const BaseViewport& viewport;

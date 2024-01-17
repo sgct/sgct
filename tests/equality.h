@@ -38,6 +38,7 @@ bool operator==(const Device& lhs, const Device& rhs);
 bool operator==(const Tracker& lhs, const Tracker& rhs);
 bool operator==(const NoProjection& lhs, const NoProjection& rhs);
 bool operator==(const PlanarProjection& lhs, const PlanarProjection& rhs);
+bool operator==(const TextureProjection& lhs, const TextureProjection& rhs);
 bool operator==(const FisheyeProjection::Crop& lhs, const FisheyeProjection::Crop& rhs);
 bool operator==(const FisheyeProjection& lhs, const FisheyeProjection& rhs);
 bool operator==(const SphericalMirrorProjection& lhs,

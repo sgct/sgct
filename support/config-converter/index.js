@@ -411,6 +411,50 @@ function convert(obj) {
               });
             }
           }
+          else if ("TextureProjection" in viewport) {
+            toObject(viewport, "TextureProjection", "projection");
+            viewport.projection.type = "TextureProjection";
+
+            // FOV -> fov
+            toObject(viewport.projection, "FOV", "fov");
+            if ("fov" in viewport.projection) {
+              Object.keys(viewport.projection.fov).forEach((key, _) => {
+                toNumber(viewport.projection.fov, key);
+              });
+
+              if (viewport.projection.fov.left === viewport.projection.fov.right) {
+                viewport.projection.fov.hfov =
+                  viewport.projection.fov.left + viewport.projection.fov.right;
+
+                delete viewport.projection.fov.left;
+                delete viewport.projection.fov.right;
+              }
+
+              if (viewport.projection.fov.down === viewport.projection.fov.up) {
+                viewport.projection.fov.vfov =
+                  viewport.projection.fov.down + viewport.projection.fov.up;
+
+                delete viewport.projection.fov.down;
+                delete viewport.projection.fov.up;
+              }
+            }
+
+            // Orientation -> orientation
+            toObject(viewport.projection, "Orientation", "orientation");
+            if ("orientation" in viewport.projection) {
+              Object.keys(viewport.projection.orientation).forEach((key, _) => {
+                toNumber(viewport.projection.orientation, key);
+              });
+            }
+
+            // Offset -> offset
+            toObject(viewport.projection, "Offset", "offset");
+            if ("offset" in viewport.projection) {
+              Object.keys(viewport.projection.offset).forEach((key, _) => {
+                toNumber(viewport.projection.offset, key);
+              });
+            }
+          }
           else if ("FisheyeProjection" in viewport) {
             toObject(viewport, "FisheyeProjection", "projection");
             viewport.projection.type = "FisheyeProjection";

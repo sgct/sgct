@@ -93,6 +93,7 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     std::visit(overloaded {
         [](const config::NoProjection&) {},
         [this](const config::PlanarProjection& p) { applyPlanarProjection(p); },
+        [this](const config::TextureProjection& p) { applyPlanarProjection(p); },
         [this](const config::FisheyeProjection& p) { applyFisheyeProjection(p); },
         [this](const config::SphericalMirrorProjection& p) {
             applySphericalMirrorProjection(p);

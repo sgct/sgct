@@ -151,6 +151,17 @@ bool operator==(const PlanarProjection& lhs, const PlanarProjection& rhs) {
         lhs.offset == rhs.offset;
 }
 
+bool operator==(const TextureProjection& lhs, const TextureProjection& rhs) {
+    return
+        lhs.fov.down == rhs.fov.down &&
+        lhs.fov.left == rhs.fov.left &&
+        lhs.fov.right == rhs.fov.right &&
+        lhs.fov.up == rhs.fov.up &&
+        lhs.fov.distance == rhs.fov.distance &&
+        lhs.orientation == rhs.orientation &&
+        lhs.offset == rhs.offset;
+}
+
 bool operator==(const FisheyeProjection::Crop& lhs, const FisheyeProjection::Crop& rhs) {
     return
         lhs.left == rhs.left &&

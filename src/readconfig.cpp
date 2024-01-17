@@ -609,6 +609,9 @@ sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
         viewport.projection = parsePlanarProjection(*e);
     }
+    if (tinyxml2::XMLElement* e = elem.FirstChildElement("TextureProjection"); e) {
+        viewport.projection = parsePlanarProjection(*e);
+    }
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("FisheyeProjection"); e) {
         viewport.projection = parseFisheyeProjection(*e);
     }
@@ -2008,6 +2011,9 @@ void from_json(const nlohmann::json& j, Viewport& v) {
             if (type == "PlanarProjection") {
                 v.projection = it->get<PlanarProjection>();
             }
+            if (type == "TextureProjection") {
+                v.projection = it->get<TextureProjection>();
+            }
             else if (type == "FisheyeProjection") {
                 v.projection = it->get<FisheyeProjection>();
             }
@@ -2090,6 +2096,11 @@ void to_json(nlohmann::json& j, const Viewport& v) {
         [](const config::PlanarProjection& p) {
             nlohmann::json proj = p;
             proj["type"] = "PlanarProjection";
+            return proj;
+        },
+        [](const config::TextureProjection& p) {
+            nlohmann::json proj = p;
+            proj["type"] = "TextureProjection";
             return proj;
         },
         [](const config::FisheyeProjection& p) {

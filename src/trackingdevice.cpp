@@ -24,7 +24,7 @@
 
 namespace sgct {
 
-TrackingDevice::TrackingDevice(int parentIndex, std::string name)
+TrackingDevice::TrackingDevice([[maybe_unused]] int parentIndex, std::string name)
     : _name(std::move(name))
 #ifdef SGCT_HAS_VRPN
     , _parentIndex(parentIndex)

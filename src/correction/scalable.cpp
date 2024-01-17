@@ -348,7 +348,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             try {
                 // We try to convert the first value into a float.  If it succeeds, we
                 // have reached the vertices.  Otherwise we have found an unknown key
-                [[ maybe_unused ]] float dummy = std::stof(std::string(first));
+                [[maybe_unused]] float dummy = std::stof(std::string(first));
             }
             catch (const std::invalid_argument&) {
                 Log::Warning(fmt::format(

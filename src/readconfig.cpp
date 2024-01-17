@@ -2766,8 +2766,6 @@ sgct::config::Meta readMeta(const std::string& filename) {
     catch (const nlohmann::json::exception& e) {
         throw Err(6082, e.what());
     }
-
-    return sgct::config::Meta();
 }
 
 } // namespace sgct

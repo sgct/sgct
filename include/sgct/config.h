@@ -132,6 +132,12 @@ SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
 
 
 
+struct SGCT_EXPORT TextureProjection : PlanarProjection {
+}
+SGCT_EXPORT void validateTextureProjection(const TextureProjection& proj);
+
+
+
 struct SGCT_EXPORT FisheyeProjection {
     enum class Interpolation { Linear, Cubic };
     struct Crop {
@@ -253,7 +259,8 @@ SGCT_EXPORT void validateMpcdiProjection(const MpcdiProjection& proj);
 
 using Projections = std::variant<NoProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
-    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection>;
+    SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection,
+    TextureProjection>;
 
 
 

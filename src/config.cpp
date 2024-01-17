@@ -114,6 +114,12 @@ void validatePlanarProjection(const PlanarProjection& p) {
     }
 }
 
+void validateTextureProjection(const TextureProjection& p) {
+    ZoneScoped;
+
+    validatePlanarProjection(p);
+}
+
 void validateFisheyeProjection(const FisheyeProjection& p) {
     ZoneScoped;
 
@@ -236,6 +242,7 @@ void validateViewport(const Viewport& v, bool /*draw3D*/) {
             validateEquirectangularProjection(p);
         },
         [](const ProjectionPlane& p) { validateProjectionPlane(p); },
+        [](const TextureProjection& p) { validateTextureProjection(p); },
 
         [v/*, draw3D*/](const NoProjection&) {
             // This is currently commented out due to the fact that some of the meshes

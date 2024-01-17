@@ -339,6 +339,44 @@
       "description": "Describes a projection for the Viewport that is a flat projection described by simple frustum, which may be asymmetric"
     },
 
+    "textureprojection": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "TextureProjection",
+          "default": "TextureProjection",
+          "readOnly": true
+        },
+        "fov": {
+          "oneOf": [
+            { "$ref": "#/$defs/fovhorizontalvertical" },
+            { "$ref": "#/$defs/fovleftrightvertical" },
+            { "$ref": "#/$defs/fovdownuphorizontal" },
+            { "$ref": "#/$defs/fovleftrightupdown" }
+          ],
+          "title": "Camera Field-of-View",
+          "description": "This element describes the field of view used the camera in this planar projection"
+        },
+        "distance": {
+          "type": "number",
+          "title": "Distance",
+          "description": "The distance (in meters) at which the virtual render plane is placed. This value is only important when rendering this viewport using stereocopy as the distance and the Users eyeSeparation are used to compute the change in frustum between the left and the right eyes"
+        },
+        "orientation": {
+          "$ref": "#/$defs/quat",
+          "title": "Orientation",
+          "description": "Describes a fixed orientation for the virtual image plane. This can be provided either as Euler angles or as a quaternion"
+        },
+        "offset": {
+          "$ref": "#/$defs/vec3",
+          "title": "Offset",
+          "description": "A linear offset in meters that is added to the virtual image plane. Must define three float attributes x, y, and z. The default values are x=0, y=0, z=0, meaning that no offset is applied to the image plane"
+        }
+      },
+      "description": "Describes a projection for the Viewport that is a flat projection described by simple frustum, which may be asymmetric"
+    },
+
     "fisheyeprojection": {
       "type": "object",
       "properties": {

@@ -339,13 +339,13 @@
       "description": "Describes a projection for the Viewport that is a flat projection described by simple frustum, which may be asymmetric"
     },
 
-    "textureprojection": {
+    "texturemappedprojection": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-          "const": "TextureProjection",
-          "default": "TextureProjection",
+          "const": "TextureMappedProjection",
+          "default": "TextureMappedProjection",
           "readOnly": true
         },
         "fov": {
@@ -744,6 +744,10 @@
         {
           "$ref": "#/$defs/projectionplane",
           "title": "Projection Plane"
+        },
+        {
+          "$ref": "#/$defs/texturemappedprojection",
+          "title": "Texture-Mapped Projection"
         }
       ],
       "title": "Projection"

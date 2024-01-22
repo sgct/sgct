@@ -151,7 +151,7 @@ bool operator==(const PlanarProjection& lhs, const PlanarProjection& rhs) {
         lhs.offset == rhs.offset;
 }
 
-bool operator==(const TextureProjection& lhs, const TextureProjection& rhs) {
+bool operator==(const TextureMappedProjection& lhs, const TextureMappedProjection& rhs) {
     return
         lhs.fov.down == rhs.fov.down &&
         lhs.fov.left == rhs.fov.left &&

@@ -175,7 +175,7 @@ CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
 }
 
 void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
-                              bool needsMaskGeometry)
+                              bool needsMaskGeometry, bool textureRenderMode)
 {
     ZoneScoped;
 
@@ -242,7 +242,13 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
         buf = generateOBJMesh(path);
     }
     else if (ext == "pfm") {
-        buf = generatePerEyeMeshFromPFMImage(path, parentPos, parentSize);
+        buf = generatePerEyeMeshFromPFMImage(
+            path,
+            parentPos,
+            parentSize,
+            textureRenderMode,
+            (textureRenderMode ? 1 : 2);
+        );
     }
     else if (ext == "mpcdi") {
         const Viewport* vp = dynamic_cast<const Viewport*>(&parent);

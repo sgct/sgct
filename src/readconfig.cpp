@@ -609,7 +609,7 @@ sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
         viewport.projection = parsePlanarProjection(*e);
     }
-    if (tinyxml2::XMLElement* e = elem.FirstChildElement("TextureProjection"); e) {
+    if (tinyxml2::XMLElement* e = elem.FirstChildElement("TextureMappedProjection"); e) {
         viewport.projection = parsePlanarProjection(*e);
     }
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("FisheyeProjection"); e) {
@@ -2002,17 +2002,18 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "pos", v.position);
     parseValue(j, "size", v.size);
 
+    std::string type;
     if (auto it = j.find("projection");  it != j.end()) {
         if (it->is_null()) {
             v.projection = sgct::config::NoProjection();
         }
         else {
-            std::string type = it->at("type").get<std::string>();
+            type = it->at("type").get<std::string>();
             if (type == "PlanarProjection") {
                 v.projection = it->get<PlanarProjection>();
             }
-            if (type == "TextureProjection") {
-                v.projection = it->get<TextureProjection>();
+            if (type == "TextureMappedProjection") {
+                v.projection = it->get<TextureMappedProjection>();
             }
             else if (type == "FisheyeProjection") {
                 v.projection = it->get<FisheyeProjection>();
@@ -2038,6 +2039,12 @@ void from_json(const nlohmann::json& j, Viewport& v) {
             else {
                 throw Err(6089, fmt::format("Unknown projection type '{}'", type));
             }
+        }
+    }
+
+    if (type == "TextureMappedProjection") {
+        if (!v.correctionMeshTexture) {
+            throw Err(6110, "Missing correction mesh for TextureMappedProjection");
         }
     }
 }
@@ -2098,9 +2105,9 @@ void to_json(nlohmann::json& j, const Viewport& v) {
             proj["type"] = "PlanarProjection";
             return proj;
         },
-        [](const config::TextureProjection& p) {
+        [](const config::TextureMappedProjection& p) {
             nlohmann::json proj = p;
-            proj["type"] = "TextureProjection";
+            proj["type"] = "TextureMappedProjection";
             return proj;
         },
         [](const config::FisheyeProjection& p) {

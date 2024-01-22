@@ -132,9 +132,9 @@ SGCT_EXPORT void validatePlanarProjection(const PlanarProjection& proj);
 
 
 
-struct SGCT_EXPORT TextureProjection : PlanarProjection {
+struct SGCT_EXPORT TextureMappedProjection : PlanarProjection {
 }
-SGCT_EXPORT void validateTextureProjection(const TextureProjection& proj);
+SGCT_EXPORT void validateTextureProjection(const TextureMappedProjection& proj);
 
 
 
@@ -260,7 +260,7 @@ SGCT_EXPORT void validateMpcdiProjection(const MpcdiProjection& proj);
 using Projections = std::variant<NoProjection, CylindricalProjection,
     EquirectangularProjection, FisheyeProjection, PlanarProjection, ProjectionPlane,
     SphericalMirrorProjection, SpoutOutputProjection, SpoutFlatProjection,
-    TextureProjection>;
+    TextureMappedProjection>;
 
 
 

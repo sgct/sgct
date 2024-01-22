@@ -93,7 +93,10 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     std::visit(overloaded {
         [](const config::NoProjection&) {},
         [this](const config::PlanarProjection& p) { applyPlanarProjection(p); },
-        [this](const config::TextureProjection& p) { applyPlanarProjection(p); },
+        [this](const config::TextureMappedProjection& p) {
+            _useTextureMappedProjection = true;
+            applyPlanarProjection(p);
+        },
         [this](const config::FisheyeProjection& p) { applyFisheyeProjection(p); },
         [this](const config::SphericalMirrorProjection& p) {
             applySphericalMirrorProjection(p);
@@ -363,21 +366,12 @@ void Viewport::loadData() {
         _blackLevelMaskTextureIndex = mgr.loadTexture(_blackLevelMaskFilename, true, 1);
     }
 
-    if (!_mpcdiWarpMesh.empty()) {
-        _mesh.loadMesh(
-            "mesh.mpcdi",
-            *this,
-            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
-        );
-    }
-    else {
-        // load default if _meshFilename is empty
-        _mesh.loadMesh(
-            _meshFilename,
-            *this,
-            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
-        );
-    }
+    _mesh.loadMesh(
+        _meshFilename,
+        *this,
+        hasBlendMaskTexture() || hasBlackLevelMaskTexture()
+        _useTextureMappedProjection
+    );
 }
 
 void Viewport::renderQuadMesh() const {

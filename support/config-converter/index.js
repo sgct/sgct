@@ -411,9 +411,9 @@ function convert(obj) {
               });
             }
           }
-          else if ("TextureProjection" in viewport) {
-            toObject(viewport, "TextureProjection", "projection");
-            viewport.projection.type = "TextureProjection";
+          else if ("TextureMappedProjection" in viewport) {
+            toObject(viewport, "TextureMappedProjection", "projection");
+            viewport.projection.type = "TextureMappedProjection";
 
             // FOV -> fov
             toObject(viewport.projection, "FOV", "fov");

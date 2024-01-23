@@ -20,7 +20,6 @@ namespace sgct::config {
     struct CylindricalProjection;
     struct EquirectangularProjection;
     struct FisheyeProjection;
-    struct MpcdiProjection;
     struct PlanarProjection;
     struct SphericalMirrorProjection;
     struct SpoutOutputProjection;
@@ -45,8 +44,6 @@ public:
         unsigned int format, unsigned int type, int samples);
 
     void applyViewport(const sgct::config::Viewport& viewport);
-    void applySettings(const sgct::config::MpcdiProjection& mpcdi);
-    void setMpcdiWarpMesh(std::vector<char> data);
     void loadData();
 
     /**
@@ -73,7 +70,6 @@ public:
     unsigned int blendMaskTextureIndex() const;
     unsigned int blackLevelMaskTextureIndex() const;
     NonLinearProjection* nonLinearProjection() const;
-    const std::vector<char>& mpcdiWarpMesh() const;
 
 private:
     void applyPlanarProjection(const config::PlanarProjection& proj);

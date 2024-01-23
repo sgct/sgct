@@ -56,9 +56,7 @@ namespace sgct {
  * 1101: Window / Empty tags are not allowed for windows
  * 1102: Window / Number of MSAA samples must be non-negative
  * 1103: Window / Monitor index must be non-negative or -1
- * 1104: Window / MPCDI file must not be empty
  * 1105: Window / Window must contain at least one viewport
- * 1106: Window / Cannot use an MPCDI file and explicitly add viewports simultaneously
  * 1107: Window / Window id must be non-negative and unique [%i used multiple times]
  * 1108: Window / Tried to configure window %i to be blitted from window %i, but no such
                   window was specified
@@ -79,10 +77,6 @@ namespace sgct {
  * 2000: CorrectionMesh / Failed to export. Geometry type is not supported"
  * 2001: CorrectionMesh / Failed to export " + exportPath + ". Failed to open"
  * 2010: DomeProjection / Failed to open '%s'
- * 2020: MPCDIMesh / Configuration error. Trying load MPCDI to wrong viewport
- * 2021: MPCDIMesh / Error reading from file. Could not find lines
- * 2022: MPCDIMesh / Invalid header information in MPCDI mesh
- * 2023: MPCDIMesh / Incorrect file type. Unknown header type
  * 2030: OBJ / Failed to open '%s'
  * 2031: OBJ / Vertex count doesn't match number of texture coordinates in '%s'
  * 2032: OBJ / Faces in mesh '%s' referenced vertices that were undefined
@@ -127,36 +121,6 @@ namespace sgct {
  * 3005: Engine / No sync signal from clients after X seconds
  * 3006: Engine / Error requesting maximum number of swap groups
  * 3010: Engine / GLFW error
-
- * 4000s: MPCDI
- * 4000: MPCDI / Failed to parse position from XML
- * 4001: MPCDI / Failed to parse size from XML
- * 4002: MPCDI / Missing child element 'frustum'
- * 4003: MPCDI / Failed to parse frustum element. Missing element
- * 4004: MPCDI / Failed to parse frustum element. Conversion error
- * 4005: MPCDI / Require both xResolution and yResolution values
- * 4006: MPCDI / No 'id' attribute provided for region
- * 4007: MPCDI / Multiple 'buffer' elements not supported
- * 4008: MPCDI / GeometryWarpFile requires interpolation
- * 4009: MPCDI / Only linear interpolation is supported
- * 4010: MPCDI / GeometryWarpFile requires path
- * 4011: MPCDI / No matching geometryWarpFile found
- * 4012: MPCDI / Cannot find XML root
- * 4013: MPCDI / Error parsing MPCDI, missing or wrong 'profile'
- * 4014: MPCDI / Error parsing MPCDI, missing or wrong 'geometry'
- * 4015: MPCDI / Error parsing MPCDI, missing or wrong 'version'
- * 4016: MPCDI / Missing 'display' element
- * 4017: MPCDI / Multiple 'display' elements not supported
- * 4018: MPCDI / Missing 'files' element
- * 4019: MPCDI / Unable to open zip archive file
- * 4020: MPCDI / Unable to get zip archive info
- * 4021: MPCDI / Unable to get info on file
- * 4022: MPCDI / Unable to open XML file
- * 4023: MPCDI / Read from XML file failed
- * 4024: MPCDI / Unable to open PFM file
- * 4025: MPCDI / Read from PFM file failed
- * 4026: MPCDI / MPCDI does not contain the XML and/or PFM file
- * 4027: MPCDI / Error parsing main XML file
 
  * 5000s: Network
  * 5000: Network / Failed to parse hints for connection
@@ -252,8 +216,6 @@ struct SGCT_EXPORT Error : public std::runtime_error {
         DomeProjection,
         Engine,
         Image,
-        MPCDI,
-        MPCDIMesh,
         Network,
         OBJ,
         PaulBourke,

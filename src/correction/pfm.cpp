@@ -34,24 +34,28 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     }
 
     // Read the first three lines
-    std::string header;
-    std::string dummy;
-    std::getline(meshFile, header);
-    std::getline(meshFile, dummy);
-    std::getline(meshFile, dummy);
-
     std::string fileFormatHeader;
+    std::string dims;
+    std::string endiannessIndicator;
+    std::getline(meshFile, fileFormatHeader, '\n');
+    std::getline(meshFile, dims, '\n');
+    std::getline(meshFile, endiannessIndicator, '\n');
+
     unsigned int nCols = 0;
     unsigned int nRows = 0;
-    float endiannessIndicator = 0;
-    auto result = scn::scan(
-        header,
-        "{} {} {} {}", fileFormatHeader, nCols, nRows, endiannessIndicator
-    );
-    if (!result || fileFormatHeader.size() == 2) {
+    float endiannessValue = 0;
+    auto result = scn::scan(dims, "{} {}", nCols, nRows);
+    if (!result) {
         throw Error(
             Error::Component::Pfm, 2052,
             fmt::format("Invalid header syntax in file {}", path)
+        );
+    }
+    result = scn::scan(endiannessIndicator, "{}", endiannessValue);
+    if (!result) {
+        throw Error(
+            Error::Component::Pfm, 2052,
+            fmt::format("Invalid endianness value in file {}", path)
         );
     }
 

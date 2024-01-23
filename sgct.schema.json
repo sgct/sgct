@@ -779,7 +779,7 @@
         "mesh": {
           "type": "string",
           "title": "Mesh",
-          "description": "Determines a warping mesh file that is used to warp the resulting image. The application's rendering will always be rendered into a rectangular framebuffer, which is then mapped as a texture to the geometry provided by this file. This makes it possible to create non-linear or curved output geometries from a regular projection by providing the proper geometry of the surface that you want to project on. The reader for the warping mesh is determined by the file extension of the file that is provided in this attribute. The default is that no warping mesh is applied. Supported geometry mesh formats: 1. SCISS Mesh (sgc extension). A mesh format that was introduced by SCISS for the Uniview software. SCISS created two versions for this file format, one for 2D warping meshes and a second for 3D cubemap lookups. SGCT only supports the first version of the file format, however. 2. Scalable Mesh (ol extension) A mesh format created by scalable. 3. Dome Projection (csv extension), 4. Paul Bourke Mesh (data extension) A file format created by Paul Bourke, his webpage also contains more information abuot the individual steps of the warping. 5. Waveform OBJ (obj extension) The well known textual mesh format. 6. MPCDI (mpcdi extension) A subset of the VESA standard. 7. SimCAD (simcad extension)"
+          "description": "Determines a warping mesh file that is used to warp the resulting image. The application's rendering will always be rendered into a rectangular framebuffer, which is then mapped as a texture to the geometry provided by this file. This makes it possible to create non-linear or curved output geometries from a regular projection by providing the proper geometry of the surface that you want to project on. The reader for the warping mesh is determined by the file extension of the file that is provided in this attribute. The default is that no warping mesh is applied. Supported geometry mesh formats: 1. SCISS Mesh (sgc extension). A mesh format that was introduced by SCISS for the Uniview software. SCISS created two versions for this file format, one for 2D warping meshes and a second for 3D cubemap lookups. SGCT only supports the first version of the file format, however. 2. Scalable Mesh (ol extension) A mesh format created by scalable. 3. Dome Projection (csv extension), 4. Paul Bourke Mesh (data extension) A file format created by Paul Bourke, his webpage also contains more information abuot the individual steps of the warping. 5. Waveform OBJ (obj extension) The well known textual mesh format. 6. SimCAD (simcad extension)"
         },
         "tracked": {
           "$ref": "#/$defs/tracked"
@@ -897,11 +897,6 @@
         },
         "monitor": {
           "$ref": "#/$defs/monitor"
-        },
-        "mpcdi": {
-          "type": "string",
-          "title": "MPCDI",
-          "description": "If this value is set to a path that contains an MPCDI file that describes camera parameters and warping and blending masks, these values are used to initialize the contents of this window instead of providing explicit viewport information. If this value is used, there cannot be any Viewports defined in this window as as the mpcdi file takes care of this. The default value is that no MPCDI is used"
         },
         "stereo": {
           "type": "string",

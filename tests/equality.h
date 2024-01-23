@@ -50,8 +50,6 @@ bool operator==(const CylindricalProjection& lhs, const CylindricalProjection& r
 bool operator==(const EquirectangularProjection& lhs,
     const EquirectangularProjection& rhs);
 bool operator==(const ProjectionPlane& lhs, const ProjectionPlane& rhs);
-bool operator==(const MpcdiProjection::Frustum& lhs, const MpcdiProjection::Frustum& rhs);
-bool operator==(const MpcdiProjection& lhs, const MpcdiProjection& rhs);
 bool operator==(const Viewport& lhs, const Viewport& rhs);
 bool operator==(const Window& lhs, const Window& rhs);
 bool operator==(const Node& lhs, const Node& rhs);

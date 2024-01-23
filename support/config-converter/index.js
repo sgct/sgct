@@ -334,7 +334,6 @@ function convert(obj) {
         toBoolean(window, "draw3d");
         toNumber(window, "blitWindowId", "blitwindowid");
         toNumber(window, "monitor");
-        toString(window, "mpcdi");
 
         // The stereo value was stored as the "type" parameter before, but we can compress
         // that value down

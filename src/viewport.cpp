@@ -116,30 +116,6 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     }, viewport.projection);
 }
 
-void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
-    ZoneScoped;
-
-    if (mpcdi.position) {
-        setPos(*mpcdi.position);
-    }
-    if (mpcdi.size) {
-        setSize(*mpcdi.size);
-    }
-    if (mpcdi.frustum) {
-        setViewPlaneCoordsUsingFOVs(
-            mpcdi.frustum->up,
-            mpcdi.frustum->down,
-            mpcdi.frustum->left,
-            mpcdi.frustum->right,
-            mpcdi.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
-            mpcdi.distance.value_or(10.f)
-        );
-        if (mpcdi.offset) {
-            _projPlane.offset(*mpcdi.offset);
-        }
-    }
-}
-
 void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
     ZoneScoped;
 
@@ -346,10 +322,6 @@ void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProje
     _nonLinearProjection = std::move(proj);
 }
 
-void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
-    _mpcdiWarpMesh = std::move(data);
-}
-
 void Viewport::loadData() {
     ZoneScoped;
 
@@ -369,7 +341,7 @@ void Viewport::loadData() {
     _mesh.loadMesh(
         _meshFilename,
         *this,
-        hasBlendMaskTexture() || hasBlackLevelMaskTexture()
+        (hasBlendMaskTexture() || hasBlackLevelMaskTexture()),
         _useTextureMappedProjection
     );
 }
@@ -432,10 +404,6 @@ unsigned int Viewport::blackLevelMaskTextureIndex() const {
 
 NonLinearProjection* Viewport::nonLinearProjection() const {
     return _nonLinearProjection.get();
-}
-
-const std::vector<char>& Viewport::mpcdiWarpMesh() const {
-    return _mpcdiWarpMesh;
 }
 
 } // namespace sgct

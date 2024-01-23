@@ -58,7 +58,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/math.h
     ${PROJECT_SOURCE_DIR}/include/sgct/modifiers.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mouse.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/mpcdi.h
     ${PROJECT_SOURCE_DIR}/include/sgct/mutexes.h
     ${PROJECT_SOURCE_DIR}/include/sgct/network.h
     ${PROJECT_SOURCE_DIR}/include/sgct/networkmanager.h
@@ -84,7 +83,6 @@ target_sources(
     ${PROJECT_SOURCE_DIR}/include/sgct/window.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/buffer.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/domeprojection.h
-    ${PROJECT_SOURCE_DIR}/include/sgct/correction/mpcdimesh.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/obj.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/paulbourke.h
     ${PROJECT_SOURCE_DIR}/include/sgct/correction/pfm.h
@@ -123,7 +121,6 @@ target_sources(
     image.cpp
     log.cpp
     math.cpp
-    mpcdi.cpp
     network.cpp
     networkmanager.cpp
     node.cpp
@@ -144,7 +141,6 @@ target_sources(
     viewport.cpp
     window.cpp
     correction/domeprojection.cpp
-    correction/mpcdimesh.cpp
     correction/obj.cpp
     correction/paulbourke.cpp
     correction/pfm.cpp

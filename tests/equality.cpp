@@ -250,27 +250,6 @@ bool operator==(const ProjectionPlane& lhs, const ProjectionPlane& rhs) {
         lhs.upperRight == rhs.upperRight;
 }
 
-bool operator==(const MpcdiProjection::Frustum& lhs, const MpcdiProjection::Frustum& rhs)
-{
-    return
-        lhs.down == rhs.down &&
-        lhs.up == rhs.up &&
-        lhs.left == rhs.left &&
-        lhs.right == rhs.right;
-}
-
-bool operator==(const MpcdiProjection& lhs, const MpcdiProjection& rhs) {
-    return
-        lhs.id == rhs.id &&
-        lhs.position == rhs.position &&
-        lhs.size == rhs.size &&
-        lhs.resolution == rhs.resolution &&
-        lhs.frustum == rhs.frustum &&
-        lhs.distance == rhs.distance &&
-        lhs.orientation == rhs.orientation &&
-        lhs.offset == rhs.offset;
-}
-
 bool operator==(const Viewport& lhs, const Viewport& rhs) {
     return
         lhs.user == rhs.user &&
@@ -306,7 +285,6 @@ bool operator==(const Window& lhs, const Window& rhs) {
         lhs.isMirrored == rhs.isMirrored &&
         lhs.blitWindowId == rhs.blitWindowId &&
         lhs.monitor == rhs.monitor &&
-        lhs.mpcdi == rhs.mpcdi &&
         lhs.stereo == rhs.stereo &&
         lhs.pos == rhs.pos &&
         lhs.size == rhs.size &&

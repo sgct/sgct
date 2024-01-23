@@ -210,8 +210,6 @@ void validateEquirectangularProjection(const EquirectangularProjection&) {}
 
 void validateProjectionPlane(const ProjectionPlane&) {}
 
-void validateMpcdiProjection(const MpcdiProjection&) {}
-
 void validateViewport(const Viewport& v, bool /*draw3D*/) {
     ZoneScoped;
 
@@ -276,19 +274,6 @@ void validateWindow(const Window& w) {
     }
     if (w.monitor && *w.monitor < -1) {
         throw Error(1103, "Monitor index must be non-negative or -1");
-    }
-    if (w.mpcdi && w.mpcdi->empty()) {
-        throw Error(1104, "MPCDI file must not be empty");
-    }
-    if (!w.mpcdi && w.viewports.empty()) {
-        // A viewport must exist except when we load an MPCDI file
-        throw Error(1105, "Window must contain at least one viewport");
-    }
-    if (w.mpcdi && !w.viewports.empty()) {
-        throw Error(
-            1106,
-            "Cannot use an MPCDI file and explicitly add viewports simultaneously"
-        );
     }
 
     for (const Viewport& vp : w.viewports) {

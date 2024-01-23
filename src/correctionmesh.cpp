@@ -18,7 +18,6 @@
 #include <sgct/viewport.h>
 #include <sgct/window.h>
 #include <sgct/correction/domeprojection.h>
-#include <sgct/correction/mpcdimesh.h>
 #include <sgct/correction/obj.h>
 #include <sgct/correction/paulbourke.h>
 #include <sgct/correction/pfm.h>
@@ -247,15 +246,8 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
             parentPos,
             parentSize,
             textureRenderMode,
-            (textureRenderMode ? 1 : 2);
+            textureRenderMode ? 1 : 2
         );
-    }
-    else if (ext == "mpcdi") {
-        const Viewport* vp = dynamic_cast<const Viewport*>(&parent);
-        if (vp == nullptr) {
-            throw Error(2020, "Configuration error. Trying load MPCDI to wrong viewport");
-        }
-        buf = generateMpcdiMesh(vp->mpcdiWarpMesh());
     }
     else if (ext == "simcad") {
         buf = generateSimCADMesh(path, parentPos, parentSize);

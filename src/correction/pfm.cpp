@@ -86,7 +86,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
-    nCols /= 2;
+    nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
@@ -141,7 +141,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
                 i++;
             }
-            i += nCols;
+            i += nCols * (nEyes - 1);
         }
 
         // Make a triangle strip index list

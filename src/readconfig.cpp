@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -2772,8 +2772,6 @@ sgct::config::Meta readMeta(const std::string& filename) {
     catch (const nlohmann::json::exception& e) {
         throw Err(6082, e.what());
     }
-
-    return sgct::config::Meta();
 }
 
 } // namespace sgct

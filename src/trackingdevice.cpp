@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -24,7 +24,7 @@
 
 namespace sgct {
 
-TrackingDevice::TrackingDevice(int parentIndex, std::string name)
+TrackingDevice::TrackingDevice([[maybe_unused]] int parentIndex, std::string name)
     : _name(std::move(name))
 #ifdef SGCT_HAS_VRPN
     , _parentIndex(parentIndex)

@@ -2,7 +2,7 @@
  * SGCT                                                                                  *
  * Simple Graphics Cluster Toolkit                                                       *
  *                                                                                       *
- * Copyright (c) 2012-2023                                                               *
+ * Copyright (c) 2012-2024                                                               *
  * For conditions of distribution and use, see copyright notice in LICENSE.md            *
  ****************************************************************************************/
 
@@ -348,7 +348,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             try {
                 // We try to convert the first value into a float.  If it succeeds, we
                 // have reached the vertices.  Otherwise we have found an unknown key
-                [[ maybe_unused ]] float dummy = std::stof(std::string(first));
+                [[maybe_unused]] float dummy = std::stof(std::string(first));
             }
             catch (const std::invalid_argument&) {
                 Log::Warning(fmt::format(

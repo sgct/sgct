@@ -245,8 +245,7 @@ void CorrectionMesh::loadMesh(std::string path, BaseViewport& parent,
             path,
             parentPos,
             parentSize,
-            textureRenderMode,
-            textureRenderMode ? 1 : 2
+            textureRenderMode
         );
     }
     else if (ext == "simcad") {

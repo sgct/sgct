@@ -3,7 +3,7 @@
   "masteraddress": "localhost",
   "users": [
     {
-      "eyeseparation": 0.065,
+      "eyeseparation": 0.06,
       "pos": { "x": 0, "y": 0, "z": 0.0 }
     }
   ],
@@ -18,20 +18,20 @@
       "swaplock": false,
       "windows": [
         {
-	  "fullscreen": false,
-	  "border": false,
+          "fullscreen": false,
+          "border": false,
           "fxaa": false,
           "msaa": 1,
-	  "pos": { "x": 0, "y": 0 },
+          "pos": { "x": 0, "y": 0 },
           "size": { "x": 768, "y": 810 },
-	  "viewports": [
+          "viewports": [
             {
               "tracked": true,
-	      "mesh": "mesh/surface1.pfm",
+              "mesh": "mesh/surface1.pfm",
               "pos": { "x": 0.0, "y": 0.0 },
               "size": { "x": 1.0, "y": 1.0 },
               "projection": {
-                "type": "PlanarProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "down": 78.435992,
                   "left": 77.821993,

@@ -20,7 +20,7 @@
 namespace sgct::correction {
 
 Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-                                      const vec2& size, bool textureRenderMode, int nEyes)
+                                      const vec2& size, bool textureRenderMode)
 {
     ZoneScoped;
 
@@ -86,12 +86,13 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
+    unsigned int nEyes = textureRenderMode ? 1 : 2;
     nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
     // We assume we loaded side-by-side images if uses 2 eyes, i.e. different warp per eye
-    for (size_t e = 0; e < nEyes; e++) {
+    for (unsigned int e = 0; e < nEyes; e++) {
         Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;

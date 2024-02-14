@@ -178,7 +178,7 @@ namespace sgct {
  * 6089: Parsing / Validation against schema failed
  * 6090: SpoutOutput / Unknown spout output mapping: %s
  * 6100: SphericalMirror / Missing geometry paths
- * 6110: TextureMappingProjection / Missing correction mesh
+ * 6110: TextureMappedProjection / Missing correction mesh
 
  * 7000s: Shader Handling
  * 7000: ShaderManager / Cannot add shader program %s: Already exists

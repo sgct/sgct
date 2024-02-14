@@ -361,7 +361,7 @@
         "distance": {
           "type": "number",
           "title": "Distance",
-          "description": "The distance (in meters) at which the virtual render plane is placed. This value is only important when rendering this viewport using stereocopy as the distance and the Users eyeSeparation are used to compute the change in frustum between the left and the right eyes"
+          "description": "The distance (in meters) at which the virtual render plane is placed. This value is only important when rendering this viewport using stereoscopy as the distance and the Users eyeSeparation are used to compute the change in frustum between the left and the right eyes"
         },
         "orientation": {
           "$ref": "#/$defs/quat",

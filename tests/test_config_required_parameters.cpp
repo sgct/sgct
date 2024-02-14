@@ -809,7 +809,7 @@ TEST_CASE("Parse Required: Tracker/Name", "[parse]") {
     );
 }
 
-TEST_CASE("Parse Required: TextureMappingProjection mesh", "[parse]") {
+TEST_CASE("Parse Required: TextureMappedProjection mesh", "[parse]") {
     constexpr std::string_view Sources = R"(
 {
   "version": 1,
@@ -824,7 +824,7 @@ TEST_CASE("Parse Required: TextureMappingProjection mesh", "[parse]") {
           "viewports": [
             {
               "projection": {
-                "type": "TextureMappingProjection",
+                "type": "TextureMappedProjection",
                 "fov": {
                   "up": 1.0,
                   "down": 1.0,

@@ -1527,7 +1527,7 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
     CHECK(u.position->z == 4.f);
 }
 
-TEST_CASE("Load: TextureMappingProjection", "[parse]") {
+TEST_CASE("Load: TextureMappedProjection", "[parse]") {
     using namespace sgct::config;
 
     Cluster res = sgct::readConfig(std::string(BASE_PATH) +
@@ -1558,20 +1558,23 @@ TEST_CASE("Load: TextureMappingProjection", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
     REQUIRE(v.correctionMeshTexture.has_value());
-    CHECK(*v.correctionMeshTexture == "mesh/surface1.pfm");
+    const std::string expectedPath = "mesh/surface1.pfm";
+    std::string relativePath = *v.correctionMeshTexture;
+    relativePath = relativePath.substr(relativePath.length() - expectedPath.length());
+    CHECK(relativePath == expectedPath);
 
     REQUIRE(std::holds_alternative<TextureMappedProjection>(v.projection));
     const TextureMappedProjection& p = std::get<TextureMappedProjection>(v.projection);
-    CHECK(p.fov.left == 77.821993);
-    CHECK(p.fov.right == 77.821993);
-    CHECK(p.fov.up == 78.435992);
-    CHECK(p.fov.down == 78.435992);
+    CHECK(p.fov.left == -77.82199f);
+    CHECK(p.fov.right == 77.82199f);
+    CHECK(p.fov.up == 78.43599f);
+    CHECK(p.fov.down == -78.43599f);
     REQUIRE(p.orientation.has_value());
 
     REQUIRE(res.users.size() == 1);
     const User& u = res.users[0];
     REQUIRE(u.eyeSeparation.has_value());
-    CHECK(*u.eyeSeparation == 0.065f);
+    CHECK(*u.eyeSeparation == 0.06f);
     REQUIRE(u.position.has_value());
     CHECK(u.position->x == 0.f);
     CHECK(u.position->y == 0.f);

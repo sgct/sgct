@@ -93,6 +93,10 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
     std::visit(overloaded {
         [](const config::NoProjection&) {},
         [this](const config::PlanarProjection& p) { applyPlanarProjection(p); },
+        [this](const config::TextureMappedProjection& p) {
+            _useTextureMappedProjection = true;
+            applyPlanarProjection(p);
+        },
         [this](const config::FisheyeProjection& p) { applyFisheyeProjection(p); },
         [this](const config::SphericalMirrorProjection& p) {
             applySphericalMirrorProjection(p);
@@ -110,30 +114,6 @@ void Viewport::applyViewport(const config::Viewport& viewport) {
             _viewPlane.upperRight = p.upperRight;
         },
     }, viewport.projection);
-}
-
-void Viewport::applySettings(const sgct::config::MpcdiProjection& mpcdi) {
-    ZoneScoped;
-
-    if (mpcdi.position) {
-        setPos(*mpcdi.position);
-    }
-    if (mpcdi.size) {
-        setSize(*mpcdi.size);
-    }
-    if (mpcdi.frustum) {
-        setViewPlaneCoordsUsingFOVs(
-            mpcdi.frustum->up,
-            mpcdi.frustum->down,
-            mpcdi.frustum->left,
-            mpcdi.frustum->right,
-            mpcdi.orientation.value_or(quat{ 0.f, 0.f, 0.f, 1.f }),
-            mpcdi.distance.value_or(10.f)
-        );
-        if (mpcdi.offset) {
-            _projPlane.offset(*mpcdi.offset);
-        }
-    }
 }
 
 void Viewport::applyPlanarProjection(const config::PlanarProjection& proj) {
@@ -342,10 +322,6 @@ void Viewport::applySphericalMirrorProjection(const config::SphericalMirrorProje
     _nonLinearProjection = std::move(proj);
 }
 
-void Viewport::setMpcdiWarpMesh(std::vector<char> data) {
-    _mpcdiWarpMesh = std::move(data);
-}
-
 void Viewport::loadData() {
     ZoneScoped;
 
@@ -362,21 +338,12 @@ void Viewport::loadData() {
         _blackLevelMaskTextureIndex = mgr.loadTexture(_blackLevelMaskFilename, true, 1);
     }
 
-    if (!_mpcdiWarpMesh.empty()) {
-        _mesh.loadMesh(
-            "mesh.mpcdi",
-            *this,
-            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
-        );
-    }
-    else {
-        // load default if _meshFilename is empty
-        _mesh.loadMesh(
-            _meshFilename,
-            *this,
-            hasBlendMaskTexture() || hasBlackLevelMaskTexture()
-        );
-    }
+    _mesh.loadMesh(
+        _meshFilename,
+        *this,
+        (hasBlendMaskTexture() || hasBlackLevelMaskTexture()),
+        _useTextureMappedProjection
+    );
 }
 
 void Viewport::renderQuadMesh() const {
@@ -437,10 +404,6 @@ unsigned int Viewport::blackLevelMaskTextureIndex() const {
 
 NonLinearProjection* Viewport::nonLinearProjection() const {
     return _nonLinearProjection.get();
-}
-
-const std::vector<char>& Viewport::mpcdiWarpMesh() const {
-    return _mpcdiWarpMesh;
 }
 
 } // namespace sgct

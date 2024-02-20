@@ -14,7 +14,6 @@
 #include <sgct/fmt.h>
 #include <sgct/internalshaders.h>
 #include <sgct/log.h>
-#include <sgct/mpcdi.h>
 #include <sgct/networkmanager.h>
 #include <sgct/node.h>
 #include <sgct/offscreenbuffer.h>
@@ -170,23 +169,6 @@ void Window::applyWindow(const config::Window& window) {
     }
     if (window.monitor) {
         setFullScreenMonitorIndex(*window.monitor);
-    }
-    if (window.mpcdi) {
-        ZoneScopedN("MPCDI");
-
-        mpcdi::ReturnValue r = mpcdi::parseMpcdiConfiguration(*window.mpcdi);
-        setWindowPosition(ivec2{ 0, 0 });
-        initWindowResolution(r.resolution);
-        setFramebufferResolution(r.resolution);
-        setFixResolution(true);
-
-        for (const mpcdi::ReturnValue::ViewportInfo& vp : r.viewports) {
-            auto v = std::make_unique<Viewport>(this);
-            v->applySettings(vp.proj);
-            v->setMpcdiWarpMesh(vp.meshData);
-            addViewport(std::move(v));
-        }
-        return;
     }
     if (window.stereo) {
         StereoMode sm = [](config::Window::StereoMode mode) {

@@ -20,7 +20,7 @@
 namespace sgct::correction {
 
 Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const vec2& pos,
-                                      const vec2& size)
+                                      const vec2& size, bool textureRenderMode)
 {
     ZoneScoped;
 
@@ -86,12 +86,13 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
-    nCols /= 2;
+    unsigned int nEyes = textureRenderMode ? 1 : 2;
+    nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)
 
-    // We assume we loaded side-by-side images, i.e. different warp per eye
-    for (size_t e = 0; e < 2; e++) {
+    // We assume we loaded side-by-side images if uses 2 eyes, i.e. different warp per eye
+    for (unsigned int e = 0; e < nEyes; e++) {
         Buffer::Vertex vertex;
         vertex.r = 1.f;
         vertex.g = 1.f;
@@ -116,18 +117,32 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
                 float y = ycorrections[i + (e * nCols)];
 
                 // convert to [-1, 1]
-                vertex.x = 2.f * (x * size.x + pos.x) - 1.f;
-                vertex.y = 2.f * (y * size.y + pos.y) - 1.f;
+                if (textureRenderMode) {
+                    vertex.x = static_cast<float>(c) / static_cast<float>(nCols - 1);
+                    vertex.y = 1.f - static_cast<float>(r) / static_cast<float>(nRows -1);
+                }
+                else {
+                    vertex.x = x * size.x + pos.x;
+                    vertex.y = y * size.y + pos.y;
+                }
+                vertex.x = 2.f * vertex.x - 1.f;
+                vertex.y = 2.f * vertex.y - 1.f;
 
                 // scale to viewport coordinates
-                vertex.s = u * size.x + pos.x;
-                vertex.t = v * size.y + pos.y;
+                if (textureRenderMode) {
+                    vertex.s = x + pos.x;
+                    vertex.t = y + pos.y;
+                }
+                else {
+                    vertex.s = u * size.x + pos.x;
+                    vertex.t = v * size.y + pos.y;
+                }
 
                 buf.vertices.push_back(vertex);
 
                 i++;
             }
-            i += nCols;
+            i += nCols * (nEyes - 1);
         }
 
         // Make a triangle strip index list

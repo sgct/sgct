@@ -1524,62 +1524,6 @@ TEST_CASE("Window/Monitor", "[roundtrip]") {
     }
 }
 
-TEST_CASE("Window/MPCDI", "[roundtrip]") {
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.mpcdi = std::nullopt;
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.mpcdi = std::filesystem::absolute("abc").string();
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-
-    {
-        sgct::config::Cluster input;
-        input.success = true;
-
-        sgct::config::Node node;
-        node.address = "abc";
-        node.port = 1;
-
-        sgct::config::Window window;
-        window.mpcdi = std::filesystem::absolute("def").string();
-        node.windows.push_back(window);
-        input.nodes.push_back(node);
-
-        std::string str = sgct::serializeConfig(input);
-        sgct::config::Cluster output = sgct::readJsonConfig(str);
-        REQUIRE(input == output);
-    }
-}
-
 TEST_CASE("Window/Stereo", "[roundtrip]") {
     {
         sgct::config::Cluster input;

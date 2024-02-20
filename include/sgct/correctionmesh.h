@@ -36,7 +36,7 @@ public:
      * \throw std::runtime_error if mesh was not loaded successfully
      */
     void loadMesh(std::string path, BaseViewport& parent,
-        bool needsMaskGeometry = false);
+        bool needsMaskGeometry = false, bool textureRenderMode = false);
 
     /**
      * Render the final mesh where for mapping the frame buffer to the screen.

@@ -20,11 +20,11 @@ namespace sgct::config {
     struct CylindricalProjection;
     struct EquirectangularProjection;
     struct FisheyeProjection;
-    struct MpcdiProjection;
     struct PlanarProjection;
     struct SphericalMirrorProjection;
     struct SpoutOutputProjection;
     struct SpoutFlatProjection;
+    struct TextureMappedProjection;
     struct Viewport;
 } // namespace sgct::config
 
@@ -44,8 +44,6 @@ public:
         unsigned int format, unsigned int type, int samples);
 
     void applyViewport(const sgct::config::Viewport& viewport);
-    void applySettings(const sgct::config::MpcdiProjection& mpcdi);
-    void setMpcdiWarpMesh(std::vector<char> data);
     void loadData();
 
     /**
@@ -72,7 +70,6 @@ public:
     unsigned int blendMaskTextureIndex() const;
     unsigned int blackLevelMaskTextureIndex() const;
     NonLinearProjection* nonLinearProjection() const;
-    const std::vector<char>& mpcdiWarpMesh() const;
 
 private:
     void applyPlanarProjection(const config::PlanarProjection& proj);
@@ -82,6 +79,7 @@ private:
     void applyCylindricalProjection(const config::CylindricalProjection& proj);
     void applyEquirectangularProjection(const config::EquirectangularProjection& proj);
     void applySphericalMirrorProjection(const config::SphericalMirrorProjection& proj);
+    void applyTextureProjection(const config::TextureMappedProjection& proj);
 
     CorrectionMesh _mesh;
     std::string _overlayFilename;
@@ -92,11 +90,11 @@ private:
     unsigned int _overlayTextureIndex = 0;
     unsigned int _blendMaskTextureIndex = 0;
     unsigned int _blackLevelMaskTextureIndex = 0;
+    bool _useTextureMappedProjection = false;
 
     // @TODO (abock, 2020-01-06) This can be replace with a std::variant as we have a
     // fixed list of overloads and this would remove the virtual function calls
     std::unique_ptr<NonLinearProjection> _nonLinearProjection;
-    std::vector<char> _mpcdiWarpMesh;
 };
 
 } // namespace sgct

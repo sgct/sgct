@@ -1526,3 +1526,57 @@ TEST_CASE("Load: Two Nodes", "[parse]") {
     CHECK(u.position->y == 0.f);
     CHECK(u.position->z == 4.f);
 }
+
+TEST_CASE("Load: TextureMappedProjection", "[parse]") {
+    using namespace sgct::config;
+
+    Cluster res = sgct::readConfig(std::string(BASE_PATH) +
+        "/config/single_texturemapped.json");
+
+    CHECK(res.masterAddress == "localhost");
+
+    REQUIRE(res.nodes.size() == 1);
+    const Node& n = res.nodes[0];
+    CHECK(n.address == "localhost");
+    CHECK(n.port == 20401);
+
+    REQUIRE(n.windows.size() == 1);
+    const Window& w = n.windows[0];
+    REQUIRE(w.isFullScreen.has_value());
+    CHECK(*w.isFullScreen == false);
+    REQUIRE(w.isDecorated.has_value());
+    CHECK(*w.isDecorated == false);
+    CHECK(w.size.x == 768);
+    CHECK(w.size.y == 810);
+
+    REQUIRE(w.viewports.size() == 1);
+    const Viewport& v = w.viewports[0];
+    REQUIRE(v.position.has_value());
+    CHECK(v.position->x == 0.f);
+    CHECK(v.position->y == 0.f);
+    REQUIRE(v.size.has_value());
+    CHECK(v.size->x == 1.f);
+    CHECK(v.size->y == 1.f);
+    REQUIRE(v.correctionMeshTexture.has_value());
+    const std::string expectedPath = "mesh/surface1.pfm";
+    std::string relativePath = *v.correctionMeshTexture;
+    relativePath = relativePath.substr(relativePath.length() - expectedPath.length());
+    CHECK(relativePath == expectedPath);
+
+    REQUIRE(std::holds_alternative<TextureMappedProjection>(v.projection));
+    const TextureMappedProjection& p = std::get<TextureMappedProjection>(v.projection);
+    CHECK(p.fov.left == -77.82199f);
+    CHECK(p.fov.right == 77.82199f);
+    CHECK(p.fov.up == 78.43599f);
+    CHECK(p.fov.down == -78.43599f);
+    REQUIRE(p.orientation.has_value());
+
+    REQUIRE(res.users.size() == 1);
+    const User& u = res.users[0];
+    REQUIRE(u.eyeSeparation.has_value());
+    CHECK(*u.eyeSeparation == 0.06f);
+    REQUIRE(u.position.has_value());
+    CHECK(u.position->x == 0.f);
+    CHECK(u.position->y == 0.f);
+    CHECK(u.position->z == 0.f);
+}

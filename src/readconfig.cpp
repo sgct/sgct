@@ -609,6 +609,9 @@ sgct::config::Viewport parseViewport(tinyxml2::XMLElement& elem) {
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("PlanarProjection"); e) {
         viewport.projection = parsePlanarProjection(*e);
     }
+    if (tinyxml2::XMLElement* e = elem.FirstChildElement("TextureMappedProjection"); e) {
+        viewport.projection = parsePlanarProjection(*e);
+    }
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("FisheyeProjection"); e) {
         viewport.projection = parseFisheyeProjection(*e);
     }
@@ -695,10 +698,6 @@ sgct::config::Window parseWindow(tinyxml2::XMLElement& elem, int count) {
     window.draw3D = parseValue<bool>(elem, "draw3D");
     window.blitWindowId = parseValue<int>(elem, "blitWindowId");
     window.monitor = parseValue<int>(elem, "monitor");
-
-    if (const char* a = elem.Attribute("mpcdi"); a) {
-        window.mpcdi = std::filesystem::absolute(a).string();
-    }
 
     if (tinyxml2::XMLElement* e = elem.FirstChildElement("Stereo"); e) {
         window.stereo = parseStereoType(e->Attribute("type"));
@@ -1999,14 +1998,18 @@ void from_json(const nlohmann::json& j, Viewport& v) {
     parseValue(j, "pos", v.position);
     parseValue(j, "size", v.size);
 
+    std::string type;
     if (auto it = j.find("projection");  it != j.end()) {
         if (it->is_null()) {
             v.projection = sgct::config::NoProjection();
         }
         else {
-            std::string type = it->at("type").get<std::string>();
+            type = it->at("type").get<std::string>();
             if (type == "PlanarProjection") {
                 v.projection = it->get<PlanarProjection>();
+            }
+            else if (type == "TextureMappedProjection") {
+                v.projection = it->get<TextureMappedProjection>();
             }
             else if (type == "FisheyeProjection") {
                 v.projection = it->get<FisheyeProjection>();
@@ -2032,6 +2035,12 @@ void from_json(const nlohmann::json& j, Viewport& v) {
             else {
                 throw Err(6089, fmt::format("Unknown projection type '{}'", type));
             }
+        }
+    }
+
+    if (type == "TextureMappedProjection") {
+        if (!v.correctionMeshTexture) {
+            throw Err(6110, "Missing correction mesh for TextureMappedProjection");
         }
     }
 }
@@ -2090,6 +2099,11 @@ void to_json(nlohmann::json& j, const Viewport& v) {
         [](const config::PlanarProjection& p) {
             nlohmann::json proj = p;
             proj["type"] = "PlanarProjection";
+            return proj;
+        },
+        [](const config::TextureMappedProjection& p) {
+            nlohmann::json proj = p;
+            proj["type"] = "TextureMappedProjection";
             return proj;
         },
         [](const config::FisheyeProjection& p) {
@@ -2161,10 +2175,6 @@ void from_json(const nlohmann::json& j, Window& w) {
     parseValue(j, "draw3d", w.draw3D);
     parseValue(j, "blitwindowid", w.blitWindowId);
     parseValue(j, "monitor", w.monitor);
-
-    if (auto it = j.find("mpcdi");  it != j.end()) {
-        w.mpcdi = std::filesystem::absolute(it->get<std::string>()).string();
-    }
 
     if (auto it = j.find("stereo");  it != j.end()) {
         w.stereo = parseStereoType(it->get<std::string>());
@@ -2279,10 +2289,6 @@ void to_json(nlohmann::json& j, const Window& w) {
 
     if (w.monitor.has_value()) {
         j["monitor"] = *w.monitor;
-    }
-
-    if (w.mpcdi.has_value()) {
-        j["mpcdi"] = *w.mpcdi;
     }
 
     if (w.stereo.has_value()) {

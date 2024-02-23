@@ -1558,7 +1558,10 @@ TEST_CASE("Load: TextureMappedProjection", "[parse]") {
     CHECK(v.size->x == 1.f);
     CHECK(v.size->y == 1.f);
     REQUIRE(v.correctionMeshTexture.has_value());
-    const std::string expectedPath = "mesh/surface1.pfm";
+    std::string expectedPath = "mesh/surface1.pfm";
+#ifdef WIN32
+    expectedPath = "mesh\\surface1.pfm";
+#endif
     std::string relativePath = *v.correctionMeshTexture;
     relativePath = relativePath.substr(relativePath.length() - expectedPath.length());
     CHECK(relativePath == expectedPath);

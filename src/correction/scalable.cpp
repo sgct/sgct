@@ -119,6 +119,9 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         size_t separator = v.find(' ');
         std::string_view first = v.substr(0, separator);
         std::string_view rest = v.substr(separator + 1);
+        if (!rest.empty() && rest.back() == '\r') {
+            rest.pop_back();
+        }
 
         if (first == "OPENMESH") {
             if (rest != "Version 1.1") {

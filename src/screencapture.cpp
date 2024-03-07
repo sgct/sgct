@@ -230,7 +230,7 @@ std::string ScreenCapture::createFilename(uint64_t frameNumber) {
 
     std::string file;
     if (!Settings::instance().capturePath().empty()) {
-        file = Settings::instance().capturePath() + '/';
+        file = Settings::instance().capturePath().string() + '/';
     }
     if (!Settings::instance().prefixScreenshot().empty()) {
         file += Settings::instance().prefixScreenshot();

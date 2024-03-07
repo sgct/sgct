@@ -49,7 +49,7 @@ namespace {
     float getLineWidth(sgct::text::Font& font, const std::string& line) {
         // figure out width
         float lineWidth = 0.f;
-        for (size_t j = 0; j < line.length() - 1; ++j) {
+        for (size_t j = 0; j < line.length() - 1; j++) {
             char c = line.c_str()[j];
             const sgct::text::Font::FontFaceData& ffd = font.fontFaceData(c);
             lineWidth += ffd.distToNextChar;

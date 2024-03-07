@@ -67,7 +67,7 @@ namespace {
     std::function<void(MouseButton, Modifier, Action, Window*)> gMouseButtonCallback = nullptr;
     std::function<void(double, double, Window*)> gMousePosCallback = nullptr;
     std::function<void(double, double, Window*)> gMouseScrollCallback = nullptr;
-    std::function<void(int, const char**)> gDropCallback = nullptr;
+    std::function<void(std::vector<std::string_view>)> gDropCallback = nullptr;
 
     // For feedback: breaks a frame lock wait condition every time interval
     // (FrameLockTimeout) in order to print waiting message.
@@ -416,7 +416,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
     if (netMode == NetworkManager::NetworkMode::Remote) {
         Log::Debug("Matching ip address to find node in configuration");
 
-        for (size_t i = 0; i < cluster.nodes.size(); ++i) {
+        for (size_t i = 0; i < cluster.nodes.size(); i++) {
             if (NetworkManager::instance().matchesAddress(cluster.nodes[i].address)) {
                 clusterId = static_cast<int>(i);
                 Log::Debug(fmt::format("Running in cluster mode as node {}", i));
@@ -557,7 +557,11 @@ void Engine::initialize() {
             glfwSetDropCallback(
                 win,
                 [](GLFWwindow*, int count, const char** paths) {
-                    gDropCallback(count, paths);
+                    std::vector<std::string_view> p;
+                    for (int i = 0; i < count; i++) {
+                        p.push_back(paths[i]);
+                    }
+                    gDropCallback(std::move(p));
                 }
             );
         }
@@ -799,7 +803,7 @@ void Engine::initWindows(int majorVersion, int minorVersion) {
 
     const Node& thisNode = ClusterManager::instance().thisNode();
     const std::vector<std::unique_ptr<Window>>& windows = thisNode.windows();
-    for (size_t i = 0; i < windows.size(); ++i) {
+    for (size_t i = 0; i < windows.size(); i++) {
         ZoneScopedN("Creating Window");
 
         GLFWwindow* s = i == 0 ? nullptr : windows[0]->windowHandle();
@@ -904,7 +908,7 @@ void Engine::frameLockPostStage() {
             continue;
         }
         // more than a second
-        for (int i = 0; i < nm.syncConnectionsCount(); ++i) {
+        for (int i = 0; i < nm.syncConnectionsCount(); i++) {
             if (_printSyncMessage && !nm.connection(i).isUpdated()) {
                 Log::Info(fmt::format(
                     "Waiting for IG{}: send frame {} != recv frame {}\n\tSwap groups: {}"

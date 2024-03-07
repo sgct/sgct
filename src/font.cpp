@@ -99,8 +99,8 @@ namespace {
         // and whatever is the the Freetype bitmap otherwise
         const int offsetWidth = (res.gd.strokeBitmap->width - res.gd.bitmap->width) / 2;
         const int offsetRows = (res.gd.strokeBitmap->rows - res.gd.bitmap->rows) / 2;
-        for (int j = 0; j < res.height; ++j) {
-            for (int i = 0; i < res.width; ++i) {
+        for (int j = 0; j < res.height; j++) {
+            for (int i = 0; i < res.width; i++) {
                 const int k = i - offsetWidth;
                 const int l = j - offsetRows;
 

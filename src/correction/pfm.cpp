@@ -72,7 +72,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     std::vector<float> ycorrections;
     ycorrections.resize(numCorrectionValues);
 
-    for (int i = 0; i < numCorrectionValues; ++i) {
+    for (int i = 0; i < numCorrectionValues; i++) {
         meshFile.read(reinterpret_cast<char*>(xcorrections.data() + i), sizeof(float));
         meshFile.read(reinterpret_cast<char*>(ycorrections.data() + i), sizeof(float));
         float dumpValue;

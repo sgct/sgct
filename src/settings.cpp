@@ -161,7 +161,7 @@ Settings::DrawBufferType Settings::drawBufferType() const {
     }
 }
 
-void Settings::setCapturePath(std::string path) {
+void Settings::setCapturePath(std::filesystem::path path) {
     if (path != _screenshot.capturePath) {
         // If we set a new path, we want to start counting from 0 again
         Engine::instance().setScreenshotNumber(0);
@@ -177,7 +177,7 @@ void Settings::setScreenshotPrefix(std::string prefix) {
     _screenshot.prefix = std::move(prefix);
 }
 
-const std::string& Settings::capturePath() const {
+const std::filesystem::path& Settings::capturePath() const {
     return _screenshot.capturePath;
 }
 

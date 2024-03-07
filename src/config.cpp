@@ -298,8 +298,7 @@ void validateNode(const Node& n) {
         throw Error(1113, "Every node must contain at least one window");
     }
     std::vector<int> usedIds;
-    for (size_t i = 0; i < n.windows.size(); ++i) {
-        const Window& win = n.windows[i];
+    for (const Window& win : n.windows) {
         validateWindow(win);
 
         if (win.id < 0) {

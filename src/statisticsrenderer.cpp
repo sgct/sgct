@@ -168,23 +168,23 @@ void StatisticsRenderer::update() {
 
     // Lines rendering
     // The statistics are stored as 1D double arrays, but we need 2D float arrays
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.frametimes[i].x = static_cast<float>(i);
         _lines.buffer.frametimes[i].y = static_cast<float>(_statistics.frametimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.drawTimes[i].x = static_cast<float>(i);
         _lines.buffer.drawTimes[i].y = static_cast<float>(_statistics.drawTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.syncTimes[i].x = static_cast<float>(i);
         _lines.buffer.syncTimes[i].y = static_cast<float>(_statistics.syncTimes[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMin[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMin[i].y = static_cast<float>(_statistics.loopTimeMin[i]);
     }
-    for (size_t i = 0; i < Engine::Statistics::HistoryLength; ++i) {
+    for (size_t i = 0; i < Engine::Statistics::HistoryLength; i++) {
         _lines.buffer.loopTimeMax[i].x = static_cast<float>(i);
         _lines.buffer.loopTimeMax[i].y = static_cast<float>(_statistics.loopTimeMax[i]);
     }
@@ -231,7 +231,7 @@ void StatisticsRenderer::update() {
     auto convertValues = [&](std::array<Vertex, 6 * Histogram::Bins>& buffer,
                             const std::array<int, Histogram::Bins>& values, int maxBinVal)
     {
-        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(Histogram::Bins); i++) {
             const int val = values[i];
 
             const float x0 = static_cast<float>(i) / Histogram::Bins;

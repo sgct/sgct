@@ -183,7 +183,7 @@ public:
         std::function<void(double, double, Window*)> mouseScroll;
 
         /// Drop files to any window. All windows are connected to this callback.
-        std::function<void(int, const char**)> drop;
+        std::function<void(std::vector<std::string_view>)> drop;
     };
 
     /**

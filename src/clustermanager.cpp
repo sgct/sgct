@@ -107,7 +107,7 @@ void ClusterManager::applyCluster(const config::Cluster& cluster) {
         }
     }
 
-    for (size_t i = 0; i < cluster.nodes.size(); ++i) {
+    for (size_t i = 0; i < cluster.nodes.size(); i++) {
         ZoneScopedN("Create Node");
 
         auto n = std::make_unique<Node>();

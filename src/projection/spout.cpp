@@ -374,7 +374,7 @@ void SpoutOutputProjection::initTextures() {
         _mappingWidth = _cubemapResolution.x;
         _mappingHeight = _cubemapResolution.y;
 
-        for (int i = 0; i < NFaces; ++i) {
+        for (int i = 0; i < NFaces; i++) {
 #ifdef SGCT_HAS_SPOUT
             Log::Debug(fmt::format("SpoutOutputProjection initTextures {}", i));
             if (!_spout[i].enabled) {

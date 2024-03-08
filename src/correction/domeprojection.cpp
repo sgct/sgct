@@ -31,7 +31,7 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
     if (!meshFile.good()) {
         throw Error(
             Error::Component::DomeProjection, 2010,
-            fmt::format("Failed to open {}", path)
+            fmt::format("Failed to open '{}'", path)
         );
     }
 

@@ -176,14 +176,14 @@ void Image::savePNG(std::string filename, int compressionLevel) {
     }
 
     if (_bytesPerChannel > 2) {
-        throw Err(9007, fmt::format("Can't save {} bit", _bytesPerChannel * 8));
+        throw Err(9007, fmt::format("Cannot save {} bit", _bytesPerChannel * 8));
     }
 
     double t0 = time();
 
     FILE* fp = fopen(filename.c_str(), "wb");
     if (fp == nullptr) {
-        throw Err(9008, fmt::format("Can't create PNG file '{}'", filename));
+        throw Err(9008, fmt::format("Cannot create PNG file '{}'", filename));
     }
 
     // initialize stuff

@@ -162,13 +162,13 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
     std::map<std::string, std::string>::const_iterator it = _fontPaths.find(name);
 
     if (it == _fontPaths.end()) {
-        Log::Error(fmt::format("No font file specified for font [{}]", name));
+        Log::Error(fmt::format("No font file specified for font '{}'", name));
         return nullptr;
     }
 
     if (_library == nullptr) {
         Log::Error(fmt::format(
-            "Freetype library is not initialized, can't create font [{}]", name
+            "Freetype library is not initialized, cannot create font '{}'", name
         ));
         return nullptr;
     }
@@ -178,7 +178,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
 
     if (error == FT_Err_Unknown_File_Format) {
         Log::Error(fmt::format(
-            "Unsupperted file format [{}] for font [{}]", it->second, name
+            "Unsupported file format '{}' for font '{}'", it->second, name
         ));
         return nullptr;
     }
@@ -189,7 +189,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
 
     FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
-        Log::Error(fmt::format("Could not set pixel size for font [{}]", name));
+        Log::Error(fmt::format("Could not set pixel size for font '{}'", name));
         return nullptr;
     }
 

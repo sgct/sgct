@@ -26,11 +26,15 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
 
     Buffer buf;
 
-    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from {}", path));
+    Log::Info(fmt::format("Reading 3D/stereo mesh data (in PFM image) from '{}'", path));
 
     std::ifstream meshFile(path, std::ifstream::binary);
     if (!meshFile.good()) {
-        throw Error(Error::Component::Pfm, 2050, fmt::format("Failed to open {}", path));
+        throw Error(
+            Error::Component::Pfm,
+            2050,
+            fmt::format("Failed to open '{}'", path)
+        );
     }
 
     // Read the first three lines
@@ -48,21 +52,21 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
     if (!result) {
         throw Error(
             Error::Component::Pfm, 2052,
-            fmt::format("Invalid header syntax in file {}", path)
+            fmt::format("Invalid header syntax in file '{}'", path)
         );
     }
     result = scn::scan(endiannessIndicator, "{}", endiannessValue);
     if (!result) {
         throw Error(
             Error::Component::Pfm, 2052,
-            fmt::format("Invalid endianness value in file {}", path)
+            fmt::format("Invalid endianness value in file '{}'", path)
         );
     }
 
     if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         throw Error(
             Error::Component::Pfm, 2053,
-            fmt::format("Incorrect file type in file {}", path)
+            fmt::format("Incorrect file type in file '{}'", path)
         );
     }
 
@@ -81,7 +85,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         if (!meshFile.good()) {
             throw Error(
                 Error::Component::Pfm, 2054,
-                fmt::format("Error reading correction values in file {}", path)
+                fmt::format("Error reading correction values in file '{}'", path)
             );
         }
     }

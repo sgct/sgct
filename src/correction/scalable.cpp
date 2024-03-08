@@ -99,12 +99,12 @@ namespace sgct::correction {
 Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& parent) {
     ZoneScoped;
 
-    Log::Info(fmt::format("Reading scalable mesh data from {}", path));
+    Log::Info(fmt::format("Reading scalable mesh data from '{}'", path));
 
     std::ifstream file(path);
     if (!file.good()) {
         throw Error(
-            Error::Component::Scalable, 2060, fmt::format("Failed to open {}", path)
+            Error::Component::Scalable, 2060, fmt::format("Failed to open '{}'", path)
         );
     }
 
@@ -123,7 +123,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         if (first == "OPENMESH") {
             if (rest != "Version 1.1") {
                 Log::Warning(fmt::format(
-                    "Found {} in mesh {} but expected Version 1.1 so the loading might "
+                    "Found {} in mesh '{}' but expected Version 1.1 so the loading might "
                     "misbehave", rest, path
                 ));
             }
@@ -139,7 +139,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "MAPPING") {
             if (rest != "NORMALIZED") {
                 Log::Warning(fmt::format(
-                    "Found mapping '{}' in mesh {} but only 'NORMALIZED' is supported",
+                    "Found mapping '{}' in mesh '{}' but only 'NORMALIZED' is supported",
                     rest, path
                 ));
             }
@@ -147,7 +147,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "SAMPLING") {
             if (rest != "LINEAR") {
                 Log::Warning(fmt::format(
-                    "Found sampling '{}' in mesh {} but only 'LINEAR' is supported",
+                    "Found sampling '{}' in mesh '{}' but only 'LINEAR' is supported",
                     rest, path
                 ));
             }
@@ -155,7 +155,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
         else if (first == "PROJECTION") {
             if (rest != "PERSPECTIVE") {
                 Log::Warning(fmt::format(
-                    "Found projection '{}' in mesh {} but only 'PERSPECTIVE' is "
+                    "Found projection '{}' in mesh '{}' but only 'PERSPECTIVE' is "
                     "supported", rest, path
                 ));
             }
@@ -219,7 +219,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             int version = std::stoi(std::string(rest));
             if (version != 5) {
                 Log::Warning(fmt::format(
-                    "Found subversion {} in mesh {} but only version 5 is tested",
+                    "Found subversion {} in mesh '{}' but only version 5 is tested",
                     version, path
                 ));
             }
@@ -229,7 +229,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             if (gamma != data.gamma) {
                 data.gamma = gamma;
                 Log::Warning(fmt::format(
-                    "Found GAMMA value of {} in mesh {} we do not support per-viewport "
+                    "Found GAMMA value of {} in mesh '{}' we do not support per-viewport "
                     "gamma values", data.gamma, path
                 ));
             }
@@ -250,7 +250,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.frustumEulerAngles.useAngles = std::stoi(std::string(rest)) != 0;
             if (data.frustumEulerAngles.useAngles) {
                 Log::Warning(fmt::format(
-                    "Enabled frustum euler angles in mesh {} but we do not know how "
+                    "Enabled frustum euler angles in mesh '{}' but we do not know how "
                     "these work, yet", path
                 ));
             }
@@ -271,7 +271,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.applyMask = std::stoi(std::string(rest));
             if (data.applyMask) {
                 Log::Warning(fmt::format(
-                    "Mesh {} requested to apply a mask. Currently this is handled "
+                    "Mesh '{}' requested to apply a mask. Currently this is handled "
                     "outside the mesh by specifying a 'mask' attribute on the 'Viewport' "
                     "instead", path
                 ));
@@ -281,7 +281,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.applyBlackLevel = std::stoi(std::string(rest));
             if (data.applyBlackLevel) {
                 Log::Warning(fmt::format(
-                    "Mesh {} requested to apply a blacklevel image. Currently this is "
+                    "Mesh '{}' requested to apply a blacklevel image. Currently this is "
                     "handled outside the mesh by specifying a 'BlackLevelMask' attribute "
                     "on the 'Viewport' instead", path
                 ));
@@ -291,7 +291,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             data.applyColor = std::stoi(std::string(rest));
             if (data.applyBlackLevel) {
                 Log::Warning(fmt::format(
-                    "Mesh {} requested to apply an overlay image. Currently this is "
+                    "Mesh '{}' requested to apply an overlay image. Currently this is "
                     "handled outside the mesh by specifying an 'overlay' attribute on "
                     "the 'Viewport' instead", path
                 ));
@@ -304,7 +304,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2035,
                     fmt::format(
-                        "Illegal formatting of face in file {} in line '{}'",
+                        "Illegal formatting of face in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -317,7 +317,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2035,
                     fmt::format(
-                        "Illegal formatting of face in file {} in line '{}'",
+                        "Illegal formatting of face in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -330,7 +330,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2035,
                     fmt::format(
-                        "Illegal formatting of face in file {} in line '{}'",
+                        "Illegal formatting of face in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -352,7 +352,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
             }
             catch (const std::invalid_argument&) {
                 Log::Warning(fmt::format(
-                    "Unknown key {} found in scalable mesh {}. Please report usage of "
+                    "Unknown key {} found in scalable mesh '{}'. Please report usage of "
                     "this key, preferably with an example, to the SGCT developers",
                     first, path
                 ));
@@ -367,7 +367,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2036,
                     fmt::format(
-                        "Illegal formatting of vertex in file {} in line '{}'",
+                        "Illegal formatting of vertex in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -380,7 +380,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2036,
                     fmt::format(
-                        "Illegal formatting of vertex in file {} in line '{}'",
+                        "Illegal formatting of vertex in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -393,7 +393,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2036,
                     fmt::format(
-                        "Illegal formatting of vertex in file {} in line '{}'",
+                        "Illegal formatting of vertex in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -406,7 +406,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
                 throw Error(
                     Error::Component::Scalable, 2036,
                     fmt::format(
-                        "Illegal formatting of vertex in file {} in line '{}'",
+                        "Illegal formatting of vertex in file '{}' in line {}",
                         path, line
                     )
                 );
@@ -456,7 +456,7 @@ Buffer generateScalableMesh(const std::filesystem::path& path, BaseViewport& par
     {
         throw Error(
             Error::Component::Scalable, 2061,
-            fmt::format("Incorrect mesh data geometry in file {}", path)
+            fmt::format("Incorrect mesh data geometry in file '{}'", path)
         );
     }
 

@@ -28,7 +28,7 @@ namespace {
             glGetProgramInfoLog(programId, logLength, nullptr, log.data());
 
             sgct::Log::Error(
-                fmt::format("Shader [{}] linking error: {}", name, log.data())
+                fmt::format("Shader '{}' linking error: {}", name, log.data())
             );
         }
         return linkStatus != 0;
@@ -129,7 +129,7 @@ void ShaderProgram::createAndLinkProgram() {
     if (_shaders.empty()) {
         throw Err(
             7010,
-            fmt::format("No shaders have been added to the program {}", _name)
+            fmt::format("No shaders have been added to the program '{}'", _name)
         );
     }
 
@@ -143,7 +143,7 @@ void ShaderProgram::createAndLinkProgram() {
     glLinkProgram(_programId);
     bool isLinked = checkLinkStatus(_programId, _name);
     if (!isLinked) {
-        throw Err(7011, fmt::format("Error linking the program {}", _name));
+        throw Err(7011, fmt::format("Error linking the program '{}'", _name));
     }
 }
 
@@ -151,7 +151,7 @@ void ShaderProgram::createProgram() {
     if (_programId > 0) {
         throw Err(
             7012,
-            fmt::format("Failed to create shader program {}: Already created", _name)
+            fmt::format("Failed to create shader program '{}': Already created", _name)
         );
     }
 
@@ -159,7 +159,7 @@ void ShaderProgram::createProgram() {
     if (_programId == 0) {
         throw Err(
             7013,
-            fmt::format("Failed to create shader program {}: Unknown error", _name)
+            fmt::format("Failed to create shader program '{}': Unknown error", _name)
         );
     }
 }

@@ -59,7 +59,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     if (XMLroot == nullptr) {
         throw Error(
             2081,
-            fmt::format("Error reading file {}. Missing 'GeometryFile'", path)
+            fmt::format("Error reading file '{}'. Missing 'GeometryFile'", path)
         );
     }
 
@@ -68,7 +68,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     if (element == nullptr) {
         throw Error(
             2082,
-            fmt::format("Error reading file {}. Missing 'GeometryDefinition'", path)
+            fmt::format("Error reading file '{}'. Missing 'GeometryDefinition'", path)
         );
     }
 

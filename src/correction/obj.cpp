@@ -37,12 +37,12 @@ namespace sgct::correction {
 Buffer generateOBJMesh(const std::filesystem::path& path) {
     ZoneScoped;
 
-    Log::Info(fmt::format("Reading Wavefront OBJ mesh data from {}", path));
+    Log::Info(fmt::format("Reading Wavefront OBJ mesh data from '{}'", path));
 
     std::ifstream file(path);
     if (!file.good()) {
         throw Error(
-            Error::Component::OBJ, 2030, fmt::format("Failed to open {}", path)
+            Error::Component::OBJ, 2030, fmt::format("Failed to open '{}'", path)
         );
     }
 
@@ -69,7 +69,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 throw Error(
                     Error::Component::OBJ, 2034,
                     fmt::format(
-                        "Illegal vertex format in OBJ file {} in line '{}'", path, line
+                        "Illegal vertex format in OBJ file '{}' in line {}", path, line
                     )
                 );
             }
@@ -81,7 +81,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 throw Error(
                     Error::Component::OBJ, 2034,
                     fmt::format(
-                        "Illegal vertex format in OBJ file {} in line '{}'", path, line
+                        "Illegal vertex format in OBJ file '{}' in line {}", path, line
                     )
                 );
             }
@@ -92,7 +92,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             float z = std::stof(std::string(v3));
             if (z != 0.f) {
                 Log::Warning(fmt::format(
-                    "Vertex in {} was using z coordinate which is not supported", path
+                    "Vertex in '{}' was using z coordinate which is not supported", path
                 ));
             }
 
@@ -120,7 +120,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 throw Error(
                     Error::Component::OBJ, 2035,
                     fmt::format(
-                        "Illegal face format in OBJ file {} in line '{}'", path, line
+                        "Illegal face format in OBJ file '{}' in line {}", path, line
                     )
                 );
             }
@@ -132,7 +132,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
                 throw Error(
                     Error::Component::OBJ, 2035,
                     fmt::format(
-                        "Illegal face format in OBJ file {} in line '{}'", path, line
+                        "Illegal face format in OBJ file '{}' in line {}", path, line
                     )
                 );
             }
@@ -156,34 +156,34 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         }
         else if (first == "vn") {
             if (std::find(reported.begin(), reported.end(), "vn") == reported.end()) {
-                Log::Warning(fmt::format("Ignoring normals in mesh {}", path));
+                Log::Warning(fmt::format("Ignoring normals in mesh '{}'", path));
                 reported.push_back("vn");
             }
         }
         else if (first == "vp") {
             if (std::find(reported.begin(), reported.end(), "vp") == reported.end()) {
                 Log::Warning(
-                    fmt::format("Ignoring parameter space values in mesh {}", path)
+                    fmt::format("Ignoring parameter space values in mesh '{}'", path)
                 );
                 reported.push_back("vp");
             }
         }
         else if (first == "l") {
             if (std::find(reported.begin(), reported.end(), "l") == reported.end()) {
-                Log::Warning(fmt::format("Ignoring line elements in mesh {}", path));
+                Log::Warning(fmt::format("Ignoring line elements in mesh '{}'", path));
                 reported.push_back("l");
             }
         }
         else if (first == "mtllib") {
             if (std::find(reported.begin(), reported.end(), "mtllib") == reported.end()) {
-                Log::Warning(fmt::format("Ignoring material library in mesh {}", path));
+                Log::Warning(fmt::format("Ignoring material library in mesh '{}'", path));
                 reported.push_back("mtllib");
             }
         }
         else if (first == "usemtl") {
             if (std::find(reported.begin(), reported.end(), "usemtl") == reported.end()) {
                 Log::Warning(
-                    fmt::format("Ignoring material specification in mesh {}", path)
+                    fmt::format("Ignoring material specification in mesh '{}'", path)
                 );
                 reported.push_back("usemtl");
             }
@@ -191,7 +191,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         else if (first == "o") {
             if (std::find(reported.begin(), reported.end(), "o") == reported.end()) {
                 Log::Warning(
-                    fmt::format("Ignoring object specification in mesh {}", path)
+                    fmt::format("Ignoring object specification in mesh '{}'", path)
                 );
                 reported.push_back("o");
             }
@@ -199,7 +199,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         else if (first == "g") {
             if (std::find(reported.begin(), reported.end(), "g") == reported.end()) {
                 Log::Warning(
-                    fmt::format("Ignoring object group specification in mesh {}", path)
+                    fmt::format("Ignoring object group specification in mesh '{}'", path)
                 );
                 reported.push_back("g");
             }
@@ -207,7 +207,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         else if (first == "s") {
             if (std::find(reported.begin(), reported.end(), "s") == reported.end()) {
                 Log::Warning(
-                    fmt::format("Ignoring shading specification in mesh {}", path)
+                    fmt::format("Ignoring shading specification in mesh '{}'", path)
                 );
                 reported.push_back("s");
             }
@@ -215,7 +215,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         else {
             if (std::find(reported.begin(), reported.end(), first) == reported.end()) {
                 Log::Warning(fmt::format(
-                    "Encounted unsupported value type '{}' in mesh {}", first, path
+                    "Encounted unsupported value type '{}' in mesh '{}'", first, path
                 ));
                 reported.push_back(std::string(first));
             }
@@ -226,7 +226,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
         throw Error(
             Error::Component::OBJ, 2031,
             fmt::format(
-                "Vertex count doesn't match number of texture coordinates in {}", path
+                "Vertex count doesn't match number of texture coordinates in '{}'", path
             )
         );
     }
@@ -239,7 +239,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             throw Error(
                 Error::Component::OBJ, 2032,
                 fmt::format(
-                    "Faces in mesh {} referenced vertices that were undefined", path
+                    "Faces in mesh '{}' referenced vertices that were undefined", path
                 )
             );
         }
@@ -248,7 +248,7 @@ Buffer generateOBJMesh(const std::filesystem::path& path) {
             throw Error(
                 Error::Component::OBJ, 2033,
                 fmt::format(
-                    "Faces in mesh {} are using relative index positions that are "
+                    "Faces in mesh '{}' are using relative index positions that are "
                     "unsupported", path
                 )
             );

@@ -2497,8 +2497,9 @@ config::Cluster readConfig(const std::string& filename,
                 if (!additionalErrorDescription.empty()) {
                     throw Err(
                         6082,
-                        fmt::format("Importing of this configuration file failed with "
-                            "the message:\n\n{}:\n\n{}",
+                        fmt::format(
+                            "Importing of this configuration file failed with the "
+                            "message:\n\n{}:\n\n{}",
                             additionalErrorDescription, e.what()
                         )
                     );
@@ -2511,7 +2512,7 @@ config::Cluster readConfig(const std::string& filename,
         else {
             throw Err(
                 6088,
-                fmt::format("Unsupported file extension {}", path.extension().string())
+                fmt::format("Unsupported file extension '{}'", path.extension())
             );
         }
     }(name);
@@ -2574,8 +2575,10 @@ void custom_error_handler::error(const nlohmann::json::json_pointer &ptr,
                                  const std::string &message)
 {
     nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-    mErrMessage = fmt::format("Validation of config file failed against schema '{}'"
-        "\nat entry in json file: {}", message, instance.dump());
+    mErrMessage = fmt::format(
+        "Validation of config file failed '{}'\nat entry in JSON file: {}",
+        message, instance.dump()
+    );
 }
 
 bool custom_error_handler::validationSucceeded() {
@@ -2590,7 +2593,7 @@ std::string stringifyJsonFile(const std::string& filename) {
     std::ifstream myfile;
     myfile.open(filename);
     if (myfile.fail()) {
-        throw Err(6082, fmt::format("Failed to open '{}'.", filename));
+        throw Err(6082, fmt::format("Failed to open '{}'", filename));
     }
     std::stringstream buffer;
     buffer << myfile.rdbuf();
@@ -2612,14 +2615,14 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
     if (!std::filesystem::exists(configName)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", configName)
+            fmt::format("Could not find configuration file '{}'", configName)
         );
     }
     std::string schemaName = std::filesystem::absolute(schema).string();
     if (!std::filesystem::exists(schemaName)) {
         throw Err(
             6081,
-            fmt::format("Could not find schema file: {}", schemaName)
+            fmt::format("Could not find schema file '{}'", schemaName)
         );
     }
     std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
@@ -2666,7 +2669,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
                 loadPath = loadPath.substr(0, strEnd + 1);
             }
             if (std::filesystem::exists(loadPath)) {
-                Log::Debug(fmt::format("Loading schema file '{}'.", loadPath));
+                Log::Debug(fmt::format("Loading schema file '{}'", loadPath));
                 std::string newSchema = stringifyJsonFile(loadPath);
                 value = nlohmann::json::parse(newSchema);
             }
@@ -2691,7 +2694,8 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
         6089,
         fmt::format("Checking this configuration file against schema '{}' failed.\n\n"
             "{}.\n\nSchema validator provided the following error message:\n\n{}",
-            schema, validationTypeExplanation, exceptionMessage)
+            schema, validationTypeExplanation, exceptionMessage
+        )
     );
 }
 
@@ -2711,7 +2715,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            fmt::format("Could not find configuration file '{}'", name)
         );
     }
 
@@ -2731,14 +2735,15 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         else {
             throw Err(
                 6088,
-                fmt::format("Unsupported file extension {}", path.extension().string())
+                fmt::format("Unsupported file extension '{}'", path.extension())
             );
         }
     }(name);
 
-    Log::Debug(fmt::format("Config file '{}' read for generator version:"
-                           "'{}' version {}.{}", name, genVersion.name, genVersion.major,
-                           genVersion.minor));
+    Log::Debug(fmt::format(
+        "Config file '{}' read for generator version '{}' version {}.{}",
+        name, genVersion.name, genVersion.major, genVersion.minor
+    ));
 
     return genVersion;
 }
@@ -2750,7 +2755,7 @@ sgct::config::Meta readMeta(const std::string& filename) {
     if (!std::filesystem::exists(name)) {
         throw Err(
             6081,
-            fmt::format("Could not find configuration file: {}", name)
+            fmt::format("Could not find configuration file '{}'", name)
         );
     }
 

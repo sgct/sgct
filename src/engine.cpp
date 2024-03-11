@@ -1012,7 +1012,7 @@ void Engine::exec() {
 
                 NonLinearProjection* nonLinearProj = vp->nonLinearProjection();
                 if (sm == Window::StereoMode::NoStereo) {
-                    // for mono viewports frustum mode can be selected by user or xml
+                    // for mono viewports frustum mode can be selected by user or config
                     nonLinearProj->renderCubemap(*win, vp->eye());
                 }
                 else {

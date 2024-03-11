@@ -148,10 +148,10 @@ namespace sgct {
  * 5027: NetworkManager / Failed to get host name
  * 5028: NetworkManager / Failed to get address info: %s
 
- * 6000s: XML configuration parsing
+ * 6000s: Configuration parsing
  * 6000: PlanarProjection / Missing specification of field-of-view values
  * 6001: PlanarProjection / Failed to parse planar projection FOV
- * 6010: ProjectionPlane / Failed parsing coordinates. Missing XML children
+ * 6010: ProjectionPlane / Failed parsing coordinates. Missing children
  * 6011: ProjectionPlane / Failed parsing ProjectionPlane coordinates. Type error
  * 6020: Viewport / Unrecognized eye position
  * 6021: Viewport / Failed to parse position. Type error

@@ -25,12 +25,12 @@
 
 namespace {
     glm::mat4 setupOrthoMat(const sgct::Window& win, const sgct::BaseViewport& vp) {
-        sgct::vec2 res = sgct::vec2{
+        const sgct::vec2 res = sgct::vec2{
             static_cast<float>(win.resolution().x),
             static_cast<float>(win.resolution().y)
         };
-        sgct::vec2 size = vp.size();
-        sgct::vec2 scale = win.scale();
+        const sgct::vec2 size = vp.size();
+        const sgct::vec2 scale = win.scale();
         return glm::ortho(0.f, size.x * res.x * scale.x, 0.f, size.y * res.y * scale.y);
     }
 

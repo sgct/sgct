@@ -73,7 +73,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
     }
 
     std::vector<std::string> lines = split(std::move(text), '\n');
-    glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
+    const glm::mat4 orthoMatrix = setupOrthoMat(window, viewport);
 
     const float h = font.height() * 1.59f;
 
@@ -101,7 +101,7 @@ void print(const Window& window, const BaseViewport& viewport, Font& font, Align
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-            glm::mat4 trans = glm::translate(
+            const glm::mat4 trans = glm::translate(
                 orthoMatrix,
                 glm::vec3(offset.x + ffd.pos.x, offset.y + ffd.pos.y, offset.z)
             );

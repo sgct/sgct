@@ -40,7 +40,7 @@ void Settings::applySettings(const config::Settings& settings) {
         setUsePositionTexture(*settings.usePositionTexture);
     }
     if (settings.bufferFloatPrecision) {
-        BufferFloatPrecision p =
+        const BufferFloatPrecision p =
             [](config::Settings::BufferFloatPrecision pr) {
             switch (pr) {
                 case config::Settings::BufferFloatPrecision::Float16Bit:

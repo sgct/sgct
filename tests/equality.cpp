@@ -136,7 +136,7 @@ bool operator==(const Tracker& lhs, const Tracker& rhs) {
         lhs.transformation == rhs.transformation;
 }
 
-bool operator==(const NoProjection& lhs, const NoProjection& rhs) {
+bool operator==(const NoProjection&, const NoProjection&) {
     return true;
 }
 

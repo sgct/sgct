@@ -282,7 +282,7 @@ public:
      * This functions updates the frustum of all viewports. If a viewport is tracked, this
      * is done on the fly.
      */
-    void updateFrustums();
+    void updateFrustums() const;
 
     /**
      * Return the Window that currently has the focus. If no SGCT window has focus, a
@@ -420,9 +420,9 @@ private:
      *
      * \param cluster The cluster setup that should be used for this SGCT run
      * \param callbacks The list of callbacks that should be installed
-     * \param arg Parameters that were set by the user from the commandline
+     * \param config Parameters that were set by the user from the commandline
      */
-    Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& arg);
+    Engine(config::Cluster cluster, Callbacks callbacks, const Configuration& config);
 
     /**
      * Engine destructor destructs GLFW and releases resources/memory.

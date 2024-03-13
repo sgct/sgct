@@ -48,7 +48,7 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
     Log::Info(fmt::format("Reading simcad warp data from '{}'", path));
 
     tinyxml2::XMLDocument xmlDoc;
-    std::string p = path.string();
+    const std::string p = path.string();
     if (xmlDoc.LoadFile(p.c_str()) != tinyxml2::XML_SUCCESS) {
         std::string s1 = xmlDoc.ErrorName() ? xmlDoc.ErrorName() : "";
         std::string s2 = xmlDoc.ErrorStr() ? xmlDoc.ErrorStr() : "";
@@ -72,16 +72,17 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
         );
     }
 
-    std::vector<float> xcorrections, ycorrections;
+    std::vector<float> xcorrections;
+    std::vector<float> ycorrections;
     XMLElement* child = element->FirstChildElement();
     while (child) {
-        std::string_view childVal = child->Value();
+        const std::string_view childVal = child->Value();
 
         if (childVal == "X-FlatParameters") {
             float xrange = 1.f;
             if (child->QueryFloatAttribute("range", &xrange) == XML_SUCCESS) {
-                std::string xcoordstr(child->GetText());
-                std::vector<std::string> xcoords = split(xcoordstr, ' ');
+                const std::string xcoordstr(child->GetText());
+                const std::vector<std::string> xcoords = split(xcoordstr, ' ');
                 for (const std::string& x : xcoords) {
                     xcorrections.push_back(std::stof(x) / xrange);
                 }
@@ -90,8 +91,8 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
         else if (childVal == "Y-FlatParameters") {
             float yrange = 1.f;
             if (child->QueryFloatAttribute("range", &yrange) == XML_SUCCESS) {
-                std::string ycoordstr(child->GetText());
-                std::vector<std::string> ycoords = split(ycoordstr, ' ');
+                const std::string ycoordstr(child->GetText());
+                const std::vector<std::string> ycoords = split(ycoordstr, ' ');
                 for (const std::string& y : ycoords) {
                     ycorrections.push_back(std::stof(y) / yrange);
                 }
@@ -105,10 +106,10 @@ Buffer generateSimCADMesh(const std::filesystem::path& path, const vec2& pos,
         throw Error(2083, "Not the same x coords as y coords");
     }
 
-    const float nColumnsf = sqrt(static_cast<float>(xcorrections.size()));
-    const float nRowsf = sqrt(static_cast<float>(ycorrections.size()));
+    const float nColumnsf = std::sqrt(static_cast<float>(xcorrections.size()));
+    const float nRowsf = std::sqrt(static_cast<float>(ycorrections.size()));
 
-    if (ceil(nColumnsf) != nColumnsf || ceil(nRowsf) != nRowsf) {
+    if (std::ceil(nColumnsf) != nColumnsf || std::ceil(nRowsf) != nRowsf) {
         throw Error(2084, "Not a valid squared matrix read from SimCAD file");
     }
 

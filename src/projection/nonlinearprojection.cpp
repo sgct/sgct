@@ -202,10 +202,10 @@ void NonLinearProjection::initFBO() {
 
 void NonLinearProjection::setupViewport(BaseViewport& vp) {
     _vpCoords = ivec4{
-        static_cast<int>(floor(vp.position().x * _cubemapResolution.x + 0.5f)),
-        static_cast<int>(floor(vp.position().y * _cubemapResolution.y + 0.5f)),
-        static_cast<int>(floor(vp.size().x * _cubemapResolution.x + 0.5f)),
-        static_cast<int>(floor(vp.size().y * _cubemapResolution.y + 0.5f))
+        static_cast<int>(std::floor(vp.position().x * _cubemapResolution.x + 0.5f)),
+        static_cast<int>(std::floor(vp.position().y * _cubemapResolution.y + 0.5f)),
+        static_cast<int>(std::floor(vp.size().x * _cubemapResolution.x + 0.5f)),
+        static_cast<int>(std::floor(vp.size().y * _cubemapResolution.y + 0.5f))
     };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -217,7 +217,7 @@ void NonLinearProjection::generateMap(unsigned int& texture, unsigned int intern
 {
     glDeleteTextures(1, &texture);
 
-    GLint maxMapRes;
+    GLint maxMapRes = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_cubemapResolution.x > maxMapRes) {
         Log::Error(fmt::format(
@@ -265,7 +265,7 @@ void NonLinearProjection::generateCubeMap(unsigned int& texture,
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    GLint maxCubeMapRes;
+    GLint maxCubeMapRes = 0;
     glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapRes);
     if (_cubemapResolution.x > maxCubeMapRes) {
         _cubemapResolution.x = maxCubeMapRes;
@@ -410,7 +410,7 @@ void NonLinearProjection::renderCubeFace(const Window& win, BaseViewport& vp, in
         attachTextures(idx);
     }
 
-    RenderData renderData(
+    const RenderData renderData(
         win,
         vp,
         mode,

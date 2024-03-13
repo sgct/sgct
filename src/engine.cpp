@@ -199,8 +199,8 @@ double Engine::Statistics::avgDt() const {
         [](double d) { return d != 0.0; }
     ));
     // We must take the frame counter into account as the history might not be filled yet
-    unsigned int frameCounter = Engine::instance().currentFrameNumber();
-    unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
+    const unsigned int frameCounter = Engine::instance().currentFrameNumber();
+    const unsigned f = std::clamp<unsigned int>(frameCounter, 1, nValues);
     return accFT / f;
 }
 
@@ -236,7 +236,7 @@ void Engine::create(config::Cluster cluster, Callbacks callbacks,
     // created and are calling Engine::instance from they registered callbacks. If this
     // client code is executed from the constructor, the _instance variable has not yet
     // been set and will therefore cause the logic_error in the instance() function.
-    _instance = new Engine(cluster, callbacks, arg);
+    _instance = new Engine(std::move(cluster), std::move(callbacks), arg);
     _instance->initialize();
 }
 
@@ -342,7 +342,7 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
         Log::instance().setNotifyLevel(*config.logLevel);
     }
     if (config.showHelpText) {
-        std::cout << helpMessage() << std::endl;
+        std::cout << helpMessage() << '\n';
         std::exit(0);
     }
     if (config.firmSync) {
@@ -452,7 +452,8 @@ Engine::Engine(config::Cluster cluster, Callbacks callbacks, const Configuration
 void Engine::initialize() {
     ZoneScoped;
 
-    int major, minor;
+    int major = 0;
+    int minor = 0;
     {
         ZoneScopedN("OpenGL Version");
 
@@ -559,7 +560,7 @@ void Engine::initialize() {
                 [](GLFWwindow*, int count, const char** paths) {
                     std::vector<std::string_view> p;
                     for (int i = 0; i < count; i++) {
-                        p.push_back(paths[i]);
+                        p.emplace_back(paths[i]);
                     }
                     gDropCallback(std::move(p));
                 }
@@ -569,7 +570,7 @@ void Engine::initialize() {
 
     // Get OpenGL version from the first window as there has to be one
     GLFWwindow* winHandle = wins[0]->windowHandle();
-    int v[] = {
+    const std::array<int, 3> v = {
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MAJOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_VERSION_MINOR),
         glfwGetWindowAttrib(winHandle, GLFW_CONTEXT_REVISION)
@@ -585,7 +586,11 @@ void Engine::initialize() {
 
     //
     // Load Shaders
-    bool needsFxaa = std::any_of(wins.begin(), wins.end(), std::mem_fn(&Window::useFXAA));
+    const bool needsFxaa = std::any_of(
+        wins.begin(),
+        wins.end(),
+        std::mem_fn(&Window::useFXAA)
+    );
     if (needsFxaa) {
         ZoneScopedN("FXAA Shader");
 
@@ -893,7 +898,7 @@ void Engine::frameLockPreStage() {
 void Engine::frameLockPostStage() {
     ZoneScoped;
 
-    NetworkManager& nm = NetworkManager::instance();
+    const NetworkManager& nm = NetworkManager::instance();
     // post stage
     if (ClusterManager::instance().ignoreSync() || !nm.isComputerServer()) {
         return;
@@ -1000,7 +1005,7 @@ void Engine::exec() {
                 continue;
             }
 
-            Window::StereoMode sm = win->stereoMode();
+            const Window::StereoMode sm = win->stereoMode();
 
             // Render Left/Mono non-linear projection viewports to cubemap
             for (const std::unique_ptr<Viewport>& vp : win->viewports()) {
@@ -1097,9 +1102,9 @@ void Engine::exec() {
             }
 
             // get the query results
-            GLuint64 timerStart;
+            GLuint64 timerStart = 0;
             glGetQueryObjectui64v(timeQueryBegin, GL_QUERY_RESULT, &timerStart);
-            GLuint64 timerEnd;
+            GLuint64 timerEnd = 0;
             glGetQueryObjectui64v(timeQueryEnd, GL_QUERY_RESULT, &timerEnd);
 
             const double t = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
@@ -1181,8 +1186,10 @@ void Engine::renderFBOTexture(Window& window) {
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Frustum::Mode frustum = (window.stereoMode() == Window::StereoMode::Active) ?
-        Frustum::Mode::StereoLeftEye : Frustum::Mode::MonoEye;
+    const Frustum::Mode frustum =
+        (window.stereoMode() == Window::StereoMode::Active) ?
+        Frustum::Mode::StereoLeftEye :
+        Frustum::Mode::MonoEye;
 
     const ivec2 size = ivec2{
         static_cast<int>(std::ceil(window.scale().x * window.resolution().x)),
@@ -1192,7 +1199,7 @@ void Engine::renderFBOTexture(Window& window) {
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(window, BufferMode::BackBufferBlack, frustum);
 
-    Window::StereoMode sm = window.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     bool maskShaderSet = false;
     const std::vector<std::unique_ptr<Viewport>>& vps = window.viewports();
     if (sm > Window::StereoMode::Active && sm < Window::StereoMode::SideBySide) {
@@ -1281,7 +1288,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 
     prepareBuffer(win, ti);
 
-    Window::StereoMode sm = win.stereoMode();
+    const Window::StereoMode sm = win.stereoMode();
     // render all viewports for selected eye
     for (const std::unique_ptr<Viewport>& vp : win.viewports()) {
         if (!vp->isEnabled()) {
@@ -1337,7 +1344,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 
                 if (_drawFn) {
                     ZoneScopedN("[SGCT] Draw");
-                    RenderData renderData(
+                    const RenderData renderData(
                         win,
                         *vp,
                         frustum,
@@ -1384,7 +1391,7 @@ void Engine::renderViewports(Window& win, Frustum::Mode frustum, Window::Texture
 
     // for side-by-side or top-bottom mode, do postfx/blit only after rendering right eye
     const bool isSplitScreen = (sm >= Window::StereoMode::SideBySide);
-    if (!(isSplitScreen && frustum == Frustum::Mode::StereoLeftEye)) {
+    if (!isSplitScreen || frustum != Frustum::Mode::StereoLeftEye) {
         ZoneScopedN("PostFX/Blit");
 
         updateRenderingTargets(win, ti);
@@ -1428,7 +1435,7 @@ void Engine::render2D(const Window& win, Frustum::Mode frustum) {
         // Check if we should call the use defined draw2D function
         if (_draw2DFn && win.shouldCallDraw2DFunction()) {
             ZoneScopedN("[SGCT] Draw 2D");
-            RenderData renderData(
+            const RenderData renderData(
                 win,
                 *vp,
                 frustum,
@@ -1457,7 +1464,7 @@ void Engine::renderFXAA(Window& window, Window::TextureIndex targetIndex) {
         GL_COLOR_ATTACHMENT0
     );
 
-    ivec2 framebufferSize = window.framebufferResolution();
+    const ivec2 framebufferSize = window.framebufferResolution();
     glViewport(0, 0, framebufferSize.x, framebufferSize.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -1567,7 +1574,7 @@ void Engine::waitForAllWindowsInSwapGroupToOpen() {
     }
 }
 
-void Engine::updateFrustums() {
+void Engine::updateFrustums() const {
     ZoneScoped;
 
     const Node& thisNode = ClusterManager::instance().thisNode();
@@ -1610,7 +1617,7 @@ void Engine::blitWindowViewport(Window& prevWindow, Window& window,
     _overlay.bind();
 
     glActiveTexture(GL_TEXTURE0);
-    Window::TextureIndex m = [](Frustum::Mode v) {
+    const Window::TextureIndex m = [](Frustum::Mode v) {
         switch (v) {
             // @TODO (abock, 2019-09-27) Yep, I'm confused about this mapping, too. But I
             // just took the enumerations values as they were and I assume that it was an
@@ -1640,7 +1647,7 @@ void Engine::setupViewport(const Window& window, const BaseViewport& viewport,
         static_cast<int>(viewport.size().y * res.y)
     };
 
-    Window::StereoMode sm = window.stereoMode();
+    const Window::StereoMode sm = window.stereoMode();
     if (frustum == Frustum::Mode::StereoLeftEye) {
         switch (sm) {
             case Window::StereoMode::SideBySide:

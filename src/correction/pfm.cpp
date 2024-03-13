@@ -90,7 +90,7 @@ Buffer generatePerEyeMeshFromPFMImage(const std::filesystem::path& path, const v
         }
     }
 
-    unsigned int nEyes = textureRenderMode ? 1 : 2;
+    const unsigned int nEyes = textureRenderMode ? 1 : 2;
     nCols /= nEyes;
 
     // Images are stored with X 0-1 (left to right), but Y 1 to 0 (top-bottom)

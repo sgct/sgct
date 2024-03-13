@@ -173,7 +173,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         return nullptr;
     }
 
-    FT_Face face;
+    FT_Face face = nullptr;
     FT_Error error = FT_New_Face(_library, it->second.c_str(), 0, &face);
 
     if (error == FT_Err_Unknown_File_Format) {
@@ -187,7 +187,7 @@ std::unique_ptr<Font> FontManager::createFont(const std::string& name, int heigh
         return nullptr;
     }
 
-    FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
+    const FT_Error charSizeErr = FT_Set_Char_Size(face, height << 6, height << 6, 96, 96);
     if (charSizeErr != 0) {
         Log::Error(fmt::format("Could not set pixel size for font '{}'", name));
         return nullptr;

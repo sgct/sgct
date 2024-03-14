@@ -28,7 +28,7 @@ public:
      */
     ~Sphere();
 
-    void draw();
+    void draw() const;
 
 private:
     unsigned int _nFaces = 0;

@@ -41,12 +41,12 @@ Buffer generateDomeProjectionMesh(const std::filesystem::path& path, const vec2&
     unsigned int nRows = 0;
     std::string line;
     while (std::getline(meshFile, line)) {
-        float x;
-        float y;
-        float u;
-        float v;
-        unsigned int col;
-        unsigned int row;
+        float x = 0.f;
+        float y = 0.f;
+        float u = 0.f;
+        float v = 0.f;
+        unsigned int col = 0;
+        unsigned int row = 0;
 
         auto r = scn::scan(line, "{};{};{};{};{};{}", x, y, u, v, col, row);
         if (r) {

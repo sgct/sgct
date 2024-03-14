@@ -241,7 +241,7 @@ void SpoutOutputProjection::renderCubemap(Window& window, Frustum::Mode frustumM
             return;
         }
 
-        int safeIdx = idx % 6;
+        const int safeIdx = idx % 6;
         renderCubeFace(win, vp, safeIdx, mode);
 
 
@@ -592,14 +592,14 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -Distance;
 
-        glm::mat4 r = glm::rotate(
+        const glm::mat4 r = glm::rotate(
             glm::mat4(1.f),
             glm::radians(angleCorrection),
             glm::vec3(1.f, 0.f, 0.f)
         );
-        glm::vec3 ll = glm::vec3(r * lowerLeft);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::vec3 ll = glm::vec3(r * lowerLeft);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _mainViewport.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -614,10 +614,14 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperRight = upperRightBase;
         upperRight.x = Distance;
 
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRight);
+        const glm::mat4 r = glm::rotate(
+            rollRot,
+            glm::radians(-90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRight);
         _subViewports.right.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -635,10 +639,14 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 upperLeft = upperLeftBase;
         upperLeft.x = -Distance;
 
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeft);
-        glm::vec3 ul = glm::vec3(r * upperLeft);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            rollRot,
+            glm::radians(90.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeft);
+        const glm::vec3 ul = glm::vec3(r * upperLeft);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.left.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -654,10 +662,14 @@ void SpoutOutputProjection::initViewports() {
         glm::vec4 lowerLeft = lowerLeftBase;
         lowerLeft.y = -Distance;
 
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeft);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            rollRot,
+            glm::radians(-90.f),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeft);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.bottom.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -674,10 +686,14 @@ void SpoutOutputProjection::initViewports() {
 
         _subViewports.top.setSize(vec2{ 1.f, 1.f });
 
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeft);
-        glm::vec3 ur = glm::vec3(r * upperRight);
+        const glm::mat4 r = glm::rotate(
+            rollRot,
+            glm::radians(90.f),
+            glm::vec3(1.f, 0.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeft);
+        const glm::vec3 ur = glm::vec3(r * upperRight);
         _subViewports.top.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -687,9 +703,9 @@ void SpoutOutputProjection::initViewports() {
 
     // front
     {
-        glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
-        glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
+        const glm::vec3 ll = glm::vec3(rollRot * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(rollRot * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(rollRot * upperRightBase);
         _subViewports.front.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -699,10 +715,14 @@ void SpoutOutputProjection::initViewports() {
 
     // back
     {
-        glm::mat4 r = glm::rotate(rollRot, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
-        glm::vec3 ll = glm::vec3(r * lowerLeftBase);
-        glm::vec3 ul = glm::vec3(r * upperLeftBase);
-        glm::vec3 ur = glm::vec3(r * upperRightBase);
+        const glm::mat4 r = glm::rotate(
+            rollRot,
+            glm::radians(180.f),
+            glm::vec3(0.f, 1.f, 0.f)
+        );
+        const glm::vec3 ll = glm::vec3(r * lowerLeftBase);
+        const glm::vec3 ul = glm::vec3(r * upperLeftBase);
+        const glm::vec3 ur = glm::vec3(r * upperRightBase);
         _subViewports.back.projectionPlane().setCoordinates(
             vec3(ll.x, ll.y, ll.z),
             vec3(ul.x, ul.y, ul.z),
@@ -731,7 +751,7 @@ void SpoutOutputProjection::initShaders() {
     _shader.deleteProgram();
 
     const bool isCubic = (_interpolationMode == InterpolationMode::Cubic);
-    std::string_view fragmentShader = [](bool useDepth, Settings::DrawBufferType type) {
+    const std::string_view fragment = [](bool useDepth, Settings::DrawBufferType type) {
         // It would be nice to do a multidimensional switch statement -.-
 
         constexpr auto tuple = [](bool depth, Settings::DrawBufferType t) -> uint16_t {
@@ -781,16 +801,16 @@ void SpoutOutputProjection::initShaders() {
 
     _shader = ShaderProgram(std::move(name));
     _shader.addShaderSource(shaders_fisheye::BaseVert, GL_VERTEX_SHADER);
-    _shader.addShaderSource(fragmentShader, GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(fragment, GL_FRAGMENT_SHADER);
 
-    std::string_view samplerShaderCode = [](Mapping mappingType) {
+    const std::string_view samplerShaderCode = [](Mapping mappingType) {
         switch (mappingType) {
             case Mapping::Fisheye:         return shaders_fisheye::SampleFun;
             case Mapping::Equirectangular: return shaders_fisheye::SampleLatlonFun;
             default:                       return shaders_fisheye::SampleFun;
         }
     }(_mappingType);
-    _shader.addShaderSource(std::move(samplerShaderCode), GL_FRAGMENT_SHADER);
+    _shader.addShaderSource(samplerShaderCode, GL_FRAGMENT_SHADER);
     _shader.addShaderSource(shaders_fisheye::RotationFun, GL_FRAGMENT_SHADER);
     _shader.addShaderSource(
         _interpolationMode == InterpolationMode::Cubic ?
@@ -817,7 +837,7 @@ void SpoutOutputProjection::initShaders() {
             glm::radians(_rigOrientation.z),
             glm::vec3(0.f, 0.f, 1.f)
         );
-        GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
+        const GLint rotMat = glGetUniformLocation(_shader.id(), "rotMatrix");
         glUniformMatrix4fv(rotMat, 1, GL_FALSE, glm::value_ptr(rollRot));
     }
 

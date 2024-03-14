@@ -32,7 +32,7 @@ TrackingDevice::TrackingDevice([[maybe_unused]] int parentIndex, std::string nam
 {}
 
 void TrackingDevice::setEnabled(bool state) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     _isEnabled = state;
 }
 
@@ -131,7 +131,7 @@ void TrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void TrackingDevice::setOrientation(quat q) {
-    std::unique_lock lock(mutex::Tracking);
+    const std::unique_lock lock(mutex::Tracking);
     _orientation = std::move(q);
     calculateTransform();
 }
@@ -167,8 +167,8 @@ void TrackingDevice::calculateTransform() {
     std::memcpy(&_deviceTransform, glm::value_ptr(transMat), sizeof(float[16]));
 }
 
-int TrackingDevice::sensorId() {
-    std::unique_lock lock(mutex::Tracking);
+int TrackingDevice::sensorId() const {
+    const std::unique_lock lock(mutex::Tracking);
     return _sensorId;
 }
 
@@ -297,12 +297,12 @@ void TrackingDevice::setButtonTimeStamp(int index) {
     _buttonTime[index] = time();
 }
 
-double TrackingDevice::trackerTimeStamp() {
+double TrackingDevice::trackerTimeStamp() const {
     const std::unique_lock lock(mutex::Tracking);
     return _trackerTime;
 }
 
-double TrackingDevice::trackerTimeStampPrevious() {
+double TrackingDevice::trackerTimeStampPrevious() const {
     const std::unique_lock lock(mutex::Tracking);
     return _trackerTimePrevious;
 }

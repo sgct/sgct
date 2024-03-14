@@ -101,7 +101,7 @@ public:
     /**
      * \return The id of this device/sensor
      */
-    int sensorId();
+    int sensorId() const;
 
     /**
      * \return The sensor's position in world coordinates
@@ -163,8 +163,8 @@ public:
      */
     vec3 sensorPositionPrevious() const;
 
-    double trackerTimeStamp();
-    double trackerTimeStampPrevious();
+    double trackerTimeStamp() const;
+    double trackerTimeStampPrevious() const;
 
     double analogTimeStamp() const;
     double analogTimeStampPrevious() const;

@@ -116,10 +116,10 @@ Buffer generateSkySkanMesh(const std::filesystem::path& path, BaseViewport& pare
     // create frustums and projection matrices
     if (!vFov.has_value() || *vFov <= 0.f) {
         // half the width (radius is one unit, cancels it self out)
-        const float hw = tan(glm::radians<float>(*hFov) / 2.f);
+        const float hw = std::tan(glm::radians<float>(*hFov) / 2.f);
         // half height
         const float hh = (1200.f / 2048.f) * hw;
-        vFov = 2.f * glm::degrees<float>(atan(hh));
+        vFov = 2.f * glm::degrees<float>(std::atan(hh));
 
         Log::Info(fmt::format("HFOV: {} VFOV: {}", *hFov, *vFov));
     }

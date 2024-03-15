@@ -23,8 +23,6 @@
 #include <Windows.h>
 #endif // WIN32
 
-#include <cstdarg> // va_copy
-
 namespace {
     std::string_view levelToString(sgct::Log::Level level) {
         switch (level) {
@@ -61,8 +59,8 @@ void Log::printv(Level level, std::string message) {
     if (_showTime) {
         constexpr int TimeBufferSize = 9;
         char TimeBuffer[TimeBufferSize];
-        time_t now = ::time(nullptr);
-        tm* timeInfoPtr;
+        const time_t now = ::time(nullptr);
+        tm* timeInfoPtr = nullptr;
         timeInfoPtr = localtime(&now);
         strftime(TimeBuffer, TimeBufferSize, "%X", timeInfoPtr);
 
@@ -77,7 +75,7 @@ void Log::printv(Level level, std::string message) {
         // messages (looking at you C-Troll) is actually getting the messages immediately.
         // If the `flush` doesn't happen here, all of the messages stack up in the buffer
         // and are only sent once the application is finished, which is no bueno
-        std::cout << message << std::endl;
+        std::cout << message << '\n';
 #ifdef WIN32
         OutputDebugStringA((message + '\n').c_str());
 #endif // WIN32

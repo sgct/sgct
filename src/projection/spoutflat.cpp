@@ -203,10 +203,10 @@ void SpoutFlatProjection::initFBO() {
 
 void SpoutFlatProjection::setupViewport(BaseViewport& vp) {
     _vpCoords = ivec4{
-        static_cast<int>(floor(vp.position().x * _resolutionX + 0.5f)),
-        static_cast<int>(floor(vp.position().y * _resolutionY + 0.5f)),
-        static_cast<int>(floor(vp.size().x * _resolutionX + 0.5f)),
-        static_cast<int>(floor(vp.size().y * _resolutionY + 0.5f))
+        static_cast<int>(std::floor(vp.position().x * _resolutionX + 0.5f)),
+        static_cast<int>(std::floor(vp.position().y * _resolutionY + 0.5f)),
+        static_cast<int>(std::floor(vp.size().x * _resolutionX + 0.5f)),
+        static_cast<int>(std::floor(vp.size().y * _resolutionY + 0.5f))
     };
 
     glViewport(_vpCoords.x, _vpCoords.y, _vpCoords.z, _vpCoords.w);
@@ -218,7 +218,7 @@ void SpoutFlatProjection::generateMap(unsigned int& texture, unsigned int intern
 {
     glDeleteTextures(1, &texture);
 
-    GLint maxMapRes;
+    GLint maxMapRes = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxMapRes);
     if (_resolutionX > maxMapRes || _resolutionY > maxMapRes) {
         Log::Error(fmt::format(
@@ -362,7 +362,7 @@ void SpoutFlatProjection::renderCubemap(Window& window, Frustum::Mode frustumMod
             attachTextures(idx);
         }
 
-        RenderData renderData(
+        const RenderData renderData = RenderData(
             win,
             vp,
             mode,

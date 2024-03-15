@@ -83,7 +83,7 @@ void SharedData::encode() {
     ZoneScoped;
 
     {
-        std::unique_lock lk(mutex::DataSync);
+        const std::unique_lock lk(mutex::DataSync);
         _dataBlock.clear();
 
         _dataBlock.insert(
@@ -139,7 +139,7 @@ void serializeObject(std::vector<std::byte>& buffer, const std::string& value) {
 void serializeObject(std::vector<std::byte>& buffer, const std::wstring& value) {
     uint32_t length = static_cast<uint32_t>(value.size());
     std::byte* p = reinterpret_cast<std::byte*>(&length);
-    const std::byte* ws = reinterpret_cast<const std::byte*>(&value[0]);
+    const std::byte* ws = reinterpret_cast<const std::byte*>(value.data());
 
     buffer.insert(buffer.end(), p, p + sizeof(uint32_t));
     buffer.insert(buffer.end(), ws, ws + length * sizeof(wchar_t));
@@ -149,7 +149,7 @@ template <>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        std::string& value)
 {
-    uint32_t size;
+    uint32_t size = 0;
     deserializeObject<uint32_t>(buffer, pos, size);
 
     value = std::string(
@@ -163,7 +163,7 @@ template <>
 void deserializeObject(const std::vector<std::byte>& buffer, unsigned int& pos,
                        std::wstring& value)
 {
-    uint32_t size;
+    uint32_t size = 0;
     deserializeObject<uint32_t>(buffer, pos, size);
 
     value = std::wstring(

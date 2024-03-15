@@ -17,7 +17,7 @@
 namespace sgct {
 
 SGCT_EXPORT [[nodiscard]] config::Cluster readConfig(const std::string& filename,
-    const std::string additionalErrorDescription = "");
+    const std::string& additionalError = "");
 
 SGCT_EXPORT [[nodiscard]] config::Cluster readJsonConfig(std::string_view configuration);
 

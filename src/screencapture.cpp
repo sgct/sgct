@@ -75,7 +75,7 @@ ScreenCapture::~ScreenCapture() {
             info.captureThread = nullptr;
         }
 
-        std::unique_lock lock(_mutex);
+        const std::unique_lock lock(_mutex);
         info.frameBufferImage = nullptr;
         info.isRunning = false;
     }
@@ -94,7 +94,7 @@ void ScreenCapture::initOrResize(ivec2 resolution, int channels, int bytesPerCol
 
     _downloadFormat = getDownloadFormat(_nChannels);
 
-    std::unique_lock lock(_mutex);
+    const std::unique_lock lock(_mutex);
     for (ScreenCaptureThreadInfo& info : _captureInfos) {
         if (info.frameBufferImage) {
             // kill threads that are still running
@@ -146,7 +146,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
     std::string file = createFilename(number);
     checkImageBuffer(capSrc);
 
-    int threadIndex = availableCaptureThread();
+    const int threadIndex = availableCaptureThread();
     if (threadIndex == -1) {
         Log::Error("Error finding available capture thread");
         return;

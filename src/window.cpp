@@ -91,9 +91,6 @@ bool Window::_isBarrierActive = false;
 bool Window::_isSwapGroupMaster = false;
 GLFWwindow* Window::_sharedHandle = nullptr;
 
-Window::Window() {}
-Window::~Window() {}
-
 void Window::applyWindow(const config::Window& window) {
     ZoneScoped;
 
@@ -106,7 +103,7 @@ void Window::applyWindow(const config::Window& window) {
         setTags(window.tags);
     }
     if (window.bufferBitDepth) {
-        ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
+        const ColorBitDepth bd = [](config::Window::ColorBitDepth cbd) {
             using CBD = config::Window::ColorBitDepth;
             switch (cbd) {
                 case CBD::Depth8: return ColorBitDepth::Depth8;
@@ -171,7 +168,7 @@ void Window::applyWindow(const config::Window& window) {
         setFullScreenMonitorIndex(*window.monitor);
     }
     if (window.stereo) {
-        StereoMode sm = [](config::Window::StereoMode mode) {
+        const StereoMode sm = [](config::Window::StereoMode mode) {
             using SM = config::Window::StereoMode;
             switch (mode) {
                 case SM::NoStereo: return StereoMode::NoStereo;
@@ -763,7 +760,7 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
     GLFWmonitor* mon = nullptr;
     if (_isFullScreen) {
         ZoneScopedN("Fullscreen Settings");
-        int count;
+        int count = 0;
         GLFWmonitor** monitors = glfwGetMonitors(&count);
 
         if (_monitorIndex > 0 && _monitorIndex < count) {
@@ -859,10 +856,12 @@ void Window::openWindow(GLFWwindow* share, bool isLastWindow) {
         glfwSetWindowFocusCallback(_windowHandle, windowFocusCallback);
     }
 
-    std::string title = "SGCT node: " +
-        ClusterManager::instance().thisNode().address() + " (" +
-        (NetworkManager::instance().isComputerServer() ? "server" : "client") +
-        ": " + std::to_string(_id) + ")";
+    const std::string title = fmt::format(
+        "SGCT node: {} ({}: {})",
+        ClusterManager::instance().thisNode().address(),
+        (NetworkManager::instance().isComputerServer() ? "server" : "client"),
+        _id
+    );
 
     setWindowTitle(_name.empty() ? title.c_str() : _name.c_str());
 
@@ -924,8 +923,8 @@ void Window::initScreenCapture() {
             sc.setTextureTransferProperties(_colorDataType);
         }
 
-        Settings::CaptureFormat format = Settings::instance().captureFormat();
-        ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
+        const Settings::CaptureFormat format = Settings::instance().captureFormat();
+        const ScreenCapture::CaptureFormat scf = [](Settings::CaptureFormat f) {
             using CF = Settings::CaptureFormat;
             switch (f) {
                 case CF::PNG: return ScreenCapture::CaptureFormat::PNG;
@@ -957,15 +956,16 @@ void Window::initScreenCapture() {
 }
 
 unsigned int Window::swapGroupFrameNumber() {
-    unsigned int frameNumber = 0;
-
 #ifdef WIN32
+    unsigned int frameNumber = 0;
     if (_isBarrierActive && glfwExtensionSupported("WGL_NV_swap_group")) {
         HDC hDC = wglGetCurrentDC();
         wglQueryFrameCountNV(hDC, &frameNumber);
     }
-#endif
     return frameNumber;
+#else // ^^^^ WIN32 // !WIN32 vvvv
+    return 0;
+#endif
 }
 
 void Window::resetSwapGroupFrameNumber() {
@@ -987,7 +987,7 @@ void Window::createTextures() {
     ZoneScoped;
     TracyGpuZone("Create Textures");
 
-    GLint max;
+    GLint max = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     if (_framebufferRes.x > max || _framebufferRes.y > max) {
         Log::Error(fmt::format(
@@ -1131,8 +1131,8 @@ void Window::loadShaders() {
     // reload shader program if it exists
     _stereo.shader.deleteProgram();
 
-    std::string_view stereoVertShader = shaders::BaseVert;
-    std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
+    const std::string_view stereoVertShader = shaders::BaseVert;
+    const std::string_view stereoFragShader = [](sgct::Window::StereoMode mode) {
         using SM = StereoMode;
         switch (mode) {
             case SM::AnaglyphRedCyan: return shaders::AnaglyphRedCyanFrag;

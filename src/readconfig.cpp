@@ -1581,7 +1581,7 @@ void to_json(nlohmann::json& j, const GeneratorVersion& v) {
 namespace sgct {
 
 config::Cluster readConfig(const std::string& filename,
-                           const std::string additionalErrorDescription)
+                           const std::string& additionalError)
 {
     Log::Debug(fmt::format("Parsing config '{}'", filename));
     if (filename.empty()) {
@@ -1605,7 +1605,7 @@ config::Cluster readConfig(const std::string& filename,
 
     // Then load the cluster
     using namespace config;
-    const Cluster cluster = [&additionalErrorDescription](std::filesystem::path path) {
+    const Cluster cluster = [&additionalError](const std::filesystem::path& path) {
         try {
             std::ifstream f = std::ifstream(path);
             const std::string contents = std::string(
@@ -1615,13 +1615,13 @@ config::Cluster readConfig(const std::string& filename,
             return readJsonConfig(contents);
         }
         catch (const nlohmann::json::exception& e) {
-            if (!additionalErrorDescription.empty()) {
+            if (!additionalError.empty()) {
                 throw Err(
                     6082,
                     fmt::format(
                         "Importing of this configuration file failed with the "
                         "message:\n\n{}:\n\n{}",
-                        additionalErrorDescription, e.what()
+                        additionalError, e.what()
                     )
                 );
             }
@@ -1739,7 +1739,7 @@ bool loadFileAndSchemaThenValidate(const std::string& config,
             fmt::format("Could not find schema file '{}'", schemaName)
         );
     }
-    std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
+    const std::filesystem::path schemaDir = std::filesystem::path(schema).parent_path();
     const std::string cfgString = stringifyJsonFile(std::string(config));
     bool validationSuccessful = false;
     try {
@@ -1773,7 +1773,7 @@ bool validateConfigAgainstSchema(const std::string& stringifiedConfig,
         [&schemaDir] (const nlohmann::json_uri& id, nlohmann::json& value) {
             std::string loadPath = schemaDir.string() + std::string("/") +
                 id.to_string();
-            const size_t lbIndex = loadPath.find("#");
+            const size_t lbIndex = loadPath.find('#');
             if (lbIndex != std::string::npos) {
                 loadPath = loadPath.substr(0, lbIndex);
             }
@@ -1833,7 +1833,7 @@ sgct::config::GeneratorVersion readConfigGenerator(const std::string& filename) 
         );
     }
 
-    config::GeneratorVersion genVersion = [](std::filesystem::path path) {
+    config::GeneratorVersion genVersion = [](const std::filesystem::path& path) {
         if (path.extension() == ".json") {
             try {
                 const std::ifstream f = std::ifstream(path);

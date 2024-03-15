@@ -49,8 +49,6 @@ ClusterManager::ClusterManager(int clusterID) : _thisNodeId(clusterID) {
     _users.push_back(std::make_unique<User>("default"));
 }
 
-ClusterManager::~ClusterManager() {}
-
 void ClusterManager::applyCluster(const config::Cluster& cluster) {
     ZoneScoped;
 
